@@ -25,7 +25,11 @@
         ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
         "pseudo":   { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20" },
         "avatarId": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)" },
+        // Avatar importé par le joueur : petite image JPEG ou WebP en texte (data URL), 30 000 caractères au plus.
+        "avatarImg": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length <= 30000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)" },
         "cree":     { ".validate": "newData.isNumber()" },
+        // Résumé public des parties (victoires v sur n parties), lisible par tout connecté.
+        "stats":    { ".read": "auth != null", ".validate": "newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val()", "v": { ".validate": "newData.isNumber()" }, "n": { ".validate": "newData.isNumber()" }, "$autre": { ".validate": false } },
         // 12 decks au plus : emplacements 0 à 11. Le total 24 à 30 est vérifié par le site
         // (un deck en cours de construction peut être plus petit).
         "decks": {
@@ -74,10 +78,39 @@
       }
     },
 
+    // Dernière activité d'un salon : activite/{code} = heure serveur, posée par un joueur présent.
+    // Lecture seulement par la requête du nettoyage (tri par valeur, 50 au plus) ; effacement seulement si plus de 7 jours.
+    "activite": {
+      ".read": "auth != null && query.orderByValue == true && query.limitToFirst <= 50",
+      ".indexOn": ".value",
+      "$code": {
+        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.parent().parent().child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && data.val() < now - 604800000))",
+        ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.val() === now"
+      }
+    },
+
+    // Salons publics en attente d'un adversaire : annonce posée par le créateur présent dans son salon (u = son uid),
+    // retirée par lui ou par un joueur présent dans le salon ; effacée à sa déconnexion.
+    "annonces": {
+      ".read": "auth != null",
+      "$code": {
+        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid) && root.child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && (data.child('u').val() === auth.uid || root.child('salons').child($code).child('joueurs').hasChild(auth.uid))))",
+        ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.hasChildren(['u', 'p', 't'])",
+        "u": { ".validate": "newData.val() === auth.uid" },
+        "p": { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child(auth.uid).child('pseudo').val()" },
+        "a": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)" },
+        "d": { ".validate": "newData.isString() && newData.val().length <= 24" },
+        "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
+        "t": { ".validate": "newData.val() === now" },
+        "$autre": { ".validate": false }
+      }
+    },
     "salons": {
       // Identifiant de salon court : 3 à 8 lettres minuscules ou chiffres.
       "$code": {
         ".validate": "$code.matches(/^[a-z0-9]{3,8}$/)",
+        // Effacement du salon entier (joueurs, coups, chat) seulement si sa dernière activité date de plus de 7 jours.
+        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !newData.exists() && root.child('activite').child($code).val() < now - 604800000",
         // Lecture d'un salon (joueurs et coups) pour tout joueur connecté.
         ".read": "auth != null",
 
@@ -168,7 +201,10 @@
           ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
           "pseudo":   { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20" },
           "avatarId": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)" },
+          "avatarImg": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length <= 30000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)" },
           "cree":     { ".validate": "newData.isNumber()" },
+          // Résumé public des parties (victoires v sur n parties), lisible par tout connecté.
+          "stats":    { ".read": "auth != null", ".validate": "newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val()", "v": { ".validate": "newData.isNumber()" }, "n": { ".validate": "newData.isNumber()" }, "$autre": { ".validate": false } },
           // 12 decks au plus : emplacements 0 à 11. Le total 24 à 30 est vérifié par le site
           // (un deck en cours de construction peut être plus petit).
           "decks": {
@@ -217,10 +253,39 @@
         }
       },
   
+      // Dernière activité d'un salon : activite/{code} = heure serveur, posée par un joueur présent.
+      // Lecture seulement par la requête du nettoyage (tri par valeur, 50 au plus) ; effacement seulement si plus de 7 jours.
+      "activite": {
+        ".read": "auth != null && query.orderByValue == true && query.limitToFirst <= 50",
+        ".indexOn": ".value",
+        "$code": {
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.parent().parent().child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && data.val() < now - 604800000))",
+          ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.val() === now"
+        }
+      },
+
+      // Salons publics en attente d'un adversaire : annonce posée par le créateur présent dans son salon (u = son uid),
+      // retirée par lui ou par un joueur présent dans le salon ; effacée à sa déconnexion.
+      "annonces": {
+        ".read": "auth != null",
+        "$code": {
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid) && root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && (data.child('u').val() === auth.uid || root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid))))",
+          ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.hasChildren(['u', 'p', 't'])",
+          "u": { ".validate": "newData.val() === auth.uid" },
+          "p": { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child(auth.uid).child('pseudo').val()" },
+          "a": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)" },
+          "d": { ".validate": "newData.isString() && newData.val().length <= 24" },
+          "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
+          "t": { ".validate": "newData.val() === now" },
+          "$autre": { ".validate": false }
+        }
+      },
       "salons": {
         // Identifiant de salon court : 3 à 8 lettres minuscules ou chiffres.
         "$code": {
           ".validate": "$code.matches(/^[a-z0-9]{3,8}$/)",
+          // Effacement du salon entier (joueurs, coups, chat) seulement si sa dernière activité date de plus de 7 jours.
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !newData.exists() && root.child('essai').child('activite').child($code).val() < now - 604800000",
           // Lecture d'un salon (joueurs et coups) pour tout joueur connecté.
           ".read": "auth != null",
   

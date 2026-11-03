@@ -55,3 +55,9 @@ Servi depuis `localhost` ou `127.0.0.1`, le site se branche automatiquement sur 
 4. Ctrl+C arrête l'émulateur ; comptes et données de test disparaissent. Comptes d'essai notés dans `tests/comptes_emulateur.txt`.
 
 Pour tester contre la vraie base, il faut désormais servir le site sous un autre nom d'hôte (par exemple l'adresse IP du PC sur le réseau local).
+## Site d'essai et publication
+Le site d'essai https://les-golems.github.io/essai/ utilise le préfixe Firebase essai/ (comptes, salons, decks, historique), des clés locales préfixées essai. et affiche « Essai » dans le titre et l'en-tête. Procédure :
+1. Ressources\13 - Outils\publier_essai.ps1 : copie index.html, *.js, moteurs/, cartes/, avatars/, icônes, manifest et og.jpg dans essai/ (sans tests/, .git ni fichiers Firebase locaux). Pousser.
+2. Tester sur https://les-golems.github.io/essai/.
+3. Ressources\13 - Outils\publier_public.ps1 : recopie essai/ vers la racine. Pousser.
+Aucun des deux scripts ne lance git : ils listent les fichiers copiés.

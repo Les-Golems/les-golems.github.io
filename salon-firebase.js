@@ -19,7 +19,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, setPersistence, browserSessionPersistence, browserLocalPersistence,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, equalTo, connectDatabaseEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, orderByValue, endAt, limitToFirst, equalTo, connectDatabaseEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { firebaseConfig as configEnLigne } from "./firebase-config.js";
 
 // Servi depuis localhost ou 127.0.0.1 : émulateur Firebase local (projet de démonstration
@@ -179,6 +179,16 @@ async function ouvre() {
       if (typeof uid !== "string" || !uid) return "";
       try { const v = (await get(ref(db, P + "joueurs/" + uid + "/avatarId"))).val(); return typeof v === "string" ? v : ""; } catch (e) { return ""; }
     },
+    // Résumé public des parties (joueurs/{uid}/stats = { v: victoires, n: parties }), tiré de l'historique.
+    async publieStats() {
+      if (!compte.connecte()) return;
+      const h = donnees.historique, v = h.filter(x => x.res === "Victoire").length;
+      try { await set(ref(db, P + "joueurs/" + moi + "/stats"), { v, n: h.length }); } catch (e) {}
+    },
+    async statsDe(uid) {
+      if (typeof uid !== "string" || !uid) return null;
+      try { const s = (await get(ref(db, P + "joueurs/" + uid + "/stats"))).val(); return s && Number.isInteger(s.n) ? s : null; } catch (e) { return null; }
+    },
     donnees: () => donnees,
     onChange(f) { ecouteCompte.push(f); },
     async creer(pseudo, code) {
@@ -257,6 +267,7 @@ async function ouvre() {
       donnees.historique.splice(MAX_HISTO).forEach(x => { maj[x.id] = null; });
       for (const k in maj) if (maj[k] && !donnees.historique.some(y => y.id === k)) delete maj[k];
       if (Object.keys(maj).length) await update(ref(db, P + "joueurs/" + moi + "/historique"), maj);
+      compte.publieStats();
     },
     async videHisto() {
       if (!compte.connecte()) return;
@@ -323,6 +334,17 @@ async function ouvre() {
         pousses[cle] = n + 1;
       }
     }
+    // Dernière activité du salon (activite/{code} = heure serveur), au plus une fois par minute.
+    // Sert au nettoyage des salons inactifs depuis plus de 7 jours.
+    let touche0 = 0;
+    function touche() {
+      if (Date.now() - touche0 < 60000) return;
+      touche0 = Date.now();
+      set(ref(db, P + "activite/" + code), serverTimestamp()).catch(() => { touche0 = 0; });
+    }
+    // Annonce publique (annonces/{code}) : effacée à la déconnexion du créateur.
+    const annRef = ref(db, P + "annonces/" + code);
+    let annonceOn = false;
     function ecrit() { return update(moiRef, { ...pres, t: serverTimestamp() }); }
     const reco = () => { if (enLigne && !fini) { onDisconnect(moiRef).remove(); ecrit().catch(() => {}); } };
     ecouteCo.push(reco);
@@ -359,9 +381,25 @@ async function ouvre() {
         // null efface le champ côté base
         const maj = { ...filtre(reste, CHAMPS_SALON), t: serverTimestamp() };
         await update(moiRef, maj);
+        touche();
         if (j !== undefined && j !== null) await envoieJournal(j);
       },
+      // o = { d: nom du deck, e: éléments "brume,roche" } pour publier, null pour retirer.
+      async annonce(o) {
+        if (o) {
+          const v = { u: uid, p: donnees && donnees.pseudo || "", a: donnees && donnees.avatarId || "", d: String(o.d || "").slice(0, 24), e: String(o.e || "").slice(0, 60), t: serverTimestamp() };
+          if (!v.a) delete v.a; if (!v.d) delete v.d; if (!v.e) delete v.e;
+          if (!annonceOn) await onDisconnect(annRef).remove();
+          await set(annRef, v); annonceOn = true;
+        } else {
+          // Le créateur ou un joueur présent peut retirer l'annonce (salon complet).
+          const v = annonceOn ? true : (await get(annRef).catch(() => null));
+          if (v === true || (v && v.exists())) { try { await remove(annRef); } catch (e) {} }
+          if (annonceOn) { try { await onDisconnect(annRef).cancel(); } catch (e) {} annonceOn = false; }
+        }
+      },
       async leave() {
+        if (annonceOn) { annonceOn = false; try { await onDisconnect(annRef).cancel(); await remove(annRef); } catch (e) {} }
         fini = true;
         stop.forEach(f => f());
         const i = ecouteCo.indexOf(reco); if (i >= 0) ecouteCo.splice(i, 1);
@@ -386,6 +424,28 @@ async function ouvre() {
       await update(hallRef, { ...q, t: serverTimestamp() });
     },
     compte,
+    // Salons publics en attente : f(liste de { code, u, p, a, d, e, t }) à chaque changement.
+    annonces(f) {
+      return onValue(ref(db, P + "annonces"), s => {
+        const v = s.val() || {};
+        f(Object.keys(v).map(k => ({ code: k, ...v[k] })).filter(x => typeof x.u === "string").sort((a, b) => (+b.t || 0) - (+a.t || 0)));
+      }, () => f([]));
+    },
+    // Nettoyage : efface les salons sans activité depuis plus de 7 jours (avec coups, chat et annonce).
+    // Les règles n'autorisent la lecture de activite que pour cette requête, et l'effacement que d'un salon vieux.
+    async nettoie() {
+      if (!estCompte()) return 0;
+      const SEPT = 7 * 24 * 3600 * 1000;
+      let n = 0;
+      try {
+        const s = await get(query(ref(db, P + "activite"), orderByValue(), endAt(Date.now() - SEPT - 3600 * 1000), limitToFirst(20)));
+        const v = s.val() || {};
+        for (const c in v) {
+          try { await update(ref(db), { [P + "salons/" + c]: null, [P + "activite/" + c]: null }); n++; } catch (e) { console.warn("nettoyage", c, e); }
+        }
+      } catch (e) { console.warn("nettoyage", e); }
+      return n;
+    },
     // Lecture brute (tests locaux) : soumise aux mêmes règles que le reste.
     lit: p => get(ref(db, P + p)).then(s => s.val()),
     join
