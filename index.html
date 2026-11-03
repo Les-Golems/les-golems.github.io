@@ -759,18 +759,21 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
   .d-panneau .dl-nom{flex-direction:row;align-items:baseline;gap:8px}
   .d-panneau .dl-pseudo{flex:none}
   .d-panneau .dl-titre{flex:1;min-width:0}
-  .d-panneau .dl-nom{font-size:14px;line-height:1.15}
-  .d-panneau .dl-els img{width:18px;height:18px}
+  .d-panneau .dl-nom{font-size:15.5px;line-height:1.15}
+  .d-panneau .dl-titre{font-size:13px}
+  .d-panneau .dl-cout,.d-panneau .dl-force,.d-panneau .dl-nb{font-size:17px}
+  .d-panneau .dl-els img{width:22px;height:22px}
+  .d-panneau{scrollbar-gutter:stable}
   /* Panneau condense : 30 cartes et la courbe des couts tiennent a 1280 x 800 sans defiler. */
   .d-panneau .d-haut{flex-wrap:nowrap;gap:6px}
   .d-panneau .d-haut h3{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .d-panneau .d-haut:has(.ligne){flex-wrap:wrap}
   .d-panneau .dl-liste li+li{margin-top:1px}
-  .d-panneau .dl-ligne{min-height:27px;padding:1px 6px}
+  .d-panneau .dl-ligne{grid-template-columns:40px 40px 48px minmax(0,1fr) 30px;min-height:30px;padding:2px 6px}
   .d-panneau .dl-nom{line-height:1.05}
   .d-panneau .dl-pied{padding-top:6px;position:sticky;bottom:-12px;margin-bottom:-12px;padding-bottom:12px;background:var(--panneau);box-shadow:0 -6px 8px -6px rgba(0,0,0,.6)}
   .d-panneau .dl-total{margin-bottom:4px}
-  .d-panneau .dl-col i{height:calc(var(--v)*30px)}
+  .d-panneau .dl-col i{height:calc(var(--v)*32px)}
   .d-panneau .d-haut{margin-bottom:3px}
   /* Tuile etroite : boutons sur deux lignes de deux, jamais coupes. */
   @container (max-width:250px){#listeDecks#listeDecks .d-zone .d-act{grid-template-columns:repeat(2,minmax(0,1fr))}#listeDecks#listeDecks .d-zone .d-act>.btn{font-size:13px}.d-zone .d-tuile .d-haut h3{font-size:18px}}
@@ -794,11 +797,17 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .dl-nb{text-align:right;font:400 16px/1 var(--titre);color:var(--or)}
 .dl-apercu{position:fixed;z-index:50;width:220px;height:308px;object-fit:contain;border-radius:10px;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.6)}
 .dl-pied{max-width:640px;margin:14px auto 0}
-.dl-total{margin:0 0 8px;font-weight:800}
-.dl-courbe{display:flex;align-items:flex-end;gap:6px;max-width:280px}
-.dl-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;font-size:13px;color:var(--doux)}
-.dl-col i{display:block;width:100%;height:calc(var(--v)*44px);min-height:0;border-radius:3px 3px 0 0;background:var(--bleu)}
-.dl-col small{font-size:12px;line-height:1}
+.dl-total{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 0 8px;padding:0 8px}
+.dl-tot{font:400 18px/1 var(--titre);color:var(--or)}
+.dl-moy{font-size:14px;color:var(--doux)}.dl-moy b{font:400 18px/1 var(--titre);color:#01C1F0;margin-left:4px}
+.dl-courbe{display:grid;grid-template-columns:repeat(7,40px);justify-content:center;column-gap:10px;align-items:end;margin:0 auto}
+.dl-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;padding:3px 0 2px;border-radius:6px;color:var(--doux);height:100%}
+.dl-col i{display:block;width:26px;height:calc(var(--v)*44px);border-radius:3px 3px 0 0;background:#01C1F0}
+.dl-col small{font:400 14px/1 var(--titre);color:#fff}
+.dl-pc{display:inline-flex;align-items:center;gap:2px;font:400 14px/1 var(--titre);color:var(--doux)}.dl-pc .ico{font-size:14px}
+.dl-col.dl-vide{opacity:.35}.dl-col.dl-vide small{color:var(--doux)}
+.dl-col.dl-moy-col{background:rgba(1,193,240,.13);box-shadow:inset 0 0 0 1px rgba(1,193,240,.4)}.dl-moy-col .dl-pc{color:#01C1F0}
+@media (max-width:440px){.dl-courbe{grid-template-columns:repeat(7,minmax(0,38px));column-gap:6px}.dl-col i{width:22px}.dl-total{padding:0 4px}}
 .d-limite{color:var(--or);font-weight:700}
 .dl-invalide{margin:0 0 8px}
 .d-panneau{scrollbar-width:thin;scrollbar-color:#3d4e5d transparent}
@@ -881,6 +890,8 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
 .pastille,.modif,.p-outil,.onglets button{--bord:#121b24;background:linear-gradient(#3d4e5d,#283643);color:#e8eff4;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 3px 0 var(--bord),0 5px 10px rgba(0,0,0,.35)}
 .j-btn,.pastille[aria-pressed=true],.onglets button[aria-selected=true]{--bord:#08708c;background:linear-gradient(#3bd2f7,#01aad6);color:var(--encre);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 3px 0 var(--bord),0 5px 10px rgba(0,0,0,.35)}
 .onglets{gap:8px;padding-block:6px 9px}
+/* Onglets : 17 px et 44 px de haut partout (nav = 60 px, sous le top:64px des panneaux collants). */
+.onglets button:not(#_x#_x),body:has(#jouer.enJeu:not([hidden])) .onglets button:not(#_x#_x){min-height:44px;height:44px;font-size:17px;padding-block:0}
 :is(.pastille,.modif,.j-btn,.p-outil,.onglets button):not(:disabled):hover{filter:brightness(1.08);translate:0 -1px}
 :is(.pastille,.modif,.j-btn,.p-outil,.onglets button):not(:disabled):active{transform:none;translate:0 2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 1px 0 var(--bord)}
 /* En-tete bleu ciel */
@@ -2508,12 +2519,16 @@ function decklist(b,d,l){
     li.append(q);u.append(li);
   });
   b.append(u,ap);
-  const tot=L.reduce((t,x)=>t+x.n,0),moy=L.reduce((t,x)=>t+x.n*x.C.cout,0)/tot,mx=Math.max(...L.map(x=>x.C.cout));
-  const pa=Array.from({length:mx+1},(_,i)=>L.filter(x=>x.C.cout===i).reduce((t,x)=>t+x.n,0)),hm=Math.max(...pa);
-  const pied=el('div','dl-pied'),cv=el('div','dl-courbe');
-  cv.setAttribute('role','img');cv.setAttribute('aria-label','Courbe de coûts : '+pa.map((v,i)=>v+' à '+i).join(', '));
-  pa.forEach((v,i)=>{const k=el('div','dl-col'),ba=el('i');ba.style.setProperty('--v',v/hm);k.append(el('small','',v?String(v):''),ba,el('span','',String(i)));cv.append(k)});
-  pied.append(el('p','dl-total',tot+' carte'+(tot>1?'s':'')+', coût moyen '+moy.toFixed(1).replace('.',',')),cv);
+  /* Pied : compte a gauche, cout moyen a droite ; courbe 0 a 6+ centree, colonne du cout moyen arrondi surlignee. */
+  const tot=L.reduce((t,x)=>t+x.n,0),moy=L.reduce((t,x)=>t+x.n*x.C.cout,0)/tot,im=Math.min(6,Math.round(moy));
+  const pa=Array.from({length:7},(_,i)=>L.filter(x=>i<6?x.C.cout===i:x.C.cout>=6).reduce((t,x)=>t+x.n,0)),hm=Math.max(1,...pa);
+  const pied=el('div','dl-pied'),cv=el('div','dl-courbe'),ent=el('div','dl-total'),mo=el('span','dl-moy');
+  mo.append('Coût moyen ',el('b','',moy.toFixed(1).replace('.',',')));
+  ent.append(el('b','dl-tot',tot+'/'+DECK_MAX),mo);
+  cv.setAttribute('role','img');cv.setAttribute('aria-label','Courbe de coûts : '+pa.map((v,i)=>v+' à '+(i<6?i:'6 ou plus')).join(', '));
+  pa.forEach((v,i)=>{const k=el('div','dl-col'+(v?'':' dl-vide')+(i===im?' dl-moy-col':'')),ba=el('i'),pc=el('span','dl-pc');ba.style.setProperty('--v',v/hm);
+    pc.append(ico('enclume'),i<6?String(i):'6+');k.append(el('small','',String(v)),ba,pc);cv.append(k)});
+  pied.append(ent,cv);
   b.append(pied);
 }
 function editeur(b,l,d){
