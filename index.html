@@ -1,0 +1,2348 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<title>Les Golems</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Lilita+One&family=Nunito+Sans:wght@400;700;800&display=swap');
+:root{
+  --bleu:#01C1F0;--encre:#0a121a;--panneau:#121e29;--panneau2:#1a2a38;--trait:#2a3f50;
+  --texte:#eaf4f8;--doux:#a6bac6;--or:#f1c35a;--erreur:#ff9c8a;
+  --magma:#ee6a2c;--cristal:#f086c0;--foudre:#f2cb2e;--brume:#a9a6d6;--roche:#b98c5e;
+  --fm-magma:#c64213;--fm-cristal:#ac4f81;--fm-foudre:#896b10;--fm-brume:#776895;--fm-roche:#936547;
+  --titre:'Lilita One',Impact,sans-serif;--corps:'Nunito Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;scrollbar-gutter:stable}
+body{margin:0;background:var(--encre);color:var(--texte);font:400 16px/1.55 var(--corps);overflow-x:hidden}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
+.large{max-width:1640px;margin:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{background:var(--panneau);border-bottom:1px solid var(--trait)}
+.haut{display:flex;align-items:center;gap:12px;padding-block:10px}
+.haut img{width:44px;height:44px}
+h1,h2,h3{font-family:var(--titre);font-weight:400;line-height:1.15;margin:0}
+h1{font-size:26px;flex:1;min-width:0}
+.moi{display:flex;align-items:center;gap:8px;min-width:0;font-size:14px;color:var(--doux)}
+.moi b{color:var(--texte);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px}
+.lien{background:none;border:0;padding:6px 0;color:var(--bleu);font-weight:700;font-size:14px;text-decoration:underline}
+nav{position:sticky;top:0;z-index:5;background:var(--encre);border-bottom:1px solid var(--trait)}
+.onglets{display:flex;gap:4px}
+.onglets button{flex:1;max-width:180px;background:none;border:0;border-bottom:3px solid transparent;padding:12px 8px;font-family:var(--titre);font-size:18px;color:var(--doux)}
+.onglets button[aria-selected=true]{color:var(--bleu);border-color:var(--bleu)}
+main{padding-block:24px 48px}
+h2{font-size:28px;margin-bottom:6px}
+.intro{color:var(--doux);margin:0 0 20px}
+
+details{background:var(--panneau);border:1px solid var(--trait);border-radius:10px;margin-bottom:10px}
+summary{cursor:pointer;padding:14px 16px 14px 0;margin-left:34px}
+summary h3{display:inline;font-size:19px;color:var(--bleu)}
+summary span{display:block;color:var(--doux);font-size:14.5px}
+.corps{padding:0 16px 8px 34px;max-width:760px}
+.corps ul,.corps ol{margin:0 0 12px;padding-left:20px}
+.corps li{margin-bottom:6px}
+.corps p{margin:0 0 12px}
+.annote{display:grid;grid-template-columns:330px minmax(0,1fr);gap:10px;margin:0 0 14px}
+.an-vis{position:relative;width:min(330px,100%);aspect-ratio:330/392}
+.an-carte{position:absolute;left:0;top:0;width:84.85%;height:100%}
+.an-carte>img{display:block;width:100%;height:100%;border-radius:12px}
+.an-liens{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible}
+.an-liens rect{fill:none;stroke:#fff;stroke-width:1.2}
+.an-liens path{fill:none;stroke:var(--bleu);stroke-width:1.2}
+.an-liens circle{fill:var(--bleu)}
+.an-liens text{fill:var(--encre);font-size:12.5px;font-weight:800;text-anchor:middle}
+.annote ol{list-style:none;margin:0;padding:0;display:grid;grid-auto-rows:1fr;height:392px}
+.annote li{margin:0;display:flex;align-items:center;gap:8px;font-size:14.5px;line-height:1.25}
+.annote li>i{display:none;flex:none;width:20px;height:20px;border-radius:50%;background:var(--bleu);color:var(--encre);font-size:12px;font-weight:800;font-style:normal;line-height:20px;text-align:center}
+.corps ol.etapes{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin:0 0 14px;padding:0}
+.corps .etapes li{position:relative;margin:0;background:var(--panneau2);border:1px solid var(--trait);border-radius:10px;padding:10px 8px;text-align:center;font-size:13.5px;line-height:1.25;color:var(--doux)}
+.etapes b{display:block;font-family:var(--titre);font-weight:400;font-size:17px;color:var(--bleu);margin-bottom:3px}
+.etapes li:not(:last-child)::after{content:"";position:absolute;right:-14px;top:50%;width:9px;height:9px;border-top:2px solid var(--bleu);border-right:2px solid var(--bleu);transform:translateY(-50%) rotate(45deg)}
+.cercle-el{display:block;width:min(340px,100%);height:auto;margin:0 auto 12px}
+.cercle-el>path{fill:none;stroke:var(--bleu);stroke-width:2.5}
+.cercle-el text{fill:var(--texte);font-weight:700;font-size:15px;text-anchor:middle}
+.face{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 12px}
+.face figure{margin:0;width:104px;text-align:center;font-size:13.5px;font-weight:700}
+.face img{display:block;width:100%;height:auto;border-radius:7px;margin-bottom:5px}
+.face span{color:var(--doux);font-size:13.5px}
+@media (max-width:640px){
+  .annote{display:block}
+  .an-vis{margin:0 auto 12px}
+  .annote ol{height:auto;display:block}
+  .annote li{margin-bottom:8px}
+  .annote li>i{display:block}
+  .corps ol.etapes{grid-template-columns:minmax(0,1fr)}
+  .etapes li:not(:last-child)::after{right:auto;left:50%;top:auto;bottom:-13px;transform:translateX(-50%) rotate(135deg)}
+}
+
+.filtres{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.pastille{background:var(--panneau);border:1px solid var(--trait);border-radius:999px;padding:7px 14px;min-height:38px;font-size:14.5px;font-weight:700;display:inline-flex;align-items:center;gap:7px}
+.pastille:disabled{opacity:.4;cursor:not-allowed}
+.pastille[aria-pressed=true]{background:var(--bleu);border-color:var(--bleu);color:var(--encre)}
+.pastille i{width:11px;height:11px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1px var(--encre)}
+.grille{--col:4;display:grid;grid-template-columns:repeat(var(--col),minmax(0,1fr));gap:14px;margin-top:18px}
+.paire{display:contents}
+@media (min-width:1200px){.grille{--col:6}}
+@media (min-width:1400px){.grille{--col:8}}
+.carte{background:none;border:0;padding:0;border-radius:12px;display:block;width:100%;transition:transform .15s}
+.carte:hover{transform:translateY(-3px)}
+.carte img{display:block;width:100%;aspect-ratio:5/7;height:auto;border-radius:12px;background:var(--panneau)}
+@media (max-width:600px){.grille{--col:2;gap:10px}}
+.vide{color:var(--doux);margin-top:18px}
+
+.voile{position:fixed;inset:0;z-index:20;background:rgba(5,10,15,.86);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.boite{background:var(--panneau);border:1px solid var(--trait);border-radius:14px;padding:24px;width:100%;max-width:360px;text-align:center;margin:auto}
+.boite img{width:120px;height:120px}
+.boite h2{margin:6px 0 16px}
+label{display:block;text-align:left;font-weight:700;font-size:14.5px;margin-bottom:6px}
+input[type=text]{width:100%;background:var(--encre);border:1px solid var(--trait);border-radius:8px;padding:11px 12px;font-size:16px}
+.erreur{color:var(--erreur);font-size:14.5px;min-height:22px;margin:6px 0;text-align:left}
+.btn{--bord:#08708c;background:linear-gradient(#3bd2f7,#01aad6);color:var(--encre);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 3px 0 var(--bord),0 5px 10px rgba(0,0,0,.35);transition:translate .1s,box-shadow .1s,filter .1s;border:0;border-radius:8px;padding:12px 20px;font-family:var(--titre);font-size:18px;min-height:46px}
+.btn:not(:disabled):hover{filter:brightness(1.08);translate:0 -1px}
+.btn:not(:disabled):active{translate:0 2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 1px 0 var(--bord)}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn.sec{--bord:#121b24;background:linear-gradient(#3d4e5d,#283643);color:#e8eff4}
+.btn.plein{width:100%}
+.grand{display:flex;flex-direction:column;align-items:center;gap:12px;margin:auto;width:100%}
+.grand img{display:block;width:min(420px,100%,calc((100vh - 110px)*5/7));height:auto;border-radius:16px}
+
+.bloc{background:var(--panneau);border:1px solid var(--trait);border-radius:12px;padding:18px;margin-bottom:14px}
+.bloc h3{font-size:19px;margin-bottom:10px}
+.ligne{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.ligne>div{flex:1 1 170px;min-width:0}
+.etat{color:var(--doux);font-size:14.5px;margin:0 0 14px;display:flex;align-items:center;gap:8px}
+.etat i{width:9px;height:9px;border-radius:50%;background:var(--doux);flex:none}
+.etat.ok i{background:var(--bleu)}
+.code{font-family:var(--titre);font-size:34px;letter-spacing:.12em;color:var(--bleu);line-height:1.1;margin-bottom:12px}
+#joueurs{list-style:none;margin:0 0 12px;padding:0}
+#joueurs li{background:var(--panneau2);border-radius:8px;padding:9px 12px;margin-bottom:6px;display:flex;gap:8px;align-items:center;min-width:0}
+#joueurs span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#joueurs .coche{flex:none;width:20px;height:20px;display:block;color:#3fcf6e}
+#joueurs .coche svg{display:block;width:100%;height:100%}
+#pret{margin-bottom:10px}
+#joueurs em{font-style:normal;font-size:13px;font-weight:800;background:var(--bleu);color:var(--encre);border-radius:5px;padding:0 7px;flex:none}
+#attente{font-weight:800;margin:0 0 14px}
+#attente.pret{color:var(--or)}
+.absent{background:var(--panneau2);border-left:3px solid var(--or);padding:10px 14px;border-radius:6px;margin:0 0 14px}
+
+/* Nouveautes */
+@media (max-width:440px){.onglets button{font-size:15.5px;padding:12px 2px}}
+.note{background:var(--panneau);border:1px solid var(--trait);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.note h3{font-size:19px;color:var(--bleu)}
+.note time{display:block;color:var(--doux);font-size:14px;margin-bottom:6px}
+.note ul{margin:0;padding-left:20px}
+/* Partie */
+#jouer.enJeu>h2,#jouer.enJeu>.intro,#jouer.enJeu>.etat,#jouer.enJeu>.absent{display:none}
+main.large:has(#jouer.enJeu:not([hidden])){max-width:1640px;padding-block:8px 16px}
+body:has(#jouer.enJeu:not([hidden])) header{display:none}
+body:has(#jouer.enJeu:not([hidden])) nav{position:static}
+body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:16px}
+#jouer{--h:104px;--moi:var(--bleu);--lui:var(--magma)}
+.p-table{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.p-table>*{min-width:0}
+.ico{display:inline-flex;flex:none;width:1em;height:1em}
+.ico svg{display:block;width:100%;height:100%}
+/* Barre du haut */
+.p-barre{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;align-items:stretch;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:1px solid var(--trait);border-radius:18px 11px 20px 10px/11px 19px 10px 18px;padding:4px}
+.p-barre.amoi{border-color:var(--bleu);box-shadow:0 0 0 1px var(--bleu),0 3px 14px rgba(1,193,240,.3)}
+.p-info{display:flex;align-items:center;justify-content:center;gap:12px;min-width:0;height:46px;padding:0 10px}
+.p-info+.p-info{border-left:1px solid var(--trait)}
+.p-info>.ico{font-size:40px;color:var(--bleu)}
+.p-info>.ico svg{transform:translateY(1.5%)}
+.p-info.score>.ico{color:var(--or)}
+.p-info.score>.ico svg{transform:translateY(calc(1.5% - .16px)) scale(1.011)}
+.p-info small{font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--doux);line-height:1}
+.p-pts{display:flex;align-items:center;gap:7px}
+.p-pts i{width:18px;height:18px;background:var(--trait);border-radius:7px 4px 8px 3px/4px 8px 3px 7px;transform:rotate(45deg) scale(.8)}
+.p-pts i.fait{background:#0d6f88}
+.p-pts i.on{background:var(--bleu);box-shadow:0 0 10px var(--bleu)}
+.p-score{display:flex;align-items:center;gap:10px;font-family:var(--titre);font-size:32px;line-height:1}
+.p-score b{font-weight:400;color:var(--moi)}
+.p-score em{font-style:normal;color:var(--lui)}
+.p-score span{font-size:22px;color:var(--doux)}
+/* Plateau */
+.p-plateau{display:flex;flex-direction:column;gap:6px}
+.p-camp{display:flex;flex-wrap:wrap;gap:4px 5px;align-items:center;background:var(--panneau);border:1px solid var(--trait);border-radius:12px 8px 13px 7px/8px 12px 7px 13px;padding:4px 8px;min-width:0}
+.p-camp>b{font-family:var(--titre);font-weight:400;font-size:19px;line-height:1.15;margin-right:auto;overflow-wrap:anywhere;min-width:0}
+.p-camp.lui>b{color:var(--lui)}
+.p-camp.toi>b{color:var(--moi)}
+.p-compteur{display:inline-flex;align-items:center;gap:3px;background:var(--panneau2);border-radius:9px 6px 10px 5px;padding:2px 5px;font-size:12px;line-height:1.2;color:var(--doux)}
+.p-compteur .ico{font-size:15px;color:var(--bleu)}
+.p-compteur b{font-family:var(--titre);font-weight:400;font-size:18px;line-height:1.1;color:var(--texte)}
+.p-compteur.energie{background:var(--or);color:var(--encre);font-weight:800}
+.p-compteur.energie .ico{color:#6d5212}
+.p-compteur.energie b{color:var(--encre);font-size:20px}
+.p-grille{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;border-radius:14px}
+.p-grille.active{box-shadow:0 0 0 2px var(--bleu),0 0 16px rgba(1,193,240,.3)}
+.p-case{position:relative;height:var(--h);padding:0;border:1px solid var(--trait);background:var(--panneau);overflow:hidden;min-width:0;display:block;width:100%;color:var(--doux);font-size:15px;line-height:1.2;border-radius:13px 9px 14px 8px/9px 13px 8px 14px}
+.p-case:disabled{cursor:default;border-style:dashed;background:transparent}
+.p-case.evo .mini{box-shadow:inset 0 0 0 3px var(--or)}
+.p-case.evo .mini .nom{color:#fff}
+.mini{--f:clamp(44px,calc(var(--h)*.58),74px);position:absolute;inset:0;display:block;text-align:left;color:#fff;background:linear-gradient(90deg,var(--a) 22%,var(--b) 78%)}
+.mini .nom{position:absolute;inset:4px 7px auto;font:400 clamp(14.5px,calc(var(--h)*.2),21px)/1.1 var(--titre);text-shadow:0 1px 3px #0a121a;overflow-wrap:anywhere}
+.mini .bas{position:absolute;left:6px;bottom:5px;display:flex;align-items:center;gap:5px}
+.mini .cout{display:inline-flex;align-items:center;gap:3px;padding:0 6px 0 3px;border-radius:8px 5px 9px 4px;background:rgba(10,18,26,.72);font:400 16px/23px var(--titre);color:#fff;-webkit-text-stroke:3px #0a121a;paint-order:stroke fill}
+.mini .cout .ico{font-size:17px;color:#d3dbe0}
+.p-case.cible{border:2px solid var(--or);background:var(--panneau2);color:var(--or);font-weight:800}
+.p-case.choisie{border:3px solid var(--bleu)}
+.p-case .f{position:absolute;right:3px;bottom:2px;width:calc(var(--f)*.9);height:var(--f);color:#dfe5e9}
+.p-case .f .ico{position:absolute;inset:0;width:100%;height:100%}
+.p-case .f b{position:absolute;inset:0 0 3px;display:flex;align-items:center;justify-content:center;font:400 calc(var(--f)*.58)/1 var(--titre);color:#fff;-webkit-text-stroke:4px #0a121a;paint-order:stroke fill}
+.p-case .deg{padding:0 6px;border-radius:9px 6px 10px 5px;background:#a52c1a;color:#fff;font:400 16px/23px var(--titre)}
+.p-case .act{position:absolute;left:0;bottom:0;right:48px;background:rgba(5,10,15,.92);color:var(--or);font-size:13.5px;font-weight:800;padding:3px 5px;border-radius:0 8px 0 0;text-align:center}
+/* Terrains */
+.p-terrains{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.p-terrain{background:var(--panneau2);border:1px solid var(--trait);border-radius:10px 15px 9px 14px/14px 9px 15px 10px;padding:4px 6px;text-align:center;font-size:12.5px;line-height:1.2;color:var(--doux);min-width:0;overflow-wrap:anywhere}
+.p-tete{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:1px 6px}
+.p-tete>b{font-family:var(--titre);font-weight:400;font-size:16px;line-height:1.15;color:var(--texte)}
+.p-valeur{background:var(--or);color:var(--encre);font:400 15px/20px var(--titre);padding:0 7px;border-radius:10px 7px 11px 6px}
+.p-totaux{display:flex;justify-content:center;align-items:center;gap:8px;margin:auto 0;font:400 25px/1.1 var(--titre)}
+.p-totaux span:not(.p-valeur){font:700 13px var(--corps);color:var(--doux)}
+.p-totaux b{font-weight:400}
+.p-totaux .a{color:var(--lui)}
+.p-totaux .m{color:var(--moi)}
+.p-totaux .a,.p-totaux .m{opacity:.6}
+.p-totaux .tete{opacity:1;text-shadow:0 0 12px currentColor}
+.p-terrain{position:relative;display:flex;flex-direction:column;min-height:78px}
+.p-terrain .p-valeur{position:absolute;left:5px;bottom:5px;font-size:13px;line-height:17px;padding:0 5px}
+.p-terrain .oeil{pointer-events:none}
+.p-terrain:hover .oeil{color:#fff;border-color:var(--bleu)}
+#vueTerrain{width:min(420px,100%,calc((100vh - 110px)*5/7));flex:none}
+#vueTerrain[hidden],#vueImg[hidden]{display:none}
+/* Poste de jeu */
+.p-poste{display:flex;flex-direction:column;gap:8px;min-width:0}
+.p-tourde{display:flex;align-items:center;justify-content:center;min-width:0;height:46px;padding:0 8px;font-family:var(--titre);font-size:22px;line-height:1.05;text-align:center;color:var(--doux);border-radius:12px 8px 13px 7px;overflow-wrap:anywhere}
+.p-tourde.amoi{background:var(--bleu);color:var(--encre)}
+.p-consigne{background:var(--panneau2);border-radius:8px;padding:8px 12px;min-height:60px;font-size:15px;line-height:1.4;overflow-wrap:anywhere}
+.p-consigne em{display:block;font-style:normal;font-weight:800;color:var(--or)}
+.p-main{display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));gap:9px;padding:4px 2px}
+.p-carte{padding:0;border:3px solid transparent;border-radius:13px;background:none;position:relative;transition:transform .12s;min-width:0}
+.p-carte img{display:block;width:100%;height:auto;aspect-ratio:5/7;border-radius:10px;background:var(--panneau)}
+.p-carte.grisee img{filter:grayscale(.85) brightness(.55)}
+.p-slot{position:relative;min-width:0}
+.p-slot .p-carte{display:block;width:100%}
+.oeil{position:absolute;right:5px;bottom:5px;width:26px;height:26px;padding:4px;border:1px solid var(--trait);border-radius:50%;background:rgba(5,10,15,.88);color:var(--bleu);display:flex}
+.oeil .ico{width:100%;height:100%}
+.oeil:hover{color:#fff;border-color:var(--bleu)}
+#apercu{position:fixed;z-index:15;width:300px;height:auto;aspect-ratio:5/7;border-radius:14px;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.75)}
+.p-carte .raison{position:absolute;left:3px;right:3px;top:42%;padding:3px 4px;border-radius:7px;background:rgba(5,10,15,.92);color:var(--or);font-size:12.5px;font-weight:800;line-height:1.15;text-align:center}
+.p-carte:hover{transform:translateY(-3px)}
+.p-carte[aria-pressed=true]{border-color:var(--bleu);transform:translateY(-5px);box-shadow:0 0 16px rgba(1,193,240,.6)}
+.p-btns{display:flex;flex-wrap:wrap;gap:8px}
+.p-btns .btn{flex:1 1 110px;font-size:19px;padding:10px 14px;min-height:54px;border-radius:12px 8px 13px 7px/8px 12px 7px 13px}
+#finTour{flex:2 1 170px;font-size:23px}
+.niveaux{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.niveaux .btn{min-width:0;padding-left:4px;padding-right:4px;color:#0a121a}
+.niv-f{--bord:#2f7d49;background:linear-gradient(#6fd08c,#46a866)}
+.niv-n{--bord:#9c7a1e;background:linear-gradient(#f3d163,#d9ae35)}
+.niv-d{--bord:#8f2f25;background:linear-gradient(#ea7a6c,#c9493c)}
+.sous-titre{display:block;font-size:.42em;font-weight:600;letter-spacing:.02em;opacity:.8;margin-top:2px}
+/* Journal */
+.p-journal{background:var(--panneau);border:1px solid var(--trait);border-radius:12px 9px 14px 8px/9px 13px 8px 14px;margin:0}
+.p-journal summary{margin:0;padding:10px 14px 10px 34px;font-family:var(--titre);font-size:18px;color:var(--bleu)}
+.p-lignes{height:200px;overflow-y:auto;padding:0 14px 10px;font-size:14px;line-height:1.4;color:var(--doux)}
+.p-lignes div{display:flex;gap:6px;align-items:flex-start;overflow-wrap:anywhere;padding:3px 0;border-top:1px solid rgba(42,63,80,.55)}
+.p-cote{display:flex;flex-direction:column;gap:6px;min-width:0}
+.p-pied{text-align:right;line-height:1}
+.p-pied .lien{padding:2px 0}
+.p-fin{text-align:center;margin:0}
+@media(max-width:899px){.p-table.fini .p-poste{order:-1}}
+.p-fin h3{font-size:30px;color:var(--or)}
+.p-fin p{margin:4px 0 10px}
+@media (min-width:900px){
+  #jouer{--h:clamp(68px,calc((100vh - 352px)/6),150px)}
+  .p-table{grid-template-columns:minmax(400px,1fr) minmax(0,1fr);align-items:start}
+  .p-barre{grid-column:1/-1;grid-row:1}
+  .p-plateau{grid-column:1;grid-row:2/span 2}
+  .p-poste{grid-column:2;grid-row:2}
+  .p-cote{grid-column:2;grid-row:3}
+  .p-journal summary{list-style:none;cursor:default;padding-left:14px;pointer-events:none}
+  .p-journal summary::-webkit-details-marker{display:none}
+}
+@media (min-width:1200px){
+  .p-table{grid-template-columns:minmax(480px,560px) minmax(0,1fr) 280px}
+  .p-plateau{grid-row:2}
+  .p-cote{grid-column:3;grid-row:2}
+  .p-main{grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+  .p-carte .raison{font-size:10.5px;padding:2px}
+  .p-carte{border-width:2px}
+  .oeil{width:20px;height:20px;padding:3px;right:4px;bottom:4px}
+  .p-lignes{height:calc(100vh - 216px)}
+}
+@media (max-width:899px){
+  .p-barre{border-radius:13px 9px 14px 8px}
+  .p-info{height:52px;padding:0 2px;gap:6px;flex-direction:column}
+  .p-info>.ico{display:none}
+  .p-info small{font-size:11.5px;letter-spacing:.02em;text-align:center}
+  .p-pts{gap:3px}
+  .p-pts i{width:15px;height:15px}
+  .p-score{font-size:25px;gap:5px}
+  .p-score span{font-size:16px}
+  .p-main{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .p-terrain{padding:5px 3px}
+  .oeil{width:32px;height:32px;padding:5px}
+  .p-totaux span:not(.p-valeur){display:none}
+  .p-totaux{margin:auto 0 30px}
+  .p-terrain .p-valeur{left:3px;bottom:3px;padding:0 5px}
+  .p-terrain .oeil{width:26px;height:26px;padding:4px;right:3px;bottom:3px}
+  .p-case .act{right:40px;font-size:12px}
+  .p-tourde{height:52px;padding:0 3px;font-size:15px}
+  .mini{--f:48px}
+  .mini .nom{font-size:13.5px;inset:4px 5px auto}
+}
+/* Mini-cartes : pictogrammes */
+.mini .els{position:absolute;top:3px;right:5px;display:flex;gap:2px}
+.mini .els img{display:block;width:22px;height:22px}
+.mini .nom{right:55px}
+/* Boutons en relief, encarts plats */
+#partie .btn,#recap .btn{border-radius:12px 8px 13px 7px/8px 12px 7px 13px}
+.oeil{box-shadow:0 2px 0 #08708c,0 3px 6px rgba(0,0,0,.5)}
+.p-tourde{gap:8px;background:var(--panneau2);border-left:4px solid var(--doux);border-radius:4px;cursor:default}
+.p-tourde .ico{font-size:24px}
+.p-tourde.amoi{background:rgba(1,193,240,.15);color:var(--bleu);border-left-color:var(--bleu)}
+.p-consigne{border-left:4px solid var(--trait);border-radius:4px;cursor:default}
+.p-pied .btn{min-height:42px;padding:6px 14px;font-size:17px}
+.p-score b,.p-score em{display:block;font:400 1em/1 var(--titre)}
+.p-trois{display:contents}
+@media (min-width:1200px){
+  .p-barre{display:grid;grid-template-columns:subgrid;gap:8px;grid-column:1/-1;background:none;border:0;border-radius:0;padding:0;box-shadow:none}
+  .p-barre.amoi{box-shadow:none}
+  .p-trois{grid-column:1/3;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:1px solid var(--trait);border-radius:18px 11px 20px 10px/11px 19px 10px 18px;padding:4px 0}
+  .p-barre.amoi .p-trois{border-color:var(--bleu)}
+  .p-tourde{grid-column:3;height:auto}
+  .p-info.score{order:-1}
+  .p-info+.p-info{border-left:0}
+  .p-info:not(.score){border-left:1px solid var(--trait)}
+  .p-lignes{height:calc(100vh - 252px)}
+}
+.p-info.energie>.ico{color:var(--or)}
+.p-ener{font:400 32px/1 var(--titre);color:var(--or)}
+/* Fleche de Force : triangle colore sur triangle sombre, lisible sur les 20 duos. */
+.p-case .f.plus::before,.p-case .f.moins::before,.p-case .f.plus::after,.p-case .f.moins::after{content:'';position:absolute;z-index:1;width:0;height:0;border:solid transparent}
+.p-case .f.plus::before,.p-case .f.moins::before{right:calc(100% - 3px);top:50%;margin-top:-10px;border-width:0 10px}
+.p-case .f.plus::after,.p-case .f.moins::after{right:100%;top:50%;margin-top:-7px;border-width:0 7px}
+.p-case .f.plus::before{border-bottom:16px solid #0a121a}
+.p-case .f.moins::before{border-top:16px solid #0a121a}
+.p-case .f.plus::after{border-bottom:11px solid #6fe08a}
+.p-case .f.moins::after{border-top:11px solid #ff6a57}
+/* Paquets du joueur */
+.p-piles{display:flex;justify-content:center;gap:18px}
+.pile{position:relative;width:72px;text-align:center;font:400 17px/20px var(--titre);color:var(--texte)}
+.pile .dos{position:relative;display:flex;flex-direction:column;align-items:center;width:72px;height:auto;aspect-ratio:5/7;border-radius:7px;overflow:hidden;background:var(--panneau);container-type:inline-size}
+.pile .fond{position:absolute;inset:0;background:radial-gradient(circle at 50% 36%,#c9f3ff 0,#4fd6f8 26%,#00c0f5 58%)}
+.pile .fond::after{content:'';position:absolute;inset:3.5cqw;border:max(1px,.8cqw) solid rgba(255,255,255,.8);border-radius:4cqw}
+.pile.defausse .fond{background:radial-gradient(circle at 50% 36%,#c3c8ca 0,#92999c 34%,#6c7377 70%)}
+.pile.defausse .v-ico img{filter:grayscale(1) brightness(1.05)}
+.pile.defausse .v-mot,.pile.defausse .v-nb{text-shadow:0 0 3cqw rgba(30,34,38,.8)}
+.v-ico{position:relative;display:flex;align-items:center;justify-content:center;flex:none;width:62cqw;height:62cqw;margin-top:12cqw}
+.v-ico img{display:block;width:100%;height:100%;object-fit:contain}
+.v-ico .ico{width:88%;height:88%;color:#eef5f8}
+.v-ico>svg{display:block;width:92%;height:92%;overflow:visible}
+.v-mot{position:relative;flex:none;height:16cqw;margin-top:6cqw;font:700 13.5cqw/16cqw Fredoka,var(--corps);letter-spacing:.03em;color:#fff;text-shadow:0 0 3cqw rgba(0,60,90,.75)}
+.v-nb{position:relative;flex:none;height:32cqw;margin-top:2cqw;font:400 32cqw/32cqw var(--titre);color:#fff;text-shadow:0 0 3cqw rgba(0,60,90,.75)}
+.pile .dos img{display:block;width:100%;height:100%;object-fit:cover}
+.pile.vide .dos{background:none;box-shadow:inset 0 0 0 1px var(--trait)}
+.pile.vide{margin-top:0}
+.pile.vide .fond,.pile.vide .v-ico{visibility:hidden}
+.pile.vide .v-mot,.pile.vide .v-nb{color:var(--doux);text-shadow:none}
+.pile .oeil{right:-8px;bottom:-6px;width:26px;height:26px}
+@media (min-width:1200px){
+  .p-piles{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:4px 2px}
+  .pile{width:auto;min-width:0;padding:0 2px}
+  .pile:first-child{grid-column:3}
+  .pile .dos{width:100%;height:auto;aspect-ratio:5/7;border-radius:10px}
+  .pile .oeil{right:4px;bottom:4px;width:20px;height:20px;padding:3px}
+}
+#vueTas{z-index:19}
+#vueTas .boite{max-width:640px}
+.tas{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:14px}
+.tas img{display:block;width:100%;height:auto;aspect-ratio:5/7;border-radius:10px}
+/* Carte en grand avec detail de Force */
+.grand.avecDetail{display:grid;grid-template-columns:minmax(0,420px) minmax(240px,340px);justify-content:center;align-items:start;gap:12px 16px;max-width:780px}
+.grand.avecDetail .btn{grid-column:1/-1;justify-self:center}
+#vueDetail{background:var(--panneau);border:1px solid var(--trait);border-radius:12px 9px 14px 8px;padding:12px 14px;font-size:15px;line-height:1.4;min-width:0}
+#vueDetail h3{font-size:18px;color:var(--bleu);margin:0 0 6px}
+#vueDetail h3+div{margin-top:0}
+#vueDetail .lg{display:flex;justify-content:space-between;gap:10px;padding:2px 0;border-top:1px solid rgba(42,63,80,.55)}
+#vueDetail .lg b{flex:none;font-family:var(--titre);font-weight:400}
+#vueDetail .tot{color:var(--or);font-weight:800}
+#vueDetail section+section{margin-top:12px}
+@media (max-width:760px){.grand.avecDetail{grid-template-columns:minmax(0,1fr)}.grand.avecDetail img{justify-self:center;width:min(280px,100%)}}
+@media (max-width:1199px){.p-tourde{grid-column:1/-1}}
+@media (max-width:899px){.p-tourde{height:36px}.p-ener{font-size:25px}}
+.p-lignes .ico{font-size:15px;margin-top:2px}
+.p-lignes span:last-child{min-width:0}
+.j-pose,.j-point{color:var(--bleu)}.j-evo{color:var(--or)}.j-bonus{color:#6fe08a}.j-degat{color:#ff8a78}.j-mort{color:#8f9ca6}
+/* Recapitulatif, attente, tour, des */
+#recap{z-index:13}
+#recap .boite{max-width:560px;text-align:left}
+#recap h2{text-align:center;margin:0 0 14px}
+.r-terrain{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;background:var(--panneau2);border-radius:10px 7px 11px 6px;padding:8px 12px;margin-bottom:6px}
+.r-terrain h3{font-size:18px;overflow-wrap:anywhere}
+.r-terrain .pts{font:400 20px/1 var(--titre);color:var(--or);text-align:right}
+.r-terrain .forces{color:var(--doux);font-size:15px;overflow-wrap:anywhere}
+.r-terrain .forces b{font:400 19px/1 var(--titre);color:var(--bleu)}
+.r-terrain .forces b+b{color:var(--magma)}
+.r-terrain .gagne{font-weight:800;font-size:15px;text-align:right}
+.r-quiz{display:flex;align-items:center;gap:12px;margin-top:10px;text-align:left}
+.r-ecran{display:block}
+.r-ecran .r-mains{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.r-quiz img{width:84px;height:auto;aspect-ratio:5/7;border-radius:7px;flex:none}
+.r-quiz p{margin:0}
+.r-effets{list-style:none;margin:10px 0 0;padding:0;color:var(--doux);font-size:14.5px}
+.r-total{font:400 26px/1.2 var(--titre);text-align:center;margin:12px 0 14px;overflow-wrap:anywhere}
+#absence,#bandeau{position:fixed;z-index:12;left:50%;transform:translateX(-50%);max-width:calc(100vw - 32px);width:max-content;pointer-events:none;border-radius:12px 8px 13px 7px;text-align:center}
+#absence{bottom:6px;margin:0;color:var(--doux);font-size:13px;line-height:1.2}
+#bandeau{top:64px;background:var(--panneau2);border:1px solid var(--bleu);color:var(--texte);padding:6px 22px;font:400 24px/1.2 var(--titre);box-shadow:0 6px 18px rgba(0,0,0,.55)}
+#bandeau.amoi{background:var(--bleu);color:var(--encre)}
+#des{position:fixed;z-index:14;left:50%;top:50%;transform:translate(-50%,-50%);width:min(300px,calc(100vw - 32px));pointer-events:none;background:var(--panneau);border:2px solid var(--or);border-radius:16px 11px 17px 10px;padding:14px 16px;text-align:center;box-shadow:0 12px 34px rgba(0,0,0,.7)}
+#des .faces{display:flex;justify-content:center;gap:14px;margin:8px 0}
+#des svg{display:block;width:84px;height:84px}
+#des.roule svg{animation:deTourne .27s linear infinite}
+#des h3{font-size:19px;color:var(--bleu)}
+#des p{margin:0;font:400 24px/1.2 var(--titre);color:var(--or);min-height:29px}
+body:has(#jouer[hidden]) :is(#recap,#absence,#bandeau,#des){display:none}
+/* Animations : transform et opacite seulement, jamais de changement de taille de page */
+.arrive{animation:arrive .48s ease-out both}
+.fx-frappe{animation:frappe .51s ease-out both}
+.fx-deg{position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;background:#a52c1a;color:#fff;border-radius:9px 6px 10px 5px;padding:0 9px;font:400 26px/32px var(--titre);animation:degat 1.65s ease-out both}
+.fx-fantome{pointer-events:none;z-index:2;animation:disparait 1.25s ease-in both}
+.fx-fantome::after{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,transparent 46%,#0a121a 47%,#0a121a 49%,transparent 50%),linear-gradient(60deg,transparent 56%,#0a121a 57%,#0a121a 59%,transparent 60%),rgba(165,44,26,.55)}
+.fx-bonus{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;font:400 30px/1 var(--titre);color:#6fe08a;-webkit-text-stroke:4px #0a121a;paint-order:stroke fill;animation:bonus 1.8s ease-out both}
+.p-case:has(.fx-evo,.fx-bonus,.fx-deg){overflow:visible;z-index:2}
+.fx-evo{position:absolute;z-index:3;inset:0;border-radius:inherit;pointer-events:none;box-shadow:0 0 0 2px var(--or),0 0 22px 7px rgba(241,195,90,.9),inset 0 0 22px rgba(241,195,90,.8);animation:evoLueur 1.95s ease-out both}
+.fx-evo::after{content:'';position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:radial-gradient(circle,#fff6d6 0,rgba(241,195,90,.85) 22%,transparent 62%),repeating-conic-gradient(rgba(241,195,90,.75) 0 12deg,transparent 12deg 45deg);-webkit-mask:radial-gradient(circle,#000 40%,transparent 70%);mask:radial-gradient(circle,#000 40%,transparent 70%);animation:evoEclat 1.35s ease-out both}
+.bascule{animation:bascule .75s ease-out both}
+#bandeau{animation:bandeau 2.1s ease-out both}
+@keyframes arrive{from{opacity:0;transform:translateY(15px) scale(.91)}to{opacity:1;transform:none}}
+@keyframes frappe{0%,100%{transform:none}25%{transform:translateX(-4.5px)}60%{transform:translateX(4.5px)}}
+@keyframes degat{0%{opacity:0;transform:translate(-50%,-20%)}15%,70%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-103%)}}
+@keyframes fondu{0%{opacity:0}15%,70%{opacity:1}100%{opacity:0}}
+@keyframes disparait{0%{opacity:1;transform:none}18%{transform:translateX(-4.5px)}30%{opacity:1;transform:translateX(4.5px)}100%{opacity:0;transform:translateY(15px) scale(.73) rotate(-7.5deg)}}
+@keyframes bonus{0%{opacity:0;transform:translate(-50%,-20%) scale(.8)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-140%) scale(1)}100%{opacity:0;transform:translate(-50%,-200%)}}
+@keyframes evoLueur{0%{opacity:0}18%,55%{opacity:1}100%{opacity:0}}
+@keyframes evoEclat{0%{opacity:0;transform:scale(.3) rotate(0)}30%{opacity:1}100%{opacity:0;transform:scale(1.7) rotate(50deg)}}
+@keyframes bascule{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+@keyframes bandeau{0%{opacity:0;transform:translate(-50%,-8px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-4px)}}
+@keyframes deTourne{0%{transform:rotate(-14deg) translateY(-4px)}50%{transform:rotate(14deg) translateY(4px)}100%{transform:rotate(-14deg) translateY(-4px)}}
+@media (max-width:899px){
+  .mini .els{top:2px;right:3px;gap:1px}
+  .mini .els img{width:16px;height:16px}
+  .mini .nom{right:38px}
+  .mini .bas{left:3px;gap:2px}
+  .mini .cout{padding:0 3px 0 1px;font-size:14px}
+  .mini .cout .ico{font-size:14px}
+  .p-case .deg{padding:0 3px;font-size:14px}
+  .p-case .mini:has(.deg) .f::before{margin-top:-20px}
+  .p-case .mini:has(.deg) .f::after{margin-top:-17px}
+  .p-tourde .ico{font-size:16px}
+  .p-tourde{gap:3px}
+  #bandeau{top:8px;font-size:20px}
+  .r-terrain h3{font-size:17px}
+}
+@media (prefers-reduced-motion:reduce){
+  .arrive,.fx-frappe,.bascule,#des.roule svg{animation:none}
+  .fx-fantome,.fx-bonus,.fx-evo{animation:fondu 1.8s linear both}
+  .fx-evo::after{display:none}
+  .fx-deg{animation:fondu 1.4s linear both}
+  #bandeau{animation:none}
+}
+.p-terrain{cursor:pointer}
+.p-journal{position:relative}
+.j-lien{all:unset;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.j-lien:hover{color:var(--bleu)}
+.j-lien:focus-visible{outline:2px solid var(--bleu);outline-offset:1px}
+.j-nav{position:absolute;top:6px;right:10px;display:flex;align-items:center;gap:6px;font:400 15px/1 var(--titre);color:var(--texte)}
+.j-btn{width:30px;height:28px;padding:0;border:0;border-radius:8px 6px 9px 5px;background:var(--bleu);color:var(--encre);font:400 16px/1 var(--titre);box-shadow:0 2px 0 #08708c}
+.j-btn:not(:disabled):hover{background:#3bd2f7}
+.j-btn:disabled{background:var(--panneau2);color:var(--doux);box-shadow:none;opacity:.6;cursor:not-allowed}
+.p-journal:not([open]) .j-nav{display:none}
+.j-manche{color:var(--or);margin-left:6px}
+.p-tourde{position:relative;padding-right:84px}
+.p-outils{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:flex;gap:4px}
+.p-outil{width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--panneau);color:var(--texte);border:1px solid var(--trait);border-radius:9px 7px 10px 6px;font:400 19px/1 var(--titre)}
+.p-outil svg{width:20px;height:20px}
+.p-outil[aria-pressed=true]{color:var(--bleu);border-color:var(--bleu)}
+@media (max-width:899px){.p-tourde{padding-right:78px}.p-outil{width:32px;height:32px}}
+#aide .boite{max-width:520px;text-align:left}
+#aide h2{text-align:center}
+#aide h3{font-size:17px;color:var(--bleu);margin:12px 0 3px}
+#aide p,#aide ol{margin:0 0 4px;font-size:15px;line-height:1.4}
+#aide ol{padding-left:20px}
+#aide .btn{margin-top:12px}
+.p-hint{font-family:var(--titre);font-weight:400;color:var(--texte)}
+.p-case.cible>.p-hint{display:block;font-size:17px;margin-top:2px}
+.p-case .act .p-hint{margin-left:5px;font-size:13.5px}
+.btnCode{display:block;margin:0 0 12px;min-height:40px;padding:6px 14px;font-size:16px}
+.r-fin{text-align:left;margin:0 0 10px;font-size:15px;line-height:1.4}
+.r-fin div{padding:4px 0;border-top:1px solid var(--trait)}
+.r-fin b{color:var(--or);font-family:var(--titre);font-weight:400;margin-right:6px}
+.p-fin .p-btns{margin-bottom:8px;flex-wrap:wrap}
+.b-fin{text-align:left;margin:0 0 10px;font-size:14px}
+.b-fin summary{cursor:pointer;color:var(--or);font-family:var(--titre);font-size:17px}
+.b-fin h4{margin:10px 0 4px;font-size:15px}
+.b-fin table{width:100%;border-collapse:collapse;table-layout:fixed}
+.b-fin th,.b-fin td{padding:4px 2px;border-top:1px solid var(--trait);text-align:center;font-weight:400;overflow-wrap:anywhere}
+.b-fin th{font-size:12px;line-height:1.15}
+.b-fin th:first-child,.b-fin td:first-child{width:38%;text-align:left}
+.b-fin td.src{width:auto;text-align:left;border-top:0;padding-top:0;font-size:12px;opacity:.8}
+.r-repli{width:100%;height:96px;margin-bottom:8px;background:var(--encre);color:var(--texte);border:1px solid var(--trait);border-radius:8px;padding:6px;font-size:13px}
+.c-avenir{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:5/7;overflow:hidden;border-radius:4.5%/3.2%;container-type:inline-size;background:linear-gradient(rgba(5,10,15,.74),rgba(5,10,15,.74)),url(cartes/verso.jpg) center/cover;color:var(--texte);text-align:center}
+.p-case .rage{font-size:10px;font-weight:800;color:#ffb52a;white-space:nowrap}
+.c-avenir .q{font:400 46cqw/1 var(--titre);color:var(--or)}
+.c-avenir .n{position:absolute;top:4cqw;left:6cqw;font:400 8cqw/1 var(--titre);color:var(--doux)}
+.c-avenir .m{font:400 11cqw/1.1 var(--titre);max-width:92%;overflow-wrap:anywhere}
+.c-avenir .v{margin-top:3cqw;font-size:7cqw;font-weight:800;color:var(--bleu)}
+.p-etape{border-color:var(--or);border-left:4px solid var(--or);background:rgba(241,195,90,.1)}
+.p-etape b{display:block;font-family:var(--titre);font-weight:400;font-size:20px;color:var(--or)}
+#regles>.intro,#nouveautes>*{max-width:760px}
+@media (min-width:1200px){
+  #accueil,.colonnes,#nouveautes>#notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
+  #nouveautes>#notes{max-width:none;row-gap:10px}
+  .note{margin-bottom:0}
+  .colonnes{align-items:start}
+  #accueil>.bloc{display:flex;flex-direction:column}
+  #accueil>.bloc>.btn,#accueil>.bloc>form,#accueil>.bloc>.p-btns{margin-top:auto}
+  #accueil>.bloc>form{margin-bottom:0}
+  #accueil{grid-template-columns:repeat(3,minmax(0,1fr))}
+  #blocCreer{grid-area:1/1}
+  #blocRejoindre{grid-area:1/2}
+  #blocRobot{grid-area:1/3}
+  
+  #reprise{grid-area:2/1/auto/-1}
+  #accueil>.erreur{grid-area:3/1/auto/-1}
+}
+/* Passe animations */
+#scene{position:fixed;inset:0;z-index:16;pointer-events:none;overflow:hidden}
+#scene svg{position:absolute;inset:0;width:100%;height:100%}
+#passer{position:fixed;z-index:17;left:50%;bottom:12px;transform:translateX(-50%);min-height:42px;padding:6px 22px}
+body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
+.v-carte{position:absolute;left:0;top:0;width:200px;height:280px;transform-origin:0 0;will-change:transform}
+.v-carte img{display:block;width:100%;height:100%;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.7)}
+.v-etoile{position:absolute;left:0;top:0;width:60px;height:60px;transform-origin:30px 30px}
+.v-etoile .ico{width:100%;height:100%}
+.v-etoile b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 20px/1 var(--titre);color:#fff;-webkit-text-stroke:4px #0a121a;paint-order:stroke fill}
+.v-lien{fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 6px currentColor);animation:lien 1s ease-out both}
+.fx-cache{visibility:hidden}
+.fx-lien{position:absolute;z-index:3;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 0 3px var(--c),inset 0 0 20px var(--c);animation:lien 1s ease-out both}
+.fx-compte{position:absolute;z-index:3;left:50%;top:50%;pointer-events:none;font:400 30px/1 var(--titre);color:var(--or);-webkit-text-stroke:4px #0a121a;paint-order:stroke fill;animation:compte .65s ease-out both}
+.fx-tenu{z-index:1}
+.fx-fantome{animation-name:mortClign;animation-timing-function:linear}
+.fx-secoue{animation:secoue .5s linear both}
+.p-case:has(.fx-compte,.fx-lien){overflow:visible;z-index:2}
+.p-terrain.g-moi{background:color-mix(in srgb,var(--moi) 45%,var(--panneau2));border-color:var(--moi)}
+.p-terrain.g-lui{background:color-mix(in srgb,var(--lui) 45%,var(--panneau2));border-color:var(--lui)}
+.p-terrain{transition:background .25s}
+.verrou .p-poste,.verrou .p-plateau{pointer-events:none}
+.verrou .p-fin{visibility:hidden}
+.p-camp.joue{border-color:var(--lui);animation:halo 1.6s ease-in-out infinite}
+.p-joue{display:inline-block;margin-left:8px;font:800 12px/1 var(--corps);color:var(--texte)}
+.p-tourde{padding-right:122px}
+.p-outil{font-size:16px}
+@keyframes lien{0%{opacity:0}15%,60%{opacity:1}100%{opacity:0}}
+@keyframes compte{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}25%,75%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-90%)}}
+@keyframes mortClign{0%,30%,60%{opacity:1;background:#c5281a}15%,45%{opacity:.35}75%{opacity:1}100%{opacity:0;transform:translateY(12px) scale(.75)}}
+@keyframes secoue{0%,100%{transform:none}20%{transform:translate(-5px,2px)}40%{transform:translate(5px,-2px)}60%{transform:translate(-3px,1px)}80%{transform:translate(3px,-1px)}}
+@keyframes halo{0%,100%{box-shadow:0 0 0 1px var(--lui)}50%{box-shadow:0 0 0 2px var(--lui),0 0 16px var(--lui)}}
+@media (prefers-reduced-motion:reduce){
+  .fx-compte,.fx-lien,.v-lien,.fx-fantome{animation-name:fondu}
+  .fx-secoue,.p-camp.joue{animation:none}
+  .p-terrain{transition:none}
+}
+/* Decks et historique */
+@media (max-width:640px){.onglets{overflow-x:auto;scrollbar-width:none}.onglets button,body:has(#jouer.enJeu:not([hidden])) .onglets button{flex:0 0 auto;max-width:none;font-size:15.5px;padding:10px 8px}}
+.haut{padding-block:16px;gap:14px}
+.haut img{width:60px;height:60px}
+.haut .sous-titre{display:block;margin-top:5px;font:600 16px/1.2 var(--corps);color:var(--texte);letter-spacing:0;opacity:1}
+.moi{display:flex;align-items:center;gap:12px}
+#pseudoAffiche{font-size:19px}
+.modif{padding:7px 14px;border:0;border-radius:8px 6px 9px 5px;background:var(--panneau2);color:var(--bleu);font:400 16px/1.2 var(--titre);box-shadow:inset 0 0 0 2px var(--bleu),0 3px 0 #08708c;cursor:pointer}
+.modif:hover{background:#22384a}
+.modif:active{transform:translateY(2px);box-shadow:inset 0 0 0 2px var(--bleu),0 1px 0 #08708c}
+@media (max-width:440px){.haut{gap:9px;padding-block:13px}.haut img{width:46px;height:46px}.haut .sous-titre{font-size:13.5px}.moi{flex-direction:column;align-items:flex-end;gap:6px}#pseudoAffiche{font-size:17px}.modif{padding:5px 10px;font-size:14px}}
+.d-tuile{cursor:pointer}
+.d-tuile.choisie{outline:3px solid var(--or);outline-offset:1px}
+.d-zone{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.d-panneau{min-width:0;padding:12px;border:1px solid var(--trait);border-radius:12px;background:var(--panneau)}
+.d-panneau .intro{margin:0}
+@media (min-width:1200px){
+  /* --d-h : hauteur restante sous l'en-tete, calculee par hauteurDecks(). Trois lignes de 4 tuiles = hauteur du panneau. */
+  main:has(.d-zone){padding-bottom:12px}
+  .d-zone{grid-template-columns:minmax(0,1fr) 320px;align-items:start;min-height:var(--d-h)}
+  .d-zone .d-grille{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:calc((var(--d-h) - 24px)/3)}
+  .d-zone .d-tuile{gap:6px;padding:10px;justify-content:space-between;overflow:hidden}
+  .d-zone .d-haut{margin-bottom:0}
+  .d-panneau{position:sticky;top:64px;height:var(--d-h);display:flex;flex-direction:column;overflow-y:auto}
+  .d-panneau .dl-liste{width:100%}
+  .d-panneau .dl-pied{width:100%;margin-top:auto;padding-top:10px}
+  .d-panneau .dl-ligne{grid-template-columns:36px 36px 40px minmax(0,1fr) 26px;gap:4px;min-height:30px;padding:2px 6px}
+  .d-panneau .dl-nom{font-size:14px;line-height:1.15}
+  .d-panneau .dl-els img{width:18px;height:18px}
+}
+.dl-liste{list-style:none;margin:0 auto;padding:0;max-width:640px}
+.dl-liste li+li{margin-top:3px}
+.dl-ligne{display:grid;grid-template-columns:44px 42px 46px minmax(0,1fr) 32px;align-items:center;gap:6px;width:100%;min-height:38px;padding:3px 8px;border:0;border-radius:7px 5px 8px 4px;background:var(--panneau2);color:var(--texte);text-align:left;cursor:pointer}
+.dl-ligne:hover{background:#22384a}
+.dl-ligne.dl-duo{background:linear-gradient(90deg,var(--a) 22%,var(--b) 78%);color:#fff}
+.dl-ligne.dl-duo:hover{filter:brightness(1.12)}
+.dl-duo .dl-nom{color:#fff;text-shadow:0 1px 3px #0a121a}
+.dl-duo .dl-cout,.dl-duo .dl-force,.dl-duo .dl-nb{-webkit-text-stroke:3px #0a121a;paint-order:stroke fill}
+.dl-duo .dl-force .ico{color:#dfe5e9}
+.dl-cout,.dl-force{display:inline-flex;align-items:center;gap:3px;font:400 16px/1 var(--titre)}
+.dl-cout .ico,.dl-force .ico{font-size:16px;color:var(--doux)}
+.dl-nom{font-weight:700;overflow-wrap:anywhere}
+.dl-els{display:flex;gap:2px}
+.dl-els img{display:block;width:21px;height:21px}
+.dl-nb{text-align:right;font:400 16px/1 var(--titre);color:var(--or)}
+.dl-apercu{position:fixed;z-index:50;width:220px;height:308px;object-fit:contain;border-radius:10px;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.dl-pied{max-width:640px;margin:14px auto 0}
+.dl-total{margin:0 0 8px;font-weight:800}
+.dl-courbe{display:flex;align-items:flex-end;gap:6px;max-width:280px}
+.dl-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;font-size:13px;color:var(--doux)}
+.dl-col i{display:block;width:100%;min-height:0;border-radius:3px 3px 0 0;background:var(--bleu)}
+.dl-col small{font-size:12px;line-height:1}
+.d-limite{color:var(--or);font-weight:700}
+/* Rejoindre : meme grille que Facile, Normal, Difficile ; le champ prend les deux premieres colonnes. */
+#formCode{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:end}
+#formCode>div{grid-column:span 2;min-width:0}
+#formCode #champCode{height:46px}
+#formCode#formCode #rejoindre{width:100%;min-height:46px;padding:8px 4px;font-size:18px}
+.o-nb{margin:10px 0}.o-haut{margin-bottom:12px}.o-conf{margin:0 0 8px;font-weight:800}
+.d-grille{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.d-tuile{display:flex;flex-direction:column;gap:10px;border:1px solid var(--trait);border-radius:12px;padding:12px}
+.d-haut{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.d-haut h3{flex:1;min-width:0;font-size:21px;overflow-wrap:anywhere;text-shadow:0 1px 3px #0a121a}
+.d-compte{font:400 18px/24px var(--titre);padding:0 8px;border-radius:8px;background:rgba(10,18,26,.75);color:var(--texte)}
+.d-compte.ok{color:#6fe08a}
+.d-pict{display:flex;gap:4px;min-height:26px}
+.d-act{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+#listeDecks#listeDecks .d-act>.btn{min-width:0;min-height:32px;padding:3px 1px;font-size:clamp(12px,6cqi,14px);white-space:nowrap}
+.d-tuile{container-type:inline-size}
+.d-act>:not(.btn){grid-column:1/-1}
+.d-carte img{display:block;width:100%;aspect-ratio:5/7;height:auto;border-radius:10px}
+.d-qte{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;font-family:var(--titre)}
+.d-qte b{font-weight:400;min-width:30px;text-align:center}
+.h-barre{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.h-barre .o-haut{margin:0}
+.h-pages{display:flex;align-items:center;gap:10px}
+.h-pages span{font-family:var(--titre);min-width:90px;text-align:center}
+main:has(#historique:not([hidden])){padding-bottom:12px}
+.h-grille{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:800px){.h-grille{grid-template-columns:1fr 1fr}}
+.h-carte{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;width:100%;min-height:118px;padding:12px 14px;border:1px solid var(--trait);border-left:6px solid #98a4ae;border-radius:10px;background:var(--panneau);color:var(--texte);text-align:left;cursor:pointer;font:inherit}
+.h-carte:hover{background:var(--panneau2)}
+.h-carte.h-v{border-left-color:#46a866}.h-carte.h-d{border-left-color:#c9493c}
+.h-date{grid-column:1;grid-row:1;align-self:center;font-size:14px;color:var(--doux)}
+.h-res{grid-column:2;grid-row:1;justify-self:end;font:400 18px/1 var(--titre);padding:5px 10px;border-radius:6px;color:#0a121a;background:#c3ccd3}
+.h-v .h-res{background:#6fd08c}.h-d .h-res{background:#ea7a6c}
+.h-adv{grid-column:1/-1;grid-row:2;font-weight:800;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h-sc{grid-column:1;grid-row:3;font:400 22px/1 var(--titre);color:var(--or)}
+.h-mvp{grid-column:1;grid-row:4;align-self:end;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h-deck{grid-column:2;grid-row:4;align-self:end;justify-self:end;max-width:170px;padding:3px 10px;border-radius:6px 4px 7px 3px;font-weight:800;font-size:13px;color:#fff;text-shadow:0 1px 3px #0a121a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-deck.h-sans{background:var(--panneau2);color:var(--doux);text-shadow:none}
+.h-detail.boite{max-width:640px;text-align:left}
+.h-detail h2{text-align:center}
+.h-detail h3{margin:14px 0 6px}
+.h-detail h4{margin:10px 0 4px}
+.h-detail ul{margin:0;padding-left:18px}
+.h-tab{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:6px}
+.h-tab th,.h-tab td{padding:3px 6px;border-bottom:1px solid var(--trait);text-align:right}
+.h-tab th:first-child,.h-tab td:first-child{text-align:left}
+.h-detail .p-btns{justify-content:center;margin-top:14px}
+.h-lg{font-size:14px;color:var(--doux);white-space:pre-wrap;overflow-wrap:anywhere}
+/* Coins exacts de la carte : memes rayons que le cadre, pour masquer les coins du JPG. */
+.carte img,.p-carte img,.v-carte img,.grand img,.tas img,.d-carte img,#apercu,.dl-apercu,.an-carte>img{border-radius:5.07%/3.62%}
+/* Famille unique de boutons : deux tailles (normale 46 px, petite 36 px). #fam#fam n'existe pas : il sert a passer devant les regles de contexte. */
+:is(.btn,.pastille,.modif,.j-btn,.p-outil,.onglets button,#fam#fam){border:0;border-radius:8px;font-family:var(--titre);font-weight:400;line-height:1.15;transition:translate .1s,box-shadow .1s,filter .1s}
+:is(.btn,#fam#fam){min-height:46px;padding:8px 18px;font-size:18px}
+:is(.niveaux .btn,#fam#fam){padding-left:4px;padding-right:4px}
+:is(.pastille,.modif,.onglets button,.d-act>.btn,.p-pied .btn,.btnCode,.ligne .btn,#fam#fam){min-height:36px;padding:4px 12px;font-size:15px}
+:is(.j-btn,.p-outil,#fam#fam){width:36px;min-width:36px;height:36px;min-height:36px;padding:0;font-size:15px}
+.pastille,.modif,.p-outil,.onglets button{--bord:#121b24;background:linear-gradient(#3d4e5d,#283643);color:#e8eff4;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 3px 0 var(--bord),0 5px 10px rgba(0,0,0,.35)}
+.j-btn,.pastille[aria-pressed=true],.onglets button[aria-selected=true]{--bord:#08708c;background:linear-gradient(#3bd2f7,#01aad6);color:var(--encre);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 3px 0 var(--bord),0 5px 10px rgba(0,0,0,.35)}
+.onglets{gap:8px;padding-block:6px 9px}
+:is(.pastille,.modif,.j-btn,.p-outil,.onglets button):not(:disabled):hover{filter:brightness(1.08);translate:0 -1px}
+:is(.pastille,.modif,.j-btn,.p-outil,.onglets button):not(:disabled):active{transform:none;translate:0 2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 1px 0 var(--bord)}
+</style>
+
+<header><div class="large haut">
+  <img src="cartes/logo.png" alt="">
+  <h1>Les Golems<small class="sous-titre">Jeu de cartes communautaire</small></h1>
+  <div class="moi"><b id="pseudoAffiche"></b><button class="modif" id="modifierPseudo" type="button">Modifier</button></div>
+</div></header>
+<nav><div class="large onglets" role="tablist">
+  <button role="tab" id="t-nouveautes" aria-controls="nouveautes" aria-selected="true">Nouveautés</button>
+  <button role="tab" id="t-jouer" aria-controls="jouer" aria-selected="false">Jouer</button>
+  <button role="tab" id="t-decks" aria-controls="decks" aria-selected="false">Decks</button>
+  <button role="tab" id="t-historique" aria-controls="historique" aria-selected="false">Historique</button>
+  <button role="tab" id="t-cartes" aria-controls="cartes" aria-selected="false">Cartes</button>
+  <button role="tab" id="t-regles" aria-controls="regles" aria-selected="false">Règles</button>
+</div></nav>
+
+<main class="large">
+<section id="regles" role="tabpanel" aria-labelledby="t-regles">
+  <h2>Règles</h2>
+  <p class="intro">Deux joueurs, trois terrains, trois manches. Marque le plus de points en dominant les terrains avec tes Golems.</p>
+
+  <div class="colonnes"><div>
+  <details open><summary><h3>La partie</h3><span>3 terrains, une grille 3 x 3 par joueur, 3 manches de 3 tours.</span></summary><div class="corps"><ul>
+    <li>3 terrains sont tirés au hasard parmi 10 et placés au hasard. Chacun rapporte les points imprimés dessus.</li>
+    <li>Les joueurs sont face à face. Chacun a une grille 3 x 3, en miroir de l'autre : une colonne correspond à un terrain.</li>
+    <li>Les terrains ne sont pas numérotés. Chaque joueur numérote ses colonnes 1, 2, 3 depuis sa gauche : les colonnes 1 et 3 sont inversées entre les joueurs, la 2 est commune.</li>
+    <li>Les effets parlent de terrain. La ligne 1 est la plus proche des terrains, puis viennent les lignes 2 et 3. Aucun effet de ligne.</li>
+    <li><b>En face :</b> même terrain, même ligne.</li>
+    <li><b>Ligne adverse :</b> les 3 cases adverses de la même ligne.</li>
+    <li><b>Voisin :</b> Golem allié sur une case adjacente, sans diagonale.</li>
+    <li><b>En jeu :</b> sur une grille.</li>
+    <li>La partie dure 3 manches de 3 tours par joueur. Le premier joueur est tiré au sort, puis il change à chaque manche.</li>
+  </ul></div></details>
+
+  <details><summary><h3>Le tour</h3><span>Pioche 2, Forge 0 ou 1 carte d'abord, dépense ton énergie, puis passe.</span></summary><div class="corps">
+    <p><b>Départ :</b> 5 cartes en main. Mulligan de 3 cartes maximum : elles retournent dans le deck, on mélange, puis on repioche.</p>
+    <ol class="etapes" aria-label="Les 4 étapes du tour"><li><b>Pioche</b>2 cartes (1 au premier tour du second)</li><li><b>Forge</b>0 ou 1 carte</li><li><b>Actions</b>Poser, remplacer, améliorer</li><li><b>Fin du tour</b>Énergie perdue, 7 cartes max</li></ol>
+    <ol>
+      <li><b>Pioche 2 cartes.</b> À chaque manche, le joueur qui joue en second ne pioche qu'1 carte à son premier tour de la manche. Deck vide : plus de pioche, sans pénalité.</li>
+      <li><b>Forge :</b> toujours en premier, après la pioche : place 0 ou 1 carte de ta main face cachée, définitivement, avant toute action et avant les effets gratuits de La Faille et du Vaisseau. Chaque carte en Forge donne 1 énergie par tour, dès ce tour.</li>
+      <li><b>Actions :</b> paie en énergie, puis passe quand tu ne veux ou ne peux plus agir.
+        <figure class="annote" id="lireCarte" aria-label="Lire une carte"></figure>
+        <ul>
+          <li><b>Poser :</b> paie le coût de la carte.</li>
+          <li><b>Remplacer :</b> paie le coût de la nouvelle carte, l'ancienne va à la défausse. Tu ne remplaces que tes propres Golems.</li>
+          <li><b>Améliorer :</b> paie le coût de l'évolution, possible dès le tour de la pose.</li>
+        </ul></li>
+      <li><b>Fin du tour :</b> l'énergie restante est perdue, défausse jusqu'à 7 cartes.</li>
+    </ol>
+  </div></details>
+
+  <details><summary><h3>Fin de manche</h3><span>Décompte par colonne, le plus fort marque le terrain, puis les effets.</span></summary><div class="corps">
+    <ol>
+      <li><b>Décompte :</b> Force actuelle par colonne. Une colonne vide vaut 0.</li>
+      <li>Le plus fort marque le terrain. En cas d'égalité, personne ne le marque.</li>
+      <li><b>Effets de fin de manche :</b> ceux du premier joueur de la manche, puis ceux de l'autre. KaTarN compte donc 8, 4, puis 0 : il est détruit à la fin de la manche 2. Palmarès voit le résultat du décompte ; si plusieurs terrains sont à égalité de points, chacun compte.</li>
+      <li><b>Terrains :</b> pour chaque joueur, ses Golems d'abord, puis ses terrains de gauche à droite vus du premier joueur, Le Buzzer en dernier. Le gagnant d'un terrain est celui du décompte : sans gagnant, pas d'effet. La Nuit au Village se résout avec le premier joueur : tous les Golems du terrain comptent, des deux camps, à leur Force actuelle ; en cas d'égalité, aucun n'est détruit. Le Camp rend 1 de Force à chaque Golem, sans dépasser sa base, pour chaque camp à son tour.</li>
+      <li>Les cartes et les dégâts restent, le premier joueur change.</li>
+    </ol>
+    <p><b>Fin de partie :</b> le plus de points après la manche 3, effets compris. En cas d'égalité, la plus grande Force totale au dernier décompte l'emporte, sinon c'est un match nul.</p>
+  </div></details>
+
+  </div><div>
+  <details id="dTerrains"><summary><h3>Terrains</h3><span>Ici = toute la colonne, chez les deux joueurs.</span></summary><div class="corps"><figure class="annote" id="lireTerrain" aria-label="Lire un terrain"></figure><ul>
+    <li><b>Ici :</b> toute la colonne du terrain, chez les deux joueurs.</li>
+    <li>Un effet de terrain s'applique aux deux joueurs, sauf s'il dit le gagnant.</li>
+    <li>Un terrain est actif toute la partie et son résultat est définitif.</li>
+    <li><b>La Faille et Le Vaisseau :</b> une fois par manche et par joueur, à son tour, gratuits.</li>
+    <li><b>La Boutique :</b> poser ou remplacer, pas une évolution ; coût minimum 0.</li>
+  </ul></div></details>
+
+  <details><summary><h3>Force et dégâts</h3><span>Les dégâts restent entre les manches ; à 0, le Golem est défaussé.</span></summary><div class="corps"><ul>
+    <li><b>Force actuelle</b> = Force de la carte + bonus de capacités + Trait + cercle - dégâts.</li>
+    <li>Les dégâts sont conservés entre les manches, avec une dizaine de marqueurs libres. Perdre de la Force, c'est subir des dégâts.</li>
+    <li>À 0 ou moins, le Golem part aussitôt à la défausse. Tous ceux à 0 ou moins meurent en même temps, puis on recalcule, et ainsi de suite. Tuer ne rapporte rien.</li>
+    <li>On n'attaque que par les effets de cartes.</li>
+    <li><b>Évolution :</b> se pose sur sa base. Elle prend sa place, la base part aussitôt à la défausse. Elle efface les dégâts, prend sa propre Force et perd les effets de la base. Sans sa base, une évolution ne sert qu'en Forge.</li>
+  </ul></div></details>
+
+  <details><summary><h3>Effets</h3><span>« À la pose » à chaque arrivée sur la grille, « En jeu » tant que la carte y reste.</span></summary><div class="corps"><ul>
+    <li><b>À la pose :</b> à chaque arrivée sur la grille (Poser, Remplacer, Améliorer), après paiement. Échanger ou déplacer n'est pas une pose et garde les dégâts.</li>
+    <li><b>En jeu :</b> tant que la carte est sur la grille.</li>
+    <li><b>Le Vaisseau :</b> une fois par manche pour chaque joueur, à son tour, gratuit, après l'étape de Forge.</li>
+    <li>Un effet s'applique en entier. Sans cible, il ne se passe rien.</li>
+    <li>La carte prime sur la règle.</li>
+  </ul></div></details>
+
+  <details><summary><h3>Éléments</h3><span>5 éléments, 2 par Golem : le cercle et le Trait donnent jusqu'à +3 de Force, en permanence.</span></summary><div class="corps">
+    <p>Magma (attaque), Cristal (soutien), Foudre (énergie), Brume (pioche), Roche (terrain).</p>
+    <div id="cercleEl"></div>
+    <p>Chaque flèche part de l'élément qui domine vers l'élément dominé.</p>
+    <div class="face"><figure><img src="cartes/001.jpg" alt="KaTarN" loading="lazy" width="600" height="840">+1 de Force</figure><span>face à face</span><figure><img src="cartes/003.jpg" alt="Cyrdan" loading="lazy" width="600" height="840">+1 de Force</figure></div>
+    <p><b>Exemple :</b> KaTarN (Magma, Foudre) fait face à Cyrdan (Cristal, Roche). Magma domine Cristal : KaTarN gagne +1. Roche domine Magma : Cyrdan gagne +1 aussi.</p>
+    <ul>
+      <li><b>Cercle :</b> +1 si le Golem en face a un élément dominé, jamais plus de +1. La domination peut être mutuelle.</li>
+      <li><b>Trait :</b> pour chacun de ses 2 éléments, +1 si au moins un voisin partage cet élément, donc +2 maximum. Plusieurs voisins du même élément ne cumulent pas. Exemple avec KaTarN (Magma, Foudre) : voisin Magma +1, voisin Foudre +1, voisin Magma et Foudre +2.</li>
+      <li>Les effets de cartes peuvent donner plus. Le Trait s'ajoute au cercle, soit +3 au maximum.</li>
+      <li>Trait et cercle sont toujours actifs : perdre un voisin ou un Golem en face peut détruire un Golem, en chaîne.</li>
+    </ul>
+  </div></details>
+
+  <!-- Section retirée pour l'instant :
+  <details><summary><h3>Cartes et decks</h3><span>Deck de 24 à 30 cartes, deux modes de jeu.</span></summary><div class="corps"><ul>
+    <li>Golems de coût 1 à 4, évolutions de coût 2 à 6, toutes dans le deck.</li>
+    <li>Deck de 24 à 30 cartes : 3 exemplaires maximum de chaque carte.</li>
+    <li><b>Draft :</b> 1 élément de base, puis des choix.</li>
+    <li><b>Deck libre :</b> chacun construit le sien.</li>
+    <li>De nouvelles cartes arrivent par vagues.</li>
+  </ul></div></details>
+  -->
+  </div></div>
+</section>
+
+<section id="cartes" role="tabpanel" aria-labelledby="t-cartes" hidden>
+  <h2>Cartes</h2>
+  <p class="intro">Touche une carte pour l'agrandir.</p>
+  <div class="filtres" id="filtreType"></div>
+  <div class="filtres" id="filtreEl"></div>
+  <div class="grille" id="grille"></div>
+  <p class="vide" id="vide" hidden>Aucune carte pour ce filtre.</p>
+</section>
+
+<section id="jouer" role="tabpanel" aria-labelledby="t-jouer" hidden>
+  <h2>Jouer</h2>
+  <p class="intro">Retrouve un adversaire en ligne.</p>
+  <p class="etat" id="etat"><i></i><span id="etatTexte">Connexion au salon en ligne...</span></p>
+  <p class="absent" id="absent" hidden>Le salon en ligne n'est pas disponible pour le moment. Le jeu contre le robot reste possible.</p>
+  <div class="jeu"><div>
+    <div id="accueil">
+      <div class="bloc" id="blocCreer">
+        <h3>Créer une partie</h3>
+        <button class="btn plein" id="creer" disabled>Créer une partie</button>
+      </div>
+      <div class="bloc" id="blocRejoindre">
+        <h3>Rejoindre une partie</h3>
+        <form class="ligne" id="formCode">
+          <div><label for="champCode">Code du salon</label><input type="text" id="champCode" maxlength="8" autocomplete="off" autocapitalize="characters"></div>
+          <button class="btn" id="rejoindre" disabled>Rejoindre</button>
+        </form>
+      </div>
+      <div class="bloc" id="blocRobot">
+        <h3>S'entraîner contre un golem</h3>
+        <div class="p-btns"><div class="niveaux" role="group" aria-label="Niveau du golem"><button class="btn niv-f" data-niveau="facile" type="button">Facile</button><button class="btn niv-n" data-niveau="normal" type="button">Normal</button><button class="btn niv-d" data-niveau="difficile" type="button">Difficile</button></div><button class="btn sec" id="repriseRobot" type="button" hidden>Reprendre l'entraînement</button></div>
+      </div>
+      <div class="bloc" id="reprise" hidden>
+        <h3>Partie en cours</h3>
+        <div class="code" id="repriseCode"></div>
+        <div class="p-btns"><button class="btn" id="reprendre">Reprendre</button><button class="btn sec" id="oublier">Abandonner</button></div>
+      </div>
+      <p class="erreur" id="erreurJeu" role="alert"></p>
+    </div>
+    <div class="bloc" id="salon" hidden>
+      <h3>Salon</h3>
+      <div class="code" id="codeSalon"></div>
+      <button class="btn sec btnCode" id="copieCode" type="button">Copier le code</button>
+      <ul id="joueurs"></ul>
+      <p id="attente" role="status"></p>
+      <button class="btn plein" id="pret" hidden>Prêt</button>
+      <button class="btn sec" id="quitter">Quitter le salon</button>
+    </div>
+    <div id="partie" hidden></div>
+  </div></div>
+</section>
+
+<section id="decks" role="tabpanel" aria-labelledby="t-decks" hidden>
+  <h2>Decks</h2>
+  <p class="intro">Decks visuels seulement pour ce test : ils ne sont pas encore jouables. De 24 à 30 cartes, 3 exemplaires maximum, enregistrés sur cet appareil.</p>
+  <div id="listeDecks"></div>
+</section>
+
+<section id="historique" role="tabpanel" aria-labelledby="t-historique" hidden>
+  <h2>Historique</h2>
+  <p class="intro">Les 50 dernières parties terminées sur cet appareil.</p>
+  <div id="histo"></div>
+</section>
+
+<section id="nouveautes" role="tabpanel" aria-labelledby="t-nouveautes" hidden>
+  <h2>Nouveautés</h2>
+  <p class="intro">Les dernières nouvelles du jeu : annonces, mises à jour et notes de patch.</p>
+  <div id="notes"></div>
+</section>
+</main>
+
+<div class="voile" id="popPseudo" role="dialog" aria-modal="true" aria-labelledby="titrePop">
+  <form class="boite" id="formPseudo">
+    <img src="cartes/logo.png" alt="">
+    <h2 id="titrePop">Les Golems</h2>
+    <label for="pseudo">Ton pseudo</label>
+    <input type="text" id="pseudo" maxlength="20" autocomplete="nickname">
+    <p class="erreur" id="erreurPseudo" role="alert"></p>
+    <button class="btn plein" id="entrer">Entrer</button>
+  </form>
+</div>
+<img id="apercu" alt="" hidden>
+<div class="voile" id="recap" role="dialog" aria-modal="true" aria-labelledby="recapTitre" hidden></div>
+<p id="absence" role="status" hidden></p>
+<div id="bandeau" role="status" hidden></div>
+<div id="des" role="status" hidden></div>
+<div id="scene" aria-hidden="true"></div>
+<button id="passer" class="btn sec" type="button" hidden>Passer</button>
+<div class="voile" id="vue" role="dialog" aria-modal="true" aria-label="Carte en grand" hidden>
+  <div class="grand" id="vueGrand"><img id="vueImg" alt=""><div id="vueTerrain" hidden></div><aside id="vueDetail" hidden></aside><button class="btn" id="fermer">Fermer</button></div>
+</div>
+<div class="voile" id="vueTas" role="dialog" aria-modal="true" aria-labelledby="tasTitre" hidden>
+  <div class="boite"><h2 id="tasTitre"></h2><div class="tas" id="tasCartes"></div><p class="vide" id="tasVide" hidden>Aucune carte.</p><button class="btn" id="tasFermer">Fermer</button></div>
+</div>
+
+<div class="voile" id="aide" role="dialog" aria-modal="true" aria-labelledby="aideTitre" hidden>
+  <div class="boite"><h2 id="aideTitre">Aide rapide</h2>
+    <h3>Ton tour</h3><ol><li>Tu pioches 2 cartes, ou 1 seule si tu joues en second et que c'est ton premier tour de la manche.</li><li>Étape 1 : forge 1 carte ou choisis Ne pas forger, avant toute action, La Faille et Le Vaisseau compris. Une carte forgée donne 1 énergie par tour, définitivement.</li><li>Tu dépenses ton énergie, puis Fin du tour. L'énergie restante est perdue.</li></ol>
+    <h3>Actions</h3><p><b>Poser</b> sur une case libre, <b>Remplacer</b> un de tes Golems (l'ancien est défaussé), <b>Améliorer</b> une base en son évolution. Touche une carte, puis une case dorée : elle montre le coût et le bonus prévu (+N) de Trait et de cercle.</p>
+    <h3>Trait</h3><p>+1 par élément du Golem partagé avec au moins un voisin.</p>
+    <h3>Cercle</h3><p>+1 si un élément du Golem domine le Golem en face. Magma domine Cristal, Cristal Foudre, Foudre Brume, Brume Roche, Roche Magma.</p>
+    <h3>Voisins</h3><p>Tes Golems sur une case adjacente, sans diagonale.</p>
+    <h3>Ici</h3><p>Toute la colonne du terrain, chez les deux joueurs.</p>
+    <button class="btn plein" id="aideFermer" type="button">Fermer</button></div>
+</div>
+<script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
+<script type="module" src="salon-firebase.js"></script>
+<script src="moteur.js"></script>
+<script>
+const ETOILE_G='<path d="M150.0 162.0 L103.0 97.3 L150.0 20.0 Z" fill="#ffe48a" stroke="#ffe48a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 20.0 L197.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L197.0 97.3 L288.9 116.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L288.9 116.9 L222.3 185.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L222.3 185.5 L231.1 273.6 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L231.1 273.6 L150.0 244.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 244.0 L65.4 278.5 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L65.4 278.5 L75.8 186.1 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L75.8 186.1 L16.9 118.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L16.9 118.7 L103.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 20.0 L197.0 97.3 L190.4 106.3 L150.0 39.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M197.0 97.3 L288.9 116.9 L269.4 123.2 L190.4 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M288.9 116.9 L222.3 185.5 L212.2 182.2 L269.4 123.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M222.3 185.5 L231.1 273.6 L219.8 258.0 L212.2 182.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M231.1 273.6 L150.0 244.0 L150.0 232.5 L219.8 258.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M150.0 244.0 L65.4 278.5 L77.2 262.2 L150.0 232.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M65.4 278.5 L75.8 186.1 L86.2 182.7 L77.2 262.2 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M75.8 186.1 L16.9 118.7 L35.5 124.8 L86.2 182.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M16.9 118.7 L103.0 97.3 L109.6 106.3 L35.5 124.8 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M103.0 97.3 L150.0 20.0 L150.0 39.9 L109.6 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M150.0 20.0 L197.0 97.3 L288.9 116.9 L222.3 185.5 L231.1 273.6 L150.0 244.0 L65.4 278.5 L75.8 186.1 L16.9 118.7 L103.0 97.3 Z" fill="none" stroke="#0b0b10" stroke-width="13" stroke-linejoin="round"/>';
+(function(){
+const $=id=>document.getElementById(id);
+function lire(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function ecrire(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+
+/* Pseudo */
+let pseudo=(lire('golems.pseudo')||'').slice(0,20);
+function nettoie(s){return String(s||'').replace(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu,'').trim().slice(0,20)}
+function ouvrePseudo(){$('pseudo').value=pseudo;$('erreurPseudo').textContent='';$('popPseudo').hidden=false;$('pseudo').focus()}
+$('modifierPseudo').onclick=ouvrePseudo;
+$('formPseudo').onsubmit=e=>{
+  e.preventDefault();
+  const v=nettoie($('pseudo').value);
+  if(!v){$('erreurPseudo').textContent='Choisis un pseudo pour entrer.';return}
+  pseudo=v;ecrire('golems.pseudo',v);$('pseudoAffiche').textContent=v;$('popPseudo').hidden=true;
+  annoncePseudo();
+};
+$('pseudoAffiche').textContent=pseudo;
+
+/* Onglets */
+const noms=['nouveautes','jouer','decks','historique','cartes','regles'];
+function onglet(n){
+  noms.forEach(x=>{$(x).hidden=x!==n;$('t-'+x).setAttribute('aria-selected',x===n)});
+  if(n==='decks')peintDecks();if(n==='historique')peintHisto();
+  ecrire('golems.onglet',n);
+}
+noms.forEach(n=>$('t-'+n).onclick=()=>onglet(n));
+
+/* Deux colonnes : une section ouverte de chaque côté pour les équilibrer. */
+if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
+
+/* Notes de patch : ajouter la nouvelle version en tête de liste. */
+const NOUVEAUTES=[
+ {version:'Version 0.2',date:'3 novembre 2026',notes:["Nouvelle règle : à chaque manche, le joueur qui joue en second ne pioche qu'1 carte à son premier tour de la manche","Jeu en ligne sur le site les-golems.github.io","Les parties en cours de la version précédente ne peuvent pas être reprises"]},
+ {version:'Version 0.1b',date:'2 novembre 2026',notes:["Trigas et son évolution, K-Chan : jouables","Orotembu en aperçu dans l'onglet Cartes"]},
+ {version:'Version 0.1a',date:'2 novembre 2026',notes:["4 Golems jouables et leurs évolutions (8 cartes)","10 terrains","36 Golems à venir","Règles disponibles","Jeu en ligne à deux","Entraînement contre un golem en 3 niveaux","Résumé et statistiques de fin de partie"]}
+];
+NOUVEAUTES.forEach(n=>{
+  const a=document.createElement('article'),h=document.createElement('h3'),d=document.createElement('time'),u=document.createElement('ul');
+  a.className='note';h.textContent=n.version;d.textContent=n.date;
+  n.notes.forEach(x=>{const li=document.createElement('li');li.textContent=x;u.append(li)});
+  a.append(h,d,u);$('notes').append(a);
+});
+
+/* Cartes */
+const CARTES=[
+ ['001','KaTarN, Romain, 18 ans',['magma','foudre'],0],['001e','KaTarN, Slim K',['magma','foudre'],1],
+ ['002','Alrevan, Le High Roller Originel',['brume','roche'],0],['002e','Alrevan, KEKWRevan',['brume','roche'],1],
+ ['003','Cyrdan, Le Champion des Tournois Annexes',['cristal','roche'],0],['003e','Cyrdan, Le Roi du Karaoké',['cristal','roche'],1],
+ ['004',"Le Q, Maître de l'Excel",['brume','cristal'],0],['004e',"Le Q, L'Oracle des Stats",['brume','cristal'],1],
+ ['007','Trigas, Accro au Gacha',['foudre','brume'],0],['007e','Trigas, Le Roi du Mobile',['foudre','brume'],1],
+ ['008','K-Chan, Reine du tilt',['magma','roche'],0]];
+/* Aperçus : visibles dans la galerie, absents du moteur, des decks et de l'éditeur. */
+const APERCUS=[['010','Orotembu',['cristal','brume'],0],['010e','Orotembu, évolution',['cristal','brume'],1]],GALERIE=[...CARTES,...APERCUS];
+const EL=[['','Tous'],['magma','Magma'],['cristal','Cristal'],['foudre','Foudre'],['brume','Brume'],['roche','Roche']];
+const TY=[['','Toutes'],['0','Base'],['1','Évolution'],['t','Terrains'],['v','À venir']];
+/* Cartes à venir, hors moteur : retirer la ligne d'un membre quand sa carte arrive, les numéros restent fixes. */
+const A_VENIR=[
+ ['005','Driscop'],['006','Falys'],['009','Glad'],
+ ['011','Sleepy'],['012','Simon'],['013','Indra'],['014','Boubou'],['015','Bellock'],['016','Loxim'],
+ ['017','Letran'],['018','Elessar'],['019','Victone'],['020','GénéralBrioche'],['021','Elccino'],['022','Shantiruka'],
+ ['023','Kun_Mamba'],['024','MrTitou'],['025','Shifukuro'],['026','Titom'],['027','Merser'],['028','Nadzu'],
+ ['029','Apo'],['030','Cyd'],['031','Obsess'],['032','Marech'],['033','Greeny'],['034','Harentros'],
+ ['035','Jackjoy'],['036','Spom'],['037','SuperFishman'],['038','TortueGourmande'],['039','TortueVéloce'],['040','PoulpeHome']];
+let fEl='',fTy='',dernier=null;
+function pastilles(box,liste,get,set,point){
+  liste.forEach(([v,t])=>{
+    const b=document.createElement('button');b.className='pastille';b.dataset.v=v;
+    if(point&&v){const i=document.createElement('i');i.style.setProperty('--c','var(--'+v+')');b.append(i)}
+    b.append(t);b.onclick=()=>{set(v);maj()};box.append(b);
+  });
+  box._get=get;
+}
+pastilles($('filtreType'),TY,()=>fTy,v=>fTy=v);
+pastilles($('filtreEl'),EL,()=>fEl,v=>fEl=v,true);
+GALERIE.forEach(c=>{
+  const b=document.createElement('button');b.className='carte';b.dataset.id=c[0];b.setAttribute('aria-label',c[1]);
+  const i=document.createElement('img');i.src='cartes/'+c[0]+'.jpg';i.alt=c[1];i.loading='lazy';i.width=600;i.height=840;
+  b.append(i);b.onclick=()=>{dernier=b;zoom(i.src,c[1])};
+  const num=c[0].slice(0,3);let p=$('grille').querySelector('[data-paire="'+num+'"]');
+  if(!p){p=el('div','paire');p.dataset.paire=num;$('grille').append(p)}
+  p.append(b);
+});
+function tuilesTerrains(){
+  if($('grille').querySelector('[data-terrain]'))return;
+  window.GolemsMoteur.TERRAINS.forEach(T=>{
+    const b=document.createElement('button'),i=document.createElement('img');b.className='carte';b.dataset.terrain=T.nom;b.setAttribute('aria-label',T.nom+', '+T.pts+(T.pts>1?' points':' point'));
+    i.src=srcTerrain(T);i.alt=T.nom+'. '+T.texte;i.loading='lazy';i.width=600;i.height=840;b.append(i);b.onclick=()=>{zoomTerrain(T);dernier=b};$('grille').append(b);
+  });
+}
+function carteAVenir(num,nom){
+  const c=el('div','c-avenir');c.append(el('span','n','G-'+num),el('span','q','?'),el('span','m',nom),el('span','v','À venir'));return c;
+}
+function tuilesAVenir(){
+  if($('grille').querySelector('[data-avenir]'))return;
+  A_VENIR.forEach(([num,nom])=>{
+    const b=el('button','carte');b.type='button';b.dataset.avenir=num;b.setAttribute('aria-label','G-'+num+', '+nom+', à venir');b.append(carteAVenir(num,nom));
+    b.onclick=()=>{
+      cacheApercu();dernier=b;zoom('',nom,[el('p','',nom+" n'a pas encore sa carte. Elle arrivera bientôt.")]);
+      const v=$('vueTerrain');v.textContent='';v.append(carteAVenir(num,nom));$('vueImg').hidden=true;v.hidden=false;
+    };
+    $('grille').append(b);
+  });
+}
+function maj(){
+  const ter=fTy==='t',av=fTy==='v';if(ter){fEl='';tuilesTerrains()}
+  if(av){fEl='';tuilesAVenir()}
+  $('grille').querySelectorAll('[data-avenir]').forEach(b=>{b.hidden=!av});
+  $('filtreEl').querySelectorAll('button').forEach(b=>{b.disabled=ter||av});
+  $('grille').querySelectorAll('[data-terrain]').forEach(b=>{b.hidden=!ter});
+  ['filtreType','filtreEl'].forEach(id=>{const box=$(id);box.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===box._get()))});
+  let n=0;
+  GALERIE.forEach(c=>{const ok=!ter&&!av&&(!fEl||c[2].includes(fEl))&&(fTy===''||String(c[3])===fTy);
+    $('grille').querySelector('[data-id="'+c[0]+'"]').hidden=!ok;if(ok)n++});
+  $('grille').querySelectorAll('.paire').forEach(p=>{p.hidden=![...p.children].some(b=>!b.hidden)});
+  $('grille').classList.toggle('groupee',fTy==='');
+  $('vide').hidden=n>0||ter||av;
+}
+maj();
+function zoom(src,alt,detail){
+  $('vueImg').hidden=false;$('vueTerrain').hidden=true;$('vueImg').src=src;$('vueImg').alt=alt;
+  const d=$('vueDetail');d.textContent='';d.hidden=!detail;$('vueGrand').classList.toggle('avecDetail',!!detail);if(detail)d.append(...detail);
+  $('vue').hidden=false;$('fermer').focus();
+}
+$('tasFermer').onclick=()=>{$('vueTas').hidden=true};
+$('vueTas').onclick=e=>{if(e.target===$('vueTas'))$('vueTas').hidden=true};
+function fermeVue(){$('vue').hidden=true;if(dernier)dernier.focus()}
+$('fermer').onclick=fermeVue;
+$('vue').onclick=e=>{if(e.target===$('vue'))fermeVue()};
+addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('aide').hidden)fermeAide();else if(!$('vue').hidden)fermeVue();else $('vueTas').hidden=true});
+
+/* Salon en ligne : tout repose sur la présence */
+let room=null,r=null,code='',entree=0,occupe=false,attenteLobby=0,jePret=false,compteFin=0,compteT=0;
+const MAX=2,ALPHA='abcdefghjkmnpqrstuvwxyz23456789';
+const personnes=l=>l.filter(p=>p.kind==='viewer');
+const pause=ms=>new Promise(f=>setTimeout(f,ms));
+function nouveauCode(){let s='';for(let i=0;i<5;i++)s+=ALPHA[Math.floor(Math.random()*ALPHA.length)];return s}
+function nomDe(p){const n=p.presence&&p.presence.pseudo;return nettoie(typeof n==='string'?n:'')||'Joueur'}
+function indisponible(){room=null;$('absent').hidden=false;$('etat').hidden=true;$('creer').disabled=$('rejoindre').disabled=true}
+function majEtat(){
+  if(!room)return;
+  const co=room.connected(),n=personnes(room.peers()).length;
+  $('etat').classList.toggle('ok',co);
+  $('etatTexte').textContent=!co?'Connexion au salon en ligne...':n<2?'1 joueur connecté':n+' joueurs connectés';
+  $('creer').disabled=$('rejoindre').disabled=!co||occupe;
+}
+function annoncePseudo(){
+  if(!room)return;
+  room.presence({pseudo:pseudo,salon:partie?null:code||null}).catch(()=>{});
+  if(r)r.presence({pseudo:pseudo}).catch(()=>{});
+}
+function ordre(l){
+  const t=personnes(l).filter(p=>!p.presence.quitte).sort((a,b)=>{
+    const x=+a.presence.arrivee||Infinity,y=+b.presence.arrivee||Infinity;
+    return x-y||(a.peer<b.peer?-1:1)});
+  /* Apres un rechargement, l'ancienne presence peut survivre un instant : une seule par joueur. */
+  const m={};
+  t.forEach(p=>{const i=p.presence.sid;if(typeof i!=='string'||!i)return;
+    const q=m[i];if(!q||p.sameTab||(!q.sameTab&&p.updatedAt>q.updatedAt))m[i]=p});
+  return t.filter(p=>{const i=p.presence.sid;return typeof i!=='string'||!i||m[i]===p});
+}
+function majSalon(){
+  if(!r)return;
+  const l=ordre(r.peers());
+  if(l.findIndex(p=>p.sameTab)>=MAX&&Date.now()-entree>1500){sortie('Ce salon est complet.');return}
+  const u=$('joueurs');u.textContent='';
+  l.slice(0,MAX).forEach(p=>{
+    const li=document.createElement('li'),s=document.createElement('span');
+    s.textContent=nomDe(p);li.append(s);
+    if(estPret(p)){const v=el('i','coche');v.setAttribute('role','img');v.setAttribute('aria-label','Prêt');v.innerHTML='<svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M4 13L10 19L20 6"/></svg>';li.append(v)}
+    if(p.sameTab){const e=document.createElement('em');e.textContent='toi';li.append(e)}
+    u.append(li);
+  });
+  if(!partie&&l.some(p=>!p.sameTab&&Number.isInteger(p.presence.jg)&&typeof p.presence.adv==='string'&&p.presence.adv!==sid&&p.presence.sid!==sid)&&Date.now()-entree>1500){sortie('Ce salon est complet.');return}
+  const c=l.length>=MAX;
+  const duo=l.slice(0,MAX),libre=!partie&&c&&!duo.some(p=>Number.isInteger(p.presence.jg));
+  if(libre&&duo.every(estPret))armeCompte();else stopCompte();
+  if(!partie&&!c){const m=l.find(p=>p.sameTab);if(m&&Number.isInteger(m.presence.graine))pub({graine:null})} /* graine orpheline : l'adversaire est parti juste apres le compte */
+  $('pret').hidden=!(libre||(jePret&&!partie));
+  $('pret').textContent=jePret?'Pas prêt':'Prêt';$('pret').classList.toggle('sec',jePret);
+  $('attente').textContent=compteFin?texteCompte():!c?notice||"En attente d'un adversaire":jePret?'En attente de ton adversaire':duo.some(estPret)?'Ton adversaire est prêt':'Salon complet, clique sur Prêt';
+  $('attente').classList.toggle('pret',c);
+  majPartie();
+}
+function estPret(p){return p.sameTab?jePret:p.presence.pret===true}
+function texteCompte(){const n=compteFin-Date.now();return n>0?'La partie démarre dans '+Math.ceil(n/1000)+' s':'La partie démarre'}
+function armeCompte(){if(compteFin)return;compteFin=Date.now()+2000;compteT=setInterval(ticCompte,100)}
+function stopCompte(){clearInterval(compteT);compteT=0;compteFin=0}
+function ticCompte(){
+  $('attente').textContent=texteCompte();
+  if(Date.now()<compteFin)return;
+  clearInterval(compteT);compteT=0;
+  const l=r?ordre(r.peers()):[];
+  if(!partie&&l[0]&&l[0].sameTab)pub({graine:nouvelleGraine()}); /* le premier arrive fixe la graine */
+}
+$('copieCode').onclick=e=>{
+  const b=e.currentTarget;
+  copie($('codeSalon').textContent,b,'Copier le code',()=>{const g=getSelection(),x=document.createRange();x.selectNodeContents($('codeSalon'));g.removeAllRanges();g.addRange(x)});
+};
+$('pret').onclick=()=>{jePret=!jePret;pub({pret:jePret||null});majSalon()};
+async function sortie(msg,avant){
+  const a=r;r=null;code='';finPartie();
+  $('salon').hidden=true;$('accueil').hidden=false;$('erreurJeu').textContent=msg||'';
+  if(a)try{if(avant)await avant;await a.leave()}catch(e){}
+  if(room)room.presence({salon:null}).catch(()=>{});
+  majEtat();majReprise();
+}
+async function entre(c){
+  occupe=true;majEtat();$('erreurJeu').textContent='';jePret=false;
+  const sv=chargeSalon(c);
+  try{
+    const s=await room.join(c);
+    r=s;code=c;entree=Date.now();
+    sid=sv?sv.sid:nouveauSid();arrivee=sv?sv.arrivee:entree;
+    $('codeSalon').textContent=c.toUpperCase();
+    if(sv)lancer(sv.graine,sv.place,sv.adv,sv);
+    s.onPeers(()=>{if(r===s)majSalon()},()=>{if(r===s)sortie('Le salon a été perdu.')});
+    const pres={pseudo:pseudo,arrivee:arrivee,sid:sid,pret:null};
+    if(sv){pres.jg=sv.graine;pres.j=M.ecritJournal(sv.mien);pres.adv=sv.adv;if(sv.place===0)pres.graine=sv.graine;if(sv.veut)pres.veut=sv.graine}
+    await s.presence(pres);
+    await room.presence({pseudo:pseudo,salon:sv?null:c,quitte:null});
+    if(!partie){$('accueil').hidden=true;$('salon').hidden=false}
+    majSalon();
+    setTimeout(()=>{if(r===s)majSalon()},1700);
+  }catch(e){
+    r=null;code='';finPartie();
+    $('erreurJeu').textContent=e&&e.code==='limit_reached'?'Trop de salons ouverts, réessaie plus tard.':"Impossible d'entrer dans ce salon.";
+    majReprise();
+  }
+  occupe=false;majEtat();
+}
+/* Partie : graine + journaux dans la presence, tout le reste est recalcule. */
+const M=window.GolemsMoteur;
+const REDUIT=matchMedia('(prefers-reduced-motion:reduce)');
+let robotT=0,sid='',arrivee=0,recapAff=0,fx=[],fileDes=[],desActif=false,minBandeau=0,desT=0,desF=0;
+let partie=null,notice='',sel=null,selMull=[],selCases=[],modeVaisseau=false,modeFaille=false;
+const ICONES={
+ force:'<svg width="66" height="66" viewBox="71 35 458 529"><path d="M300 98 L285 98 Q210 152 144 164 L144 370 L281 490 Z" fill="#bf6049" stroke="#bf6049" stroke-width="1.5" stroke-linejoin="round"/><path d="M300 98 L315 98 Q390 152 456 164 L456 367 L281 490 Z" fill="#8a3524" stroke="#8a3524" stroke-width="1.5" stroke-linejoin="round"/><path d="M281.2 52 L300 52 L300 98 L285 98Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M300 52 L318.8 52 L315 98 L300 98Z" fill="#a4452f" stroke="#a4452f" stroke-width="1.5" stroke-linejoin="round"/><path d="M318.8 52 Q398.7 112 499.75 126 L456 164 Q390 152 315 98Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M499.75 126 L499.75 390 L456 367 L456 164Z" fill="#70291b" stroke="#70291b" stroke-width="1.5" stroke-linejoin="round"/><path d="M499.75 390 L325.85 512 L295.3 534 L280 547 L281 490 L456 367Z" fill="#551d13" stroke="#551d13" stroke-width="1.5" stroke-linejoin="round"/><path d="M280 547 L100.25 390 L144 370 L281 490Z" fill="#a4452f" stroke="#a4452f" stroke-width="1.5" stroke-linejoin="round"/><path d="M100.25 390 L100.25 126 L144 164 L144 370Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M100.25 126 Q201.3 112 281.2 52 L285 98 Q210 152 144 164Z" fill="#efb096" stroke="#efb096" stroke-width="1.5" stroke-linejoin="round"/><path d="M160 180 Q222 166 288 116" fill="none" stroke="#ffe3d6" stroke-opacity=".55" stroke-width="7" stroke-linecap="round"/><path d="M281.2 52 L318.8 52 Q398.7 112 499.75 126 L499.75 390 L325.85 512 L295.3 534 L280 547 L100.25 390 L100.25 126 Q201.3 112 281.2 52Z" fill="none" stroke="#0b0a10" stroke-width="34" stroke-linejoin="round"/></svg>',
+ bouclier:'<path fill="currentColor" stroke="#0a121a" stroke-width="5" stroke-linejoin="round" d="M33 3L59 14V40L33 63L7 40V14Z"/>',
+ degat:'<path fill="currentColor" d="M38 3L12 37H29L24 63L54 25H36Z"/>',
+ manche:'<path fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" d="M16 6H50V30C50 42 42 50 33 58C23 50 16 42 16 30Z"/><path fill="currentColor" d="M33 15L37 25L47 26L39 33L42 43L33 37L24 43L27 33L19 26L29 25Z"/>',
+ tour:'<path fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="M16 5H50M16 59H50M20 5V15C20 25 33 26 33 32C33 38 20 39 20 49V59M46 5V15C46 25 33 26 33 32C33 38 46 39 46 49V59"/><path fill="currentColor" d="M26 18H40L33 28ZM24 57C25 48 31 45 33 42C35 45 41 48 42 57Z"/>',
+ coupe:'<svg viewBox="-6 -6 312 318" width="100%" height="100%" aria-hidden="true">'+ETOILE_G+'</svg>',
+ main:'<g fill="#1a2a38" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><rect x="9" y="17" width="23" height="36" rx="4" transform="rotate(-18 20 35)"/><rect x="34" y="17" width="23" height="36" rx="4" transform="rotate(18 45 35)"/><rect x="21" y="9" width="24" height="38" rx="4"/></g>',
+ deck:'<g fill="#1a2a38" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><rect x="23" y="5" width="30" height="42" rx="4"/><rect x="17" y="11" width="30" height="42" rx="4"/><rect x="11" y="17" width="30" height="42" rx="4"/></g>',
+ oeil:'<path fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round" d="M4 33C14 17 23 12 33 12S52 17 62 33C52 49 43 54 33 54S14 49 4 33Z"/><circle cx="33" cy="33" r="10" fill="currentColor"/>',
+ defausse:'<g fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"><rect x="13" y="7" width="38" height="50" rx="5" transform="rotate(7 32 32)"/><path d="M23 23L41 41M41 23L23 41"/></g>'};
+function ico(n){const s=document.createElement('span');s.className='ico';s.setAttribute('aria-hidden','true');s.innerHTML=n==='enclume'?enclumeB():'<svg viewBox="0 0 66 66">'+ICONES[n]+'</svg>';return s}
+function points(n,lib){const d=el('span','p-pts');d.setAttribute('role','img');d.setAttribute('aria-label',lib+' '+n+' sur 3');
+  for(let i=1;i<=3;i++)d.append(el('i',i===n?'on':i<n?'fait':''));return d}
+function info(cls,n,lib,suite){const d=el('div','p-info '+cls);d.append(el('small','',lib),ico(n),suite);return d}
+function compteur(n,lib,v,cls){const d=el('span','p-compteur c-'+n+(cls?' '+cls:''));d.append(ico(n),lib+' ');d.append(el('b','',String(v)));return d}
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function pub(p){if(r)r.presence(p).catch(()=>{})}
+function finPartie(){arreteAnim();clearTimeout(robotT);robotT=0;fermeAide();stopCompte();jePret=false;$('vueTas').hidden=true;$('absence').hidden=true;partie=null;fx=[];fermeRecap();arreteDes();$('bandeau').hidden=true;$('partie').hidden=true;$('jouer').classList.remove('enJeu')}
+function nouveauSid(){return Math.random().toString(36).slice(2,12)}
+/* Sauvegarde locale par code de salon */
+function cleSalon(c){return 'golems.partie.'+c}
+function oublie(c){try{localStorage.removeItem(cleSalon(c));if(lire('golems.derniere')===c)localStorage.removeItem('golems.derniere')}catch(e){}}
+function sauve(){
+  if(partie&&partie.local){ecrire('golems.local',JSON.stringify({version:M.VERSION,niveau:partie.niveau,debut:partie.debut,graine:partie.graine,mien:partie.mien,sien:partie.sien,recapVu:partie.recapVu,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));return}
+  if(!partie||!code)return;
+  ecrire(cleSalon(code),JSON.stringify({version:M.VERSION,debut:partie.debut,pseudo:pseudo,graine:partie.graine,mien:partie.mien,sien:partie.sien,place:partie.moi,arrivee:arrivee,sid:sid,adv:partie.adv,advNom:partie.advNom,recapVu:partie.recapVu,veut:partie.veut,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));
+  ecrire('golems.derniere',code);
+}
+function chargeSalon(c){
+  try{
+    const v=JSON.parse(lire(cleSalon(c)));
+    const liste=x=>Array.isArray(x)&&x.every(e=>typeof e==='string');
+    if(!v||v.version!==M.VERSION||v.fin||Date.now()-v.t>7200000)return null;
+    if(!Number.isInteger(v.graine)||(v.place!==0&&v.place!==1)||!(v.arrivee>0)||typeof v.sid!=='string'||!liste(v.mien)||!liste(v.sien))return null;
+    return v;
+  }catch(e){return null}
+}
+function salonRepris(){const c=lire('golems.derniere');return c&&/^[a-z0-9]{3,8}$/.test(c)&&chargeSalon(c)?c:null}
+function majReprise(){
+  const c=r?null:salonRepris();$('reprise').hidden=!c;
+  $('repriseRobot').hidden=!chargeLocal();
+  if(c)$('repriseCode').textContent=c.toUpperCase();
+}
+$('reprendre').onclick=()=>{const c=salonRepris();if(room&&c&&!occupe)entre(c)};
+$('oublier').onclick=()=>{const c=lire('golems.derniere');if(c)oublie(c);majReprise()};
+/* Entrainement : meme moteur et meme ecran, le journal du robot est rempli ici, sans salon. */
+function chargeLocal(){
+  try{
+    const v=JSON.parse(lire('golems.local')),liste=x=>Array.isArray(x)&&x.every(e=>typeof e==='string');
+    if(!v||v.version!==M.VERSION||v.fin||Date.now()-v.t>7200000||!Number.isInteger(v.graine)||!liste(v.mien)||!liste(v.sien))return null;
+    return v;
+  }catch(e){return null}
+}
+function oublieLocal(){try{localStorage.removeItem('golems.local')}catch(e){}}
+function lanceLocal(v){
+  if(partie)finPartie();
+  $('erreurJeu').textContent='';
+  lancer(v?v.graine:nouvelleGraine(),0,'',{mien:v?v.mien:[],sien:v?v.sien:[],advNom:'Golem',niveau:v?v.niveau:niveauChoisi,recapVu:v?v.recapVu:0,debut:v&&v.debut,local:true});
+}
+function suiteRobot(){
+  clearTimeout(robotT);robotT=0;
+  if(!partie||!partie.local||!partie.etat)return;
+  const s=partie.etat,lui=1-partie.moi;
+  if(s.fin||!M.attendus(s).includes(lui))return;
+  const a0=M.robot(s,lui,partie.niveau);
+  robotT=setTimeout(()=>{
+    if(!partie||!partie.local)return;
+    if(!$('recap').hidden||desActif||animCours){suiteRobot();return}
+    partie.sien.push(M.code(a0));calcule();
+  },a0.t==='p'?1000:a0.t==='x'?700:450);
+}
+let niveauChoisi='normal';
+document.querySelectorAll('[data-niveau]').forEach(b=>{b.onclick=()=>{if(!pseudo){ouvrePseudo();return}niveauChoisi=b.dataset.niveau;oublieLocal();lanceLocal(null)}});
+$('repriseRobot').onclick=()=>{const v=chargeLocal();if(v)lanceLocal(v)};
+function lancer(g,moi,adv,sv){
+  partie={debut:sv&&+sv.debut||Date.now(),local:!!(sv&&sv.local),niveau:sv&&sv.niveau||'normal',graine:g,moi:moi,mien:sv?sv.mien:[],sien:sv?sv.sien:[],etat:null,erreur:null,veut:!!(sv&&sv.veut),adv:adv||'',advNom:sv&&typeof sv.advNom==='string'?nettoie(sv.advNom):'',recapVu:sv?+sv.recapVu||0:0};
+  CARTES.forEach(c=>{new Image().src='cartes/'+c[0]+'.jpg'});M.TERRAINS.forEach(T=>{new Image().src=srcTerrain(T)});new Image().src=DOS;
+  notice='';sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;fx=[];journalPage=null;
+  stopCompte();jePret=false;
+  pub({jg:g,j:M.ecritJournal(partie.mien),veut:partie.veut?g:null,adv:partie.adv||null,pret:null});
+  if(room)room.presence({salon:null}).catch(()=>{});
+  $('salon').hidden=true;$('accueil').hidden=true;$('partie').hidden=false;$('jouer').classList.add('enJeu');
+  calcule();
+}
+function calcule(){
+  const jx=(m,o)=>M.rejoue(partie.graine,partie.moi===0?[m,o]:[o,m]);
+  const x=jx(partie.mien,partie.sien),av=partie.etat,nm=partie.lusM||0,ns=partie.lusS||0,n=partie.mien.length-nm+partie.sien.length-ns;
+  partie.lusM=partie.mien.length;partie.lusS=partie.sien.length;
+  /* Une serie d'etapes par action, la meme sur les deux ecrans ; trop d'actions d'un coup (reprise) : rien a rejouer. */
+  if(av&&n>0&&n<=8&&!x.erreur){
+    let pr=av;const me=partie.moi,cours=[];
+    for(let i=nm;i<partie.mien.length;i++)cours.push([me,partie.mien.slice(0,i+1),partie.sien.slice(0,ns),partie.mien[i]]);
+    for(let i=ns;i<partie.sien.length;i++)cours.push([1-me,partie.mien,partie.sien.slice(0,i+1),partie.sien[i]]);
+    cours.forEach(([p,m,o,c])=>{
+      const y=jx(m,o);if(y.erreur)return;
+      const L=etapes(pr,y.etat,M.decode(c),p);
+      if(!animCours&&!fileA.length&&!partie.ecran)partie.ecran=pr;
+      fileA.push(...L);pr=y.etat;
+    });
+  }
+  partie.etat=x.etat;partie.erreur=x.erreur;
+  if(x.etat&&x.etat.fin)enregistrePartie(x.etat);
+  affiche();
+  lanceFile();
+  verifieRecap();
+  sauve();
+  suiteRobot();
+}
+function quiJoue(s){return s.attente?s.attente.p:s.joueur}
+function texteTour(s,me){
+  const qui=quiJoue(s),aMoi=!s.fin&&(s.phase==='mulligan'?!s.mull[me]:qui===me);
+  return s.fin?'Partie terminée':s.phase==='mulligan'?(aMoi?'À toi : mulligan':'Mulligan'):qui===me?'À toi':'Au tour de '+nomJ(qui);
+}
+/* Effets visuels : liste datee, reposee apres chaque rendu avec un delai negatif, donc jamais rejouee. */
+const VITESSES={normal:1,rapide:.5};
+let vitesse=lire('golems.vitesse')==='rapide'?'rapide':'normal';
+let fileA=[],animT=0,animCours=false,sauter=false,verrou=false,ecranFin=null,tenus=[],masques=[],repeint=null;
+const vite=()=>sauter||document.hidden||$('jouer').hidden;
+const T=ms=>ms*VITESSES[vitesse]*(fileA.length>30?.3:fileA.length>12?.6:1);
+function ajoutFx(o,ms){if(vite())return;const n=Date.now();ms=T(ms);o.debut=n;o.fin=n+ms;o.ms=ms;fx.push(o);poseUn(o,n)}
+function caseDe(p,l,k){return '.p-case[data-p="'+p+'"][data-l="'+l+'"][data-k="'+k+'"]'}
+function poseUn(o,n){
+  const z=$('partie').querySelector(o.q);if(!z)return;
+  let e=z;
+  if(o.mini)e=z.querySelector('.mini')||z;
+  if(o.eclat)z.append(e=el('span',o.classe));
+  else if(o.texte)z.append(e=el('span',o.classe,o.texte));
+  else if(o.fantome){e=o.fantome();e.classList.add('fx-fantome');z.append(e)}
+  else{e.classList.remove(o.classe);void e.offsetWidth;e.classList.add(o.classe)}
+  if(o.c)e.style.setProperty('--c',o.c);
+  e.style.animationDuration=o.ms+'ms';e.style.animationDelay=(o.debut-n)+'ms';
+}
+function poseFx(){
+  const n=Date.now(),box=$('partie');fx=fx.filter(o=>o.fin>n);
+  tenus.forEach(t=>{const z=box.querySelector(t.q);if(z)z.append(t.vue())});
+  fx.forEach(o=>poseUn(o,n));
+  masques.forEach(q=>{const z=box.querySelector(q);if(z)z.classList.add('fx-cache')});
+  peintFin();
+}
+function peintFin(){
+  const f=ecranFin,box=$('partie');if(!f||!partie)return;
+  const me=partie.moi;
+  box.querySelectorAll('.p-terrain[data-k]').forEach(d=>{
+    const k=+d.dataset.k,a=d.querySelector('b.m'),b=d.querySelector('b.a'),w=f.gagnants[k];
+    if(a){a.textContent=f.comptes[k][me];b.textContent=f.comptes[k][1-me];a.classList.remove('tete');b.classList.remove('tete')}
+    d.classList.toggle('g-moi',w===me);d.classList.toggle('g-lui',w===1-me);
+  });
+  const x=box.querySelector('.p-score b'),y=box.querySelector('.p-score em');
+  if(x){x.textContent=f.score[me];y.textContent=f.score[1-me]}
+}
+const rectDe=q=>{const z=q&&$('partie').querySelector(q);return z?z.getBoundingClientRect():null};
+function piles(p,nom){return p===partie.moi?'.pile.'+nom:'.p-camp.lui .c-'+nom}
+function cadre(r,hm){const h=Math.max(r.height,hm),w=h*5/7;return {x:r.left+r.width/2-w/2,y:r.top+r.height/2-h/2,w}}
+const tf=c=>'translate('+c.x+'px,'+c.y+'px) scale('+c.w/200+')';
+function carteVol(src){const d=el('div','v-carte'),i=el('img');i.src=src;i.alt='';d.append(i);$('scene').append(d);return d}
+function vol(de,vers,src,ms,delai){
+  if(vite()||REDUIT.matches||!de||!vers)return;
+  const d=carteVol(src),a=d.animate([{transform:tf(cadre(de,56))},{transform:tf(cadre(vers,56))}],{duration:T(ms),delay:T(delai||0),easing:'cubic-bezier(.3,.7,.3,1)',fill:'both'});
+  a.finished.finally(()=>d.remove()).catch(()=>{});
+}
+const srcC=c=>'cartes/'+M.carte(c).id+'.jpg',DOS='cartes/verso.jpg';
+/* Image du terrain, rendue par generer_terrains.py ; le texte de regle reste dans moteur.js. */
+const srcTerrain=T=>'cartes/t'+String(window.GolemsMoteur.TERRAINS.findIndex(x=>x.nom===T.nom)+1).padStart(3,'0')+'.jpg';
+/* Carte jouee : grande au centre environ 1,5 s, puis glissade vers sa case. */
+function montreGrand(c,de,vers){
+  const h=Math.min(innerHeight*.62,420),w=h*5/7,C={x:innerWidth/2-w/2,y:innerHeight/2-h/2,w};
+  if(vite())return 0;
+  const d=carteVol(srcC(c));
+  if(REDUIT.matches){const a=d.animate([{opacity:0,transform:tf(C)},{opacity:1,transform:tf(C),offset:.1},{opacity:1,transform:tf(C),offset:.9},{opacity:0,transform:tf(C)}],{duration:T(1500)});a.finished.finally(()=>d.remove()).catch(()=>{});return T(1500)}
+  const A=de?cadre(de,56):C,B=vers?cadre(vers,56):C,tot=T(1950);
+  const a=d.animate([{transform:tf(A)},{transform:tf(C),offset:.14},{transform:tf(C),offset:.77},{transform:tf(B)}],{duration:tot,easing:'ease-in-out',fill:'both'});
+  a.finished.finally(()=>d.remove()).catch(()=>{});
+  return tot;
+}
+function etoile(de,txt){
+  const v=rectDe('.p-info.score');if(vite()||REDUIT.matches||!de||!v)return;
+  const d=el('div','v-etoile');d.append(ico('coupe'),el('b','',txt));$('scene').append(d);
+  const f=(r,s)=>'translate('+(r.left+r.width/2-30)+'px,'+(r.top+r.height/2-30)+'px) scale('+s+')';
+  const a=d.animate([{transform:f(de,.6)},{transform:f(de,1.5),offset:.3},{transform:f(v,.7)}],{duration:T(700),easing:'ease-in',fill:'both'});
+  a.finished.finally(()=>d.remove()).catch(()=>{});
+}
+function trace(a,b,coul,eclair,ms){
+  if(vite()||!a||!b)return;
+  const x0=a.left+a.width/2,y0=a.top+a.height/2,x1=b.left+b.width/2,y1=b.top+b.height/2;
+  let dp='M'+x0+' '+y0;
+  if(eclair){const nx=-(y1-y0),ny=x1-x0,n=Math.hypot(nx,ny)||1;for(let i=1;i<7;i++){const t=i/7,o=(i%2?1:-1)*(8+Math.random()*12);dp+='L'+(x0+(x1-x0)*t+nx/n*o)+' '+(y0+(y1-y0)*t+ny/n*o)}}
+  dp+='L'+x1+' '+y1;
+  const ns='http://www.w3.org/2000/svg',s=document.createElementNS(ns,'svg'),p=document.createElementNS(ns,'path');
+  p.setAttribute('d',dp);p.setAttribute('class','v-lien');p.style.stroke=coul;p.style.color=coul;p.style.animationDuration=T(ms)+'ms';s.append(p);$('scene').append(s);
+  setTimeout(()=>s.remove(),T(ms));
+}
+/* File : chaque etape renvoie sa duree. Le rendu reste vrai pour la main et les boutons ; seul le plateau attend. */
+function lanceFile(){if(!animCours&&fileA.length){animCours=true;clearTimeout(animT);animT=setTimeout(suivant,0)}}
+function suivant(){
+  clearTimeout(animT);
+  while(fileA.length){
+    if(!partie){arreteAnim();return}
+    const e=fileA.shift();let ms=0;
+    try{ms=e()||0}catch(x){console.error(x)}
+    if(!vite()&&ms>0){animT=setTimeout(suivant,ms);return}
+  }
+  finFile();
+}
+function finFile(){
+  const av=verrou||ecranFin||partie&&partie.ecran;
+  animCours=false;verrou=false;ecranFin=null;tenus=[];masques=[];
+  $('passer').hidden=true;
+  if(!partie)return;
+  partie.ecran=null;
+  if(av)affiche();
+  verifieRecap();
+}
+function arreteAnim(){clearTimeout(animT);fileA=[];animCours=false;verrou=false;ecranFin=null;tenus=[];masques=[];$('scene').textContent='';$('passer').hidden=true;if(partie)partie.ecran=null}
+$('passer').onclick=()=>{sauter=true;$('scene').textContent='';fx=[];suivant();sauter=false};
+function fixe(st,ajout){partie.ecran=st;if(ajout)tenus=tenus.concat(ajout);if(repeint){repeint();poseFx()}}
+function libere(q){masques=masques.filter(x=>x!==q);const z=$('partie').querySelector(q);if(z)z.classList.remove('fx-cache')}
+const voisinsDe=(l,k)=>[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].filter(([a,b])=>a>=0&&a<3&&b>=0&&b<3);
+function traitActif(st,p,l,k,e){const G=st.j[p].grille;return !!G[l][k]&&M.carte(G[l][k].c).el.includes(e)&&voisinsDe(l,k).some(([a,b])=>G[a][b]&&M.carte(G[a][b].c).el.includes(e))}
+function actifs(st){
+  const t={},c={};
+  for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){
+    const G=st.j[p].grille,g=G[l][k];if(!g)continue;const E=M.carte(g.c).el;
+    [[l,k+1],[l+1,k]].forEach(([x,y])=>{const n=G[x]&&G[x][y];if(n)E.filter(e=>M.carte(n.c).el.includes(e)).forEach(e=>{t[[p,l,k,x,y,e]]={p,l,k,x,y,e}})});
+    const f=st.j[1-p].grille[l][k],m=f&&E.find(e=>M.carte(f.c).el.includes(M.DOMINE[e]));
+    if(m)c[[p,l,k]]={p,l,k,e:m};
+  }
+  return {t,c};
+}
+const COUL=e=>'var(--'+e+')';
+function lienSteps(L,av,s){
+  const A=actifs(av),B=actifs(s),nT=Object.keys(B.t).filter(x=>!A.t[x]).map(x=>B.t[x]),nC=Object.keys(B.c).filter(x=>!A.c[x]).map(x=>B.c[x]),vu={};
+  nT.forEach(o=>L.push(()=>{
+    trace(rectDe(caseDe(o.p,o.l,o.k)),rectDe(caseDe(o.p,o.x,o.y)),COUL(o.e),false,1000);
+    [[o.l,o.k],[o.x,o.y]].forEach(([l,k])=>{
+      const q=caseDe(o.p,l,k);ajoutFx({q,classe:'fx-lien',eclat:true,c:COUL(o.e)},1000);
+      const cle=o.p+':'+l+k+o.e;if(!vu[cle]&&!traitActif(av,o.p,l,k,o.e)){vu[cle]=1;ajoutFx({q,classe:'fx-bonus',texte:'+1'},1300)}
+    });
+    return T(650);
+  }));
+  nC.forEach(o=>L.push(()=>{
+    const q=caseDe(o.p,o.l,o.k);
+    trace(rectDe(q),rectDe(caseDe(1-o.p,o.l,o.k)),COUL(o.e),true,800);
+    ajoutFx({q,classe:'fx-lien',eclat:true,c:COUL(o.e)},800);ajoutFx({q,classe:'fx-bonus',texte:'+1'},1300);
+    return T(550);
+  }));
+  L.push(()=>{ /* Voisins de Cyrdan, soins : le reste du gain de Force. */
+    for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){
+      const u=av.j[p].grille[l][k],w=s.j[p].grille[l][k];if(!u||!w||u.c!==w.c)continue;
+      const g=M.forceDe(s,p,l,k)-M.forceDe(av,p,l,k);
+      const dej=M.carte(w.c).el.filter(e=>traitActif(s,p,l,k,e)&&!traitActif(av,p,l,k,e)).length+(nC.some(o=>o.p===p&&o.l===l&&o.k===k)?1:0);
+      if(g-dej>0)ajoutFx({q:caseDe(p,l,k),classe:'fx-bonus',texte:'+'+(g-dej)},1300);
+    }
+    return 0;
+  });
+}
+/* Noms du journal vers cases : les morts du moteur, vague par vague. */
+function vaguesDe(av,s,lignes){
+  const pris={},cherche=nom=>{
+    for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){
+      const a=av.j[p].grille[l][k],b=s.j[p].grille[l][k],c=p+''+l+k;
+      if(a&&!b&&!pris[c]&&M.nomDetail(M.carte(a.c))===nom){pris[c]=1;return {p,l,k,c:a.c}}
+    }
+    return null};
+  return lignes.map(([,x])=>{
+    let m=/^(.+) (?:meurent|meurt)\.$/.exec(x),v=null;
+    if(m)v={noms:m[1].split(' et '),perte:false};
+    else if((m=/^La Nuit au Village : (.+) est détruit\.$/.exec(x)))v={noms:[m[1]],perte:false,secoue:true};
+    else{const e=[...x.matchAll(/(?:^|\. )([^.:]+?) meurt ensuite/g)];if(e.length)v={noms:e.map(q=>q[1].trim()),perte:true}}
+    if(v)v.cases=v.noms.map(cherche).filter(Boolean);
+    return v;
+  });
+}
+function etapesLignes(L,av,s,lignes,a){
+  const vagues=vaguesDe(av,s,lignes),touche=(cs,n)=>{
+    cs.forEach(([p,l,k])=>{const q=caseDe(p,l,k);ajoutFx({q,classe:'fx-deg',texte:'-'+n},1500);ajoutFx({q,classe:'fx-frappe'},500)});
+    if(cs.length*n>=3&&!REDUIT.matches)ajoutFx({q:'.p-plateau',classe:'fx-secoue'},500);
+    return T(cs.length?700:0);
+  };
+  const des=(p,nom,vals,f)=>L.push(()=>{if(vite())return 0;lanceDes(p,nom,vals,f);return REDUIT.matches?1700:2700});
+  let mort=false;
+  lignes.forEach(([p,x],i)=>{
+    let m=/^Alrevan lance le dé : Force (\d+)\.$/.exec(x);
+    if(m)des(p,'Alrevan',[+m[1]],+m[1]);
+    m=/^Alrevan \(KEKWRevan\) lance (\d) et (\d) : Force (\d+)\.$/.exec(x);
+    if(m)des(p,'Alrevan (KEKWRevan)',[+m[1],+m[2]],+m[3]);
+    m=/^Le Plateau de Jeu lance (\d) : (.+)\.$/.exec(x);
+    if(m)des(p,'Le Plateau de Jeu',[+m[1]],m[2]);
+    if(/^Slim K : 1 dégât/.test(x)&&a&&a.t==='p'){const c=[];[0,1,2].forEach(k=>{if(M.ciblable(av,1-p,a.l,k,p))c.push([1-p,a.l,k])});L.push(()=>touche(c,1))}
+    if(x==='KaTarN perd 4 de Force.'){const c=[];for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=av.j[p].grille[l][k];if(g&&M.carte(g.c).id==='001')c.push([p,l,k])}L.push(()=>touche(c,4))}
+    m=/: \+(\d+) points?\.$/.exec(x);
+    if(m){const n=+m[1];L.push(()=>{etoile(rectDe('.p-plateau'),'+'+n);return T(700)},()=>{if(ecranFin)ecranFin.score[p]+=n;peintFin();ajoutFx({q:'.p-info.score',classe:'bascule'},700);return 0})}
+    const v=vagues[i];
+    if(v&&v.cases.length){mort=true;L.push(()=>{
+      v.cases.forEach(c=>{
+        const q=caseDe(c.p,c.l,c.k);
+        tenus=tenus.filter(t=>t.q!==q);$('partie').querySelectorAll(q+' .fx-tenu').forEach(z=>z.remove());
+        if(v.perte)ajoutFx({q,classe:'fx-deg',texte:'-1'},1100);
+        ajoutFx({q,fantome:()=>miniVue(av,c.p,c.l,c.k)},1100);
+        vol(rectDe(q),rectDe(piles(c.p,'defausse')),srcC(c.c),450,650);
+      });
+      if(v.secoue&&!REDUIT.matches)ajoutFx({q:'.p-plateau',classe:'fx-secoue'},500);
+      return T(500);
+    })}
+  });
+  if(mort)L.push(()=>{ /* Survivants qui perdent un bonus. */
+    for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){
+      const u=av.j[p].grille[l][k],w=s.j[p].grille[l][k];
+      if(u&&w&&u.c===w.c&&u.d===w.d){const d=M.forceDe(av,p,l,k)-M.forceDe(s,p,l,k);if(d>0)ajoutFx({q:caseDe(p,l,k),classe:'fx-deg',texte:'-'+d},1200)}
+    }
+    return T(500);
+  });
+}
+function tenusDe(av,s,lignes){
+  return vaguesDe(av,s,lignes).filter(Boolean).flatMap(v=>v.cases).map(c=>({q:caseDe(c.p,c.l,c.k),vue:()=>{const m=miniVue(av,c.p,c.l,c.k);m.classList.add('fx-tenu');return m}}));
+}
+function etapesDecompte(L,av,s,lignes){
+  const me=partie.moi,cols=me===0?[0,1,2]:[2,1,0],D=s.dernier,S=[av.j[0].score,av.j[1].score];
+  L.push(()=>{ecranFin={comptes:[[0,0],[0,0],[0,0]],gagnants:{},score:S.slice()};$('passer').hidden=false;fixe(av);return T(350)});
+  cols.forEach(k=>{
+    [0,1,2].forEach(l=>[me,1-me].forEach(p=>{
+      if(!av.j[p].grille[l][k])return;
+      const n=M.forceDe(av,p,l,k);
+      L.push(()=>{ecranFin.comptes[k][p]+=n;peintFin();ajoutFx({q:caseDe(p,l,k),classe:'fx-compte',texte:'+'+n},650);return T(240)});
+    }));
+    const w=D.gagnants[k],pts=s.terrains[k].pts;
+    L.push(()=>{ecranFin.gagnants[k]=w;peintFin();return T(320)});
+    if(w!==null)L.push(()=>{etoile(rectDe('.p-terrain[data-k="'+k+'"]'),'+'+pts);return T(700)},()=>{ecranFin.score[w]+=pts;peintFin();ajoutFx({q:'.p-info.score',classe:'bascule'},700);return 0});
+  });
+  L.push(()=>{fixe(s,tenusDe(av,s,lignes));return T(300)});
+  etapesLignes(L,av,s,lignes,null);
+  L.push(()=>T(500));
+}
+function etapes(av,s,a,p){
+  const me=partie.moi,L=[],neuf=s.log.slice(av.log.length),dec=s.reperes.length>av.reperes.length;
+  const avant=dec?neuf.slice(0,s.reperes[s.reperes.length-1][0]-av.log.length):neuf,apres=dec?neuf.slice(s.reperes[s.reperes.length-1][1]-av.log.length):[];
+  const bouge=['w','y','e'].includes(a.t);
+  L.push(()=>{sonsDe(av,s);return 0});
+  if(a.t==='p'){
+    const de=p===me?rectDe('.p-slot[data-c="'+a.c+'"]'):null,q=caseDe(p,a.l,a.k),old=av.j[p].grille[a.l][a.k];
+    L.push(()=>montreGrand(a.c,de||rectDe('.p-camp.lui'),rectDe(q)));
+    L.push(()=>{
+      if(old)vol(rectDe(q),rectDe(piles(p,'defausse')),srcC(old.c),500);
+      fixe(s,tenusDe(av,s,avant));
+      ajoutFx({q,classe:'arrive',mini:true},480);
+      if(M.carte(a.c).base)ajoutFx({q,classe:'fx-evo',eclat:true},1950);
+      return T(M.carte(a.c).base?900:300);
+    });
+  }else if(a.t==='f'||a.t==='s'){
+    const de=p===me?rectDe('.p-slot[data-c="'+a.c+'"]'):rectDe('.p-camp.lui .c-main');
+    L.push(()=>{vol(de,rectDe(piles(p,'forge')),p===me?srcC(a.c):DOS,600);return T(600)});
+  }else if(a.t==='d'){
+    const de=p===me?rectDe('.p-slot[data-c="'+a.c+'"]'):rectDe('.p-camp.lui .c-main');
+    L.push(()=>{vol(de,rectDe(piles(p,'defausse')),srcC(a.c),500);return T(500)});
+  }else if(bouge){
+    L.push(()=>{fixe(s,tenusDe(av,s,avant));
+      for(let q=0;q<2;q++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){const u=av.j[q].grille[l][k],w=s.j[q].grille[l][k];if(w&&(!u||u.c!==w.c))ajoutFx({q:caseDe(q,l,k),classe:'arrive',mini:true},480)}
+      return T(450)});
+  }
+  if(dec)etapesDecompte(L,av,s,apres);
+  else{
+    if(a.t!=='p'&&!bouge)L.push(()=>{fixe(s,tenusDe(av,s,avant));return 0});
+    etapesLignes(L,av,s,avant,a);
+    if(a.t==='p'||bouge)lienSteps(L,av,s);
+  }
+  /* Pioche : face visible pour soi, de dos cote adverse. */
+  const vus=av.j[me].main,neuves=s.j[me].main.filter(c=>!vus.includes(c)),pq=c=>'.p-slot[data-c="'+c+'"]';
+  if(neuves.length){
+    neuves.forEach(c=>masques.push(pq(c)));
+    L.push(()=>{neuves.forEach((c,i)=>vol(rectDe('.pile.deck'),rectDe(pq(c)),srcC(c),450,i*140));return T(450+140*(neuves.length-1))},()=>{neuves.forEach(c=>libere(pq(c)));return 0});
+  }
+  const n=s.j[1-me].main.length-av.j[1-me].main.length;
+  if(n>0)L.push(()=>{for(let i=0;i<n;i++)vol(rectDe('.p-camp.lui .c-deck'),rectDe('.p-camp.lui .c-main'),DOS,420,i*140);return T(420+140*(n-1))});
+  const t0=texteTour(av,me),t1=texteTour(s,me);
+  if(t0!==t1||(s.phase==='jeu'&&(av.tour!==s.tour||av.manche!==s.manche||quiJoue(av)!==quiJoue(s))))L.push(()=>{
+    ajoutFx({q:'.p-tourde',classe:'bascule'},750);
+    if(!s.fin&&s.phase==='jeu'&&!vite())montreBandeau(t1,quiJoue(s)===me);
+    return 0;
+  });
+  if(dec)verrou=true;
+  return L;
+}
+function montreBandeau(t,amoi){
+  const b=$('bandeau');b.textContent=t;b.classList.toggle('amoi',amoi);b.hidden=true;void b.offsetWidth;b.hidden=false;
+  clearTimeout(minBandeau);minBandeau=setTimeout(()=>{b.hidden=true},2100);
+}
+/* Des : purement visuel, la valeur vient du journal du moteur. */
+const PIPS={1:[[50,50]],2:[[30,30],[70,70]],3:[[30,30],[50,50],[70,70]],4:[[30,30],[70,30],[30,70],[70,70]],5:[[30,30],[70,30],[50,50],[30,70],[70,70]],6:[[30,27],[70,27],[30,50],[70,50],[30,73],[70,73]]};
+function deSvg(v){
+  return '<svg viewBox="0 0 100 100" role="img" aria-label="Dé : '+v+'"><path fill="#f4f7f9" stroke="#0a121a" stroke-width="5" stroke-linejoin="round" d="M20 5C40 3 62 4 81 6C92 8 95 16 95 26C97 45 96 63 94 80C93 91 85 95 75 95C55 97 38 96 20 94C9 93 5 85 5 75C3 56 4 38 6 21C7 11 11 6 20 5Z"/>'+PIPS[v].map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="8.5" fill="#0a121a"/>').join('')+'</svg>';
+}
+function lanceDes(p,nom,vals,force){fileDes.push({p,nom,vals,force});if(!desActif)deSuivant()}
+function arreteDes(){desActif=false;fileDes=[];clearInterval(desT);clearTimeout(desF);$('des').hidden=true}
+function deSuivant(){
+  const o=fileDes.shift(),b=$('des');
+  if(!o||!partie){desActif=false;b.hidden=true;return}
+  desActif=true;
+  const h=el('h3','',(o.p===partie.moi?'Toi':nomJ(o.p))+' : '+o.nom),fa=el('div','faces'),res=el('p');
+  b.textContent='';b.append(h,fa,res);b.hidden=false;
+  const faces=a=>{fa.innerHTML=a.map(deSvg).join('')};
+  const finit=()=>{clearInterval(desT);b.classList.remove('roule');faces(o.vals);res.textContent=typeof o.force==='number'?'Force '+o.force:o.force;desF=setTimeout(deSuivant,1700)};
+  if(REDUIT.matches){finit();return}
+  b.classList.add('roule');
+  const hasard=()=>faces(o.vals.map(()=>1+Math.floor(Math.random()*6)));
+  hasard();desT=setInterval(hasard,90);desF=setTimeout(finit,1000);
+}
+/* Aide rapide */
+function fermeAide(){if($('aide').hidden)return;$('aide').hidden=true;const b=$('btnAide');if(b)b.focus()}
+$('aideFermer').onclick=fermeAide;
+$('aide').onclick=e=>{if(e.target===$('aide'))fermeAide()};
+/* Son : aucun AudioContext avant un clic, rien ne passe par la presence ni le journal. */
+let sonOn=lire('golems.son')==='1',actx=null;
+function armeSon(){
+  if(!actx){const A=window.AudioContext||window.webkitAudioContext;if(!A)return;try{actx=new A()}catch(e){return}}
+  if(actx.state==='suspended')actx.resume().catch(()=>{});
+}
+addEventListener('click',()=>{if(sonOn)armeSon()},true);
+const SONS={ /* frequence, depart, duree, forme */
+ pose:[[330,0,.07,'triangle']],
+ degat:[[150,0,.11,'square']],
+ mort:[[220,0,.13,'triangle'],[147,.1,.2,'triangle']],
+ evo:[[440,0,.09,'triangle'],[587,.08,.09,'triangle'],[784,.16,.15,'triangle']],
+ manche:[[392,0,.13,'sine'],[523,.12,.2,'sine']],
+ victoire:[[523,0,.12,'triangle'],[659,.11,.12,'triangle'],[784,.22,.12,'triangle'],[1047,.33,.3,'triangle']],
+ tour:[[660,0,.1,'sine']]};
+function joueSons(l){
+  if(!sonOn||!actx||actx.state!=='running')return;
+  let t=actx.currentTime+.01;
+  l.forEach(n=>{
+    let fin=0;
+    SONS[n].forEach(([f,d,du,forme])=>{
+      const o=actx.createOscillator(),g=actx.createGain(),a=t+d;o.type=forme;o.frequency.value=f;
+      g.gain.setValueAtTime(.0001,a);g.gain.exponentialRampToValueAtTime(forme==='square'?.018:.05,a+.012);g.gain.exponentialRampToValueAtTime(.0001,a+du);
+      o.connect(g);g.connect(actx.destination);o.start(a);o.stop(a+du+.02);fin=Math.max(fin,d+du);
+    });
+    t+=fin+.05;
+  });
+}
+function sonsDe(av,s){
+  const l=[],me=partie.moi,neuf=s.log.slice(av.log.length).map(x=>x[1]),a=r=>neuf.some(x=>r.test(x));
+  let deg=false;
+  for(let p=0;p<2;p++)for(let y=0;y<3;y++)for(let k=0;k<3;k++){const u=av.j[p].grille[y][k],v=s.j[p].grille[y][k];if(u&&v&&u.c===v.c&&v.d>u.d)deg=true}
+  if(a(/^améliore /))l.push('evo');else if(a(/^(pose|remplace) /))l.push('pose');
+  if(deg)l.push('degat');
+  if(a(/ meur|est détruit/))l.push('mort');
+  if(s.fin&&!av.fin)l.push(s.fin.gagnant===me?'victoire':'manche');
+  else if(s.reperes.length>av.reperes.length)l.push('manche');
+  if(!s.fin&&s.phase==='jeu'&&quiJoue(s)===me&&(av.phase!=='jeu'||quiJoue(av)!==me||av.tour!==s.tour||av.manche!==s.manche))l.push('tour');
+  joueSons(l);
+}
+const SVG_SON='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 9H7L13 4V20L7 15H3Z"/>';
+function outils(){
+  const d=el('div','p-outils'),q=el('button','p-outil','?'),m=el('button','p-outil'),v=el('button','p-outil');
+  v.type='button';v.id='btnVitesse';
+  const pv=()=>{v.textContent=vitesse==='rapide'?'>>':'>';const l='Vitesse des animations : '+(vitesse==='rapide'?'Rapide':'Normal');v.title=l;v.setAttribute('aria-label',l)};
+  v.onclick=()=>{vitesse=vitesse==='rapide'?'normal':'rapide';ecrire('golems.vitesse',vitesse);pv()};pv();
+  q.type=m.type='button';q.id='btnAide';m.id='btnSon';q.setAttribute('aria-label','Aide rapide');q.title='Aide rapide';
+  q.onclick=()=>{$('aide').hidden=false;$('aideFermer').focus()};
+  const peint=()=>{
+    m.innerHTML=SVG_SON+(sonOn?'<path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M16 9C17.5 10.8 17.5 13.2 16 15M18.8 6.5C21.6 9.8 21.6 14.2 18.8 17.5"/>':'<path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M16 9.5L21 14.5M21 9.5L16 14.5"/>')+'</svg>';
+    m.setAttribute('aria-pressed',sonOn);m.setAttribute('aria-label',sonOn?'Couper le son':'Activer le son');m.title=m.getAttribute('aria-label');
+  };
+  m.onclick=()=>{sonOn=!sonOn;ecrire('golems.son',sonOn?'1':'0');if(sonOn){armeSon();setTimeout(()=>joueSons(['tour']),60)}peint()};
+  peint();d.append(v,q,m);return d;
+}
+/* Copie : presse-papiers dans le clic, sinon selection pour Ctrl+C. */
+function copie(txt,b,lib,selectionne){
+  const ok=m=>{b.textContent=m;setTimeout(()=>{b.textContent=lib},1800)};
+  const repli=()=>{
+    selectionne();
+    let fait=false;try{fait=document.execCommand('copy')}catch(e){}
+    ok(fait?'Copié':'Sélectionné : Ctrl+C');
+  };
+  try{navigator.clipboard.writeText(txt).then(()=>ok('Copié'),repli)}catch(e){repli()}
+}
+/* Fin de partie : tout vient du journal, le moteur ne garde que la derniere manche. */
+function parManche(s){
+  return s.reperes.map(x=>{
+    const o={terrains:[],bonus:[0,0]};
+    s.log.slice(x[0],x[1]).forEach(([p,t])=>{const m=/^marque (.+) \(\d+ contre \d+\) : \+(\d+)\.$/.exec(t);if(m)o.terrains.push({p,nom:m[1],pts:+m[2]})});
+    s.log.slice(x[1],x[2]).forEach(([p,t])=>{const m=/: \+(\d+) points?\.$/.exec(t);if(m&&p!==null)o.bonus[p]+=+m[1]});
+    return o;
+  });
+}
+function lignesManche(o,nom){
+  const l=o.terrains.map(x=>nom(x.p)+' : '+x.nom+' +'+x.pts);
+  [0,1].forEach(p=>{if(o.bonus[p])l.push(nom(p)+' : bonus +'+o.bonus[p])});
+  return l.length?l.join(', '):'aucun terrain gagné';
+}
+const pl=(n,m)=>n+' '+m+(n>1?'s':'');
+const texteSources=c=>c.sources.map(q=>q.source+' : '+[q.degats?pl(q.degats,'dégât'):'',q.morts?pl(q.morts,'mort'):''].filter(Boolean).join(', ')).join(' ; ');
+function ligneMvp(B){
+  const x=B.mvp,P=M.POIDS_MVP;if(!x)return '';
+  return 'MVP : '+x.carte+', score '+x.score+' (Force sur terrains gagnés '+x.force+' x '+P.force+', bonus donnés '+x.bonus+' x '+P.bonus+', dégâts '+x.degats+' x '+P.degats+', morts '+x.morts+' x '+P.morts+')';
+}
+function lignesBilan(s,n){
+  const B=M.bilan(s),l=(B.mvp?[ligneMvp(B)]:[]).concat('Bilan par carte');
+  B.joueurs.forEach((J,p)=>{
+    l.push(n(p)+' : infligés '+J.degats+', subis '+J.subis+', morts causées '+J.morts+', morts subies '+J.mortsSubies);
+    J.cartes.forEach(c=>l.push('  '+c.carte+' : infligés '+c.degats+', subis '+c.subis+', morts causées '+c.morts+', morts subies '+c.mortsSubies+(c.sources.length?' ('+texteSources(c)+')':'')));
+  });
+  B.autres.forEach(o=>l.push('Autre source, '+o.source+' : '+pl(o.morts,'mort')));
+  return l;
+}
+function vueBilan(s,nm){
+  const B=M.bilan(s),d=el('details','b-fin');d.open=true;d.append(el('summary','','Bilan par carte'));
+  B.joueurs.forEach((J,p)=>{
+    d.append(el('h4','',nm(p)+' : infligés '+J.degats+', subis '+J.subis+', morts causées '+J.morts+', morts subies '+J.mortsSubies));
+    if(!J.cartes.length){d.append(el('p','','Aucun Golem joué.'));return}
+    const t=el('table'),h=el('tr');['Carte','Dégâts infligés','Dégâts subis','Morts causées','Morts subies'].forEach(x=>h.append(el('th','',x)));t.append(h);
+    J.cartes.forEach(c=>{
+      const r=el('tr');[c.carte,c.degats,c.subis,c.morts,c.mortsSubies].forEach(x=>r.append(el('td','',String(x))));t.append(r);
+      if(c.sources.length){const q=el('tr'),z=el('td','src',texteSources(c));z.colSpan=5;q.append(z);t.append(q)}
+    });
+    d.append(t);
+  });
+  B.autres.forEach(o=>d.append(el('p','',o.source+' : '+pl(o.morts,'mort'))));
+  return d;
+}
+function texteResume(s){
+  const n=p=>nomJ(p).replace(/@/g,''),w=s.fin.gagnant,[a,b]=w===1?[1,0]:[0,1];
+  const t=(w===null?'Les Golems : match nul, '+n(0)+' et '+n(1)+', '+s.j[0].score+' partout':'Les Golems : '+n(a)+' bat '+n(b)+' '+s.j[a].score+' à '+s.j[b].score)
+    +(s.fin.departage?' (Force totale '+s.forceTotale[a]+' contre '+s.forceTotale[b]+')':'');
+  return [t].concat(parManche(s).map((o,i)=>'Manche '+(i+1)+' : '+lignesManche(o,n)),lignesBilan(s,n)).join('\n');
+}
+function donneesPartie(s){
+  const j=partie.moi===0?[partie.mien,partie.sien]:[partie.sien,partie.mien];
+  return JSON.stringify({robot:!!partie.local,version:M.VERSION,dureeSecondes:Math.round((Date.now()-partie.debut)/1000),date:new Date().toISOString(),graine:partie.graine,terrains:s.terrains.map(t=>t.nom),scores:s.fin.scores,gagnant:s.fin.gagnant,
+    cartes:j.map(l=>l.filter(c=>c[0]==='p').map(c=>M.nomDetail(M.carte(M.decode(c).c)))),bilan:M.bilan(s),journaux:j},null,1);
+}
+function copieFin(b,lib,txt){
+  copie(txt,b,lib,()=>{const z=$('repliFin');if(!z)return;partie.repli=txt;z.value=txt;z.hidden=false;z.focus();z.select()});
+}
+/* Bonus prevu de Trait et de cercle, memes regles que forceDe, sans toucher a l'etat. */
+function bonusPrevu(s,me,c,l,k){
+  const G=s.j[me].grille,C=M.carte(c),vs=[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([x,y])=>G[x]&&G[x][y]).filter(Boolean);
+  const trait=C.el.filter(e=>vs.some(v=>M.carte(v.c).el.includes(e))).length,f=s.j[1-me].grille[l][k];
+  return {trait,cercle:f&&C.el.some(e=>M.carte(f.c).el.includes(M.DOMINE[e]))?1:0};
+}
+/* Recapitulatif de fin de manche : local, ne touche ni a la presence ni au journal. */
+function mancheFinie(s){return s.fin?3:s.manche-1}
+function fermeRecap(){$('recap').hidden=true;$('recap').textContent='';recapAff=0}
+/* Decoupe le journal par manche : chaque page finit avec le decompte et ses effets. */
+function pagesLog(s){
+  const r=[];let d=0;
+  s.reperes.forEach(x=>{r.push(s.log.slice(d,x[2]));d=x[2]});
+  if(!s.fin)r.push(s.log.slice(d));
+  return r;
+}
+function genreLog(x){
+  if(/meur|est détruit/.test(x))return ['j-mort','defausse'];
+  if(/^marque |\+\d points?\.$/.test(x))return ['j-point','coupe'];
+  if(/^améliore /.test(x))return ['j-evo','manche'];
+  if(/^(pose|remplace|garde) /.test(x))return ['j-pose','main'];
+  if(/ lance /.test(x))return ['j-bonus','bouclier'];
+  if(/perd(ent)? \d|dégât/.test(x))return ['j-degat','degat'];
+  if(/^Le Camp : /.test(x))return ['j-bonus','bouclier'];
+  if(/^(Le Vaisseau|Le Carrousel|Le Buzzer|La Faille|L'Écran du MJ) : /.test(x))return ['j-pose','main'];
+  return ['','tour'];
+}
+function causesLog(s){
+  const m=new Map(),ev=s.stats.ev.filter(e=>e.t==='m');let i=0;
+  s.log.forEach(e=>{const x=e[1],a=/^(.+) (?:meurent|meurt)\.$/.exec(x),n=a?a[1].split(' et ').length:/est détruit\.$/.test(x)?1:(x.match(/meurt ensuite/g)||[]).length;
+    if(a){const t=[...new Set(ev.slice(i,i+n).map(c=>(c.sc!=null?M.nomDetail(M.carte(c.sc))+', ':'')+String(c.lib).toLowerCase()))];if(t.length)m.set(e,' Cause : '+t.join(' ; ')+'.')}
+    i+=n});
+  return m;
+}
+function ligneLog(p,x,me){return (p===null?'':(p===me?'Toi : ':nomJ(p)+' : '))+x}
+function effetsManche(s){
+  const x=s.reperes[s.reperes.length-1];
+  return x?s.log.slice(x[1],x[2]):[];
+}
+function verifieRecap(){
+  const s=partie.etat,n=mancheFinie(s);
+  if(animCours)return;
+  if(!s.dernier||n<=partie.recapVu||n===recapAff)return;
+  const me=partie.moi,lui=1-me,cols=me===0?[0,1,2]:[2,1,0],box=$('recap'),d=el('div','boite');
+  const nl=nomJ(lui),h=el('h2','','Fin de la manche '+n);h.id='recapTitre';d.append(h);
+  cols.forEach(k=>{
+    const T=s.terrains[k],c=s.dernier.colonnes[k],w=s.dernier.gagnants[k],z=el('div','r-terrain');
+    const fo=el('div','forces');fo.append('Toi ',el('b','',String(c[me])),' contre ',el('b','',String(c[lui])),' '+nl);
+    const bloque=T.nom==='La Salle Verrouillée'&&n<3;
+    z.append(el('h3','',T.nom),el('div','pts',w===null?'0 pt':'+'+T.pts+(T.pts>1?' pts':' pt')),fo,
+      el('div','gagne',bloque?'Ne marque pas encore':w===null?'Égalité':w===me?'Gagné par toi':'Gagné par '+nl));
+    d.append(z);
+  });
+  const ef=effetsManche(s);
+  if(ef.length){const u=el('ul','r-effets');ef.forEach(([p,x])=>u.append(el('li','',ligneLog(p,x,me))));d.append(u)}
+  const ec=s.dernier.ecran;
+  if(ec&&ec.p===me&&ec.main){
+    const z=el('div','r-quiz r-ecran'),l=el('div','r-mains');
+    z.append(el('p','',"L'Écran du MJ : main de "+nl+(ec.main.length?'.':' : vide.')));
+    ec.main.forEach(c=>{const C=M.carte(c),i=el('img');i.src='cartes/'+C.id+'.jpg';i.alt=C.nom;l.append(i)});
+    z.append(l);d.append(z);
+  }
+  d.append(el('p','r-total','Score : '+s.j[me].score+' - '+s.j[lui].score));
+  const b=el('button','btn plein','Continuer');b.type='button';b.id='continuer';
+  b.onclick=()=>{if(partie){partie.recapVu=n;sauve()}fermeRecap()};
+  d.append(b);box.textContent='';box.append(d);box.hidden=false;recapAff=n;b.focus({preventScroll:true});
+}
+/* Historique : sur cet appareil seulement. */
+function litListe(k){try{const v=JSON.parse(lire(k));return Array.isArray(v)?v:[]}catch(e){return []}}
+function enregistrePartie(s){
+  const l=litListe('golems.historique'),id=partie.graine+'-'+partie.debut;
+  if(l.some(x=>x.id===id))return;
+  const me=partie.moi,lui=1-me,w=s.fin.gagnant,nm=p=>p===me?'Toi':nomJ(p),B=M.bilan(s);
+  const ps=pseudo||'Joueur',np=p=>p===me?ps:nomJ(p);
+  l.unshift({id,date:Date.now(),adv:partie.local?'Golem ('+partie.niveau+')':nomJ(lui),res:w===null?'Match nul':w===me?'Victoire':'Défaite',score:s.j[me].score+' - '+s.j[lui].score,mvp:B.mvp?B.mvp.carte:'',
+    pseudo:ps,deck:deckJoue(),manches:parManche(s).map(o=>lignesManche(o,np)),mvpLigne:ligneMvp(B),
+    bilan:B.joueurs.map((J,p)=>({nom:np(p),cartes:J.cartes.map(c=>[c.carte,c.degats,c.subis,c.morts,c.mortsSubies])}))});
+  ecrire('golems.historique',JSON.stringify(l.slice(0,50)));
+}
+/* Deck joue : le paquet de test tant que les decks ne sont pas branches sur la partie. */
+function deckJoue(){return {nom:'Paquet de test',els:[...new Set(M.TYPES.flatMap(t=>M.CARTES[t].el))]}}
+function bandeauDeck(d){
+  if(!d||typeof d.nom!=='string')return el('span','h-deck h-sans','Deck non noté');
+  const b=el('span','h-deck',d.nom),e=(Array.isArray(d.els)?d.els:[]).filter(x=>/^(magma|cristal|foudre|brume|roche)$/.test(x));
+  b.style.background=e.length>1?'linear-gradient(90deg,'+e.map((x,i)=>'var(--fm-'+x+') '+Math.round(100*i/(e.length-1))+'%').join(',')+')':e.length?'var(--fm-'+e[0]+')':'var(--panneau2)';
+  return b;
+}
+function detailHisto(x){
+  const v=el('div','voile'),d=el('div','boite h-detail'),ps=x.pseudo||pseudo||'Joueur',toi=t=>String(t).replace(/\bToi\b/g,ps);
+  v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.id='detailHisto';
+  d.append(el('h2','',x.res+' '+x.score),el('p','',new Date(x.date).toLocaleString('fr-FR',{dateStyle:'long',timeStyle:'short'})+' contre '+x.adv));
+  if(Array.isArray(x.manches)){
+    const u=el('ul');x.manches.forEach((t,i)=>u.append(el('li','','Manche '+(i+1)+' : '+t)));d.append(el('h3','','Manches'),u);
+    d.append(el('h3','','MVP'),el('p','',x.mvpLigne||'Aucun'));
+    d.append(el('h3','','Bilan par carte'));
+    (Array.isArray(x.bilan)?x.bilan:[]).forEach(J=>{
+      const r=(J.cartes||[]).filter(c=>c.slice(1).some(n=>+n));
+      d.append(el('h4','',J.nom));
+      if(!r.length){d.append(el('p','','Rien à signaler.'));return}
+      const t=el('table','h-tab'),h=el('tr');['Carte','Infligés','Subis','Morts causées','Morts subies'].forEach(y=>h.append(el('th','',y)));t.append(h);
+      r.forEach(c=>{const tr=el('tr');c.forEach(y=>tr.append(el('td','',String(y))));t.append(tr)});d.append(t);
+    });
+  }else{
+    /* Ancienne entree : texte brut, Toi remplace par le pseudo, lignes a zero retirees. */
+    const u=el('ul');(Array.isArray(x.detail)?x.detail:[]).filter(t=>!/infligés 0, subis 0, morts causées 0, morts subies 0/.test(t)).forEach(t=>u.append(el('li','',toi(t).trim())));d.append(u);
+  }
+  const z=el('div','p-btns'),f=el('button','btn plein','Fermer');f.type='button';
+  const esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc)};
+  f.onclick=ferme;v.onclick=e=>{if(e.target===v)ferme()};addEventListener('keydown',esc);
+  z.append(f);d.append(z);v.append(d);document.body.append(v);f.focus();
+}
+function confirmePage(box,msg,oui){
+  box.textContent='';const n=el('button','btn','Confirmer'),a=el('button','btn sec','Annuler');n.type=a.type='button';
+  n.onclick=oui;a.onclick=()=>{peintDecks();peintHisto()};
+  const z=el('div','p-btns');z.append(n,a);box.append(el('p','o-conf',msg),z);
+}
+/* Grand ecran : autant de lignes que la fenetre en contient, de 10 a 15. Ailleurs 10 par page. */
+let pageHisto=0,lignesPage=10;
+const PAS_HISTO=50;
+function peintHisto(){
+  const b=$('histo'),l=litListe('golems.historique');b.textContent='';
+  if(!l.length){b.append(el('p','vide','Aucune partie enregistrée.'));return}
+  const barre=el('div','h-barre'),zv=el('div','o-haut'),v=el('button','btn sec','Vider'),pg=el('div','h-pages');
+  v.type='button';v.onclick=()=>confirmePage(zv,"Effacer tout l'historique ?",()=>{try{localStorage.removeItem('golems.historique')}catch(e){}pageHisto=0;peintHisto()});zv.append(v);
+  barre.append(pg,zv);b.append(barre);
+  const bas=Math.ceil(barre.getBoundingClientRect().bottom+scrollY)+8;
+  lignesPage=10;
+  const nb=Math.ceil(l.length/lignesPage);pageHisto=Math.max(0,Math.min(pageHisto,nb-1));
+  const pb=(t,d,off)=>{const q=el('button','btn sec',t);q.type='button';q.disabled=off;q.onclick=()=>{pageHisto+=d;peintHisto()};return q};
+  pg.append(pb('Précédente',-1,pageHisto===0),el('span','','Page '+(pageHisto+1)+' sur '+nb),pb('Suivante',1,pageHisto>=nb-1));
+  const gr=el('div','h-grille');b.append(gr);
+  l.slice(pageHisto*lignesPage,(pageHisto+1)*lignesPage).forEach(x=>{
+    const c=el('button','h-carte '+(x.res==='Victoire'?'h-v':x.res==='Défaite'?'h-d':'h-n'));c.type='button';
+    c.append(el('span','h-date',new Date(x.date).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})),el('b','h-res',x.res),el('span','h-adv','contre '+x.adv),el('span','h-sc',x.score),el('span','h-mvp','MVP : '+(x.mvp||'-')),bandeauDeck(x.deck));
+    c.onclick=()=>detailHisto(x);gr.append(c);
+  });
+}
+addEventListener('resize',()=>{if(!$('historique').hidden)peintHisto()});
+/* Decks : visuels pour ce test, le moteur n'en sait rien. */
+const MAX_DECKS=12,MAX_EX=3,DECK_MIN=24,DECK_MAX=30;
+let deckOuvert=null,deckVu=null,filtreDeck='';
+const lesDecks=()=>litListe('golems.decks').filter(d=>d&&typeof d.nom==='string'&&d.cartes);
+const gardeDecks=l=>ecrire('golems.decks',JSON.stringify(l));
+const totalDeck=d=>Object.values(d.cartes).reduce((t,n)=>t+(+n||0),0);
+const elsDeck=d=>[...new Set(CARTES.filter(c=>d.cartes[c[0]]>0).flatMap(c=>c[2]))];
+const valide=d=>{const n=totalDeck(d);return n>=DECK_MIN&&n<=DECK_MAX};
+function compteDeck(d){return el('span','d-compte'+(valide(d)?' ok':''),totalDeck(d)+'/'+DECK_MAX)}
+function picto(e){const i=el('img');i.src='cartes/'+e+'.png';i.alt=e;i.width=26;i.height=26;return i}
+function peintDecks(){
+  const b=$('listeDecks'),l=lesDecks();b.textContent='';
+  if(deckOuvert){const d=l.find(x=>x.id===deckOuvert);if(d){editeur(b,l,d);return}deckOuvert=null}
+  if(deckVu&&!l.some(x=>x.id===deckVu))deckVu=null;
+  const n=el('button','btn','Nouveau deck');n.type='button';n.disabled=l.length>=MAX_DECKS;
+  n.onclick=()=>{if(l.length>=MAX_DECKS)return;const d={id:nouveauSid(),nom:'Deck '+(l.length+1),cartes:{}};l.push(d);gardeDecks(l);deckOuvert=d.id;peintDecks()};
+  const plein=l.length>=MAX_DECKS;
+  b.append(n,el('p','intro o-nb'+(plein?' d-limite':''),l.length+' deck'+(l.length>1?'s':'')+' sur '+MAX_DECKS+(plein?'. Limite atteinte : supprime un deck pour en créer un nouveau.':'')));
+  const zo=el('div','d-zone'),g=el('div','d-grille'),pan=el('aside','d-panneau');pan.id='panneauDeck';pan.setAttribute('aria-label','Liste du deck');pan.setAttribute('aria-live','polite');
+  const montre=(d,t)=>{
+    deckVu=d.id;g.querySelectorAll('.d-tuile').forEach(x=>{const o=x===t;x.classList.toggle('choisie',o);x.setAttribute('aria-pressed',o)});
+    pan.textContent='';decklist(pan,d);
+    /* Tuiles empilees : le panneau est sous la pile, on l'amene a l'ecran. */
+    if(matchMedia('(max-width:1199px)').matches)pan.scrollIntoView({block:'start'});
+  };
+  l.forEach(d=>{
+    const t=el('article','d-tuile'),E=elsDeck(d);
+    t.style.background=E.length>1?'linear-gradient(120deg,'+E.map(e=>'color-mix(in srgb,var(--'+e+') 60%,#0a121a)').join(',')+')':E.length?'color-mix(in srgb,var(--'+E[0]+') 60%,#0a121a)':'var(--panneau2)';
+    const p=el('div','d-pict');E.forEach(e=>p.append(picto(e)));
+    const h=el('div','d-haut');h.append(el('h3','',d.nom),compteDeck(d));
+    const z=el('div','d-act'),bt=(x,f)=>{const q=el('button','btn sec',x);q.type='button';q.onclick=f;z.append(q)};
+    bt('Modifier',()=>{deckOuvert=d.id;peintDecks()});
+    bt('Renommer',()=>{
+      z.textContent='';const f=el('form','ligne'),i=el('input');i.type='text';i.maxLength=24;i.value=d.nom;i.setAttribute('aria-label','Nom du deck');
+      const ok=el('button','btn','OK');f.append(i,ok);f.onsubmit=e=>{e.preventDefault();const v=nettoie(i.value);if(v){d.nom=v;gardeDecks(l)}peintDecks()};z.append(f);i.focus();
+    });
+    bt('Supprimer',()=>confirmePage(z,'Supprimer '+d.nom+' ?',()=>{gardeDecks(l.filter(x=>x!==d));peintDecks()}));
+    t.append(h,p,z);g.append(t);
+    t.tabIndex=0;t.setAttribute('role','button');t.setAttribute('aria-label','Voir la liste de '+d.nom);
+    const vue=d.id===deckVu;t.setAttribute('aria-pressed',vue);if(vue)t.classList.add('choisie');
+    t.onclick=e=>{if(!e.target.closest('.d-act,a'))montre(d,t)};
+    t.onkeydown=e=>{if(e.target===t&&(e.key==='Enter'||e.key===' ')){e.preventDefault();montre(d,t)}};
+  });
+  const vu=l.find(x=>x.id===deckVu);
+  if(vu)decklist(pan,vu);else pan.append(el('p','intro o-nb',l.length?'Choisis un deck pour voir sa liste.':'Aucun deck pour le moment.'));
+  zo.append(g,pan);b.append(zo);hauteurDecks();
+}
+/* Hauteur restante jusqu'au bas de la fenetre : le CSS n'en tient compte qu'a partir de 1200 px. */
+function hauteurDecks(){
+  const z=document.querySelector('.d-zone');if(!z||!z.offsetParent)return;
+  z.style.setProperty('--d-h',Math.min(570,Math.max(420,innerHeight-Math.ceil(z.getBoundingClientRect().top+scrollY)-12))+'px');
+}
+addEventListener('resize',hauteurDecks);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(hauteurDecks);
+/* Liste compacte d'un deck : triee par cout, puis par nom. */
+function decklist(b,d){
+  const h=el('div','d-haut');h.append(el('h3','',d.nom),compteDeck(d));b.append(h);
+  /* M.CARTES est indexe par identifiant ('001e') ; M.carte attend un numero d'exemplaire de partie. */
+  const L=CARTES.filter(c=>d.cartes[c[0]]>0).map(c=>({c,C:M.CARTES[c[0]],n:+d.cartes[c[0]]})).sort((x,y)=>x.C.cout-y.C.cout||x.c[1].localeCompare(y.c[1],'fr'));
+  if(!L.length){b.append(el('p','intro o-nb','Ce deck est vide.'));return}
+  const u=el('ul','dl-liste'),ap=el('img','dl-apercu');ap.alt='';ap.hidden=true;
+  const place=e=>{const W=220,H=308,x=e.clientX+18,y=e.clientY-H/2;ap.style.left=(x+W>innerWidth?e.clientX-W-18:x)+'px';ap.style.top=Math.max(8,Math.min(innerHeight-H-8,y))+'px'};
+  L.forEach(({c,C,n})=>{
+    const li=el('li'),q=el('button','dl-ligne'),co=el('span','dl-cout'),e=el('span','dl-els'),fo=el('span','dl-force');
+    const src='cartes/'+c[0]+'.jpg';q.type='button';
+    if(c[2].length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+c[2][0]+')');q.style.setProperty('--b','var(--fm-'+c[2][1]+')')}
+    q.setAttribute('aria-label',n+' exemplaire'+(n>1?'s':'')+' de '+c[1]+', coût '+C.cout+(C.force!=null?', Force '+C.force:''));
+    co.append(ico('enclume'),String(C.cout));c[2].forEach(x=>e.append(picto(x)));
+    if(C.force!=null)fo.append(ico('force'),String(C.force));
+    q.append(co,fo,e,el('span','dl-nom',c[1]),el('span','dl-nb','×'+n));
+    q.onclick=()=>{ap.hidden=true;zoom(src,c[1])};
+    if(matchMedia('(hover:hover)').matches){
+      q.onmouseenter=ev=>{ap.src=src;ap.hidden=false;place(ev)};q.onmousemove=place;q.onmouseleave=()=>{ap.hidden=true};
+    }
+    li.append(q);u.append(li);
+  });
+  b.append(u,ap);
+  const tot=L.reduce((t,x)=>t+x.n,0),moy=L.reduce((t,x)=>t+x.n*x.C.cout,0)/tot,mx=Math.max(...L.map(x=>x.C.cout));
+  const pa=Array.from({length:mx+1},(_,i)=>L.filter(x=>x.C.cout===i).reduce((t,x)=>t+x.n,0)),hm=Math.max(...pa);
+  const pied=el('div','dl-pied'),cv=el('div','dl-courbe');
+  cv.setAttribute('role','img');cv.setAttribute('aria-label','Courbe de coûts : '+pa.map((v,i)=>v+' à '+i).join(', '));
+  pa.forEach((v,i)=>{const k=el('div','dl-col'),ba=el('i');ba.style.height=(v/hm*44)+'px';k.append(el('small','',v?String(v):''),ba,el('span','',String(i)));cv.append(k)});
+  pied.append(el('p','dl-total',tot+' carte'+(tot>1?'s':'')+', coût moyen '+moy.toFixed(1).replace('.',',')),cv);
+  b.append(pied);
+}
+function editeur(b,l,d){
+  const h=el('div','d-haut'),r=el('button','btn sec','Retour aux decks');r.type='button';r.onclick=()=>{deckOuvert=null;peintDecks()};
+  h.append(el('h3','',d.nom),compteDeck(d),r);b.append(h);
+  const f=el('div','filtres');EL.forEach(([v,t])=>{const q=el('button','pastille');if(v){const i=el('i');i.style.setProperty('--c','var(--'+v+')');q.append(i)}q.append(t);q.type='button';q.setAttribute('aria-pressed',v===filtreDeck);q.onclick=()=>{filtreDeck=v;peintDecks()};f.append(q)});b.append(f);
+  const g=el('div','grille');
+  CARTES.filter(c=>!filtreDeck||c[2].includes(filtreDeck)).forEach(c=>{
+    const z=el('div','d-carte'),i=el('img'),n=d.cartes[c[0]]||0;i.src='cartes/'+c[0]+'.jpg';i.alt=c[1];i.loading='lazy';
+    const q=el('div','d-qte'),m=el('button','j-btn','-'),p=el('button','j-btn','+');m.type=p.type='button';m.setAttribute('aria-label','Retirer '+c[1]);p.setAttribute('aria-label','Ajouter '+c[1]);
+    m.disabled=!n;p.disabled=n>=MAX_EX||totalDeck(d)>=DECK_MAX;
+    const ch=v=>{d.cartes[c[0]]=n+v;gardeDecks(l);peintDecks()};m.onclick=()=>ch(-1);p.onclick=()=>ch(1);
+    q.append(m,el('b','',n+'/'+MAX_EX),p);z.append(i,q);g.append(z);
+  });
+  b.append(g);
+}
+function nouvelleGraine(){return Math.floor(Math.random()*2147483646)+1}
+/* Depart volontaire : aussi publie dans le lobby, car la presence du salon disparait avec lui. */
+function adversaireParti(){
+  const g=partie.graine,vu=p=>!p.sameTab&&p.presence&&p.presence.quitte===g;
+  return personnes(r.peers()).some(vu)||!!room&&personnes(room.peers()).some(vu);
+}
+function quittePartie(){
+  if(partie&&partie.local){oublieLocal();sortie();return}
+  const a=r,g=partie&&partie.graine;
+  oublie(code);
+  if(!a||!g){sortie();return}
+  if(room)room.presence({quitte:g}).catch(()=>{});
+  sortie('',a.presence({quitte:g}).catch(()=>{}).then(()=>pause(400)));
+}
+function majPartie(){
+  if(!r)return;
+  if(partie&&adversaireParti()){
+    oublie(code);finPartie();notice='Ton adversaire a quitté la partie.';
+    pub({graine:null,jg:null,j:null,veut:null,adv:null});
+    $('salon').hidden=false;majSalon();return;
+  }
+  let l=ordre(r.peers());
+  if(partie&&partie.adv)l=l.filter(p=>p.sameTab||p.presence.sid===partie.adv);
+  l=l.slice(0,2);
+  const prets=l.length===2&&l.every(p=>+p.presence.arrivee>0);
+  if(partie){
+    if(l.length<2){
+      $('absence').textContent='Adversaire absent';$('absence').hidden=false; /* coupure ou rechargement : attente sans limite */
+      return;
+    }
+    if(!$('absence').hidden){$('absence').hidden=true;if(partie.etat)affiche()}
+  }
+  if(!prets)return;
+  const moi=partie?partie.moi:l.findIndex(p=>p.sameTab);if(moi<0||moi>1)return;
+  const g=l[0].presence.graine,lui=l[1-moi];
+  const rejouer=partie&&g===partie.graine&&partie.etat&&partie.etat.fin&&partie.veut&&lui.presence.veut===g;
+  /* Salon neuf : la graine attend les deux Pret (voir ticCompte). Rejouer et reprise ne passent pas par la. */
+  const neuf=!partie&&!l.some(p=>Number.isInteger(p.presence.jg));
+  if(neuf&&!Number.isInteger(g))return;
+  if(moi===0&&(!Number.isInteger(g)||rejouer)){pub({graine:nouvelleGraine()});return}
+  if(!Number.isInteger(g))return;
+  if(!partie||partie.graine!==g){lancer(g,moi,typeof lui.presence.sid==='string'?lui.presence.sid:'');sauve();return}
+  if(partie.advNom!==nomDe(lui)){partie.advNom=nomDe(lui);sauve()}
+  if(lui.presence.jg!==g||typeof lui.presence.j!=='string')return;
+  let liste;try{liste=M.litJournal(lui.presence.j)}catch(e){return}
+  if(liste.length>partie.sien.length){partie.sien=liste;sel=null;calcule()}
+}
+function joue(a){
+  if(!partie)return;
+  partie.mien.push(M.code(a));
+  sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;
+  sauve();pub({j:M.ecritJournal(partie.mien)});calcule();
+}
+function nomJ(p){
+  if(partie){
+    if(p===partie.moi)return pseudo||'Joueur';
+    const q=r&&partie.adv?personnes(r.peers()).find(x=>x.presence.sid===partie.adv):null;
+    if(q)return nomDe(q);
+    if(partie.advNom)return partie.advNom;
+  }
+  const l=r?ordre(r.peers()).slice(0,2):[];
+  return l[p]?nomDe(l[p]):'Adversaire';
+}
+function miniVue(s,p,l,k){
+  const v=s.j[p].grille[l][k],C=M.carte(v.c);
+  const m=el('span','mini'),co=el('span','cout'),ba=el('span','bas'),f=el('span','f'),e=el('span','els');
+  m.style.setProperty('--a','var(--fm-'+C.el[0]+')');m.style.setProperty('--b','var(--fm-'+C.el[1]+')');
+  C.el.forEach(x=>{const i=el('img');i.src='cartes/'+x+'.png';i.alt='';i.width=22;i.height=22;e.append(i)});
+  co.append(ico('enclume'),String(C.cout));ba.append(co);
+  if(v.d>0)ba.append(el('span','deg','-'+v.d));
+  if(v.ra)ba.append(el('span','rage','Rage +'+v.ra));
+  const fa=M.forceDe(s,p,l,k);if(fa>v.f)f.classList.add('plus');else if(fa<v.f)f.classList.add('moins');
+  f.append(ico('force'),el('b','',String(fa)));
+  m.append(el('span','nom',C.base?M.CARTES[C.base].nom:C.nom),e,ba,f);
+  return m;
+}
+/* Detail de Force d'un Golem : lecture seule de l'etat du moteur. */
+const NOMS_EL={magma:'Magma',cristal:'Cristal',foudre:'Foudre',brume:'Brume',roche:'Roche'};
+function signe(n){return (n>0?'+':'')+n}
+function lg(t,v,cl){const d=el('div','lg'+(cl?' '+cl:''));d.append(el('span','',t),el('b','',v));return d}
+function detailForce(s,p,l,k){
+  const G=s.j[p].grille,g=G[l][k],C=M.carte(g.c),a=el('section');
+  a.append(el('h3','','Force'));
+  a.append(lg(C.id==='002'?'Résultat du dé':C.id==='002e'?'Résultat des dés':'Force de base',String(g.f)));
+  const vs=[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([x,y])=>G[x]&&G[x][y]).filter(Boolean);
+  vs.forEach(v=>{const c=M.carte(v.c);if(c.id==='003'||c.id==='003e')a.append(lg('Voisin '+M.nomDetail(c),'+1'))});
+  if(g.ra)a.append(lg('Rage',signe(g.ra)));
+  let d=g.d;
+  if(C.id==='001'&&d>=3){
+    const n=Math.min(Math.floor(d/4),s.log.filter(([q,x])=>q===p&&x==='KaTarN perd 4 de Force.').length);
+    if(n){a.append(lg('Perte KaTarN','-'+3*n));d-=3*n}
+  }
+  if(d>0)a.append(lg('Dégâts','-'+d));
+  C.el.forEach(e=>{const n=vs.filter(v=>M.carte(v.c).el.includes(e)).map(v=>M.nomDetail(M.carte(v.c)));
+    a.append(lg('Trait '+NOMS_EL[e]+(n.length?' : voisin '+n.join(', '):' : aucun voisin'),n.length?'+1':'+0'))});
+  const h=s.j[1-p].grille[l][k],hC=h?M.carte(h.c):null,dom=hC?C.el.find(e=>hC.el.includes(M.DOMINE[e])):null;
+  a.append(lg(dom?'Cercle : '+NOMS_EL[dom]+' domine '+NOMS_EL[M.DOMINE[dom]]+' ('+M.nomDetail(hC)+' en face)':hC?'Cercle : '+M.nomDetail(hC)+' en face, pas de domination':'Cercle : aucun Golem en face',dom?'+1':'+0'));
+  a.append(lg('Force actuelle',String(M.forceDe(s,p,l,k)),'tot'));
+  return [a];
+}
+function ouvreTas(titre,ids){
+  const b=$('tasCartes');b.textContent='';$('tasTitre').textContent=titre;$('tasVide').hidden=ids.length>0;
+  ids.forEach(c=>{const C=M.carte(c),i=el('img');i.src='cartes/'+C.id+'.jpg';i.alt=C.nom;b.append(i)});
+  $('vueTas').hidden=false;$('tasFermer').focus();
+}
+let uidN=0;
+/* Enclume B : Ressources/9 - Pictos points/Enclume relief.svg, sans le chiffre. Ids uniques : un doublon masque casserait le rendu. */
+function enclumeB(){const n=++uidN,P='M50 14L170 14L170 52L140 58Q130 78 136 100L158 114L158 148L42 148L42 114L64 100Q70 78 60 58L52 56Q20 50 6 16Z';
+  return '<svg viewBox="0 9 180 144" aria-hidden="true" style="overflow:visible"><defs><clipPath id="cB'+n+'"><path d="'+P+'"/></clipPath><linearGradient id="gB'+n+'" x1="10" y1="10" x2="165" y2="150" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#a9b4bd"/><stop offset=".42" stop-color="#6f7a84"/><stop offset=".62" stop-color="#3b434b"/><stop offset="1" stop-color="#1f252a"/></linearGradient><linearGradient id="fB'+n+'" x1="0" y1="20" x2="0" y2="148" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4b545d"/><stop offset="1" stop-color="#2d343b"/></linearGradient></defs><g clip-path="url(#cB'+n+')"><rect width="180" height="160" fill="url(#fB'+n+')"/><path d="M100 0H180V160H100Z" fill="#000" fill-opacity=".2"/><path d="'+P+'" fill="none" stroke="url(#gB'+n+')" stroke-width="20"/></g><path d="'+P+'" fill="none" stroke="#0b0a10" stroke-width="10" stroke-linejoin="round"/></svg>'}
+function pile(cls,lib,n,tas){
+  const d=el('div','pile '+cls+(n?'':' vide')),o=el('span','dos'),v=el('span','v-ico');
+  o.append(el('span','fond'));
+  if(cls==='forge')v.insertAdjacentHTML('beforeend',enclumeB());
+  else{const i=el('img');i.src='cartes/logo.png';i.alt='';v.append(i)}
+  o.append(v,el('span','v-mot',lib.toUpperCase()),el('span','v-nb',String(n)));d.append(o);d.setAttribute('aria-label',lib+' : '+n);
+  if(tas&&n){const e=el('button','oeil');e.type='button';e.append(ico('oeil'));e.setAttribute('aria-label','Voir '+lib);e.onclick=()=>ouvreTas(lib,tas);d.append(e)}
+  return d;
+}
+function grilleVue(s,p,cols,lignes,cible){
+  const g=el('div','p-grille'),J=s.j[p];
+  lignes.forEach(l=>cols.forEach(k=>{
+    const v=J.grille[l][k],b=el('button','p-case');b.type='button';
+    b.dataset.p=p;b.dataset.l=l;b.dataset.k=k;
+    const lib=cible&&cible(l,k);
+    if(v){
+      const C=M.carte(v.c);if(C.base)b.classList.add('evo');
+      b.append(miniVue(s,p,l,k));
+      b.setAttribute('aria-label',M.nomDetail(C)+(C.base?', évolution':'')+', coût '+C.cout+', Force '+M.forceDe(s,p,l,k)+(v.d>0?', dégâts '+v.d:'')+(v.ra?', Rage +'+v.ra:''));
+      b.onclick=()=>{dernier=null;zoom('cartes/'+C.id+'.jpg',C.nom,detailForce(s,p,l,k))};
+    }else b.disabled=!lib;
+    if(lib){
+      b.classList.add(lib.choisie?'choisie':'cible');b.dataset.act='case';
+      let porte=b;
+      if(lib.texte){if(v){porte=el('span','act',lib.texte);b.append(porte)}else b.textContent=lib.texte}
+      if(lib.bonus){
+        const n=lib.bonus.trait+lib.bonus.cercle,det='Bonus prévu : Trait +'+lib.bonus.trait+', cercle +'+lib.bonus.cercle,h=el('small','p-hint','+'+n);
+        h.dataset.n=n;porte.append(h);b.title=det;
+        b.setAttribute('aria-label',(v?M.nomDetail(M.carte(v.c))+', ':'')+lib.texte+', '+det);
+      }
+      b.onclick=lib.fait;
+    }
+    g.append(b);
+  }));
+  return g;
+}
+function camp(s,p,moi){
+  const J=s.j[p],d=el('div','p-camp '+(moi?'toi':'lui'));
+  const nb=el('b','',nomJ(p)+(moi?' (toi)':''));d.append(nb);
+  if(!moi&&!s.fin&&(s.phase==='mulligan'?!s.mull[p]:quiJoue(s)===p)){d.classList.add('joue');nb.append(el('small','p-joue','En train de jouer'))}
+  if(!moi)d.append(compteur('main','Main',J.main.length),compteur('deck','Deck',J.deck.length),compteur('defausse','Défausse',J.defausse.length),compteur('enclume','Forge',J.forge.length));
+  return d;
+}
+const SURVOL=matchMedia('(hover:hover) and (min-width:900px)');
+/* Journal : noms de cartes et de terrains cliquables. Nom detaille et evolution d'abord, pour ouvrir la bonne carte. */
+const NOMS_LOG=(()=>{const m=new Map();
+  Object.values(M.CARTES).forEach(C=>{m.set(M.nomDetail(C),{C});m.set(C.nom,{C})});
+  M.TERRAINS.forEach(T=>m.set(T.nom,{T}));
+  const e=[...m.keys()].sort((a,b)=>b.length-a.length).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+  return {m,re:new RegExp('(?<![\\p{L}\\p{N}])('+e.join('|')+')(?![\\p{L}\\p{N}])','gu')}})();
+function lienLog(nom){
+  const o=NOMS_LOG.m.get(nom),b=el('button','j-lien',nom);b.type='button';
+  if(o.T){b.onclick=()=>zoomTerrain(o.T);b.onmouseenter=()=>montreApercu(b,srcTerrain(o.T))}
+  else{const src='cartes/'+o.C.id+'.jpg';b.onclick=()=>{cacheApercu();dernier=null;zoom(src,o.C.nom)};b.onmouseenter=()=>montreApercu(b,src)}
+  b.onmouseleave=cacheApercu;return b;
+}
+function texteLog(x){
+  const s=el('span','');let d=0;
+  for(const m of x.matchAll(NOMS_LOG.re)){s.append(x.slice(d,m.index),lienLog(m[0]));d=m.index+m[0].length}
+  s.append(x.slice(d));return s;
+}
+function cacheApercu(){$('apercu').hidden=true}
+function montreApercu(z,src){
+  if(!SURVOL.matches)return;
+  const a=$('apercu'),r=z.getBoundingClientRect(),H=420;
+  a.src=src;a.hidden=false;
+  a.style.left=Math.max(8,Math.min(innerWidth-308,r.left+r.width/2-150))+'px';
+  a.style.top=(r.bottom+8+H<innerHeight?r.bottom+8:Math.max(8,r.top-H-8))+'px';
+}
+function zoomTerrain(T){cacheApercu();dernier=null;zoom(srcTerrain(T),T.nom+'. '+T.texte)}
+function mainVue(ids,opts){
+  const m=el('div','p-main');
+  ids.forEach(c=>{
+    const C=M.carte(c),b=el('button','p-carte');b.type='button';
+    const i=el('img');i.src='cartes/'+C.id+'.jpg';i.alt=C.nom;b.append(i);
+    const rz=opts.raison&&opts.raison(c);
+    if(rz){b.classList.add('grisee');b.append(el('span','raison',rz.court));b.title=rz.long}
+    if(opts.presse)b.setAttribute('aria-pressed',opts.presse(c));
+    if(opts.clic){b.dataset.act='carte';b.onclick=()=>opts.clic(c)}else b.onclick=()=>{dernier=null;zoom(i.src,C.nom)};
+    const z=el('div','p-slot'),o=el('button','oeil');o.type='button';o.append(ico('oeil'));
+    o.setAttribute('aria-label','Agrandir '+C.nom);o.onclick=()=>{cacheApercu();dernier=null;zoom('cartes/'+C.id+'.jpg',C.nom)};
+    z.dataset.c=c;z.onmouseenter=()=>montreApercu(z,'cartes/'+C.id+'.jpg');z.onmouseleave=cacheApercu;
+    z.append(b,o);m.append(z);
+  });
+  return m;
+}
+/* Pourquoi une carte ne peut pas etre posee : null si elle le peut. */
+function raisonPose(s,me,c,leg){
+  if(leg.some(a=>a.t==='p'&&a.c===c))return null;
+  const C=M.carte(c),G=s.j[me].grille,e=s.j[me].energie;
+  if(C.id==='001'&&s.manche!==1)return {court:'Manche 1 seulement',long:'Se pose uniquement en manche 1.'};
+  const cases=[];
+  for(let l=0;l<3;l++)for(let k=0;k<3;k++)if(!C.base||(G[l][k]&&M.carte(G[l][k].c).id===C.base))cases.push(M.coutPose(s,me,c,l,k));
+  if(!cases.length)return {court:'Base absente',long:'Il faut '+M.CARTES[C.base].nom+' en jeu.'};
+  const v=Math.min(...cases);
+  return {court:'Trop chère',long:'Coûte '+v+' énergie, il te reste '+e+'.'};
+}
+function bouton(txt,fait,sec){const b=el('button','btn'+(sec?' sec':''),txt);b.type='button';b.dataset.act='btn';b.onclick=fait;return b}
+function affiche(){
+  if(!partie||!partie.etat)return;
+  const s=partie.etat,me=partie.moi,lui=1-me,J=s.j[me],box=$('partie');
+  const cols=me===0?[0,1,2]:[2,1,0],leg=M.legales(s,me),att=s.attente&&s.attente.p===me?s.attente:null;
+  const hautPage=scrollY;
+  cacheApercu();
+  box.textContent='';box.classList.toggle('verrou',verrou);
+  if(verrou)$('passer').hidden=false;
+  const table=el('div','p-table'+(s.fin?' fini':'')),plat=el('div','p-plateau'),pl=el('div','p-poste');
+  if(partie.erreur)pl.append(el('p','absent','Les deux écrans ne sont plus synchronisés : '+partie.erreur));
+  const qui=s.attente?s.attente.p:s.joueur,aMoi=!s.fin&&(s.phase==='mulligan'?!s.mull[me]:qui===me);
+  const b=el('div','p-barre'+(aMoi?' amoi':''));
+  const sc=el('div','p-score');sc.setAttribute('aria-label','Toi '+J.score+', adversaire '+s.j[lui].score);
+  sc.append(el('b','',String(J.score)),el('span','','-'),el('em','',String(s.j[lui].score)));
+  const tr=el('div','p-trois');tr.append(info('','manche','Manche',points(s.manche,'Manche')),info('','tour','Tour',points(s.tour,'Tour')),info('score','coupe','Score',sc),info('energie','enclume','Énergie',el('b','p-ener',String(J.energie))));b.append(tr);
+  let cible=null;
+  const coupsV=leg.filter(a=>a.t==='w');
+  if(!coupsV.length)modeVaisseau=false;
+  const coupsF=leg.filter(a=>a.t==='y');
+  if(!coupsF.length)modeFaille=false;
+  if(modeFaille){
+    const kf=s.terrains.findIndex(x=>x.nom==='La Faille');
+    cible=(l,k)=>{
+      if(!selCases.length)return coupsF.some(a=>a.l===l&&a.k===k)?{texte:'Choisir',fait:()=>{selCases=[[l,k]];affiche()}}:null;
+      const[x,y]=selCases[0];
+      if(x===l&&y===k)return {choisie:true,fait:()=>{selCases=[];affiche()}};
+      const a=k===kf&&coupsF.find(c=>c.l===x&&c.k===y&&c.d===l);
+      return a?{texte:'Déplacer ici',fait:()=>joue(a)}:null;
+    };
+  }else if(modeVaisseau){
+    const kv=coupsV[0].k;
+    cible=(l,k)=>{
+      if(k!==kv||!J.grille[l][k])return null;
+      const pris=selCases.some(c=>c[0]===l);
+      return {choisie:pris,fait:()=>{
+        if(pris){selCases=[];affiche();return}
+        selCases.push([l,k]);
+        if(selCases.length===2){const x=Math.min(selCases[0][0],l),y=Math.max(selCases[0][0],l);joue(coupsV.find(a=>a.a===x&&a.b===y))}else affiche();
+      }};
+    };
+  }else if(att&&att.t==='o'&&leg[0].t==='e'){
+    cible=(l,k)=>{
+      if(!J.grille[l][k])return null;
+      const pris=selCases.some(c=>c[0]===l&&c[1]===k);
+      return {choisie:pris,fait:()=>{
+        if(pris){selCases=[];affiche();return}
+        selCases.push([l,k]);
+        if(selCases.length===2){const[u,v]=selCases,m=(p,q)=>p[0]===q[0]&&p[1]===q[1];joue(leg.find(a=>m(a.a,u)&&m(a.b,v)||m(a.a,v)&&m(a.b,u)))}else affiche();
+      }};
+    };
+  }else if(sel!==null&&!att&&s.phase==='jeu'){
+    const ps=leg.filter(a=>a.t==='p'&&a.c===sel);
+    cible=(l,k)=>{const a=ps.find(x=>x.l===l&&x.k===k);if(!a)return null;
+      const mot=!J.grille[l][k]?'Poser':M.carte(sel).base?'Améliorer':'Remplacer';
+      return {texte:mot+' '+M.coutPose(s,me,sel,l,k),bonus:bonusPrevu(s,me,sel,l,k),fait:()=>joue(a)}};
+  }
+  repeint=()=>{
+    const A=partie&&partie.ecran||s,t=el('div','p-terrains'),cc=M.colonnes(A);
+    cols.forEach(k=>{const T=s.terrains[k],d=el('div','p-terrain'),x=cc[k][lui],y=cc[k][me],to=el('div','p-totaux');d.dataset.k=k;
+    to.append(el('b','m'+(y>x?' tete':''),String(y)),el('span','','contre'),el('b','a'+(x>y?' tete':''),String(x)));
+    const te=el('div','p-tete'),e=el('button','oeil');
+    te.append(el('b','',T.nom));
+    e.type='button';e.append(ico('oeil'));e.setAttribute('aria-label','Agrandir '+T.nom);
+    d.onclick=()=>zoomTerrain(T);d.onmouseenter=()=>montreApercu(d,srcTerrain(T));d.onmouseleave=cacheApercu;
+    d.append(te,to,el('span','p-valeur',T.pts+(T.pts>1?' pts':' pt')),e);t.append(d)});
+    const gm=grilleVue(A,me,cols,[0,1,2],cible);if(aMoi)gm.classList.add('active');
+    plat.textContent='';plat.append(camp(s,me,true),gm,t,grilleVue(A,lui,cols,[0,1,2]),camp(s,lui,false));
+  };
+  repeint();
+  const tdt=el('div','p-tourde'+(aMoi?' amoi':''));tdt.append(el('span','',texteTour(s,me)),outils());b.append(tdt);
+  if(s.fin){
+    const f=el('div','bloc p-fin'),w=s.fin.gagnant;
+    f.append(el('h3','',w===null?'Match nul':w===me?'Victoire':'Défaite'));
+    f.append(el('p','',J.score+' à '+s.j[lui].score+(s.fin.departage?', Force totale '+s.forceTotale[me]+' contre '+s.forceTotale[lui]:'')));
+    const b=bouton(partie.veut?"En attente de l'adversaire":'Rejouer',()=>{if(partie.local){lanceLocal(null);return}partie.veut=true;sauve();pub({veut:partie.graine});affiche();majPartie()});
+    b.id='rejouer';b.disabled=partie.veut;f.append(b);
+    const nm=p=>p===me?'Toi':nomJ(p),rf=el('div','r-fin');
+    parManche(s).forEach((o,i)=>{const d=el('div');d.append(el('b','','Manche '+(i+1)),lignesManche(o,nm));rf.append(d)});
+    const lm=ligneMvp(M.bilan(s));if(lm){const q=el('p','',lm);q.id='ligneMvp';f.append(rf,q)}else f.append(rf);
+    f.append(vueBilan(s,nm));
+    const zc=el('div','p-btns'),c1=el('button','btn sec','Copier le résumé'),c2=el('button','btn sec','Copier les données de partie');
+    c1.type=c2.type='button';c1.id='copieResume';c2.id='copieDonnees';
+    c1.onclick=()=>copieFin(c1,'Copier le résumé',texteResume(s));
+    c2.onclick=()=>copieFin(c2,'Copier les données de partie',donneesPartie(s));
+    zc.append(c1,c2);f.append(zc);
+    const rp=el('textarea','r-repli');rp.id='repliFin';rp.readOnly=true;rp.setAttribute('aria-label','Texte à copier');rp.hidden=!partie.repli;rp.value=partie.repli||'';f.append(rp);
+    pl.append(f);
+  }
+  const con=x=>pl.append(el('div','p-consigne',x));
+  if(s.fin)pl.append(mainVue(J.main,{}));
+  else if(s.phase==='mulligan'){
+    if(s.mull[me]){con("En attente de l'adversaire.");pl.append(mainVue(J.main,{}))}
+    else{
+      con("Mulligan : touche jusqu'à 3 cartes à remplacer.");
+      pl.append(mainVue(J.main,{presse:c=>selMull.includes(c),clic:c=>{
+        if(selMull.includes(c))selMull=selMull.filter(x=>x!==c);else if(selMull.length<3)selMull.push(c);
+        affiche()}}));
+      const z=el('div','p-btns');
+      z.append(bouton(selMull.length?'Remplacer '+selMull.length+(selMull.length>1?' cartes':' carte'):'Garder ma main',()=>joue({t:'m',c:selMull.slice()})));
+      pl.append(z);
+    }
+  }else if(att&&att.t==='q'){
+    con('Le Q : choisis 1 carte, les autres restent sur le deck.');
+    pl.append(mainVue(att.options,{clic:c=>joue({t:'c',c})}),mainVue(J.main,{}));
+  }else if(att&&att.t==='b'){
+    const n=att.options.length;
+    con('Le Buzzer : fin de manche, touche '+(n>1?'tes '+n+" prochaines cartes dans l'ordre où tu veux les piocher, la première en premier.":'ta prochaine carte pour continuer.')+(selMull.length?' Ordre : '+selMull.map(c=>M.nomDetail(M.carte(c))).join(', puis ')+'.':''));
+    pl.append(mainVue(att.options,{presse:c=>selMull.includes(c),clic:c=>{
+      if(selMull.includes(c))selMull=selMull.filter(x=>x!==c);else selMull.push(c);
+      if(selMull.length===n)joue({t:'b',o:selMull.slice()});else affiche()}}),mainVue(J.main,{}));
+  }else if(att&&att.t==='o'){
+    con(leg[0].t==='e'?'Oracle des Stats : main adverse ci-dessous. Touche 2 de tes Golems à échanger.':'Oracle des Stats : main adverse ci-dessous. Pas assez de Golems pour échanger.');
+    pl.append(mainVue(s.j[lui].main,{}));
+    if(leg[0].t==='v'){const z=el('div','p-btns');z.append(bouton('Continuer',()=>joue({t:'v'})));pl.append(z)}
+  }else if(att&&att.t==='s'){
+    con('Trigas : touche 1 carte de ta main à placer dans ta Forge.');
+    pl.append(mainVue(J.main,{clic:c=>joue({t:'s',c})}));
+  }else if(att&&att.t==='d'){
+    con(att.src?att.src+' : fin de manche, touche 1 carte de ta main à défausser.':"Défausse jusqu'à 7 cartes : touche une carte ("+(J.main.length-7)+' de trop).');
+    pl.append(mainVue(J.main,{clic:c=>joue({t:'d',c})}));
+  }else if(s.joueur===me&&!s.attente){
+    if(J.etapeForge){
+      if(sel!==null&&!J.main.includes(sel))sel=null;
+      const e=el('div','p-consigne p-etape');e.append(el('b','','Étape 1 : Forge'),sel!==null?M.nomDetail(M.carte(sel))+' sera forgée, face cachée et définitivement.':'Choisis une carte à forger, ou passe. Les actions, La Faille et Le Vaisseau se débloquent ensuite.');pl.append(e);
+      pl.append(mainVue(J.main,{presse:c=>c===sel,clic:c=>{sel=sel===c?null:c;affiche()}}));
+      const z=el('div','p-btns');
+      if(sel!==null){const v=sel,bf=bouton('Forger',()=>joue({t:'f',c:v}));bf.id='forger';z.append(bf)}
+      const bn=bouton('Ne pas forger',()=>joue({t:'n'}),true);bn.id='nePasForger';z.append(bn);pl.append(z);
+    }else if(modeFaille){
+      con(selCases.length?'La Faille : touche une case libre de ce terrain.':'La Faille : touche un de tes Golems sur un autre terrain. Une fois par manche, gratuit.');
+      pl.append(mainVue(J.main,{}));
+      const z=el('div','p-btns');z.append(bouton('Annuler',()=>{modeFaille=false;selCases=[];affiche()},true));pl.append(z);
+    }else if(modeVaisseau){
+      con('Le Vaisseau : touche 2 de tes Golems de ce terrain pour les échanger. Une fois par manche.');
+      pl.append(mainVue(J.main,{}));
+      const z=el('div','p-btns');z.append(bouton('Annuler',()=>{modeVaisseau=false;selCases=[];affiche()},true));pl.append(z);
+    }else{
+    if(sel!==null&&!J.main.includes(sel))sel=null;
+    const C=sel!==null?M.carte(sel):null;
+    const rs=c=>raisonPose(s,me,c,leg),rz=sel!==null?rs(sel):null;
+    const pc=el('div','p-consigne');
+    if(C){pc.append(M.nomDetail(C)+', coût '+C.cout+(C.force!=null?', Force '+C.force:'')+'. '+C.texte);if(rz)pc.append(el('em','',rz.long))}
+    else if(J.main.some(c=>!rs(c)))pc.append('Touche une carte, puis une case dorée.');
+    else pc.append('Aucune pose possible ce tour. Termine ton tour.');
+    pl.append(pc);
+    pl.append(mainVue(J.main,{raison:rs,presse:c=>c===sel,clic:c=>{sel=sel===c?null:c;affiche()}}));
+    const z=el('div','p-btns');
+    if(sel!==null){
+      const v=sel;
+      const bz=el('button','btn sec','Voir');bz.type='button';bz.onclick=()=>{dernier=null;zoom('cartes/'+C.id+'.jpg',C.nom)};z.append(bz);
+    }
+    if(coupsF.length){const bf=bouton('Déplacement de La Faille',()=>{modeFaille=true;sel=null;selCases=[];affiche()},true);bf.id='deplaceFaille';z.append(bf)}
+    if(coupsV.length){const bv=bouton('Échange du Vaisseau',()=>{modeVaisseau=true;sel=null;selCases=[];affiche()},true);bv.id='echangeVaisseau';z.append(bv)}
+    const fx=bouton('Fin du tour',()=>joue({t:'x'}));fx.id='finTour';z.append(fx);pl.append(z);
+    }
+  }else{
+    con(nomJ(qui)+(s.fil?' choisit, fin de manche.':' joue.'));
+    pl.append(mainVue(J.main,{}));
+  }
+  const piles=el('div','p-piles');
+  piles.append(pile('deck','Deck',J.deck.length),pile('forge','Forge',J.forge.length,J.forge.slice()),pile('defausse','Défausse',J.defausse.length,J.defausse.slice().reverse()));
+  pl.append(piles);
+  const jo=el('details','p-journal'),li=el('div','p-lignes'),su=el('summary','','Journal');
+  jo.open=journalOuvert||LARGE.matches;
+  jo.ontoggle=()=>{if(!LARGE.matches)journalOuvert=jo.open;if(jo.open)li.scrollTop=li.scrollHeight};
+  const pages=pagesLog(s),nb=pages.length,pg=journalPage===null?nb:Math.min(journalPage,nb),nav=el('div','j-nav');
+  const va=(txt,lib,v,off)=>{const z=el('button','j-btn',txt);z.type='button';z.setAttribute('aria-label',lib);z.disabled=off;z.onclick=()=>{journalPage=v>=nb?null:v;affiche()};return z};
+  su.append(' ',el('span','j-manche','Manche '+pg));nav.append(va('<','Manche précédente',pg-1,pg<=1),va('>','Manche suivante',pg+1,pg>=nb));
+  const causes=causesLog(s);pages[pg-1].forEach(e=>{const[p,x]=e,[c,n]=genreLog(x),d=el('div',c);d.append(ico(n),texteLog(ligneLog(p,x,me)+(causes.get(e)||'')));li.append(d)});
+  jo.append(su,nav,li);
+  const pied=el('div','p-pied'),q=el('button','btn sec plein','Quitter la partie');q.type='button';q.onclick=quittePartie;pied.append(q);
+  const cote=el('div','p-cote');cote.append(pied,jo);
+  table.append(b,plat,pl,cote);
+  box.append(table);
+  li.scrollTop=li.scrollHeight;
+  poseFx();
+  scrollTo(0,hautPage);
+}
+const LARGE=matchMedia('(min-width:900px)');let journalOuvert=false,journalPage=null;
+LARGE.addEventListener('change',()=>{if(partie)affiche()});
+window.__golemsEtat=()=>partie&&partie.etat?JSON.stringify(partie.etat):null;
+
+$('creer').onclick=async()=>{
+  occupe=true;majEtat();
+  const reste=attenteLobby-Date.now();if(reste>0)await pause(reste);
+  await entre(nouveauCode());
+};
+$('formCode').onsubmit=e=>{
+  e.preventDefault();
+  if(!room||$('rejoindre').disabled)return;
+  const c=$('champCode').value.trim().toLowerCase();
+  if(!/^[a-z0-9]{3,8}$/.test(c)){$('erreurJeu').textContent='Code invalide.';return}
+  $('champCode').value='';entre(c);
+};
+$('quitter').onclick=()=>{oublie(code);sortie()};
+const memo=lire('golems.onglet');onglet(noms.includes(memo)?memo:'nouveautes');
+/* Aperçu au survol de l'onglet Cartes, comme en partie */
+$('grille').addEventListener('mouseover',e=>{
+  const b=e.target.closest('.carte');if(!b||b.contains(e.relatedTarget))return;
+  if(b.dataset.id)montreApercu(b,'cartes/'+b.dataset.id+'.jpg');
+  else if(b.dataset.terrain)montreApercu(b,srcTerrain({nom:b.dataset.terrain}));
+});
+$('grille').addEventListener('mouseout',e=>{const b=e.target.closest('.carte');if(b&&!b.contains(e.relatedTarget))cacheApercu()});
+$('grille').addEventListener('click',cacheApercu,true);
+/* Règles illustrées */
+function annote(box,visuel,items){
+  /* Zone [x0,y0,x1,y1] en fraction de carte, couloir y de la ligne, depart x si la ligne sort par le haut ou le bas. */
+  const c=el('div','an-carte'),o=el('ol'),v=el('div','an-vis'),H=392/items.length,W=280,Y=392;let g='';c.append(visuel);
+  items.forEach(([t,x0,y0,x1,y1,lane,sx],i)=>{
+    const li=el('li'),r=el('i','',i+1),m=H*i+H/2,l=lane*Y;li.append(r,t);o.append(li);
+    const d=sx!=null?'M'+sx*W+' '+(lane<y0?y0:y1)*Y+'V'+l:'M'+x1*W+' '+l;
+    g+='<rect x="'+x0*W+'" y="'+y0*Y+'" width="'+(x1-x0)*W+'" height="'+(y1-y0)*Y+'" rx="3"/><path d="'+d+'H288L306 '+m+'"/><circle cx="318" cy="'+m+'" r="11"/><text x="318" y="'+(m+4.5)+'">'+(i+1)+'</text>';
+  });
+  v.innerHTML='<svg class="an-liens" viewBox="0 0 330 392" aria-hidden="true">'+g+'</svg>';v.prepend(c);box.textContent='';box.append(v,o);
+}
+(()=>{
+  const i=el('img');i.src='cartes/001.jpg';i.alt='G-001, KaTarN';i.loading='lazy';
+  annote($('lireCarte'),i,[['Coût en énergie',.03,.02,.23,.15,.012,.13],['Force',.82,.025,.96,.15,.09],['Nom et sous-titre',.05,.615,.33,.71,.6,.2],['Éléments du Golem',.73,.615,.96,.69,.65],['Capacité',.11,.745,.9,.86,.8],["Encart d'évolution : la carte qui la remplace",.32,.87,.68,.92,.895],['Citation, sans effet en jeu',.055,.95,.245,.985,.933,.15],['Numéro de carte',.87,.95,.97,.985,.967]]);
+  const T=window.GolemsMoteur.TERRAINS.find(x=>x.nom==='La Boutique'),t=el('img');t.src=srcTerrain(T);t.alt=T.nom+'. '+T.texte;t.loading='lazy';
+  annote($('lireTerrain'),t,[['Points rapportés par le terrain',.765,.015,.975,.165,.09],['Nom',.05,.595,.5,.71,.65],['Effet, actif toute la partie',.14,.77,.86,.825,.75,.7],['Ici = toute la colonne du terrain, chez les deux joueurs',.46,.778,.515,.817,.86,.487],['Citation, sans effet en jeu',.06,.95,.6,.985,.933,.3],['Numéro du terrain',.87,.95,.97,.985,.967]]);
+  const E=['magma','cristal','foudre','brume','roche'],N=['Magma','Cristal','Foudre','Brume','Roche'],R=118,cx=180,cy=172,pt=(a,r)=>[cx+r*Math.cos(a),cy+r*Math.sin(a)].map(v=>v.toFixed(1));
+  let a='',b='';E.forEach((e,i)=>{
+    const t=-Math.PI/2+i*2*Math.PI/5,[x,y]=pt(t,R),m=.36,p=pt(t+m,R),q=pt(t+2*Math.PI/5-m,R);
+    a+='<path d="M'+p+'A'+R+' '+R+' 0 0 1 '+q+'" marker-end="url(#fl)"/>';
+    b+='<image href="cartes/'+e+'.png" x="'+(x-29)+'" y="'+(y-29)+'" width="58" height="58"/><text x="'+x+'" y="'+(+y+45)+'">'+N[i]+'</text>';
+  });
+  $('cercleEl').innerHTML='<svg class="cercle-el" viewBox="0 0 360 350" role="img" aria-label="Cercle des éléments : Magma domine Cristal, Cristal domine Foudre, Foudre domine Brume, Brume domine Roche, Roche domine Magma"><defs><marker id="fl" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" style="fill:var(--bleu);stroke:none"/></marker></defs>'+a+b+'</svg>';
+})();
+
+const aReprendre=salonRepris();
+if(aReprendre&&!pseudo){const v=chargeSalon(aReprendre);pseudo=nettoie(v.pseudo);if(pseudo){ecrire('golems.pseudo',pseudo);$('pseudoAffiche').textContent=pseudo}}
+if(!aReprendre||!pseudo)ouvrePseudo();
+['brume','cristal','foudre','magma','roche'].forEach(x=>{new Image().src='cartes/'+x+'.png'});
+(async()=>{
+  try{room=await window.golemsSalon}catch(e){room=null}
+  if(!room){indisponible();majReprise();return}
+  attenteLobby=Date.now()+1500; /* la liste des présents arrive en une à deux secondes */
+  const fin=()=>{if(partie&&partie.local){room=null;return}r=null;code='';finPartie();$('salon').hidden=true;$('accueil').hidden=false;indisponible()};
+  room.onPeers(()=>{majEtat();if(partie)majPartie()},fin);
+  room.onConnection(majEtat,fin);
+  room.presence({pseudo:pseudo}).catch(()=>{});
+  majEtat();
+  if(aReprendre&&pseudo){onglet('jouer');entre(aReprendre)}else majReprise();
+})();
+})();
+</script>

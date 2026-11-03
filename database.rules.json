@@ -1,0 +1,73 @@
+{
+  // Règles de la Realtime Database « les-golems » (à coller dans la console, onglet Règles).
+  // Les commentaires // sont acceptés par la console Firebase.
+  "rules": {
+    // Rien en lecture ni en écriture à la racine : seuls hall et salons sont ouverts.
+    ".read": false,
+    ".write": false,
+
+    // Accueil : qui est connecté, et départs volontaires (quitte).
+    "hall": {
+      ".read": "auth != null",
+      "$uid": {
+        // Chacun n'écrit que sa propre présence.
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChild('t')",
+        "pseudo": { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "salon":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{3,8}$/)" },
+        "quitte": { ".validate": "newData.isNumber()" },
+        "t":      { ".validate": "newData.val() === now" },
+        // Aucun autre champ.
+        "$autre": { ".validate": false }
+      }
+    },
+
+    "salons": {
+      // Identifiant de salon court : 3 à 8 lettres minuscules ou chiffres.
+      "$code": {
+        ".validate": "$code.matches(/^[a-z0-9]{3,8}$/)",
+        // Lecture d'un salon (joueurs et coups) pour tout joueur connecté.
+        ".read": "auth != null",
+
+        "joueurs": {
+          "$uid": {
+            // Chaque joueur n'écrit que sous son propre uid.
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "newData.hasChild('t')",
+            "pseudo":  { ".validate": "newData.isString() && newData.val().length <= 20" },
+            "sid":     { ".validate": "newData.isString() && newData.val().length <= 16" },
+            "adv":     { ".validate": "newData.isString() && newData.val().length <= 16" },
+            "arrivee": { ".validate": "newData.isNumber()" },
+            "graine":  { ".validate": "newData.isNumber()" },
+            "jg":      { ".validate": "newData.isNumber()" },
+            "veut":    { ".validate": "newData.isNumber()" },
+            "quitte":  { ".validate": "newData.isNumber()" },
+            "pret":    { ".validate": "newData.isBoolean()" },
+            "t":       { ".validate": "newData.val() === now" },
+            "$autre":  { ".validate": false }
+          }
+        },
+
+        "coups": {
+          // Permet la recherche des coups d'un joueur à la reprise.
+          ".indexOn": ["a"],
+          "$coup": {
+            // Ajout seulement (jamais de modification ni d'effacement),
+            // et uniquement ses propres coups : le champ a doit être son uid.
+            ".write": "auth != null && !data.exists() && newData.child('a').val() === auth.uid",
+            ".validate": "newData.hasChildren(['a', 's', 'g', 'n', 'c'])",
+            "a": { ".validate": "newData.isString() && newData.val().length <= 128" },
+            "s": { ".validate": "newData.isString() && newData.val().length <= 16" },
+            "g": { ".validate": "newData.isNumber()" },
+            "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 2000" },
+            "c": { ".validate": "newData.isString() && newData.val().length <= 40" },
+            "$autre": { ".validate": false }
+          }
+        },
+
+        // Rien d'autre dans un salon.
+        "$autre": { ".validate": false }
+      }
+    }
+  }
+}
