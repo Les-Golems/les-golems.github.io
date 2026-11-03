@@ -135,6 +135,7 @@ async function ouvre() {
     donnees = {
       pseudo: typeof v.pseudo === "string" ? v.pseudo : "",
       avatarId: typeof v.avatarId === "string" ? v.avatarId : "",
+      avatarImg: typeof v.avatarImg === "string" ? v.avatarImg : "",
       importe: !!v.importe,
       cree: +v.cree || 0,
       decks: versListe(v.decks).map(d => ({ id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0 })),
@@ -170,13 +171,22 @@ async function ouvre() {
     // Avatar choisi en galerie ("" = initiale) : joueurs/{uid}/avatarId.
     async choisirAvatar(id) {
       if (!estCompte() || !donnees) return;
-      const r = ref(db, P + "joueurs/" + moi + "/avatarId");
-      if (id) await set(r, id); else await remove(r);
-      donnees.avatarId = id || "";
+      // Un avatar de galerie (ou l'initiale) efface l'image importée.
+      await update(ref(db, P + "joueurs/" + moi), { avatarId: id || null, avatarImg: null });
+      donnees.avatarId = id || ""; donnees.avatarImg = "";
+    },
+    avatarImg: () => donnees ? donnees.avatarImg : "",
+    // Image importée (data:image/webp|jpeg;base64, 30 000 caractères au plus) : joueurs/{uid}/avatarImg.
+    async choisirImage(url) {
+      if (!estCompte() || !donnees) return;
+      await set(ref(db, P + "joueurs/" + moi + "/avatarImg"), url);
+      donnees.avatarImg = url;
     },
     // Avatar d'un autre compte (lisible par tout connecté, aucune règle à changer).
     async avatarDe(uid) {
       if (typeof uid !== "string" || !uid) return "";
+      // Image importée en priorité, sinon avatar de galerie.
+      try { const i = (await get(ref(db, P + "joueurs/" + uid + "/avatarImg"))).val(); if (typeof i === "string" && i) return i; } catch (e) {}
       try { const v = (await get(ref(db, P + "joueurs/" + uid + "/avatarId"))).val(); return typeof v === "string" ? v : ""; } catch (e) { return ""; }
     },
     // Résumé public des parties (joueurs/{uid}/stats = { v: victoires, n: parties }), tiré de l'historique.

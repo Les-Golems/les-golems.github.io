@@ -728,6 +728,15 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .galGrille button:hover,.galGrille button[aria-pressed="true"]{background:var(--panneau2)}
 .galGrille button[aria-pressed="true"] .avatar{box-shadow:0 0 0 3px var(--bleu)}
 #galFermer{justify-self:end}
+.galImp .avatar{background:var(--panneau2);color:var(--texte);border:2px dashed var(--trait)}
+.galMsg{margin:0;color:#ff8a7a;font-size:14px}.galMsg:empty{display:none}
+.cadAv{z-index:61}.cadBoite{max-width:340px;justify-items:center;text-align:center}
+.cadVue{position:relative;width:240px;height:240px;border-radius:50%;overflow:hidden;background:#000;touch-action:none;cursor:grab;user-select:none;box-shadow:0 0 0 3px var(--bleu)}
+.cadVue:active{cursor:grabbing}
+.cadVue img{position:absolute;left:0;top:0;max-width:none;height:auto;transform-origin:0 0;pointer-events:none}
+.cadZ{display:flex;align-items:center;gap:10px;width:100%}.cadZ input{flex:1}
+.cadBtns{display:flex;gap:10px;justify-content:flex-end;width:100%}
+@media (max-width:360px){.cadVue{width:200px;height:200px}}
 @media (max-width:440px){.galGrille{grid-template-columns:repeat(3,1fr);gap:8px}.galGrille button .avatar{width:64px;height:64px}}
 /* Profil joueur */
 .pf-lien{cursor:pointer;border-radius:6px}.pf-lien:hover{color:#01C1F0}.pf-lien:focus-visible{outline:2px solid #01C1F0;outline-offset:2px}
@@ -966,7 +975,8 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
   <img src="cartes/logo.png" alt="">
   <h1>Les Golems<small class="sous-titre">Jeu de cartes communautaire</small></h1>
   <div class="moi"><span class="qui"><button class="avatarBtn" id="choixAvatar" type="button" aria-label="Choisir mon avatar" title="Choisir mon avatar"><span class="avatar" id="avatarMoi" aria-hidden="true"></span></button><b id="pseudoAffiche"></b></span><button class="modif" id="modifierPseudo" type="button"><span class="txt">Modifier</span><svg class="pic" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></svg></button></div>
-<div id="galerieAvatar" class="galAv" hidden><div class="galBoite" role="dialog" aria-modal="true" aria-labelledby="galTitre"><h2 id="galTitre">Choisis ton avatar</h2><div class="galGrille" id="galGrille"></div><button class="modif" id="galFermer" type="button">Fermer</button></div></div>
+<div id="galerieAvatar" class="galAv" hidden><div class="galBoite" role="dialog" aria-modal="true" aria-labelledby="galTitre"><h2 id="galTitre">Choisis ton avatar</h2><div class="galGrille" id="galGrille"></div><p class="galMsg" id="galMsg" role="alert"></p><input type="file" id="avFichier" accept="image/*" hidden><button class="modif" id="galFermer" type="button">Fermer</button></div></div>
+<div id="cadre" class="galAv cadAv" hidden><div class="galBoite cadBoite" role="dialog" aria-modal="true" aria-labelledby="cadTitre"><h2 id="cadTitre">Cadre ton avatar</h2><div class="cadVue" id="cadVue"><img id="cadImg" alt="" draggable="false"></div><label class="cadZ"><span>Zoom</span><input type="range" id="cadZoom" min="0" max="100" value="0" aria-label="Zoom"></label><p class="galMsg" id="cadMsg" role="alert"></p><div class="cadBtns"><button class="modif" id="cadAnnuler" type="button">Annuler</button><button class="btn plein" id="cadOk" type="button">Valider</button></div></div></div>
 </div></header>
 <nav><div class="large onglets" role="tablist">
   <button role="tab" id="t-nouveautes" aria-controls="nouveautes" aria-selected="true" aria-label="Nouveautés"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span class="o-lg">Nouveautés</span><span class="o-ct">Infos</span></button>
@@ -1214,20 +1224,22 @@ function avatarDe(nom,avatarId){
   const n=String(nom||"").trim()||"?",a=el("span","avatar");a.setAttribute("aria-hidden","true");
   let h=0;for(const c of n.toLowerCase())h=(h*31+c.codePointAt(0))>>>0;
   a.style.background="var("+AVATAR_COULEURS[h%AVATAR_COULEURS.length]+")";
-  if(avatarId&&/^[a-z0-9_-]{1,40}$/.test(avatarId)){const i=document.createElement("img");i.alt="";i.src="avatars/"+avatarId+".jpg";i.onerror=()=>{i.remove();a.textContent=Array.from(n)[0]};a.append(i)}
+  const imp=typeof avatarId==='string'&&/^data:image\/(jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(avatarId);
+  if(imp||avatarId&&/^[a-z0-9_-]{1,40}$/.test(avatarId)){const i=document.createElement("img");i.alt="";i.src=imp?avatarId:"avatars/"+avatarId+".jpg";i.onerror=()=>{i.remove();a.textContent=Array.from(n)[0]};a.append(i)}
   else a.textContent=Array.from(n)[0];
   return a;
 }
 /* Mon avatar : Firebase pour un compte, appareil pour un invite. */
-function monAvatar(){try{return compteCo()?room.compte.avatarId()||'':lire('golems-avatar')||''}catch(e){return ''}}
+/* Image importee (data URL) prioritaire sur l'avatar de galerie ; invite : golems-avatar-img en local seulement. */
+function monAvatar(){try{return compteCo()?(room.compte.avatarImg&&room.compte.avatarImg())||room.compte.avatarId()||'':lire('golems-avatar-img')||lire('golems-avatar')||''}catch(e){return ''}}
 /* Avatar d'un autre compte (uid) : lu une fois dans joueurs/{uid}/avatarId, puis les ronds marques data-av sont remplaces. */
-const avCache={};
-function avatarUid(nom,uid){
-  if(typeof uid!=='string'||!uid)return avatarDe(nom);
-  if(!(uid in avCache)){avCache[uid]='';
-    if(room&&room.compte&&room.compte.avatarDe)room.compte.avatarDe(uid).then(id=>{if(!id)return;avCache[uid]=id;
+const avCache={},avT={}; /* relu au plus toutes les 15 s : un remplacement chez l'adversaire finit par apparaitre */
+function avatarUid(nom,uid,repli){
+  if(typeof uid!=='string'||!uid)return avatarDe(nom,repli);
+  if(!(uid in avCache)||Date.now()-(avT[uid]||0)>15000){if(!(uid in avCache))avCache[uid]='';avT[uid]=Date.now();
+    if(room&&room.compte&&room.compte.avatarDe)room.compte.avatarDe(uid).then(id=>{if(id===avCache[uid])return;avCache[uid]=id;
       document.querySelectorAll('.avatar[data-av]').forEach(x=>{if(x.dataset.av===uid)x.replaceWith(avatarUid(x.dataset.nom,uid))})})}
-  const a=avatarDe(nom,avCache[uid]);a.dataset.av=uid;a.dataset.nom=nom;return a;
+  const a=avatarDe(nom,avCache[uid]||repli);a.dataset.av=uid;a.dataset.nom=nom;return a;
 }
 function majMoi(){
   const co=compteCo();
@@ -1239,17 +1251,21 @@ function majMoi(){
 /* Galerie d'avatars : avatars/avatars.json (id, nom), l'initiale en premier. */
 let listeAvatars=null;
 async function ouvreGalerie(){
-  const g=$('galGrille');
+  const g=$('galGrille');$('galMsg').textContent='';
   if(!listeAvatars){try{listeAvatars=await (await fetch('avatars/avatars.json',{cache:'no-cache'})).json()}catch(e){listeAvatars=[]}}
   const cur=monAvatar(),nom=compteCo()?pseudo:'?';g.textContent='';
   [{id:'',nom:'Initiale'}].concat(listeAvatars.filter(x=>x&&/^[a-z0-9_-]{1,40}$/.test(x.id))).forEach(x=>{
     const b=el('button');b.type='button';b.setAttribute('aria-pressed',String(x.id===cur));
     b.append(avatarDe(nom,x.id),el('span','',x.nom));
     b.onclick=async()=>{
-      if(compteCo()){try{await room.compte.choisirAvatar(x.id)}catch(e){return}}else ecrire('golems-avatar',x.id);
-      fermeGalerie();majMoi();
+      if(compteCo()){try{await room.compte.choisirAvatar(x.id)}catch(e){return}}else{ecrire('golems-avatar',x.id);try{localStorage.removeItem(LS('golems-avatar-img'))}catch(e){}}
+      fermeGalerie();majMoi();avatarChange();
     };g.append(b);
   });
+  const imp=el('button');imp.type='button';imp.className='galImp';
+  const ia=el('span','avatar','+');ia.setAttribute('aria-hidden','true');imp.append(ia,el('span','','Importer'));
+  if(/^data:/.test(cur)){imp.setAttribute('aria-pressed','true');ia.textContent='';const i=document.createElement('img');i.alt='';i.src=cur;ia.append(i)}
+  imp.onclick=()=>$('avFichier').click();g.append(imp);
   $('galerieAvatar').hidden=false;(g.querySelector('[aria-pressed="true"]')||g.firstChild).focus();
 }
 function fermeGalerie(){$('galerieAvatar').hidden=true;$('choixAvatar').focus()}
@@ -1257,6 +1273,48 @@ $('choixAvatar').onclick=ouvreGalerie;
 $('galFermer').onclick=fermeGalerie;
 $('galerieAvatar').onclick=e=>{if(e.target.id==='galerieAvatar')fermeGalerie()};
 $('galerieAvatar').onkeydown=e=>{if(e.key==='Escape')fermeGalerie()};
+/* Import d'avatar : fichier image, cadrage rond (glisser, molette, pincement, curseur), 128 x 128 en WebP (repli JPEG) sous 30 000 caracteres. */
+const CAD={img:null,z:1,zMin:1,x:0,y:0,T:240,pts:new Map(),d0:0,z0:1};
+function cadMsg(t){$('cadMsg').textContent=t||''}
+function cadBorne(){const c=CAD,w=c.img.naturalWidth*c.z,h=c.img.naturalHeight*c.z;c.x=Math.min(0,Math.max(c.T-w,c.x));c.y=Math.min(0,Math.max(c.T-h,c.y))}
+function cadDessine(){const c=CAD,i=$('cadImg');cadBorne();i.style.width=c.img.naturalWidth*c.z+'px';i.style.transform='translate('+c.x+'px,'+c.y+'px)';$('cadZoom').value=String(Math.round(Math.log(c.z/c.zMin)/Math.log(4)*100))}
+function cadZoome(nz,px,py){const c=CAD;nz=Math.max(c.zMin,Math.min(c.zMin*4,nz));if(px==null){px=c.T/2;py=c.T/2}c.x=px-(px-c.x)*nz/c.z;c.y=py-(py-c.y)*nz/c.z;c.z=nz;cadDessine()}
+$('avFichier').onchange=e=>{
+  const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+  const err=t=>{$('galMsg').textContent=t};err('');
+  if(!/^image\//.test(f.type)){err("Ce fichier n'est pas une image. Choisis un fichier JPEG, PNG, WebP ou GIF.");return}
+  if(f.size>15*1024*1024){err('Image trop lourde (15 Mo au plus).');return}
+  const u=URL.createObjectURL(f),im=new Image();
+  im.onload=()=>{const c=CAD;c.img=im;$('cadImg').src=u;$('cadre').hidden=false;c.T=$('cadVue').clientWidth||240;
+    c.zMin=c.T/Math.min(im.naturalWidth,im.naturalHeight);c.z=c.zMin;c.x=(c.T-im.naturalWidth*c.z)/2;c.y=(c.T-im.naturalHeight*c.z)/2;cadMsg('');cadDessine();$('cadOk').focus()};
+  im.onerror=()=>{URL.revokeObjectURL(u);err("Image illisible. Essaie un autre fichier (JPEG, PNG ou WebP).")};im.src=u;
+};
+(()=>{const v=$('cadVue'),c=CAD;
+  const pos=e=>{const r=v.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+  v.onpointerdown=e=>{if(!c.img)return;v.setPointerCapture(e.pointerId);c.pts.set(e.pointerId,pos(e));if(c.pts.size===2){const[a,b]=[...c.pts.values()];c.d0=Math.hypot(a[0]-b[0],a[1]-b[1]);c.z0=c.z}};
+  v.onpointermove=e=>{if(!c.pts.has(e.pointerId))return;const p=pos(e),o=c.pts.get(e.pointerId);c.pts.set(e.pointerId,p);
+    if(c.pts.size===1){c.x+=p[0]-o[0];c.y+=p[1]-o[1];cadDessine()}
+    else if(c.pts.size===2&&c.d0){const[a,b]=[...c.pts.values()];cadZoome(c.z0*Math.hypot(a[0]-b[0],a[1]-b[1])/c.d0,(a[0]+b[0])/2,(a[1]+b[1])/2)}};
+  v.onpointerup=v.onpointercancel=e=>{c.pts.delete(e.pointerId);if(c.pts.size<2)c.d0=0};
+  v.onwheel=e=>{if(!c.img)return;e.preventDefault();const p=pos(e);cadZoome(c.z*Math.exp(-e.deltaY*0.0015),p[0],p[1])};
+  $('cadZoom').oninput=e=>cadZoome(c.zMin*Math.pow(4,+e.target.value/100));
+})();
+function cadFerme(){$('cadre').hidden=true;if(CAD.img){URL.revokeObjectURL(CAD.img.src);CAD.img=null}$('cadImg').removeAttribute('src')}
+$('cadAnnuler').onclick=cadFerme;
+$('cadre').onkeydown=e=>{if(e.key==='Escape'){e.stopPropagation();cadFerme()}};
+$('cadOk').onclick=async()=>{
+  const c=CAD;if(!c.img)return;const cv=document.createElement('canvas');cv.width=cv.height=128;const g=cv.getContext('2d');
+  g.imageSmoothingQuality='high';const k=128/c.T;g.fillStyle='#fff';g.fillRect(0,0,128,128);
+  g.drawImage(c.img,c.x*k,c.y*k,c.img.naturalWidth*c.z*k,c.img.naturalHeight*c.z*k);
+  let url='';
+  for(const t of ['image/webp','image/jpeg']){for(let q=0.9;q>=0.3;q-=0.1){const u=cv.toDataURL(t,q);if(u.indexOf('data:'+t+';base64,')!==0)break;if(u.length<=30000){url=u;break}}if(url)break}
+  if(!url){cadMsg("Image trop détaillée pour être enregistrée. Essaie de zoomer ou choisis une autre image.");return}
+  if(compteCo()){try{await room.compte.choisirImage(url)}catch(e){cadMsg("Enregistrement impossible. Vérifie ta connexion puis réessaie.");return}}
+  else{try{localStorage.setItem(LS('golems-avatar-img'),url)}catch(e){cadMsg("Image impossible à garder sur cet appareil (stockage plein).");return}}
+  cadFerme();fermeGalerie();majMoi();avatarChange();
+};
+/* Avatar change en salon : mon siege redessine, presence reecrite pour que l'adversaire redessine (et relise l'avatar). */
+function avatarChange(){if(!r)return;try{majSalon()}catch(e){}r.presence({pseudo:pseudo}).catch(()=>{})}
 /* Compte : pseudo reserve + code secret (Firebase). Sans compte : invite, robot seulement, donnees sur l'appareil. */
 let pseudo='',modeCreer=false;
 const compteCo=()=>{try{return !!(room&&room.compte&&room.compte.connecte())}catch(e){return false}}; /* room est declare plus bas */
@@ -1530,7 +1588,7 @@ function peintListe(){
     q.append(el('b','',nom),el('span','',(x.d||'Deck')+(els.length?' · '+els.join(', '):'')+' · '+depuis(x.t)));
     const b=el('button','btn','Rejoindre');b.type='button';b.disabled=!!r||occupe;
     b.onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(()=>{salonPublic=false;createur=false;annonceVue='?';entre(x.code)})}; /* '?' : le nouvel arrivant retire l'annonce */
-    li.append(x.a?avatarDe(nom,x.a):avatarDe(nom),q,b);u.append(li);
+    li.append(x.u?avatarUid(nom,x.u,x.a):x.a?avatarDe(nom,x.a):avatarDe(nom),q,b);u.append(li);
   });
 }
 setInterval(()=>{if(!$('jouer').hidden&&!r)peintListe()},30000);
