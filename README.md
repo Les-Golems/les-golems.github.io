@@ -55,6 +55,10 @@ Servi depuis `localhost` ou `127.0.0.1`, le site se branche automatiquement sur 
 4. Ctrl+C arrête l'émulateur ; comptes et données de test disparaissent. Comptes d'essai notés dans `tests/comptes_emulateur.txt`.
 
 Pour tester contre la vraie base, il faut désormais servir le site sous un autre nom d'hôte (par exemple l'adresse IP du PC sur le réseau local).
+## Fichier version.json (bandeau « Nouvelle version »)
+`version.json` à la racine contient `{"v":"0.2a","build":"AAAA-MM-JJ HH:MM"}`. Le site le relit toutes les 5 minutes sans cache ; s'il diffère de celui lu à l'ouverture, l'en-tête affiche « Nouvelle version : recharge après ta partie » avec un bouton Recharger (pendant une partie, seule une pastille discrète apparaît en haut à gauche).
+**À chaque publication** (essai comme public), mettre à jour `build` (date et heure de Paris) et `v` si la version change, et copier `version.json` avec les autres fichiers (y compris dans `essai/`).
+
 ## Site d'essai et publication
 Le site d'essai https://les-golems.github.io/essai/ utilise le préfixe Firebase essai/ (comptes, salons, decks, historique), des clés locales préfixées essai. et affiche « Essai » dans le titre et l'en-tête. Procédure :
 1. Ressources\13 - Outils\publier_essai.ps1 : copie index.html, *.js, moteurs/, cartes/, avatars/, icônes, manifest et og.jpg dans essai/ (sans tests/, .git ni fichiers Firebase locaux). Pousser.

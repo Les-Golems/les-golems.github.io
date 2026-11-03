@@ -1,7 +1,7 @@
 /* Les Golems : moteur pur, sans affichage. Etat = f(graine, journaux). Charge en page et en Node. */
 (function(racine){
 'use strict';
-const VERSION='0.2.1';const TRAIT_CUMULE=true; /* 0.2.1 : Trait cumule (+1 par voisin allie par element partage), plus de match nul */
+const VERSION='0.2a.1';const TRAIT_CUMULE=true; /* 0.2.1 : Trait cumule (+1 par voisin allie par element partage), plus de match nul. 0.2.2 : coup 'a' = abandon (a tout moment, hors tour). 0.2a.1 : Indra (013, 013e), favori et coup 'g' */
 const POIDS_MVP={force:1,bonus:1,degats:1,morts:3};
 const CARTES={
  '001':{id:'001',nom:'KaTarN',el:['magma','foudre'],cout:1,force:8,texte:'Pose uniquement en manche 1. Perd 4 de Force à chaque fin de manche.'},
@@ -14,10 +14,14 @@ const CARTES={
  '004e':{id:'004e',nom:'Oracle des Stats',el:['brume','cristal'],cout:3,force:2,base:'004',texte:'À la pose : regarde la main adverse, puis échange 2 de tes Golems.'},
  '007':{id:'007',nom:'Trigas',el:['foudre','brume'],cout:1,force:1,texte:'Spam : à la pose, pioche 1 carte, puis place-en 1 de ta main dans ta Forge.'},
  '007e':{id:'007e',nom:'Roi du Mobile',el:['foudre','brume'],cout:4,force:4,base:'007',texte:'Mode Avion : tu ne peux pas être ciblé par les effets de cartes adverses.'},
- '008':{id:'008',nom:'K-Chan',el:['magma','roche'],cout:2,force:2,texte:'Rage : chaque fois que tu subis des dégâts et survis, gagne +1 de Force (3 maximum).'}
+ '008':{id:'008',nom:'K-Chan',el:['magma','roche'],cout:2,force:2,texte:'Rage : chaque fois que tu subis des dégâts et survis, gagne +1 de Force (3 maximum).'},
+ '013':{id:'013',nom:'Indra',el:['cristal','magma'],cout:2,force:2,texte:'Soutien inconditionnel : à la pose, choisis un autre de tes Golems en jeu, ton favori. Tant qu\'Indra est en jeu, il gagne +1 de Force.'},
+ '013e':{id:'013e',nom:'La Fan enflammée',el:['cristal','magma'],cout:4,force:3,base:'013',texte:'Ragebait : ton favori le reste et gagne +2 de Force au lieu de +1. À la pose, le Golem adverse en face de lui perd 2 de Force. Sans favori en jeu, choisis-en un nouveau.'}
 };
-const TYPES=['001','001e','002','002e','003','003e','004','004e','007','007e','008'];
-const EXEMPLAIRES=3,TAILLE_DECK=TYPES.length*EXEMPLAIRES; /* identifiant = type*3 + exemplaire : 0 a 32 */
+const TYPES=['001','001e','002','002e','003','003e','004','004e','007','007e','008','013','013e'];
+/* Paquet de test : les 11 premiers types seulement (0 a 32), pour garder la partie guidee et les parties de test d'avant 0.2a.1. */
+const TYPES_TEST=TYPES.slice(0,11);
+const EXEMPLAIRES=3,TAILLE_DECK=TYPES_TEST.length*EXEMPLAIRES; /* identifiant = type*3 + exemplaire : 0 a 38 */
 const TERRAINS=[ /* copie de terrains.json, via generer_terrains.py */
  {"nom": "Le Buzzer", "pts": 1, "texte": "Fin de manche : le gagnant regarde ses 3 prochaines cartes et les remet dans l'ordre de son choix.", "cit": "Je l'avais sur le bout de la langue !"},
  {"nom": "Le Camp", "pts": 1, "texte": "Fin de manche : tous les Golems ici récupèrent 1 de Force.", "cit": "On fait un repos long ?"},
@@ -33,7 +37,8 @@ const TERRAINS=[ /* copie de terrains.json, via generer_terrains.py */
 const DOMINE={magma:'cristal',cristal:'foudre',foudre:'brume',brume:'roche',roche:'magma'};
 const carte=i=>CARTES[TYPES[Math.floor(i/EXEMPLAIRES)]];
 const nomDetail=C=>C.base?CARTES[C.base].nom+' ('+C.nom+')':C.nom;
-const b32=i=>i.toString(36); /* 1 caractere par carte, base 36 : 0-9 puis a-z ; les anciens codes restent identiques */
+const b32=i=>i<36?i.toString(36):String.fromCharCode(29+i); /* 1 caractere par carte : 0-9, a-z, puis A-Z des 36 ; les anciens codes restent identiques */
+const h32=q=>/[A-Z]/.test(q)?q.charCodeAt(0)-29:parseInt(q,36);
 
 function alea(o,cle){ /* mulberry32 */
   o[cle]=(o[cle]+0x6D2B79F5)|0;let t=o[cle];
@@ -98,10 +103,15 @@ function bonus(s,p,l,k){
   return b;
 }
 function voisins(G,l,k){return [[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([a,c])=>G[a]&&G[a][c]).filter(Boolean)}
+/* 0.2a.1 : Indra. g.fav = identifiant de carte du favori, dans le camp d'Indra. Base +1, evolution +2. */
+const FAV_BONUS={'013':1,'013e':2};
+function indrasDe(s,p,c){const r=[];s.j[p].grille.forEach(L=>L.forEach(g=>{if(g&&g.fav===c&&FAV_BONUS[carte(g.c).id])r.push(g)}));return r}
+function favori(s,p,c){return indrasDe(s,p,c).reduce((t,g)=>t+FAV_BONUS[carte(g.c).id],0)}
+function caseDeCarte(s,p,c){for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=s.j[p].grille[l][k];if(g&&g.c===c)return [l,k]}return null}
 /* Force actuelle = base + capacites + Trait + cercle - degats, partout. */
 function forceDe(s,p,l,k){
   const J=s.j[p].grille,g=J[l][k];if(!g)return 0;
-  const el=carte(g.c).el,vs=voisins(J,l,k);let v=g.f+(g.ra||0)+bonus(s,p,l,k)-g.d;
+  const el=carte(g.c).el,vs=voisins(J,l,k);let v=g.f+(g.ra||0)+bonus(s,p,l,k)+favori(s,p,g.c)-g.d;
   el.forEach(e=>{v+=vs.filter(n=>carte(n.c).el.includes(e)).length}); /* 0.2.1 : +1 par voisin partageant l'element */
   const f=s.j[1-p].grille[l][k];
   if(f&&el.some(e=>carte(f.c).el.includes(DOMINE[e])))v++;
@@ -164,6 +174,7 @@ function noteBonus(s){
     const G=s.j[p].grille,g=G[l][k];if(!g)continue;
     const vs=voisins(G,l,k),el=carte(g.c).el;
     vs.forEach(n=>{const t=carte(n.c).id;if(t==='003'||t==='003e')b('voisins',p,g.c,p,n.c)});
+    indrasDe(s,p,g.c).forEach(n=>b('favori',p,g.c,p,n.c));
     el.forEach(e=>vs.forEach(n=>{if(carte(n.c).el.includes(e))b('trait',p,g.c,p,n.c)}));
     const f=s.j[1-p].grille[l][k];
     if(f&&el.some(e=>carte(f.c).el.includes(DOMINE[e])))b('cercle',p,g.c,1-p,f.c);
@@ -206,6 +217,7 @@ function legales(s,p){
     if(a.t==='b')permutations(a.options).forEach(o=>r.push({t:'b',o}));
     if(a.t==='d')J.main.forEach(c=>r.push({t:'d',c}));
     if(a.t==='s')J.main.forEach(c=>r.push({t:'s',c}));
+    if(a.t==='g')a.cases.forEach(([l,k])=>r.push({t:'g',l,k}));
     if(a.t==='o'){
       const cs=[];J.grille.forEach((L,l)=>L.forEach((g,k)=>{if(g)cs.push([l,k])}));
       if(cs.length<2)r.push({t:'v'});
@@ -242,21 +254,23 @@ function code(a){
     case 'e':return 'e'+a.a.join('')+a.b.join('');
     case 'w':return 'w'+a.k+a.a+a.b;
     case 'y':return 'y'+a.l+a.k+a.d;
+    case 'g':return 'g'+a.l+a.k;
     case 'b':return 'b'+a.o.map(b32).join('');
     case 'f':case 'c':case 'd':case 's':return a.t+b32(a.c);
     default:return a.t;
   }
 }
 function decode(x){
-  if(typeof x!=='string'||!/^(m[0-9a-w]{0,3}|p[0-9a-w][0-2][0-2]|e[0-2]{4}|w[0-2]{3}|y[0-2]{3}|b[0-9a-w]{1,3}|[fcds][0-9a-w]|[xvn])$/.test(x))throw new Error('action illisible');
-  const t=x[0],h=q=>parseInt(q,36);
+  if(typeof x!=='string'||!/^(m[0-9a-zA-C]{0,3}|p[0-9a-zA-C][0-2][0-2]|e[0-2]{4}|w[0-2]{3}|y[0-2]{3}|g[0-2]{2}|b[0-9a-zA-C]{1,3}|[fcds][0-9a-zA-C]|[xvna])$/.test(x))throw new Error('action illisible');
+  const t=x[0],h=h32;
+  if(t==='g')return {t,l:+x[1],k:+x[2]};
   if(t==='m')return {t,c:[...x.slice(1)].map(h)};
   if(t==='p')return {t,c:h(x[1]),l:+x[2],k:+x[3]};
   if(t==='e')return {t,a:[+x[1],+x[2]],b:[+x[3],+x[4]]};
   if(t==='w')return {t,k:+x[1],a:+x[2],b:+x[3]};
   if(t==='y')return {t,l:+x[1],k:+x[2],d:+x[3]};
   if(t==='b')return {t,o:[...x.slice(1)].map(h)};
-  if(t==='x'||t==='v'||t==='n')return {t};
+  if(t==='x'||t==='v'||t==='n'||t==='a')return {t};
   return {t,c:h(x[1])};
 }
 function effetPose(s,p,l,k,g){
@@ -268,7 +282,16 @@ function effetPose(s,p,l,k,g){
     dire(s,p,ts.length?'Slim K : 1 dégât à '+ts.join(' et ')+'.':'Slim K : aucune cible sur la ligne adverse.');
     cs.forEach(c=>blesse(s,1-p,l,c,1,{p,c:g.c,lib:'À la pose'}));
   }
+  let choix=null;
+  if(C.id==='013e'&&g.fav!==undefined){const x=caseDeCarte(s,p,g.fav);if(x){dire(s,p,'Indra (La Fan enflammée) : '+nomDetail(carte(g.fav))+' reste son favori (+2 de Force).');ragebait(s,p,g,x[0],x[1])}else delete g.fav}
+  if(FAV_BONUS[C.id]&&g.fav===undefined){
+    const cs=[];J.grille.forEach((L,a)=>L.forEach((h,b)=>{if(h&&!(a===l&&b===k))cs.push([a,b])}));
+    if(!cs.length)dire(s,p,nomDetail(C)+' : aucun autre Golem, pas de favori.');
+    else if(cs.length===1)choisitFavori(s,p,g,cs[0][0],cs[0][1]);
+    else choix={t:'g',p,i:[l,k],cases:cs};
+  }
   nettoie(s);
+  if(choix)s.attente=choix;
   if(C.id==='004'&&J.deck.length)s.attente={t:'q',p,options:J.deck.slice(0,3)};
   if(C.id==='004e'&&J.grille[l][k])s.attente={t:'o',p};
   if(C.id==='007'){
@@ -277,6 +300,19 @@ function effetPose(s,p,l,k,g){
     if(J.main.length)s.attente={t:'s',p};
   }
 }
+function choisitFavori(s,p,I,l,k){
+  const f=s.j[p].grille[l][k],evo=carte(I.c).id==='013e';I.fav=f.c;
+  dire(s,p,nomDetail(carte(I.c))+' : '+nomDetail(carte(f.c))+' devient son favori (+'+FAV_BONUS[carte(I.c).id]+' de Force).');
+  if(evo)ragebait(s,p,I,l,k);
+}
+/* Ragebait : 2 degats au Golem adverse en face du favori, effet de carte cible (Mode Avion le protege). */
+function ragebait(s,p,I,l,k){
+  const h=s.j[1-p].grille[l][k];
+  if(!h){dire(s,p,'Ragebait : aucun Golem en face du favori.');return}
+  if(!ciblable(s,1-p,l,k,p)){dire(s,p,'Ragebait : '+nomDetail(carte(h.c))+' est protégé (Mode Avion).');return}
+  dire(s,p,'Ragebait : '+nomDetail(carte(h.c))+' perd 2 de Force.');
+  blesse(s,1-p,l,k,2,{p,c:I.c,lib:'À la pose'});
+}
 function agit(s,p,a){
   const J=s.j[p],C=carte(a.c),occ=J.grille[a.l][a.k],cout=coutPose(s,p,a.c,a.l,a.k);
   s.stats.ev.push({t:'p',cp:p,cc:a.c,n:cout,m:s.manche});
@@ -284,7 +320,7 @@ function agit(s,p,a){
   if(C.base&&occ.d>0)s.stats.ev.push({t:'r',cp:p,cc:a.c,n:occ.d,y:'evolution'});
   J.energie-=cout;J.aAgi=true;J.main.splice(J.main.indexOf(a.c),1);
   const g={c:a.c,f:C.force||0,d:0};
-  if(C.base){J.defausse.push(occ.c);dire(s,p,'améliore '+nomDetail(carte(occ.c))+' en '+C.nom+'.')}
+  if(C.base){J.defausse.push(occ.c);dire(s,p,'améliore '+nomDetail(carte(occ.c))+' en '+C.nom+'.');if(C.id==='013e'&&occ.fav!==undefined)g.fav=occ.fav;J.grille.forEach(L=>L.forEach(h=>{if(h&&h.fav===occ.c)h.fav=a.c}))} /* 0.2a.1 : le favori survit a l'evolution d'Indra et a la sienne */
   else if(occ){dire(s,p,'remplace '+nomDetail(carte(occ.c))+' par '+nomDetail(C)+'.');retire(s,p,a.l,a.k)}
   else dire(s,p,'pose '+nomDetail(C)+'.');
   J.grille[a.l][a.k]=g;
@@ -393,6 +429,7 @@ function vues(s){
 }
 function applique(s,p,a){
   const c=code(a);
+  if(a.t==='a')return abandonne(s,p);
   if(!legales(s,p).some(x=>code(x)===c))throw new Error('action interdite '+c);
   const J=s.j[p];
   vues(s);
@@ -414,6 +451,10 @@ function applique(s,p,a){
   else if(a.t==='c'){
     J.deck.splice(J.deck.indexOf(a.c),1);J.main.push(a.c);s.attente=null;dire(s,p,'garde une carte du dessus du deck.');
   }else if(a.t==='v')s.attente=null;
+  else if(a.t==='g'){
+    const [il,ik]=s.attente.i,I=J.grille[il][ik];s.attente=null;
+    if(I&&J.grille[a.l][a.k]){s.stats.cause={p,c:I.c,lib:'À la pose'};choisitFavori(s,p,I,a.l,a.k);nettoie(s)}
+  }
   else if(a.t==='e'){
     const G=J.grille,[x,y]=a.a,[u,v]=a.b;
     [G[x][y],G[u][v]]=[G[u][v],G[x][y]];s.attente=null;
@@ -440,6 +481,16 @@ function applique(s,p,a){
   vues(s);
   return s;
 }
+/* 0.2.2 : abandon de p, a tout moment avant la fin ; victoire de l'adversaire, scores gardes. Jamais propose par legales (ni au robot). */
+function abandonne(s,p){
+  if(s.fin)throw new Error('action interdite a');
+  if(p!==0&&p!==1)throw new Error('joueur inconnu');
+  dire(s,p,'abandonne la partie.');
+  const tc=[0,1].map(q=>s.stats.t.filter(t=>t.gagnant===q).length);
+  s.attente=null;s.fil=null;
+  s.fin={gagnant:1-p,scores:[s.j[0].score,s.j[1].score],terrains:tc,departage:false,abandon:p};
+  s.phase='fin';return s;
+}
 function attendus(s){
   if(s.fin)return [];
   if(s.phase==='mulligan')return [0,1].filter(p=>!s.mull[p]);
@@ -461,6 +512,8 @@ function rejoue(graine,journaux,decks){
       for(const p of attendus(s)){
         if(i[p]<journaux[p].length){applique(s,p,decode(journaux[p][i[p]]));i[p]++;avance=true}
       }
+      /* 0.2.2 : un abandon (hors tour) passe quand plus rien d'autre n'avance */
+      if(!avance&&!s.fin)for(const p of [0,1])if(!s.fin&&journaux[p][i[p]]==='a'){applique(s,p,{t:'a'});i[p]++;avance=true}
     }
   }catch(e){return {etat:s,erreur:e.message,lus:i}}
   return {etat:s,erreur:null,lus:i};
@@ -470,7 +523,7 @@ function rejoue(graine,journaux,decks){
 function bilan(s){
   const J=[0,1].map(()=>({degats:0,morts:0,subis:0,mortsSubies:0,auto:0,cartes:{}})),autres={};
   const ligne=(p,c)=>{const n=nomDetail(carte(c));return J[p].cartes[n]||(J[p].cartes[n]={carte:n,poses:0,coutPaye:0,manches:[],degats:0,subis:0,morts:0,mortsSubies:0,auto:0,recuperes:0,forceTerrains:0,
-    bonusRecus:{voisins:0,trait:0,cercle:0},bonusDonnes:{voisins:0,trait:0,cercle:0},sources:{}})};
+    bonusRecus:{voisins:0,trait:0,cercle:0,favori:0},bonusDonnes:{voisins:0,trait:0,cercle:0,favori:0},sources:{}})};
   s.stats.ev.forEach(e=>{
     if(e.t==='p'){const r=ligne(e.cp,e.cc);r.poses++;r.coutPaye+=e.n;r.manches.push(e.m);return}
     if(e.t==='a'){ligne(e.cp,e.cc).forceTerrains+=e.n;return}
@@ -493,7 +546,7 @@ function bilan(s){
     vuesNonPosees:s.stats.vues[p].filter(c=>!poses[p].has(c)).map(c=>nomDetail(carte(c)))}));
   const P=POIDS_MVP;let mvp=null;
   if(s.fin&&s.fin.gagnant!==null)joueurs[s.fin.gagnant].cartes.forEach(c=>{
-    const bonus=c.bonusDonnes.voisins+c.bonusDonnes.trait+c.bonusDonnes.cercle;
+    const bonus=c.bonusDonnes.voisins+c.bonusDonnes.trait+c.bonusDonnes.cercle+c.bonusDonnes.favori;
     const score=c.forceTerrains*P.force+bonus*P.bonus+c.degats*P.degats+c.morts*P.morts;
     if(!mvp||score>mvp.score)mvp={carte:c.carte,joueur:s.fin.gagnant,score,force:c.forceTerrains,bonus,degats:c.degats,morts:c.morts};
   });
@@ -539,14 +592,16 @@ function gainCoup(s,p,a,v0){
   const f=c=>{const G=c.j[p].grille;
     if(a.t==='p'){
       const C=carte(a.c);
-      G[a.l][a.k]={c:a.c,f:C.id==='002'?3.5:C.id==='002e'?6.4:C.force,d:0};
+      const old=G[a.l][a.k];G[a.l][a.k]={c:a.c,f:C.id==='002'?3.5:C.id==='002e'?6.4:C.force,d:0};
+      if(C.id==='013e'&&old&&old.fav!==undefined)G[a.l][a.k].fav=old.fav;
+      if(C.base&&old)G.forEach(L=>L.forEach(h=>{if(h&&h.fav===old.c)h.fav=a.c}));
       if(C.id==='001e')c.j[1-p].grille[a.l].forEach((g,q)=>{if(ciblable(c,1-p,a.l,q,p))g.d++});
     }else if(a.t==='w'){const x=G[a.a][a.k];G[a.a][a.k]=G[a.b][a.k];G[a.b][a.k]=x}
     else if(a.t==='y'){G[a.d][s.terrains.findIndex(t=>t.nom==='La Faille')]=G[a.l][a.k];G[a.l][a.k]=null}
     else if(a.t==='e'){const[x,y]=a.a,[u,w]=a.b,q=G[x][y];G[x][y]=G[u][w];G[u][w]=q}
   };
   let g=valeur(simule(s,f),p)-v0;
-  if(a.t==='p'){g-=.03*coutPose(s,p,a.c,a.l,a.k);if(carte(a.c).id==='004'&&s.j[p].deck.length)g+=.5;if(carte(a.c).id==='007')g+=.3}
+  if(a.t==='p'){g-=.03*coutPose(s,p,a.c,a.l,a.k);if(carte(a.c).id==='004'&&s.j[p].deck.length)g+=.5;if(carte(a.c).id==='007')g+=.3;if(FAV_BONUS[carte(a.c).id]&&s.j[p].grille.some(L=>L.some(Boolean)))g+=.3}
   return g;
 }
 function meilleur(s,p,l){
@@ -556,6 +611,12 @@ function meilleur(s,p,l){
 }
 function alea2(s,p,sel){let h=(s.graine^Math.imul(s.log.length+s.stats.tours.length*97+sel,2654435761)^p)|0;h=Math.imul(h^(h>>>15),h|1);h^=h+Math.imul(h^(h>>>7),h|61);return ((h^(h>>>14))>>>0)/4294967296}
 function forgeForte(s,p){return parUtilite(s,p,s.j[p].main).pop()}
+/* Favori d'Indra : le plus fort, +2 s'il partage un element avec Indra, +1 si un Golem adverse ciblable est en face (evolution). Egalite : premier de la liste. */
+function choixFavori(s,p,l){
+  const [il,ik]=s.attente.i,I=s.j[p].grille[il][ik],el=carte(I.c).el,evo=carte(I.c).id==='013e';let m=l[0],v=-Infinity;
+  l.forEach(a=>{const g=s.j[p].grille[a.l][a.k],x=forceDe(s,p,a.l,a.k)+(carte(g.c).el.some(e=>el.includes(e))?2:0)+(evo&&ciblable(s,1-p,a.l,a.k,p)?1:0);if(x>v){v=x;m=a}});
+  return m;
+}
 /* niveau : 'facile', 'normal' ou 'difficile'. Jamais la main adverse ni le deck. */
 function robot(s,p,niveau){
   const l=legales(s,p),J=s.j[p];
@@ -571,6 +632,7 @@ function robot(s,p,niveau){
   if(t==='d')return {t:'d',c:parUtilite(s,p,l.map(a=>a.c)).pop()};
   if(t==='s')return {t:'s',c:parUtilite(s,p,l.map(a=>a.c)).pop()};
   if(t==='v')return l[0];
+  if(t==='g')return choixFavori(s,p,l);
   if(t==='e')return meilleur(s,p,l).a;
   if(t==='f'||t==='n'){
     const cible=Math.min(5,(s.manche-1)*3+s.tour);
@@ -588,6 +650,7 @@ function robotFort(s,p,l,t){
   if(t==='d')return {t:'d',c:forgeForte(s,p)};
   if(t==='s')return {t:'s',c:forgeForte(s,p)};
   if(t==='v')return l[0];
+  if(t==='g')return choixFavori(s,p,l);
   if(t==='e')return meilleur(F,p,l).a;
   if(t==='f'||t==='n'){
     const cible=Math.min(6,(s.manche-1)*3+s.tour);
@@ -599,6 +662,6 @@ function robotFort(s,p,l,t){
   return b.a&&b.g>.01?b.a:{t:'x'};
 }
 const api={VERSION,TRAIT_CUMULE,TAILLE_DECK,DECK_MIN,DECK_MAX,MAX_EX,erreurDeck,deckTexte,lisDeck,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
-  nomDetail,forceDe,ciblable,colonnes,valeurDecompte,coutPose,genre};
+  nomDetail,forceDe,ciblable,colonnes,valeurDecompte,coutPose,genre,TYPES_TEST,FAV_BONUS,favori,indrasDe};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else racine.GolemsMoteur=api;
 })(typeof window!=='undefined'?window:globalThis);

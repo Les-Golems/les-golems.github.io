@@ -15,15 +15,21 @@
     if(minuteur){clearInterval(minuteur);minuteur=0}
     if(normal!==null){document.title=normal;normal=null}
   }
+  /* Adversaire arrive dans ma partie en attente : meme alternance avec "Adversaire arrivé ! · Les Golems",
+     declenchee par index.html (window.golemsAdversaireArrive) et levee au retour sur l'onglet. */
+  var ARRIVEE='Adversaire arrivé ! · Les Golems',arrivee=false;
+  function texte(){return monTour()?ALERTE:arrivee?ARRIVEE:''}
   function verifie(){
-    if(document.hidden&&monTour()){
+    if(!document.hidden)arrivee=false;
+    if(document.hidden&&texte()){
       if(!minuteur){
         normal=document.title;bascule=false;
-        minuteur=setInterval(function(){bascule=!bascule;document.title=bascule?ALERTE:normal},1000);
-        document.title=ALERTE;bascule=true;
+        minuteur=setInterval(function(){bascule=!bascule;document.title=bascule?(texte()||normal):normal},1000);
+        document.title=texte();bascule=true;
       }
     }else arrete();
   }
+  window.golemsAdversaireArrive=function(){if(document.hidden){arrivee=true;verifie()}};
   document.addEventListener('visibilitychange',verifie);
   setInterval(verifie,1000);
 })();

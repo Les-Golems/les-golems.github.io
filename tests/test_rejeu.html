@@ -9,11 +9,12 @@ document.getElementById('f').onload=async()=>{try{
   while(!s.fin&&n++<3000){const p=M.attendus(s)[0];const a=M.robot(s,p,'normal');M.applique(s,p,a);j[p].push(M.code(a))}
   const fin=s.j[0].score+'-'+s.j[1].score;out.push('partie jouee '+fin);
   const mk=v=>({id:'t'+v,date:Date.now(),adv:'Golem',res:'Victoire',score:'',mvp:'KaTarN',moteur:v,rejeu:{v,graine:g,moi:0,decks:['',''],j:j.map(M.ecritJournal)}});
-  for(const v of ['0.2','0.2.1','0.1x','9.9']){
-    await D.lanceRejeu(mk(v));await att(50);
+  const ja=[j[0].slice(0,9),j[1].slice(0,8).concat('a')],mkA=()=>({id:'ta',date:Date.now(),adv:'X',res:'Victoire',score:'',mvp:'',moteur:M.VERSION,rejeu:{v:M.VERSION,graine:g,moi:0,decks:['',''],j:ja.map(M.ecritJournal)}});
+  for(const v of ['0.2','0.2.1','0.2.2','abandon','0.1x','9.9']){
+    await D.lanceRejeu(v==='abandon'?mkA():mk(v));await att(50);
     for(let k=0;k<4000&&w.__golemsRejeu()&&!w.__golemsRejeu().fin;k++)await att(100);
     const R=w.__golemsRejeu(),P=D.partie();
-    out.push(v+' : '+(R?JSON.stringify(R)+' score '+P.etat.j[0].score+'-'+P.etat.j[1].score:'pas de rejeu')+' global='+w.GolemsMoteur.VERSION);
+    out.push(v+' : '+(R?JSON.stringify(R)+' score '+P.etat.j[0].score+'-'+P.etat.j[1].score:'pas de rejeu')+(P&&P.etat&&P.etat.fin&&P.etat.fin.abandon!==undefined?' abandon de '+P.etat.fin.abandon:'')+' global='+w.GolemsMoteur.VERSION);
     const q=w.document.querySelector('#barreRejeu .btn:last-child');if(q)q.click();await att(50);
   }
   out.push('scripts moteurs: '+w.performance.getEntriesByType('resource').filter(e=>/moteurs\//.test(e.name)).map(e=>e.name.split('/').pop()).join(','));

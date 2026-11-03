@@ -19,7 +19,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, setPersistence, browserSessionPersistence, browserLocalPersistence,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, orderByValue, endAt, limitToFirst, equalTo, connectDatabaseEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, orderByValue, endAt, limitToFirst, limitToLast, equalTo, connectDatabaseEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { firebaseConfig as configEnLigne } from "./firebase-config.js";
 
 // Servi depuis localhost ou 127.0.0.1 : émulateur Firebase local (projet de démonstration
@@ -176,7 +176,7 @@ async function ouvre() {
       donnees.avatarId = id || ""; donnees.avatarImg = "";
     },
     avatarImg: () => donnees ? donnees.avatarImg : "",
-    // Image importée (data:image/webp|jpeg;base64, 30 000 caractères au plus) : joueurs/{uid}/avatarImg.
+    // Image importée (data:image/webp|jpeg;base64, 140 000 caractères au plus) : joueurs/{uid}/avatarImg.
     async choisirImage(url) {
       if (!estCompte() || !donnees) return;
       await set(ref(db, P + "joueurs/" + moi + "/avatarImg"), url);
@@ -194,6 +194,7 @@ async function ouvre() {
       if (!compte.connecte()) return;
       const h = donnees.historique, v = h.filter(x => x.res === "Victoire").length;
       try { await set(ref(db, P + "joueurs/" + moi + "/stats"), { v, n: h.length }); } catch (e) {}
+      try { await set(ref(db, P + "classement/" + moi), { p: donnees.pseudo, v, n: h.length }); } catch (e) {}
     },
     async statsDe(uid) {
       if (typeof uid !== "string" || !uid) return null;
@@ -455,6 +456,22 @@ async function ouvre() {
         }
       } catch (e) { console.warn("nettoyage", e); }
       return n;
+    },
+    // Archive commune (onglet Statistiques) : resume/{id}, anonyme. Écrite par un compte, une seule fois.
+    async ecritResume(id, o) {
+      if (!estCompte() || !/^-?[0-9]{1,12}-[0-9]{13}$/.test(id)) return false;
+      const r = ref(db, P + "resume/" + id);
+      try { if ((await get(r)).exists()) return false; await set(r, { ...o, d: serverTimestamp() }); return true; } catch (e) { console.warn("resume", e); return false; }
+    },
+    // Les n résumés les plus récents (2000 par défaut), du plus ancien au plus récent.
+    async litResumes(n) {
+      const s = await get(query(ref(db, P + "resume"), orderByChild("d"), limitToLast(n || 2000)));
+      const l = []; s.forEach(c => { l.push(c.val()); }); return l;
+    },
+    // Classement public : liste de { uid, p, v, n }.
+    async litClassement() {
+      const v = (await get(ref(db, P + "classement"))).val() || {};
+      return Object.keys(v).map(u => ({ uid: u, ...v[u] })).filter(x => typeof x.p === "string" && Number.isInteger(x.n));
     },
     // Lecture brute (tests locaux) : soumise aux mêmes règles que le reste.
     lit: p => get(ref(db, P + p)).then(s => s.val()),

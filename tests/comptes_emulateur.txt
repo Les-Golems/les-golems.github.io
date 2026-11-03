@@ -3,3 +3,5 @@ Comptes de test de l'émulateur Firebase local (demo-les-golems). N'existent que
 essai-02b-1 : 3gq5exfj8t
 essai-02b-2 : doa5926vft
 essai-02b-3 : hmy3k9ac72
+test-abd-a : uf7cpjk31v
+test-abd-b : 2cm65q4kwe

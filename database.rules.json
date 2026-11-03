@@ -25,8 +25,8 @@
         ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
         "pseudo":   { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20" },
         "avatarId": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)" },
-        // Avatar importé par le joueur : petite image JPEG ou WebP en texte (data URL), 30 000 caractères au plus.
-        "avatarImg": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length <= 30000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)" },
+        // Avatar importé par le joueur : petite image JPEG ou WebP en texte (data URL), 140 000 caractères au plus (environ 100 Ko).
+        "avatarImg": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length <= 140000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)" },
         "cree":     { ".validate": "newData.isNumber()" },
         // Résumé public des parties (victoires v sur n parties), lisible par tout connecté.
         "stats":    { ".read": "auth != null", ".validate": "newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val()", "v": { ".validate": "newData.isNumber()" }, "n": { ".validate": "newData.isNumber()" }, "$autre": { ".validate": false } },
@@ -180,12 +180,108 @@
       }
     },
 
+    // Classement public (onglet Statistiques, colonne Joueurs) : classement/{uid} = pseudo p, victoires v, parties n.
+    // Lisible par tout connecté ; écrit par le seul compte propriétaire.
+    "classement": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
+        ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val()",
+        "p": { ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20" },
+        "v": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50" },
+        "$autre": { ".validate": false }
+      }
+    },
+
+    // Archive commune des parties (onglet Statistiques) : resume/{graine-debut}, anonyme (ni pseudo ni uid).
+    // Lecture par tout connecté ; écriture par un compte seulement, ajout seulement (jamais modifié ni effacé).
+    "resume": {
+      ".read": "auth != null",
+      ".indexOn": ["d"],
+      "$id": {
+        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.exists()",
+        ".validate": "$id.matches(/^-?[0-9]{1,12}-[0-9]{13}$/) && newData.hasChildren(['d', 'v', 'm', 'g', 'pg', 'a', 'k0', 'k1', 'e0', 'e1', 's0', 's1', 'mvp', 't'])",
+        "d":   { ".validate": "newData.val() === now" },
+        "v":   { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)" },
+        "m":   { ".validate": "newData.isString() && newData.val().matches(/^(golem-[a-z]{1,12}|ligne)$/)" },
+        "g":   { ".validate": "newData.isNumber() && (newData.val() === 0 || newData.val() === 1 || newData.val() === -1)" },
+        "pg":  { ".validate": "newData.isBoolean()" },
+        "a":   { ".validate": "newData.isBoolean()" },
+        "k0":  { ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])*$/)" },
+        "k1":  { ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])*$/)" },
+        "e0":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
+        "e1":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
+        "s0":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
+        "s1":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
+        "mvp": { ".validate": "newData.isString() && newData.val().length <= 40" },
+        "t": {
+          "$k": {
+            ".validate": "$k.matches(/^[0-2]$/) && newData.hasChildren(['n', 'r', 'q'])",
+            "n": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
+            "r": { ".validate": "newData.isString() && newData.val().matches(/^[01=-]{1,3}$/)" },
+            "q": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20" },
+            "$autre": { ".validate": false }
+          }
+        },
+        "$autre": { ".validate": false }
+      }
+    },
+
     // Site d'essai (les-golems.github.io/essai) : copie conforme de pseudos, joueurs, hall et salons
     // sous le préfixe essai/. Comptes Auth partagés, pseudos et données séparés.
     "essai": {
       // Pseudos réservés : pseudos/{pseudo en minuscules} = uid du propriétaire.
       // Lisible par tout connecté (vérifier qu'un pseudo est libre) ; réservé par un compte,
       // seulement s'il est libre ou déjà à lui ; effacé seulement par son propriétaire (ou Romain en console).
+      // Classement public (onglet Statistiques, colonne Joueurs) : classement/{uid} = pseudo p, victoires v, parties n.
+      // Lisible par tout connecté ; écrit par le seul compte propriétaire.
+      "classement": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
+          ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val()",
+          "p": { ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20" },
+          "v": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50" },
+          "$autre": { ".validate": false }
+        }
+      },
+
+      // Archive commune des parties (onglet Statistiques) : resume/{graine-debut}, anonyme (ni pseudo ni uid).
+      // Lecture par tout connecté ; écriture par un compte seulement, ajout seulement (jamais modifié ni effacé).
+      "resume": {
+        ".read": "auth != null",
+        ".indexOn": ["d"],
+        "$id": {
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.exists()",
+          ".validate": "$id.matches(/^-?[0-9]{1,12}-[0-9]{13}$/) && newData.hasChildren(['d', 'v', 'm', 'g', 'pg', 'a', 'k0', 'k1', 'e0', 'e1', 's0', 's1', 'mvp', 't'])",
+          "d":   { ".validate": "newData.val() === now" },
+          "v":   { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)" },
+          "m":   { ".validate": "newData.isString() && newData.val().matches(/^(golem-[a-z]{1,12}|ligne)$/)" },
+          "g":   { ".validate": "newData.isNumber() && (newData.val() === 0 || newData.val() === 1 || newData.val() === -1)" },
+          "pg":  { ".validate": "newData.isBoolean()" },
+          "a":   { ".validate": "newData.isBoolean()" },
+          "k0":  { ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])*$/)" },
+          "k1":  { ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])*$/)" },
+          "e0":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
+          "e1":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
+          "s0":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
+          "s1":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
+          "mvp": { ".validate": "newData.isString() && newData.val().length <= 40" },
+          "t": {
+            "$k": {
+              ".validate": "$k.matches(/^[0-2]$/) && newData.hasChildren(['n', 'r', 'q'])",
+              "n": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
+              "r": { ".validate": "newData.isString() && newData.val().matches(/^[01=-]{1,3}$/)" },
+              "q": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20" },
+              "$autre": { ".validate": false }
+            }
+          },
+          "$autre": { ".validate": false }
+        }
+      },
+
       "pseudos": {
         "$cle": {
           ".read": "auth != null",
@@ -201,7 +297,7 @@
           ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
           "pseudo":   { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20" },
           "avatarId": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)" },
-          "avatarImg": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length <= 30000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)" },
+          "avatarImg": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length <= 140000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)" },
           "cree":     { ".validate": "newData.isNumber()" },
           // Résumé public des parties (victoires v sur n parties), lisible par tout connecté.
           "stats":    { ".read": "auth != null", ".validate": "newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val()", "v": { ".validate": "newData.isNumber()" }, "n": { ".validate": "newData.isNumber()" }, "$autre": { ".validate": false } },
