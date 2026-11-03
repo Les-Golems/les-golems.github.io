@@ -1,7 +1,7 @@
 /* Les Golems : moteur pur, sans affichage. Etat = f(graine, journaux). Charge en page et en Node. */
 (function(racine){
 'use strict';
-const VERSION='0.2';
+const VERSION='0.2a';
 const POIDS_MVP={force:1,bonus:1,degats:1,morts:3};
 const CARTES={
  '001':{id:'001',nom:'KaTarN',el:['magma','foudre'],cout:1,force:8,texte:'Pose uniquement en manche 1. Perd 4 de Force à chaque fin de manche.'},
@@ -44,15 +44,47 @@ function melange(o,cle,l){for(let i=l.length-1;i>0;i--){const k=Math.floor(alea(
 const de=(s,p)=>1+Math.floor(alea(s.rng,p)*6);
 const dire=(s,p,t)=>s.log.push([p,t]);
 
-function nouvelle(graine){
+/* Decks personnalises. Texte compact : identifiant de carte puis nombre d'exemplaires, dans l'ordre de TYPES,
+   ex. "0013002e2008 1" sans espace : "0013002e20081". Vide ou null : paquet de test (3 exemplaires de chaque type).
+   Base et evolution comptent a part. Identifiant de partie = rang du type * 3 + exemplaire, comme le paquet de test. */
+const DECK_MIN=24,DECK_MAX=30,MAX_EX=3;
+function erreurDeck(o){
+  if(!o||typeof o!=='object')return 'deck illisible';
+  let n=0;
+  for(const id in o){
+    if(!TYPES.includes(id))return 'carte inconnue '+id;
+    const v=o[id];if(!Number.isInteger(v)||v<0||v>MAX_EX)return 'trop d\'exemplaires de '+CARTES[id].nom;
+    n+=v;
+  }
+  if(n<DECK_MIN)return 'moins de '+DECK_MIN+' cartes';
+  if(n>DECK_MAX)return 'plus de '+DECK_MAX+' cartes';
+  return '';
+}
+function deckTexte(o){
+  if(!o)return '';
+  return TYPES.filter(t=>+o[t]>0).map(t=>t+o[t]).join('');
+}
+function lisDeck(t){ /* objet {id:nombre} valide, ou null (paquet de test) si vide ou invalide */
+  if(typeof t!=='string'||!t||t.length>300||!/^([0-9]{3}e?[1-3])+$/.test(t))return null;
+  const o={},re=/([0-9]{3}e?)([1-3])/g;let m;
+  while((m=re.exec(t))){if(m[1] in o)return null;o[m[1]]=+m[2]}
+  return erreurDeck(o)?null:o;
+}
+function idsDeck(o){
+  if(!o)return Array.from({length:TAILLE_DECK},(_,i)=>i);
+  const l=[];TYPES.forEach((t,i)=>{for(let c=0;c<(o[t]||0);c++)l.push(i*EXEMPLAIRES+c)});
+  return l;
+}
+function nouvelle(graine,decks){
   graine=graine|0;
   const g={v:graine};
   const t=melange(g,'v',TERRAINS.map((_,i)=>i)).slice(0,3).map(i=>({...TERRAINS[i]}));
   const premier=alea(g,'v')<.5?0:1;
-  const s={graine,rng:[(graine^0x51ED270B)|0,(graine^0x2F7A9C31)|0],terrains:t,manche:1,tour:1,premier,joueur:premier,
+  const dk=[0,1].map(p=>{const o=lisDeck(decks&&decks[p]);return o?deckTexte(o):''});
+  const s={graine,decks:dk,rng:[(graine^0x51ED270B)|0,(graine^0x2F7A9C31)|0],terrains:t,manche:1,tour:1,premier,joueur:premier,
     phase:'mulligan',mull:[false,false],attente:null,fil:null,dernier:null,forceTotale:[0,0],fin:null,log:[],reperes:[],stats:{ev:[],coups:{},cause:null,t:[],act:[],tours:[],vues:[[],[]]},j:[]};
   for(let p=0;p<2;p++){
-    const deck=melange(s.rng,p,Array.from({length:TAILLE_DECK},(_,i)=>i));
+    const deck=melange(s.rng,p,idsDeck(lisDeck(dk[p])));
     s.j.push({deck,main:deck.splice(0,5),defausse:[],forge:[],energie:0,score:0,aForge:false,aAgi:false,etapeForge:false,vaisseau:0,faille:0,
       grille:[[null,null,null],[null,null,null],[null,null,null]]});
   }
@@ -418,8 +450,8 @@ function litJournal(t){
     if(!m||+m[1]!==i+1)throw new Error('journal mal numéroté');return m[2]});
 }
 /* Rejoue tout. Les entrees en avance attendent leur tour. */
-function rejoue(graine,journaux){
-  const s=nouvelle(graine),i=[0,0];
+function rejoue(graine,journaux,decks){
+  const s=nouvelle(graine,decks),i=[0,0];
   let avance=true;
   try{
     while(avance){avance=false;
@@ -563,7 +595,7 @@ function robotFort(s,p,l,t){
   const b=meilleur(F,p,q);
   return b.a&&b.g>.01?b.a:{t:'x'};
 }
-const api={VERSION,TAILLE_DECK,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
+const api={VERSION,TAILLE_DECK,DECK_MIN,DECK_MAX,MAX_EX,erreurDeck,deckTexte,lisDeck,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
   nomDetail,forceDe,ciblable,colonnes,valeurDecompte,coutPose,genre};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else racine.GolemsMoteur=api;
 })(typeof window!=='undefined'?window:globalThis);

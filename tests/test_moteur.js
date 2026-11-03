@@ -4,8 +4,8 @@ const N=+process.argv[2]||200;
 const ANC=["La Faille", "Le Carrousel", "La Boutique", "Le Plateau de Jeu", "La Salle Verrouillée", "Le Vaisseau", "La Nuit au Village", "Le Buzzer", "L'Écran du MJ", "Le Camp"],TA=i=>M.TERRAINS.find(t=>t.nom===ANC[i]);
 let graineTest=12345;
 const rnd=n=>{graineTest=(Math.imul(graineTest,1103515245)+12345)|0;return ((graineTest>>>8)%n)};
-function partie(gr){
-  const s=M.nouvelle(gr),j=[[],[]];let pas=0;
+function partie(gr,dk){
+  const s=M.nouvelle(gr,dk),j=[[],[]];let pas=0;
   while(!s.fin){
     assert(++pas<2000,'blocage graine '+gr);
     const att=M.attendus(s);assert(att.length,'personne attendu '+gr);
@@ -15,10 +15,10 @@ function partie(gr){
     M.applique(s,p,a);j[p].push(M.code(a));
     verifie(s);
   }
-  const r=M.rejoue(gr,j);assert(!r.erreur,r.erreur);
+  const r=M.rejoue(gr,j,dk);assert(!r.erreur,r.erreur);
   assert.strictEqual(JSON.stringify(r.etat),JSON.stringify(s),'rejeu different');
   // ordre d'arrivee inverse : meme resultat
-  const r2=M.rejoue(gr,[M.litJournal(M.ecritJournal(j[0])),M.litJournal(M.ecritJournal(j[1]))]);
+  const r2=M.rejoue(gr,[M.litJournal(M.ecritJournal(j[0])),M.litJournal(M.ecritJournal(j[1]))],dk);
   assert.strictEqual(JSON.stringify(r2.etat),JSON.stringify(s));
   return {s,taille:Math.max(M.ecritJournal(j[0]).length,M.ecritJournal(j[1]).length),n:Math.max(j[0].length,j[1].length)};
 }
@@ -26,7 +26,8 @@ function verifie(s){
   s.j.forEach((J,p)=>{
     const vu=[...J.deck,...J.main,...J.defausse,...J.forge];
     J.grille.forEach(L=>L.forEach(g=>{if(g)vu.push(g.c)}));
-    assert.strictEqual(new Set(vu).size,M.TAILLE_DECK,'cartes perdues');assert.strictEqual(vu.length,M.TAILLE_DECK,'cartes doublees');
+    const o=M.lisDeck(s.decks&&s.decks[p]),n=o?Object.values(o).reduce((a,b)=>a+b,0):M.TAILLE_DECK;
+    assert.strictEqual(new Set(vu).size,n,'cartes perdues');assert.strictEqual(vu.length,n,'cartes doublees');
     J.grille.forEach((L,l)=>L.forEach((g,k)=>{if(g&&!s.attente)assert(M.forceDe(s,p,l,k)>0,'Golem mort en jeu')}));
   });
 }
@@ -34,6 +35,23 @@ let tMax=0,nMax=0;const bilan={0:0,1:0,nul:0};
 for(let i=0;i<N;i++){const r=partie((i*2654435761)|0);tMax=Math.max(tMax,r.taille);nMax=Math.max(nMax,r.n);
   const g=r.s.fin.gagnant;bilan[g===null?'nul':g]++}
 
+// Decks personnalises (0.2a)
+{
+  const d24={'001':3,'002':3,'002e':3,'003':3,'004':3,'007':3,'008':3,'003e':3},t=M.deckTexte(d24);
+  assert.strictEqual(t,['0013','0023','002e3','0033','003e3','0043','0073','0083'].join(''),'ordre de TYPES');
+  assert.strictEqual(M.deckTexte(M.lisDeck(t)),t,'aller-retour texte');assert.strictEqual(Object.keys(M.lisDeck(t)).length,8);
+  assert.strictEqual(M.erreurDeck(d24),'');
+  assert(M.erreurDeck({'001':4}),'4 exemplaires');assert(M.erreurDeck({'001':3}),'trop petit');assert(M.erreurDeck({'999':3}),'carte inconnue');
+  const gros={};M.TYPES.forEach(k=>gros[k]=3);assert(M.erreurDeck(gros),'33 cartes : hors regle');
+  assert.strictEqual(M.lisDeck('0014'),null);assert.strictEqual(M.lisDeck(''),null);assert.strictEqual(M.lisDeck('00130013'),null,'doublon');
+  const s=M.nouvelle(77,[t,'']);assert.strictEqual(s.j[0].deck.length+s.j[0].main.length,24);assert.strictEqual(s.j[1].deck.length+s.j[1].main.length,33);
+  assert.strictEqual(JSON.stringify(M.nouvelle(77)),JSON.stringify(M.nouvelle(77,['',''])),'paquet de test inchange');
+  assert.strictEqual(M.nouvelle(77,['n importe quoi','']).decks[0],'','deck invalide = paquet de test');
+  const d30={...d24,'001e':3,'004e':3};
+  for(let i=0;i<60;i++){const r=partie((i*97531)|0,[i%2?t:M.deckTexte(d30),i%3?M.deckTexte(d30):'']);nMax=Math.max(nMax,r.n)}
+  // les cartes d'un joueur viennent toutes de son deck
+  const s2=M.nouvelle(5,[t,'']);[...s2.j[0].deck,...s2.j[0].main].forEach(c=>assert(M.carte(c).id in d24,'carte hors deck'));
+}
 // Cas de regles
 function vide(){const s=M.nouvelle(1);s.phase='jeu';s.mull=[true,true];s.joueur=0;s.premier=0;
   s.j.forEach(J=>{J.deck=[];J.main=[];J.defausse=[]});s.terrains=[TA(0),TA(1),TA(4)];return s}
@@ -212,7 +230,7 @@ function finDeManche(s){s.joueur=1;s.premier=0;s.tour=3;M.applique(s,1,{t:'x'})}
   assert.strictEqual(B.mvp.score,B.mvp.force*M.POIDS_MVP.force+B.mvp.bonus*M.POIDS_MVP.bonus);
   assert.deepStrictEqual(B.tours[0],{manche:3,tour:3,joueur:1,energieGaspillee:0,pose:false});
   assert(B.joueurs[0].vuesNonPosees.length===1);
-  assert.strictEqual(M.VERSION,'0.2');assert.strictEqual(M.CARTES['002e'].cout,3);assert.strictEqual(M.CARTES['004e'].cout,3);assert.strictEqual(M.CARTES['001'].cout,1);assert.strictEqual(T('La Faille').pts,2);
+  assert.strictEqual(M.VERSION,'0.2a');assert.strictEqual(M.CARTES['002e'].cout,3);assert.strictEqual(M.CARTES['004e'].cout,3);assert.strictEqual(M.CARTES['001'].cout,1);assert.strictEqual(T('La Faille').pts,2);
   {let dbl=0;for(let g=1;g<200;g++){const u=vide();u.rng=[g,g*7];u.j[0].main=[9];u.j[0].energie=9;u.j[0].grille[0][0]=gol(6,3);M.applique(u,0,{t:'p',c:9,l:0,k:0});const m=/lance (\d) et (\d) : Force (\d+)/.exec(u.log.map(x=>x[1]).join(' '));assert(m);const[a,b,f]=[+m[1],+m[2],+m[3]];if(a===b)dbl++;assert.strictEqual(f,a===b?a:a+b,'KEKWRevan')}assert(dbl)}
   assert.strictEqual(M.TAILLE_DECK,33);
   for(let c=0;c<33;c++){assert.strictEqual(M.decode(M.code({t:'f',c})).c,c);assert.strictEqual(M.decode(M.code({t:'p',c,l:2,k:1})).c,c)}

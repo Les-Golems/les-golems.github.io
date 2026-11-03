@@ -96,6 +96,12 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 .boite{background:var(--panneau);border:1px solid var(--trait);border-radius:14px;padding:24px;width:100%;max-width:360px;text-align:center;margin:auto}
 .boite img{width:120px;height:120px}
 .boite h2{margin:6px 0 16px}
+#formPseudo .btn{width:100%;margin-top:8px}#formPseudo input{margin-bottom:10px}.co-aide{font-size:14px;margin:0 0 12px}
+.choixDeck{display:flex;flex-direction:column;gap:4px;margin:0 0 12px;text-align:left}
+.selDeck{font:inherit;font-size:15px;padding:8px 10px;border-radius:8px;background:var(--panneau2);color:inherit;border:1px solid var(--trait);max-width:100%}
+.selDeck:disabled{opacity:.7}
+.barreRejeu{position:fixed;left:50%;bottom:12px;translate:-50% 0;z-index:60;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;padding:8px 12px;background:var(--panneau);border:1px solid var(--trait);border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.45);max-width:calc(100vw - 32px)}
+.barreRejeu .btn{padding:6px 12px;font-size:14px}.barreRejeu .r-pos{font-variant-numeric:tabular-nums;min-width:62px;text-align:center}
 label{display:block;text-align:left;font-weight:700;font-size:14.5px;margin-bottom:6px}
 input[type=text]{width:100%;background:var(--encre);border:1px solid var(--trait);border-radius:8px;padding:11px 12px;font-size:16px}
 .erreur{color:var(--erreur);font-size:14.5px;min-height:22px;margin:6px 0;text-align:left}
@@ -558,6 +564,12 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .haut .sous-titre{display:block;margin-top:5px;font:600 16px/1.2 var(--corps);color:var(--texte);letter-spacing:0;opacity:1}
 .moi{display:flex;align-items:center;gap:12px}
 #pseudoAffiche{font-size:19px}
+.qui{display:flex;align-items:center;gap:8px;min-width:0}
+.avatar{flex:none;width:30px;height:30px;border-radius:50%;display:inline-grid;place-items:center;background:var(--fm-brume);color:#fff;font:400 16px/1 var(--titre);text-transform:uppercase;overflow:hidden;box-shadow:inset 0 0 0 2px rgba(255,255,255,.18)}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+#joueurs .avatar{width:26px;height:26px;font-size:14px}
+.p-camp>.avatar{width:24px;height:24px;font-size:13px}
+@media (max-width:440px){.avatar{width:26px;height:26px;font-size:14px}}
 .modif{padding:7px 14px;border:0;border-radius:8px 6px 9px 5px;background:var(--panneau2);color:var(--bleu);font:400 16px/1.2 var(--titre);box-shadow:inset 0 0 0 2px var(--bleu),0 3px 0 #08708c;cursor:pointer}
 .modif:hover{background:#22384a}
 .modif:active{transform:translateY(2px);box-shadow:inset 0 0 0 2px var(--bleu),0 1px 0 #08708c}
@@ -592,7 +604,9 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .dl-duo .dl-force .ico{color:#dfe5e9}
 .dl-cout,.dl-force{display:inline-flex;align-items:center;gap:3px;font:400 16px/1 var(--titre)}
 .dl-cout .ico,.dl-force .ico{font-size:16px;color:var(--doux)}
-.dl-nom{font-weight:700;overflow-wrap:anywhere}
+.dl-nom{font-weight:700;overflow-wrap:anywhere;min-width:0;display:flex;flex-direction:column}
+.dl-pseudo{color:#fff}
+.dl-titre{display:block;font-size:12px;line-height:1.2;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-text-stroke:3px #0a121a;paint-order:stroke fill;letter-spacing:.2px}
 .dl-els{display:flex;gap:2px}
 .dl-els img{display:block;width:21px;height:21px}
 .dl-nb{text-align:right;font:400 16px/1 var(--titre);color:var(--or)}
@@ -670,7 +684,7 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
 <header><div class="large haut">
   <img src="cartes/logo.png" alt="">
   <h1>Les Golems<small class="sous-titre">Jeu de cartes communautaire</small></h1>
-  <div class="moi"><b id="pseudoAffiche"></b><button class="modif" id="modifierPseudo" type="button">Modifier</button></div>
+  <div class="moi"><span class="qui"><span class="avatar" id="avatarMoi" aria-hidden="true"></span><b id="pseudoAffiche"></b></span><button class="modif" id="modifierPseudo" type="button">Modifier</button></div>
 </div></header>
 <nav><div class="large onglets" role="tablist">
   <button role="tab" id="t-nouveautes" aria-controls="nouveautes" aria-selected="true">Nouveautés</button>
@@ -807,6 +821,7 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
       </div>
       <div class="bloc" id="blocRobot">
         <h3>S'entraîner contre un golem</h3>
+        <div class="choixDeck"><label for="deckRobot">Ton deck</label><select id="deckRobot" class="selDeck"></select></div>
         <div class="p-btns"><div class="niveaux" role="group" aria-label="Niveau du golem"><button class="btn niv-f" data-niveau="facile" type="button">Facile</button><button class="btn niv-n" data-niveau="normal" type="button">Normal</button><button class="btn niv-d" data-niveau="difficile" type="button">Difficile</button></div><button class="btn sec" id="repriseRobot" type="button" hidden>Reprendre l'entraînement</button></div>
       </div>
       <div class="bloc" id="reprise" hidden>
@@ -821,6 +836,7 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
       <div class="code" id="codeSalon"></div>
       <button class="btn sec btnCode" id="copieCode" type="button">Copier le code</button>
       <ul id="joueurs"></ul>
+      <div class="choixDeck"><label for="deckSalon">Ton deck</label><select id="deckSalon" class="selDeck"></select></div>
       <p id="attente" role="status"></p>
       <button class="btn plein" id="pret" hidden>Prêt</button>
       <button class="btn sec" id="quitter">Quitter le salon</button>
@@ -831,13 +847,13 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
 
 <section id="decks" role="tabpanel" aria-labelledby="t-decks" hidden>
   <h2>Decks</h2>
-  <p class="intro">Decks visuels seulement pour ce test : ils ne sont pas encore jouables. De 24 à 30 cartes, 3 exemplaires maximum, enregistrés sur cet appareil.</p>
+  <p class="intro">De 24 à 30 cartes, 3 exemplaires maximum par carte (base et évolution à part), 12 decks au plus. Choisis ton deck avant de jouer. Connecté, ils sont enregistrés sur ton compte ; en invité, sur cet appareil.</p>
   <div id="listeDecks"></div>
 </section>
 
 <section id="historique" role="tabpanel" aria-labelledby="t-historique" hidden>
   <h2>Historique</h2>
-  <p class="intro">Les 50 dernières parties terminées sur cet appareil.</p>
+  <p class="intro">Les 50 dernières parties terminées, sur ton compte si tu es connecté, sinon sur cet appareil.</p>
   <div id="histo"></div>
 </section>
 
@@ -848,14 +864,19 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
 </section>
 </main>
 
-<div class="voile" id="popPseudo" role="dialog" aria-modal="true" aria-labelledby="titrePop">
+<div class="voile" id="popPseudo" hidden role="dialog" aria-modal="true" aria-labelledby="titrePop">
   <form class="boite" id="formPseudo">
     <img src="cartes/logo.png" alt="">
     <h2 id="titrePop">Les Golems</h2>
+    <p class="intro co-aide" id="aideCompte"></p>
     <label for="pseudo">Ton pseudo</label>
-    <input type="text" id="pseudo" maxlength="20" autocomplete="nickname">
+    <input type="text" id="pseudo" maxlength="20" autocomplete="username" autocapitalize="off" spellcheck="false">
+    <label for="codeSecret">Ton code secret</label>
+    <input type="password" id="codeSecret" maxlength="128" autocomplete="current-password">
     <p class="erreur" id="erreurPseudo" role="alert"></p>
-    <button class="btn plein" id="entrer">Entrer</button>
+    <button class="btn plein" id="entrer">Se connecter</button>
+    <button class="btn sec" id="basculeCompte" type="button">Créer un compte</button>
+    <button class="btn sec" id="plusTard" type="button">Jouer en invité</button>
   </form>
 </div>
 <img id="apercu" alt="" hidden>
@@ -892,19 +913,69 @@ const $=id=>document.getElementById(id);
 function lire(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function ecrire(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 
-/* Pseudo */
-let pseudo=(lire('golems.pseudo')||'').slice(0,20);
+/* Avatar : rond avec initiale sur une couleur tiree du pseudo. avatarId (futur choix en galerie, a stocker plus tard dans la presence ou Firebase) : si fourni, image avatars/<id>.png a la place. */
+const AVATAR_COULEURS=["--fm-magma","--fm-cristal","--fm-foudre","--fm-brume","--fm-roche"];
+function avatarDe(nom,avatarId){
+  const n=String(nom||"").trim()||"?",a=el("span","avatar");a.setAttribute("aria-hidden","true");
+  let h=0;for(const c of n.toLowerCase())h=(h*31+c.codePointAt(0))>>>0;
+  a.style.background="var("+AVATAR_COULEURS[h%AVATAR_COULEURS.length]+")";
+  if(avatarId){const i=document.createElement("img");i.alt="";i.src="avatars/"+encodeURIComponent(avatarId)+".png";i.onerror=()=>{i.remove();a.textContent=Array.from(n)[0]};a.append(i)}
+  else a.textContent=Array.from(n)[0];
+  return a;
+}
+function majMoi(){
+  const co=compteCo();
+  $("pseudoAffiche").textContent=co?pseudo:'Invité';
+  $("avatarMoi").replaceWith(Object.assign(avatarDe(co?pseudo:"?",co?room.compte.avatarId():''),{id:"avatarMoi"}));
+  const b=$('modifierPseudo');b.textContent=co?'Se déconnecter':'Se connecter';
+}
+/* Compte : pseudo reserve + code secret (Firebase). Sans compte : invite, robot seulement, donnees sur l'appareil. */
+let pseudo='',modeCreer=false;
+const compteCo=()=>{try{return !!(room&&room.compte&&room.compte.connecte())}catch(e){return false}}; /* room est declare plus bas */
 function nettoie(s){return String(s||'').replace(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu,'').trim().slice(0,20)}
-function ouvrePseudo(){$('pseudo').value=pseudo;$('erreurPseudo').textContent='';$('popPseudo').hidden=false;$('pseudo').focus()}
-$('modifierPseudo').onclick=ouvrePseudo;
-$('formPseudo').onsubmit=e=>{
-  e.preventDefault();
-  const v=nettoie($('pseudo').value);
-  if(!v){$('erreurPseudo').textContent='Choisis un pseudo pour entrer.';return}
-  pseudo=v;ecrire('golems.pseudo',v);$('pseudoAffiche').textContent=v;$('popPseudo').hidden=true;
-  annoncePseudo();
+function modeCompte(c){
+  modeCreer=c;$('titrePop').textContent=c?'Créer un compte':'Se connecter';
+  $('entrer').textContent=c?'Créer mon compte':'Se connecter';
+  $('basculeCompte').textContent=c?"J'ai déjà un compte":'Créer un compte';
+  $('codeSecret').autocomplete=c?'new-password':'current-password';
+  $('aideCompte').textContent=c?"Pseudo de 3 à 20 caractères, unique. Code secret de 6 caractères minimum, tout caractère accepté. Garde-le bien : en cas d'oubli, seul Romain peut réinitialiser le compte.":'Un compte garde tes decks et ton historique, et permet de jouer en ligne.';
+  $('erreurPseudo').textContent='';
+}
+function ouvrePseudo(){
+  if(r){$('erreurJeu').textContent='Quitte le salon avant de changer de compte.';return}
+  modeCompte(false);$('pseudo').value=lire('golems.pseudo')||'';$('codeSecret').value='';
+  $('popPseudo').hidden=false;$('pseudo').focus();
+}
+$('modifierPseudo').onclick=async()=>{
+  if(!compteCo()){ouvrePseudo();return}
+  if(r){$('erreurJeu').textContent='Quitte le salon avant de te déconnecter.';onglet('jouer');return}
+  const b=$('modifierPseudo');b.disabled=true;
+  try{await room.compte.deconnecter()}catch(e){}
+  b.disabled=false;
 };
-$('pseudoAffiche').textContent=pseudo;
+$('basculeCompte').onclick=()=>modeCompte(!modeCreer);
+$('plusTard').onclick=()=>{ecrire('golems.invite','1');$('popPseudo').hidden=true};
+$('formPseudo').onsubmit=async e=>{
+  e.preventDefault();
+  const p=$('pseudo').value,c=$('codeSecret').value,err=$('erreurPseudo');
+  if(!room||!room.compte){err.textContent='Connexion au serveur impossible pour le moment.';return}
+  const x=room.compte.erreurPseudo(p);
+  if(modeCreer&&x){err.textContent=x;return}
+  if(modeCreer&&c.length<6){err.textContent='Le code doit faire au moins 6 caractères.';return}
+  if(!c){err.textContent='Entre ton code secret.';return}
+  $('entrer').disabled=true;err.textContent=modeCreer?'Création du compte...':'Connexion...';
+  const m=modeCreer?await room.compte.creer(p,c):await room.compte.connecter(p,c);
+  $('entrer').disabled=false;err.textContent=m;
+  if(!m){$('popPseudo').hidden=true;$('codeSecret').value='';ecrire('golems.pseudo',room.compte.pseudo())}
+};
+/* Apres chaque changement de compte : pseudo, decks, historique, proposition d'import. */
+function surCompte(){
+  pseudo=compteCo()?room.compte.pseudo():'';
+  majMoi();majEtat();majChoixDeck();
+  if(!$('decks').hidden)peintDecks();if(!$('historique').hidden)peintHisto();
+  if(compteCo())proposeImport();
+}
+majMoi();
 
 /* Onglets */
 const noms=['nouveautes','jouer','decks','historique','cartes','regles'];
@@ -920,6 +991,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
+ {version:'Version 0.2a',date:'3 novembre 2026',notes:["Comptes : pseudo réservé et code secret, decks et historique enregistrés sur ton compte","Le jeu en ligne demande un compte ; le robot reste jouable en invité","Tes decks sont jouables : choisis-le avant Prêt ou avant d'affronter le golem","Rejeu des parties depuis l'historique","Les parties en cours de la version précédente ne peuvent pas être reprises"]},
  {version:'Version 0.2',date:'3 novembre 2026',notes:["Nouvelle règle : à chaque manche, le joueur qui joue en second ne pioche qu'1 carte à son premier tour de la manche","Jeu en ligne sur le site les-golems.github.io","Les parties en cours de la version précédente ne peuvent pas être reprises"]},
  {version:'Version 0.1b',date:'2 novembre 2026',notes:["Trigas et son évolution, K-Chan : jouables","Orotembu en aperçu dans l'onglet Cartes"]},
  {version:'Version 0.1a',date:'2 novembre 2026',notes:["4 Golems jouables et leurs évolutions (8 cartes)","10 terrains","36 Golems à venir","Règles disponibles","Jeu en ligne à deux","Entraînement contre un golem en 3 niveaux","Résumé et statistiques de fin de partie"]}
@@ -1030,8 +1102,10 @@ function majEtat(){
   if(!room)return;
   const co=room.connected(),n=personnes(room.peers()).length;
   $('etat').classList.toggle('ok',co);
-  $('etatTexte').textContent=!co?'Connexion au salon en ligne...':n<2?'1 joueur connecté':n+' joueurs connectés';
-  $('creer').disabled=$('rejoindre').disabled=!co||occupe;
+  const cc=compteCo();
+  $('etatTexte').textContent=!co?'Connexion au salon en ligne...':!cc?'Connecte-toi pour jouer en ligne.':n<2?'1 joueur connecté':n+' joueurs connectés';
+  $('creer').disabled=$('rejoindre').disabled=!co||occupe||!cc;
+  $('reprendre').disabled=!cc;
 }
 function annoncePseudo(){
   if(!room)return;
@@ -1055,7 +1129,7 @@ function majSalon(){
   const u=$('joueurs');u.textContent='';
   l.slice(0,MAX).forEach(p=>{
     const li=document.createElement('li'),s=document.createElement('span');
-    s.textContent=nomDe(p);li.append(s);
+    s.textContent=nomDe(p);li.append(avatarDe(nomDe(p)),s);
     if(estPret(p)){const v=el('i','coche');v.setAttribute('role','img');v.setAttribute('aria-label','Prêt');v.innerHTML='<svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M4 13L10 19L20 6"/></svg>';li.append(v)}
     if(p.sameTab){const e=document.createElement('em');e.textContent='toi';li.append(e)}
     u.append(li);
@@ -1086,7 +1160,11 @@ $('copieCode').onclick=e=>{
   const b=e.currentTarget;
   copie($('codeSalon').textContent,b,'Copier le code',()=>{const g=getSelection(),x=document.createRange();x.selectNodeContents($('codeSalon'));g.removeAllRanges();g.addRange(x)});
 };
-$('pret').onclick=()=>{jePret=!jePret;pub({pret:jePret||null});majSalon()};
+$('pret').onclick=()=>{
+  jePret=!jePret;
+  if(jePret){deckPret=deckChoisi()}
+  pub({pret:jePret||null,deck:jePret&&deckPret.texte||null});majChoixDeck();majSalon();
+};
 async function sortie(msg,avant){
   const a=r;r=null;code='';finPartie();
   $('salon').hidden=true;$('accueil').hidden=false;$('erreurJeu').textContent=msg||'';
@@ -1105,7 +1183,7 @@ async function entre(c){
     if(sv)lancer(sv.graine,sv.place,sv.adv,sv);
     s.onPeers(()=>{if(r===s)majSalon()},()=>{if(r===s)sortie('Le salon a été perdu.')});
     const pres={pseudo:pseudo,arrivee:arrivee,sid:sid,pret:null};
-    if(sv){pres.jg=sv.graine;pres.j=M.ecritJournal(sv.mien);pres.adv=sv.adv;if(sv.place===0)pres.graine=sv.graine;if(sv.veut)pres.veut=sv.graine}
+    if(sv){pres.deck=Array.isArray(sv.decks)&&sv.decks[sv.place]||null;pres.jg=sv.graine;pres.j=M.ecritJournal(sv.mien);pres.adv=sv.adv;if(sv.place===0)pres.graine=sv.graine;if(sv.veut)pres.veut=sv.graine}
     await s.presence(pres);
     await room.presence({pseudo:pseudo,salon:sv?null:c,quitte:null});
     if(!partie){$('accueil').hidden=true;$('salon').hidden=false}
@@ -1113,7 +1191,7 @@ async function entre(c){
     setTimeout(()=>{if(r===s)majSalon()},1700);
   }catch(e){
     r=null;code='';finPartie();
-    $('erreurJeu').textContent=e&&e.code==='limit_reached'?'Trop de salons ouverts, réessaie plus tard.':"Impossible d'entrer dans ce salon.";
+    $('erreurJeu').textContent=e&&e.code==='complet'?'Ce salon est complet.':e&&e.code==='compte'?'Connecte-toi pour jouer en ligne.':e&&e.code==='limit_reached'?'Trop de salons ouverts, réessaie plus tard.':"Impossible d'entrer dans ce salon.";
     majReprise();
   }
   occupe=false;majEtat();
@@ -1141,15 +1219,16 @@ function info(cls,n,lib,suite){const d=el('div','p-info '+cls);d.append(el('smal
 function compteur(n,lib,v,cls){const d=el('span','p-compteur c-'+n+(cls?' '+cls:''));d.append(ico(n),lib+' ');d.append(el('b','',String(v)));return d}
 function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
 function pub(p){if(r)r.presence(p).catch(()=>{})}
-function finPartie(){arreteAnim();clearTimeout(robotT);robotT=0;fermeAide();stopCompte();jePret=false;$('vueTas').hidden=true;$('absence').hidden=true;partie=null;fx=[];fermeRecap();arreteDes();$('bandeau').hidden=true;$('partie').hidden=true;$('jouer').classList.remove('enJeu')}
+function finPartie(){clearTimeout(rejeuT);rejeuT=0;{const b=$('barreRejeu');if(b)b.remove()}arreteAnim();clearTimeout(robotT);robotT=0;fermeAide();stopCompte();jePret=false;$('vueTas').hidden=true;$('absence').hidden=true;partie=null;fx=[];fermeRecap();arreteDes();$('bandeau').hidden=true;$('partie').hidden=true;$('jouer').classList.remove('enJeu')}
 function nouveauSid(){return Math.random().toString(36).slice(2,12)}
 /* Sauvegarde locale par code de salon */
 function cleSalon(c){return 'golems.partie.'+c}
 function oublie(c){try{localStorage.removeItem(cleSalon(c));if(lire('golems.derniere')===c)localStorage.removeItem('golems.derniere')}catch(e){}}
 function sauve(){
-  if(partie&&partie.local){ecrire('golems.local',JSON.stringify({version:M.VERSION,niveau:partie.niveau,debut:partie.debut,graine:partie.graine,mien:partie.mien,sien:partie.sien,recapVu:partie.recapVu,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));return}
+  if(partie&&partie.rejeu)return;
+  if(partie&&partie.local){ecrire('golems.local',JSON.stringify({version:M.VERSION,niveau:partie.niveau,debut:partie.debut,graine:partie.graine,mien:partie.mien,sien:partie.sien,decks:partie.decks,deckNom:partie.deckNom,recapVu:partie.recapVu,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));return}
   if(!partie||!code)return;
-  ecrire(cleSalon(code),JSON.stringify({version:M.VERSION,debut:partie.debut,pseudo:pseudo,graine:partie.graine,mien:partie.mien,sien:partie.sien,place:partie.moi,arrivee:arrivee,sid:sid,adv:partie.adv,advNom:partie.advNom,recapVu:partie.recapVu,veut:partie.veut,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));
+  ecrire(cleSalon(code),JSON.stringify({version:M.VERSION,debut:partie.debut,pseudo:pseudo,decks:partie.decks,deckNom:partie.deckNom,graine:partie.graine,mien:partie.mien,sien:partie.sien,place:partie.moi,arrivee:arrivee,sid:sid,adv:partie.adv,advNom:partie.advNom,recapVu:partie.recapVu,veut:partie.veut,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));
   ecrire('golems.derniere',code);
 }
 function chargeSalon(c){
@@ -1181,11 +1260,13 @@ function oublieLocal(){try{localStorage.removeItem('golems.local')}catch(e){}}
 function lanceLocal(v){
   if(partie)finPartie();
   $('erreurJeu').textContent='';
-  lancer(v?v.graine:nouvelleGraine(),0,'',{mien:v?v.mien:[],sien:v?v.sien:[],advNom:'Golem',niveau:v?v.niveau:niveauChoisi,recapVu:v?v.recapVu:0,debut:v&&v.debut,local:true});
+  const dc=deckChoisi();
+  lancer(v?v.graine:nouvelleGraine(),0,'',{mien:v?v.mien:[],sien:v?v.sien:[],advNom:'Golem',niveau:v?v.niveau:niveauChoisi,recapVu:v?v.recapVu:0,debut:v&&v.debut,local:true,
+    decks:v&&Array.isArray(v.decks)?v.decks:[dc.texte,''],deckNom:v?v.deckNom:dc.nom});
 }
 function suiteRobot(){
   clearTimeout(robotT);robotT=0;
-  if(!partie||!partie.local||!partie.etat)return;
+  if(!partie||!partie.local||partie.rejeu||!partie.etat)return;
   const s=partie.etat,lui=1-partie.moi;
   if(s.fin||!M.attendus(s).includes(lui))return;
   const a0=M.robot(s,lui,partie.niveau);
@@ -1196,10 +1277,11 @@ function suiteRobot(){
   },a0.t==='p'?1000:a0.t==='x'?700:450);
 }
 let niveauChoisi='normal';
-document.querySelectorAll('[data-niveau]').forEach(b=>{b.onclick=()=>{if(!pseudo){ouvrePseudo();return}niveauChoisi=b.dataset.niveau;oublieLocal();lanceLocal(null)}});
+document.querySelectorAll('[data-niveau]').forEach(b=>{b.onclick=()=>{niveauChoisi=b.dataset.niveau;oublieLocal();lanceLocal(null)}});
 $('repriseRobot').onclick=()=>{const v=chargeLocal();if(v)lanceLocal(v)};
 function lancer(g,moi,adv,sv){
-  partie={debut:sv&&+sv.debut||Date.now(),local:!!(sv&&sv.local),niveau:sv&&sv.niveau||'normal',graine:g,moi:moi,mien:sv?sv.mien:[],sien:sv?sv.sien:[],etat:null,erreur:null,veut:!!(sv&&sv.veut),adv:adv||'',advNom:sv&&typeof sv.advNom==='string'?nettoie(sv.advNom):'',recapVu:sv?+sv.recapVu||0:0};
+  const dks=sv&&Array.isArray(sv.decks)&&sv.decks.length===2?sv.decks.map(t=>typeof t==='string'?t:''):['',''];
+  partie={decks:dks,deckNom:sv&&typeof sv.deckNom==='string'?sv.deckNom:'',rejeu:sv&&sv.rejeu||null,debut:sv&&+sv.debut||Date.now(),local:!!(sv&&sv.local),niveau:sv&&sv.niveau||'normal',graine:g,moi:moi,mien:sv?sv.mien:[],sien:sv?sv.sien:[],etat:null,erreur:null,veut:!!(sv&&sv.veut),adv:adv||'',advNom:sv&&typeof sv.advNom==='string'?nettoie(sv.advNom):'',recapVu:sv?+sv.recapVu||0:0};
   CARTES.forEach(c=>{new Image().src='cartes/'+c[0]+'.jpg'});M.TERRAINS.forEach(T=>{new Image().src=srcTerrain(T)});new Image().src=DOS;
   notice='';sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;fx=[];journalPage=null;
   stopCompte();jePret=false;
@@ -1209,7 +1291,7 @@ function lancer(g,moi,adv,sv){
   calcule();
 }
 function calcule(){
-  const jx=(m,o)=>M.rejoue(partie.graine,partie.moi===0?[m,o]:[o,m]);
+  const jx=(m,o)=>M.rejoue(partie.graine,partie.moi===0?[m,o]:[o,m],partie.decks);
   const x=jx(partie.mien,partie.sien),av=partie.etat,nm=partie.lusM||0,ns=partie.lusS||0,n=partie.mien.length-nm+partie.sien.length-ns;
   partie.lusM=partie.mien.length;partie.lusS=partie.sien.length;
   /* Une serie d'etapes par action, la meme sur les deux ecrans ; trop d'actions d'un coup (reprise) : rien a rejouer. */
@@ -1225,7 +1307,7 @@ function calcule(){
     });
   }
   partie.etat=x.etat;partie.erreur=x.erreur;
-  if(x.etat&&x.etat.fin)enregistrePartie(x.etat);
+  if(x.etat&&x.etat.fin&&!partie.rejeu)enregistrePartie(x.etat);
   affiche();
   lanceFile();
   verifieRecap();
@@ -1725,18 +1807,29 @@ function verifieRecap(){
 }
 /* Historique : sur cet appareil seulement. */
 function litListe(k){try{const v=JSON.parse(lire(k));return Array.isArray(v)?v:[]}catch(e){return []}}
+/* Compte : historique dans Firebase (50 dernieres, purge). Invite : sur l'appareil. */
+const lesParties=()=>compteCo()?room.compte.donnees().historique.slice():litListe('golems.historique');
 function enregistrePartie(s){
-  const l=litListe('golems.historique'),id=partie.graine+'-'+partie.debut;
+  const l=lesParties(),id=partie.graine+'-'+partie.debut;
   if(l.some(x=>x.id===id))return;
+  if(compteCo()){const k=room.compte;enregistreDans(l,s,id);k.ajouteHisto([l[0]]).catch(e=>console.warn(e));return}
+  enregistreDans(l,s,id);
+  ecrire('golems.historique',JSON.stringify(l.slice(0,50)));
+}
+function enregistreDans(l,s,id){
   const me=partie.moi,lui=1-me,w=s.fin.gagnant,nm=p=>p===me?'Toi':nomJ(p),B=M.bilan(s);
   const ps=pseudo||'Joueur',np=p=>p===me?ps:nomJ(p);
   l.unshift({id,date:Date.now(),adv:partie.local?'Golem ('+partie.niveau+')':nomJ(lui),res:w===null?'Match nul':w===me?'Victoire':'Défaite',score:s.j[me].score+' - '+s.j[lui].score,mvp:B.mvp?B.mvp.carte:'',
-    pseudo:ps,deck:deckJoue(),manches:parManche(s).map(o=>lignesManche(o,np)),mvpLigne:ligneMvp(B),
+    pseudo:ps,deck:deckJoue(),advNom:lui===1-me?nomJ(lui):'',
+    rejeu:{v:M.VERSION,graine:partie.graine,moi:me,decks:(partie.decks||['','']).slice(),j:(me===0?[partie.mien,partie.sien]:[partie.sien,partie.mien]).map(x=>M.ecritJournal(x))},
+    manches:parManche(s).map(o=>lignesManche(o,np)),mvpLigne:ligneMvp(B),
     bilan:B.joueurs.map((J,p)=>({nom:np(p),cartes:J.cartes.map(c=>[c.carte,c.degats,c.subis,c.morts,c.mortsSubies])}))});
-  ecrire('golems.historique',JSON.stringify(l.slice(0,50)));
 }
-/* Deck joue : le paquet de test tant que les decks ne sont pas branches sur la partie. */
-function deckJoue(){return {nom:'Paquet de test',els:[...new Set(M.TYPES.flatMap(t=>M.CARTES[t].el))]}}
+/* Deck vraiment joue : celui transmis au moteur (texte vide = paquet de test). */
+function deckJoue(){
+  const t=partie&&partie.decks?partie.decks[partie.moi]||'':'';
+  return {nom:t?(partie.deckNom||'Deck'):'Paquet de test',cartes:t,els:elsTexte(t)};
+}
 function bandeauDeck(d){
   if(!d||typeof d.nom!=='string')return el('span','h-deck h-sans','Deck non noté');
   const b=el('span','h-deck',d.nom),e=(Array.isArray(d.els)?d.els:[]).filter(x=>/^(magma|cristal|foudre|brume|roche)$/.test(x));
@@ -1765,8 +1858,52 @@ function detailHisto(x){
   const z=el('div','p-btns'),f=el('button','btn plein','Fermer');f.type='button';
   const esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc)};
   f.onclick=ferme;v.onclick=e=>{if(e.target===v)ferme()};addEventListener('keydown',esc);
+  if(x.rejeu){const q=el('button','btn','Rejeu');q.type='button';q.onclick=()=>{ferme();lanceRejeu(x)};z.append(q)}
   z.append(f);d.append(z);v.append(d);document.body.append(v);f.focus();
 }
+/* Rejeu : la partie est recalculee coup par coup depuis la graine, les decks et les deux journaux, sans reseau. */
+let rejeuT=0;
+function ordreRejeu(R,j){
+  const s=M.nouvelle(R.graine,R.decks),i=[0,0],seq=[];let avance=true;
+  while(avance){avance=false;for(const p of M.attendus(s))if(i[p]<j[p].length){M.applique(s,p,M.decode(j[p][i[p]]));seq.push(p);i[p]++;avance=true}}
+  return seq;
+}
+function lanceRejeu(x){
+  const R=x.rejeu,err=t=>{onglet('historique');alert(t)};
+  if(r){err('Quitte le salon avant de regarder un rejeu.');return}
+  if(!R||R.v!==M.VERSION||!Number.isInteger(R.graine)||!Array.isArray(R.j)){err("Rejeu impossible : cette partie vient d'une autre version du jeu.");return}
+  let j,seq;try{j=R.j.map(M.litJournal);seq=ordreRejeu(R,j)}catch(e){err('Rejeu impossible : partie illisible.');return}
+  if(partie)finPartie();
+  onglet('jouer');
+  lancer(R.graine,R.moi===1?1:0,'',{mien:[],sien:[],decks:Array.isArray(R.decks)?R.decks:['',''],advNom:x.advNom||String(x.adv||'Adversaire'),local:true,
+    rejeu:{seq,j,pos:0,n:[0,0],lecture:true,vitesse:1}});
+  barreRejeu();pasRejeu();
+}
+function barreRejeu(){
+  let b=$('barreRejeu');if(!b){b=el('div','barreRejeu');b.id='barreRejeu';b.setAttribute('role','toolbar');b.setAttribute('aria-label','Rejeu');document.body.append(b)}
+  const R=partie&&partie.rejeu;if(!R){b.remove();return}
+  b.textContent='';
+  const bt=(t,f,lib)=>{const q=el('button','btn sec',t);q.type='button';if(lib)q.setAttribute('aria-label',lib);q.onclick=f;b.append(q);return q};
+  b.append(el('b','','Rejeu'),el('span','r-pos',R.pos+' / '+R.seq.length));
+  bt(R.lecture?'Pause':'Lecture',()=>{R.lecture=!R.lecture;if(R.lecture&&R.pos>=R.seq.length)return relanceRejeu();barreRejeu();pasRejeu()});
+  bt('Vitesse x'+R.vitesse,()=>{R.vitesse=R.vitesse===1?2:R.vitesse===2?4:1;barreRejeu();pasRejeu()},'Changer la vitesse');
+  bt('Quitter',finRejeu,'Quitter le rejeu');
+}
+function relanceRejeu(){const R=partie.rejeu;const h={rejeu:{v:M.VERSION,graine:partie.graine,moi:partie.moi,decks:partie.decks,j:R.j.map(M.ecritJournal)},advNom:partie.advNom};lanceRejeu(h)}
+function pasRejeu(){
+  clearTimeout(rejeuT);rejeuT=0;
+  const R=partie&&partie.rejeu;if(!R)return;
+  if(!R.lecture||R.pos>=R.seq.length){if(R.pos>=R.seq.length)R.lecture=false;barreRejeu();return}
+  rejeuT=setTimeout(()=>{
+    if(!partie||partie.rejeu!==R)return;
+    if(!$('recap').hidden){const c=$('continuer');if(c)c.click();pasRejeu();return}
+    if(desActif||animCours){pasRejeu();return}
+    const p=R.seq[R.pos],c=R.j[p][R.n[p]];R.n[p]++;R.pos++;
+    (p===partie.moi?partie.mien:partie.sien).push(c);calcule();barreRejeu();pasRejeu();
+  },(!$('recap').hidden?2500:900)/R.vitesse);
+}
+function finRejeu(){clearTimeout(rejeuT);rejeuT=0;finPartie();const b=$('barreRejeu');if(b)b.remove();$('accueil').hidden=false;onglet('historique')}
+window.__golemsRejeu=()=>partie&&partie.rejeu?{pos:partie.rejeu.pos,total:partie.rejeu.seq.length,fin:!!(partie.etat&&partie.etat.fin)}:null;
 function confirmePage(box,msg,oui){
   box.textContent='';const n=el('button','btn','Confirmer'),a=el('button','btn sec','Annuler');n.type=a.type='button';
   n.onclick=oui;a.onclick=()=>{peintDecks();peintHisto()};
@@ -1776,10 +1913,10 @@ function confirmePage(box,msg,oui){
 let pageHisto=0,lignesPage=10;
 const PAS_HISTO=50;
 function peintHisto(){
-  const b=$('histo'),l=litListe('golems.historique');b.textContent='';
+  const b=$('histo'),l=lesParties();b.textContent='';
   if(!l.length){b.append(el('p','vide','Aucune partie enregistrée.'));return}
   const barre=el('div','h-barre'),zv=el('div','o-haut'),v=el('button','btn sec','Vider'),pg=el('div','h-pages');
-  v.type='button';v.onclick=()=>confirmePage(zv,"Effacer tout l'historique ?",()=>{try{localStorage.removeItem('golems.historique')}catch(e){}pageHisto=0;peintHisto()});zv.append(v);
+  v.type='button';v.onclick=()=>confirmePage(zv,"Effacer tout l'historique ?",async()=>{if(compteCo()){try{await room.compte.videHisto()}catch(e){}}else try{localStorage.removeItem('golems.historique')}catch(e){}pageHisto=0;peintHisto()});zv.append(v);
   barre.append(pg,zv);b.append(barre);
   const bas=Math.ceil(barre.getBoundingClientRect().bottom+scrollY)+8;
   lignesPage=10;
@@ -1797,8 +1934,55 @@ addEventListener('resize',()=>{if(!$('historique').hidden)peintHisto()});
 /* Decks : visuels pour ce test, le moteur n'en sait rien. */
 const MAX_DECKS=12,MAX_EX=3,DECK_MIN=24,DECK_MAX=30;
 let deckOuvert=null,deckVu=null,filtreDeck='';
-const lesDecks=()=>litListe('golems.decks').filter(d=>d&&typeof d.nom==='string'&&d.cartes);
-const gardeDecks=l=>ecrire('golems.decks',JSON.stringify(l));
+/* Compte connecte : decks dans Firebase (ecriture groupee apres 600 ms). Invite : sur l'appareil. */
+const decksLocaux=()=>litListe('golems.decks').filter(d=>d&&typeof d.nom==='string'&&d.cartes);
+const lesDecks=()=>compteCo()?room.compte.donnees().decks.map(d=>({...d,cartes:{...d.cartes}})):decksLocaux();
+let decksT=0;
+function gardeDecks(l){
+  if(!compteCo()){ecrire('golems.decks',JSON.stringify(l));majChoixDeck();return}
+  room.compte.donnees().decks=l.map(d=>({...d,cartes:{...d.cartes}}));majChoixDeck();
+  clearTimeout(decksT);decksT=setTimeout(()=>{room.compte.ecritDecks(room.compte.donnees().decks).catch(e=>console.warn(e))},600);
+}
+/* Choix du deck avant Pret et contre le robot : paquet de test ou deck complet (24 a 30 cartes). */
+let deckPret={id:'',nom:'Paquet de test',texte:''};
+function decksJouables(){return lesDecks().filter(d=>!M.erreurDeck(Object.fromEntries(Object.entries(d.cartes).filter(([,n])=>+n>0).map(([k,n])=>[k,+n]))))}
+function deckChoisi(){
+  const id=lire('golems.deckChoisi')||'',d=id&&decksJouables().find(x=>x.id===id);
+  if(!d)return {id:'',nom:'Paquet de test',texte:''};
+  const o={};for(const k in d.cartes)if(+d.cartes[k]>0)o[k]=+d.cartes[k];
+  return {id:d.id,nom:d.nom,texte:M.deckTexte(o)};
+}
+function majChoixDeck(){
+  const l=decksJouables(),c=deckChoisi();
+  document.querySelectorAll('.selDeck').forEach(s=>{
+    s.textContent='';const o0=el('option','','Paquet de test (33 cartes)');o0.value='';s.append(o0);
+    l.forEach(d=>{const o=el('option','',d.nom+' ('+totalDeck(d)+' cartes)');o.value=d.id;s.append(o)});
+    s.value=c.id;s.disabled=s.id==='deckSalon'&&jePret;
+  });
+}
+document.querySelectorAll('.selDeck').forEach(s=>s.onchange=()=>{ecrire('golems.deckChoisi',s.value);majChoixDeck()});
+/* Element du deck pour le bandeau d'historique */
+function elsTexte(t){const o=M.lisDeck(t);return [...new Set((o?Object.keys(o):M.TYPES).flatMap(k=>M.CARTES[k].el))]}
+/* Import des donnees de l'appareil a la premiere connexion d'un compte */
+function proposeImport(){
+  const D=room.compte.donnees();if(!D||D.importe||lire('golems.import.'+room.compte.uid()))return;
+  const dl=decksLocaux(),hl=litListe('golems.historique');
+  if(!dl.length&&!hl.length){room.compte.marqueImport().catch(()=>{});return}
+  const v=el('div','voile'),b=el('div','boite');v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.id='popImport';
+  b.append(el('h2','','Importer tes données ?'),el('p','',"Cet appareil contient "+dl.length+" deck"+(dl.length>1?'s':'')+" et "+hl.length+" partie"+(hl.length>1?'s':'')+" jouée"+(hl.length>1?'s':'')+". Les ajouter à ton compte ?"+(D.decks.length+dl.length>MAX_DECKS?' Au-delà de '+MAX_DECKS+' decks, les derniers ne sont pas importés.':'')));
+  const z=el('div','p-btns'),oui=el('button','btn plein','Importer'),non=el('button','btn sec','Non merci');oui.type=non.type='button';
+  const fin=()=>{ecrire('golems.import.'+room.compte.uid(),'1');room.compte.marqueImport().catch(()=>{});v.remove()};
+  oui.onclick=async()=>{
+    oui.disabled=non.disabled=true;
+    try{
+      const ids=new Set(D.decks.map(d=>d.id)),l=D.decks.concat(dl.filter(d=>!ids.has(d.id)).map(d=>({id:String(d.id).replace(/[^a-z0-9]/g,'').slice(0,16)||nouveauSid(),nom:nettoie(d.nom).slice(0,24)||'Deck',cartes:d.cartes}))).slice(0,MAX_DECKS);
+      await room.compte.ecritDecks(l);
+      await room.compte.ajouteHisto(hl.filter(x=>x&&typeof x.id==='string'&&/^-?[0-9]{1,12}-[0-9]{10,14}$/.test(x.id)));
+    }catch(e){console.warn(e)}
+    fin();majChoixDeck();if(!$('decks').hidden)peintDecks();if(!$('historique').hidden)peintHisto();
+  };
+  non.onclick=fin;z.append(oui,non);b.append(z);v.append(b);document.body.append(v);oui.focus();
+}
 const totalDeck=d=>Object.values(d.cartes).reduce((t,n)=>t+(+n||0),0);
 const elsDeck=d=>[...new Set(CARTES.filter(c=>d.cartes[c[0]]>0).flatMap(c=>c[2]))];
 const valide=d=>{const n=totalDeck(d);return n>=DECK_MIN&&n<=DECK_MAX};
@@ -1863,7 +2047,11 @@ function decklist(b,d){
     q.setAttribute('aria-label',n+' exemplaire'+(n>1?'s':'')+' de '+c[1]+', coût '+C.cout+(C.force!=null?', Force '+C.force:''));
     co.append(ico('enclume'),String(C.cout));c[2].forEach(x=>e.append(picto(x)));
     if(C.force!=null)fo.append(ico('force'),String(C.force));
-    q.append(co,fo,e,el('span','dl-nom',c[1]),el('span','dl-nb','×'+n));
+    /* Pseudo du Golem en haut, titre dessous dans la couleur de son premier element, coupe par des points de suspension */
+    const v=c[1].indexOf(', '),nm=el('span','dl-nom');
+    nm.append(el('span','dl-pseudo',v<0?c[1]:c[1].slice(0,v)));
+    if(v>=0){const ti=el('span','dl-titre',c[1].slice(v+2));ti.style.color='var(--'+c[2][0]+')';ti.title=c[1].slice(v+2);nm.append(ti)}
+    q.append(co,fo,e,nm,el('span','dl-nb','×'+n));
     q.onclick=()=>{ap.hidden=true;zoom(src,c[1])};
     if(matchMedia('(hover:hover)').matches){
       q.onmouseenter=ev=>{ap.src=src;ap.hidden=false;place(ev)};q.onmousemove=place;q.onmouseleave=()=>{ap.hidden=true};
@@ -1900,17 +2088,19 @@ function adversaireParti(){
   return personnes(r.peers()).some(vu)||!!room&&personnes(room.peers()).some(vu);
 }
 function quittePartie(){
+  if(partie&&partie.rejeu){finRejeu();return}
   if(partie&&partie.local){oublieLocal();sortie();return}
   const a=r,g=partie&&partie.graine;
   oublie(code);
   if(!a||!g){sortie();return}
+  if(a.libere)a.libere();
   if(room)room.presence({quitte:g}).catch(()=>{});
   sortie('',a.presence({quitte:g}).catch(()=>{}).then(()=>pause(400)));
 }
 function majPartie(){
   if(!r)return;
   if(partie&&adversaireParti()){
-    oublie(code);finPartie();notice='Ton adversaire a quitté la partie.';
+    oublie(code);finPartie();notice='Ton adversaire a quitté la partie.';if(r.libere)r.libere();
     pub({graine:null,jg:null,j:null,veut:null,adv:null});
     $('salon').hidden=false;majSalon();return;
   }
@@ -1934,14 +2124,19 @@ function majPartie(){
   if(neuf&&!Number.isInteger(g))return;
   if(moi===0&&(!Number.isInteger(g)||rejouer)){pub({graine:nouvelleGraine()});return}
   if(!Number.isInteger(g))return;
-  if(!partie||partie.graine!==g){lancer(g,moi,typeof lui.presence.sid==='string'?lui.presence.sid:'');sauve();return}
+  if(!partie||partie.graine!==g){
+    /* Decks : le mien tel que publie avec Pret (ou garde par la partie precedente en cas de Rejouer), le sien lu dans sa presence. */
+    const mien=partie?{texte:partie.decks[partie.moi]||'',nom:partie.deckNom}:deckPret,sien=typeof lui.presence.deck==='string'?lui.presence.deck:'';
+    const dks=['',''];dks[moi]=mien.texte||'';dks[1-moi]=sien;
+    if(moi===0&&r&&r.engage)r.engage([l[0].peer,l[1].peer]);
+    lancer(g,moi,typeof lui.presence.sid==='string'?lui.presence.sid:'',{mien:[],sien:[],decks:dks,deckNom:mien.texte?mien.nom:''});sauve();return}
   if(partie.advNom!==nomDe(lui)){partie.advNom=nomDe(lui);sauve()}
   if(lui.presence.jg!==g||typeof lui.presence.j!=='string')return;
   let liste;try{liste=M.litJournal(lui.presence.j)}catch(e){return}
   if(liste.length>partie.sien.length){partie.sien=liste;sel=null;calcule()}
 }
 function joue(a){
-  if(!partie)return;
+  if(!partie||partie.rejeu)return;
   partie.mien.push(M.code(a));
   sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;
   sauve();pub({j:M.ecritJournal(partie.mien)});calcule();
@@ -2040,7 +2235,7 @@ function grilleVue(s,p,cols,lignes,cible){
 }
 function camp(s,p,moi){
   const J=s.j[p],d=el('div','p-camp '+(moi?'toi':'lui'));
-  const nb=el('b','',nomJ(p)+(moi?' (toi)':''));d.append(nb);
+  const nb=el('b','',nomJ(p)+(moi?' (toi)':''));d.append(avatarDe(nomJ(p)),nb);
   if(!moi&&!s.fin&&(s.phase==='mulligan'?!s.mull[p]:quiJoue(s)===p)){d.classList.add('joue');nb.append(el('small','p-joue','En train de jouer'))}
   if(!moi)d.append(compteur('main','Main',J.main.length),compteur('deck','Deck',J.deck.length),compteur('defausse','Défausse',J.defausse.length),compteur('enclume','Forge',J.forge.length));
   return d;
@@ -2280,6 +2475,8 @@ function affiche(){
 }
 const LARGE=matchMedia('(min-width:900px)');let journalOuvert=false,journalPage=null;
 LARGE.addEventListener('change',()=>{if(partie)affiche()});
+/* Tests automatiques, en local seulement */
+if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname))window.__golemsDebug={room:()=>room,partie:()=>partie,joue:a=>joue(a),lanceRejeu:x=>lanceRejeu(x),lesParties:()=>lesParties(),lesDecks:()=>lesDecks(),entre:c=>entre(c)};
 window.__golemsEtat=()=>partie&&partie.etat?JSON.stringify(partie.etat):null;
 
 $('creer').onclick=async()=>{
@@ -2330,19 +2527,21 @@ function annote(box,visuel,items){
 })();
 
 const aReprendre=salonRepris();
-if(aReprendre&&!pseudo){const v=chargeSalon(aReprendre);pseudo=nettoie(v.pseudo);if(pseudo){ecrire('golems.pseudo',pseudo);$('pseudoAffiche').textContent=pseudo}}
-if(!aReprendre||!pseudo)ouvrePseudo();
 ['brume','cristal','foudre','magma','roche'].forEach(x=>{new Image().src='cartes/'+x+'.png'});
+majChoixDeck();
 (async()=>{
   try{room=await window.golemsSalon}catch(e){room=null}
-  if(!room){indisponible();majReprise();return}
+  if(!room){indisponible();majReprise();$('modifierPseudo').disabled=true;return}
   attenteLobby=Date.now()+1500; /* la liste des présents arrive en une à deux secondes */
-  const fin=()=>{if(partie&&partie.local){room=null;return}r=null;code='';finPartie();$('salon').hidden=true;$('accueil').hidden=false;indisponible()};
+  const fin=()=>{if(partie&&partie.local){return}r=null;code='';finPartie();$('salon').hidden=true;$('accueil').hidden=false;indisponible()};
   room.onPeers(()=>{majEtat();if(partie)majPartie()},fin);
   room.onConnection(majEtat,fin);
-  room.presence({pseudo:pseudo}).catch(()=>{});
+  room.compte.onChange(()=>{surCompte();if(compteCo())room.presence({pseudo:pseudo}).catch(()=>{})});
+  surCompte();
+  if(compteCo())room.presence({pseudo:pseudo}).catch(()=>{});
+  else if(!lire('golems.invite'))ouvrePseudo();
   majEtat();
-  if(aReprendre&&pseudo){onglet('jouer');entre(aReprendre)}else majReprise();
+  if(aReprendre&&compteCo()){onglet('jouer');entre(aReprendre)}else majReprise();
 })();
 })();
 </script>
