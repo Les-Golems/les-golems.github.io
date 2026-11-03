@@ -215,6 +215,10 @@
         "s0":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
         "s1":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
         "mvp": { ".validate": "newData.isString() && newData.val().length <= 40" },
+        "dr":  { ".validate": "newData.hasChildren()",
+          "002":  { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0" } },
+          "002e": { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0" } },
+          "$autre": { ".validate": false } },
         "t": {
           "$k": {
             ".validate": "$k.matches(/^[0-2]$/) && newData.hasChildren(['n', 'r', 'q'])",
@@ -269,6 +273,10 @@
           "s0":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
           "s1":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
           "mvp": { ".validate": "newData.isString() && newData.val().length <= 40" },
+          "dr":  { ".validate": "newData.hasChildren()",
+            "002":  { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0" } },
+            "002e": { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0" } },
+            "$autre": { ".validate": false } },
           "t": {
             "$k": {
               ".validate": "$k.matches(/^[0-2]$/) && newData.hasChildren(['n', 'r', 'q'])",

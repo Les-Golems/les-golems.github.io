@@ -189,6 +189,11 @@ body:has(#jouer.enJeu:not([hidden])) #majPastille:not([hidden]){display:block}
 .sl-duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:14px}
 .sl-vs{align-self:center;font:400 26px/1 var(--titre);color:var(--doux)}
 .sl-j{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;background:var(--panneau2);border:2px solid var(--trait);border-radius:12px;padding:14px 10px}
+/* Sieges en sous-grille : avatar, nom, etat, tuile de deck alignes d'un siege a l'autre (meme hauteur, meme position). */
+.sl-duo{grid-template-rows:repeat(6,auto)}.sl-duo>.sl-vs{grid-row:1/span 6}
+.sl-duo>.sl-j{display:grid;grid-row:1/span 6;grid-template-rows:subgrid;row-gap:8px;justify-items:center;align-items:start;align-content:start}
+.sl-duo>.sl-j:first-child{grid-column:1}.sl-duo>.sl-j:last-child{grid-column:-2}.sl-duo>.sl-j>.cd-tuile{align-self:stretch}
+.sl-j .sl-vide{visibility:hidden}
 .sl-j.pret{border-color:#3fcf6e}
 .sl-j.vide{border-style:dashed;justify-content:center;color:var(--doux);font-weight:700}
 #joueurs .sl-j .avatar{width:64px;height:64px;font-size:30px}
@@ -285,15 +290,9 @@ body:has(#jouer.enJeu:not([hidden])) #majPastille:not([hidden]){display:block}
 .note h3{font-size:19px;color:var(--bleu)}
 .note time{display:block;color:var(--doux);font-size:14px;margin-bottom:6px}
 .note ul{margin:0;padding-left:20px}
-.nv-ligne{display:flex;flex-wrap:wrap;gap:12px 16px;margin-top:4px}
-.nv-carte{display:flex;align-items:flex-start;gap:10px;flex:1 1 220px;min-width:0}
-.note .nv-mini{flex:0 0 auto;width:140px;padding:0;border:0;background:none;cursor:zoom-in}
-.note .nv-mini img{display:block;width:100%;height:auto;border-radius:7px}
-.nv-txt{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:14px;padding-top:28px}
-.nv-txt b{color:#01C1F0}
-.nv-txt .nv-el{font-weight:700}
-.nv-txt .nv-phr{margin-top:6px}
-@media (max-width:520px){.note .nv-mini{width:110px}}
+.nv-ligne{margin-top:4px}
+.note .nv-video{display:block;width:50%;height:auto;aspect-ratio:16/9;border-radius:8px;background:#0b111a}
+@media (max-width:520px){.note .nv-video{width:100%}}
 .note p{margin:0}
 /* Partie */
 #jouer.enJeu>h2,#jouer.enJeu>.intro,#jouer.enJeu>.etat,#jouer.enJeu>.absent{display:none}
@@ -827,7 +826,7 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .st-tri{white-space:nowrap}.st-tc{cursor:pointer}.st-tc:hover{background:rgba(1,193,240,.06)}.st-jl{position:relative;cursor:pointer}.st-fiche{display:none;position:absolute;left:0;right:0;top:100%;z-index:20;background:var(--panneau2);border:1px solid rgba(1,193,240,.5);border-radius:10px;padding:10px 12px;box-shadow:0 6px 18px rgba(0,0,0,.45);font-size:13.5px}.st-jl:hover .st-fiche,.st-jl:focus-within .st-fiche{display:block}.st-fiche p{margin:4px 0 0}.st-ft{display:flex;align-items:center;gap:8px}.st-ft .avatar{width:40px;height:40px;font-size:20px}.st-fp{font-size:16px}.st-patch{align-items:center;gap:4px}.st-patch label{order:2}.st-tri.actif{color:#01C1F0}.st-tri:hover{color:var(--texte)}
 .st-leg{margin-top:10px;font-size:12px;color:var(--doux)}.st-leg p{margin:0 0 4px}.st-leg b{color:var(--texte);font-weight:600}
 .st-liste li{align-items:center;font-size:14px}.st-liste li b{white-space:nowrap}
-.st-bandeau{margin-bottom:16px}.st-bandeau .st-h{color:#01C1F0;margin:0 0 10px}.st-tuiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.st-patch select{font:600 18px/1.2 inherit;background:var(--panneau);color:var(--texte);border:1px solid var(--trait);border-radius:6px;padding:2px 4px;margin:0 auto;max-width:100%}.st-patch select:disabled{appearance:none;border-color:transparent;opacity:1}.st-patch label{font-size:13px;color:var(--doux)}.st-tuiles .pf-tuile{justify-content:center}.st-tuiles .pf-tuile b{font-size:20px;line-height:1.15;overflow-wrap:anywhere}.st-pt{font-size:12px!important;opacity:.8}.st-sous{margin:0 0 8px}.st-rang{width:18px;text-align:right;color:var(--doux);font-size:13px;flex:none}.st-joueurs .avatar{width:28px;height:28px;font-size:14px;flex:none}.st-ps{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.st-jn{display:flex;flex-direction:column;min-width:0;line-height:1.2}.st-jp{font-size:12px;color:var(--doux)}.st-joueurs li b{font-size:16px}.st-bn{gap:6px}@media (max-width:1199px){.st-tuiles{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:640px){.st-tuiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.st-bandeau{margin-bottom:16px}.st-bandeau .st-h{color:#01C1F0;margin:0 0 10px}.st-tuiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.st-patch select{font:600 18px/1.2 inherit;background:var(--panneau);color:var(--texte);border:1px solid var(--trait);border-radius:6px;padding:2px 4px;margin:0 auto;max-width:100%}.st-patch select:disabled{appearance:none;border-color:transparent;opacity:1}.st-patch label{font-size:13px;color:var(--doux)}.st-tuiles .pf-tuile{justify-content:center}.st-tuiles .pf-tuile b{font-size:20px;line-height:1.15;overflow-wrap:anywhere}.st-pt{font-size:12px!important;opacity:.8}.st-sous{margin:0 0 8px}.st-rang{width:18px;text-align:right;color:var(--doux);font-size:13px;flex:none}.st-joueurs .avatar{width:28px;height:28px;font-size:14px;flex:none}.st-ps{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.st-jn{display:flex;flex-direction:column;min-width:0;line-height:1.2}.st-jp{font-size:12px;color:var(--doux)}.st-joueurs li b{font-size:16px}.st-bn{gap:6px}@media (max-width:1199px){.st-tuiles{grid-template-columns:repeat(3,minmax(0,1fr))}.st-tuiles .st-patch{grid-column:span 2}}@media (max-width:640px){.st-tuiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .st-periode{margin:8px 0 0}.st-vide{text-align:center}
 /* Fin de partie : Partager le resume et Rejouer cote a cote, memes dimensions */
 .p-duo{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}.p-duo .btn{width:100%}
@@ -865,8 +864,8 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 @media (min-width:1200px){
   /* --d-h : hauteur restante sous l'en-tete, calculee par hauteurDecks(). Trois lignes de 4 tuiles = hauteur du panneau. */
   main:has(.d-zone){padding-bottom:12px}
-  /* Panneau condense (545 px) ; 3 tuiles par ligne a 1280, 4 a 1600 et 1920. Tuiles a hauteur naturelle. */
-  .d-zone{grid-template-columns:minmax(0,1fr) minmax(0,545px);align-items:start;min-height:var(--d-h)}
+  /* Panneau condense (504 px, limite : nom de Cyrdan sur une ligne) ; 3 tuiles par ligne a 1280, 4 a 1600 et 1920. Tuiles a hauteur naturelle. */
+  .d-zone{grid-template-columns:minmax(0,1fr) minmax(0,504px);align-items:start;min-height:var(--d-h)}
   .d-zone .d-grille{grid-template-columns:repeat(auto-fill,minmax(205px,1fr));align-content:start}
   .d-zone .d-tuile{gap:6px;padding:10px;justify-content:flex-start}
   #listeDecks#listeDecks .d-zone .d-act>.btn{padding:3px 0;font-size:12.5px;letter-spacing:-.2px}
@@ -909,6 +908,7 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .dl-duo .dl-cout,.dl-duo .dl-force,.dl-duo .dl-nb{-webkit-text-stroke:3px #0a121a;paint-order:stroke fill}
 .dl-duo .dl-force .ico{color:#dfe5e9}
 .dl-cout,.dl-force{display:inline-flex;align-items:center;gap:3px;font:400 16px/1 var(--titre)}
+.dl-force.dl-dec{gap:0;font-size:14px;letter-spacing:-.5px} /* Force moyenne (3,5 ; 6,4) : tient dans la colonne */
 .dl-cout .ico,.dl-force .ico{font-size:16px;color:var(--doux)}
 .dl-nom{font-weight:700;overflow-wrap:anywhere;min-width:0;display:flex;flex-direction:column}
 .dl-pseudo{color:#fff}
@@ -925,9 +925,8 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .dl-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;padding:3px 0 2px;border-radius:6px;color:var(--doux);height:100%}
 .dl-col i{display:block;width:26px;height:calc(var(--v)*44px);border-radius:3px 3px 0 0;background:#01C1F0}
 .dl-col small{font:400 14px/1 var(--titre);color:#fff}
-.dl-pc{display:inline-flex;align-items:center;gap:2px;font:400 14px/1 var(--titre);color:var(--doux)}.dl-pc .ico{font-size:14px}
+.dl-pc{display:inline-flex;align-items:center;gap:2px;font:400 14px/1 var(--titre);color:#01C1F0}.dl-pc .ico{font-size:16px}.dl-pc .ico svg{filter:brightness(2.7)}
 .dl-col.dl-vide{opacity:.35}.dl-col.dl-vide small{color:var(--doux)}
-.dl-col.dl-moy-col{background:rgba(1,193,240,.13);box-shadow:inset 0 0 0 1px rgba(1,193,240,.4)}.dl-moy-col .dl-pc{color:#01C1F0}
 @media (max-width:440px){.dl-courbe{grid-template-columns:repeat(7,minmax(0,38px));column-gap:6px}.dl-col i{width:22px}.dl-total{padding:0 4px}}
 .d-limite{color:var(--or);font-weight:700}
 .dl-invalide{margin:0 0 8px}
@@ -941,7 +940,7 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 #formCode>div{grid-column:span 2;min-width:0}
 #formCode #champCode{height:46px}
 #formCode#formCode #rejoindre{width:100%;min-height:46px;padding:8px 4px;font-size:18px}
-#formCode{grid-template-columns:max-content minmax(0,1fr)}#formCode>div{grid-column:auto}#formCode#formCode #champCode{width:0;min-width:100%;box-sizing:border-box}
+#formCode{grid-template-columns:minmax(0,1fr) max-content}#formCode#formCode #rejoindre{width:auto;padding:8px 22px}#formCode>div{grid-column:auto}#formCode#formCode #champCode{width:0;min-width:100%;box-sizing:border-box}
 .o-nb{margin:10px 0}.o-haut{margin-bottom:12px}.o-conf{margin:0 0 8px;font-weight:800}
 .d-grille{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 .d-tuile{display:flex;flex-direction:column;gap:10px;border:1px solid var(--trait);border-radius:12px;padding:12px}
@@ -1567,28 +1566,24 @@ NOUVEAUTES.forEach(n=>{
   a.append(h,d,u);$('notes').append(a);
 });
 /* Une seule liste du plus récent au plus ancien (grille 2 colonnes, gauche puis droite) : tout nouveau bloc s'insère en tête.
-   Nouveau Golem jouable : ajouter une ligne EN TÊTE de NOUVEAUX_GOLEMS (code interne, éléments, base et évolution : titre, phrase brève). */
-const NOUVEAUX_GOLEMS=[
- {nom:'Indra',code:'013',date:'3 novembre 2026',version:'Version 0.2a',
-  elements:['cristal','magma'],
-  base:['La Groupie','Choisis un favori et booste-le.'],
-  evo:['La Fan enflammée','Booste encore ton favori et affaiblit le Golem en face.']}
-];
-NOUVEAUX_GOLEMS.slice().reverse().forEach(g=>{
-  const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-  const a=mk('article','note nv-golem'),l=mk('div','nv-ligne');
-  [[g.code,g.base],[g.code+'e',g.evo]].forEach(([id,[titre,phrase]])=>{
-    const b=mk('button','nv-mini'),i=mk('img'),t=mk('div','nv-txt');
-    i.src='cartes/'+id+'.jpg';i.alt=g.nom+', '+titre;i.loading='lazy';i.width=600;i.height=840;
-    b.type='button';b.setAttribute('aria-label','Agrandir la carte '+i.alt);b.append(i);
-    b.onclick=()=>{dernier=b;zoom(i.src,i.alt,statZoomCarte(id))};
-    const e=mk('span','nv-el');g.elements.forEach((x,k)=>{if(k)e.append(' + ');const m=mk('span','',x[0].toUpperCase()+x.slice(1));m.style.color='var(--'+x+')';e.append(m)});
-    t.append(mk('b','',titre),e,mk('span','nv-phr',phrase));
-    const c=mk('div','nv-carte');c.append(b,t);l.append(c);
-  });
-  a.append(mk('h3','','Nouveau Golem disponible : '+g.nom),mk('time','',g.date+' · '+g.version),l);
-  $('notes').prepend(a);
-});
+   Bloc des nouveaux Golems : vidéo de présentation seule, cadrée à la hauteur du bloc voisin. */
+const NOUVEAUX_GOLEMS={titre:'Nouveaux Golems disponibles : Indra et Glad',date:'3 novembre 2026',version:'Version 0.2a',
+ video:'videos/nouveaux_golems.mp4',affiche:'videos/nouveaux_golems.jpg',
+};
+(()=>{const g=NOUVEAUX_GOLEMS,mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+  const a=mk('article','note nv-golem'),l=mk('div','nv-ligne'),v=mk('video','nv-video');
+  v.src=g.video;v.poster=g.affiche;v.preload='metadata';v.controls=v.loop=v.playsInline=true;v.volume=0.6;
+  v.setAttribute('playsinline','');v.setAttribute('aria-label','Présentation des nouveaux Golems');
+  l.append(v);a.append(mk('h3','',g.titre),mk('time','',g.date),l);$('notes').prepend(a);
+  /* Lecture avec son quand l'onglet Nouveautés est affiché ; si le navigateur refuse, lecture muette
+     puis son rétabli au premier clic ou à la première touche (une seule fois, sans repartir du début). Pause hors de l'onglet. */
+  let rattrape=false;
+  const rend=()=>{removeEventListener('pointerdown',rend,true);removeEventListener('keydown',rend,true);if(rattrape){rattrape=false;v.muted=false}};
+  const lance=()=>{const p=v.play();if(p&&p.catch)p.catch(e=>{if(!e||e.name!=='NotAllowedError'||v.muted)return;v.muted=true;
+    v.play().catch(()=>{});if(!rattrape){rattrape=true;addEventListener('pointerdown',rend,true);addEventListener('keydown',rend,true)}})};
+  const sec=$('nouveautes'),suit=()=>{if(sec.hidden)v.pause();else lance()};
+  new MutationObserver(suit).observe(sec,{attributes:true,attributeFilter:['hidden']});suit();
+})();
 
 /* Cartes */
 const CARTES=[
@@ -1598,18 +1593,19 @@ const CARTES=[
  ['004',"Le Q, Maître de l'Excel",['brume','cristal'],0],['004e',"Le Q, L'Oracle des Stats",['brume','cristal'],1],
  ['007','Trigas, Accro au Gacha',['foudre','brume'],0],['007e','Trigas, Le Roi du Mobile',['foudre','brume'],1],
  ['008','K-Chan, Reine du tilt',['magma','roche'],0],
- ['013','Indra, La Groupie',['cristal','magma'],0],['013e','Indra, La Fan enflammée',['cristal','magma'],1]];
+ ['013','Indra, La Groupie',['cristal','magma'],0],['013e','Indra, La Fan enflammée',['cristal','magma'],1],
+ ['009','Glad, /Poll',['roche','magma'],0],['009e','Glad, GymRat',['roche','magma'],1]];
 /* Aperçus : visibles dans la galerie, absents du moteur, des decks et de l'éditeur. */
 const APERCUS=[],GALERIE=[...CARTES,...APERCUS];
 /* Numéro AFFICHÉ des Golems (ordre où ils deviennent jouables) : code interne -> numéro. Les codes internes ne changent jamais.
-   Golem à venir : absent de la table, aucun numéro affiché. Prochain jouable : 8. */
-const NUMERO_AFFICHE={'001':1,'002':2,'003':3,'004':4,'007':5,'008':6,'013':7};
+   Golem à venir : absent de la table, aucun numéro affiché. Prochain jouable : 9. */
+const NUMERO_AFFICHE={'001':1,'002':2,'003':3,'004':4,'007':5,'008':6,'013':7,'009':8};
 const numeroAffiche=id=>{const n=NUMERO_AFFICHE[String(id).slice(0,3)];return n?'G-'+String(n).padStart(3,'0')+(String(id).endsWith('e')?' ★':''):''};
 const EL=[['','Tous'],['magma','Magma'],['cristal','Cristal'],['foudre','Foudre'],['brume','Brume'],['roche','Roche']];
 const TY=[['','Toutes'],['0','Base'],['1','Évolution'],['t','Terrains'],['v','À venir']];
 /* Cartes à venir, hors moteur : retirer la ligne d'un membre quand sa carte arrive, les numéros restent fixes. */
 const A_VENIR=[
- ['005','Driscop'],['006','Falys'],['009','Glad'],['010','Orotembu'],
+ ['005','Driscop'],['006','Falys'],['010','Orotembu'],
  ['011','Sleepy'],['012','Simon'],['014','Boubou'],['015','Bellock'],['016','Loxim'],
  ['017','Letran'],['018','Elessar'],['019','Victone'],['020','GénéralBrioche'],['021','Elccino'],['022','Shantiruka'],
  ['023','Kun_Mamba'],['024','MrTitou'],['025','Shifukuro'],['026','Titom'],['027','Merser'],['028','Nadzu'],
@@ -1725,7 +1721,7 @@ function majSalon(){
   const sieges=l.slice(0,MAX).map(siegeSalon);
   while(sieges.length<MAX){const v=el('div','sl-j sl-libre'),a=el('div','avatar','?'),t=el('div','cd-tuile');
     t.append(el('span','h-deck h-sans','Place libre'),el('span','cd-nb','Partage le code ci-dessus'));
-    v.append(a,el('div','sl-nom','Adversaire'),t);sieges.push(v)}
+    v.append(a,el('div','sl-nom','Adversaire'),el('span','sl-etat sl-vide','En attente'),t);sieges.push(v)}
   u.append(sieges[0],el('div','sl-vs','VS'),sieges[1]);
   const adv=l.slice(0,MAX).find(p=>!p.sameTab);majFace(adv?nomDe(adv):'');
   if(!partie&&l.some(p=>!p.sameTab&&Number.isInteger(p.presence.jg)&&typeof p.presence.adv==='string'&&p.presence.adv!==sid&&p.presence.sid!==sid)&&Date.now()-entree>1500){sortie('Ce salon est complet.');return}
@@ -1962,7 +1958,7 @@ async function entre(c){
 /* M : moteur en service. Le rejeu le remplace le temps de la partie par le moteur archive de sa version (moteurs/moteur-<v>.js). */
 const M0=window.GolemsMoteur;let M=M0;
 /* Versions archivees dans moteurs/ : en ajouter une a chaque nouvelle version du moteur (voir README). */
-const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1'];
+const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2'];
 const versionMoteur=v=>v==='0.2a'?'0.2':v;
 const rejeuPossible=R=>!!(R&&typeof R.v==='string'&&Number.isInteger(R.graine)&&Array.isArray(R.j)&&(versionMoteur(R.v)===M0.VERSION||MOTEURS_ARCHIVES.includes(versionMoteur(R.v))));
 const moteursCharges={};
@@ -2286,6 +2282,7 @@ function etapesLignes(L,av,s,lignes,a){
     if(m)des(p,'Alrevan (KEKWRevan)',[+m[1],+m[2]],+m[3]);
     m=/^Le Plateau de Jeu lance (\d) : (.+)\.$/.exec(x);
     if(m)des(p,'Le Plateau de Jeu',[+m[1]],m[2]);
+    if(/^Glad : Slam, .* perd 1 de Force\.$/.test(x)&&a&&a.t==='h')L.push(()=>touche([[1-p,a.m,a.n]],1));
     if(/^Slim K : 1 dégât/.test(x)&&a&&a.t==='p'){const c=[];[0,1,2].forEach(k=>{if(M.ciblable(av,1-p,a.l,k,p))c.push([1-p,a.l,k])});L.push(()=>touche(c,1))}
     if(x==='KaTarN perd 4 de Force.'){const c=[];for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=av.j[p].grille[l][k];if(g&&M.carte(g.c).id==='001')c.push([p,l,k])}L.push(()=>touche(c,4))}
     m=/: \+(\d+) points?\.$/.exec(x);
@@ -2334,7 +2331,7 @@ function etapesDecompte(L,av,s,lignes){
 function etapes(av,s,a,p){
   const me=partie.moi,L=[],neuf=s.log.slice(av.log.length),dec=s.reperes.length>av.reperes.length;
   const avant=dec?neuf.slice(0,s.reperes[s.reperes.length-1][0]-av.log.length):neuf,apres=dec?neuf.slice(s.reperes[s.reperes.length-1][1]-av.log.length):[];
-  const bouge=['w','y','e'].includes(a.t);
+  const bouge=['w','y','e','h'].includes(a.t); /* 0.2a.2 : h = Slam de Glad */
   L.push(()=>{sonsDe(av,s);return 0});
   if(a.t==='p'){
     const de=p===me?rectDe('.p-slot[data-c="'+a.c+'"]'):null,q=caseDe(p,a.l,a.k),old=av.j[p].grille[a.l][a.k];
@@ -2646,6 +2643,13 @@ function archiveResume(s,id){
   const o={v:String(M.VERSION).slice(0,12),m:partie.local?'golem-'+partie.niveau:'ligne',g:w===0||w===1?w:-1,pg:w===p0,a:s.fin.abandon!==undefined,
     s0:Math.min(30,s.j[0].score),s1:Math.min(30,s.j[1].score),mvp:B.mvp?String(B.mvp.carte).slice(0,40):'',t};
   [0,1].forEach(p=>{const k=M.lisDeck(s.decks[p])?s.decks[p]:'';o['k'+p]=k;o['e'+p]=elsTexte(k).join(',')});
+  /* Partie contre un Golem : le robot joue le paquet de test, enregistre sous son texte (33 cartes, reconnu par agregeStats). */
+  if(partie.local){const r=1-partie.moi;if(!o['k'+r])o['k'+r]=DECK_TEST_TXT}
+  /* Forces reellement tirees par Alrevan (002) et KEKWRevan (002e), des deux camps. */
+  {const dr={};(s.log||[]).forEach(x=>{const t=String(x[1]);let m=/^Alrevan lance le dé : Force (\d+)\.$/.exec(t),id='002';
+     if(!m){m=/^Alrevan \(KEKWRevan\) lance \d+ et \d+ : Force (\d+)\.$/.exec(t);id='002e'}
+     if(m){const f=+m[1];if(f>=1&&f<=12)(dr[id]=dr[id]||[]).length<30&&dr[id].push(f)}});
+   if(Object.keys(dr).length)o.dr=dr}
   /* Une seule fois par partie sur cet appareil, quel que soit le compte (la regle refuse aussi toute reecriture). */
   const vu=litListe('golems.archives');if(vu.includes(id))return;
   room.ecritResume(id,o).then(ok=>{const l=litListe('golems.archives');if(!l.includes(id)){l.unshift(id);ecrire('golems.archives',JSON.stringify(l.slice(0,200)))}}).catch(e=>console.warn(e));
@@ -2669,10 +2673,15 @@ async function peintStats(){
   try{statsData=(await room.litResumes(2000)).filter(r=>r&&typeof r.d==='number'&&(r.g===0||r.g===1||r.g===-1))}catch(e){console.warn(e);if(!statsData){z.textContent='';z.append(el('p','pf-vide','Lecture impossible pour le moment.'))}return}
   if(!$('stats').hidden)dessineStats(statsData);
 }
+/* Paquet de test (deck du robot), en texte de deck : accepte dans les Statistiques pour les parties contre les Golems seulement. */
+const DECK_TEST=Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])),DECK_TEST_TXT=M.deckTexte(DECK_TEST);
+/* Force affichee dans les listes : Force moyenne exacte des cartes a des (Alrevan 3,5 ; KEKWRevan 2 des, un seul sur un double : 231/36). Affichage seulement. */
+const FORCE_MOY={'002':'3,5','002e':'6,4'};
+function forceAff(C){return C.force!=null?String(C.force):FORCE_MOY[C.id]||null}
 const NOMS_EL_ST={magma:'Magma',cristal:'Cristal',foudre:'Foudre',brume:'Brume',roche:'Roche'};
 /* Patch du site d'une version du moteur : table unique pour les anciens moteurs,
    puis tout moteur nomme d'apres une version du site (0.2a.1, 0.2b...) est regroupe sous elle. */
-const PATCH_MOTEUR={'0.2':'0.2a','0.2a':'0.2a','0.2.1':'0.2a','0.2.2':'0.2a','0.2a.1':'0.2a'};
+const PATCH_MOTEUR={'0.2':'0.2a','0.2a':'0.2a','0.2.1':'0.2a','0.2.2':'0.2a','0.2a.1':'0.2a','0.2a.2':'0.2a'};
 function patchSite(v){v=String(v||'');if(PATCH_MOTEUR[v])return PATCH_MOTEUR[v];const m=/^(\d+\.\d+[a-z])/.exec(v);return m?m[1]:v}
 /* Patchs presents dans l'archive, le plus recent en premier. */
 function versStats(RT){
@@ -2689,7 +2698,7 @@ function agregeStats(R){
   let pj=0,pv=0,golem=0,ab=0;
   R.forEach(r=>{
     /* Deck vide ou illisible (paquet de test) : compte pour la partie, jamais pour une carte ni un element. */
-    [0,1].forEach(p=>{const w=r.g===p,o=M.lisDeck(r['k'+p]);if(!o)return;Object.keys(o).forEach(id=>add(cartes,id,w));
+    [0,1].forEach(p=>{const w=r.g===p,o=M.lisDeck(r['k'+p])||(/^golem-/.test(r.m)&&r['k'+p]===DECK_TEST_TXT?DECK_TEST:null);if(!o)return;Object.keys(o).forEach(id=>add(cartes,id,w));
       const e=String(r['e'+p]||'').split(',').filter(x=>NOMS_EL[x]).sort();e.forEach(x=>add(els,x,w));
       for(let i=0;i<e.length;i++)for(let j=i+1;j<e.length;j++)add(duos,e[i]+'+'+e[j],w)});
     Object.values(r.t||{}).forEach(t=>{const o=terr.get(t.n);if(!o)return;o.n++;o.q+=+t.q||0;
@@ -2744,7 +2753,7 @@ function dessineStats(RT){
   const ligneC=(id,n,p)=>{const c=CARTES.find(x=>x[0]===id),C=M.CARTES[id];if(!c||!C)return null;
     const li=el('div','pf-item pf-mvps st-carte'),q=el('button','dl-ligne'),fo=el('span','dl-force'),e=el('span','dl-els'),src='cartes/'+c[0]+'.jpg';q.type='button';
     if(c[2].length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+c[2][0]+')');q.style.setProperty('--b','var(--fm-'+c[2][1]+')')}
-    const co=el('span','dl-cout');co.append(ico('enclume'),String(C.cout));if(C.force!=null)fo.append(ico('force'),String(C.force));c[2].forEach(y=>e.append(picto(y)));
+    const co=el('span','dl-cout');co.append(ico('enclume'),String(C.cout));{const f=forceAff(C);if(f!=null){fo.append(ico('force'),f);if(f.includes(','))fo.classList.add('dl-dec')}}c[2].forEach(y=>e.append(picto(y)));
     const v=c[1].indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',v<0?c[1]:c[1].slice(0,v)));
     if(v>=0){const ti=el('span','dl-titre',c[1].slice(v+2));ti.style.color='var(--'+c[2][0]+')';nm.append(ti)}
     q.append(co,fo,e,nm);q.setAttribute('aria-label',c[1]+', '+pl2(n,'partie')+(p===null?'':', '+p+' % de victoires'));
@@ -2764,8 +2773,8 @@ function dessineStats(RT){
      ft.append(avatarUid(x.p,x.uid),el('b','st-fp',x.p));fi.append(ft,el('p','',''),el('p','',''),el('p','',''));
      fi.children[1].append('Taux de victoire : ',fv);fi.children[2].textContent=pl2(x.v,'victoire')+', '+pl2(x.n-x.v,'défaite');fi.children[3].textContent=pl2(x.n,'partie')+' (50 dernières au plus)';li.append(fi);ul.append(li)});if(J.length)c.append(ul);}
   {let c=colonne('Cartes');const l=[...cartes].map(([id,o])=>({id,n:o.n,p:pc(o.v,o.n)}));
-   sous(c,'Meilleures cartes');c.append(el('p','pf-note st-sous','Taux de victoire, 10 parties minimum'));
-   const tv=l.filter(x=>x.n>=10).sort((a,b)=>b.p-a.p||b.n-a.n).slice(0,10);if(!tv.length)c.append(el('p','pf-vide','Il faut au moins 10 parties par carte.'));
+   sous(c,'Meilleures cartes');c.append(el('p','pf-note st-sous','Taux de victoire, 5 parties minimum'));
+   const tv=l.filter(x=>x.n>=5).sort((a,b)=>b.p-a.p||b.n-a.n).slice(0,10);if(!tv.length)c.append(el('p','pf-vide','Il faut au moins 5 parties par carte.'));
    tv.forEach(x=>{const li=ligneC(x.id,x.n,x.p);if(li)c.append(li)});
    sous(c,'Cartes les plus jouées');c.append(el('p','pf-note st-sous','Nombre de parties où elle est jouée'));
    l.sort((a,b)=>b.n-a.n||b.p-a.p).slice(0,10).forEach(x=>{const li=ligneC(x.id,x.n,x.p);if(li)c.append(li)});}
@@ -2795,7 +2804,7 @@ function dessineStats(RT){
    const p1=pc(pv,pj),p2=p1===null?null:100-p1,ec=p1===null?null:Math.abs(p1-p2),ce=p=>p===null?'':Math.abs(p-50)<=3?'#3ecf6e':Math.abs(p-50)<=8?'#f0a030':'#ef4f4f';
    const pt=el('div','pf-tuile st-patch'),lb=el('label','','Patch'),se=el('select');se.id='statsPatch';lb.htmlFor='statsPatch';
    vers.forEach(v=>{const o=el('option','','v'+v);o.value=v;o.selected=v===statsPatch;se.append(o)});se.disabled=vers.length<2;se.onchange=()=>{statsPatch=se.value;dessineStats(RT)};pt.append(se,lb);
-   tu.append(tuile(R.length,R.length>1?'Parties':'Partie'),tuile(f(dmin)===f(dmax)?f(dmin):f(dmin)+' au '+f(dmax),'Période'),tuile(golem+' / '+(R.length-golem),'Golems / En ligne'),
+   tu.append(tuile(R.length,R.length>1?'Parties':'Partie'),tuile(golem+' / '+(R.length-golem),'Golems / En ligne'),
      tuile(txt(p1),'Victoires du premier joueur',ce(p1),'cible 50 %'),tuile(txt(pc(ab,R.length)),'Abandons','',pl2(ab,'partie')),pt);
    ban.append(tu);}
   z.append(ban,g);
@@ -3016,7 +3025,7 @@ function ouvreProfil(){
     if(c[2].length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+c[2][0]+')');q.style.setProperty('--b','var(--fm-'+c[2][1]+')')}
     q.setAttribute('aria-label',c[1]+', '+cn+' fois MVP');
     const co=el('span','dl-cout');co.append(ico('enclume'),String(C.cout));
-    if(C.force!=null)fo.append(ico('force'),String(C.force));c[2].forEach(x=>e.append(picto(x)));
+    {const f=forceAff(C);if(f!=null){fo.append(ico('force'),f);if(f.includes(','))fo.classList.add('dl-dec')}}c[2].forEach(x=>e.append(picto(x)));
     const v=c[1].indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',v<0?c[1]:c[1].slice(0,v)));
     if(v>=0){const ti=el('span','dl-titre',c[1].slice(v+2));ti.style.color='var(--'+c[2][0]+')';nm.append(ti)}
     q.append(co,fo,e,nm);
@@ -3036,7 +3045,7 @@ function ouvreProfil(){
    const mini=x=>{const c=x.c,C=x.C,li=el('div','pf-item pf-mvps'),q=el('button','dl-ligne'),fo=el('span','dl-force'),e=el('span','dl-els'),src='cartes/'+c[0]+'.jpg';q.type='button';
      if(c[2].length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+c[2][0]+')');q.style.setProperty('--b','var(--fm-'+c[2][1]+')')}
      q.setAttribute('aria-label',c[1]+', '+x.p+' % de victoires');
-     const co=el('span','dl-cout');co.append(ico('enclume'),String(C.cout));if(C.force!=null)fo.append(ico('force'),String(C.force));c[2].forEach(y=>e.append(picto(y)));
+     const co=el('span','dl-cout');co.append(ico('enclume'),String(C.cout));{const f=forceAff(C);if(f!=null){fo.append(ico('force'),f);if(f.includes(','))fo.classList.add('dl-dec')}}c[2].forEach(y=>e.append(picto(y)));
      const v=c[1].indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',v<0?c[1]:c[1].slice(0,v)));
      if(v>=0){const ti=el('span','dl-titre',c[1].slice(v+2));ti.style.color='var(--'+c[2][0]+')';nm.append(ti)}
      q.append(co,fo,e,nm);q.onclick=()=>{cacheApercu();dernier=q;zoom(src,c[1],statZoomCarte(c[0]))};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
@@ -3287,7 +3296,7 @@ function decklist(b,d,l){
     if(c[2].length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+c[2][0]+')');q.style.setProperty('--b','var(--fm-'+c[2][1]+')')}
     q.setAttribute('aria-label',n+' exemplaire'+(n>1?'s':'')+' de '+c[1]+', coût '+C.cout+(C.force!=null?', Force '+C.force:''));
     co.append(ico('enclume'),String(C.cout));c[2].forEach(x=>e.append(picto(x)));
-    if(C.force!=null)fo.append(ico('force'),String(C.force));
+    {const f=forceAff(C);if(f!=null){fo.append(ico('force'),f);if(f.includes(','))fo.classList.add('dl-dec')}}
     /* Pseudo du Golem en haut, titre dessous dans la couleur de son premier element, coupe par des points de suspension */
     const v=c[1].indexOf(', '),nm=el('span','dl-nom');
     nm.append(el('span','dl-pseudo',v<0?c[1]:c[1].slice(0,v)));
@@ -3565,7 +3574,7 @@ function affiche(){
   const sc=el('div','p-score');sc.setAttribute('aria-label','Toi '+J.score+', adversaire '+s.j[lui].score);
   sc.append(el('b','',String(J.score)),el('span','','-'),el('em','',String(s.j[lui].score)));
   const tr=el('div','p-trois');tr.append(info('','manche','Manche',points(s.manche,'Manche')),info('','tour','Tour',points(s.tour,'Tour')),info('score','coupe','Score',sc),info('energie','enclume','Énergie',el('b','p-ener',String(J.energie))));b.append(tr);
-  let cible=null;
+  let cible=null,cibleAdv=null;
   const coupsV=leg.filter(a=>a.t==='w');
   if(!coupsV.length)modeVaisseau=false;
   const coupsF=leg.filter(a=>a.t==='y');
@@ -3590,6 +3599,18 @@ function affiche(){
         if(selCases.length===2){const x=Math.min(selCases[0][0],l),y=Math.max(selCases[0][0],l);joue(coupsV.find(a=>a.a===x&&a.b===y))}else affiche();
       }};
     };
+  }else if(att&&att.t==='h'){ /* 0.2a.2 : Slam de Glad, sur la grille adverse : 1) Golem a soulever, 2) case libre adjacente */
+    const hs=leg.filter(x=>x.t==='h');
+    cibleAdv=(l,k)=>{
+      if(!selCases.length){
+        const o=hs.filter(x=>x.l===l&&x.k===k);if(!o.length)return null;
+        return {texte:'Soulever',fait:()=>{if(o.length===1&&o[0].m===l&&o[0].n===k)joue(o[0]);else{selCases=[[l,k]];affiche()}}};
+      }
+      const[x,y]=selCases[0];
+      if(x===l&&y===k)return {choisie:true,fait:()=>{selCases=[];affiche()}};
+      const a=hs.find(c=>c.l===x&&c.k===y&&c.m===l&&c.n===k);
+      return a?{texte:'Reposer ici',fait:()=>joue(a)}:null;
+    };
   }else if(att&&att.t==='g'){ /* 0.2a.1 : favori d'Indra, cases dorees */
     cible=(l,k)=>{const a=leg.find(x=>x.t==='g'&&x.l===l&&x.k===k);return a?{texte:'Favori',fait:()=>joue(a)}:null};
   }else if(att&&att.t==='o'&&leg[0].t==='e'){
@@ -3608,7 +3629,7 @@ function affiche(){
       const mot=!J.grille[l][k]?'Poser':M.carte(sel).base?'Améliorer':'Remplacer';
       return {texte:mot+' '+M.coutPose(s,me,sel,l,k),bonus:bonusPrevu(s,me,sel,l,k),fait:()=>joue(a)}};
   }
-  if(partie.rejeu)cible=null;
+  if(partie.rejeu){cible=null;cibleAdv=null}
   repeint=()=>{
     const A=partie&&partie.ecran||s,t=el('div','p-terrains'),cc=M.colonnes(A);
     cols.forEach(k=>{const T=s.terrains[k],d=el('div','p-terrain'),x=cc[k][lui],y=cc[k][me],to=el('div','p-totaux');d.dataset.k=k;
@@ -3619,7 +3640,7 @@ function affiche(){
     d.onclick=()=>zoomTerrain(T);d.onmouseenter=()=>montreApercu(d,srcTerrain(T));d.onmouseleave=cacheApercu;
     d.append(te,to,el('span','p-valeur',T.pts+(T.pts>1?' pts':' pt')),e);t.append(d)});
     const gm=grilleVue(A,me,cols,[0,1,2],cible);if(aMoi)gm.classList.add('active');
-    plat.textContent='';plat.append(camp(s,me,true),gm,t,grilleVue(A,lui,cols,[0,1,2]),camp(s,lui,false));
+    plat.textContent='';plat.append(camp(s,me,true),gm,t,grilleVue(A,lui,cols,[0,1,2],cibleAdv),camp(s,lui,false));
   };
   repeint();
   const tdt=el('div','p-tourde'+(aMoi?' amoi':''));tdt.append(el('span','',texteTour(s,me)),outils());b.append(tdt);
@@ -3667,6 +3688,10 @@ function affiche(){
     con(leg[0].t==='e'?'Oracle des Stats : main adverse ci-dessous. Touche 2 de tes Golems à échanger.':'Oracle des Stats : main adverse ci-dessous. Pas assez de Golems pour échanger.');
     pl.append(mainVue(s.j[lui].main,{}));
     if(leg[0].t==='v'){const z=el('div','p-btns');z.append(bouton('Continuer',()=>joue({t:'v'})));pl.append(z)}
+  }else if(att&&att.t==='h'){
+    const pl1=leg.some(x=>x.t==='h'&&(x.m!==x.l||x.n!==x.k));
+    con(selCases.length?'Glad (Slam) : touche une case libre en surbrillance pour y reposer ce Golem. Il perdra 1 de Force.':pl1?'Glad (Slam) : touche un Golem adverse en surbrillance pour le soulever.':'Glad (Slam) : aucune case libre, touche un Golem adverse : il reste en place et perd 1 de Force.');
+    pl.append(mainVue(J.main,{}));
   }else if(att&&att.t==='g'){
     const I=J.grille[att.i[0]][att.i[1]],evo=I&&M.carte(I.c).id==='013e';
     con('Indra'+(evo?' (La Fan enflammée)':'')+' : touche une case dorée pour choisir son favori'+(evo?' (+2 de Force, et le Golem adverse en face perd 2 de Force).':' (+1 de Force).'));

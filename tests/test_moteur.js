@@ -254,8 +254,8 @@ function finDeManche(s){s.joueur=1;s.premier=0;s.tour=3;M.applique(s,1,{t:'x'})}
   assert.strictEqual(M.CARTES['002e'].cout,3);assert.strictEqual(M.CARTES['004e'].cout,3);assert.strictEqual(M.CARTES['001'].cout,1);assert.strictEqual(T('La Faille').pts,2);
   {let dbl=0;for(let g=1;g<200;g++){const u=vide();u.rng=[g,g*7];u.j[0].main=[9];u.j[0].energie=9;u.j[0].grille[0][0]=gol(6,3);M.applique(u,0,{t:'p',c:9,l:0,k:0});const m=/lance (\d) et (\d) : Force (\d+)/.exec(u.log.map(x=>x[1]).join(' '));assert(m);const[a,b,f]=[+m[1],+m[2],+m[3]];if(a===b)dbl++;assert.strictEqual(f,a===b?a:a+b,'KEKWRevan')}assert(dbl)}
   assert.strictEqual(M.TAILLE_DECK,33);
-  for(let c=0;c<39;c++){assert.strictEqual(M.decode(M.code({t:'f',c})).c,c);assert.strictEqual(M.decode(M.code({t:'p',c,l:2,k:1})).c,c)}
-  assert.throws(()=>M.decode('fD'),'carte 39 refusee');assert.strictEqual(M.carte(23).id,'004e');assert.strictEqual(M.carte(2).id,'001');assert.strictEqual(M.carte(3).id,'001e');
+  for(let c=0;c<45;c++){assert.strictEqual(M.decode(M.code({t:'f',c})).c,c);assert.strictEqual(M.decode(M.code({t:'p',c,l:2,k:1})).c,c)}
+  assert.throws(()=>M.decode('fJ'),'carte 45 refusee');assert.strictEqual(M.carte(23).id,'004e');assert.strictEqual(M.carte(2).id,'001');assert.strictEqual(M.carte(3).id,'001e');
 }
 { // Spam : pioche puis Forge, sans energie ce tour, tour qui continue, code, deck vide
   const s=vide();s.j[0].main=[24,6];s.j[0].deck=[9];s.j[0].energie=1;
@@ -324,7 +324,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Abandon 0.2.2 OK');
 }
 { // 0.2a.1 : Indra (013, 013e). Ids : Indra 33-35, Fan enflammee 36-38, Cyrdan 12, Alrevan 6, K-Chan 30, Roi du Mobile 27, Le Q 18.
-  assert.strictEqual(M.VERSION,'0.2a.1');
+  assert(['0.2a.1','0.2a.2'].includes(M.VERSION));
   const D=M.deckTexte({'002':3,'003':3,'004':3,'007e':3,'008':3,'013':3,'013e':3,'001':3});assert(M.lisDeck(D),'deck Indra valide');
   assert.strictEqual(M.decode(M.code({t:'p',c:38,l:1,k:2})).c,38,'code base 36 etendu');assert.strictEqual(M.code({t:'p',c:36,l:0,k:0}),'pA00');
   assert.deepStrictEqual(M.decode('g12'),{t:'g',l:1,k:2});
@@ -370,4 +370,61 @@ duel('facile','normal');duel('normal','difficile');
     const r=M.rejoue(gr,[M.litJournal(M.ecritJournal(j[0])),M.litJournal(M.ecritJournal(j[1]))],[D,D]);assert(!r.erreur,r.erreur);assert.strictEqual(JSON.stringify(r.etat),JSON.stringify(s),'rejeu Indra');M.bilan(s)}
   assert(nG>0&&nR>0,'Indra jamais jouee');
   console.log('Indra 0.2a.1 OK : 150 parties aleatoires ('+nG+' favoris) et 300 parties robot sans blocage ('+nR+' Ragebait), rejeux identiques');
+}
+{ // 0.2a.2 : Glad (009, 009e). Ids : Glad 39-41, GymRat 42-44, KaTarN 0, Slim K 3, Cyrdan 12, Indra 33, Fan enflammee 36, Roi du Mobile 27, K-Chan 30, Alrevan 6.
+  assert.strictEqual(M.VERSION,'0.2a.2');
+  const D=M.deckTexte({'001':3,'001e':3,'003':3,'008':3,'013':3,'013e':3,'009':3,'009e':3});assert(M.lisDeck(D),'deck Glad valide');
+  assert.strictEqual(M.code({t:'p',c:44,l:0,k:0}),'pI00');assert.strictEqual(M.decode('pI00').c,44,'code etendu a 44');
+  assert.deepStrictEqual(M.decode('h0102'),{t:'h',l:0,k:1,m:0,n:2});assert.strictEqual(M.code({t:'h',l:2,k:0,m:1,n:0}),'h2010');
+  const prep=main=>{const s=M.nouvelle(5,[D,D]);s.phase='jeu';s.mull=[true,true];s.joueur=0;s.premier=0;const J=s.j[0];J.etapeForge=false;J.energie=30;J.main=main.slice();return s};
+  const pose=(s,c,l,k)=>{M.applique(s,0,{t:'p',c,l,k})};
+  const adv=(s,c,f,l,k)=>{s.j[1].grille[l][k]={c,f,d:0}};
+  const codes=s=>M.legales(s,0).map(M.code).sort();
+  // aucune cible : rien, pas d'attente
+  let s=prep([39]);pose(s,39,1,1);assert(!s.attente,'sans cible');assert(/aucun Golem adverse/.test(s.log[s.log.length-1][1]));
+  // coin : 2 cases adjacentes libres, jamais en diagonale
+  s=prep([39]);adv(s,6,5,0,0);pose(s,39,1,1);assert(s.attente&&s.attente.t==='h','choix du Slam');
+  assert.deepStrictEqual(codes(s),['h0001','h0010']);
+  const r1=M.robot(s,0),r2=M.robot(s,0,'difficile');assert.deepStrictEqual(r1,M.robot(s,0),'robot deterministe');assert(r1.t==='h'&&r2.t==='h');
+  assert.throws(()=>M.applique(s,0,{t:'h',l:0,k:0,m:1,n:1}),'diagonale interdite');
+  M.applique(s,0,{t:'h',l:0,k:0,m:1,n:0});assert(!s.attente);assert.strictEqual(s.j[1].grille[0][0],null);
+  assert.strictEqual(s.j[1].grille[1][0].d,1,'perd 1');assert(s.log.some(x=>/Slam, Alrevan est déplacé et perd 1 de Force/.test(x[1])),'journal Slam');
+  // centre : 4 cases adjacentes
+  s=prep([39]);adv(s,6,5,1,1);pose(s,39,0,0);assert.deepStrictEqual(codes(s),['h1101','h1110','h1112','h1121']);
+  // un Golem bloque n'est pas cible tant qu'un autre peut bouger
+  s=prep([39]);adv(s,6,5,0,0);adv(s,6,5,0,1);adv(s,6,5,1,0);pose(s,39,2,2);
+  assert(!codes(s).some(c=>c.startsWith('h00')),'bloque non propose');assert(codes(s).every(c=>c.slice(1,3)!==c.slice(3)),'toujours deplace');
+  // grille adverse pleine : tout Golem ciblable, reste en place, perd 1
+  s=prep([39]);for(let l=0;l<3;l++)for(let k=0;k<3;k++)adv(s,6,5,l,k);s.j[1].grille[1][1]={c:27,f:4,d:0};pose(s,39,0,0);
+  assert.strictEqual(codes(s).length,8,'8 cibles, Mode Avion exclu');assert(codes(s).includes('h0000'));
+  M.applique(s,0,{t:'h',l:0,k:0,m:0,n:0});assert.strictEqual(s.j[1].grille[0][0].d,1,'perd 1 sur place');
+  assert(s.log.some(x=>/reste en place \(aucune case libre\) et perd 1/.test(x[1])));
+  // une seule option : d'office ; Mode Avion jamais cible ; K-Chan gagne sa Rage
+  s=prep([39]);adv(s,30,2,0,0);adv(s,27,4,0,1);adv(s,27,4,1,0);pose(s,39,2,2);assert(!s.attente,'option unique');
+  assert.strictEqual(s.j[1].grille[0][0].c,30);assert.strictEqual(s.j[1].grille[0][0].d,1);assert.strictEqual(s.j[1].grille[0][0].ra,1,'Rage');
+  assert.strictEqual(s.j[1].grille[0][1].d,0,'Mode Avion non cible');
+  // Golem tue par le Slam (Force 1)
+  s=prep([39]);adv(s,6,1,0,0);pose(s,39,1,1);M.applique(s,0,{t:'h',l:0,k:0,m:0,n:1});assert.strictEqual(s.j[1].grille[0][1],null,'mort');
+  // GymRat : deplace mais ne perd rien
+  s=prep([39]);adv(s,42,3,0,0);pose(s,39,1,1);assert(s.attente&&s.attente.t==='h','GymRat reste ciblable');
+  M.applique(s,0,{t:'h',l:0,k:0,m:0,n:1});assert.strictEqual(s.j[1].grille[0][1].c,42,'GymRat deplace');assert.strictEqual(s.j[1].grille[0][1].d,0,'Menfou palu contre Slam');
+  assert(s.log.some(x=>/Menfou palu, ne perd pas de Force/.test(x[1])));
+  // GymRat contre Slim K : l'autre Golem de la ligne perd 1, pas GymRat
+  s=prep([0,3]);adv(s,42,3,0,0);adv(s,6,5,0,2);pose(s,0,0,1);pose(s,3,0,1);
+  assert.strictEqual(s.j[1].grille[0][0].d,0,'Menfou palu contre Slim K');assert.strictEqual(s.j[1].grille[0][2].d,1,'Slim K touche les autres');
+  // GymRat contre Ragebait
+  s=prep([12,33,36]);pose(s,12,1,0);pose(s,33,2,2);adv(s,42,3,1,0);pose(s,36,2,2);
+  assert.strictEqual(s.j[0].grille[2][2].fav,12);assert.strictEqual(s.j[1].grille[1][0].d,0,'Menfou palu contre Ragebait');
+  // l'evolution n'a pas de Slam
+  s=prep([39,42]);pose(s,39,1,1);pose(s,42,1,1);assert.strictEqual(M.carte(s.j[0].grille[1][1].c).id,'009e');assert(!s.attente,'evolution sans Slam');
+  // parties aleatoires et robot avec Glad : rejeu identique, sans blocage
+  let nS=0,nM=0;
+  for(let i=0;i<150;i++){const r=partie((i*7741+11)|0,[D,D]);nS+=r.s.log.filter(x=>/Slam, .* perd 1/.test(x[1])).length}
+  const niv=['facile','normal','difficile'];
+  for(let i=0;i<300;i++){const gr=(i*15485863+17)|0,s=M.nouvelle(gr,[D,D]),j=[[],[]];let pas=0;
+    while(!s.fin){assert(++pas<2000,'blocage robot Glad '+gr);const p=M.attendus(s)[0],a=M.robot(s,p,niv[(i+p)%3]);assert(a,'robot sans coup');M.applique(s,p,a);j[p].push(M.code(a));verifie(s)}
+    nM+=s.log.filter(x=>/Menfou palu/.test(x[1])).length;
+    const r=M.rejoue(gr,[M.litJournal(M.ecritJournal(j[0])),M.litJournal(M.ecritJournal(j[1]))],[D,D]);assert(!r.erreur,r.erreur);assert.strictEqual(JSON.stringify(r.etat),JSON.stringify(s),'rejeu Glad');M.bilan(s)}
+  assert(nS>0,'Glad jamais joue');
+  console.log('Glad 0.2a.2 OK : 150 parties aleatoires ('+nS+' Slam) et 300 parties robot sans blocage ('+nM+' Menfou palu), rejeux identiques');
 }
