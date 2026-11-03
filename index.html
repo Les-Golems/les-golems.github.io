@@ -652,6 +652,9 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .d-act{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
 #listeDecks#listeDecks .d-act>.btn{min-width:0;min-height:32px;padding:3px 1px;font-size:clamp(12px,6cqi,14px);white-space:nowrap}
 .d-tuile{container-type:inline-size}
+/* Nom long : 2 lignes au plus, les boutons restent entiers. */
+.d-tuile .d-haut h3{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.d-tuile .d-act{flex:none}
 .d-act>:not(.btn){grid-column:1/-1}
 .d-carte img{display:block;width:100%;aspect-ratio:5/7;height:auto;border-radius:10px}
 .d-qte{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;font-family:var(--titre)}
