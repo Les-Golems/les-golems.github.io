@@ -100,10 +100,12 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 .choixDeck{display:flex;flex-direction:column;gap:4px;margin:0 0 12px;text-align:left}
 .selDeck{font:inherit;font-size:15px;padding:8px 10px;border-radius:8px;background:var(--panneau2);color:inherit;border:1px solid var(--trait);max-width:100%}
 .selDeck:disabled{opacity:.7}
-.barreRejeu{position:fixed;left:50%;bottom:12px;translate:-50% 0;z-index:60;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;padding:8px 12px;background:var(--panneau);border:1px solid var(--trait);border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.45);max-width:calc(100vw - 32px)}
+.barreRejeu{position:fixed;left:12px;right:12px;bottom:12px;width:max-content;margin-inline:auto;z-index:60;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;padding:8px 12px;background:var(--panneau);border:1px solid var(--trait);border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.45);max-width:calc(100vw - 32px)}
 .barreRejeu .btn{padding:6px 12px;font-size:14px}.barreRejeu .r-pos{font-variant-numeric:tabular-nums;min-width:62px;text-align:center}
+body:has(#barreRejeu) #passer{display:none}
+@media (max-width:640px){.barreRejeu{flex-wrap:nowrap;gap:6px;padding:4px 6px;bottom:6px;border-radius:10px}.barreRejeu>b{display:none}.barreRejeu .r-pos{min-width:52px;font-size:14px}.barreRejeu .r-long{display:none}#barreRejeu#barreRejeu .btn{min-height:32px;padding:2px 10px;font-size:14px}}
 label{display:block;text-align:left;font-weight:700;font-size:14.5px;margin-bottom:6px}
-input[type=text]{width:100%;background:var(--encre);border:1px solid var(--trait);border-radius:8px;padding:11px 12px;font-size:16px}
+input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--encre);border:1px solid var(--trait);border-radius:8px;padding:11px 12px;font-size:16px}
 .erreur{color:var(--erreur);font-size:14.5px;min-height:22px;margin:6px 0;text-align:left}
 .btn{--bord:#08708c;background:linear-gradient(#3bd2f7,#01aad6);color:var(--encre);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 3px 0 var(--bord),0 5px 10px rgba(0,0,0,.35);transition:translate .1s,box-shadow .1s,filter .1s;border:0;border-radius:8px;padding:12px 20px;font-family:var(--titre);font-size:18px;min-height:46px}
 .btn:not(:disabled):hover{filter:brightness(1.08);translate:0 -1px}
@@ -558,7 +560,7 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
   .p-terrain{transition:none}
 }
 /* Decks et historique */
-@media (max-width:640px){.onglets{overflow-x:auto;scrollbar-width:none}.onglets button,body:has(#jouer.enJeu:not([hidden])) .onglets button{flex:0 0 auto;max-width:none;font-size:15.5px;padding:10px 8px}}
+@media (max-width:640px){.onglets{overflow-x:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 var(--g1,0px),#000 calc(100% - var(--g2,0px)),transparent);mask-image:linear-gradient(90deg,transparent,#000 var(--g1,0px),#000 calc(100% - var(--g2,0px)),transparent)}.onglets button,body:has(#jouer.enJeu:not([hidden])) .onglets button{flex:0 0 auto;max-width:none;font-size:15.5px;padding:10px 8px}}
 .haut{padding-block:16px;gap:14px}
 .haut img{width:60px;height:60px}
 .haut .sous-titre{display:block;margin-top:5px;font:600 16px/1.2 var(--corps);color:var(--texte);letter-spacing:0;opacity:1}
@@ -592,6 +594,17 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
   .d-panneau .dl-ligne{grid-template-columns:36px 36px 40px minmax(0,1fr) 26px;gap:4px;min-height:30px;padding:2px 6px}
   .d-panneau .dl-nom{font-size:14px;line-height:1.15}
   .d-panneau .dl-els img{width:18px;height:18px}
+  /* Panneau condense : 30 cartes et la courbe des couts tiennent a 1280 x 800 sans defiler. */
+  .d-panneau .d-haut{flex-wrap:nowrap;gap:6px}
+  .d-panneau .d-haut h3{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .d-panneau .d-haut:has(.ligne){flex-wrap:wrap}
+  .d-panneau .dl-liste li+li{margin-top:1px}
+  .d-panneau .dl-ligne{min-height:27px;padding:1px 6px}
+  .d-panneau .dl-nom{line-height:1.05}
+  .d-panneau .dl-pied{padding-top:6px;position:sticky;bottom:-12px;margin-bottom:-12px;padding-bottom:12px;background:var(--panneau);box-shadow:0 -6px 8px -6px rgba(0,0,0,.6)}
+  .d-panneau .dl-total{margin-bottom:4px}
+  .d-panneau .dl-col i{height:calc(var(--v)*30px)}
+  .d-panneau .d-haut{margin-bottom:3px}
 }
 .dl-liste{list-style:none;margin:0 auto;padding:0;max-width:640px}
 .dl-liste li+li{margin-top:3px}
@@ -606,7 +619,7 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .dl-cout .ico,.dl-force .ico{font-size:16px;color:var(--doux)}
 .dl-nom{font-weight:700;overflow-wrap:anywhere;min-width:0;display:flex;flex-direction:column}
 .dl-pseudo{color:#fff}
-.dl-titre{display:block;font-size:12px;line-height:1.2;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-text-stroke:3px #0a121a;paint-order:stroke fill;letter-spacing:.2px}
+.dl-titre{display:block;font-size:12px;line-height:1.2;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-text-stroke:3px #0a121a;paint-order:stroke fill;letter-spacing:.2px;text-shadow:0 0 2px #0a121a,0 1px 3px #0a121a}
 .dl-els{display:flex;gap:2px}
 .dl-els img{display:block;width:21px;height:21px}
 .dl-nb{text-align:right;font:400 16px/1 var(--titre);color:var(--or)}
@@ -615,9 +628,14 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .dl-total{margin:0 0 8px;font-weight:800}
 .dl-courbe{display:flex;align-items:flex-end;gap:6px;max-width:280px}
 .dl-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;font-size:13px;color:var(--doux)}
-.dl-col i{display:block;width:100%;min-height:0;border-radius:3px 3px 0 0;background:var(--bleu)}
+.dl-col i{display:block;width:100%;height:calc(var(--v)*44px);min-height:0;border-radius:3px 3px 0 0;background:var(--bleu)}
 .dl-col small{font-size:12px;line-height:1}
 .d-limite{color:var(--or);font-weight:700}
+.dl-invalide{margin:0 0 8px}
+.d-panneau{scrollbar-width:thin;scrollbar-color:#3d4e5d transparent}
+.d-panneau::-webkit-scrollbar{width:8px}.d-panneau::-webkit-scrollbar-thumb{background:#3d4e5d;border-radius:4px}.d-panneau::-webkit-scrollbar-track{background:transparent}
+.d-haut .dl-renomme,#listeDecks#listeDecks .dl-renomme{min-height:32px;padding:3px 10px;font-size:14px}
+.d-haut .ligne{flex:1 1 100%}.d-haut .ligne input{flex:1;width:auto;min-width:0;padding:6px 10px}
 /* Rejoindre : meme grille que Facile, Normal, Difficile ; le champ prend les deux premieres colonnes. */
 #formCode{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:end}
 #formCode>div{grid-column:span 2;min-width:0}
@@ -627,7 +645,7 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .d-grille{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 .d-tuile{display:flex;flex-direction:column;gap:10px;border:1px solid var(--trait);border-radius:12px;padding:12px}
 .d-haut{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
-.d-haut h3{flex:1;min-width:0;font-size:21px;overflow-wrap:anywhere;text-shadow:0 1px 3px #0a121a}
+.d-haut h3{flex:1;min-width:0;font-size:21px;overflow-wrap:anywhere;text-shadow:0 1px 3px #0a121a;-webkit-text-stroke:4px #0a121a;paint-order:stroke fill}
 .d-compte{font:400 18px/24px var(--titre);padding:0 8px;border-radius:8px;background:rgba(10,18,26,.75);color:var(--texte)}
 .d-compte.ok{color:#6fe08a}
 .d-pict{display:flex;gap:4px;min-height:26px}
@@ -734,7 +752,7 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
     <ol>
       <li><b>Décompte :</b> Force actuelle par colonne. Une colonne vide vaut 0.</li>
       <li>Le plus fort marque le terrain. En cas d'égalité, personne ne le marque.</li>
-      <li><b>Effets de fin de manche :</b> ceux du premier joueur de la manche, puis ceux de l'autre. KaTarN compte donc 8, 4, puis 0 : il est détruit à la fin de la manche 2. Palmarès voit le résultat du décompte ; si plusieurs terrains sont à égalité de points, chacun compte.</li>
+      <li><b>Effets de fin de manche :</b> ceux du premier joueur de la manche, puis ceux de l'autre. Sans bonus, KaTarN compte 8, puis 4, puis 0 et est détruit à la fin de la manche 2 ; avec ses bonus (Trait, cercle, Cyrdan), il peut tenir plus longtemps. Palmarès voit le résultat du décompte ; si plusieurs terrains sont à égalité de points, chacun compte.</li>
       <li><b>Terrains :</b> pour chaque joueur, ses Golems d'abord, puis ses terrains de gauche à droite vus du premier joueur, Le Buzzer en dernier. Le gagnant d'un terrain est celui du décompte : sans gagnant, pas d'effet. La Nuit au Village se résout avec le premier joueur : tous les Golems du terrain comptent, des deux camps, à leur Force actuelle ; en cas d'égalité, aucun n'est détruit. Le Camp rend 1 de Force à chaque Golem, sans dépasser sa base, pour chaque camp à son tour.</li>
       <li>Les cartes et les dégâts restent, le premier joueur change.</li>
     </ol>
@@ -746,7 +764,7 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
     <li><b>Ici :</b> toute la colonne du terrain, chez les deux joueurs.</li>
     <li>Un effet de terrain s'applique aux deux joueurs, sauf s'il dit le gagnant.</li>
     <li>Un terrain est actif toute la partie et son résultat est définitif.</li>
-    <li><b>La Faille et Le Vaisseau :</b> une fois par manche et par joueur, à son tour, gratuits.</li>
+    <li><b>La Faille et Le Vaisseau :</b> une fois par manche et par joueur, à son tour, gratuits, après l'étape de Forge.</li>
     <li><b>La Boutique :</b> poser ou remplacer, pas une évolution ; coût minimum 0.</li>
   </ul></div></details>
 
@@ -761,7 +779,6 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
   <details><summary><h3>Effets</h3><span>« À la pose » à chaque arrivée sur la grille, « En jeu » tant que la carte y reste.</span></summary><div class="corps"><ul>
     <li><b>À la pose :</b> à chaque arrivée sur la grille (Poser, Remplacer, Améliorer), après paiement. Échanger ou déplacer n'est pas une pose et garde les dégâts.</li>
     <li><b>En jeu :</b> tant que la carte est sur la grille.</li>
-    <li><b>Le Vaisseau :</b> une fois par manche pour chaque joueur, à son tour, gratuit, après l'étape de Forge.</li>
     <li>Un effet s'applique en entier. Sans cible, il ne se passe rien.</li>
     <li>La carte prime sur la règle.</li>
   </ul></div></details>
@@ -780,15 +797,12 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
     </ul>
   </div></details>
 
-  <!-- Section retirée pour l'instant :
-  <details><summary><h3>Cartes et decks</h3><span>Deck de 24 à 30 cartes, deux modes de jeu.</span></summary><div class="corps"><ul>
-    <li>Golems de coût 1 à 4, évolutions de coût 2 à 6, toutes dans le deck.</li>
-    <li>Deck de 24 à 30 cartes : 3 exemplaires maximum de chaque carte.</li>
-    <li><b>Draft :</b> 1 élément de base, puis des choix.</li>
-    <li><b>Deck libre :</b> chacun construit le sien.</li>
-    <li>De nouvelles cartes arrivent par vagues.</li>
+  <details><summary><h3>Cartes et decks</h3><span>Deck de 24 à 30 cartes, 3 exemplaires maximum par carte.</span></summary><div class="corps"><ul>
+    <li>Deck de 24 à 30 cartes.</li>
+    <li>3 exemplaires maximum de chaque carte. Une base et son évolution sont deux cartes différentes, comptées à part.</li>
+    <li>Aucune limite d'éléments pour l'instant.</li>
+    <li>Le paquet de test (33 cartes) est un deck d'essai fourni, volontairement hors de ces règles.</li>
   </ul></div></details>
-  -->
   </div></div>
 </section>
 
@@ -797,6 +811,7 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
   <p class="intro">Touche une carte pour l'agrandir.</p>
   <div class="filtres" id="filtreType"></div>
   <div class="filtres" id="filtreEl"></div>
+  <div class="filtres"><button class="pastille" id="toutAfficher" type="button">Tout afficher</button></div>
   <div class="grille" id="grille"></div>
   <p class="vide" id="vide" hidden>Aucune carte pour ce filtre.</p>
 </section>
@@ -932,7 +947,7 @@ function majMoi(){
 /* Compte : pseudo reserve + code secret (Firebase). Sans compte : invite, robot seulement, donnees sur l'appareil. */
 let pseudo='',modeCreer=false;
 const compteCo=()=>{try{return !!(room&&room.compte&&room.compte.connecte())}catch(e){return false}}; /* room est declare plus bas */
-function nettoie(s){return String(s||'').replace(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu,'').trim().slice(0,20)}
+function nettoie(s,n=20){return String(s||'').replace(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu,'').trim().slice(0,n)}
 function modeCompte(c){
   modeCreer=c;$('titrePop').textContent=c?'Créer un compte':'Se connecter';
   $('entrer').textContent=c?'Créer mon compte':'Se connecter';
@@ -985,12 +1000,15 @@ function onglet(n){
   ecrire('golems.onglet',n);
 }
 noms.forEach(n=>$('t-'+n).onclick=()=>onglet(n));
+/* Telephone : degrade de bord tant qu'il reste des onglets caches d'un cote. */
+{const o=document.querySelector('.onglets'),bord=()=>{const f=o.scrollWidth-o.clientWidth;o.style.setProperty('--g1',o.scrollLeft>2?'32px':'0px');o.style.setProperty('--g2',f-o.scrollLeft>2?'32px':'0px')};o.addEventListener('scroll',bord,{passive:true});addEventListener('resize',bord);if(document.fonts)document.fonts.ready.then(bord);bord()}
 
 /* Deux colonnes : une section ouverte de chaque côté pour les équilibrer. */
 if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
+ {version:'Version 0.2b',date:'3 novembre 2026',notes:["Rejouer contre le golem garde le niveau choisi, même après une reprise","Rejeu : commandes de jeu inactives, barre compacte sur téléphone, score final affiché à la fin","Règles : section Cartes et decks, exemple de KaTarN et Vaisseau clarifiés","Decks : Renommer dans la liste, message pour un deck incomplet, courbe des coûts visible","Cartes : bouton Tout afficher dans les filtres","Onglets plus lisibles sur téléphone"]},
  {version:'Version 0.2a',date:'3 novembre 2026',notes:["Comptes : pseudo réservé et code secret, decks et historique enregistrés sur ton compte","Le jeu en ligne demande un compte ; le robot reste jouable en invité","Tes decks sont jouables : choisis-le avant Prêt ou avant d'affronter le golem","Rejeu des parties depuis l'historique","Les parties en cours de la version précédente ne peuvent pas être reprises"]},
  {version:'Version 0.2',date:'3 novembre 2026',notes:["Nouvelle règle : à chaque manche, le joueur qui joue en second ne pioche qu'1 carte à son premier tour de la manche","Jeu en ligne sur le site les-golems.github.io","Les parties en cours de la version précédente ne peuvent pas être reprises"]},
  {version:'Version 0.1b',date:'2 novembre 2026',notes:["Trigas et son évolution, K-Chan : jouables","Orotembu en aperçu dans l'onglet Cartes"]},
@@ -1034,6 +1052,7 @@ function pastilles(box,liste,get,set,point){
 }
 pastilles($('filtreType'),TY,()=>fTy,v=>fTy=v);
 pastilles($('filtreEl'),EL,()=>fEl,v=>fEl=v,true);
+$('toutAfficher').onclick=()=>{fTy='';fEl='';maj()};
 GALERIE.forEach(c=>{
   const b=document.createElement('button');b.className='carte';b.dataset.id=c[0];b.setAttribute('aria-label',c[1]);
   const i=document.createElement('img');i.src='cartes/'+c[0]+'.jpg';i.alt=c[1];i.loading='lazy';i.width=600;i.height=840;
@@ -1581,14 +1600,16 @@ function etapes(av,s,a,p){
   const t0=texteTour(av,me),t1=texteTour(s,me);
   if(t0!==t1||(s.phase==='jeu'&&(av.tour!==s.tour||av.manche!==s.manche||quiJoue(av)!==quiJoue(s))))L.push(()=>{
     ajoutFx({q:'.p-tourde',classe:'bascule'},750);
-    if(!s.fin&&s.phase==='jeu'&&!vite())montreBandeau(t1,quiJoue(s)===me);
+    if(!s.fin&&s.phase==='jeu'&&!vite()&&!(partie.rejeu&&partie.rejeu.pos>=partie.rejeu.seq.length))montreBandeau(t1,quiJoue(s)===me);
     return 0;
   });
   if(dec)verrou=true;
   return L;
 }
 function montreBandeau(t,amoi){
-  const b=$('bandeau');b.textContent=t;b.classList.toggle('amoi',amoi);b.hidden=true;void b.offsetWidth;b.hidden=false;
+  const b=$('bandeau'),nv=document.querySelector('nav');
+  /* Sous la barre des onglets quand elle est visible, jamais par-dessus. */
+  b.style.top=Math.max(8,Math.round(nv?nv.getBoundingClientRect().bottom:0)+8)+'px';b.textContent=t;b.classList.toggle('amoi',amoi);b.hidden=true;void b.offsetWidth;b.hidden=false;
   clearTimeout(minBandeau);minBandeau=setTimeout(()=>{b.hidden=true},2100);
 }
 /* Des : purement visuel, la valeur vient du journal du moteur. */
@@ -1781,6 +1802,8 @@ function verifieRecap(){
   const s=partie.etat,n=mancheFinie(s);
   if(animCours)return;
   if(!s.dernier||n<=partie.recapVu||n===recapAff)return;
+  /* Fin d'un rejeu : pas de recap de manche, le score final s'affiche directement. */
+  if(partie.rejeu&&s.fin){partie.recapVu=n;return}
   const me=partie.moi,lui=1-me,cols=me===0?[0,1,2]:[2,1,0],box=$('recap'),d=el('div','boite');
   const nl=nomJ(lui),h=el('h2','','Fin de la manche '+n);h.id='recapTitre';d.append(h);
   cols.forEach(k=>{
@@ -1886,7 +1909,7 @@ function barreRejeu(){
   const bt=(t,f,lib)=>{const q=el('button','btn sec',t);q.type='button';if(lib)q.setAttribute('aria-label',lib);q.onclick=f;b.append(q);return q};
   b.append(el('b','','Rejeu'),el('span','r-pos',R.pos+' / '+R.seq.length));
   bt(R.lecture?'Pause':'Lecture',()=>{R.lecture=!R.lecture;if(R.lecture&&R.pos>=R.seq.length)return relanceRejeu();barreRejeu();pasRejeu()});
-  bt('Vitesse x'+R.vitesse,()=>{R.vitesse=R.vitesse===1?2:R.vitesse===2?4:1;barreRejeu();pasRejeu()},'Changer la vitesse');
+  const vt=bt('',()=>{R.vitesse=R.vitesse===1?2:R.vitesse===2?4:1;barreRejeu();pasRejeu()},'Changer la vitesse');vt.append(el('span','r-long','Vitesse '),'x'+R.vitesse);
   bt('Quitter',finRejeu,'Quitter le rejeu');
 }
 function relanceRejeu(){const R=partie.rejeu;const h={rejeu:{v:M.VERSION,graine:partie.graine,moi:partie.moi,decks:partie.decks,j:R.j.map(M.ecritJournal)},advNom:partie.advNom};lanceRejeu(h)}
@@ -1975,7 +1998,7 @@ function proposeImport(){
   oui.onclick=async()=>{
     oui.disabled=non.disabled=true;
     try{
-      const ids=new Set(D.decks.map(d=>d.id)),l=D.decks.concat(dl.filter(d=>!ids.has(d.id)).map(d=>({id:String(d.id).replace(/[^a-z0-9]/g,'').slice(0,16)||nouveauSid(),nom:nettoie(d.nom).slice(0,24)||'Deck',cartes:d.cartes}))).slice(0,MAX_DECKS);
+      const ids=new Set(D.decks.map(d=>d.id)),l=D.decks.concat(dl.filter(d=>!ids.has(d.id)).map(d=>({id:String(d.id).replace(/[^a-z0-9]/g,'').slice(0,16)||nouveauSid(),nom:nettoie(d.nom,24)||'Deck',cartes:d.cartes}))).slice(0,MAX_DECKS);
       await room.compte.ecritDecks(l);
       await room.compte.ajouteHisto(hl.filter(x=>x&&typeof x.id==='string'&&/^-?[0-9]{1,12}-[0-9]{10,14}$/.test(x.id)));
     }catch(e){console.warn(e)}
@@ -1999,7 +2022,7 @@ function peintDecks(){
   const zo=el('div','d-zone'),g=el('div','d-grille'),pan=el('aside','d-panneau');pan.id='panneauDeck';pan.setAttribute('aria-label','Liste du deck');pan.setAttribute('aria-live','polite');
   const montre=(d,t)=>{
     deckVu=d.id;g.querySelectorAll('.d-tuile').forEach(x=>{const o=x===t;x.classList.toggle('choisie',o);x.setAttribute('aria-pressed',o)});
-    pan.textContent='';decklist(pan,d);
+    pan.textContent='';decklist(pan,d,l);
     /* Tuiles empilees : le panneau est sous la pile, on l'amene a l'ecran. */
     if(matchMedia('(max-width:1199px)').matches)pan.scrollIntoView({block:'start'});
   };
@@ -2010,10 +2033,7 @@ function peintDecks(){
     const h=el('div','d-haut');h.append(el('h3','',d.nom),compteDeck(d));
     const z=el('div','d-act'),bt=(x,f)=>{const q=el('button','btn sec',x);q.type='button';q.onclick=f;z.append(q)};
     bt('Modifier',()=>{deckOuvert=d.id;peintDecks()});
-    bt('Renommer',()=>{
-      z.textContent='';const f=el('form','ligne'),i=el('input');i.type='text';i.maxLength=24;i.value=d.nom;i.setAttribute('aria-label','Nom du deck');
-      const ok=el('button','btn','OK');f.append(i,ok);f.onsubmit=e=>{e.preventDefault();const v=nettoie(i.value);if(v){d.nom=v;gardeDecks(l)}peintDecks()};z.append(f);i.focus();
-    });
+    bt('Renommer',()=>renomme(z,l,d));
     bt('Supprimer',()=>confirmePage(z,'Supprimer '+d.nom+' ?',()=>{gardeDecks(l.filter(x=>x!==d));peintDecks()}));
     t.append(h,p,z);g.append(t);
     t.tabIndex=0;t.setAttribute('role','button');t.setAttribute('aria-label','Voir la liste de '+d.nom);
@@ -2022,19 +2042,27 @@ function peintDecks(){
     t.onkeydown=e=>{if(e.target===t&&(e.key==='Enter'||e.key===' ')){e.preventDefault();montre(d,t)}};
   });
   const vu=l.find(x=>x.id===deckVu);
-  if(vu)decklist(pan,vu);else pan.append(el('p','intro o-nb',l.length?'Choisis un deck pour voir sa liste.':'Aucun deck pour le moment.'));
+  if(vu)decklist(pan,vu,l);else pan.append(el('p','intro o-nb',l.length?'Choisis un deck pour voir sa liste.':'Aucun deck pour le moment.'));
   zo.append(g,pan);b.append(zo);hauteurDecks();
 }
 /* Hauteur restante jusqu'au bas de la fenetre : le CSS n'en tient compte qu'a partir de 1200 px. */
 function hauteurDecks(){
   const z=document.querySelector('.d-zone');if(!z||!z.offsetParent)return;
-  z.style.setProperty('--d-h',Math.min(570,Math.max(420,innerHeight-Math.ceil(z.getBoundingClientRect().top+scrollY)-12))+'px');
+  z.style.setProperty('--d-h',Math.min(570,Math.max(320,innerHeight-Math.ceil(z.getBoundingClientRect().top+scrollY)-12))+'px');
 }
 addEventListener('resize',hauteurDecks);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(hauteurDecks);
 /* Liste compacte d'un deck : triee par cout, puis par nom. */
-function decklist(b,d){
-  const h=el('div','d-haut');h.append(el('h3','',d.nom),compteDeck(d));b.append(h);
+/* Champ Renommer : 24 caracteres, comme nettoie(..,24). */
+function renomme(z,l,d){
+  z.textContent='';const f=el('form','ligne'),i=el('input');i.type='text';i.maxLength=24;i.value=d.nom;i.setAttribute('aria-label','Nom du deck');
+  const ok=el('button','btn','OK');f.append(i,ok);f.onsubmit=e=>{e.preventDefault();const v=nettoie(i.value,24);if(v){d.nom=v;gardeDecks(l)}peintDecks()};z.append(f);i.focus();
+}
+function decklist(b,d,l){
+  const h=el('div','d-haut');h.append(el('h3','',d.nom),compteDeck(d));
+  if(l){const q=el('button','btn sec dl-renomme','Renommer');q.type='button';q.onclick=()=>renomme(h,l,d);h.append(q)}
+  b.append(h);
+  if(totalDeck(d)<DECK_MIN)b.append(el('p','d-limite dl-invalide','Deck incomplet : '+DECK_MIN+' cartes minimum.'));
   /* M.CARTES est indexe par identifiant ('001e') ; M.carte attend un numero d'exemplaire de partie. */
   const L=CARTES.filter(c=>d.cartes[c[0]]>0).map(c=>({c,C:M.CARTES[c[0]],n:+d.cartes[c[0]]})).sort((x,y)=>x.C.cout-y.C.cout||x.c[1].localeCompare(y.c[1],'fr'));
   if(!L.length){b.append(el('p','intro o-nb','Ce deck est vide.'));return}
@@ -2063,13 +2091,14 @@ function decklist(b,d){
   const pa=Array.from({length:mx+1},(_,i)=>L.filter(x=>x.C.cout===i).reduce((t,x)=>t+x.n,0)),hm=Math.max(...pa);
   const pied=el('div','dl-pied'),cv=el('div','dl-courbe');
   cv.setAttribute('role','img');cv.setAttribute('aria-label','Courbe de coûts : '+pa.map((v,i)=>v+' à '+i).join(', '));
-  pa.forEach((v,i)=>{const k=el('div','dl-col'),ba=el('i');ba.style.height=(v/hm*44)+'px';k.append(el('small','',v?String(v):''),ba,el('span','',String(i)));cv.append(k)});
+  pa.forEach((v,i)=>{const k=el('div','dl-col'),ba=el('i');ba.style.setProperty('--v',v/hm);k.append(el('small','',v?String(v):''),ba,el('span','',String(i)));cv.append(k)});
   pied.append(el('p','dl-total',tot+' carte'+(tot>1?'s':'')+', coût moyen '+moy.toFixed(1).replace('.',',')),cv);
   b.append(pied);
 }
 function editeur(b,l,d){
   const h=el('div','d-haut'),r=el('button','btn sec','Retour aux decks');r.type='button';r.onclick=()=>{deckOuvert=null;peintDecks()};
   h.append(el('h3','',d.nom),compteDeck(d),r);b.append(h);
+  if(totalDeck(d)<DECK_MIN)b.append(el('p','d-limite dl-invalide','Deck incomplet : '+DECK_MIN+' cartes minimum.'));
   const f=el('div','filtres');EL.forEach(([v,t])=>{const q=el('button','pastille');if(v){const i=el('i');i.style.setProperty('--c','var(--'+v+')');q.append(i)}q.append(t);q.type='button';q.setAttribute('aria-pressed',v===filtreDeck);q.onclick=()=>{filtreDeck=v;peintDecks()};f.append(q)});b.append(f);
   const g=el('div','grille');
   CARTES.filter(c=>!filtreDeck||c[2].includes(filtreDeck)).forEach(c=>{
@@ -2351,6 +2380,7 @@ function affiche(){
       const mot=!J.grille[l][k]?'Poser':M.carte(sel).base?'Améliorer':'Remplacer';
       return {texte:mot+' '+M.coutPose(s,me,sel,l,k),bonus:bonusPrevu(s,me,sel,l,k),fait:()=>joue(a)}};
   }
+  if(partie.rejeu)cible=null;
   repeint=()=>{
     const A=partie&&partie.ecran||s,t=el('div','p-terrains'),cc=M.colonnes(A);
     cols.forEach(k=>{const T=s.terrains[k],d=el('div','p-terrain'),x=cc[k][lui],y=cc[k][me],to=el('div','p-totaux');d.dataset.k=k;
@@ -2369,8 +2399,8 @@ function affiche(){
     const f=el('div','bloc p-fin'),w=s.fin.gagnant;
     f.append(el('h3','',w===null?'Match nul':w===me?'Victoire':'Défaite'));
     f.append(el('p','',J.score+' à '+s.j[lui].score+(s.fin.departage?', Force totale '+s.forceTotale[me]+' contre '+s.forceTotale[lui]:'')));
-    const b=bouton(partie.veut?"En attente de l'adversaire":'Rejouer',()=>{if(partie.local){lanceLocal(null);return}partie.veut=true;sauve();pub({veut:partie.graine});affiche();majPartie()});
-    b.id='rejouer';b.disabled=partie.veut;f.append(b);
+    const b=bouton(partie.veut?"En attente de l'adversaire":'Rejouer',()=>{if(partie.local){niveauChoisi=partie.niveau||niveauChoisi;lanceLocal(null);return}partie.veut=true;sauve();pub({veut:partie.graine});affiche();majPartie()});
+    b.id='rejouer';b.disabled=partie.veut;if(!partie.rejeu)f.append(b);
     const nm=p=>p===me?'Toi':nomJ(p),rf=el('div','r-fin');
     parManche(s).forEach((o,i)=>{const d=el('div');d.append(el('b','','Manche '+(i+1)),lignesManche(o,nm));rf.append(d)});
     const lm=ligneMvp(M.bilan(s));if(lm){const q=el('p','',lm);q.id='ligneMvp';f.append(rf,q)}else f.append(rf);
@@ -2470,6 +2500,8 @@ function affiche(){
   table.append(b,plat,pl,cote);
   box.append(table);
   li.scrollTop=li.scrollHeight;
+  /* Rejeu : on regarde seulement, toutes les commandes de jeu sont inactives. */
+  if(partie.rejeu)pl.querySelectorAll('.p-main button,.p-btns button').forEach(x=>{if(!x.closest('.p-fin'))x.disabled=true});
   poseFx();
   scrollTo(0,hautPage);
 }
