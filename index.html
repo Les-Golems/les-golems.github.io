@@ -654,7 +654,6 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
   .p-terrain{transition:none}
 }
 /* Decks et historique */
-@media (max-width:640px){.onglets{overflow-x:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 var(--g1,0px),#000 calc(100% - var(--g2,0px)),transparent);mask-image:linear-gradient(90deg,transparent,#000 var(--g1,0px),#000 calc(100% - var(--g2,0px)),transparent)}.onglets button,body:has(#jouer.enJeu:not([hidden])) .onglets button{flex:0 0 auto;max-width:none;font-size:15.5px;padding:10px 8px}}
 .haut{padding-block:16px;gap:14px}
 .haut img{width:60px;height:60px}
 .haut .sous-titre{display:block;margin-top:5px;font:600 16px/1.2 var(--corps);color:var(--texte);letter-spacing:0;opacity:1}
@@ -892,6 +891,9 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
 .onglets{gap:8px;padding-block:6px 9px}
 /* Onglets : 17 px et 44 px de haut partout (nav = 60 px, sous le top:64px des panneaux collants). */
 .onglets button:not(#_x#_x),body:has(#jouer.enJeu:not([hidden])) .onglets button:not(#_x#_x){min-height:44px;height:44px;font-size:17px;padding-block:0}
+.o-ic,.o-ct{display:none}
+/* Telephone : 6 onglets egaux sur une ligne, icone au-dessus d'un libelle court. */
+@media (max-width:640px){.onglets{gap:4px}.onglets button:not(#_x#_x),body:has(#jouer.enJeu:not([hidden])) .onglets button:not(#_x#_x){flex:1 1 0;min-width:0;max-width:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0 1px;font-size:12.5px;line-height:1}.o-lg{display:none}.o-ct{display:block;white-space:nowrap}.o-ic{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}}
 :is(.pastille,.modif,.j-btn,.p-outil,.onglets button):not(:disabled):hover{filter:brightness(1.08);translate:0 -1px}
 :is(.pastille,.modif,.j-btn,.p-outil,.onglets button):not(:disabled):active{transform:none;translate:0 2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 1px 0 var(--bord)}
 /* En-tete bleu ciel */
@@ -908,6 +910,7 @@ header .haut .qui{gap:16px;min-width:0}
 header .haut #pseudoAffiche{max-width:260px}
 header .haut .moi{min-width:0;flex:0 1 auto}
 @media (max-width:440px){header .haut .moi{flex:none;display:grid;grid-template-columns:auto auto;justify-items:end;align-items:center;column-gap:12px;row-gap:5px}header .haut .qui{display:contents}header .haut .avatarBtn{grid-row:1;grid-column:1}header .haut #modifierPseudo{grid-row:1;grid-column:2}header .haut #pseudoAffiche{grid-row:2;grid-column:1/3;font-size:13.5px;line-height:1.2;max-width:160px;white-space:nowrap}header .haut h1{min-width:0}}
+@media (max-width:359px){.haut{gap:7px}.haut img{width:36px;height:36px}.haut h1{font-size:18px}.haut .sous-titre{font-size:12px}header .haut .moi{column-gap:8px}#avatarMoi{width:38px;height:38px;font-size:19px}header .haut #modifierPseudo{padding:5px 8px;font-size:13px}}
 </style>
 
 <header><div class="large haut">
@@ -917,12 +920,12 @@ header .haut .moi{min-width:0;flex:0 1 auto}
 <div id="galerieAvatar" class="galAv" hidden><div class="galBoite" role="dialog" aria-modal="true" aria-labelledby="galTitre"><h2 id="galTitre">Choisis ton avatar</h2><div class="galGrille" id="galGrille"></div><button class="modif" id="galFermer" type="button">Fermer</button></div></div>
 </div></header>
 <nav><div class="large onglets" role="tablist">
-  <button role="tab" id="t-nouveautes" aria-controls="nouveautes" aria-selected="true">Nouveautés</button>
-  <button role="tab" id="t-jouer" aria-controls="jouer" aria-selected="false">Jouer</button>
-  <button role="tab" id="t-decks" aria-controls="decks" aria-selected="false">Decks</button>
-  <button role="tab" id="t-historique" aria-controls="historique" aria-selected="false">Historique</button>
-  <button role="tab" id="t-cartes" aria-controls="cartes" aria-selected="false">Cartes</button>
-  <button role="tab" id="t-regles" aria-controls="regles" aria-selected="false">Règles</button>
+  <button role="tab" id="t-nouveautes" aria-controls="nouveautes" aria-selected="true" aria-label="Nouveautés"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span class="o-lg">Nouveautés</span><span class="o-ct">Infos</span></button>
+  <button role="tab" id="t-jouer" aria-controls="jouer" aria-selected="false" aria-label="Jouer"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg><span class="o-lg">Jouer</span><span class="o-ct">Jouer</span></button>
+  <button role="tab" id="t-decks" aria-controls="decks" aria-selected="false" aria-label="Decks"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="12" height="16" rx="2"/><rect x="4" y="6" width="12" height="16" rx="2"/></svg><span class="o-lg">Decks</span><span class="o-ct">Decks</span></button>
+  <button role="tab" id="t-historique" aria-controls="historique" aria-selected="false" aria-label="Historique"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.5l3.5 2"/></svg><span class="o-lg">Historique</span><span class="o-ct">Parties</span></button>
+  <button role="tab" id="t-cartes" aria-controls="cartes" aria-selected="false" aria-label="Cartes"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 9h6M9 13h6"/></svg><span class="o-lg">Cartes</span><span class="o-ct">Cartes</span></button>
+  <button role="tab" id="t-regles" aria-controls="regles" aria-selected="false" aria-label="Règles"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5c3-1.5 5.5-1.5 8 0v15c-2.5-1.5-5-1.5-8 0zM20 5c-3-1.5-5.5-1.5-8 0v15c2.5-1.5 5-1.5 8 0z"/></svg><span class="o-lg">Règles</span><span class="o-ct">Règles</span></button>
 </div></nav>
 
 <main class="large">
@@ -1044,9 +1047,9 @@ header .haut .moi{min-width:0;flex:0 1 auto}
         </form>
       </div>
       <div class="bloc" id="blocRobot">
-        <h3>S'entraîner contre un golem</h3>
+        <h3>S'entraîner contre un Golem</h3>
         <div class="choixDeck"><label for="deckRobot">Ton deck</label><select id="deckRobot" class="selDeck"></select></div>
-        <div class="p-btns"><div class="niveaux" role="group" aria-label="Niveau du golem"><button class="btn niv-f" data-niveau="facile" type="button">Facile</button><button class="btn niv-n" data-niveau="normal" type="button">Normal</button><button class="btn niv-d" data-niveau="difficile" type="button">Difficile</button></div><button class="btn sec" id="repriseRobot" type="button" hidden>Reprendre l'entraînement</button></div>
+        <div class="p-btns"><div class="niveaux" role="group" aria-label="Niveau du Golem"><button class="btn niv-f" data-niveau="facile" type="button">Facile</button><button class="btn niv-n" data-niveau="normal" type="button">Normal</button><button class="btn niv-d" data-niveau="difficile" type="button">Difficile</button></div><button class="btn sec" id="repriseRobot" type="button" hidden>Reprendre l'entraînement</button></div>
       </div>
       <div class="bloc" id="reprise" hidden>
         <h3>Partie en cours</h3>
@@ -1239,8 +1242,6 @@ function onglet(n){
   ecrire('golems.onglet',n);
 }
 noms.forEach(n=>$('t-'+n).onclick=()=>onglet(n));
-/* Telephone : degrade de bord tant qu'il reste des onglets caches d'un cote. */
-{const o=document.querySelector('.onglets'),bord=()=>{const f=o.scrollWidth-o.clientWidth;o.style.setProperty('--g1',o.scrollLeft>2?'32px':'0px');o.style.setProperty('--g2',f-o.scrollLeft>2?'32px':'0px')};o.addEventListener('scroll',bord,{passive:true});addEventListener('resize',bord);if(document.fonts)document.fonts.ready.then(bord);bord()}
 
 /* Deux colonnes : une section ouverte de chaque côté pour les équilibrer. */
 if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
