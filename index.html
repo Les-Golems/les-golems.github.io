@@ -1572,16 +1572,16 @@ const NOUVEAUX_GOLEMS={titre:'Nouveaux Golems disponibles : Indra et Glad',date:
 };
 (()=>{const g=NOUVEAUX_GOLEMS,mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
   const a=mk('article','note nv-golem'),l=mk('div','nv-ligne'),v=mk('video','nv-video');
-  v.src=g.video;v.poster=g.affiche;v.preload='metadata';v.controls=v.loop=v.playsInline=true;v.volume=0.6;
+  v.src=g.video;v.poster=g.affiche;v.preload='metadata';v.controls=v.playsInline=true;v.volume=0.6;
   v.setAttribute('playsinline','');v.setAttribute('aria-label','Présentation des nouveaux Golems');
   l.append(v);a.append(mk('h3','',g.titre),mk('time','',g.date),l);$('notes').prepend(a);
   /* Lecture avec son quand l'onglet Nouveautés est affiché ; si le navigateur refuse, lecture muette
-     puis son rétabli au premier clic ou à la première touche (une seule fois, sans repartir du début). Pause hors de l'onglet. */
+     puis son rétabli au premier clic ou à la première touche (une seule fois, sans repartir du début). Pause hors de l'onglet. Une seule lecture : finie, elle ne repart pas d'elle-même (bouton lecture pour la revoir). */
   let rattrape=false;
   const rend=()=>{removeEventListener('pointerdown',rend,true);removeEventListener('keydown',rend,true);if(rattrape){rattrape=false;v.muted=false}};
   const lance=()=>{const p=v.play();if(p&&p.catch)p.catch(e=>{if(!e||e.name!=='NotAllowedError'||v.muted)return;v.muted=true;
     v.play().catch(()=>{});if(!rattrape){rattrape=true;addEventListener('pointerdown',rend,true);addEventListener('keydown',rend,true)}})};
-  const sec=$('nouveautes'),suit=()=>{if(sec.hidden)v.pause();else lance()};
+  const sec=$('nouveautes'),suit=()=>{if(sec.hidden)v.pause();else if(!v.ended)lance()};
   new MutationObserver(suit).observe(sec,{attributes:true,attributeFilter:['hidden']});suit();
 })();
 
