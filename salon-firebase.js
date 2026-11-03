@@ -250,8 +250,8 @@ async function ouvre() {
     async ajouteHisto(entrees) {
       if (!compte.connecte()) return;
       const maj = {};
-      // Trop long : on retire d'abord le bilan, puis le rejeu, jamais en coupant le JSON.
-      const texte = x => { let t = JSON.stringify(x); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], rejeu: null }); return t.length > 12000 ? null : t; };
+      // Trop long : on retire d'abord le bilan, puis le detail des manches, le rejeu en dernier, jamais en coupant le JSON.
+      const texte = x => { let t = JSON.stringify(x); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [], rejeu: null }); return t.length > 12000 ? null : t; };
       entrees.forEach(x => { const t = x && x.id && texte(x); if (t && !donnees.historique.some(y => y.id === x.id)) { donnees.historique.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; } });
       donnees.historique.sort((a, b) => b.date - a.date);
       donnees.historique.splice(MAX_HISTO).forEach(x => { maj[x.id] = null; });

@@ -8,6 +8,17 @@ Jeu de cartes communautaire du Discord Les Golems, jouable dans le navigateur : 
 - `database.rules.json` : règles de sécurité de la base, à coller dans la console Firebase (Realtime Database > Règles > Publier).
 - `tests/test_moteur.js` : tests du moteur (Node, ou Chrome headless avec un petit harnais).
 
+## Moteurs archivés (rejeux)
+
+Chaque partie de l'historique enregistre la version de son moteur (`moteur` et `rejeu.v`). Le rejeu recharge le moteur archivé `moteurs/moteur-<version>.js` de cette version, jamais le moteur courant si la version diffère : les rejeux restent possibles après les mises à jour.
+
+Règle, à chaque nouvelle version du moteur :
+1. Changer `VERSION` en tête de `moteur.js`.
+2. Copier le nouveau `moteur.js` tel quel dans `moteurs/moteur-<nouvelle version>.js` (les anciennes archives ne sont jamais modifiées ni supprimées).
+3. Ajouter la nouvelle version à la liste `MOTEURS_ARCHIVES` dans `index.html`.
+
+Sans archive, les parties de cette version affichent « Rejeu indisponible ». Les parties de la version 0.1 n'ont pas de journaux (le rejeu date de la 0.2) : elles ne peuvent pas être rejouées.
+
 ## Comptes
 
 - Sans compte (invité) : jeu contre le robot ; decks et historique restent sur l'appareil.
