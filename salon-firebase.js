@@ -18,9 +18,18 @@
 //                               { a: uid auteur, s: sid, g: graine, n: rang, c: code du coup }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, setPersistence, browserSessionPersistence, browserLocalPersistence,
-  createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { firebaseConfig } from "./firebase-config.js";
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, equalTo, connectDatabaseEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { firebaseConfig as configEnLigne } from "./firebase-config.js";
+
+// Servi depuis localhost ou 127.0.0.1 : émulateur Firebase local (projet de démonstration
+// demo-les-golems, voir lancer_emulateur.ps1). Jamais en ligne.
+const EMULATEUR = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+const HOTE_EMU = "127.0.0.1";
+const firebaseConfig = EMULATEUR
+  ? { apiKey: "demo-cle", authDomain: "demo-les-golems.firebaseapp.com", projectId: "demo-les-golems",
+      databaseURL: `http://${HOTE_EMU}:9000?ns=demo-les-golems-default-rtdb` }
+  : configEnLigne;
 
 const CHAMPS_HALL = ["pseudo", "salon", "quitte"];
 const CHAMPS_SALON = ["pseudo", "arrivee", "sid", "pret", "deck", "graine", "jg", "adv", "veut", "quitte"];
@@ -67,6 +76,10 @@ async function ouvre() {
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getDatabase(app);
+  if (EMULATEUR) {
+    connectAuthEmulator(auth, `http://${HOTE_EMU}:9099`, { disableWarnings: true });
+    connectDatabaseEmulator(db, HOTE_EMU, 9000);
+  }
   // Un compte reste connecté (stockage local) ; un invité vit le temps de l'onglet.
   await auth.authStateReady();
   if (!auth.currentUser) { await setPersistence(auth, browserSessionPersistence); await signInAnonymously(auth); }
@@ -123,6 +136,7 @@ async function ouvre() {
       pseudo: typeof v.pseudo === "string" ? v.pseudo : "",
       avatarId: typeof v.avatarId === "string" ? v.avatarId : "",
       importe: !!v.importe,
+      cree: +v.cree || 0,
       decks: versListe(v.decks).map(d => ({ id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0 })),
       historique: Object.keys(v.historique || {}).map(k => { try { return JSON.parse(v.historique[k].x); } catch (e) { return null; } })
         .filter(x => x && x.id).sort((a, b) => b.date - a.date)
@@ -153,6 +167,18 @@ async function ouvre() {
     uid: () => moi,
     pseudo: () => donnees ? donnees.pseudo : "",
     avatarId: () => donnees ? donnees.avatarId : "",
+    // Avatar choisi en galerie ("" = initiale) : joueurs/{uid}/avatarId.
+    async choisirAvatar(id) {
+      if (!estCompte() || !donnees) return;
+      const r = ref(db, P + "joueurs/" + moi + "/avatarId");
+      if (id) await set(r, id); else await remove(r);
+      donnees.avatarId = id || "";
+    },
+    // Avatar d'un autre compte (lisible par tout connecté, aucune règle à changer).
+    async avatarDe(uid) {
+      if (typeof uid !== "string" || !uid) return "";
+      try { const v = (await get(ref(db, P + "joueurs/" + uid + "/avatarId"))).val(); return typeof v === "string" ? v : ""; } catch (e) { return ""; }
+    },
     donnees: () => donnees,
     onChange(f) { ecouteCompte.push(f); },
     async creer(pseudo, code) {
@@ -269,6 +295,14 @@ async function ouvre() {
     const erreur = () => { if (!fini) perdu.forEach(f => f()); };
     stop.push(onValue(ref(db, base + "/joueurs"), s => { joueurs = s.val() || {}; notifie(); }, erreur));
     stop.push(onValue(ref(db, base + "/coups"), s => { coups = s.val() || {}; notifie(); }, erreur));
+    // Chat : salons/{code}/chat/{push} = { a: uid, p: pseudo, t: heure serveur, m: texte <= 200 }.
+    let chat = [];
+    const ecouteChat = [];
+    stop.push(onValue(ref(db, base + "/chat"), s => {
+      const v = s.val() || {};
+      chat = Object.keys(v).sort().map(k => ({ id: k, ...v[k] })).filter(x => typeof x.m === "string");
+      if (!fini) ecouteChat.forEach(f => f(chat));
+    }, () => {}));
 
     function journal(sid, g) {
       const l = [];
@@ -308,6 +342,13 @@ async function ouvre() {
         const o = {}; uids.forEach(u => { if (typeof u === "string") o[u] = true; });
         if (!o[uid] || Object.keys(o).length !== 2) return;
         try { await set(ref(db, base + "/engages"), o); } catch (e) {}
+      },
+      chat: () => chat,
+      onChat(f) { ecouteChat.push(f); f(chat); },
+      async dit(m) {
+        m = String(m || "").replace(/\s+/g, " ").trim().slice(0, 200);
+        if (!m || !donnees || !donnees.pseudo) return;
+        await set(push(ref(db, base + "/chat")), { a: uid, p: donnees.pseudo, t: serverTimestamp(), m });
       },
       async libere() { try { await remove(ref(db, base + "/engages")); } catch (e) {} },
       async presence(p) {

@@ -3,6 +3,27 @@
 <meta charset="utf-8">
 <title>Les Golems</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Jeu de cartes communautaire">
+<meta name="theme-color" content="#0a121a">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Les Golems">
+<meta property="og:title" content="Les Golems">
+<meta property="og:description" content="Jeu de cartes communautaire">
+<meta property="og:url" content="https://les-golems.github.io/">
+<meta property="og:image" content="https://les-golems.github.io/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Les Golems · Jeu de cartes communautaire">
+<meta property="og:locale" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Les Golems">
+<meta name="twitter:description" content="Jeu de cartes communautaire">
+<meta name="twitter:image" content="https://les-golems.github.io/og.jpg">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<script defer src="signal-tour.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Lilita+One&family=Nunito+Sans:wght@400;700;800&display=swap');
 :root{
@@ -100,6 +121,14 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 .choixDeck{display:flex;flex-direction:column;gap:4px;margin:0 0 12px;text-align:left}
 .selDeck{font:inherit;font-size:15px;padding:8px 10px;border-radius:8px;background:var(--panneau2);color:inherit;border:1px solid var(--trait);max-width:100%}
 .selDeck:disabled{opacity:.7}
+.cd-boite{max-width:560px;width:calc(100vw - 32px);max-height:calc(100vh - 32px);overflow:auto;text-align:left}
+.cd-boite h2{text-align:center;margin-top:0}
+.cd-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:10px 0 14px}
+.cd-tuile{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px;border:2px solid var(--trait);border-radius:9px;background:var(--panneau2);color:var(--texte);font:inherit;text-align:left;cursor:pointer;min-width:0}
+.cd-tuile .h-deck{max-width:none;display:block}
+.cd-tuile[aria-pressed=true]{border-color:var(--or);box-shadow:0 0 0 1px var(--or)}
+.cd-tuile.cd-off{opacity:.45;cursor:not-allowed}
+.cd-nb{font-size:13px;color:var(--doux)}
 .barreRejeu{position:fixed;left:12px;right:12px;bottom:12px;width:max-content;margin-inline:auto;z-index:60;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;padding:8px 12px;background:var(--panneau);border:1px solid var(--trait);border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.45);max-width:calc(100vw - 32px)}
 .barreRejeu .btn{padding:6px 12px;font-size:14px}.barreRejeu .r-pos{font-variant-numeric:tabular-nums;min-width:62px;text-align:center}
 body:has(#barreRejeu) #passer{display:none}
@@ -118,6 +147,7 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 
 .bloc{background:var(--panneau);border:1px solid var(--trait);border-radius:12px;padding:18px;margin-bottom:14px}
 .bloc h3{font-size:19px;margin-bottom:10px}
+#accueil .bloc h3{color:var(--bleu)}
 .ligne{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
 .ligne>div{flex:1 1 170px;min-width:0}
 .etat{color:var(--doux);font-size:14.5px;margin:0 0 14px;display:flex;align-items:center;gap:8px}
@@ -133,6 +163,67 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 #joueurs em{font-style:normal;font-size:13px;font-weight:800;background:var(--bleu);color:var(--encre);border-radius:5px;padding:0 7px;flex:none}
 #attente{font-weight:800;margin:0 0 14px}
 #attente.pret{color:var(--or)}
+/* Salon : carte centree, deux joueurs face a face, chat */
+#salon{max-width:720px;margin:0 auto 14px;padding:20px;text-align:center}
+.sl-haut{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--panneau2);border-radius:10px;padding:10px 14px;margin-bottom:16px;text-align:left}
+.sl-haut small{display:block;color:var(--doux);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.sl-haut .code{font-size:40px;margin:0}
+.sl-haut .btnCode{margin:0;min-height:44px;font-size:17px}
+.sl-scene{position:relative}
+.sl-duo{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:stretch;margin-bottom:14px}
+.sl-vs{align-self:center;font:400 26px/1 var(--titre);color:var(--doux)}
+.sl-j{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;background:var(--panneau2);border:2px solid var(--trait);border-radius:12px;padding:14px 10px}
+.sl-j.pret{border-color:#3fcf6e}
+.sl-j.vide{border-style:dashed;justify-content:center;color:var(--doux);font-weight:700}
+#joueurs .sl-j .avatar{width:64px;height:64px;font-size:30px}
+.sl-nom{font:400 22px/1.15 var(--titre);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-nom em{font:800 12px var(--corps);background:var(--bleu);color:var(--encre);border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.sl-etat{font-size:14px;font-weight:800;color:var(--doux)}
+.sl-j.pret .sl-etat{color:#3fcf6e}
+.sl-j .cd-tuile{width:100%;cursor:default}
+.sl-j .btn{min-height:38px;padding:5px 12px;font-size:15px}
+.sl-compte{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;background:rgba(5,10,15,.55);border-radius:12px}
+.sl-compte b{font:400 120px/1 var(--titre);color:var(--or);text-shadow:0 4px 0 #6b4f12,0 0 30px rgba(241,195,90,.6);animation:slPop 1s ease-out both}
+@keyframes slPop{0%{transform:scale(1.8);opacity:0}25%{transform:scale(1);opacity:1}80%{opacity:1}100%{transform:scale(.8);opacity:.2}}
+@media (prefers-reduced-motion:reduce){.sl-compte b{animation:none}}
+#salon #pret{display:block;width:100%;max-width:340px;margin:0 auto 14px;min-height:54px;font-size:22px}
+#salon #pret[hidden]{display:none}
+.sl-quitter{background:none;border:0;color:var(--doux);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;padding:8px;margin-top:6px}
+@media (max-width:520px){#salon{padding:12px}.sl-duo{grid-template-columns:1fr 1fr;gap:8px}.sl-vs{display:none}.sl-j{padding:10px 6px}#joueurs .sl-j .avatar{width:48px;height:48px;font-size:22px}.sl-nom{font-size:18px}#salon .sl-j .btn{font-size:14px;padding:5px 8px;white-space:nowrap}.sl-haut .code{font-size:32px}.sl-compte b{font-size:90px}}
+/* Chat */
+.chat{display:flex;flex-direction:column;background:var(--encre);border:1px solid var(--trait);border-radius:10px;text-align:left;margin:4px 0 8px;min-height:0}
+.chat-tete{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;font-weight:800;font-size:14px;color:var(--doux);border-bottom:1px solid var(--trait)}
+.chat-tete button{background:none;border:0;color:var(--texte);font:inherit;font-size:18px;cursor:pointer;padding:0 4px}
+.chat-liste{list-style:none;margin:0;padding:6px 10px;overflow-y:auto;height:150px;font-size:14.5px;overflow-wrap:anywhere}
+.chat-liste li{padding:2px 0}
+.chat-liste b{color:var(--bleu);margin-right:5px}
+.chat-liste b.chat-moi{color:var(--or)}
+.chat-liste time{color:var(--doux);font-size:12px;margin-right:5px}
+.chat-vide{color:var(--doux);font-style:italic}
+.chat form{display:flex;gap:6px;padding:6px;border-top:1px solid var(--trait)}
+.chat input{flex:1;min-width:0;background:var(--panneau2);border:1px solid var(--trait);border-radius:7px;color:var(--texte);font:inherit;font-size:16px;padding:6px 8px}
+.chat form .btn{min-height:36px;padding:4px 12px;font-size:15px}
+.chat-info{font-size:12px;color:var(--erreur);padding:0 10px 4px;min-height:0}
+.chat-info:empty{display:none}
+#salon .chat-tete button{display:none}
+/* En partie : panneau replie en bas a droite, bouton flottant sur telephone */
+.chat.flottant{position:fixed;right:12px;bottom:12px;z-index:15;width:320px;max-width:calc(100vw - 24px);margin:0;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.chat.flottant .chat-liste{height:220px}
+.chat.flottant.replie{width:auto}
+.chat.flottant.replie>:not(.chat-tete){display:none}
+.chat.flottant.replie .chat-tete{border:0;cursor:pointer}
+.chat.flottant.replie .chat-tete button{display:none}
+.chat-nb{background:var(--magma);color:#fff;border-radius:9px;padding:0 6px;font-size:12px;margin-left:6px}
+.chat-nb:empty{display:none}
+@media (max-width:640px){
+  .chat.flottant.replie{right:10px;bottom:10px;border-radius:50%;width:52px;height:52px;background:var(--bleu);border:0}
+  .chat.flottant.replie .chat-tete{width:52px;height:52px;padding:0;justify-content:center;color:var(--encre);font-size:0;position:relative}
+  .chat.flottant.replie .chat-tete::before{content:'';width:24px;height:22px;background:var(--encre);clip-path:polygon(0 0,100% 0,100% 72%,45% 72%,20% 100%,22% 72%,0 72%)}
+  .chat.flottant.replie .chat-nb{position:absolute;top:2px;right:2px;font-size:12px}
+  .chat.flottant.replie .chat-tete button{display:none}
+  .chat.flottant:not(.replie){left:8px;right:8px;bottom:8px;width:auto;max-width:none}
+  .chat.flottant:not(.replie) .chat-liste{height:40vh}
+}
 .absent{background:var(--panneau2);border-left:3px solid var(--or);padding:10px 14px;border-radius:6px;margin:0 0 14px}
 
 /* Nouveautes */
@@ -255,6 +346,7 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 .p-cote{display:flex;flex-direction:column;gap:6px;min-width:0}
 .p-pied{text-align:right;line-height:1}
 .p-pied .lien{padding:2px 0}
+.p-pied.duo{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .p-fin{text-align:center;margin:0}
 @media(max-width:899px){.p-table.fini .p-poste{order:-1}}
 .p-fin h3{font-size:30px;color:var(--or)}
@@ -270,7 +362,9 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
   .p-journal summary::-webkit-details-marker{display:none}
 }
 @media (min-width:1200px){
-  .p-table{grid-template-columns:minmax(480px,560px) minmax(0,1fr) 280px}
+  .p-table{grid-template-columns:clamp(440px,calc(100vw - 820px),560px) minmax(0,1fr) clamp(380px,calc(100vw - 880px),560px)}
+  .p-lignes{overflow-x:hidden}
+  .p-lignes div>*{min-width:0}
   .p-plateau{grid-row:2}
   .p-cote{grid-column:3;grid-row:2}
   .p-main{grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
@@ -576,6 +670,67 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .modif:hover{background:#22384a}
 .modif:active{transform:translateY(2px);box-shadow:inset 0 0 0 2px var(--bleu),0 1px 0 #08708c}
 @media (max-width:440px){.haut{gap:9px;padding-block:13px}.haut img{width:46px;height:46px}.haut .sous-titre{font-size:13.5px}.moi{flex-direction:column;align-items:flex-end;gap:6px}#pseudoAffiche{font-size:17px}.modif{padding:5px 10px;font-size:14px}}
+/* En-tete : avatar a la taille du logo, pseudo plus grand, deconnexion discrete et ecartee. */
+.moi{gap:22px}
+#pseudoAffiche{font-size:22px;max-width:200px}
+.avatarBtn{flex:none;padding:0;border:0;background:none;border-radius:50%;cursor:pointer;line-height:0}
+.avatarBtn:hover #avatarMoi{box-shadow:inset 0 0 0 2px rgba(255,255,255,.18),0 0 0 2px var(--bleu)}
+#avatarMoi{width:60px;height:60px;font-size:28px}
+.qui{gap:10px}
+#modifierPseudo .pic{display:none;width:20px;height:20px}
+#modifierPseudo.deco{background:none;color:var(--doux);box-shadow:inset 0 0 0 1px var(--trait);font-size:14px;min-height:32px}
+#modifierPseudo.deco:hover{color:var(--texte)}
+@media (max-width:440px){
+  .moi{flex-direction:row;align-items:center;gap:10px}
+  #avatarMoi{width:46px;height:46px;font-size:22px}
+  #pseudoAffiche{font-size:18px;max-width:96px}
+  #modifierPseudo.deco{padding:0;width:36px;min-height:36px;display:grid;place-items:center}
+  #modifierPseudo.deco .txt{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  #modifierPseudo.deco .pic{display:block}
+  .haut h1{font-size:21px}
+}
+.galAv{position:fixed;inset:0;z-index:60;background:rgba(5,10,15,.75);display:grid;place-items:center;padding:16px}
+.galAv[hidden]{display:none}
+.galBoite{background:var(--panneau);border:1px solid var(--trait);border-radius:12px;padding:18px;max-width:560px;width:100%;max-height:calc(100vh - 32px);overflow:auto;display:grid;gap:14px}
+.galGrille{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:12px}
+.galGrille button{display:grid;justify-items:center;gap:6px;padding:6px 2px;border:0;border-radius:10px;background:none;color:var(--texte);font-size:13px;line-height:1.2;text-align:center;cursor:pointer}
+.galGrille button .avatar{width:68px;height:68px;font-size:30px}
+.galGrille .avatar img{width:100%;height:100%;max-width:none;object-fit:cover}
+.galGrille button:hover,.galGrille button[aria-pressed="true"]{background:var(--panneau2)}
+.galGrille button[aria-pressed="true"] .avatar{box-shadow:0 0 0 3px var(--bleu)}
+#galFermer{justify-self:end}
+@media (max-width:440px){.galGrille{grid-template-columns:repeat(3,1fr);gap:8px}.galGrille button .avatar{width:64px;height:64px}}
+/* Profil joueur */
+.pf-lien{cursor:pointer;border-radius:6px}.pf-lien:hover{color:#01C1F0}.pf-lien:focus-visible{outline:2px solid #01C1F0;outline-offset:2px}
+.pf-boite.boite{max-width:960px;text-align:left}
+#profilJoueur{z-index:19}body:has(#profilJoueur) #apercu{z-index:25}
+.pf-tete{display:flex;align-items:center;gap:14px;margin-bottom:14px}.pf-tete .avatar{width:64px;height:64px;font-size:30px}
+.pf-id{min-width:0}.pf-id h2{margin:0;color:#01C1F0;overflow-wrap:anywhere}.pf-cree{margin:2px 0 0;color:var(--doux);font-size:14px}
+.pf-grille{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pf-tuile{background:var(--panneau2);border-radius:10px;padding:8px 6px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.pf-tuile b{font-size:20px}.pf-tuile span{font-size:13px;color:var(--doux)}
+.pf-h{color:#01C1F0;margin:16px 0 6px;font-size:17px}
+.pf-liste{list-style:none;margin:0;padding:0}.pf-liste li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--trait)}
+.pf-liste li span{min-width:0;overflow-wrap:anywhere}.pf-liste li b{text-align:right;font-weight:600}
+.pf-vide{color:var(--doux);margin:0}.pf-note{color:var(--doux);font-size:12.5px;margin:14px 0 0;opacity:.8}
+.pf-hero{display:flex;align-items:center;gap:16px}
+.pf-ring{--p:0;--c:#01C1F0;flex:none;width:132px;height:132px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(closest-side,var(--panneau) 78%,transparent 79%),conic-gradient(var(--c) calc(var(--p)*1%),var(--panneau2) 0)}
+.pf-ring b{font-size:34px;line-height:1;color:var(--c)}.pf-ring span{font-size:12.5px;color:var(--doux);margin-top:3px}
+.pf-vdn{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;min-width:0}.pf-vdn .pf-tuile{padding:16px 6px;justify-content:center}.pf-vdn .pf-tuile b{font-size:28px}
+.pf-dp{display:inline-flex;gap:3px;margin-left:auto;padding-left:8px}.pf-dp img{width:20px;height:20px}.pf-deck .h-deck{display:flex;align-items:center}
+.dl-liste.pf-mvps{max-width:none;margin:0}.pf-mvps li+li{margin-top:4px}.pf-mvps .dl-ligne{grid-template-columns:44px 42px 46px minmax(0,1fr) auto}.pf-mvps .pf-mc{white-space:nowrap}
+.pf-v b{color:#3ecf6e}.pf-d b{color:#ef4f4f}.pf-n b{color:#9aa4ae}.pf-tot b{color:#01C1F0}
+.pf-v{box-shadow:inset 0 -3px 0 #3ecf6e}.pf-d{box-shadow:inset 0 -3px 0 #ef4f4f}.pf-n{box-shadow:inset 0 -3px 0 #9aa4ae}.pf-tot{box-shadow:inset 0 -3px 0 #01C1F0}
+.pf-serie{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 14px;border-radius:12px;background:var(--panneau2)}
+.pf-serie b{font-size:18px}.pf-sl{margin-left:auto;font-size:13px;color:var(--doux)}.pf-flamme{font-size:24px;line-height:1}
+.pf-sv{background:linear-gradient(90deg,rgba(240,120,30,.35),var(--panneau2));box-shadow:inset 0 0 0 1px rgba(240,140,40,.6)}.pf-sv b{color:#ffb347}
+.pf-sd{background:linear-gradient(90deg,rgba(239,79,79,.28),var(--panneau2))}.pf-sd b{color:#ef4f4f}
+.pf-barre{margin:0 0 9px}.pf-bh{display:flex;justify-content:space-between;gap:10px;font-size:15px;margin-bottom:4px}.pf-bh span{min-width:0;overflow-wrap:anywhere}.pf-bh b{font-weight:600;text-align:right;font-size:13.5px}
+.pf-jauge{height:8px;border-radius:5px;background:var(--panneau2);overflow:hidden}.pf-jauge i{display:block;height:100%;border-radius:5px}
+.pf-deck{display:flex;align-items:center;gap:10px;margin-bottom:8px}.pf-deck .h-deck{flex:1;min-width:0}.pf-dk{color:var(--doux);font-size:13.5px;white-space:nowrap}.pf-dt{min-width:44px;text-align:right}
+.pf-mvp{aspect-ratio:63.5/88.9;border-radius:9px;padding:8px 6px;display:flex;flex-direction:column;justify-content:space-between;text-align:center;box-shadow:inset 0 0 0 2px rgba(255,255,255,.25),0 3px 8px rgba(0,0,0,.4);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.pf-mn{font-size:14px;overflow-wrap:anywhere}.pf-mc{font-size:12px;background:rgba(0,0,0,.35);border-radius:6px;padding:2px 4px}
+@media (max-width:440px){.pf-boite.boite{padding:18px 14px}.pf-ring{width:108px;height:108px}.pf-ring b{font-size:27px}.pf-hero{gap:10px}.pf-vdn{gap:6px;grid-template-columns:1fr 1fr}.pf-vdn .pf-tuile{padding:8px 4px}.pf-vdn .pf-tuile b{font-size:20px}.pf-mvps .dl-ligne{grid-template-columns:36px 36px 40px minmax(0,1fr) auto;gap:4px}.pf-sl{display:none}.pf-mn{font-size:12.5px}.pf-bh{flex-direction:column;gap:1px}.pf-bh b{text-align:left}}
 .d-tuile{cursor:pointer}
 .d-tuile.choisie{outline:3px solid var(--or);outline-offset:1px}
 .d-zone{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
@@ -584,14 +739,21 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 @media (min-width:1200px){
   /* --d-h : hauteur restante sous l'en-tete, calculee par hauteurDecks(). Trois lignes de 4 tuiles = hauteur du panneau. */
   main:has(.d-zone){padding-bottom:12px}
-  .d-zone{grid-template-columns:minmax(0,1fr) 320px;align-items:start;min-height:var(--d-h)}
-  .d-zone .d-grille{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:calc((var(--d-h) - 24px)/3)}
-  .d-zone .d-tuile{gap:6px;padding:10px;justify-content:space-between;overflow:hidden}
+  /* Panneau double (640 px) ; tuiles a hauteur naturelle : nom, pictos, boutons, sans ligne vide. */
+  .d-zone{grid-template-columns:minmax(0,1fr) minmax(0,640px);align-items:start;min-height:var(--d-h)}
+  .d-zone .d-grille{grid-template-columns:repeat(auto-fill,minmax(250px,1fr));align-content:start}
+  .d-zone .d-tuile{gap:6px;padding:10px;justify-content:flex-start}
+  #listeDecks#listeDecks .d-zone .d-act>.btn{padding:3px 0;font-size:12.5px;letter-spacing:-.2px}
   .d-zone .d-haut{margin-bottom:0}
   .d-panneau{position:sticky;top:64px;height:var(--d-h);display:flex;flex-direction:column;overflow-y:auto}
   .d-panneau .dl-liste{width:100%}
   .d-panneau .dl-pied{width:100%;margin-top:auto;padding-top:10px}
   .d-panneau .dl-ligne{grid-template-columns:36px 36px 40px minmax(0,1fr) 26px;gap:4px;min-height:30px;padding:2px 6px}
+  .d-panneau{overflow-x:hidden}
+  .d-panneau .dl-liste,.d-panneau .dl-pied{max-width:none}
+  .d-panneau .dl-nom{flex-direction:row;align-items:baseline;gap:8px}
+  .d-panneau .dl-pseudo{flex:none}
+  .d-panneau .dl-titre{flex:1;min-width:0}
   .d-panneau .dl-nom{font-size:14px;line-height:1.15}
   .d-panneau .dl-els img{width:18px;height:18px}
   /* Panneau condense : 30 cartes et la courbe des couts tiennent a 1280 x 800 sans defiler. */
@@ -649,12 +811,13 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .d-compte{font:400 18px/24px var(--titre);padding:0 8px;border-radius:8px;background:rgba(10,18,26,.75);color:var(--texte)}
 .d-compte.ok{color:#6fe08a}
 .d-pict{display:flex;gap:4px;min-height:26px}
-.d-act{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.d-act{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
 #listeDecks#listeDecks .d-act>.btn{min-width:0;min-height:32px;padding:3px 1px;font-size:clamp(12px,6cqi,14px);white-space:nowrap}
 .d-tuile{container-type:inline-size}
 /* Nom long : 2 lignes au plus, les boutons restent entiers. */
 .d-tuile .d-haut h3{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .d-tuile .d-act{flex:none}
+.d-tuile.mono .d-haut h3{color:var(--bleu)}
 .d-act>:not(.btn){grid-column:1/-1}
 .d-carte img{display:block;width:100%;aspect-ratio:5/7;height:auto;border-radius:10px}
 .d-qte{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;font-family:var(--titre)}
@@ -666,16 +829,22 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 main:has(#historique:not([hidden])){padding-bottom:12px}
 .h-grille{display:grid;grid-template-columns:1fr;gap:10px}
 @media (min-width:800px){.h-grille{grid-template-columns:1fr 1fr}}
-.h-carte{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;width:100%;min-height:118px;padding:12px 14px;border:1px solid var(--trait);border-left:6px solid #98a4ae;border-radius:10px;background:var(--panneau);color:var(--texte);text-align:left;cursor:pointer;font:inherit}
+.h-carte{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:center;width:100%;padding:10px 14px;border:1px solid var(--trait);border-left:6px solid #98a4ae;border-radius:10px;background:var(--panneau);color:var(--texte);text-align:left;cursor:pointer;font:inherit}
 .h-carte:hover{background:var(--panneau2)}
 .h-carte.h-v{border-left-color:#46a866}.h-carte.h-d{border-left-color:#c9493c}
-.h-date{grid-column:1;grid-row:1;align-self:center;font-size:14px;color:var(--doux)}
-.h-res{grid-column:2;grid-row:1;justify-self:end;font:400 18px/1 var(--titre);padding:5px 10px;border-radius:6px;color:#0a121a;background:#c3ccd3}
+.h-l1{grid-column:1;grid-row:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}
+@media (min-width:800px){.h-l1{flex-wrap:nowrap}}
+.h-date{font-size:14px;color:var(--doux);white-space:nowrap}
+.h-dr{grid-column:2;grid-row:1;justify-self:end;display:flex;align-items:center;gap:6px}
+.h-rj{width:30px;height:30px;padding:0;border:1px solid var(--trait);border-radius:6px;background:var(--panneau2);color:var(--texte);font-size:13px;line-height:1;cursor:pointer}
+.h-rj:hover{border-color:var(--or);color:var(--or)}
+.h-rj[aria-disabled=true]{opacity:.35;cursor:not-allowed}.h-rj[aria-disabled=true]:hover{border-color:var(--trait);color:var(--texte)}
+.h-res{font:400 18px/1 var(--titre);padding:5px 10px;border-radius:6px;color:#0a121a;background:#c3ccd3}
 .h-v .h-res{background:#6fd08c}.h-d .h-res{background:#ea7a6c}
-.h-adv{grid-column:1/-1;grid-row:2;font-weight:800;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.h-sc{grid-column:1;grid-row:3;font:400 22px/1 var(--titre);color:var(--or)}
-.h-mvp{grid-column:1;grid-row:4;align-self:end;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.h-deck{grid-column:2;grid-row:4;align-self:end;justify-self:end;max-width:170px;padding:3px 10px;border-radius:6px 4px 7px 3px;font-weight:800;font-size:13px;color:#fff;text-shadow:0 1px 3px #0a121a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-adv{min-width:0;max-width:100%;font-weight:800;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h-sc{font:400 19px/1 var(--titre);color:var(--or);white-space:nowrap}
+.h-mvp{grid-column:1;grid-row:2;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h-deck{grid-column:2;grid-row:2;justify-self:end;max-width:170px;padding:3px 10px;border-radius:6px 4px 7px 3px;font-weight:800;font-size:13px;color:#fff;text-shadow:0 1px 3px #0a121a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .h-deck.h-sans{background:var(--panneau2);color:var(--doux);text-shadow:none}
 .h-detail.boite{max-width:640px;text-align:left}
 .h-detail h2{text-align:center}
@@ -705,7 +874,8 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
 <header><div class="large haut">
   <img src="cartes/logo.png" alt="">
   <h1>Les Golems<small class="sous-titre">Jeu de cartes communautaire</small></h1>
-  <div class="moi"><span class="qui"><span class="avatar" id="avatarMoi" aria-hidden="true"></span><b id="pseudoAffiche"></b></span><button class="modif" id="modifierPseudo" type="button">Modifier</button></div>
+  <div class="moi"><span class="qui"><button class="avatarBtn" id="choixAvatar" type="button" aria-label="Choisir mon avatar" title="Choisir mon avatar"><span class="avatar" id="avatarMoi" aria-hidden="true"></span></button><b id="pseudoAffiche"></b></span><button class="modif" id="modifierPseudo" type="button"><span class="txt">Modifier</span><svg class="pic" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></svg></button></div>
+<div id="galerieAvatar" class="galAv" hidden><div class="galBoite" role="dialog" aria-modal="true" aria-labelledby="galTitre"><h2 id="galTitre">Choisis ton avatar</h2><div class="galGrille" id="galGrille"></div><button class="modif" id="galFermer" type="button">Fermer</button></div></div>
 </div></header>
 <nav><div class="large onglets" role="tablist">
   <button role="tab" id="t-nouveautes" aria-controls="nouveautes" aria-selected="true">Nouveautés</button>
@@ -823,7 +993,7 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
   <h2>Jouer</h2>
   <p class="intro">Retrouve un adversaire en ligne.</p>
   <p class="etat" id="etat"><i></i><span id="etatTexte">Connexion au salon en ligne...</span></p>
-  <p class="absent" id="absent" hidden>Le salon en ligne n'est pas disponible pour le moment. Le jeu contre le robot reste possible.</p>
+  <p class="absent" id="absent" hidden>Le salon en ligne n'est pas disponible pour le moment. Le jeu contre les Golems reste possible.</p>
   <div class="jeu"><div>
     <div id="accueil">
       <div class="bloc" id="blocCreer">
@@ -850,14 +1020,12 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
       <p class="erreur" id="erreurJeu" role="alert"></p>
     </div>
     <div class="bloc" id="salon" hidden>
-      <h3>Salon</h3>
-      <div class="code" id="codeSalon"></div>
-      <button class="btn sec btnCode" id="copieCode" type="button">Copier le code</button>
-      <ul id="joueurs"></ul>
-      <div class="choixDeck"><label for="deckSalon">Ton deck</label><select id="deckSalon" class="selDeck"></select></div>
+      <div class="sl-haut"><div><small>Code du salon</small><div class="code" id="codeSalon"></div></div><button class="btn btnCode" id="copieCode" type="button">Copier le code</button></div>
+      <div class="sl-scene"><div id="joueurs" class="sl-duo"></div><div class="sl-compte" id="slCompte" aria-hidden="true" hidden></div></div>
       <p id="attente" role="status"></p>
       <button class="btn plein" id="pret" hidden>Prêt</button>
-      <button class="btn sec" id="quitter">Quitter le salon</button>
+      <div id="chatPlace"></div>
+      <button class="sl-quitter" id="quitter" type="button">Quitter le salon</button>
     </div>
     <div id="partie" hidden></div>
   </div></div>
@@ -930,6 +1098,8 @@ const ETOILE_G='<path d="M150.0 162.0 L103.0 97.3 L150.0 20.0 Z" fill="#ffe48a" 
 const $=id=>document.getElementById(id);
 function lire(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function ecrire(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+/* Le moteur est revenu de 0.2a a 0.2 sans changement de regles : les sauvegardes et rejeux 0.2a restent valides. */
+function memeVersion(v){return v===M.VERSION||(M.VERSION==='0.2'&&v==='0.2a')}
 
 /* Avatar : rond avec initiale sur une couleur tiree du pseudo. avatarId (futur choix en galerie, a stocker plus tard dans la presence ou Firebase) : si fourni, image avatars/<id>.png a la place. */
 const AVATAR_COULEURS=["--fm-magma","--fm-cristal","--fm-foudre","--fm-brume","--fm-roche"];
@@ -937,16 +1107,49 @@ function avatarDe(nom,avatarId){
   const n=String(nom||"").trim()||"?",a=el("span","avatar");a.setAttribute("aria-hidden","true");
   let h=0;for(const c of n.toLowerCase())h=(h*31+c.codePointAt(0))>>>0;
   a.style.background="var("+AVATAR_COULEURS[h%AVATAR_COULEURS.length]+")";
-  if(avatarId){const i=document.createElement("img");i.alt="";i.src="avatars/"+encodeURIComponent(avatarId)+".png";i.onerror=()=>{i.remove();a.textContent=Array.from(n)[0]};a.append(i)}
+  if(avatarId&&/^[a-z0-9_-]{1,40}$/.test(avatarId)){const i=document.createElement("img");i.alt="";i.src="avatars/"+avatarId+".jpg";i.onerror=()=>{i.remove();a.textContent=Array.from(n)[0]};a.append(i)}
   else a.textContent=Array.from(n)[0];
   return a;
+}
+/* Mon avatar : Firebase pour un compte, appareil pour un invite. */
+function monAvatar(){try{return compteCo()?room.compte.avatarId()||'':lire('golems-avatar')||''}catch(e){return ''}}
+/* Avatar d'un autre compte (uid) : lu une fois dans joueurs/{uid}/avatarId, puis les ronds marques data-av sont remplaces. */
+const avCache={};
+function avatarUid(nom,uid){
+  if(typeof uid!=='string'||!uid)return avatarDe(nom);
+  if(!(uid in avCache)){avCache[uid]='';
+    if(room&&room.compte&&room.compte.avatarDe)room.compte.avatarDe(uid).then(id=>{if(!id)return;avCache[uid]=id;
+      document.querySelectorAll('.avatar[data-av]').forEach(x=>{if(x.dataset.av===uid)x.replaceWith(avatarUid(x.dataset.nom,uid))})})}
+  const a=avatarDe(nom,avCache[uid]);a.dataset.av=uid;a.dataset.nom=nom;return a;
 }
 function majMoi(){
   const co=compteCo();
   $("pseudoAffiche").textContent=co?pseudo:'Invité';
-  $("avatarMoi").replaceWith(Object.assign(avatarDe(co?pseudo:"?",co?room.compte.avatarId():''),{id:"avatarMoi"}));
-  const b=$('modifierPseudo');b.textContent=co?'Se déconnecter':'Se connecter';
+  $("avatarMoi").replaceWith(Object.assign(avatarDe(co?pseudo:"?",monAvatar()),{id:"avatarMoi"}));
+  const b=$('modifierPseudo'),t=co?'Se déconnecter':'Se connecter';b.querySelector('.txt').textContent=t;
+  b.classList.toggle('deco',co);if(co){b.title=t;b.setAttribute('aria-label',t)}else{b.removeAttribute('title');b.removeAttribute('aria-label')}
 }
+/* Galerie d'avatars : avatars/avatars.json (id, nom), l'initiale en premier. */
+let listeAvatars=null;
+async function ouvreGalerie(){
+  const g=$('galGrille');
+  if(!listeAvatars){try{listeAvatars=await (await fetch('avatars/avatars.json',{cache:'no-cache'})).json()}catch(e){listeAvatars=[]}}
+  const cur=monAvatar(),nom=compteCo()?pseudo:'?';g.textContent='';
+  [{id:'',nom:'Initiale'}].concat(listeAvatars.filter(x=>x&&/^[a-z0-9_-]{1,40}$/.test(x.id))).forEach(x=>{
+    const b=el('button');b.type='button';b.setAttribute('aria-pressed',String(x.id===cur));
+    b.append(avatarDe(nom,x.id),el('span','',x.nom));
+    b.onclick=async()=>{
+      if(compteCo()){try{await room.compte.choisirAvatar(x.id)}catch(e){return}}else ecrire('golems-avatar',x.id);
+      fermeGalerie();majMoi();
+    };g.append(b);
+  });
+  $('galerieAvatar').hidden=false;(g.querySelector('[aria-pressed="true"]')||g.firstChild).focus();
+}
+function fermeGalerie(){$('galerieAvatar').hidden=true;$('choixAvatar').focus()}
+$('choixAvatar').onclick=ouvreGalerie;
+$('galFermer').onclick=fermeGalerie;
+$('galerieAvatar').onclick=e=>{if(e.target.id==='galerieAvatar')fermeGalerie()};
+$('galerieAvatar').onkeydown=e=>{if(e.key==='Escape')fermeGalerie()};
 /* Compte : pseudo reserve + code secret (Firebase). Sans compte : invite, robot seulement, donnees sur l'appareil. */
 let pseudo='',modeCreer=false;
 const compteCo=()=>{try{return !!(room&&room.compte&&room.compte.connecte())}catch(e){return false}}; /* room est declare plus bas */
@@ -1011,11 +1214,8 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
- {version:'Version 0.2b',date:'3 novembre 2026',notes:["Rejouer contre le golem garde le niveau choisi, même après une reprise","Rejeu : commandes de jeu inactives, barre compacte sur téléphone, score final affiché à la fin","Règles : section Cartes et decks, exemple de KaTarN et Vaisseau clarifiés","Decks : Renommer dans la liste, message pour un deck incomplet, courbe des coûts visible","Cartes : bouton Tout afficher dans les filtres","Onglets plus lisibles sur téléphone"]},
- {version:'Version 0.2a',date:'3 novembre 2026',notes:["Comptes : pseudo réservé et code secret, decks et historique enregistrés sur ton compte","Le jeu en ligne demande un compte ; le robot reste jouable en invité","Tes decks sont jouables : choisis-le avant Prêt ou avant d'affronter le golem","Rejeu des parties depuis l'historique","Les parties en cours de la version précédente ne peuvent pas être reprises"]},
- {version:'Version 0.2',date:'3 novembre 2026',notes:["Nouvelle règle : à chaque manche, le joueur qui joue en second ne pioche qu'1 carte à son premier tour de la manche","Jeu en ligne sur le site les-golems.github.io","Les parties en cours de la version précédente ne peuvent pas être reprises"]},
- {version:'Version 0.1b',date:'2 novembre 2026',notes:["Trigas et son évolution, K-Chan : jouables","Orotembu en aperçu dans l'onglet Cartes"]},
- {version:'Version 0.1a',date:'2 novembre 2026',notes:["4 Golems jouables et leurs évolutions (8 cartes)","10 terrains","36 Golems à venir","Règles disponibles","Jeu en ligne à deux","Entraînement contre un golem en 3 niveaux","Résumé et statistiques de fin de partie"]}
+ {version:'Version 0.2',date:'3 novembre 2026 (en cours)',notes:["Interface de jeu en ligne : version en cours, enrichie au fil des mises à jour","Nouvelle règle : à chaque manche, le joueur qui joue en second ne pioche qu'1 carte à son premier tour de la manche","Jeu en ligne sur le site les-golems.github.io","Comptes : pseudo réservé et code secret, decks et historique enregistrés sur ton compte","Le jeu en ligne demande un compte ; le jeu contre les Golems reste possible en invité","Tes decks sont jouables : choisis-le avant Prêt ou avant d'affronter le golem","Decks : liste compacte, Dupliquer, Renommer, message pour un deck incomplet, courbe des coûts visible","Historique sur 2 lignes et rejeu des parties","Rejouer contre le golem garde le niveau choisi, même après une reprise","Rejeu : commandes de jeu inactives, barre compacte sur téléphone, score final affiché à la fin","Avatars : touche ton avatar pour en choisir un dans la galerie","Salon et discussion","Règles : section Cartes et decks, exemple de KaTarN et Vaisseau clarifiés","Cartes : bouton Tout afficher dans les filtres","Onglets plus lisibles sur téléphone","Les parties en cours de la version 0.1 ne peuvent pas être reprises","Profil joueur : clique sur ton pseudo pour voir tes statistiques"]},
+ {version:'Version 0.1a',date:'2 novembre 2026',notes:["Création du jeu de cartes communautaire Les Golems","Premières cartes Golem jouables avec leurs évolutions, et 10 terrains","Règles disponibles sur le site","Parties contre les Golems en 3 niveaux et jeu en ligne à deux","Decks personnalisés et historique des parties"]}
 ];
 NOUVEAUTES.forEach(n=>{
   const a=document.createElement('article'),h=document.createElement('h3'),d=document.createElement('time'),u=document.createElement('ul');
@@ -1149,13 +1349,9 @@ function majSalon(){
   const l=ordre(r.peers());
   if(l.findIndex(p=>p.sameTab)>=MAX&&Date.now()-entree>1500){sortie('Ce salon est complet.');return}
   const u=$('joueurs');u.textContent='';
-  l.slice(0,MAX).forEach(p=>{
-    const li=document.createElement('li'),s=document.createElement('span');
-    s.textContent=nomDe(p);li.append(avatarDe(nomDe(p)),s);
-    if(estPret(p)){const v=el('i','coche');v.setAttribute('role','img');v.setAttribute('aria-label','Prêt');v.innerHTML='<svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M4 13L10 19L20 6"/></svg>';li.append(v)}
-    if(p.sameTab){const e=document.createElement('em');e.textContent='toi';li.append(e)}
-    u.append(li);
-  });
+  const sieges=l.slice(0,MAX).map(siegeSalon);
+  while(sieges.length<MAX){const v=el('div','sl-j vide','En attente d\'un adversaire');v.append(el('span','sl-etat','Partage le code ci-dessus'));sieges.push(v)}
+  u.append(sieges[0],el('div','sl-vs','VS'),sieges[1]);
   if(!partie&&l.some(p=>!p.sameTab&&Number.isInteger(p.presence.jg)&&typeof p.presence.adv==='string'&&p.presence.adv!==sid&&p.presence.sid!==sid)&&Date.now()-entree>1500){sortie('Ce salon est complet.');return}
   const c=l.length>=MAX;
   const duo=l.slice(0,MAX),libre=!partie&&c&&!duo.some(p=>Number.isInteger(p.presence.jg));
@@ -1165,14 +1361,37 @@ function majSalon(){
   $('pret').textContent=jePret?'Pas prêt':'Prêt';$('pret').classList.toggle('sec',jePret);
   $('attente').textContent=compteFin?texteCompte():!c?notice||"En attente d'un adversaire":jePret?'En attente de ton adversaire':duo.some(estPret)?'Ton adversaire est prêt':'Salon complet, clique sur Prêt';
   $('attente').classList.toggle('pret',c);
-  majPartie();
+  majPartie();placeChat();
+}
+/* Siege d'un joueur : avatar, pseudo, etat, deck en tuile (comme l'onglet Decks) */
+function infoDeck(t){
+  if(typeof t!=='string'||!t)return {nom:'Paquet de test',els:[...new Set(M.TYPES.flatMap(k=>M.CARTES[k].el))],nb:33};
+  const o=M.lisDeck(t);let nb=0;if(o)for(const k in o)nb+=+o[k]||0;
+  return {nom:'',els:elsTexte(t),nb:nb||33};
+}
+function siegeSalon(p){
+  const nom=nomDe(p),moi=p.sameTab,pr=estPret(p),s=el('div','sl-j'+(pr?' pret':'')+(moi?' sl-moi':''));
+  const n=el('div','sl-nom',nom);if(moi)n.append(el('em','','toi'));
+  s.append(moi?avatarDe(nom,monAvatar()):avatarUid(nom,p.peer),n,el('span','sl-etat',pr?'Prêt':'En attente'));
+  const t=el('div','cd-tuile');
+  if(moi){const c=jePret&&deckPret?deckPret:deckChoisi(),i=infoDeck(c.texte);t.append(bandeauDeck({nom:c.nom,els:i.els}),el('span','cd-nb',i.nb+' cartes'))}
+  else if(pr){const i=infoDeck(p.presence.deck);t.append(bandeauDeck({nom:i.nom||'Deck de '+nom,els:i.els}),el('span','cd-nb',i.nb+' cartes'))}
+  else t.append(el('span','h-deck h-sans','Choix en cours'),el('span','cd-nb','Deck révélé au Prêt'));
+  s.append(t);
+  if(moi&&!partie){const b=el('button','btn sec','Changer de deck');b.type='button';b.disabled=jePret;b.title=jePret?'Retire ton Prêt pour changer de deck':'';b.onclick=()=>choisirDeck(()=>majSalon(),'Choisir');s.append(b)}
+  return s;
 }
 function estPret(p){return p.sameTab?jePret:p.presence.pret===true}
 function texteCompte(){const n=compteFin-Date.now();return n>0?'La partie démarre dans '+Math.ceil(n/1000)+' s':'La partie démarre'}
-function armeCompte(){if(compteFin)return;compteFin=Date.now()+2000;compteT=setInterval(ticCompte,100)}
-function stopCompte(){clearInterval(compteT);compteT=0;compteFin=0}
+function armeCompte(){if(compteFin)return;compteFin=Date.now()+3000;compteT=setInterval(ticCompte,100)}
+function stopCompte(){clearInterval(compteT);compteT=0;compteFin=0;const z=$('slCompte');if(z){z.hidden=true;z.textContent='';z.dataset.n=''}}
+function grandCompte(){
+  const z=$('slCompte'),n=Math.max(1,Math.ceil((compteFin-Date.now())/1000));
+  if(z.dataset.n===String(n))return;
+  z.dataset.n=String(n);z.textContent='';z.append(el('b','',String(n)));z.hidden=false;
+}
 function ticCompte(){
-  $('attente').textContent=texteCompte();
+  $('attente').textContent=texteCompte();grandCompte();
   if(Date.now()<compteFin)return;
   clearInterval(compteT);compteT=0;
   const l=r?ordre(r.peers()):[];
@@ -1192,9 +1411,49 @@ async function sortie(msg,avant){
   $('salon').hidden=true;$('accueil').hidden=false;$('erreurJeu').textContent=msg||'';
   if(a)try{if(avant)await avant;await a.leave()}catch(e){}
   if(room)room.presence({salon:null}).catch(()=>{});
-  majEtat();majReprise();
+  majEtat();majReprise();placeChat();
+}
+/* Chat du salon et de la partie en ligne : 200 caracteres, 1 message par seconde au plus. */
+let chatVu=0,chatDernier=0,chatOuvert=false;
+const chatBox=(()=>{
+  const c=el('div','chat'),h=el('div','chat-tete'),tt=el('span','','Chat'),nb=el('span','chat-nb'),x=el('button','','×');
+  x.type='button';x.setAttribute('aria-label','Replier le chat');tt.append(nb);h.append(tt,x);
+  const ul=el('ul','chat-liste'),f=document.createElement('form'),i=document.createElement('input'),b=el('button','btn','Envoyer'),inf=el('div','chat-info');
+  ul.setAttribute('aria-live','polite');i.maxLength=200;i.placeholder='Message (200 caractères max)';i.setAttribute('aria-label','Message');i.autocomplete='off';b.type='submit';
+  f.append(i,b);c.append(h,ul,inf,f);
+  h.onclick=e=>{if(!c.classList.contains('flottant'))return;chatOuvert=c.classList.contains('replie');c.classList.toggle('replie',!chatOuvert);if(chatOuvert){chatVu=r&&r.chat?r.chat().length:0;nb.textContent='';ul.scrollTop=ul.scrollHeight;i.focus()}};
+  f.onsubmit=async e=>{
+    e.preventDefault();const m=i.value.replace(/\s+/g,' ').trim().slice(0,200);if(!m||!r||!r.dit)return;
+    const t=Date.now();if(t-chatDernier<1000){inf.textContent='Un message par seconde au plus.';return}
+    chatDernier=t;inf.textContent='';i.value='';
+    try{await r.dit(m)}catch(er){inf.textContent="Message non envoyé.";i.value=m}
+  };
+  return {c,ul,nb,inf};
+})();
+function peintChat(l){
+  if(chatVu<0)chatVu=l.length;const {ul,nb}=chatBox,bas=ul.scrollHeight-ul.scrollTop-ul.clientHeight<30;ul.textContent='';
+  if(!l.length)ul.append(el('li','chat-vide','Aucun message pour le moment.'));
+  const moi=room&&room.compte&&room.compte.uid?room.compte.uid():'';
+  l.slice(-100).forEach(x=>{const li=el('li');const d=new Date(+x.t||Date.now());
+    const h=el('time','',String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'));
+    li.append(h,el('b',x.a===moi?'chat-moi':'',(typeof x.p==='string'?x.p:'Joueur')+' :'),document.createTextNode(x.m));ul.append(li)});
+  const fl=chatBox.c.classList.contains('flottant'),rep=chatBox.c.classList.contains('replie');
+  if(fl&&rep){const n=l.slice(chatVu).filter(x=>x.a!==moi).length;nb.textContent=n>0?String(n):''}else{chatVu=l.length;nb.textContent=''}
+  if(bas||!rep)ul.scrollTop=ul.scrollHeight;
+}
+function placeChat(){
+  const c=chatBox.c,enLigne=!!r&&!!partie&&!partie.local,salon=!!r&&!partie;
+  if(salon){c.classList.remove('flottant','replie');$('chatPlace').append(c)}
+  else if(enLigne){if(!c.classList.contains('flottant')){c.classList.add('flottant');c.classList.toggle('replie',!chatOuvert);document.body.append(c)}}
+  else{c.remove();chatOuvert=false;chatBox.ul.textContent='';chatBox.nb.textContent='';chatBox.inf.textContent=''}
+  if(c.isConnected&&r&&r.chat)peintChat(r.chat());
+}
+function msgInvite(){
+  const z=$('erreurJeu'),b=el('button','btn sec','Se connecter');z.textContent='Crée un compte ou connecte-toi pour jouer en ligne. ';
+  b.type='button';b.style.marginLeft='6px';b.onclick=ouvrePseudo;z.append(b);
 }
 async function entre(c){
+  if(!compteCo()){occupe=false;majEtat();msgInvite();return}
   occupe=true;majEtat();$('erreurJeu').textContent='';jePret=false;
   const sv=chargeSalon(c);
   try{
@@ -1204,6 +1463,7 @@ async function entre(c){
     $('codeSalon').textContent=c.toUpperCase();
     if(sv)lancer(sv.graine,sv.place,sv.adv,sv);
     s.onPeers(()=>{if(r===s)majSalon()},()=>{if(r===s)sortie('Le salon a été perdu.')});
+    chatVu=-1;if(s.onChat)s.onChat(l=>{if(r===s)peintChat(l)});
     const pres={pseudo:pseudo,arrivee:arrivee,sid:sid,pret:null};
     if(sv){pres.deck=Array.isArray(sv.decks)&&sv.decks[sv.place]||null;pres.jg=sv.graine;pres.j=M.ecritJournal(sv.mien);pres.adv=sv.adv;if(sv.place===0)pres.graine=sv.graine;if(sv.veut)pres.veut=sv.graine}
     await s.presence(pres);
@@ -1213,7 +1473,7 @@ async function entre(c){
     setTimeout(()=>{if(r===s)majSalon()},1700);
   }catch(e){
     r=null;code='';finPartie();
-    $('erreurJeu').textContent=e&&e.code==='complet'?'Ce salon est complet.':e&&e.code==='compte'?'Connecte-toi pour jouer en ligne.':e&&e.code==='limit_reached'?'Trop de salons ouverts, réessaie plus tard.':"Impossible d'entrer dans ce salon.";
+    if(e&&e.code==='compte')msgInvite();else $('erreurJeu').textContent=e&&e.code==='complet'?'Ce salon est complet.':e&&e.code==='compte'?'Connecte-toi pour jouer en ligne.':e&&e.code==='limit_reached'?'Trop de salons ouverts, réessaie plus tard.':"Impossible d'entrer dans ce salon.";
     majReprise();
   }
   occupe=false;majEtat();
@@ -1257,7 +1517,7 @@ function chargeSalon(c){
   try{
     const v=JSON.parse(lire(cleSalon(c)));
     const liste=x=>Array.isArray(x)&&x.every(e=>typeof e==='string');
-    if(!v||v.version!==M.VERSION||v.fin||Date.now()-v.t>7200000)return null;
+    if(!v||!memeVersion(v.version)||v.fin||Date.now()-v.t>7200000)return null;
     if(!Number.isInteger(v.graine)||(v.place!==0&&v.place!==1)||!(v.arrivee>0)||typeof v.sid!=='string'||!liste(v.mien)||!liste(v.sien))return null;
     return v;
   }catch(e){return null}
@@ -1274,7 +1534,7 @@ $('oublier').onclick=()=>{const c=lire('golems.derniere');if(c)oublie(c);majRepr
 function chargeLocal(){
   try{
     const v=JSON.parse(lire('golems.local')),liste=x=>Array.isArray(x)&&x.every(e=>typeof e==='string');
-    if(!v||v.version!==M.VERSION||v.fin||Date.now()-v.t>7200000||!Number.isInteger(v.graine)||!liste(v.mien)||!liste(v.sien))return null;
+    if(!v||!memeVersion(v.version)||v.fin||Date.now()-v.t>7200000||!Number.isInteger(v.graine)||!liste(v.mien)||!liste(v.sien))return null;
     return v;
   }catch(e){return null}
 }
@@ -1299,7 +1559,7 @@ function suiteRobot(){
   },a0.t==='p'?1000:a0.t==='x'?700:450);
 }
 let niveauChoisi='normal';
-document.querySelectorAll('[data-niveau]').forEach(b=>{b.onclick=()=>{niveauChoisi=b.dataset.niveau;oublieLocal();lanceLocal(null)}});
+document.querySelectorAll('[data-niveau]').forEach(b=>{b.onclick=()=>choisirDeck(()=>{niveauChoisi=b.dataset.niveau;oublieLocal();lanceLocal(null)})});
 $('repriseRobot').onclick=()=>{const v=chargeLocal();if(v)lanceLocal(v)};
 function lancer(g,moi,adv,sv){
   const dks=sv&&Array.isArray(sv.decks)&&sv.decks.length===2?sv.decks.map(t=>typeof t==='string'?t:''):['',''];
@@ -1310,7 +1570,7 @@ function lancer(g,moi,adv,sv){
   pub({jg:g,j:M.ecritJournal(partie.mien),veut:partie.veut?g:null,adv:partie.adv||null,pret:null});
   if(room)room.presence({salon:null}).catch(()=>{});
   $('salon').hidden=true;$('accueil').hidden=true;$('partie').hidden=false;$('jouer').classList.add('enJeu');
-  calcule();
+  calcule();placeChat();
 }
 function calcule(){
   const jx=(m,o)=>M.rejoue(partie.graine,partie.moi===0?[m,o]:[o,m],partie.decks);
@@ -1897,7 +2157,7 @@ function ordreRejeu(R,j){
 function lanceRejeu(x){
   const R=x.rejeu,err=t=>{onglet('historique');alert(t)};
   if(r){err('Quitte le salon avant de regarder un rejeu.');return}
-  if(!R||R.v!==M.VERSION||!Number.isInteger(R.graine)||!Array.isArray(R.j)){err("Rejeu impossible : cette partie vient d'une autre version du jeu.");return}
+  if(!R||!memeVersion(R.v)||!Number.isInteger(R.graine)||!Array.isArray(R.j)){err("Rejeu impossible : cette partie vient d'une autre version du jeu.");return}
   let j,seq;try{j=R.j.map(M.litJournal);seq=ordreRejeu(R,j)}catch(e){err('Rejeu impossible : partie illisible.');return}
   if(partie)finPartie();
   onglet('jouer');
@@ -1951,12 +2211,82 @@ function peintHisto(){
   pg.append(pb('Précédente',-1,pageHisto===0),el('span','','Page '+(pageHisto+1)+' sur '+nb),pb('Suivante',1,pageHisto>=nb-1));
   const gr=el('div','h-grille');b.append(gr);
   l.slice(pageHisto*lignesPage,(pageHisto+1)*lignesPage).forEach(x=>{
-    const c=el('button','h-carte '+(x.res==='Victoire'?'h-v':x.res==='Défaite'?'h-d':'h-n'));c.type='button';
-    c.append(el('span','h-date',new Date(x.date).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})),el('b','h-res',x.res),el('span','h-adv','contre '+x.adv),el('span','h-sc',x.score),el('span','h-mvp','MVP : '+(x.mvp||'-')),bandeauDeck(x.deck));
+    const c=el('div','h-carte '+(x.res==='Victoire'?'h-v':x.res==='Défaite'?'h-d':'h-n'));c.tabIndex=0;c.setAttribute('role','button');
+    c.onkeydown=e=>{if(e.target===c&&(e.key==='Enter'||e.key===' ')){e.preventDefault();detailHisto(x)}};
+    const l1=el('span','h-l1');l1.append(el('span','h-date',new Date(x.date).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})),el('span','h-adv','contre '+x.adv),el('span','h-sc',x.score));
+    const dr=el('span','h-dr'),rj=el('button','h-rj','▶'),ok=!!(x.rejeu&&memeVersion(x.rejeu.v));rj.type='button';
+    rj.setAttribute('aria-label',ok?'Rejeu de cette partie':'Rejeu indisponible');rj.title=ok?'Rejeu':'Rejeu indisponible : partie sans journaux ou d’une autre version';
+    if(!ok)rj.setAttribute('aria-disabled','true');
+    rj.onclick=e=>{e.stopPropagation();if(ok)lanceRejeu(x)};
+    dr.append(el('b','h-res',x.res),rj);
+    c.append(l1,dr,el('span','h-mvp','MVP : '+(x.mvp||'-')),bandeauDeck(x.deck));
     c.onclick=()=>detailHisto(x);gr.append(c);
   });
 }
 addEventListener('resize',()=>{if(!$('historique').hidden)peintHisto()});
+/* Profil joueur : calcule uniquement depuis l'historique (50 dernieres parties), compte ou invite. */
+function ouvreProfil(){
+  if($('profilJoueur'))return;
+  const l=lesParties(),co=compteCo(),nom=co?pseudo:'Invité';
+  const v=el('div','voile'),d=el('div','boite pf-boite');v.id='profilJoueur';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','pfTitre');
+  const cpt=a=>{const o={v:0,d:0,n:0};a.forEach(x=>{if(x.res==='Victoire')o.v++;else if(x.res==='Défaite')o.d++;else o.n++});return o};
+  const taux=o=>{const t=o.v+o.d+o.n;return t?Math.round(100*o.v/t)+' %':'-'};
+  const top=(f,n)=>{const m=new Map();l.forEach(x=>{const k=f(x);if(k)m.set(k,(m.get(k)||0)+1)});return [...m].sort((a,b)=>b[1]-a[1]).slice(0,n)};
+  let cree='';try{const c=co&&room.compte.donnees().cree;if(c)cree=new Date(c).toLocaleDateString('fr-FR',{dateStyle:'long'})}catch(e){}
+  const tete=el('div','pf-tete'),id=el('div','pf-id');
+  id.append(Object.assign(el('h2','',nom),{id:'pfTitre'}),el('p','pf-cree',co?(cree?'Compte créé le '+cree:'Date de création inconnue'):'Sans compte : historique de cet appareil'));
+  tete.append(avatarDe(co?pseudo:'?',monAvatar()),id);d.append(tete);
+  const g=cpt(l),tot=l.length,pc=o=>{const t=o.v+o.d+o.n;return t?Math.round(100*o.v/t):null},coul=p=>p===null?'var(--doux)':p>55?'#3ecf6e':p>=45?'#f0a030':'#ef4f4f';
+  const niv=s=>s.charAt(0).toUpperCase()+s.slice(1),advNom=a=>{const m=/^Golem \((.+)\)$/.exec(a||'');return m?'Golem '+niv(m[1]):a};
+  const hero=el('div','pf-hero'),pg=pc(g),ring=el('div','pf-ring');ring.style.setProperty('--p',(pg||0));ring.style.setProperty('--c',coul(pg));
+  ring.append(el('b','',pg===null?'-':pg+' %'),el('span','','de victoires'));
+  const vdn=el('div','pf-vdn'),cx=(c,n,t)=>{const s=el('div','pf-tuile '+c);s.append(el('b','',String(n)),el('span','',t));return s};
+  vdn.append(cx('pf-tot',tot,'Parties'),cx('pf-v',g.v,g.v>1?'Victoires':'Victoire'),cx('pf-d',g.d,g.d>1?'Défaites':'Défaite'),cx('pf-n',g.n,g.n>1?'Nuls':'Nul'));
+  hero.append(ring,vdn);d.append(hero);
+  if(tot){const r=l[0].res;let k=0;while(k<tot&&l[k].res===r)k++;
+    const s=el('div','pf-serie '+(r==='Victoire'?'pf-sv':r==='Défaite'?'pf-sd':'pf-sn'));
+    s.append(el('span','pf-flamme',r==='Victoire'?'🔥':r==='Défaite'?'❄':'≈'),el('b','',k+' '+(r==='Victoire'?(k>1?'victoires':'victoire'):r==='Défaite'?(k>1?'défaites':'défaite'):(k>1?'nuls':'nul'))+' d’affilée'),el('span','pf-sl','Série en cours'));d.append(s)}
+  const titre=t=>d.append(el('h3','pf-h',t)),vide=()=>d.append(el('p','pf-vide','Aucune donnée.'));
+  const barre=(nom,a,extra)=>{const o=cpt(a),p=pc(o),li=el('div','pf-barre'),h=el('div','pf-bh'),j=el('div','pf-jauge'),f=el('i');
+    h.append(el('span','',nom),el('b','',(p===null?'-':p+' %')+' · '+o.v+' V, '+o.d+' D, '+o.n+' N'+(extra||'')));f.style.width=(p||0)+'%';f.style.background=coul(p);j.append(f);li.append(h,j);return li};
+  const golems=new Map(),enLigne=[];l.forEach(x=>{const m=/^Golem \((.+)\)$/.exec(x.adv||'');if(m){if(!golems.has(m[1]))golems.set(m[1],[]);golems.get(m[1]).push(x)}else enLigne.push(x)});
+  titre('Taux de victoire');
+  const tv=[...golems].sort((a,b)=>{const o=['facile','normal','difficile'],i=x=>{const k=o.indexOf(x);return k<0?9:k};return i(a[0])-i(b[0])});
+  if(!tv.length&&!enLigne.length)vide();
+  tv.forEach(([n,a])=>d.append(barre('Contre les Golems : '+niv(n),a)));if(enLigne.length)d.append(barre('En ligne',enLigne));
+  titre('Decks les plus joués');
+  const dks=top(x=>x.deck&&typeof x.deck.nom==='string'&&x.deck.nom,3);if(!dks.length)vide();
+  dks.forEach(([n,c])=>{const a=l.filter(x=>x.deck&&x.deck.nom===n),z=el('div','pf-deck'),o=pc(cpt(a)),t=el('b','pf-dt',o===null?'-':o+' %'),bd=bandeauDeck(a[0].deck),ps=el('span','pf-dp');t.style.color=coul(o);
+    (Array.isArray(a[0].deck.els)?a[0].deck.els:[]).filter(x=>/^(magma|cristal|foudre|brume|roche)$/.test(x)).forEach(x=>ps.append(picto(x)));bd.append(ps);
+    z.append(bd,el('span','pf-dk',c+(c>1?' parties':' partie')),t);d.append(z)});
+  /* MVP : uniquement des cartes Golem connues du moteur (nom ou nom evolue). */
+  const golemEls={};Object.values(M.CARTES).forEach(C=>{golemEls[C.base?M.CARTES[C.base].nom+' ('+C.nom+')':C.nom]=C.el||[]});
+  titre('Cartes les plus souvent MVP');
+  const mv=top(x=>golemEls[x.mvp]?x.mvp:'',3);if(!mv.length)vide();
+  /* Version compacte, comme la liste condensee des decks ; apercu au survol, carte en grand au clic ou a l'appui. */
+  const gm=el('ul','dl-liste pf-mvps');mv.forEach(([n,cn])=>{
+    const C=Object.values(M.CARTES).find(K=>(K.base?M.CARTES[K.base].nom+' ('+K.nom+')':K.nom)===n),c=C&&CARTES.find(x=>x[0]===C.id);if(!c)return;
+    const li=el('li'),q=el('button','dl-ligne'),fo=el('span','dl-force'),e=el('span','dl-els'),src='cartes/'+c[0]+'.jpg';q.type='button';
+    if(c[2].length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+c[2][0]+')');q.style.setProperty('--b','var(--fm-'+c[2][1]+')')}
+    q.setAttribute('aria-label',c[1]+', '+cn+' fois MVP');
+    const co=el('span','dl-cout');co.append(ico('enclume'),String(C.cout));
+    if(C.force!=null)fo.append(ico('force'),String(C.force));c[2].forEach(x=>e.append(picto(x)));
+    const v=c[1].indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',v<0?c[1]:c[1].slice(0,v)));
+    if(v>=0){const ti=el('span','dl-titre',c[1].slice(v+2));ti.style.color='var(--'+c[2][0]+')';nm.append(ti)}
+    q.append(co,fo,e,nm,el('span','dl-nb pf-mc','×'+cn+' MVP'));
+    q.onclick=()=>{cacheApercu();dernier=q;zoom(src,c[1])};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
+    li.append(q);gm.append(li)});if(gm.childNodes.length)d.append(gm);
+  titre('Adversaires les plus affrontés');
+  const ad=top(x=>x.adv,3);if(!ad.length)vide();
+  ad.forEach(([n,c])=>d.append(barre(advNom(n),l.filter(x=>x.adv===n),' · '+c+(c>1?' parties':' partie'))));
+  d.append(el('p','pf-note','Calculé sur les '+tot+' dernières parties de l’historique (50 au plus).'));
+  const z=el('div','p-btns'),f=el('button','btn plein','Fermer');f.type='button';
+  const esc=e=>{if(e.key==='Escape'&&$('vue').hidden)ferme()},ferme=()=>{cacheApercu();v.remove();removeEventListener('keydown',esc);$('pseudoAffiche').focus()};
+  f.onclick=ferme;v.onclick=e=>{if(e.target===v)ferme()};addEventListener('keydown',esc);
+  z.append(f);d.append(z);v.append(d);document.body.append(v);f.focus();
+}
+{const p=$('pseudoAffiche');p.setAttribute('role','button');p.tabIndex=0;p.title='Voir mon profil';p.classList.add('pf-lien');
+ p.onclick=ouvreProfil;p.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvreProfil()}}}
 /* Decks : visuels pour ce test, le moteur n'en sait rien. */
 const MAX_DECKS=12,MAX_EX=3,DECK_MIN=24,DECK_MAX=30;
 let deckOuvert=null,deckVu=null,filtreDeck='';
@@ -1987,6 +2317,36 @@ function majChoixDeck(){
   });
 }
 document.querySelectorAll('.selDeck').forEach(s=>s.onchange=()=>{ecrire('golems.deckChoisi',s.value);majChoixDeck()});
+document.querySelectorAll('.choixDeck').forEach(d=>d.hidden=true);
+/* Fenetre de choix du deck avant une partie : ecrit golems.deckChoisi puis continue. */
+function choisirDeck(suite,libOk){
+  const old=$('popDeck');if(old)old.remove();
+  const v=el('div','voile'),b=el('div','boite cd-boite'),g=el('div','cd-grille');
+  v.id='popDeck';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-label','Choisis ton deck');
+  let sel=deckChoisi().id;
+  const tuiles=[];
+  const tuile=(id,nom,els,nb,raison)=>{
+    const t=el('button','cd-tuile'+(raison?' cd-off':''));t.type='button';
+    t.append(bandeauDeck({nom,els}),el('span','cd-nb',nb+' cartes'+(raison?' · '+raison:'')));
+    if(raison){t.setAttribute('aria-disabled','true');t.title=raison}
+    else t.onclick=()=>{sel=id;tuiles.forEach(x=>x.t.setAttribute('aria-pressed',x.id===sel?'true':'false'))};
+    t.ondblclick=()=>{if(!raison){sel=id;go()}};
+    t.setAttribute('aria-pressed',!raison&&id===sel?'true':'false');tuiles.push({id,t});g.append(t);
+  };
+  tuile('','Paquet de test',M.TYPES?[...new Set(M.TYPES.flatMap(k=>M.CARTES[k].el))]:[],33,'');
+  lesDecks().forEach(d=>{
+    const o={};for(const k in d.cartes)if(+d.cartes[k]>0)o[k]=+d.cartes[k];
+    let r='';try{r=M.erreurDeck(o)||''}catch(e){r='deck illisible'}
+    const els=[...new Set(Object.keys(o).filter(k=>M.CARTES[k]).flatMap(k=>M.CARTES[k].el))];
+    tuile(d.id,d.nom,els,totalDeck(d),r);
+  });
+  const ferme=()=>{v.remove();document.removeEventListener('keydown',esc)};
+  const esc=e=>{if(e.key==='Escape')ferme()};document.addEventListener('keydown',esc);
+  const go=()=>{ecrire('golems.deckChoisi',sel);majChoixDeck();ferme();suite()};
+  const pb=el('div','p-btns'),ok=el('button','btn plein',libOk||'Jouer'),an=el('button','btn sec','Annuler');ok.type=an.type='button';
+  ok.onclick=go;an.onclick=ferme;v.onclick=e=>{if(e.target===v)ferme()};pb.append(ok,an);
+  b.append(el('h2','','Choisis ton deck'),g,pb);v.append(b);document.body.append(v);ok.focus();
+}
 /* Element du deck pour le bandeau d'historique */
 function elsTexte(t){const o=M.lisDeck(t);return [...new Set((o?Object.keys(o):M.TYPES).flatMap(k=>M.CARTES[k].el))]}
 /* Import des donnees de l'appareil a la premiere connexion d'un compte */
@@ -2030,13 +2390,17 @@ function peintDecks(){
     if(matchMedia('(max-width:1199px)').matches)pan.scrollIntoView({block:'start'});
   };
   l.forEach(d=>{
-    const t=el('article','d-tuile'),E=elsDeck(d);
+    const E=elsDeck(d),t=el('article',E.length>1?'d-tuile':'d-tuile mono');
     t.style.background=E.length>1?'linear-gradient(120deg,'+E.map(e=>'color-mix(in srgb,var(--'+e+') 60%,#0a121a)').join(',')+')':E.length?'color-mix(in srgb,var(--'+E[0]+') 60%,#0a121a)':'var(--panneau2)';
     const p=el('div','d-pict');E.forEach(e=>p.append(picto(e)));
     const h=el('div','d-haut');h.append(el('h3','',d.nom),compteDeck(d));
     const z=el('div','d-act'),bt=(x,f)=>{const q=el('button','btn sec',x);q.type='button';q.onclick=f;z.append(q)};
     bt('Modifier',()=>{deckOuvert=d.id;peintDecks()});
     bt('Renommer',()=>renomme(z,l,d));
+    bt('Dupliquer',()=>{
+      if(l.length>=MAX_DECKS){z.querySelector('.d-limite')?.remove();z.append(el('p','d-limite','Limite de '+MAX_DECKS+' decks atteinte.'));return}
+      const c={id:nouveauSid(),nom:nettoie(d.nom.slice(0,16).trim()+' (copie)',24)||'Deck',cartes:{...d.cartes}};
+      gardeDecks(l.concat(c));peintDecks()});
     bt('Supprimer',()=>confirmePage(z,'Supprimer '+d.nom+' ?',()=>{gardeDecks(l.filter(x=>x!==d));peintDecks()}));
     t.append(h,p,z);g.append(t);
     t.tabIndex=0;t.setAttribute('role','button');t.setAttribute('aria-label','Voir la liste de '+d.nom);
@@ -2173,6 +2537,10 @@ function joue(a){
   sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;
   sauve();pub({j:M.ecritJournal(partie.mien)});calcule();
 }
+function uidJ(p){
+  const q=r&&partie&&partie.adv?personnes(r.peers()).find(x=>x.presence.sid===partie.adv):(r?ordre(r.peers()).slice(0,2)[p]:null);
+  return q&&!q.sameTab?q.peer:'';
+}
 function nomJ(p){
   if(partie){
     if(p===partie.moi)return pseudo||'Joueur';
@@ -2267,7 +2635,7 @@ function grilleVue(s,p,cols,lignes,cible){
 }
 function camp(s,p,moi){
   const J=s.j[p],d=el('div','p-camp '+(moi?'toi':'lui'));
-  const nb=el('b','',nomJ(p)+(moi?' (toi)':''));d.append(avatarDe(nomJ(p)),nb);
+  const nb=el('b','',nomJ(p)+(moi?' (toi)':''));d.append(moi?avatarDe(nomJ(p),monAvatar()):partie&&partie.local?avatarDe(nomJ(p)):avatarUid(nomJ(p),uidJ(p)),nb);
   if(!moi&&!s.fin&&(s.phase==='mulligan'?!s.mull[p]:quiJoue(s)===p)){d.classList.add('joue');nb.append(el('small','p-joue','En train de jouer'))}
   if(!moi)d.append(compteur('main','Main',J.main.length),compteur('deck','Deck',J.deck.length),compteur('defausse','Défausse',J.defausse.length),compteur('enclume','Forge',J.forge.length));
   return d;
@@ -2398,12 +2766,13 @@ function affiche(){
   };
   repeint();
   const tdt=el('div','p-tourde'+(aMoi?' amoi':''));tdt.append(el('span','',texteTour(s,me)),outils());b.append(tdt);
+  let btnRejouer=null;
   if(s.fin){
     const f=el('div','bloc p-fin'),w=s.fin.gagnant;
     f.append(el('h3','',w===null?'Match nul':w===me?'Victoire':'Défaite'));
     f.append(el('p','',J.score+' à '+s.j[lui].score+(s.fin.departage?', Force totale '+s.forceTotale[me]+' contre '+s.forceTotale[lui]:'')));
     const b=bouton(partie.veut?"En attente de l'adversaire":'Rejouer',()=>{if(partie.local){niveauChoisi=partie.niveau||niveauChoisi;lanceLocal(null);return}partie.veut=true;sauve();pub({veut:partie.graine});affiche();majPartie()});
-    b.id='rejouer';b.disabled=partie.veut;if(!partie.rejeu)f.append(b);
+    b.id='rejouer';b.disabled=partie.veut;if(!partie.rejeu){if(LARGE.matches)btnRejouer=b;else f.append(b)}
     const nm=p=>p===me?'Toi':nomJ(p),rf=el('div','r-fin');
     parManche(s).forEach((o,i)=>{const d=el('div');d.append(el('b','','Manche '+(i+1)),lignesManche(o,nm));rf.append(d)});
     const lm=ligneMvp(M.bilan(s));if(lm){const q=el('p','',lm);q.id='ligneMvp';f.append(rf,q)}else f.append(rf);
@@ -2498,7 +2867,7 @@ function affiche(){
   su.append(' ',el('span','j-manche','Manche '+pg));nav.append(va('<','Manche précédente',pg-1,pg<=1),va('>','Manche suivante',pg+1,pg>=nb));
   const causes=causesLog(s);pages[pg-1].forEach(e=>{const[p,x]=e,[c,n]=genreLog(x),d=el('div',c);d.append(ico(n),texteLog(ligneLog(p,x,me)+(causes.get(e)||'')));li.append(d)});
   jo.append(su,nav,li);
-  const pied=el('div','p-pied'),q=el('button','btn sec plein','Quitter la partie');q.type='button';q.onclick=quittePartie;pied.append(q);
+  const pied=el('div','p-pied'),q=el('button','btn sec plein','Quitter la partie');q.type='button';q.onclick=quittePartie;pied.append(q);if(btnRejouer){pied.classList.add('duo');pied.append(btnRejouer)}
   const cote=el('div','p-cote');cote.append(pied,jo);
   table.append(b,plat,pl,cote);
   box.append(table);
@@ -2514,7 +2883,8 @@ LARGE.addEventListener('change',()=>{if(partie)affiche()});
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname))window.__golemsDebug={room:()=>room,partie:()=>partie,joue:a=>joue(a),lanceRejeu:x=>lanceRejeu(x),lesParties:()=>lesParties(),lesDecks:()=>lesDecks(),entre:c=>entre(c)};
 window.__golemsEtat=()=>partie&&partie.etat?JSON.stringify(partie.etat):null;
 
-$('creer').onclick=async()=>{
+$('creer').onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(creerSalon)};
+const creerSalon=async()=>{
   occupe=true;majEtat();
   const reste=attenteLobby-Date.now();if(reste>0)await pause(reste);
   await entre(nouveauCode());
@@ -2524,7 +2894,8 @@ $('formCode').onsubmit=e=>{
   if(!room||$('rejoindre').disabled)return;
   const c=$('champCode').value.trim().toLowerCase();
   if(!/^[a-z0-9]{3,8}$/.test(c)){$('erreurJeu').textContent='Code invalide.';return}
-  $('champCode').value='';entre(c);
+  if(!compteCo()){msgInvite();return}
+  choisirDeck(()=>{$('champCode').value='';entre(c)});
 };
 $('quitter').onclick=()=>{oublie(code);sortie()};
 const memo=lire('golems.onglet');onglet(noms.includes(memo)?memo:'nouveautes');

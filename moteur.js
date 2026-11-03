@@ -1,7 +1,7 @@
 /* Les Golems : moteur pur, sans affichage. Etat = f(graine, journaux). Charge en page et en Node. */
 (function(racine){
 'use strict';
-const VERSION='0.2a';
+const VERSION='0.2';
 const POIDS_MVP={force:1,bonus:1,degats:1,morts:3};
 const CARTES={
  '001':{id:'001',nom:'KaTarN',el:['magma','foudre'],cout:1,force:8,texte:'Pose uniquement en manche 1. Perd 4 de Force à chaque fin de manche.'},

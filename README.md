@@ -33,3 +33,14 @@ Le site supporte les réinitialisations partielles : si `pseudos/<pseudo>` a ét
 ## Test en local
 
 `python -m http.server 8000` dans ce dossier, puis http://localhost:8000. En local seulement, `window.__golemsDebug` expose quelques fonctions pour les tests automatiques.
+
+## Émulateur Firebase local (tests sans toucher la vraie base)
+
+Servi depuis `localhost` ou `127.0.0.1`, le site se branche automatiquement sur l'émulateur Firebase (Auth 127.0.0.1:9099, Realtime Database 127.0.0.1:9000, projet de démonstration `demo-les-golems`), jamais sur la vraie base. En ligne (github.io), rien ne change.
+
+1. Prérequis : Java 21 (Eclipse Temurin) et le binaire autonome `firebase-tools-win.exe` dans `../13 - Outils/firebase/`.
+2. `powershell -ExecutionPolicy Bypass -File lancer_emulateur.ps1` (charge `database.rules.json`, voir `firebase.json` et `.firebaserc`).
+3. Dans un autre terminal : `python -m http.server 8000 --bind 127.0.0.1`, puis http://127.0.0.1:8000
+4. Ctrl+C arrête l'émulateur ; comptes et données de test disparaissent. Comptes d'essai notés dans `tests/comptes_emulateur.txt`.
+
+Pour tester contre la vraie base, il faut désormais servir le site sous un autre nom d'hôte (par exemple l'adresse IP du PC sur le réseau local).

@@ -128,6 +128,20 @@
           }
         },
 
+        // Chat du salon : ajout seulement (jamais modifié ni effacé), par un joueur présent ou engagé,
+        // sous son propre uid et son pseudo. Effacé avec le salon.
+        "chat": {
+          "$m": {
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && (root.child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('salons').child($code).child('engages').hasChild(auth.uid))",
+            ".validate": "newData.hasChildren(['a', 'p', 't', 'm'])",
+            "a": { ".validate": "newData.isString() && newData.val().length <= 128" },
+            "p": { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child(auth.uid).child('pseudo').val()" },
+            "t": { ".validate": "newData.val() === now" },
+            "m": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200" },
+            "$autre": { ".validate": false }
+          }
+        },
+
         // Rien d'autre dans un salon.
         "$autre": { ".validate": false }
       }
@@ -256,7 +270,20 @@
               "$autre": { ".validate": false }
             }
           },
-  
+
+          // Chat du salon : comme en haut, sous essai/.
+          "chat": {
+            "$m": {
+              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && (root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('essai').child('salons').child($code).child('engages').hasChild(auth.uid))",
+              ".validate": "newData.hasChildren(['a', 'p', 't', 'm'])",
+              "a": { ".validate": "newData.isString() && newData.val().length <= 128" },
+              "p": { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child(auth.uid).child('pseudo').val()" },
+              "t": { ".validate": "newData.val() === now" },
+              "m": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200" },
+              "$autre": { ".validate": false }
+            }
+          },
+
           // Rien d'autre dans un salon.
           "$autre": { ".validate": false }
         }
