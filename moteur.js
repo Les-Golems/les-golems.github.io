@@ -1,7 +1,7 @@
 /* Les Golems : moteur pur, sans affichage. Etat = f(graine, journaux). Charge en page et en Node. */
 (function(racine){
 'use strict';
-const VERSION='0.2';
+const VERSION='0.2.1';const TRAIT_CUMULE=true; /* 0.2.1 : Trait cumule (+1 par voisin allie par element partage), plus de match nul */
 const POIDS_MVP={force:1,bonus:1,degats:1,morts:3};
 const CARTES={
  '001':{id:'001',nom:'KaTarN',el:['magma','foudre'],cout:1,force:8,texte:'Pose uniquement en manche 1. Perd 4 de Force à chaque fin de manche.'},
@@ -102,7 +102,7 @@ function voisins(G,l,k){return [[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([a,c])=>G[
 function forceDe(s,p,l,k){
   const J=s.j[p].grille,g=J[l][k];if(!g)return 0;
   const el=carte(g.c).el,vs=voisins(J,l,k);let v=g.f+(g.ra||0)+bonus(s,p,l,k)-g.d;
-  el.forEach(e=>{if(vs.some(n=>carte(n.c).el.includes(e)))v++});
+  el.forEach(e=>{v+=vs.filter(n=>carte(n.c).el.includes(e)).length}); /* 0.2.1 : +1 par voisin partageant l'element */
   const f=s.j[1-p].grille[l][k];
   if(f&&el.some(e=>carte(f.c).el.includes(DOMINE[e])))v++;
   return v;
@@ -164,7 +164,7 @@ function noteBonus(s){
     const G=s.j[p].grille,g=G[l][k];if(!g)continue;
     const vs=voisins(G,l,k),el=carte(g.c).el;
     vs.forEach(n=>{const t=carte(n.c).id;if(t==='003'||t==='003e')b('voisins',p,g.c,p,n.c)});
-    el.forEach(e=>{const n=vs.find(v=>carte(v.c).el.includes(e));if(n)b('trait',p,g.c,p,n.c)});
+    el.forEach(e=>vs.forEach(n=>{if(carte(n.c).el.includes(e))b('trait',p,g.c,p,n.c)}));
     const f=s.j[1-p].grille[l][k];
     if(f&&el.some(e=>carte(f.c).el.includes(DOMINE[e])))b('cercle',p,g.c,1-p,f.c);
   }
@@ -373,7 +373,10 @@ function deroule(s){
   s.reperes[s.reperes.length-1][2]=s.log.length;
   if(s.manche===3){
     const [a,b]=[s.j[0].score,s.j[1].score],[x,y]=s.forceTotale;
-    s.fin={gagnant:a!==b?(a>b?0:1):x!==y?(x>y?0:1):null,scores:[a,b],departage:a===b};
+    /* 0.2.1 : points, puis Force totale, puis terrains conquis sur la partie, puis le second joueur de la manche 3. Jamais de nul. */
+    const tc=[0,1].map(p=>s.stats.t.filter(t=>t.gagnant===p).length),[u,w]=tc,sec=1-s.premier;
+    const dep=a!==b?false:x!==y?'force':u!==w?'terrains':'second';
+    s.fin={gagnant:a!==b?(a>b?0:1):x!==y?(x>y?0:1):u!==w?(u>w?0:1):sec,scores:[a,b],terrains:tc,departage:dep};
     s.phase='fin';return;
   }
   s.manche++;s.tour=1;s.premier=1-s.premier;s.joueur=s.premier;
@@ -595,7 +598,7 @@ function robotFort(s,p,l,t){
   const b=meilleur(F,p,q);
   return b.a&&b.g>.01?b.a:{t:'x'};
 }
-const api={VERSION,TAILLE_DECK,DECK_MIN,DECK_MAX,MAX_EX,erreurDeck,deckTexte,lisDeck,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
+const api={VERSION,TRAIT_CUMULE,TAILLE_DECK,DECK_MIN,DECK_MAX,MAX_EX,erreurDeck,deckTexte,lisDeck,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
   nomDetail,forceDe,ciblable,colonnes,valeurDecompte,coutPose,genre};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else racine.GolemsMoteur=api;
 })(typeof window!=='undefined'?window:globalThis);

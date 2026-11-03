@@ -61,6 +61,27 @@ const gol=(c,f,d=0)=>({c,f,d});
   assert.strictEqual(M.valeurDecompte(s,0,0,0),8+2+1,'trait + cercle');
   assert.strictEqual(M.forceDe(s,0,0,0),8+2+1,'trait et cercle toujours actifs');
 }
+{ // 0.2.1 Trait cumule : deux voisins du meme element
+  const s=vide();s.j[0].grille[1][1]=gol(0,8);s.j[0].grille[0][1]=gol(24,1);s.j[0].grille[1][0]=gol(25,1);
+  assert.strictEqual(M.forceDe(s,0,1,1),8+2,'KaTarN + deux voisins Foudre = +2');
+  assert.strictEqual(M.forceDe(s,0,0,1),1+1,'Trigas : un seul voisin Foudre');
+}
+{ // 0.2.1 Trait cumule : voisin double, puis voisins mixtes sans plafond
+  const s=vide();s.j[0].grille[1][1]=gol(0,8);s.j[0].grille[0][1]=gol(1,8);
+  assert.strictEqual(M.forceDe(s,0,1,1),8+2,'un voisin Magma + Foudre = +2 a lui seul');
+  s.j[0].grille[1][0]=gol(24,1);s.j[0].grille[2][1]=gol(30,2);
+  assert.strictEqual(M.forceDe(s,0,1,1),8+4,'double + Foudre + Magma = +4');
+  s.j[1].grille[1][1]=gol(31,3);assert.strictEqual(M.forceDe(s,0,1,1),8+4,'K-Chan en face : pas de cercle');
+  s.j[1].grille[1][1]=gol(18,3);assert.strictEqual(M.forceDe(s,0,1,1),8+4+1,'Le Q en face, double domination : cercle +1 seulement');
+}
+{ // 0.2.1 plus de nul : terrains conquis, puis second joueur de la manche 3
+  const fin=(prem,t)=>{const s=vide();s.manche=3;s.premier=prem;s.joueur=1-prem;s.tour=3;s.stats.t=t;M.applique(s,1-prem,{t:'x'});return s};
+  let s=fin(0,[{gagnant:1},{gagnant:0},{gagnant:1},{gagnant:null}]);
+  assert(s.fin,'partie finie');assert.strictEqual(s.fin.gagnant,1,'plus de terrains conquis');assert.strictEqual(s.fin.departage,'terrains');assert.deepStrictEqual(s.fin.terrains,[1,2]);
+  s=fin(0,[{gagnant:0},{gagnant:1}]);assert.strictEqual(s.fin.gagnant,1,'second de la manche 3');assert.strictEqual(s.fin.departage,'second');
+  s=fin(1,[]);assert.strictEqual(s.fin.gagnant,0,'second de la manche 3 (J1)');
+  s=vide();s.manche=3;s.joueur=1;s.tour=3;s.j[0].grille[0][0]=gol(6,3);M.applique(s,1,{t:'x'});assert.strictEqual(s.fin.departage,false,'points d abord');
+}
 { // Cyrdan + Trait + cercle comptent pour la survie
   const s=vide();s.j[0].grille[0][0]=gol(12,1);s.j[0].grille[1][0]=gol(18,1,1);
   assert.strictEqual(M.forceDe(s,0,1,0),1+1+1-1,'aura + Trait cristal');
@@ -82,7 +103,7 @@ const gol=(c,f,d=0)=>({c,f,d});
 }
 { // Vagues simultanees : deux morts ensemble, puis un mort en chaine explique
   const s=vide();s.j[0].main=[3];s.j[0].energie=9;s.j[0].grille[0][0]=gol(0,8);
-  s.j[1].grille[0][1]=gol(6,1,3);s.j[1].grille[0][2]=gol(6,1,2);s.j[1].grille[1][1]=gol(12,1,1);
+  s.j[1].grille[0][1]=gol(6,1,4);s.j[1].grille[0][2]=gol(6,1,2);s.j[1].grille[1][1]=gol(12,1,1); /* 0.2.1 : Alrevan 0,1 a +3 de Trait (double + Cyrdan), d'ou 4 degats */
   M.applique(s,0,{t:'p',c:3,l:0,k:0});
   assert.strictEqual(s.j[1].grille[1][1],null,'Cyrdan meurt en chaine');
   assert(s.log.some(([,x])=>/ et .* meurent\.$/.test(x)),'vague annoncee ensemble');
@@ -209,7 +230,7 @@ function finDeManche(s){s.joueur=1;s.premier=0;s.tour=3;M.applique(s,1,{t:'x'})}
 }
 { // Slim K nomme ses cibles, bilan infliges, subis, morts et chaine
   const s=vide();s.j[0].main=[3];s.j[0].energie=9;s.j[0].grille[0][0]=gol(0,8,1);
-  s.j[1].grille[0][1]=gol(6,1,3);s.j[1].grille[0][2]=gol(6,1,2);s.j[1].grille[1][1]=gol(12,1,1);
+  s.j[1].grille[0][1]=gol(6,1,4);s.j[1].grille[0][2]=gol(6,1,2);s.j[1].grille[1][1]=gol(12,1,1); /* 0.2.1 : Alrevan 0,1 a +3 de Trait (double + Cyrdan), d'ou 4 degats */
   M.applique(s,0,{t:'p',c:3,l:0,k:0});
   assert(s.log.some(([,x])=>/^Slim K : 1 dégât à .* et .*\.$/.test(x)),'cibles nommees');
   const B=M.bilan(s),sl=B.joueurs[0].cartes.find(c=>/Slim K/.test(c.carte));
@@ -230,7 +251,7 @@ function finDeManche(s){s.joueur=1;s.premier=0;s.tour=3;M.applique(s,1,{t:'x'})}
   assert.strictEqual(B.mvp.score,B.mvp.force*M.POIDS_MVP.force+B.mvp.bonus*M.POIDS_MVP.bonus);
   assert.deepStrictEqual(B.tours[0],{manche:3,tour:3,joueur:1,energieGaspillee:0,pose:false});
   assert(B.joueurs[0].vuesNonPosees.length===1);
-  assert.strictEqual(M.VERSION,'0.2');assert.strictEqual(M.CARTES['002e'].cout,3);assert.strictEqual(M.CARTES['004e'].cout,3);assert.strictEqual(M.CARTES['001'].cout,1);assert.strictEqual(T('La Faille').pts,2);
+  assert.strictEqual(M.VERSION,'0.2.1');assert.strictEqual(M.CARTES['002e'].cout,3);assert.strictEqual(M.CARTES['004e'].cout,3);assert.strictEqual(M.CARTES['001'].cout,1);assert.strictEqual(T('La Faille').pts,2);
   {let dbl=0;for(let g=1;g<200;g++){const u=vide();u.rng=[g,g*7];u.j[0].main=[9];u.j[0].energie=9;u.j[0].grille[0][0]=gol(6,3);M.applique(u,0,{t:'p',c:9,l:0,k:0});const m=/lance (\d) et (\d) : Force (\d+)/.exec(u.log.map(x=>x[1]).join(' '));assert(m);const[a,b,f]=[+m[1],+m[2],+m[3]];if(a===b)dbl++;assert.strictEqual(f,a===b?a:a+b,'KEKWRevan')}assert(dbl)}
   assert.strictEqual(M.TAILLE_DECK,33);
   for(let c=0;c<33;c++){assert.strictEqual(M.decode(M.code({t:'f',c})).c,c);assert.strictEqual(M.decode(M.code({t:'p',c,l:2,k:1})).c,c)}

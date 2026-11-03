@@ -933,89 +933,91 @@ header .haut .moi{min-width:0;flex:0 1 auto}
   <p class="intro">Les règles complètes du jeu pour apprendre à jouer.</p>
 
   <div class="colonnes"><div>
-  <details open><summary><h3>La partie</h3><span>3 terrains, une grille 3 x 3 par joueur, 3 manches de 3 tours.</span></summary><div class="corps"><ul>
-    <li>3 terrains sont tirés au hasard parmi 10 et placés au hasard. Chacun rapporte les points imprimés dessus.</li>
-    <li>Les joueurs sont face à face. Chacun a une grille 3 x 3, en miroir de l'autre : une colonne correspond à un terrain.</li>
-    <li>Les terrains ne sont pas numérotés. Chaque joueur numérote ses colonnes 1, 2, 3 depuis sa gauche : les colonnes 1 et 3 sont inversées entre les joueurs, la 2 est commune.</li>
-    <li>Les effets parlent de terrain. La ligne 1 est la plus proche des terrains, puis viennent les lignes 2 et 3. Aucun effet de ligne.</li>
+  <details open><summary><h3>La partie</h3></summary><div class="corps"><ul>
+    <li>3 terrains sont tirés au hasard parmi 10 et placés aléatoirement. Chacun rapporte les points imprimés dessus.</li>
+    <li>Les joueurs sont face à face. Chacun a une grille 3 x 3, en miroir de l'autre et une colonne correspond à un terrain.</li>
+    <li>Les cartes ne citent jamais de numéro de ligne ou de colonne : elles désignent les cases par le terrain, la case en face ou la ligne adverse.</li>
     <li><b>En face :</b> même terrain, même ligne.</li>
     <li><b>Ligne adverse :</b> les 3 cases adverses de la même ligne.</li>
     <li><b>Voisin :</b> Golem allié sur une case adjacente, sans diagonale.</li>
-    <li><b>En jeu :</b> sur une grille.</li>
+    <li><b>En jeu :</b> une carte posée sur une grille.</li>
     <li>La partie dure 3 manches de 3 tours par joueur. Le premier joueur est tiré au sort, puis il change à chaque manche.</li>
   </ul></div></details>
 
-  <details><summary><h3>Le tour</h3><span>Pioche 2, Forge 0 ou 1 carte d'abord, dépense ton énergie, puis passe.</span></summary><div class="corps">
-    <p><b>Départ :</b> 5 cartes en main. Mulligan de 3 cartes maximum : elles retournent dans le deck, on mélange, puis on repioche.</p>
+  <details><summary><h3>Mise en place</h3></summary><div class="corps">
+    <p>5 cartes en main. Mulligan de 3 cartes maximum : elles retournent dans le deck, on mélange, puis on repioche.</p>
+  </div></details>
+
+  <details><summary><h3>Le tour</h3></summary><div class="corps">
     <ol class="etapes" aria-label="Les 4 étapes du tour"><li><b>Pioche</b>2 cartes (1 au premier tour du second)</li><li><b>Forge</b>0 ou 1 carte</li><li><b>Actions</b>Poser, remplacer, améliorer</li><li><b>Fin du tour</b>Énergie perdue, 7 cartes max</li></ol>
     <ol>
-      <li><b>Pioche 2 cartes.</b> À chaque manche, le joueur qui joue en second ne pioche qu'1 carte à son premier tour de la manche. Deck vide : plus de pioche, sans pénalité.</li>
-      <li><b>Forge :</b> toujours en premier, après la pioche : place 0 ou 1 carte de ta main face cachée, définitivement, avant toute action et avant les effets gratuits de La Faille et du Vaisseau. Chaque carte en Forge donne 1 énergie par tour, dès ce tour.</li>
+      <li><b>Pioche :</b> 2 cartes. À chaque manche, le joueur qui joue en second ne pioche qu'une carte à son premier tour de la manche. Deck vide : plus de pioche, sans pénalité.</li>
+      <li><b>Forge :</b> toujours en premier, après la pioche. Place 0 ou 1 carte de ta main, face cachée, définitivement, avant toute action et avant les effets gratuits de certains terrains. Chaque carte en Forge donne 1 énergie par tour, dès ce tour. La Forge est ta seule source d'énergie.</li>
       <li><b>Actions :</b> paie en énergie, puis passe quand tu ne veux ou ne peux plus agir.
         <figure class="annote" id="lireCarte" aria-label="Lire une carte"></figure>
         <ul>
           <li><b>Poser :</b> paie le coût de la carte.</li>
-          <li><b>Remplacer :</b> paie le coût de la nouvelle carte, l'ancienne va à la défausse. Tu ne remplaces que tes propres Golems.</li>
-          <li><b>Améliorer :</b> paie le coût de l'évolution, possible dès le tour de la pose.</li>
+          <li><b>Remplacer :</b> paie le coût de la nouvelle carte ; l'ancienne va à la défausse. Tu ne remplaces que tes propres Golems.</li>
+          <li><b>Améliorer :</b> paie le coût de l'évolution, possible dès le tour de la pose. Il faut avoir déjà posé la version de base du Golem.</li>
         </ul></li>
       <li><b>Fin du tour :</b> l'énergie restante est perdue, défausse jusqu'à 7 cartes.</li>
     </ol>
   </div></details>
 
-  <details><summary><h3>Fin de manche</h3><span>Décompte par colonne, le plus fort marque le terrain, puis les effets.</span></summary><div class="corps">
+  <details><summary><h3>Fin de manche</h3></summary><div class="corps">
     <ol>
-      <li><b>Décompte :</b> Force actuelle par colonne. Une colonne vide vaut 0.</li>
-      <li>Le plus fort marque le terrain. En cas d'égalité, personne ne le marque.</li>
-      <li><b>Effets de fin de manche :</b> ceux du premier joueur de la manche, puis ceux de l'autre. Sans bonus, KaTarN compte 8, puis 4, puis 0 et est détruit à la fin de la manche 2 ; avec ses bonus (Trait, cercle, Cyrdan), il peut tenir plus longtemps. Palmarès voit le résultat du décompte ; si plusieurs terrains sont à égalité de points, chacun compte.</li>
-      <li><b>Terrains :</b> pour chaque joueur, ses Golems d'abord, puis ses terrains de gauche à droite vus du premier joueur, Le Buzzer en dernier. Le gagnant d'un terrain est celui du décompte : sans gagnant, pas d'effet. La Nuit au Village se résout avec le premier joueur : tous les Golems du terrain comptent, des deux camps, à leur Force actuelle ; en cas d'égalité, aucun n'est détruit. Le Camp rend 1 de Force à chaque Golem, sans dépasser sa base, pour chaque camp à son tour.</li>
+      <li><b>Décompte :</b> on additionne la Force actuelle de chacun de tes Golems dans chaque colonne. Une colonne vide vaut 0.</li>
+      <li>Le plus fort conquiert le terrain et marque ses points. En cas d'égalité, personne ne le marque.</li>
+      <li><b>Effets de fin de manche :</b> pour chaque joueur, en commençant par le premier joueur de la manche, ses Golems d'abord, puis ses terrains de gauche à droite vus du premier joueur.</li>
       <li>Les cartes et les dégâts restent, le premier joueur change.</li>
     </ol>
-    <p><b>Fin de partie :</b> le plus de points après la manche 3, effets compris. En cas d'égalité, la plus grande Force totale au dernier décompte l'emporte, sinon c'est un match nul.</p>
+    <div class="note"><p><b>Exemples</b></p><ul>
+      <li>KaTarN (carte) compte 8, puis 4, puis 0 sans bonus, et est détruit à la fin de la manche 2.</li>
+      <li>Le Buzzer est toujours résolu en dernier.</li>
+      <li>La Nuit au Village se résout avec le premier joueur.</li>
+    </ul></div>
+    <p><b>Fin de partie :</b> le plus de points après la manche 3, effets compris. En cas d'égalité, la plus grande Force totale (somme des trois colonnes) au dernier décompte l'emporte. Si elle est aussi égale, l'emporte celui qui a conquis le plus de terrains sur toute la partie, puis, en dernier recours, celui qui jouait en second à la manche 3. Il n'y a jamais de match nul.</p>
   </div></details>
 
   </div><div>
-  <details id="dTerrains"><summary><h3>Terrains</h3><span>Ici = toute la colonne, chez les deux joueurs.</span></summary><div class="corps"><figure class="annote" id="lireTerrain" aria-label="Lire un terrain"></figure><ul>
-    <li><b>Ici :</b> toute la colonne du terrain, chez les deux joueurs.</li>
-    <li>Un effet de terrain s'applique aux deux joueurs, sauf s'il dit le gagnant.</li>
-    <li>Un terrain est actif toute la partie et son résultat est définitif.</li>
-    <li><b>La Faille et Le Vaisseau :</b> une fois par manche et par joueur, à son tour, gratuits, après l'étape de Forge.</li>
-    <li><b>La Boutique :</b> poser ou remplacer, pas une évolution ; coût minimum 0.</li>
+  <details id="dTerrains"><summary><h3>Terrains</h3></summary><div class="corps"><figure class="annote" id="lireTerrain" aria-label="Lire un terrain"></figure><ul>
+    <li>Un effet de terrain s'applique aux deux joueurs, sauf mention contraire.</li>
+    <li>Un terrain est actif toute la partie, et son résultat est définitif pour chaque manche.</li>
   </ul></div></details>
 
-  <details><summary><h3>Force et dégâts</h3><span>Les dégâts restent entre les manches ; à 0, le Golem est défaussé.</span></summary><div class="corps"><ul>
-    <li><b>Force actuelle</b> = Force de la carte + bonus de capacités + Trait + cercle - dégâts.</li>
-    <li>Les dégâts sont conservés entre les manches, avec une dizaine de marqueurs libres. Perdre de la Force, c'est subir des dégâts.</li>
-    <li>À 0 ou moins, le Golem part aussitôt à la défausse. Tous ceux à 0 ou moins meurent en même temps, puis on recalcule, et ainsi de suite. Tuer ne rapporte rien.</li>
+  <details><summary><h3>Force et dégâts</h3></summary><div class="corps"><ul>
+    <li><b>Force actuelle</b> = Force de la carte + bonus de capacités + Trait + cercle - dégâts subis.</li>
+    <li>Les dégâts sont conservés entre les manches. Perdre de la Force, c'est subir des dégâts.</li>
+    <li>À 0 ou moins, le Golem est détruit et part aussitôt à la défausse. Tous ceux à 0 ou moins meurent en même temps, puis on recalcule, et ainsi de suite. Tuer ne rapporte rien.</li>
     <li>On n'attaque que par les effets de cartes.</li>
-    <li><b>Évolution :</b> se pose sur sa base. Elle prend sa place, la base part aussitôt à la défausse. Elle efface les dégâts, prend sa propre Force et perd les effets de la base. Sans sa base, une évolution ne sert qu'en Forge.</li>
+    <li><b>Évolution :</b> se pose sur sa base et prend sa place ; la base part aussitôt à la défausse. Tous les dégâts de la base sont annulés : l'évolution a sa propre Force et ses propres effets, ceux de la base sont perdus.</li>
   </ul></div></details>
 
-  <details><summary><h3>Effets</h3><span>« À la pose » à chaque arrivée sur la grille, « En jeu » tant que la carte y reste.</span></summary><div class="corps"><ul>
+  <details><summary><h3>Effets</h3></summary><div class="corps"><ul>
     <li><b>À la pose :</b> à chaque arrivée sur la grille (Poser, Remplacer, Améliorer), après paiement. Échanger ou déplacer n'est pas une pose et garde les dégâts.</li>
     <li><b>En jeu :</b> tant que la carte est sur la grille.</li>
     <li>Un effet s'applique en entier. Sans cible, il ne se passe rien.</li>
     <li>La carte prime sur la règle.</li>
   </ul></div></details>
 
-  <details><summary><h3>Éléments</h3><span>5 éléments, 2 par Golem : le cercle et le Trait donnent jusqu'à +3 de Force, en permanence.</span></summary><div class="corps">
+  <details><summary><h3>Éléments</h3></summary><div class="corps">
     <p>Magma (attaque), Cristal (soutien), Foudre (énergie), Brume (pioche), Roche (terrain).</p>
     <div id="cercleEl"></div>
     <p>Chaque flèche part de l'élément qui domine vers l'élément dominé.</p>
     <div class="face"><figure><img src="cartes/001.jpg" alt="KaTarN" loading="lazy" width="600" height="840">+1 de Force</figure><span>face à face</span><figure><img src="cartes/003.jpg" alt="Cyrdan" loading="lazy" width="600" height="840">+1 de Force</figure></div>
     <p><b>Exemple :</b> KaTarN (Magma, Foudre) fait face à Cyrdan (Cristal, Roche). Magma domine Cristal : KaTarN gagne +1. Roche domine Magma : Cyrdan gagne +1 aussi.</p>
     <ul>
-      <li><b>Cercle :</b> +1 si le Golem en face a un élément dominé, jamais plus de +1. La domination peut être mutuelle.</li>
-      <li><b>Trait :</b> pour chacun de ses 2 éléments, +1 si au moins un voisin partage cet élément, donc +2 maximum. Plusieurs voisins du même élément ne cumulent pas. Exemple avec KaTarN (Magma, Foudre) : voisin Magma +1, voisin Foudre +1, voisin Magma et Foudre +2.</li>
-      <li>Les effets de cartes peuvent donner plus. Le Trait s'ajoute au cercle, soit +3 au maximum.</li>
+      <li><b>Cercle :</b> +1 si le Golem en face (la case adverse sur le même terrain et la même ligne) a un élément que le tien domine. Jamais plus de +1.</li>
+      <li>Comme chaque Golem a deux éléments, les deux Golems face à face peuvent chacun dominer l'autre : par exemple Magma + Foudre face à Roche + Brume (Roche domine Magma, Foudre domine Brume) : les deux gagnent +1.</li>
+      <li><b>Trait :</b> pour chacun de ses 2 éléments, +1 par voisin allié qui partage cet élément. Les voisins se cumulent, sans plafond. Exemple avec KaTarN (Magma, Foudre) : deux voisins Foudre +2, un seul voisin Magma et Foudre +2 à lui seul.</li>
+      <li>Les effets de cartes peuvent donner plus. Le Trait s'ajoute au cercle, qui reste à +1 au maximum.</li>
       <li>Trait et cercle sont toujours actifs : perdre un voisin ou un Golem en face peut détruire un Golem, en chaîne.</li>
     </ul>
   </div></details>
 
-  <details><summary><h3>Cartes et decks</h3><span>Deck de 24 à 30 cartes, 3 exemplaires maximum par carte.</span></summary><div class="corps"><ul>
-    <li>Deck de 24 à 30 cartes.</li>
-    <li>3 exemplaires maximum de chaque carte. Une base et son évolution sont deux cartes différentes, comptées à part.</li>
-    <li>Aucune limite d'éléments pour l'instant.</li>
-    <li>Le paquet de test (33 cartes) est un deck d'essai fourni, volontairement hors de ces règles.</li>
+  <details><summary><h3>Cartes et decks</h3></summary><div class="corps"><ul>
+    <li>Deck de 24 à 30 cartes, 3 exemplaires maximum de chaque carte. Une base et son évolution sont deux cartes différentes, comptées à part.</li>
+    <li>Aucune limite d'éléments pour l'instant (elle sera fixée à 3 plus tard).</li>
   </ul></div></details>
   </div></div>
 </section>
@@ -1117,12 +1119,12 @@ header .haut .moi{min-width:0;flex:0 1 auto}
 
 <div class="voile" id="aide" role="dialog" aria-modal="true" aria-labelledby="aideTitre" hidden>
   <div class="boite"><h2 id="aideTitre">Aide rapide</h2>
-    <h3>Ton tour</h3><ol><li>Tu pioches 2 cartes, ou 1 seule si tu joues en second et que c'est ton premier tour de la manche.</li><li>Étape 1 : forge 1 carte ou choisis Ne pas forger, avant toute action, La Faille et Le Vaisseau compris. Une carte forgée donne 1 énergie par tour, définitivement.</li><li>Tu dépenses ton énergie, puis Fin du tour. L'énergie restante est perdue.</li></ol>
+    <h3>Ton tour</h3><ol><li>Tu pioches 2 cartes, ou 1 seule si tu joues en second et que c'est ton premier tour de la manche.</li><li>Forge : place 0 ou 1 carte, avant toute action et avant les effets gratuits de certains terrains. Une carte forgée donne 1 énergie par tour, définitivement.</li><li>Tu dépenses ton énergie, puis Fin du tour. L'énergie restante est perdue, et tu défausses jusqu'à 7 cartes en main.</li></ol>
     <h3>Actions</h3><p><b>Poser</b> sur une case libre, <b>Remplacer</b> un de tes Golems (l'ancien est défaussé), <b>Améliorer</b> une base en son évolution. Touche une carte, puis une case dorée : elle montre le coût et le bonus prévu (+N) de Trait et de cercle.</p>
-    <h3>Trait</h3><p>+1 par élément du Golem partagé avec au moins un voisin.</p>
-    <h3>Cercle</h3><p>+1 si un élément du Golem domine le Golem en face. Magma domine Cristal, Cristal Foudre, Foudre Brume, Brume Roche, Roche Magma.</p>
+    <h3>Trait</h3><p>+1 par voisin allié et par élément partagé, cumulable : deux voisins Foudre donnent +2.</p>
+    <h3>Cercle</h3><p>+1 si le Golem en face (la case adverse sur le même terrain et la même ligne) a un élément que le tien domine. Jamais plus de +1. Magma domine Cristal, Cristal Foudre, Foudre Brume, Brume Roche, Roche Magma.</p>
     <h3>Voisins</h3><p>Tes Golems sur une case adjacente, sans diagonale.</p>
-    <h3>Ici</h3><p>Toute la colonne du terrain, chez les deux joueurs.</p>
+    <h3>Fin de manche</h3><p>Dans chaque colonne, on additionne la Force actuelle de ses Golems : le plus fort conquiert le terrain et marque ses points, personne en cas d'égalité. Puis les effets de fin de manche. Les cartes et les dégâts restent.</p>
     <button class="btn plein" id="aideFermer" type="button">Fermer</button></div>
 </div>
 <script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
@@ -1516,7 +1518,7 @@ async function entre(c){
 /* M : moteur en service. Le rejeu le remplace le temps de la partie par le moteur archive de sa version (moteurs/moteur-<v>.js). */
 const M0=window.GolemsMoteur;let M=M0;
 /* Versions archivees dans moteurs/ : en ajouter une a chaque nouvelle version du moteur (voir README). */
-const MOTEURS_ARCHIVES=['0.2'];
+const MOTEURS_ARCHIVES=['0.2','0.2.1'];
 const versionMoteur=v=>v==='0.2a'?'0.2':v;
 const rejeuPossible=R=>!!(R&&typeof R.v==='string'&&Number.isInteger(R.graine)&&Array.isArray(R.j)&&(versionMoteur(R.v)===M0.VERSION||MOTEURS_ARCHIVES.includes(versionMoteur(R.v))));
 const moteursCharges={};
@@ -1774,7 +1776,8 @@ function lienSteps(L,av,s){
     trace(rectDe(caseDe(o.p,o.l,o.k)),rectDe(caseDe(o.p,o.x,o.y)),COUL(o.e),false,1000);
     [[o.l,o.k],[o.x,o.y]].forEach(([l,k])=>{
       const q=caseDe(o.p,l,k);ajoutFx({q,classe:'fx-lien',eclat:true,c:COUL(o.e)},1000);
-      const cle=o.p+':'+l+k+o.e;if(!vu[cle]&&!traitActif(av,o.p,l,k,o.e)){vu[cle]=1;ajoutFx({q,classe:'fx-bonus',texte:'+1'},1300)}
+      const cle=o.p+':'+l+k+o.e;if(M.TRAIT_CUMULE)ajoutFx({q,classe:'fx-bonus',texte:'+1'},1300); /* 0.2.1 : chaque nouveau lien donne +1 aux deux bouts */
+      else if(!vu[cle]&&!traitActif(av,o.p,l,k,o.e)){vu[cle]=1;ajoutFx({q,classe:'fx-bonus',texte:'+1'},1300)}
     });
     return T(650);
   }));
@@ -1788,7 +1791,7 @@ function lienSteps(L,av,s){
     for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){
       const u=av.j[p].grille[l][k],w=s.j[p].grille[l][k];if(!u||!w||u.c!==w.c)continue;
       const g=M.forceDe(s,p,l,k)-M.forceDe(av,p,l,k);
-      const dej=M.carte(w.c).el.filter(e=>traitActif(s,p,l,k,e)&&!traitActif(av,p,l,k,e)).length+(nC.some(o=>o.p===p&&o.l===l&&o.k===k)?1:0);
+      const dej=(M.TRAIT_CUMULE?nT.filter(o=>o.p===p&&((o.l===l&&o.k===k)||(o.x===l&&o.y===k))).length:M.carte(w.c).el.filter(e=>traitActif(s,p,l,k,e)&&!traitActif(av,p,l,k,e)).length)+(nC.some(o=>o.p===p&&o.l===l&&o.k===k)?1:0);
       if(g-dej>0)ajoutFx({q:caseDe(p,l,k),classe:'fx-bonus',texte:'+'+(g-dej)},1300);
     }
     return 0;
@@ -2059,10 +2062,15 @@ function vueBilan(s,nm){
   B.autres.forEach(o=>d.append(el('p','',o.source+' : '+pl(o.morts,'mort'))));
   return d;
 }
+/* Departage a egalite de points : true (moteur 0.2) ou 'force', 'terrains', 'second' (0.2.1). a = point de vue. */
+function departageTxt(s,a,b){const d=s.fin.departage;
+  if(d==='terrains')return 'Force totale '+s.forceTotale[a]+' partout, terrains conquis '+s.fin.terrains[a]+' contre '+s.fin.terrains[b];
+  if(d==='second')return 'Force totale et terrains conquis à égalité, victoire au second joueur de la manche 3';
+  return 'Force totale '+s.forceTotale[a]+' contre '+s.forceTotale[b]}
 function texteResume(s){
   const n=p=>nomJ(p).replace(/@/g,''),w=s.fin.gagnant,[a,b]=w===1?[1,0]:[0,1];
   const t=(w===null?'Les Golems : match nul, '+n(0)+' et '+n(1)+', '+s.j[0].score+' partout':'Les Golems : '+n(a)+' bat '+n(b)+' '+s.j[a].score+' à '+s.j[b].score)
-    +(s.fin.departage?' (Force totale '+s.forceTotale[a]+' contre '+s.forceTotale[b]+')':'');
+    +(s.fin.departage?' ('+departageTxt(s,a,b)+')':'');
   return [t].concat(parManche(s).map((o,i)=>'Manche '+(i+1)+' : '+lignesManche(o,n)),lignesBilan(s,n)).join('\n');
 }
 function donneesPartie(s){
@@ -2076,7 +2084,7 @@ function copieFin(b,lib,txt){
 /* Bonus prevu de Trait et de cercle, memes regles que forceDe, sans toucher a l'etat. */
 function bonusPrevu(s,me,c,l,k){
   const G=s.j[me].grille,C=M.carte(c),vs=[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([x,y])=>G[x]&&G[x][y]).filter(Boolean);
-  const trait=C.el.filter(e=>vs.some(v=>M.carte(v.c).el.includes(e))).length,f=s.j[1-me].grille[l][k];
+  const trait=C.el.reduce((t,e)=>{const n=vs.filter(v=>M.carte(v.c).el.includes(e)).length;return t+(M.TRAIT_CUMULE?n:Math.min(n,1))},0),f=s.j[1-me].grille[l][k];
   return {trait,cercle:f&&C.el.some(e=>M.carte(f.c).el.includes(M.DOMINE[e]))?1:0};
 }
 /* Recapitulatif de fin de manche : local, ne touche ni a la presence ni au journal. */
@@ -2305,7 +2313,7 @@ function ouvreProfil(){
   ring.append(el('b','',pg===null?'-':pg+' %'),el('span','','de victoires'));
   const vdn=el('div','pf-vdn'),cx=(c,n,t)=>{const s=el('div','pf-tuile '+c);s.append(el('b','',String(n)),el('span','',t));return s};
   vdn.append(cx('pf-tot',tot,'Parties'),cx('pf-v',g.v,g.v>1?'Victoires':'Victoire'),cx('pf-d',g.d,g.d>1?'Défaites':'Défaite'));
-  /* Serie : victoires ou defaites d'affilee (un nul eventuel interrompt la serie et compte seulement dans le total). */
+  /* Serie : victoires ou defaites d'affilee. Plus de nul possible depuis le moteur 0.2.1 : seuls les nuls des parties 0.2 et avant interrompent la serie et comptent dans le total. */
   {const s=el('div','pf-serie');let k=0,r=tot?l[0].res:'';if(r==='Victoire'||r==='Défaite')while(k<tot&&l[k].res===r)k++;
     if(k){s.classList.add(r==='Victoire'?'pf-sv':'pf-sd');s.append(el('span','pf-flamme',r==='Victoire'?'🔥':'❄'))}
     s.append(el('b','',k?k+' '+(r==='Victoire'?(k>1?'victoires':'victoire'):(k>1?'défaites':'défaite')):'-'),el('span','pf-sl',k?'d’affilée':'Aucune série en cours'));vdn.append(s)}
@@ -2525,7 +2533,7 @@ function decklist(b,d,l){
   const pa=Array.from({length:7},(_,i)=>L.filter(x=>i<6?x.C.cout===i:x.C.cout>=6).reduce((t,x)=>t+x.n,0)),hm=Math.max(1,...pa);
   const pied=el('div','dl-pied'),cv=el('div','dl-courbe'),ent=el('div','dl-total'),mo=el('span','dl-moy');
   mo.append('Coût moyen ',el('b','',moy.toFixed(1).replace('.',',')));
-  ent.append(el('b','dl-tot',tot+'/'+DECK_MAX),mo);
+  ent.append(el('b','dl-tot','Courbe d\'énergie'),mo);
   cv.setAttribute('role','img');cv.setAttribute('aria-label','Courbe de coûts : '+pa.map((v,i)=>v+' à '+(i<6?i:'6 ou plus')).join(', '));
   pa.forEach((v,i)=>{const k=el('div','dl-col'+(v?'':' dl-vide')+(i===im?' dl-moy-col':'')),ba=el('i'),pc=el('span','dl-pc');ba.style.setProperty('--v',v/hm);
     pc.append(ico('enclume'),i<6?String(i):'6+');k.append(el('small','',String(v)),ba,pc);cv.append(k)});
@@ -2652,7 +2660,7 @@ function detailForce(s,p,l,k){
   }
   if(d>0)a.append(lg('Dégâts','-'+d));
   C.el.forEach(e=>{const n=vs.filter(v=>M.carte(v.c).el.includes(e)).map(v=>M.nomDetail(M.carte(v.c)));
-    a.append(lg('Trait '+NOMS_EL[e]+(n.length?' : voisin '+n.join(', '):' : aucun voisin'),n.length?'+1':'+0'))});
+    a.append(lg('Trait '+NOMS_EL[e]+(n.length?' : voisin '+n.join(', '):' : aucun voisin'),'+'+(M.TRAIT_CUMULE?n.length:Math.min(n.length,1))))}); /* 0.2.1 : +1 par voisin */
   const h=s.j[1-p].grille[l][k],hC=h?M.carte(h.c):null,dom=hC?C.el.find(e=>hC.el.includes(M.DOMINE[e])):null;
   a.append(lg(dom?'Cercle : '+NOMS_EL[dom]+' domine '+NOMS_EL[M.DOMINE[dom]]+' ('+M.nomDetail(hC)+' en face)':hC?'Cercle : '+M.nomDetail(hC)+' en face, pas de domination':'Cercle : aucun Golem en face',dom?'+1':'+0'));
   a.append(lg('Force actuelle',String(M.forceDe(s,p,l,k)),'tot'));
@@ -2840,7 +2848,7 @@ function affiche(){
   if(s.fin){
     const f=el('div','bloc p-fin'),w=s.fin.gagnant;
     f.append(el('h3','',w===null?'Match nul':w===me?'Victoire':'Défaite'));
-    f.append(el('p','',J.score+' à '+s.j[lui].score+(s.fin.departage?', Force totale '+s.forceTotale[me]+' contre '+s.forceTotale[lui]:'')));
+    f.append(el('p','',J.score+' à '+s.j[lui].score+(s.fin.departage?', '+departageTxt(s,me,lui):'')));
     const b=bouton(partie.veut?"En attente de l'adversaire":'Rejouer',()=>{if(partie.local){niveauChoisi=partie.niveau||niveauChoisi;lanceLocal(null);return}partie.veut=true;sauve();pub({veut:partie.graine});affiche();majPartie()});
     b.id='rejouer';b.disabled=partie.veut;if(!partie.rejeu){if(LARGE.matches)btnRejouer=b;else f.append(b)}
     const nm=p=>p===me?'Toi':nomJ(p),rf=el('div','r-fin');
@@ -2992,7 +3000,7 @@ function annote(box,visuel,items){
   const i=el('img');i.src='cartes/001.jpg';i.alt='G-001, KaTarN';i.loading='lazy';
   annote($('lireCarte'),i,[['Coût en énergie',.03,.02,.23,.15,.012,.13],['Force',.82,.025,.96,.15,.09],['Nom et sous-titre',.05,.615,.33,.71,.6,.2],['Éléments du Golem',.73,.615,.96,.69,.65],['Capacité',.11,.745,.9,.86,.8],["Encart d'évolution : la carte qui la remplace",.32,.87,.68,.92,.895],['Citation, sans effet en jeu',.055,.95,.245,.985,.933,.15],['Numéro de carte',.87,.95,.97,.985,.967]]);
   const T=window.GolemsMoteur.TERRAINS.find(x=>x.nom==='La Boutique'),t=el('img');t.src=srcTerrain(T);t.alt=T.nom+'. '+T.texte;t.loading='lazy';
-  annote($('lireTerrain'),t,[['Points rapportés par le terrain',.765,.015,.975,.165,.09],['Nom',.05,.595,.5,.71,.65],['Effet, actif toute la partie',.14,.77,.86,.825,.75,.7],['Ici = toute la colonne du terrain, chez les deux joueurs',.46,.778,.515,.817,.86,.487],['Citation, sans effet en jeu',.06,.95,.6,.985,.933,.3],['Numéro du terrain',.87,.95,.97,.985,.967]]);
+  annote($('lireTerrain'),t,[['Points rapportés par le terrain',.765,.015,.975,.165,.09],['Nom',.05,.595,.5,.71,.65],['Effet, actif toute la partie',.14,.77,.86,.825,.75,.7],['Colonne du terrain : tes Golems et ceux de l\'adversaire sous ce terrain',.46,.778,.515,.817,.86,.487],['Citation, sans effet en jeu',.06,.95,.6,.985,.933,.3],['Numéro du terrain',.87,.95,.97,.985,.967]]);
   const E=['magma','cristal','foudre','brume','roche'],N=['Magma','Cristal','Foudre','Brume','Roche'],R=118,cx=180,cy=172,pt=(a,r)=>[cx+r*Math.cos(a),cy+r*Math.sin(a)].map(v=>v.toFixed(1));
   let a='',b='';E.forEach((e,i)=>{
     const t=-Math.PI/2+i*2*Math.PI/5,[x,y]=pt(t,R),m=.36,p=pt(t+m,R),q=pt(t+2*Math.PI/5-m,R);
