@@ -25,7 +25,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <script defer src="signal-tour.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Lilita+One&family=Nunito+Sans:wght@400;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Fredoka:wght@700&family=Lilita+One&family=Nunito+Sans:wght@400;700;800&display=swap');
 :root{
   --bleu:#01C1F0;--encre:#0a121a;--panneau:#121e29;--panneau2:#1a2a38;--trait:#2a3f50;
   --texte:#eaf4f8;--doux:#a6bac6;--or:#f1c35a;--erreur:#ff9c8a;
@@ -111,7 +111,8 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 .f-el[aria-pressed=true]{background:var(--c);border-color:var(--c);box-shadow:0 3px 0 rgba(0,0,0,.35)}
 .f-el[aria-pressed=true] img{filter:drop-shadow(0 1px 1px rgba(0,0,0,.4));opacity:1}
 .f-el:disabled{opacity:.4;cursor:not-allowed}
-#triSens svg{width:16px;height:16px;transition:transform .25s}#triSens[data-sens=desc] svg{transform:rotate(180deg)}
+#triSens svg,.tri-sens svg{width:16px;height:16px;transition:transform .25s}#triSens[data-sens=desc] svg,.tri-sens[data-sens=desc] svg{transform:rotate(180deg)}
+.d-tri{margin-top:-2px}
 .f-fin{margin-left:auto;display:flex;align-items:center;gap:16px;color:var(--doux);font-size:14.5px;font-weight:700}
 .f-reinit{background:none;border:0;padding:4px 0;color:var(--bleu);font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .f-reinit:hover{color:var(--texte)}
@@ -170,6 +171,14 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .btn.plein{width:100%}
 .grand{display:flex;flex-direction:column;align-items:center;gap:12px;margin:auto;width:100%}
 .grand img{display:block;width:min(420px,100%,calc((100vh - 110px)*5/7));height:auto;border-radius:16px}
+/* Image du zoom et son calque (coût surtaxé, Force actuelle) redessiné au repère de la carte */
+.vue-img{position:relative;display:block;width:min(420px,100%,calc((100vh - 110px)*5/7));line-height:0}
+.vue-img[hidden]{display:none}
+.grand .vue-img img{width:100%}
+.vue-calque{position:absolute;inset:0;pointer-events:none}
+.vue-calque>span{position:absolute;inset:0;line-height:0}
+.vue-calque>span>svg{position:absolute;inset:0;width:100%;height:100%}
+.force-zoom.attente text,.surcout.attente text{visibility:hidden}
 
 .bloc{background:var(--panneau);border:1px solid var(--trait);border-radius:12px;padding:18px;margin-bottom:14px}
 .bloc h3{font-size:19px;margin-bottom:10px}
@@ -360,17 +369,22 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 .p-case:disabled{cursor:default;border-style:dashed;background:transparent}
 .p-case.evo .mini{box-shadow:inset 0 0 0 3px var(--or)}
 .p-case.evo .mini .nom{color:#fff}
-.mini{--f:clamp(44px,calc(var(--h)*.58),74px);position:absolute;inset:0;display:block;text-align:left;color:#fff;background:linear-gradient(90deg,var(--a) 22%,var(--b) 78%)}
+.mini{--f:clamp(44px,calc(var(--h)*.58),74px);--bas:calc(2px + var(--f)/2 - 11.5px);position:absolute;inset:0;display:block;text-align:left;color:#fff;background:linear-gradient(90deg,var(--a) 22%,var(--b) 78%)}
 .mini .nom{position:absolute;inset:4px 7px auto;font:400 clamp(14.5px,calc(var(--h)*.2),21px)/1.1 var(--titre);text-shadow:0 1px 3px #0a121a;overflow-wrap:anywhere}
-.mini .bas{position:absolute;left:6px;bottom:5px;display:flex;align-items:center;gap:5px}
+/* Rangée du bas (coût) centrée sur l'hexagone de Force (centre à 2px + --f/2 du bas ; rangée haute de 23px). Les bonus et malus de Force
+   n'ont plus de pastille : la couleur du chiffre suffit, le détail au zoom dit pourquoi. Le cœur du favori d'Indra (.fav) se pose à gauche
+   de l'hexagone, à la même hauteur que la rangée. Avec un bandeau d'action (.act, 23px au plus), rangée et cœur passent juste au-dessus ;
+   « Copie X » (.cp) se pose 3px au-dessus d'eux. */
+.mini .bas{position:absolute;left:6px;bottom:var(--bas);display:flex;align-items:center;gap:5px}
+.p-case:has(>.act) .mini{--bas:max(calc(2px + var(--f)/2 - 11.5px),23px)}
 .mini .cout{display:inline-flex;align-items:center;gap:3px;padding:0 6px 0 3px;border-radius:8px 5px 9px 4px;background:rgba(10,18,26,.72);font:400 16px/23px var(--titre);color:#fff;-webkit-text-stroke:3px #0a121a;paint-order:stroke fill}
 .mini .cout .ico{font-size:17px;color:#d3dbe0}
 .p-case.cible{border:2px solid var(--or);background:var(--panneau2);color:var(--or);font-weight:800}
 .p-case.choisie{border:3px solid var(--bleu)}
 .p-case .f{position:absolute;right:3px;bottom:2px;width:calc(var(--f)*.9);height:var(--f);color:#dfe5e9}
 .p-case .f .ico{position:absolute;inset:0;width:100%;height:100%}
-.p-case .f b{position:absolute;inset:0 0 3px;display:flex;align-items:center;justify-content:center;font:400 calc(var(--f)*.58)/1 var(--titre);color:#fff;-webkit-text-stroke:4px #0a121a;paint-order:stroke fill}
-.p-case .deg{padding:0 6px;border-radius:9px 6px 10px 5px;background:#a52c1a;color:#fff;font:400 16px/23px var(--titre)}
+/* Chiffre centré dans l'hexagone. will-change : calque propre, le chiffre suit l'hexagone au sous-pixel près (sinon sa ligne de base s'arrondit au pixel, jusqu'à 1,5px d'écart). */
+.p-case .f b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 calc(var(--f)*.58)/1 var(--titre);color:#fff;-webkit-text-stroke:4px #0a121a;paint-order:stroke fill;will-change:transform}
 .p-case .act{position:absolute;left:0;bottom:0;right:48px;background:rgba(5,10,15,.92);color:var(--or);font-size:13.5px;font-weight:800;padding:3px 5px;border-radius:0 8px 0 0;text-align:center}
 /* Terrains */
 .p-terrains{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
@@ -407,6 +421,10 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 .oeil .ico{width:100%;height:100%}
 .oeil:hover{color:#fff;border-color:var(--bleu)}
 #apercu{position:fixed;z-index:15;width:300px;height:auto;aspect-ratio:5/7;border-radius:14px;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.75)}
+.p-carte .surcout{position:absolute;inset:0;line-height:0;pointer-events:none}
+.p-carte .surcout svg{position:absolute;inset:0;width:100%;height:100%}
+.p-carte.grisee .surcout .fond{filter:grayscale(.85) brightness(.55)}
+#vueDetail .surcout-txt{margin:0}#vueDetail .surcout-txt b{color:#ff6b5e}
 .p-carte .raison{position:absolute;left:3px;right:3px;top:42%;padding:3px 4px;border-radius:7px;background:rgba(5,10,15,.92);color:var(--or);font-size:12.5px;font-weight:800;line-height:1.15;text-align:center}
 .p-carte:hover{transform:translateY(-3px)}
 .p-carte[aria-pressed=true]{border-color:var(--bleu);transform:translateY(-5px);box-shadow:0 0 16px rgba(1,193,240,.6)}
@@ -502,14 +520,9 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 }
 .p-info.energie>.ico{color:var(--or)}
 .p-ener{font:400 32px/1 var(--titre);color:var(--or)}
-/* Fleche de Force : triangle colore sur triangle sombre, lisible sur les 20 duos. */
-.p-case .f.plus::before,.p-case .f.moins::before,.p-case .f.plus::after,.p-case .f.moins::after{content:'';position:absolute;z-index:1;width:0;height:0;border:solid transparent}
-.p-case .f.plus::before,.p-case .f.moins::before{right:calc(100% - 3px);top:50%;margin-top:-10px;border-width:0 10px}
-.p-case .f.plus::after,.p-case .f.moins::after{right:100%;top:50%;margin-top:-7px;border-width:0 7px}
-.p-case .f.plus::before{border-bottom:16px solid #0a121a}
-.p-case .f.moins::before{border-top:16px solid #0a121a}
-.p-case .f.plus::after{border-bottom:11px solid #6fe08a}
-.p-case .f.moins::after{border-top:11px solid #ff6a57}
+/* Force en jeu : chiffre vert au-dessus de la Force de base, rouge en dessous (memes teintes au zoom, FORCE_VERT / FORCE_ROUGE). */
+.p-case .f.plus b,#vueDetail .tot b.plus{color:#3ee86a}
+.p-case .f.moins b,#vueDetail .tot b.moins{color:#ff3b30}
 /* Paquets du joueur */
 .p-piles{display:flex;justify-content:center;gap:18px}
 .pile{position:relative;width:72px;text-align:center;font:400 17px/20px var(--titre);color:var(--texte)}
@@ -553,7 +566,7 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 #vueDetail .tot{color:var(--or);font-weight:800}
 #vueDetail section+section{margin-top:12px}
 #vueDetail .zs-l{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;padding:5px 0}#vueDetail .zs-l+.zs-l{border-top:1px solid rgba(42,63,80,.55)}#vueDetail .zs-n{flex:none;min-width:96px;font-family:var(--titre);font-weight:400;color:var(--bleu)}#vueDetail .zs-v{flex:1 1 160px;min-width:0;color:var(--doux);font-size:14px}
-@media (max-width:760px){.grand.avecDetail{grid-template-columns:minmax(0,1fr)}.grand.avecDetail img{justify-self:center;width:min(280px,100%)}}
+@media (max-width:760px){.grand.avecDetail{grid-template-columns:minmax(0,1fr)}.grand.avecDetail .vue-img{justify-self:center;width:min(280px,100%)}}
 @media (max-width:1199px){.p-tourde{grid-column:1/-1}}
 @media (max-width:899px){.p-tourde{height:36px}.p-ener{font-size:25px}}
 .p-lignes .ico{font-size:15px;margin-top:2px}
@@ -618,9 +631,6 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#bandeau,#des){display:none}
   .mini .bas{left:3px;gap:2px}
   .mini .cout{padding:0 3px 0 1px;font-size:14px}
   .mini .cout .ico{font-size:14px}
-  .p-case .deg{padding:0 3px;font-size:14px}
-  .p-case .mini:has(.deg) .f::before{margin-top:-20px}
-  .p-case .mini:has(.deg) .f::after{margin-top:-17px}
   .p-tourde .ico{font-size:16px}
   .p-tourde{gap:3px}
   #bandeau{top:8px;font-size:20px}
@@ -677,8 +687,16 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#bandeau,#des){display:none}
 .b-fin td.src{width:auto;text-align:left;border-top:0;padding-top:0;font-size:12px;opacity:.8}
 .r-repli{width:100%;height:96px;margin-bottom:8px;background:var(--encre);color:var(--texte);border:1px solid var(--trait);border-radius:8px;padding:6px;font-size:13px}
 .c-avenir{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:5/7;overflow:hidden;border-radius:4.5%/3.2%;container-type:inline-size;background:linear-gradient(rgba(5,10,15,.74),rgba(5,10,15,.74)),url(cartes/verso.jpg) center/cover;color:var(--texte);text-align:center}
-.p-case .rage{font-size:10px;font-weight:800;color:#ffb52a;white-space:nowrap}
-.p-case .fav{padding:0 5px;border-radius:9px 6px 10px 5px;background:#c2185b;color:#fff;font-size:12px;font-weight:800;line-height:20px;white-space:nowrap}
+.p-case .cp{position:absolute;left:5px;bottom:calc(var(--bas) + 26px);padding:0 5px;border-radius:9px 6px 10px 5px;background:#3a6a50;color:#fff;font-size:11px;font-weight:800;line-height:20px;white-space:nowrap;max-width:62%;overflow:hidden;text-overflow:ellipsis}
+.mini.animal{background:linear-gradient(90deg,#5d4f78 20%,#3e5a6e 80%)}
+.p-case .ani{padding:0 5px;border-radius:9px 6px 10px 5px;background:rgba(10,18,26,.72);color:#f3d163;font-size:11px;font-weight:800;line-height:20px}
+.fx-hors{position:absolute;inset:auto 2px 50% 2px;transform:translateY(50%);z-index:3;padding:2px 4px;border-radius:6px;background:rgba(10,18,26,.88);color:#f3d163;font-size:12px;font-weight:800;text-align:center;pointer-events:none;animation:fx-hors-a linear both}
+@keyframes fx-hors-a{0%{opacity:0}6%{opacity:1}94%{opacity:1}100%{opacity:0}}
+/* Cœur du favori d'Indra, seul, à gauche de l'hexagone de Force (bord visible de l'hexagone à environ 0,82 x --f du bord droit), bien détaché :
+   environ 6px d'écart (5px sur téléphone). Centré sur l'hexagone comme la rangée du coût (même --bas, même hauteur de 23px). */
+.p-case .fav{position:absolute;right:calc(var(--f)*.82 + 6px);bottom:var(--bas);height:23px;display:flex;align-items:center;color:#ff4d8d}
+.p-case .fav svg{width:18px;height:18px;overflow:visible}
+@media (max-width:899px){.p-case .fav{right:calc(var(--f)*.82 + 5.7px)}.p-case .fav svg{width:15px;height:15px}}
 .c-avenir .q{font:400 46cqw/1 var(--titre);color:var(--or)}
 .c-avenir .n{position:absolute;top:4cqw;left:6cqw;font:400 8cqw/1 var(--titre);color:var(--doux)}
 .c-avenir .m{font:400 11cqw/1.1 var(--titre);max-width:92%;overflow-wrap:anywhere}
@@ -813,6 +831,13 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 .cadBtns{display:flex;gap:10px;justify-content:flex-end;width:100%}
 @media (max-width:360px){.cadVue{width:200px;height:200px}}
 @media (max-width:440px){.galGrille{grid-template-columns:repeat(3,1fr);gap:8px}.galGrille button .avatar{width:64px;height:64px}}
+/* Galerie d'avatars : titre et Fermer toujours visibles, la grille defile seule dans une zone de hauteur fixe ;
+   la page derriere ne bouge pas (html.galOuverte, et le fond n'accepte aucun geste de defilement). */
+#galerieAvatar{touch-action:none;overscroll-behavior:contain}
+#galerieAvatar .galBoite{overflow:hidden;grid-template-rows:auto auto auto auto;max-height:calc(100dvh - 32px)}
+#galerieAvatar .galGrille{height:clamp(200px,calc(100dvh - 200px),440px);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;align-content:start;padding:2px 4px 2px 2px;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#3d4e5d transparent}
+@media (min-width:900px){#galerieAvatar .galBoite{max-width:900px}#galerieAvatar .galGrille{height:clamp(200px,calc(100dvh - 200px),420px)}}
+html.galOuverte,html.galOuverte body{overflow:hidden}
 /* Profil joueur */
 .pf-lien{cursor:pointer;border-radius:6px}.pf-lien:hover{color:#01C1F0}.pf-lien:focus-visible{outline:2px solid #01C1F0;outline-offset:2px}
 .pf-boite.boite{max-width:960px;text-align:left}
@@ -1313,6 +1338,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
     <li><b>En jeu :</b> tant que la carte est sur la grille.</li>
     <li>Un effet s'applique en entier. Sans cible, il ne se passe rien.</li>
     <li>La carte prime sur la règle.</li>
+    <li><b>Copie :</b> un Golem qui copie un effet ne prend que l'effet, ni le nom, ni la Force, ni les éléments. Copier un Golem qui a lui-même copié donne l'effet qu'il a copié.</li>
   </ul></div></details>
 
   <details><summary><h3>Éléments</h3></summary><div class="corps">
@@ -1322,17 +1348,28 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
     <div class="face"><figure><img src="cartes/001.jpg" alt="KaTarN" loading="lazy" width="600" height="840">+1 de Force</figure><span>face à face</span><figure><img src="cartes/003.jpg" alt="Cyrdan" loading="lazy" width="600" height="840">+1 de Force</figure></div>
     <p><b>Exemple :</b> KaTarN (Magma, Foudre) fait face à Cyrdan (Cristal, Roche). Magma domine Cristal : KaTarN gagne +1. Roche domine Magma : Cyrdan gagne +1 aussi.</p>
     <ul>
-      <li><b>Cercle :</b> +1 si le Golem en face (la case adverse sur le même terrain et la même ligne) a un élément que le tien domine. Jamais plus de +1.</li>
+      <li><b>Cercle :</b> +1 si le Golem en face (la case adverse sur le même terrain et la même ligne) a un élément que le tien domine. Jamais plus de +1, sauf effet de carte.</li>
       <li>Comme chaque Golem a deux éléments, les deux Golems face à face peuvent chacun dominer l'autre : par exemple Magma + Foudre face à Roche + Brume (Roche domine Magma, Foudre domine Brume) : les deux gagnent +1.</li>
       <li><b>Trait :</b> pour chacun de ses 2 éléments, +1 par voisin allié qui partage cet élément. Les voisins se cumulent, sans plafond. Exemple avec KaTarN (Magma, Foudre) : deux voisins Foudre +2, un seul voisin Magma et Foudre +2 à lui seul.</li>
-      <li>Les effets de cartes peuvent donner plus. Le Trait s'ajoute au cercle, qui reste à +1 au maximum.</li>
+      <li>Les effets de cartes peuvent donner plus. Le Trait s'ajoute au cercle, qui reste à +1 au maximum, sauf effet de carte.</li>
       <li>Trait et cercle sont toujours actifs : perdre un voisin ou un Golem en face peut détruire un Golem, en chaîne.</li>
     </ul>
   </div></details>
 
   <details><summary><h3>Cartes et decks</h3></summary><div class="corps"><ul>
-    <li>Deck de 24 à 30 cartes, 3 exemplaires maximum de chaque carte. Une base et son évolution sont deux cartes différentes, comptées à part.</li>
+    <li>Deck de 24 à 30 cartes, 3 exemplaires maximum de chaque carte, 1 seul par animal. Une base et son évolution sont deux cartes différentes, comptées à part.</li>
     <li>Aucune limite d'éléments pour l'instant (elle sera fixée à 3 plus tard).</li>
+  </ul></div></details>
+
+  <details><summary><h3>Animaux de compagnie</h3></summary><div class="corps"><ul>
+    <li><b>Pas un Golem :</b> un coût, ni élément ni Force, jamais d'évolution. Il occupe une case et compte 0 au décompte. Aucun effet de Golem ne le concerne : ni cible, ni bonus, ni copie, ni voisin, ni Golem en face.</li>
+    <li><b>Deck :</b> 1 exemplaire par animal, et seulement avec une carte de son maître (base ou évolution). Plusieurs animaux différents sont permis.</li>
+    <li><b>Pose :</b> sur une case libre voisine de son maître, qui doit être en jeu. La Boutique ne réduit pas son coût. Plusieurs maîtres voisins : il suit le premier trouvé, en haut (côté terrains), en bas, à gauche, puis à droite.</li>
+    <li><b>Son maître :</b> s'il quitte le jeu (détruit, remplacé, La Nuit au Village), l'animal part à la défausse. S'il évolue ou est déplacé, l'animal reste. Un Golem qui copie son effet n'est pas son maître.</li>
+    <li><b>Intouchable :</b> aucun Golem ne se pose à sa place, rien ne le déplace ni ne l'échange (La Faille, Le Vaisseau, effets de cartes). Seul moyen de s'en défaire : faire quitter le jeu à son maître.</li>
+    <li><b>Kiwi :</b> la Mignonitude se résout avant le décompte, puis Kiwi part à la défausse. Deux Kiwi : celui du premier joueur d'abord, jamais deux fois le même Golem.</li>
+    <li><b>Hors décompte :</b> le Golem tiré par Kiwi reste en jeu avec ses bonus ; seule sa Force sort de sa colonne. Les effets de fin de manche le concernent toujours (La Nuit au Village, KaTarN).</li>
+    <li>Un animal n'est jamais MVP.</li>
   </ul></div></details>
   </div></div>
 </section>
@@ -1342,8 +1379,8 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
   <div class="filtres f-ligne"><span class="f-lib">Afficher</span><div class="f-btns" id="filtreType"></div><div class="f-els" id="filtreEl"></div></div>
   <div class="filtres f-ligne"><span class="f-lib">Trier par</span><div class="f-btns" id="filtreTri"></div>
     <div class="f-fin"><span id="nbCartes" aria-live="polite"></span><button class="f-reinit" id="toutAfficher" type="button">Réinitialiser</button></div></div>
-  <div class="grille" id="grille"></div>
   <p class="vide" id="vide" hidden>Aucune carte pour ce filtre.</p>
+  <div class="grille" id="grille"></div>
 </section>
 
 <section id="jouer" role="tabpanel" aria-labelledby="t-jouer" hidden>
@@ -1398,7 +1435,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 </section>
 
 <section id="decks" role="tabpanel" aria-labelledby="t-decks" hidden>
-  <p class="intro">De 24 à 30 cartes, 3 exemplaires maximum par carte, base et évolution comptées à part.</p>
+  <p class="intro">De 24 à 30 cartes, 3 exemplaires maximum par carte, base et évolution comptées à part. Animal de compagnie : 1 exemplaire, avec son maître dans le deck.</p>
   <div id="listeDecks"></div>
 </section>
 
@@ -1441,7 +1478,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 <div id="scene" aria-hidden="true"></div>
 <button id="passer" class="btn sec" type="button" hidden>Passer</button>
 <div class="voile" id="vue" role="dialog" aria-modal="true" aria-label="Carte en grand" hidden>
-  <div class="grand" id="vueGrand"><img id="vueImg" alt=""><div id="vueTerrain" hidden></div><aside id="vueDetail" hidden></aside><button class="btn fermer" id="fermer">Fermer</button></div>
+  <div class="grand" id="vueGrand"><div class="vue-img" id="vueBoite"><img id="vueImg" alt=""><span class="vue-calque" id="vueCalque"></span></div><div id="vueTerrain" hidden></div><aside id="vueDetail" hidden></aside><button class="btn fermer" id="fermer">Fermer</button></div>
 </div>
 <div class="voile" id="vueTas" role="dialog" aria-modal="true" aria-labelledby="tasTitre" hidden>
   <div class="boite"><h2 id="tasTitre"></h2><div class="tas" id="tasCartes"></div><p class="vide" id="tasVide" hidden>Aucune carte.</p><button class="btn plein fermer" id="tasFermer">Fermer</button></div>
@@ -1449,7 +1486,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 
 <div class="voile" id="aide" role="dialog" aria-modal="true" aria-labelledby="aideTitre" hidden>
   <div class="boite"><h2 id="aideTitre">Aide rapide</h2>
-    <h3>Cercle des éléments</h3><div id="cercleAide"></div><p class="aide-leg">+1 de Force contre un Golem d'un élément que tu domines, jamais plus de +1.</p>
+    <h3>Cercle des éléments</h3><div id="cercleAide"></div><p class="aide-leg">+1 de Force contre un Golem d'un élément que tu domines, jamais plus de +1, sauf effet de carte.</p>
     <h3>Ton tour</h3><ol><li>Tu pioches 2 cartes, ou 1 seule si tu joues en second et que c'est ton premier tour de la manche.</li><li>Forge : place 0 ou 1 carte, avant toute action et avant les effets gratuits de certains terrains. Une carte forgée donne 1 énergie par tour, définitivement.</li><li>Tu dépenses ton énergie en actions : <b>Poser</b> sur une case libre, <b>Remplacer</b> un de tes Golems (l'ancien est défaussé), <b>Améliorer</b> une base en son évolution. Touche une carte, puis une case dorée : elle montre le coût et le bonus prévu (+N).</li><li>Fin du tour : l'énergie restante est perdue, et tu défausses jusqu'à 7 cartes en main.</li></ol>
     <h3>Bonus</h3><p><b>Trait</b> : +1 par voisin allié et par élément partagé, cumulable. Deux voisins Foudre donnent +2. Tes voisins sont tes Golems sur une case adjacente, sans diagonale.</p><p><b>Cercle</b> : +1 si le Golem en face (la case adverse sur le même terrain et la même ligne) a un élément que le tien domine.</p>
     <h3>Score</h3><p><b>Fin de manche</b> : dans chaque colonne, on additionne la Force actuelle de ses Golems. Le plus fort conquiert le terrain et marque ses points, personne en cas d'égalité. Puis les effets de fin de manche.</p><p><b>Fin de partie</b> : 3 manches. Tu gagnes si tu as le plus de points après la manche 3, effets compris.</p>
@@ -1525,9 +1562,11 @@ async function ouvreGalerie(){
   const ia=el('span','avatar','+');ia.setAttribute('aria-hidden','true');imp.append(ia,el('span','','Importer'));
   if(/^data:/.test(cur)){imp.setAttribute('aria-pressed','true');ia.textContent='';const i=document.createElement('img');i.alt='';i.src=cur;ia.append(i)}
   imp.onclick=()=>$('avFichier').click();g.append(imp);
-  $('galerieAvatar').hidden=false;(g.querySelector('[aria-pressed="true"]')||g.firstChild).focus();
+  $('galerieAvatar').hidden=false;document.documentElement.classList.add('galOuverte');g.scrollTop=0;
+  {const f=g.querySelector('[aria-pressed="true"]')||g.firstChild;f.focus({preventScroll:true});
+   const a=g.getBoundingClientRect(),b=f.getBoundingClientRect();if(b.bottom>a.bottom)g.scrollTop+=b.bottom-a.bottom+8}
 }
-function fermeGalerie(){$('galerieAvatar').hidden=true;$('choixAvatar').focus()}
+function fermeGalerie(){$('galerieAvatar').hidden=true;document.documentElement.classList.remove('galOuverte');$('choixAvatar').focus()}
 $('choixAvatar').onclick=ouvreGalerie;
 $('galFermer').onclick=fermeGalerie;
 $('galerieAvatar').onclick=e=>{if(e.target.id==='galerieAvatar')fermeGalerie()};
@@ -1640,7 +1679,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
- {version:'Version 0.2b',date:'4 novembre 2026',notes:["K-Chan devient Magma + Brume","Statistiques avec filtres par patch et par adversaire","Profils publics consultables depuis le classement (interrupteur Profil public / privé)","Onglet Cartes : nouveaux filtres et tri par coût et par Force","Aide en partie avec le cercle des éléments","Decks affichés à 3 par ligne","Historique repensé","À venir : un nouveau type de carte, les animaux de compagnie"]},
+ {version:'Version 0.2b',date:'4 novembre 2026',notes:["Nouveaux Golems : toujours trop nombreux pour les citer","Premier animal de compagnie : Kiwi, le lapin de Titom76","K-Chan devient Magma + Brume","Plateau en miroir : ton camp en bas","Statistiques par patch et par adversaire, profils publics","Cartes et éditeur de deck : nouveaux filtres et tri","Aide en partie avec le cercle des éléments","Historique repensé, decks à 3 par ligne, 7 nouveaux avatars"]},
  {version:'Version 0.2a',date:'3 novembre 2026',notes:["Jeu en ligne sur le site, avec comptes (pseudo et code)","Parties publiques et privées, avec discussion","Apprendre à jouer (tutoriel) et entraînement contre les Golems","Decks, historique, rejeu et profil","Avatars personnalisables"]},
  {version:'Version 0.1',date:'2 novembre 2026',notes:["Création du jeu de cartes communautaire Les Golems","Premières cartes Golem jouables avec leurs évolutions, et 10 terrains","Règles disponibles sur le site","Parties contre les Golems en 3 niveaux et jeu en ligne à deux","Decks personnalisés et historique des parties"]}
 ];
@@ -1651,19 +1690,22 @@ NOUVEAUTES.forEach(n=>{
   a.append(h,d,u);$('notes').append(a);
 });
 /* Une seule liste du plus récent au plus ancien (grille 2 colonnes, gauche puis droite) : tout nouveau bloc s'insère en tête.
-   Bloc des nouveaux Golems : vidéo de présentation seule, cadrée à la hauteur du bloc voisin, juste avant le bloc de sa version (0.2a). */
-const NOUVEAUX_GOLEMS={titre:'Nouveaux Golems disponibles : Indra et Glad',date:'3 novembre 2026',version:'Version 0.2a',
- video:'videos/nouveaux_golems.mp4',affiche:'videos/nouveaux_golems.jpg',
-};
-(()=>{const g=NOUVEAUX_GOLEMS,mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+   Blocs vidéo : présentation seule, cadrée à la hauteur du bloc voisin, juste avant le bloc de sa version. Un bloc par entrée, le plus récent en tête. */
+const NOUVEAUX_GOLEMS=[
+ {titre:'Nouveaux Golems disponibles : trop nombreux pour les citer',date:'4 novembre 2026',version:'Version 0.2b',
+  video:'videos/nouvelles_cartes_04nov.mp4',affiche:'videos/nouvelles_cartes_04nov.jpg',aria:'Présentation des nouvelles cartes'},
+ {titre:'Nouveaux Golems disponibles : Indra et Glad',date:'3 novembre 2026',version:'Version 0.2a',
+  video:'videos/nouveaux_golems.mp4',affiche:'videos/nouveaux_golems.jpg',aria:'Présentation des nouveaux Golems'}
+];
+NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
   const a=mk('article','note nv-golem'),l=mk('div','nv-ligne'),v=mk('video','nv-video');
   v.src=g.video;v.poster=g.affiche;v.preload='metadata';v.controls=v.playsInline=true;v.volume=0.6;
-  v.setAttribute('playsinline','');v.setAttribute('aria-label','Présentation des nouveaux Golems');
+  v.setAttribute('playsinline','');v.setAttribute('aria-label',g.aria);
   l.append(v);a.append(mk('h3','',g.titre),mk('time','',g.date),l);
   {const n=$('notes'),ver=[...n.children].find(x=>x.querySelector('h3')?.textContent===g.version);if(ver)ver.before(a);else n.prepend(a)}
   /* Aucune lecture automatique : tu cliques sur lecture (avec le son, volume 0,6). Une seule lecture, pas de boucle. Pause hors de l'onglet. */
   const sec=$('nouveautes');new MutationObserver(()=>{if(sec.hidden)v.pause()}).observe(sec,{attributes:true,attributeFilter:['hidden']});
-})();
+});
 
 /* Cartes */
 const CARTES=[
@@ -1674,26 +1716,39 @@ const CARTES=[
  ['007','Trigas, Accro au Gacha',['foudre','brume'],0],['007e','Trigas, Le Roi du Mobile',['foudre','brume'],1],
  ['008','K-Chan, Reine du tilt',['magma','brume'],0],
  ['013','Indra, La Groupie',['cristal','magma'],0],['013e','Indra, La Fan enflammée',['cristal','magma'],1],
- ['009','Glad, /Poll',['roche','magma'],0],['009e','Glad, GymRat',['roche','magma'],1]];
+ ['009','Glad, /Poll',['roche','magma'],0],['009e','Glad, GymRat',['roche','magma'],1],
+ ['029','Apo, Clown junior',['magma','roche'],0],['029e','Apo, Maître du déguisement',['magma','roche'],1],
+ ['037','SuperFishman, Elosit Master',['roche','cristal'],0],['037e','SuperFishman, Monsieur Poisson',['roche','cristal'],1],
+ ['026','Titom76, Le Breton',['brume','foudre'],0],['026e','Titom76, Maître du bilig',['brume','foudre'],1],
+ ['036','Spom, Innocent ordinaire',['foudre','magma'],0],['036e','Spom, A encore menti',['foudre','magma'],1],
+ ['018',"Elessar, Le p'tit jeune du Discord",['roche','foudre'],0],['018e','Elessar, Le pomplard',['roche','foudre'],1],
+ ['041','Velnen, Spécialiste du potager',['roche','brume'],0],['041e','Velnen, Le chansonnier',['roche','brume'],1],
+ ['025','Shifukuro, Le chatteur',['roche','cristal'],0],['025e','Shifukuro, Le modérateur',['roche','cristal'],1],
+ ['015','Bellock, La terreur du PBE',['brume','magma'],0],['015e','Bellock, Aiges Captain',['brume','magma'],1],
+ ['016',"Loxim, Le roi de l'impro",['brume','magma'],0],['016e','Loxim, Le Ace de Aiges',['brume','magma'],1],
+ ['901','Kiwi, Le lapin de Titom76',[],'a']];
 /* 4e champ d'une carte : 0 = base, 1 = évolution, 'a' = animal de compagnie (ex. ['041','Kiwi',['brume'],'a']). */
 const estAnimal=c=>c[3]==='a';
+const coulT=c=>c[2][0]?'var(--'+c[2][0]+')':'var(--or)';
 /* Aperçus : visibles dans la galerie, absents du moteur, des decks et de l'éditeur. */
 const APERCUS=[],GALERIE=[...CARTES,...APERCUS];
 /* Numéro AFFICHÉ des Golems (ordre où ils deviennent jouables) : code interne -> numéro. Les codes internes ne changent jamais.
-   Golem à venir : absent de la table, aucun numéro affiché. Prochain jouable : 9. */
-const NUMERO_AFFICHE={'001':1,'002':2,'003':3,'004':4,'007':5,'008':6,'013':7,'009':8};
-const numeroAffiche=id=>{const n=NUMERO_AFFICHE[String(id).slice(0,3)];return n?'G-'+String(n).padStart(3,'0')+(String(id).endsWith('e')?' ★':''):''};
+   Golem à venir : absent de la table, aucun numéro affiché. Prochain jouable : 18. */
+const NUMERO_AFFICHE={'001':1,'002':2,'003':3,'004':4,'007':5,'008':6,'013':7,'009':8,'029':9,'037':10,'026':11,'036':12,'018':13,'041':14,'025':15,'015':16,'016':17};
+/* Animaux de compagnie : numero affiche A-0NN, table a part (codes internes 9xx). */
+const NUMERO_ANIMAL={'901':11};
+const numeroAffiche=id=>{if(NUMERO_ANIMAL[id])return 'A-'+String(NUMERO_ANIMAL[id]).padStart(3,'0');const n=NUMERO_AFFICHE[String(id).slice(0,3)];return n?'G-'+String(n).padStart(3,'0')+(String(id).endsWith('e')?' ★':''):''};
 const EL=[['','Tous'],['magma','Magma'],['cristal','Cristal'],['foudre','Foudre'],['brume','Brume'],['roche','Roche']];
 const TY=[['','Toutes'],['0','Base'],['1','Évolution'],['a','Animaux'],['t','Terrains'],['v','À venir']];
 const MSG_ANIMAUX="Aucun animal de compagnie pour l'instant.";
 /* Cartes à venir, hors moteur : retirer la ligne d'un membre quand sa carte arrive, les numéros restent fixes. */
 const A_VENIR=[
  ['005','Driscop'],['006','Falys'],['010','Orotembu'],
- ['011','Sleepy'],['012','Simon'],['014','Boubou'],['015','Bellock'],['016','Loxim'],
- ['017','Letran'],['018','Elessar'],['019','Victone'],['020','GénéralBrioche'],['021','Elccino'],['022','Shantiruka'],
- ['023','Kun_Mamba'],['024','MrTitou'],['025','Shifukuro'],['026','Titom'],['027','Merser'],['028','Nadzu'],
- ['029','Apo'],['030','Cyd'],['031','Obsess'],['032','Marech'],['033','Greeny'],['034','Harentros'],
- ['035','Jackjoy'],['036','Spom'],['037','SuperFishman'],['038','TortueGourmande'],['039','TortueVéloce'],['040','PoulpeHome']];
+ ['011','Sleepy'],['012','Simon'],['014','Boubou'],
+ ['017','Letran'],['019','Victone'],['020','GénéralBrioche'],['021','Elccino'],['022','Shantiruka'],
+ ['023','Kun_Mamba'],['024','MrTitou'],['027','Merser'],['028','Nadzu'],
+ ['030','Cyd'],['031','Obsess'],['032','Marech'],['033','Greeny'],['034','Harentros'],
+ ['035','Jackjoy'],['038','TortueGourmande'],['039','TortueVéloce'],['040','PoulpeHome']];
 let fEl='',fTy='',dernier=null;
 function pastilles(box,liste,get,set,point){
   liste.forEach(([v,t])=>{
@@ -1710,14 +1765,15 @@ const ELS=EL.filter(x=>x[0]).map(x=>x[0]);let elsOn=new Set(ELS);fEl='';
 function pastilleEl(v,clic){const b=document.createElement('button');b.type='button';b.className='f-el';b.dataset.el=v;b.style.setProperty('--c','var(--'+v+')');
   const t=EL.find(x=>x[0]===v)[1];b.title=t;b.setAttribute('aria-label',t);const i=document.createElement('img');i.src='cartes/'+v+'.png';i.alt='';b.append(i);
   b.onclick=clic;return b}
-ELS.forEach(v=>$('filtreEl').append(pastilleEl(v,()=>{elsOn.has(v)?elsOn.delete(v):elsOn.add(v);if(!elsOn.size)elsOn=new Set(ELS);maj()})));
+/* Tous eteints = aucun Golem (les animaux, sans element, restent) ; Reinitialiser rallume tout. */
+ELS.forEach(v=>$('filtreEl').append(pastilleEl(v,()=>{elsOn.has(v)?elsOn.delete(v):elsOn.add(v);maj()})));
 $('filtreEl')._get=()=>'';
 const TRI=[['','Numéro'],['cout','Coût'],['force','Force']];let fTri='',triDesc=false;
 pastilles($('filtreTri'),TRI,()=>fTri,v=>fTri=v);
 {const s=document.createElement('button');s.className='pastille';s.id='triSens';s.type='button';s.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span></span>';s.onclick=()=>{triDesc=!triDesc;maj()};$('filtreTri').append(s)}
 /* Force au de : moyenne (Alrevan 3,5 ; KEKWRevan 6,4). */
 const FORCE_TRI={'002':3.5,'002e':6.4};
-const valTri=(id,k)=>{const C=window.GolemsMoteur.CARTES[id];if(!C)return 99;return k==='force'?(C.force==null?FORCE_TRI[id]:C.force):C.cout};
+const valTri=(id,k)=>{const C=window.GolemsMoteur.CARTES[id];if(!C)return 99;return k==='force'?(C.force==null?FORCE_TRI[id]??0:C.force):C.cout}; /* animal : ni Force ni de, trie a 0 */
 function trie(){
   const g=$('grille');
   if(!fTri){const ps=[...g.querySelectorAll('.paire')];if(triDesc)ps.reverse();ps.forEach(p=>g.append(p));
@@ -1754,7 +1810,7 @@ function tuilesAVenir(){
     const b=el('button','carte');b.type='button';b.dataset.avenir=num;b.setAttribute('aria-label',nom+', à venir');b.append(carteAVenir(num,nom));
     b.onclick=()=>{
       cacheApercu();dernier=b;zoom('',nom,[el('p','',nom+" n'a pas encore sa carte. Elle arrivera bientôt.")]);
-      const v=$('vueTerrain');v.textContent='';v.append(carteAVenir(num,nom));$('vueImg').hidden=true;v.hidden=false;
+      const v=$('vueTerrain');v.textContent='';v.append(carteAVenir(num,nom));$('vueImg').hidden=$('vueBoite').hidden=true;v.hidden=false;
     };
     $('grille').append(b);
   });
@@ -1773,11 +1829,14 @@ function maj(){
   $('grille').querySelectorAll('.paire').forEach(p=>{p.hidden=![...p.children].some(b=>!b.hidden)});
   $('grille').classList.toggle('groupee',fTy===''&&!fTri);
   const nb=ter?$('grille').querySelectorAll('[data-terrain]').length:av?A_VENIR.length:n;$('nbCartes').textContent=nb+(nb>1?' cartes':' carte');
-  $('vide').textContent=fTy==='a'?MSG_ANIMAUX:'Aucune carte pour ce filtre.';$('vide').hidden=n>0||ter||av;
+  const sansEl=!elsOn.size&&!ter&&!av&&fTy!=='a';
+  $('vide').textContent=fTy==='a'?MSG_ANIMAUX:sansEl?(n?'Aucun élément allumé : aucun Golem affiché, seulement les animaux. Touche une pastille d’élément ou Réinitialiser.':'Aucun élément allumé : aucun Golem affiché. Touche une pastille d’élément ou Réinitialiser.'):'Aucune carte pour ce filtre.';$('vide').hidden=(n>0&&!sansEl)||ter||av;
 }
 maj();
-function zoom(src,alt,detail){
-  $('vueImg').hidden=false;$('vueTerrain').hidden=true;$('vueImg').src=src;$('vueImg').alt=alt;
+/* calque : éléments redessinés par-dessus l'image (badgeSurcout, badgeForce), repère 750 x 1050 de la carte */
+function zoom(src,alt,detail,calque){
+  $('vueImg').hidden=$('vueBoite').hidden=false;$('vueTerrain').hidden=true;$('vueImg').src=src;$('vueImg').alt=alt;
+  const q=$('vueCalque');q.textContent='';if(calque)q.append(...calque);
   const d=$('vueDetail'),vu=!!detail&&detail.some(x=>!x.hidden);d.textContent='';d.hidden=!vu;$('vueGrand').classList.toggle('avecDetail',vu);if(detail)d.append(...detail);
   $('vue').hidden=false;$('fermer').focus();
 }
@@ -2391,8 +2450,14 @@ function etapesLignes(L,av,s,lignes,a){
     if(m)des(p,'Alrevan (KEKWRevan)',[+m[1],+m[2]],+m[3]);
     m=/^Le Plateau de Jeu lance (\d) : (.+)\.$/.exec(x);
     if(m)des(p,'Le Plateau de Jeu',[+m[1]],m[2]);
+    /* Gamba d'Apo (029, ou copiee par le Maitre du deguisement ou Le chansonnier) : de, puis 2 degats a Apo (1-2) ou en face (5-6). Case d'Apo : la pose, ou l'attente de copie. */
+    m=/^(Apo|(?:Apo \(Maître du déguisement\)|Velnen \(Le chansonnier\)) \(Gamba\)) lance (\d) : (.+)\.$/.exec(x);
+    if(m){const v=+m[2],o=a&&a.t==='p'?[a.l,a.k]:a&&(a.t==='k'||a.t==='i')&&av.attente&&av.attente.i?av.attente.i:null;
+      des(p,m[1]==='Apo'?'Apo (Gamba)':m[1],[v],m[3].charAt(0).toUpperCase()+m[3].slice(1));
+      if(o&&/perd 2 de Force$/.test(m[3]))L.push(()=>touche([[v<=2?p:1-p,o[0],o[1]]],2))}
     if(/^Glad : Slam, .* perd 1 de Force\.$/.test(x)&&a&&a.t==='h')L.push(()=>touche([[1-p,a.m,a.n]],1));
     if(/^Slim K : 1 dégât/.test(x)&&a&&a.t==='p'){const c=[];[0,1,2].forEach(k=>{if(M.ciblable(av,1-p,a.l,k,p))c.push([1-p,a.l,k])});L.push(()=>touche(c,1))}
+    if(/^Kiwi part à la défausse : son maître/.test(x))L.push(()=>{for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=av.j[p].grille[l][k];if(g&&M.carte(g.c).animal&&!s.j[p].grille[l][k])vol(rectDe(caseDe(p,l,k)),rectDe(piles(p,'defausse')),srcC(g.c),450,0)}return T(300)});
     if(x==='KaTarN perd 4 de Force.'){const c=[];for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=av.j[p].grille[l][k];if(g&&M.carte(g.c).id==='001')c.push([p,l,k])}L.push(()=>touche(c,4))}
     m=/: \+(\d+) points?\.$/.exec(x);
     if(m){const n=+m[1];L.push(()=>{etoile(rectDe('.p-plateau'),'+'+n);return T(700)},()=>{if(ecranFin)ecranFin.score[p]+=n;peintFin();ajoutFx({q:'.p-info.score',classe:'bascule'},700);return 0})}
@@ -2423,11 +2488,17 @@ function tenusDe(av,s,lignes){
 function etapesDecompte(L,av,s,lignes){
   const me=partie.moi,cols=me===0?[0,1,2]:[2,1,0],D=s.dernier,S=[av.j[0].score,av.j[1].score];
   L.push(()=>{ecranFin={comptes:[[0,0],[0,0],[0,0]],gagnants:{},score:S.slice()};$('passer').hidden=false;fixe(av);return T(350)});
+  /* Mignonitude (Kiwi) : Golems exclus du decompte, marques jusqu'a la fin de l'animation ; Kiwi part a la defausse. */
+  const ex=(D&&D.exclus)||[],exclu=(p,l,k)=>ex.some(x=>x.q===p&&x.l===l&&x.k===k);
+  if(ex.length)L.push(()=>{
+    ex.forEach(x=>{const q=caseDe(x.q,x.l,x.k);ajoutFx({q,classe:'fx-hors',texte:'Hors décompte'},7000);ajoutFx({q,classe:'fx-frappe'},500)});
+    for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=av.j[p].grille[l][k];if(g&&M.carte(g.c).animal&&!s.j[p].grille[l][k])vol(rectDe(caseDe(p,l,k)),rectDe(piles(p,'defausse')),srcC(g.c),500,400)}
+    return T(1100)});
   cols.forEach(k=>{
     [0,1,2].forEach(l=>[me,1-me].forEach(p=>{
-      if(!av.j[p].grille[l][k])return;
-      const n=M.forceDe(av,p,l,k);
-      L.push(()=>{ecranFin.comptes[k][p]+=n;peintFin();ajoutFx({q:caseDe(p,l,k),classe:'fx-compte',texte:'+'+n},650);return T(240)});
+      const g=av.j[p].grille[l][k];if(!g||M.carte(g.c).animal)return;
+      const hx=exclu(p,l,k),n=hx?0:M.forceDe(av,p,l,k);
+      L.push(()=>{ecranFin.comptes[k][p]+=n;peintFin();ajoutFx({q:caseDe(p,l,k),classe:'fx-compte',texte:hx?'+0':'+'+n},650);return T(240)});
     }));
     const w=D.gagnants[k],pts=s.terrains[k].pts;
     L.push(()=>{ecranFin.gagnants[k]=w;peintFin();return T(320)});
@@ -2440,7 +2511,7 @@ function etapesDecompte(L,av,s,lignes){
 function etapes(av,s,a,p){
   const me=partie.moi,L=[],neuf=s.log.slice(av.log.length),dec=s.reperes.length>av.reperes.length;
   const avant=dec?neuf.slice(0,s.reperes[s.reperes.length-1][0]-av.log.length):neuf,apres=dec?neuf.slice(s.reperes[s.reperes.length-1][1]-av.log.length):[];
-  const bouge=['w','y','e','h'].includes(a.t); /* 0.2a.2 : h = Slam de Glad */
+  const bouge=['w','y','e','h','k','i'].includes(a.t); /* 0.2a.2 : h = Slam de Glad ; k = copie du Deguisement (029e) ; i = Imitation (041e) */
   L.push(()=>{sonsDe(av,s);return 0});
   if(a.t==='p'){
     const de=p===me?rectDe('.p-slot[data-c="'+a.c+'"]'):null,q=caseDe(p,a.l,a.k),old=av.j[p].grille[a.l][a.k];
@@ -2453,7 +2524,9 @@ function etapes(av,s,a,p){
       if(M.carte(a.c).base)ajoutFx({q,classe:'fx-evo',eclat:true},1950);
       return T(M.carte(a.c).base?900:300);
     });
-  }else if(a.t==='f'||a.t==='s'){
+  }else if(a.t==='z'){ /* Caramel a volonte : +1 energie */
+    L.push(()=>{ajoutFx({q:caseDe(p,a.l,a.k),classe:'fx-bonus',texte:'+1'},1300);if(p===me)ajoutFx({q:'.p-info.energie',classe:'bascule'},750);return T(450)});
+  }else if(a.t==='f'||a.t==='s'||a.t==='j'){ /* j : Forge eclair de Spom */
     const de=p===me?rectDe('.p-slot[data-c="'+a.c+'"]'):rectDe('.p-camp.lui .c-main');
     L.push(()=>{vol(de,rectDe(piles(p,'forge')),p===me?srcC(a.c):DOS,600);return T(600)});
   }else if(a.t==='d'){
@@ -2474,10 +2547,10 @@ function etapes(av,s,a,p){
   const vus=av.j[me].main,neuves=s.j[me].main.filter(c=>!vus.includes(c)),pq=c=>'.p-slot[data-c="'+c+'"]';
   if(neuves.length){
     neuves.forEach(c=>masques.push(pq(c)));
-    L.push(()=>{neuves.forEach((c,i)=>vol(rectDe('.pile.deck'),rectDe(pq(c)),srcC(c),450,i*140));return T(450+140*(neuves.length-1))},()=>{neuves.forEach(c=>libere(pq(c)));return 0});
+    L.push(()=>{neuves.forEach((c,i)=>vol(rectDe(av.j[me].forge.includes(c)?'.pile.forge':'.pile.deck'),rectDe(pq(c)),srcC(c),450,i*140));return T(450+140*(neuves.length-1))},()=>{neuves.forEach(c=>libere(pq(c)));return 0});
   }
-  const n=s.j[1-me].main.length-av.j[1-me].main.length;
-  if(n>0)L.push(()=>{for(let i=0;i<n;i++)vol(rectDe('.p-camp.lui .c-deck'),rectDe('.p-camp.lui .c-main'),DOS,420,i*140);return T(420+140*(n-1))});
+  const n=s.j[1-me].main.length-av.j[1-me].main.length,nf=a.t==='x'&&p!==me?Math.max(0,Math.min(n,av.j[1-me].forge.length-s.j[1-me].forge.length)):0; /* reprise de Forge eclair adverse */
+  if(n>0)L.push(()=>{for(let i=0;i<n;i++)vol(rectDe(i<nf?'.p-camp.lui .c-enclume':'.p-camp.lui .c-deck'),rectDe('.p-camp.lui .c-main'),DOS,420,i*140);return T(420+140*(n-1))});
   const t0=texteTour(av,me),t1=texteTour(s,me);
   if(t0!==t1||(s.phase==='jeu'&&(av.tour!==s.tour||av.manche!==s.manche||quiJoue(av)!==quiJoue(s))))L.push(()=>{
     ajoutFx({q:'.p-tourde',classe:'bascule'},750);
@@ -2610,6 +2683,7 @@ function lignesBilan(s,n){
     J.cartes.forEach(c=>l.push('  '+c.carte+' : infligés '+c.degats+', subis '+c.subis+', morts causées '+c.morts+', morts subies '+c.mortsSubies+(c.sources.length?' ('+texteSources(c)+')':'')));
   });
   B.autres.forEach(o=>l.push('Autre source, '+o.source+' : '+pl(o.morts,'mort')));
+  (B.mignonitude||[]).forEach(o=>l.push('Mignonitude, manche '+o.manche+' (Kiwi de '+n(o.joueur)+') : '+o.carte+' ne compte pas au décompte (Force '+o.force+')'));
   return l;
 }
 function vueBilan(s,nm){
@@ -2627,6 +2701,7 @@ function vueBilan(s,nm){
     d.append(t);
   });
   B.autres.forEach(o=>d.append(el('p','',o.source+' : '+pl(o.morts,'mort'))));
+  (B.mignonitude||[]).forEach(o=>d.append(el('p','b-mignon','Mignonitude, manche '+o.manche+' (Kiwi '+(nm(o.joueur)==='Toi'?'à toi':'de '+nm(o.joueur))+') : '+nomComplet(o.carte)+' ne compte pas au décompte (Force '+o.force+').')));
   return d;
 }
 /* Departage a egalite de points : true (moteur 0.2) ou 'force', 'terrains', 'second' (0.2.1). a = point de vue. */
@@ -2666,7 +2741,13 @@ function texteHisto(x){
 function bonusPrevu(s,me,c,l,k){
   const G=s.j[me].grille,C=M.carte(c),vs=[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([x,y])=>G[x]&&G[x][y]).filter(Boolean);
   const trait=C.el.reduce((t,e)=>{const n=vs.filter(v=>M.carte(v.c).el.includes(e)).length;return t+(M.TRAIT_CUMULE?n:Math.min(n,1))},0),f=s.j[1-me].grille[l][k];
-  return {trait,cercle:f&&C.el.some(e=>M.carte(f.c).el.includes(M.DOMINE[e]))?1:0};
+  const dom=f&&C.el.some(e=>M.carte(f.c).el.includes(M.DOMINE[e])),o={trait,cercle:dom?(CERCLE_2.includes(C.id)?2:1):0};
+  if(C.id==='037e'){const n=C.el.filter(e=>vs.some(v=>M.carte(v.c).el.includes(e))).length;if(n)o.synergie=n}
+  if(C.id==='036e'&&M.foudres){const n=M.foudres(G)-(G[l][k]&&M.carte(G[l][k].c).el.includes('foudre')?1:0)+(C.el.includes('foudre')?1:0);if(n)o.survolte=n}
+  if(C.id==='025'&&M.kekwait){const n=M.kekwait(G,l,k);if(n)o.kekwait=n} /* Shifukuro : KEKWait */
+  if(DUO_MANCHE[C.id]&&M.duoManches){const[x,w]=DUO_MANCHE[C.id],n=x*M.duoManches(s,me,k,!!w);if(n)o[w?'winstreak':'comeback']=n} /* Bellock et Loxim : manches deja jouees sur ce terrain */
+  if(M.doubleUp&&M.doubleUp(G,l,k,C.id))o.doubleup=M.REGLAGE_DUO.doubleUp; /* Double up ? des evolutions du duo */
+  return o;
 }
 /* Recapitulatif de fin de manche : local, ne touche ni a la presence ni au journal. */
 function mancheFinie(s){return s.fin?(s.fin.abandon!==undefined?s.reperes.length:3):s.manche-1} /* abandon (0.2.2) : seulement les manches decomptees */
@@ -2679,6 +2760,9 @@ function pagesLog(s){
   return r;
 }
 function genreLog(x){
+  if(/: (Comeback|Winstreak), pioche /.test(x))return ['j-pose','main']; /* Bellock et Loxim : partenaire pioché dans le deck, comme Graine de Golem */
+  if(/: (Comeback|Winstreak), aucun /.test(x))return ['','tour']; /* aucun partenaire dans le deck : neutre */
+  if(/: meandyou, /.test(x))return ['','tour']; /* Shifukuro (Le modérateur) : échange, refus ou rien à échanger, neutre comme l'échange du Q ; en tête, les noms échangés ne doivent rien déclencher */
   if(/meur|est détruit/.test(x))return ['j-mort','defausse'];
   if(/^marque |\+\d points?\.$/.test(x))return ['j-point','coupe'];
   if(/^améliore /.test(x))return ['j-evo','manche'];
@@ -2687,6 +2771,15 @@ function genreLog(x){
   if(/perd(ent)? \d|dégât/.test(x))return ['j-degat','degat'];
   if(/^Le Camp : /.test(x))return ['j-bonus','bouclier'];
   if(/^(Le Vaisseau|Le Carrousel|Le Buzzer|La Faille|L'Écran du MJ) : /.test(x))return ['j-pose','main'];
+  if(/^La Bretagne : /.test(x))return ['j-pose','main'];
+  if(/^Kiwi : Mignonitude/.test(x))return ['j-bonus','bouclier'];
+  if(/^Kiwi part à la défausse/.test(x))return ['','defausse'];
+  if(/^Spom : Forge éclair/.test(x))return ['j-pose','enclume'];
+  if(/^Réalisation de l'âge : /.test(x))return ['j-degat','enclume'];
+  if(/: Extinction du feu, /.test(x))return ['j-degat','degat'];
+  if(/^Graine de Golem : /.test(x))return ['j-pose','main']; /* Velnen : pioche en plus, comme La Bretagne */
+  if(/: Imitation(,| refusée)/.test(x))return ['','tour']; /* Imitation sans copie : neutre, comme Apo sans voisin */
+  if(/ copie |: Caramel à volonté/.test(x))return ['j-bonus','bouclier'];
   return ['','tour'];
 }
 function causesLog(s){
@@ -2717,6 +2810,7 @@ function verifieRecap(){
       el('div','gagne',bloque?'Ne marque pas encore':w===null?'Égalité':w===me?'Gagné par toi':'Gagné par '+nl));
     d.append(z);
   });
+  {const ex=s.dernier.exclus||[];if(ex.length){const u=el('ul','r-effets r-mignon');ex.forEach(x=>{const n=M.nomDetail(M.carte(x.c));u.append(el('li','','Mignonitude (Kiwi '+(x.p===me?'à toi':'de '+nl)+') : '+n+(x.q===me?' (à toi)':' ('+nl+')')+' ne compte pas, Force '+x.f+'.'))});d.append(u)}}
   const ef=effetsManche(s);
   if(ef.length){const u=el('ul','r-effets');ef.forEach(([p,x])=>u.append(el('li','',ligneLog(p,x,me))));d.append(u)}
   const ec=s.dernier.ecran;
@@ -2871,7 +2965,7 @@ function dessineStats(RT){
     if(c[2].length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+c[2][0]+')');q.style.setProperty('--b','var(--fm-'+c[2][1]+')')}
     const co=el('span','dl-cout');co.append(ico('enclume'),String(C.cout));{const f=forceAff(C);if(f!=null){fo.append(ico('force'),f);if(f.includes(','))fo.classList.add('dl-dec')}}c[2].forEach(y=>e.append(picto(y)));
     const v=c[1].indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',v<0?c[1]:c[1].slice(0,v)));
-    if(v>=0){const ti=el('span','dl-titre',c[1].slice(v+2));ti.style.color='var(--'+c[2][0]+')';nm.append(ti)}
+    if(v>=0){const ti=el('span','dl-titre',c[1].slice(v+2));ti.style.color=coulT(c);nm.append(ti)}
     q.append(co,fo,e,nm);q.setAttribute('aria-label',c[1]+', '+pl2(n,'partie')+(p===null?'':', '+p+' % de victoires'));
     q.onclick=()=>{cacheApercu();dernier=q;zoom(src,c[1])};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
     const s=el('div','pf-dst'),t=el('b','pf-dt',txt(p));t.style.color=coul(p);s.append(t,el('span','pf-dk',' de victoires · '+pl2(n,'partie')));
@@ -2975,7 +3069,7 @@ function carteHisto(nom){
   if(!c){nm.append(el('span','h-cps',String(nom)));b.append(nm);return b}
   c[2].forEach(x=>e.append(picto(x)));
   const v=c[1].indexOf(', '),ps=v<0?c[1]:c[1].slice(0,v);nm.append(el('span','h-cps',ps+(v<0?'':',')));
-  if(v>=0){const t=el('span','h-cti',c[1].slice(v+2));t.style.color='var(--'+c[2][0]+')';t.title=c[1].slice(v+2);nm.append(t)}
+  if(v>=0){const t=el('span','h-cti',c[1].slice(v+2));t.style.color=coulT(c);t.title=c[1].slice(v+2);nm.append(t)}
   b.append(e,nm);return b;
 }
 function detailHisto(x){
@@ -3199,7 +3293,7 @@ async function ouvreProfil(autre){
     q.setAttribute('aria-label',c[1]+', '+lab);
     const co=el('span','dl-cout');co.append(ico('enclume'),String(C.cout));{const f=forceAff(C);if(f!=null){fo.append(ico('force'),f);if(f.includes(','))fo.classList.add('dl-dec')}}c[2].forEach(y=>e.append(picto(y)));
     const vi=c[1].indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',vi<0?c[1]:c[1].slice(0,vi)));
-    if(vi>=0){const ti=el('span','dl-titre',c[1].slice(vi+2));ti.style.color='var(--'+c[2][0]+')';nm.append(ti)}
+    if(vi>=0){const ti=el('span','dl-titre',c[1].slice(vi+2));ti.style.color=coulT(c);nm.append(ti)}
     q.append(co,fo,e,nm);q.onclick=()=>{cacheApercu();dernier=q;zoom(src,c[1],toi?statZoomCarte(c[0]):undefined)};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
     li.append(q,stat(x));return li};
   d.append(trio);
@@ -3230,7 +3324,11 @@ $('salonPublicCase').onchange=e=>{$('salonPublicTxt').textContent=e.target.check
  p.onclick=()=>ouvreProfil();p.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvreProfil()}}}
 /* Decks : visuels pour ce test, le moteur n'en sait rien. */
 const MAX_DECKS=12,MAX_EX=3,DECK_MIN=24,DECK_MAX=30;
-let deckOuvert=null,deckVu=null,filtreDeck='',elsDeckOn=new Set(ELS);
+const maxEx=id=>M.maxEx?M.maxEx(id):MAX_EX; /* animal : 1 exemplaire */
+/* Regle d'animal non respectee (exemplaires, maitre absent) : message du moteur, sinon '' (le nombre de cartes a son propre message). */
+function erreurAnimal(d){const o={};for(const k in d.cartes)if(+d.cartes[k]>0)o[k]=+d.cartes[k];if(!M.estAnimal||!Object.keys(o).some(k=>M.estAnimal(k)))return '';
+  const e=M.erreurDeck(o)||'';return /Kiwi|exemplaire|demande/.test(e)?e:''}
+let deckOuvert=null,deckVu=null,filtreDeck='',elsDeckOn=new Set(ELS),triDeck='',triDeckDesc=false;
 /* Compte connecte : decks dans Firebase (ecriture groupee apres 600 ms). Invite : sur l'appareil. */
 const decksLocaux=()=>litListe('golems.decks').filter(d=>d&&typeof d.nom==='string'&&d.cartes);
 const lesDecks=()=>compteCo()?room.compte.donnees().decks.map(d=>({...d,cartes:{...d.cartes}})):decksLocaux();
@@ -3370,7 +3468,7 @@ function peintDecks(){
 /* Partage de deck par code : GOL1- + base64 URL de "nom\ntexte du deck" (format 1). */
 const CODE_DECK='GOL1-';
 function codeDeck(d){
-  const o={};for(const k in d.cartes)if(+d.cartes[k]>0)o[k]=Math.min(MAX_EX,+d.cartes[k]);
+  const o={};for(const k in d.cartes)if(+d.cartes[k]>0)o[k]=Math.min(maxEx(k),+d.cartes[k]);
   const t=Object.keys(o).sort().map(k=>k+o[k]).join(''),u=new TextEncoder().encode(d.nom+'\n'+t);
   let s='';u.forEach(x=>s+=String.fromCharCode(x));
   return CODE_DECK+btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -3385,7 +3483,7 @@ function litCodeDeck(c){
   while((r=re.exec(txt.slice(i+1)))){
     if(!connus.has(r[1])){inc++;continue}
     if(r[1] in cartes)continue;
-    const n=Math.min(MAX_EX,+r[2],DECK_MAX-tot);if(n<+r[2])cou++;if(n<=0)continue;cartes[r[1]]=n;tot+=n;
+    const n=Math.min(maxEx(r[1]),+r[2],DECK_MAX-tot);if(n<+r[2])cou++;if(n<=0)continue;cartes[r[1]]=n;tot+=n;
   }
   return {nom,cartes,inc,cou};
 }
@@ -3455,6 +3553,7 @@ function decklist(b,d,l){
   h.append(el('h3','',d.nom),p,compteDeck(d));
   b.append(h);
   if(totalDeck(d)<DECK_MIN)b.append(el('p','d-limite dl-invalide','Deck incomplet : '+DECK_MIN+' cartes minimum.'));
+  {const e=erreurAnimal(d);if(e)b.append(el('p','d-limite dl-invalide','Deck injouable : '+e+'.'))}
   /* M.CARTES est indexe par identifiant ('001e') ; M.carte attend un numero d'exemplaire de partie. */
   const L=CARTES.filter(c=>d.cartes[c[0]]>0).map(c=>({c,C:M.CARTES[c[0]],n:+d.cartes[c[0]]})).sort((x,y)=>x.C.cout-y.C.cout||x.c[1].localeCompare(y.c[1],'fr'));
   if(!L.length){b.append(el('p','intro o-nb','Ce deck est vide.'));return}
@@ -3470,7 +3569,7 @@ function decklist(b,d,l){
     /* Pseudo du Golem en haut, titre dessous dans la couleur de son premier element, coupe par des points de suspension */
     const v=c[1].indexOf(', '),nm=el('span','dl-nom');
     nm.append(el('span','dl-pseudo',v<0?c[1]:c[1].slice(0,v)));
-    if(v>=0){const ti=el('span','dl-titre',c[1].slice(v+2));ti.style.color='var(--'+c[2][0]+')';ti.title=c[1].slice(v+2);nm.append(ti)}
+    if(v>=0){const ti=el('span','dl-titre',c[1].slice(v+2));ti.style.color=coulT(c);ti.title=c[1].slice(v+2);nm.append(ti)}
     q.append(co,fo,e,nm,el('span','dl-nb','×'+n));
     q.onclick=()=>{ap.hidden=true;zoom(src,c[1])};
     if(matchMedia('(hover:hover)').matches){
@@ -3495,21 +3594,32 @@ function editeur(b,l,d){
   const h=el('div','d-haut'),r=el('button','btn sec','Retour aux decks');r.type='button';r.onclick=()=>{deckOuvert=null;peintDecks()};
   h.append(el('h3','',d.nom),compteDeck(d),r);b.append(h);
   if(totalDeck(d)<DECK_MIN)b.append(el('p','d-limite dl-invalide','Deck incomplet : '+DECK_MIN+' cartes minimum.'));
+  {const e=erreurAnimal(d);if(e){const q=el('p','d-limite dl-invalide dl-animal','Deck injouable : '+e+'.');q.id='erreurAnimal';b.append(q)}}
   /* Filtres comme l'onglet Cartes : pastilles rondes des elements, toutes allumees par defaut (une carte s'affiche si elle a un
      element allume), sans Terrains ; Animaux a l'ecart, bascule (allume : seulement les animaux). */
   const f=el('div','filtres d-filtres'),fe=el('div','f-els');
-  ELS.forEach(v=>{const q=pastilleEl(v,()=>{elsDeckOn.has(v)?elsDeckOn.delete(v):elsDeckOn.add(v);if(!elsDeckOn.size)elsDeckOn=new Set(ELS);peintDecks()});q.setAttribute('aria-pressed',String(elsDeckOn.has(v)));fe.append(q)});
+  ELS.forEach(v=>{const q=pastilleEl(v,()=>{elsDeckOn.has(v)?elsDeckOn.delete(v):elsDeckOn.add(v);peintDecks()});q.setAttribute('aria-pressed',String(elsDeckOn.has(v)));fe.append(q)});
   f.append(fe);
   {const q=el('button','pastille f-animaux','Animaux');q.type='button';q.setAttribute('aria-pressed',filtreDeck==='a');q.onclick=()=>{filtreDeck=filtreDeck==='a'?'':'a';peintDecks()};f.append(q)}
   b.append(f);
-  const g=el('div','grille'),vues=CARTES.filter(c=>(c[2].some(x=>elsDeckOn.has(x))||!c[2].length)&&(filtreDeck!=='a'||estAnimal(c)));
-  if(!vues.length)b.append(el('p','vide',filtreDeck==='a'?MSG_ANIMAUX:'Aucune carte pour ce filtre.'));
+  /* Tri : memes options et meme composant que l'onglet Cartes (numero, cout, Force ; croissant ou decroissant). */
+  {const t=el('div','filtres f-ligne d-tri'),bx=el('div','f-btns');t.append(el('span','f-lib','Trier par'),bx);
+   TRI.forEach(([v,x])=>{const q=el('button','pastille',x);q.type='button';q.dataset.v=v;q.setAttribute('aria-pressed',String(v===triDeck));q.onclick=()=>{triDeck=v;peintDecks()};bx.append(q)});
+   const q=el('button','pastille tri-sens');q.type='button';q.dataset.sens=triDeckDesc?'desc':'asc';
+   q.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+   q.append(el('span','',triDeckDesc?'Décroissant':'Croissant'));q.setAttribute('aria-label','Ordre '+(triDeckDesc?'décroissant':'croissant')+', inverser');
+   q.onclick=()=>{triDeckDesc=!triDeckDesc;peintDecks()};bx.append(q);b.append(t)}
+  /* Elements : une carte reste visible si un de ses elements est allume ; tous eteints = aucun Golem. Les animaux ignorent les elements. */
+  const vues=CARTES.map((c,i)=>[c,i]).filter(([c])=>(estAnimal(c)||c[2].some(x=>elsDeckOn.has(x)))&&(filtreDeck!=='a'||estAnimal(c)))
+    .sort((x,y)=>{const d=triDeck?valTri(x[0][0],triDeck)-valTri(y[0][0],triDeck):x[1]-y[1];return (triDeckDesc?-d:d)||x[1]-y[1]}).map(x=>x[0]),g=el('div','grille');
+  if(!elsDeckOn.size&&filtreDeck!=='a')b.append(el('p','vide d-sans-el',vues.length?'Aucun élément allumé : aucun Golem affiché, seulement les animaux. Touche une pastille pour la rallumer.':'Aucun élément allumé : aucun Golem affiché. Touche une pastille pour la rallumer.'));
+  else if(!vues.length)b.append(el('p','vide',filtreDeck==='a'?MSG_ANIMAUX:'Aucune carte pour ce filtre.'));
   vues.forEach(c=>{
     const z=el('div','d-carte'),i=el('img'),n=d.cartes[c[0]]||0;i.src='cartes/'+c[0]+'.jpg';i.alt=c[1];i.loading='lazy';
     const q=el('div','d-qte'),m=el('button','j-btn','-'),p=el('button','j-btn','+');m.type=p.type='button';m.setAttribute('aria-label','Retirer '+c[1]);p.setAttribute('aria-label','Ajouter '+c[1]);
-    m.disabled=!n;p.disabled=n>=MAX_EX||totalDeck(d)>=DECK_MAX;
+    const mx=maxEx(c[0]);m.disabled=!n;p.disabled=n>=mx||totalDeck(d)>=DECK_MAX;if(mx===1&&!n&&!p.disabled)p.title='1 exemplaire au plus';
     const ch=v=>{d.cartes[c[0]]=n+v;gardeDecks(l);peintDecks()};m.onclick=()=>ch(-1);p.onclick=()=>ch(1);
-    q.append(m,el('b','',n+'/'+MAX_EX),p);z.append(i,q);g.append(z);
+    q.append(m,el('b','',n+'/'+mx),p);z.append(i,q);g.append(z);
   });
   b.append(g);
 }
@@ -3587,47 +3697,109 @@ function nomJ(p){
   const l=r?ordre(r.peers()).slice(0,2):[];
   return l[p]?nomDe(l[p]):'Adversaire';
 }
+/* Cœur du favori d'Indra : dessin vectoriel (le caractère ♥ devient un émoji sur certains téléphones), contour sombre comme les chiffres. */
+const COEUR='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.6C6.6 16.9 2.6 13.4 2.6 9.2 2.6 6.4 4.7 4.3 7.3 4.3c1.9 0 3.6 1 4.7 2.7 1.1-1.7 2.8-2.7 4.7-2.7 2.6 0 4.7 2.1 4.7 4.9 0 4.2-4 7.7-9.4 11.4z" fill="currentColor" stroke="#0a121a" stroke-width="2.4" stroke-linejoin="round" paint-order="stroke"/></svg>';
 function miniVue(s,p,l,k){
   const v=s.j[p].grille[l][k],C=M.carte(v.c);
+  if(C.animal){ /* animal de compagnie : nom, cout, maitre ; ni Force ni element */
+    const m=el('span','mini animal'),co=el('span','cout'),ba=el('span','bas');
+    co.append(ico('enclume'),String(C.cout));ba.append(co,el('span','ani','Animal'));
+    m.append(el('span','nom',C.nom),ba);m.title=C.nom+', animal de compagnie de '+M.CARTES[C.maitre].nom;return m;
+  }
   const m=el('span','mini'),co=el('span','cout'),ba=el('span','bas'),f=el('span','f'),e=el('span','els');
   m.style.setProperty('--a','var(--fm-'+C.el[0]+')');m.style.setProperty('--b','var(--fm-'+C.el[1]+')');
   C.el.forEach(x=>{const i=el('img');i.src='cartes/'+x+'.png';i.alt='';i.width=22;i.height=22;e.append(i)});
-  co.append(ico('enclume'),String(C.cout));ba.append(co);
-  if(v.d>0)ba.append(el('span','deg','-'+v.d));
-  if(v.ra)ba.append(el('span','rage','Rage +'+v.ra));
-  const fv=M.favori?M.favori(s,p,v.c):0; /* 0.2a.1 : favori d'Indra, coeur et bonus */
-  if(fv){const h=el('span','fav','♥ +'+fv);h.title="Favori d'Indra";ba.append(h)}
-  const fa=M.forceDe(s,p,l,k);if(fa>v.f)f.classList.add('plus');else if(fa<v.f)f.classList.add('moins');
+  co.append(ico('enclume'),String(C.cout));ba.append(co); /* degats, Rage, bonus : plus de pastille, la couleur du chiffre de Force et le zoom suffisent */
+  const fv=M.favori?M.favori(s,p,v.c):0; /* 0.2a.1 : favori d'Indra, coeur seul a gauche de l'hexagone (le bonus est dans le chiffre et au zoom) */
+  let hf=null;if(fv){hf=el('span','fav');hf.innerHTML=COEUR;hf.title="Favori d'Indra";hf.setAttribute('role','img');hf.setAttribute('aria-label',"Favori d'Indra, +"+fv+' de Force')}
+  if(COPIEUR[C.id]&&v.cp!==undefined){const n=v.cp?M.CARTES[v.cp]:null,h=el('span','cp',n?'Copie '+(n.base?M.CARTES[n.base].nom:n.nom):'Sans copie');h.title=n?COPIEUR[C.id]+" : copie l'effet de "+M.nomDetail(n):COPIEUR[C.id]+' : rien à copier';m.append(h)}
+  const fa=M.forceDe(s,p,l,k),sf=sensForce(fa,v.f);if(sf)f.classList.add(sf);
   f.append(ico('force'),el('b','',String(fa)));
-  m.append(el('span','nom',C.base?M.CARTES[C.base].nom:C.nom),e,ba,f);
+  m.append(el('span','nom',C.base?M.CARTES[C.base].nom:C.nom),e,ba,f);if(hf)m.append(hf);
   return m;
 }
 /* Detail de Force d'un Golem : lecture seule de l'etat du moteur. */
 const NOMS_EL={magma:'Magma',cristal:'Cristal',foudre:'Foudre',brume:'Brume',roche:'Roche'};
-function signe(n){return (n>0?'+':'')+n}
+function signe(n){return (n>=0?'+':'')+n}
 function lg(t,v,cl){const d=el('div','lg'+(cl?' '+cl:''));d.append(el('span','',t),el('b','',v));return d}
+/* Identifiant d'effet : le Maitre du deguisement (029e) et Le chansonnier (041e) portent l'effet copie. Anciens moteurs (rejeu) : celui de la carte. */
+const effId=g=>M.idEff?M.idEff(g):M.carte(g.c).id;
+/* Copieurs (badge « Copie X », detail de Force) : code -> nom de la capacite qui copie (meme liste que COPIEURS du moteur). */
+const COPIEUR={'029e':'Déguisement','041e':'Imitation'};
+const CERCLE_2=['037','037e']; /* Counter-pick et Full synergie : cercle +2 (meme table que CERCLE2 du moteur) */
+/* Comeback (Bellock, Aiges Captain) et Winstreak (Loxim, Le Ace de Aiges) : Force par manche, perdue (0) ou remportee (1) sur son terrain (meme table que DUO_MANCHE du moteur) */
+const DUO_MANCHE={'015':[1,0],'015e':[2,0],'016':[1,1],'016e':[2,1]};
+/* Couleur de la Force en jeu : 'plus' au-dessus de la Force de base (g.f, résultat du dé pour Alrevan), 'moins' en dessous. */
+const sensForce=(fa,f)=>fa>f?'plus':fa<f?'moins':'';
+/* Nom de capacité d'une carte (texte avant « : », moteur en service M0 : les anciens textes disaient « En jeu »), pour dire d'où vient un bonus */
+const capa=id=>{const t=(M0.CARTES[id]||{}).texte||'';const i=t.indexOf(' :');return i>0?t.slice(0,i):''};
 function detailForce(s,p,l,k){
-  const G=s.j[p].grille,g=G[l][k],C=M.carte(g.c),a=el('section');
+  const G=s.j[p].grille,g=G[l][k],C=M.carte(g.c),a=el('section'),id=effId(g),fa=M.forceDe(s,p,l,k);
+  let somme=0;const ajoute=(t,n,v)=>{somme+=n;a.append(lg(t,v!==undefined?v:signe(n)))};
   a.append(el('h3','','Force'));
-  a.append(lg(C.id==='002'?'Résultat du dé':C.id==='002e'?'Résultat des dés':'Force de base',String(g.f)));
+  if(COPIEUR[C.id]&&g.cp!==undefined)a.append(lg(g.cp?COPIEUR[C.id]+' : copie '+M.nomDetail(M.CARTES[g.cp]):COPIEUR[C.id]+' : rien à copier',''));
+  ajoute(id==='002'?'Résultat du dé':id==='002e'?'Résultat des dés':'Force de base',g.f,String(g.f));
   const vs=[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([x,y])=>G[x]&&G[x][y]).filter(Boolean);
-  vs.forEach(v=>{const c=M.carte(v.c);if(c.id==='003'||c.id==='003e')a.append(lg('Voisin '+M.nomDetail(c),'+1'))});
-  if(g.ra)a.append(lg('Rage',signe(g.ra)));
-  if(M.indrasDe)M.indrasDe(s,p,g.c).forEach(n=>a.append(lg('Favori de '+M.nomDetail(M.carte(n.c)),'+'+M.FAV_BONUS[M.carte(n.c).id])));
-  if(g.fav!==undefined&&M.FAV_BONUS&&M.FAV_BONUS[C.id]){const x=G.flat().find(h=>h&&h.c===g.fav);if(x)a.append(lg('Son favori : '+M.nomDetail(M.carte(x.c)),'♥'))}
+  vs.forEach(v=>{const c=M.carte(v.c),e=effId(v);if(e==='003'||e==='003e')ajoute((capa(e)||'Bonus')+' : voisin '+M.nomDetail(c)+(c.id!==e?' (copie de Cyrdan)':''),1)});
+  if(g.ra)ajoute('Rage',g.ra);
+  if(M.indrasDe)M.indrasDe(s,p,g.c).forEach(n=>ajoute('Favori de '+M.nomDetail(M.carte(n.c)),M.FAV_BONUS[effId(n)]));
+  if(g.fav!==undefined&&M.FAV_BONUS&&M.FAV_BONUS[id]){const x=G.flat().find(h=>h&&h.c===g.fav);if(x)a.append(lg('Son favori : '+M.nomDetail(M.carte(x.c)),'♥'))}
   let d=g.d;
   if(C.id==='001'&&d>=3){
     const n=Math.min(Math.floor(d/4),s.log.filter(([q,x])=>q===p&&x==='KaTarN perd 4 de Force.').length);
-    if(n){a.append(lg('Perte KaTarN','-'+3*n));d-=3*n}
+    if(n){ajoute('Jeunesse éphémère : fin de manche',-4*n);d-=4*n}
   }
-  if(d>0)a.append(lg('Dégâts','-'+d));
-  C.el.forEach(e=>{const n=vs.filter(v=>M.carte(v.c).el.includes(e)).map(v=>M.nomDetail(M.carte(v.c)));
-    a.append(lg('Trait '+NOMS_EL[e]+(n.length?' : voisin '+n.join(', '):' : aucun voisin'),'+'+(M.TRAIT_CUMULE?n.length:Math.min(n.length,1))))}); /* 0.2.1 : +1 par voisin */
-  const h=s.j[1-p].grille[l][k],hC=h?M.carte(h.c):null,dom=hC?C.el.find(e=>hC.el.includes(M.DOMINE[e])):null;
-  a.append(lg(dom?'Cercle : '+NOMS_EL[dom]+' domine '+NOMS_EL[M.DOMINE[dom]]+' ('+M.nomDetail(hC)+' en face)':hC?'Cercle : '+M.nomDetail(hC)+' en face, pas de domination':'Cercle : aucun Golem en face',dom?'+1':'+0'));
-  a.append(lg('Force actuelle',String(M.forceDe(s,p,l,k)),'tot'));
+  if(d>0)ajoute('Dégâts subis',-d);
+  const gs=vs.filter(v=>!M.carte(v.c).animal);
+  C.el.forEach(e=>{const n=gs.filter(v=>M.carte(v.c).el.includes(e)).map(v=>M.nomDetail(M.carte(v.c)));
+    ajoute('Trait '+NOMS_EL[e]+(n.length?' : voisin '+n.join(', '):' : aucun voisin'),M.TRAIT_CUMULE?n.length:Math.min(n.length,1))}); /* 0.2.1 : +1 par voisin */
+  if(id==='037e'){const n=C.el.filter(e=>gs.some(v=>M.carte(v.c).el.includes(e))).length;if(n)ajoute('Full synergie : '+(n>1?'2 éléments partagés':'1 élément partagé'),n)}
+  if(id==='036e'&&M.foudres){const n=M.foudres(G);if(n)ajoute('Survolté : '+n+(n>1?' Golems Foudre':' Golem Foudre')+' en jeu',n)}
+  if(id==='025'&&M.kekwait){const n=M.kekwait(G,l,k);ajoute((capa('025')||'KEKWait')+' : '+(n?n+(n>1?' Golems alliés':' Golem allié'):'aucun Golem allié')+' au-dessus',n)} /* Shifukuro, ou Apo et chansonnier qui l'ont copié */
+  if(DUO_MANCHE[id]&&M.duoManches){ /* Bellock et Loxim (ou Apo et chansonnier qui les ont copiés) : manches de ce terrain, lues dans s.resultats */
+    const[x,w]=DUO_MANCHE[id],n=M.duoManches(s,p,k,!!w),q=w?'remportée':'perdue';
+    ajoute((capa(id)||(w?'Winstreak':'Comeback'))+' : '+(n?n+' manche'+(n>1?'s '+q+'s':' '+q):'aucune manche '+q)+' sur ce terrain'+(n&&x>1?' (+'+x+' chacune)':''),x*n)}
+  if(M.doubleUp&&M.DUO&&M.DUO[id]&&M.CARTES[id].base){ /* Double up ? des évolutions du duo : une seule fois, ligne ou terrain */
+    const v=M.doubleUp(G,l,k,id),nP=M.CARTES[M.DUO[id]].nom;
+    ajoute(v?'Double up ? : seul avec '+M.nomDetail(M.carte(v.c))+' sur '+(G[l].includes(v)?'sa ligne':'son terrain'):'Double up ? : pas seul avec '+nP+' sur sa ligne ni son terrain',v?M.REGLAGE_DUO.doubleUp:0)}
+  const h=s.j[1-p].grille[l][k],hC=h?M.carte(h.c):null,dom=hC?C.el.find(e=>hC.el.includes(M.DOMINE[e])):null,c2=dom&&CERCLE_2.includes(id);
+  ajoute(dom?'Cercle : '+NOMS_EL[dom]+' domine '+NOMS_EL[M.DOMINE[dom]]+' ('+M.nomDetail(hC)+' en face)'+(c2?', Counter-pick':''):hC&&!hC.animal?'Cercle : '+M.nomDetail(hC)+' en face, pas de domination':'Cercle : aucun Golem en face',dom?(c2?2:1):0,dom?(c2?'+2':'+1'):'+0');
+  if(fa!==somme)ajoute('Autres effets',fa-somme); /* filet : le total affiché reste celui du moteur */
+  const t=lg('Force actuelle',String(fa),'tot'),sf=sensForce(fa,g.f);if(sf)t.lastChild.classList.add(sf);a.append(t);
   return [a];
 }
+/* Chiffres redessinés (badgeForce, badgeSurcout) en Anton (Google Fonts, chargée avec Lilita One) : même dessin qu'Impact, présente sur tous les appareils.
+   Taille = Impact x 0,931 (même hauteur de chiffre), décalages recalés chiffre par chiffre ; textLength garde la chasse d'Impact.
+   Tant qu'Anton n'est pas chargée, le chiffre reste caché (classe attente) : pas de saut de police visible. */
+const ANTON="400 88px Anton";
+function attendAnton(k){
+  if(!document.fonts||document.fonts.check(ANTON))return;
+  k.classList.add('attente');const f=()=>k.classList.remove('attente');
+  document.fonts.load(ANTON).then(f,f);setTimeout(f,2500);
+}
+if(document.fonts){const pre=()=>document.fonts.load(ANTON).catch(()=>0);if(document.readyState==='complete')pre();else addEventListener('load',pre)}
+/* Hexagone de Force de la carte redessiné à l'identique par-dessus l'image (force() de generer_cartes.py : pans en relief, Impact 323,28,
+   décalages par chiffre), avec la Force actuelle : blanc si égale à la base, vert au-dessus, rouge en dessous (mêmes teintes que la grille). */
+const FORCE_SIL='M281.2 52 L318.8 52 Q398.7 112 499.75 126 L499.75 390 L325.85 512 L295.3 534 L280 547 L100.25 390 L100.25 126 Q201.3 112 281.2 52Z',
+  FORCE_PANS=[['M300 98 L285 98 Q210 152 144 164 L144 370 L281 490 Z','#bf6049'],['M300 98 L315 98 Q390 152 456 164 L456 367 L281 490 Z','#8a3524'],
+    ['M281.2 52 L300 52 L300 98 L285 98Z','#d27a5e'],['M300 52 L318.8 52 L315 98 L300 98Z','#a4452f'],
+    ['M318.8 52 Q398.7 112 499.75 126 L456 164 Q390 152 315 98Z','#d27a5e'],['M499.75 126 L499.75 390 L456 367 L456 164Z','#70291b'],
+    ['M499.75 390 L325.85 512 L295.3 534 L280 547 L281 490 L456 367Z','#551d13'],['M280 547 L100.25 390 L144 370 L281 490Z','#a4452f'],
+    ['M100.25 390 L100.25 126 L144 164 L144 370Z','#d27a5e'],['M100.25 126 Q201.3 112 281.2 52 L285 98 Q210 152 144 164Z','#efb096']],
+  FORCE_DEC=[[-.01,32.39],[3.04,32.86],[-2.27,33.46],[1.33,31.67],[.42,32.71],[-.63,30.92],[-2.37,32.71],[-.79,32.86],[.24,32.69],[-2.37,32.55]],
+  FORCE_COUL={plus:'#3ee86a',moins:'#ff3b30','':'#fff'};
+function badgeForce(fa,f){
+  const t=String(fa),sf=sensForce(fa,f),d=t.length>1?[0,32.3]:FORCE_DEC[+t]||[0,32.3],
+    L=Math.min(330,[...t].reduce((a,x)=>a+(x>='0'&&x<='9'?ENC_CH[+x]:x==='-'?26:22)*323.28/88,0)),k=el('span','force-zoom');
+  k.setAttribute('role','img');k.setAttribute('aria-label','Force actuelle '+t+(sf?', Force de base '+f:''));
+  k.innerHTML='<svg viewBox="0 0 750 1050" aria-hidden="true"><svg x="611.1" y="24" width="116.9" height="135" viewBox="71 35 458 529" preserveAspectRatio="xMidYMin meet" overflow="visible">'
+    +FORCE_PANS.map(([p,c])=>'<path d="'+p+'" fill="'+c+'" stroke="'+c+'" stroke-width="1.5" stroke-linejoin="round"/>').join('')
+    +'<path d="M160 180 Q222 166 288 116" fill="none" stroke="#ffe3d6" stroke-opacity=".55" stroke-width="7" stroke-linecap="round"/>'
+    +'<path d="'+FORCE_SIL+'" fill="none" stroke="#0b0a10" stroke-width="34" stroke-linejoin="round"/>'
+    +'<text x="'+(300+d[0])+'" y="'+(396+d[1])+'" text-anchor="middle" textLength="'+L.toFixed(1)+'" lengthAdjust="spacingAndGlyphs" fill="'+FORCE_COUL[sf]+'" stroke="#0b0a10" stroke-width="44.08" stroke-linejoin="round" paint-order="stroke" style="font:400 301px Anton,Impact,\'Lilita One\',sans-serif">'+t+'</text></svg></svg>';
+  attendAnton(k);return k;
+}
+function detailAnimal(C){const a=el('section');a.append(el('h3','','Animal de compagnie'),lg('Maître',M.CARTES[C.maitre].nom),lg('Force','aucune'),el('p','',C.texte));return [a]}
 function ouvreTas(titre,ids){
   const b=$('tasCartes');b.textContent='';$('tasTitre').textContent=titre;$('tasVide').hidden=ids.length>0;
   ids.forEach(c=>{const C=M.carte(c),i=el('img');i.src='cartes/'+C.id+'.jpg';i.alt=C.nom;b.append(i)});
@@ -3655,15 +3827,18 @@ function grilleVue(s,p,cols,lignes,cible){
     if(v){
       const C=M.carte(v.c);if(C.base)b.classList.add('evo');
       b.append(miniVue(s,p,l,k));
-      b.setAttribute('aria-label',M.nomDetail(C)+(C.base?', évolution':'')+', coût '+C.cout+', Force '+M.forceDe(s,p,l,k)+(v.d>0?', dégâts '+v.d:'')+(v.ra?', Rage +'+v.ra:''));
-      b.onclick=()=>{dernier=null;zoom('cartes/'+C.id+'.jpg',C.nom,detailForce(s,p,l,k))};
+      if(C.animal){b.classList.add('animal');b.setAttribute('aria-label',C.nom+', animal de compagnie de '+M.CARTES[C.maitre].nom+', coût '+C.cout);b.onclick=()=>{dernier=null;zoom('cartes/'+C.id+'.jpg',C.nom,detailAnimal(C))}}
+      else{
+      const fa=M.forceDe(s,p,l,k);
+      b.setAttribute('aria-label',M.nomDetail(C)+(C.base?', évolution':'')+', coût '+C.cout+', Force '+fa+(fa!==v.f?' (base '+v.f+')':'')+(v.d>0?', dégâts '+v.d:'')+(v.ra?', Rage +'+v.ra:'')+(M.favori&&M.favori(s,p,v.c)?", favori d'Indra":''));
+      b.onclick=()=>{dernier=null;zoom('cartes/'+C.id+'.jpg',C.nom,detailForce(s,p,l,k),[badgeForce(fa,v.f)])};}
     }else b.disabled=!lib;
     if(lib){
       b.classList.add(lib.choisie?'choisie':'cible');b.dataset.act='case';
       let porte=b;
       if(lib.texte){if(v){porte=el('span','act',lib.texte);b.append(porte)}else b.textContent=lib.texte}
       if(lib.bonus){
-        const n=lib.bonus.trait+lib.bonus.cercle,det='Bonus prévu : Trait +'+lib.bonus.trait+', cercle +'+lib.bonus.cercle,h=el('small','p-hint','+'+n);
+        const B=lib.bonus,n=B.trait+B.cercle+(B.synergie||0)+(B.survolte||0)+(B.kekwait||0)+(B.comeback||0)+(B.winstreak||0)+(B.doubleup||0),det='Bonus prévu : Trait +'+B.trait+', cercle +'+B.cercle+(B.synergie?', Full synergie +'+B.synergie:'')+(B.survolte?', Survolté +'+B.survolte:'')+(B.kekwait?', KEKWait +'+B.kekwait:'')+(B.comeback?', Comeback +'+B.comeback:'')+(B.winstreak?', Winstreak +'+B.winstreak:'')+(B.doubleup?', Double up ? +'+B.doubleup:''),h=el('small','p-hint','+'+n);
         h.dataset.n=n;porte.append(h);b.title=det;
         b.setAttribute('aria-label',(v?M.nomDetail(M.carte(v.c))+', ':'')+lib.texte+', '+det);
       }
@@ -3707,17 +3882,43 @@ function montreApercu(z,src){
   a.style.top=(r.bottom+8+H<innerHeight?r.bottom+8:Math.max(8,r.top-H-8))+'px';
 }
 function zoomTerrain(T){cacheApercu();dernier=null;zoom(srcTerrain(T),T.nom+'. '+T.texte,statZoomTerrain(T))}
+/* Elessar (Réalisation de l'âge) : surcoût d'une évolution pour le joueur p, lu dans le moteur (coutPose ; 0 sans Elessar adverse en jeu). */
+function surcout(s,p,c){const C=M.carte(c);return s&&C.base?M.coutPose(s,p,c,0,0)-C.cout:0}
+/* Explication du surcoût (survol, zoom, aria-label) : +1 par Elessar adverse. */
+const causeSurcout=n=>"Réalisation de l'âge "+(n>1?'de '+n+' Elessar adverses':"d'Elessar adverse")+', +'+n+'.';
+function txtSurcout(C,n){return 'Coûte '+(C.cout+n)+' énergie au lieu de '+C.cout+' : '+causeSurcout(n)}
+function detailSurcout(C,n){if(!(n>0))return undefined;const p=el('p','surcout-txt');p.append(el('b','','Coûte '+(C.cout+n)+' énergie'),' au lieu de '+C.cout+' : '+causeSurcout(n));return [p]}
+/* Enclume de la carte redessinée à l'identique par-dessus l'image (cout() de generer_cartes.py : silhouette, dégradés, Impact 88, décalages par chiffre),
+   avec le vrai coût en rouge : le chiffre imprimé disparaît dessous. Repère de la carte 750 x 1050. textLength = chasse d'Impact (Anton ramenée à la même largeur). */
+const ENC_SIL='M50 14 L170 14 L170 52 L140 58 Q130 78 136 100 L158 114 L158 148 L42 148 L42 114 L64 100 Q70 78 60 58 L52 56 Q20 50 6 16Z',
+  ENC_DEC=[[-.09,2.17],[1,2.21],[-.71,2.38],[.28,1.97],[.03,2.17],[-.26,1.76],[-.65,2.17],[-.21,2.21],[-.02,2.25],[-.65,2.21]],
+  ENC_CH=[47.19,33.52,44.17,46.67,43.97,47.23,47.66,34.47,47.06,47.66],ENC_G='<g transform="translate(20 24) scale(.9375) translate(0 -9)">';
+let nEnc=0;
+function badgeSurcout(C,n){
+  const k=el('span','surcout'),t=String(C.cout+n),d=t.length>1?[0,2.13]:ENC_DEC[+t],L=Math.min(56,[...t].reduce((a,x)=>a+ENC_CH[+x],0)),i='enc'+(++nEnc);
+  k.setAttribute('role','img');k.setAttribute('aria-label',txtSurcout(C,n));
+  k.innerHTML='<svg class="fond" viewBox="0 0 750 1050" aria-hidden="true">'+ENC_G+'<defs><clipPath id="'+i+'c"><path d="'+ENC_SIL+'"/></clipPath>'
+    +'<linearGradient id="'+i+'b" x1="10" y1="10" x2="165" y2="150" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#a9b4bd"/><stop offset=".42" stop-color="#6f7a84"/><stop offset=".62" stop-color="#3b434b"/><stop offset="1" stop-color="#1f252a"/></linearGradient>'
+    +'<linearGradient id="'+i+'f" x1="0" y1="20" x2="0" y2="148" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4b545d"/><stop offset="1" stop-color="#2d343b"/></linearGradient></defs>'
+    +'<g clip-path="url(#'+i+'c)"><rect width="180" height="160" fill="url(#'+i+'f)"/><path d="M100 0 H180 V160 H100Z" fill="#000" fill-opacity=".2"/><path d="'+ENC_SIL+'" fill="none" stroke="url(#'+i+'b)" stroke-width="20"/></g>'
+    +'<path d="'+ENC_SIL+'" fill="none" stroke="#0b0a10" stroke-width="10" stroke-linejoin="round"/></g></svg>'
+    +'<svg viewBox="0 0 750 1050" aria-hidden="true">'+ENC_G+'<text x="'+(100+d[0])+'" y="'+(114+d[1])+'" text-anchor="middle" textLength="'+L+'" lengthAdjust="spacingAndGlyphs" fill="#ff3b30" stroke="#0b0a10" stroke-width="12" stroke-linejoin="round" paint-order="stroke" style="font:400 81.93px Anton,Impact,\'Lilita One\',sans-serif">'+t+'</text></g></svg>';
+  attendAnton(k);return k;
+}
+/* Même enclume rouge sur la carte agrandie (zoom, œil, bouton Voir) : le dessin est au repère 750 x 1050, il suit la taille de l'image. */
+const calqueSurcout=(C,n)=>n>0?[badgeSurcout(C,n)]:null;
 function mainVue(ids,opts){
-  const m=el('div','p-main');
+  const m=el('div','p-main'),s=partie&&partie.etat,sp=opts.p!==undefined?opts.p:partie&&partie.moi;
   ids.forEach(c=>{
     const C=M.carte(c),b=el('button','p-carte');b.type='button';
     const i=el('img');i.src='cartes/'+C.id+'.jpg';i.alt=C.nom;b.append(i);
-    const rz=opts.raison&&opts.raison(c);
-    if(rz){b.classList.add('grisee');b.append(el('span','raison',rz.court));b.title=rz.long}
+    const rz=opts.raison&&opts.raison(c),sc=surcout(s,sp,c);
+    if(sc>0){b.classList.add('surtaxe');b.append(badgeSurcout(C,sc));b.title=txtSurcout(C,sc)}
+    if(rz){b.classList.add('grisee');b.append(el('span','raison',rz.court));b.title=rz.long+(sc>0?' Coût imprimé '+C.cout+' : '+causeSurcout(sc):'')}
     if(opts.presse)b.setAttribute('aria-pressed',opts.presse(c));
-    if(opts.clic){b.dataset.act='carte';b.onclick=()=>opts.clic(c)}else b.onclick=()=>{dernier=null;zoom(i.src,C.nom)};
+    if(opts.clic){b.dataset.act='carte';b.onclick=()=>opts.clic(c)}else b.onclick=()=>{dernier=null;zoom(i.src,C.nom,detailSurcout(C,sc),calqueSurcout(C,sc))};
     const z=el('div','p-slot'),o=el('button','oeil');o.type='button';o.append(ico('oeil'));
-    o.setAttribute('aria-label','Agrandir '+C.nom);o.onclick=()=>{cacheApercu();dernier=null;zoom('cartes/'+C.id+'.jpg',C.nom)};
+    o.setAttribute('aria-label','Agrandir '+C.nom);o.onclick=()=>{cacheApercu();dernier=null;zoom('cartes/'+C.id+'.jpg',C.nom,detailSurcout(C,sc),calqueSurcout(C,sc))};
     z.dataset.c=c;z.onmouseenter=()=>{if(zoneEl()&&SURVOL.matches){zoneSurvol=c;zoneMaj()}else montreApercu(z,'cartes/'+C.id+'.jpg')};
     z.onmouseleave=()=>{cacheApercu();if(zoneSurvol!==null){zoneSurvol=null;zoneMaj()}};
     z.append(b,o);m.append(z);
@@ -3728,6 +3929,11 @@ function mainVue(ids,opts){
 function raisonPose(s,me,c,leg){
   if(leg.some(a=>a.t==='p'&&a.c===c))return null;
   const C=M.carte(c),G=s.j[me].grille,e=s.j[me].energie;
+  if(C.animal){ /* animal : case libre voisine (haut, bas, gauche, droite) de son maitre, base ou evolution */
+    const m=C.maitre,lib=[];G.forEach((L,l)=>L.forEach((g,k)=>{const x=g&&M.carte(g.c);if(x&&(x.id===m||x.base===m))[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].forEach(([a,b])=>{if(a>=0&&a<3&&b>=0&&b<3&&!G[a][b])lib.push(M.coutPose(s,me,c,a,b))})}));
+    if(!lib.length)return {court:M.CARTES[m].nom+' requis',long:'Il faut '+M.CARTES[m].nom+' en jeu, avec une case libre voisine.'};
+    return {court:'Trop chère',long:'Coûte '+Math.min(...lib)+' énergie, il te reste '+e+'.'};
+  }
   if(C.id==='001'&&s.manche!==1)return {court:'Manche 1 seulement',long:'Se pose uniquement en manche 1.'};
   const cases=[];
   for(let l=0;l<3;l++)for(let k=0;k<3;k++)if(!C.base||(G[l][k]&&M.carte(G[l][k].c).id===C.base))cases.push(M.coutPose(s,me,c,l,k));
@@ -3790,6 +3996,22 @@ function affiche(){
     };
   }else if(att&&att.t==='g'){ /* 0.2a.1 : favori d'Indra, cases dorees */
     cible=(l,k)=>{const a=leg.find(x=>x.t==='g'&&x.l===l&&x.k===k);return a?{texte:'Favori',fait:()=>joue(a)}:null};
+  }else if(att&&att.t==='k'){ /* Deguisement d'Apo (029e) : voisin dont il copie l'effet, cases dorees */
+    cible=(l,k)=>{const a=leg.find(x=>x.t==='k'&&x.l===l&&x.k===k);return a?{texte:'Copier',fait:()=>joue(a)}:null};
+  }else if(att&&att.t==='i'){ /* Imitation du chansonnier (041e) : le Golem adverse en face, case doree sur la grille adverse ; refus par le bouton Ne pas copier */
+    const a=leg.find(x=>x.t==='i'&&x.o===1);
+    cibleAdv=(l,k)=>a&&l===att.i[0]&&k===att.i[1]?{texte:'Copier',fait:()=>joue(a)}:null;
+  }else if(att&&att.t==='u'){ /* meandyou du modérateur (025e) : 1) un Golem allié au-dessus (haut), 2) un de ses voisins d'après coups, cases dorées ;
+       toucher de nouveau le premier, ou un autre Golem du dessus, change d'avis ; refus par le bouton Ne pas échanger */
+    const es=leg.filter(x=>x.t==='e'),m=(p,q)=>p[0]===q[0]&&p[1]===q[1],enHaut=c=>att.haut.some(h=>m(h,c));
+    const u=selCases.length&&enHaut(selCases[0])?selCases[0]:null,choisir=c=>({texte:'Choisir',fait:()=>{selCases=[c];affiche()}});
+    cible=(l,k)=>{
+      const c=[l,k];
+      if(!u)return enHaut(c)?choisir(c):null;
+      if(m(u,c))return {choisie:true,fait:()=>{selCases=[];affiche()}};
+      const a=es.find(x=>(m(x.a,u)&&m(x.b,c))||(m(x.b,u)&&m(x.a,c)));
+      return a?{texte:'Échanger',fait:()=>joue(a)}:enHaut(c)?choisir(c):null;
+    };
   }else if(att&&att.t==='o'&&leg[0].t==='e'){
     cible=(l,k)=>{
       if(!J.grille[l][k])return null;
@@ -3804,8 +4026,8 @@ function affiche(){
     const ps=leg.filter(a=>a.t==='p'&&a.c===sel);
     cible=(l,k)=>{const a=ps.find(x=>x.l===l&&x.k===k);if(!a)return null;
       const mot=!J.grille[l][k]?'Poser':M.carte(sel).base?'Améliorer':'Remplacer';
-      return {texte:mot+' '+M.coutPose(s,me,sel,l,k),bonus:bonusPrevu(s,me,sel,l,k),fait:()=>joue(a)}};
-  }
+      return {texte:mot+' '+M.coutPose(s,me,sel,l,k),bonus:M.carte(sel).animal?null:bonusPrevu(s,me,sel,l,k),fait:()=>joue(a)}};
+  } /* Caramel a volonte (026e) : seulement par son bouton ; toucher la carte ouvre le detail de sa Force comme pour tout Golem */
   if(partie.rejeu){cible=null;cibleAdv=null}
   repeint=()=>{
     const A=partie&&partie.ecran||s,t=el('div','p-terrains'),cc=M.colonnes(A);
@@ -3865,7 +4087,7 @@ function affiche(){
       if(selMull.length===n)joue({t:'b',o:selMull.slice()});else affiche()}}),mainVue(J.main,{}));
   }else if(att&&att.t==='o'){
     con(leg[0].t==='e'?'Oracle des Stats : main adverse ci-dessous. Touche 2 de tes Golems à échanger.':'Oracle des Stats : main adverse ci-dessous. Pas assez de Golems pour échanger.');
-    pl.append(mainVue(s.j[lui].main,{}));
+    pl.append(mainVue(s.j[lui].main,{p:lui}));
     if(leg[0].t==='v'){const z=el('div','p-btns');z.append(bouton('Continuer',()=>joue({t:'v'})));pl.append(z)}
   }else if(att&&att.t==='h'){
     const pl1=leg.some(x=>x.t==='h'&&(x.m!==x.l||x.n!==x.k));
@@ -3875,20 +4097,52 @@ function affiche(){
     const I=J.grille[att.i[0]][att.i[1]],evo=I&&M.carte(I.c).id==='013e';
     con('Indra'+(evo?' (La Fan enflammée)':'')+' : touche une case dorée pour choisir son favori'+(evo?' (+2 de Force, et le Golem adverse en face perd 2 de Force).':' (+1 de Force).'));
     pl.append(mainVue(J.main,{}));
+  }else if(att&&att.t==='k'){
+    const vs=leg.filter(x=>x.t==='k').map(x=>{const v=J.grille[x.l][x.k];return v?M.nomDetail(M.carte(v.c)):''}).filter(Boolean);
+    con('Apo (Maître du déguisement) : touche un de tes Golems voisins en surbrillance pour copier son effet'+(vs.length?' ('+vs.join(', ')+')':'')+". S'il agit à la pose, il se déclenche aussitôt.");
+    pl.append(mainVue(J.main,{}));
+  }else if(att&&att.t==='i'){
+    const I=J.grille[att.i[0]][att.i[1]],h=s.j[lui].grille[att.i[0]][att.i[1]],hC=h?M.carte(h.c):null,ef=h?M.CARTES[effId(h)]:null;
+    const nh=hC?M.nomDetail(hC):'',deN=/^Le /.test(nh)?'du '+nh.slice(3):/^[aeiouyéh]/i.test(nh)?"d'"+nh:'de '+nh;
+    con((I?M.nomDetail(M.carte(I.c)):'Velnen (Le chansonnier)')+' : touche le Golem adverse en surbrillance pour copier '+(hC?"l'effet "+deN+(ef?' ('+(ef.id!==hC.id?'copie de '+M.nomDetail(ef)+', ':'')+ef.texte.replace(/\.$/,'')+')':''):'son effet')+". S'il agit à la pose, il se déclenche aussitôt. Sinon, touche Ne pas copier.");
+    pl.append(mainVue(J.main,{}));
+    const z=el('div','p-btns'),r=leg.find(x=>x.t==='i'&&x.o===0),bi=bouton('Ne pas copier',()=>{if(r)joue(r)},true);bi.id='nePasCopier';z.append(bi);pl.append(z);
+  }else if(att&&att.t==='u'){
+    const I=J.grille[att.i[0]][att.i[1]],N=I?M.nomDetail(M.carte(I.c)):'Shifukuro (Le modérateur)',m=(p,q)=>p[0]===q[0]&&p[1]===q[1];
+    const nomC=([l,k])=>{const g=J.grille[l][k];return g?M.nomDetail(M.carte(g.c)):''},liste=cs=>{const n=[...new Set(cs.map(nomC).filter(Boolean))];return n.length?' ('+n.join(', ')+')':''};
+    const u=selCases.length&&att.haut.some(h=>m(h,selCases[0]))?selCases[0]:null;
+    if(!u)con(N+' : touche un de tes Golems au-dessus en surbrillance'+liste(att.haut)+", puis le voisin avec qui il échange sa case. Sinon, touche Ne pas échanger.");
+    else{const ps=leg.filter(x=>x.t==='e'&&(m(x.a,u)||m(x.b,u))).map(x=>m(x.a,u)?x.b:x.a);
+      con(N+' : touche le voisin en surbrillance avec qui '+nomC(u)+' échange sa case'+liste(ps)+'. Touche '+nomC(u)+' de nouveau pour changer de Golem. Sinon, touche Ne pas échanger.')}
+    pl.append(mainVue(J.main,{}));
+    const z=el('div','p-btns'),r=leg.find(x=>x.t==='v'),bu=bouton('Ne pas échanger',()=>{if(r)joue(r)},true);bu.id='nePasEchanger';z.append(bu);pl.append(z);
+  }else if(att&&att.t==='r'){
+    /* Bellock et Loxim, « si tu forges cette carte » : les deux versions du partenaire trouvées dans le deck, base puis évolution ; on en touche une (coup 'r'). */
+    const D=M.carte(att.de),nP=M.DUO&&M.DUO[D.id]?M.CARTES[M.DUO[D.id]].nom:'ton partenaire';
+    con(M.nomDetail(D)+' : '+(capa(D.id)||'Duo')+'. Choisis la version de '+nP+' à piocher dans ton deck : touche la base ou son évolution. Ton deck sera ensuite mélangé.');
+    pl.append(mainVue(att.options,{clic:c=>joue({t:'r',c})}),mainVue(J.main,{}));
   }else if(att&&att.t==='s'){
-    con('Trigas : touche 1 carte de ta main à placer dans ta Forge.');
-    pl.append(mainVue(J.main,{clic:c=>joue({t:'s',c})}));
+    /* Spam de Trigas : choix comme a la Forge (carte pressee, changement d'avis possible), puis confirmation ; meme coup 's'. */
+    if(sel!==null&&!J.main.includes(sel))sel=null;
+    con(sel!==null?'Trigas : '+M.nomDetail(M.carte(sel))+' sera placée dans ta Forge, face cachée et définitivement. Touche une autre carte pour changer.':'Trigas : touche 1 carte de ta main à placer dans ta Forge, puis confirme.');
+    pl.append(mainVue(J.main,{presse:c=>c===sel,clic:c=>{sel=sel===c?null:c;affiche()}}));
+    const z=el('div','p-btns'),v=sel,bs=bouton('Forger cette carte',()=>{if(v!==null)joue({t:'s',c:v})});bs.id='forgerSpam';bs.disabled=v===null;z.append(bs);pl.append(z);
   }else if(att&&att.t==='d'){
     con(att.src?att.src+' : fin de manche, touche 1 carte de ta main à défausser.':"Défausse jusqu'à 7 cartes : touche une carte ("+(J.main.length-7)+' de trop).');
     pl.append(mainVue(J.main,{clic:c=>joue({t:'d',c})}));
   }else if(s.joueur===me&&!s.attente){
     if(J.etapeForge){
       if(sel!==null&&!J.main.includes(sel))sel=null;
-      const e=el('div','p-consigne p-etape');e.append(el('b','','Étape 1 : Forge'),sel!==null?M.nomDetail(M.carte(sel))+' sera forgée, face cachée et définitivement.':'Choisis une carte à forger, ou passe. Les actions, La Faille et Le Vaisseau se débloquent ensuite.');pl.append(e);
+      /* Forge eclair (Spom, 036) : 'f' une fois, puis 'j' tant qu'il en reste ; 'n' termine l'etape. */
+      const nbx=(n,m)=>n+' '+m+(n>1?'s':''),nf=leg.some(a=>a.t==='f'),ne=J.eclair||0,eclair=!nf&&leg.some(a=>a.t==='j'),deja=J.aForge||(J.eclairUtil||0)>0;
+      const e=el('div','p-consigne p-etape');e.append(el('b','','Étape 1 : Forge'+(ne?' (Forge éclair : '+nbx(ne,'carte')+' de plus)':'')),
+        sel!==null?M.nomDetail(M.carte(sel))+(eclair?' sera forgée par Forge éclair : +1 énergie dès ce tour, et à la fin du tour tu reprendras 1 carte au hasard de ta Forge.':' sera forgée, face cachée et définitivement.')
+        :eclair?'Forge éclair : tu peux forger encore '+nbx(ne,'carte')+' (+1 énergie chacune). À la fin du tour, tu reprendras 1 carte au hasard de ta Forge par Forge éclair utilisée. Sinon, termine la Forge.'
+        :'Choisis une carte à forger, ou passe. Les actions, La Faille et Le Vaisseau se débloquent ensuite.'+(ne?' Spom : après cette carte, tu pourras en forger '+nbx(ne,'autre')+' (Forge éclair).':''));pl.append(e);
       pl.append(mainVue(J.main,{presse:c=>c===sel,clic:c=>{sel=sel===c?null:c;affiche()}}));
       const z=el('div','p-btns');
-      if(sel!==null){const v=sel,bf=bouton('Forger',()=>joue({t:'f',c:v}));bf.id='forger';z.append(bf)}
-      const bn=bouton('Ne pas forger',()=>joue({t:'n'}),true);bn.id='nePasForger';z.append(bn);pl.append(z);
+      if(sel!==null){const v=sel,bf=eclair?bouton('Forge éclair',()=>joue({t:'j',c:v})):bouton('Forger',()=>joue({t:'f',c:v}));bf.id=eclair?'forgeEclair':'forger';z.append(bf)}
+      const bn=bouton(deja?'Terminer la Forge':'Ne pas forger',()=>joue({t:'n'}),true);bn.id='nePasForger';z.append(bn);pl.append(z);
     }else if(modeFaille){
       con(selCases.length?'La Faille : touche une case libre de ce terrain.':'La Faille : touche un de tes Golems sur un autre terrain. Une fois par manche, gratuit.');
       pl.append(mainVue(J.main,{}));
@@ -3902,7 +4156,7 @@ function affiche(){
     const C=sel!==null?M.carte(sel):null;
     const rs=c=>raisonPose(s,me,c,leg),rz=sel!==null?rs(sel):null;
     const pc=el('div','p-consigne');
-    if(C){pc.append(M.nomDetail(C)+', coût '+C.cout+(C.force!=null?', Force '+C.force:'')+'. '+C.texte);if(rz)pc.append(el('em','',rz.long))}
+    if(C){pc.append(M.nomDetail(C)+(C.animal?', animal de compagnie de '+M.CARTES[C.maitre].nom:'')+', coût '+(C.cout+surcout(s,me,sel))+(surcout(s,me,sel)>0?" (Réalisation de l'âge : +"+surcout(s,me,sel)+')':'')+(C.force!=null?', Force '+C.force:'')+'. '+C.texte+(C.animal&&!rz?' Pose-le sur une case dorée, voisine de '+M.CARTES[C.maitre].nom+'.':''));if(rz)pc.append(el('em','',rz.long))}
     else if(J.main.some(c=>!rs(c)))pc.append('Touche une carte, puis une case dorée.');
     else pc.append('Aucune pose possible ce tour. Termine ton tour.');
     pl.append(pc);
@@ -3910,10 +4164,11 @@ function affiche(){
     const z=el('div','p-btns');
     if(sel!==null){
       const v=sel;
-      const bz=el('button','btn sec','Voir');bz.type='button';bz.onclick=()=>{dernier=null;zoom('cartes/'+C.id+'.jpg',C.nom)};z.append(bz);
+      const bz=el('button','btn sec','Voir');bz.type='button';bz.onclick=()=>{dernier=null;const n=surcout(s,me,v);zoom('cartes/'+C.id+'.jpg',C.nom,detailSurcout(C,n),calqueSurcout(C,n))};z.append(bz);
     }
     if(coupsF.length){const bf=bouton('Déplacement de La Faille',()=>{modeFaille=true;sel=null;selCases=[];affiche()},true);bf.id='deplaceFaille';z.append(bf)}
     if(coupsV.length){const bv=bouton('Échange du Vaisseau',()=>{modeVaisseau=true;sel=null;selCases=[];affiche()},true);bv.id='echangeVaisseau';z.append(bv)}
+    {const cz=leg.filter(a=>a.t==='z');cz.forEach((a,i)=>{const bc=bouton('Caramel : +1 énergie'+(cz.length>1?' ('+s.terrains[a.k].nom+')':''),()=>joue(a),true);bc.classList.add('caramel');if(!i)bc.id='caramel';bc.title='Titom76 (Maître du bilig) : une fois par manche, +1 énergie';z.append(bc)})}
     const fx=bouton('Fin du tour',()=>joue({t:'x'}));fx.id='finTour';z.append(fx);pl.append(z);
     }
   }else{
@@ -4003,7 +4258,7 @@ const ETAPES=[
  {q:gAct(3),c:caseDe(1,0,2),t:"Le Golem a posé <b>Le Q</b> ici. Ses éléments : Brume et Cristal.",suiv:1},
  {q:gAct(3),c:gSlot(32),t:"<b>K-Chan</b> est Magma et Brume, et Magma domine Cristal. Touche K-Chan.",f:()=>sel===32||!!gG(0,2)},
  {q:gAct(3),c:caseDe(0,0,2),t:"Pose-le <b>en face</b> de Le Q : même terrain, même ligne.",f:()=>!!gG(0,2)},
- {q:gAct(3),c:caseDe(0,0,2),t:"C'est le <b>cercle</b> : +1 si le Golem en face a un élément que le tien domine. Jamais plus de +1. K-Chan passe de 2 à 3.",suiv:1},
+ {q:gAct(3),c:caseDe(0,0,2),t:"C'est le <b>cercle</b> : +1 si le Golem en face a un élément que le tien domine. Jamais plus de +1, sauf effet de carte. K-Chan passe de 2 à 3.",suiv:1},
  {q:gAct(3),c:'#finTour',t:"Touche <b>Fin du tour</b>. Le Golem joue son dernier tour, puis la manche se termine.",f:s=>s.manche>1||s.tour>3||s.joueur!==partie.moi},
  {recap:1,c:'#recap .r-terrain',t:"<b>Décompte</b> : dans chaque colonne, on additionne la Force de tous ses Golems.",suiv:1},
  {recap:1,c:'#recap .r-terrain .gagne',t:"Le plus fort <b>conquiert le terrain</b> et marque ses points. En cas d'égalité, personne ne le marque.",suiv:1},
