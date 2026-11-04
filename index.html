@@ -1162,13 +1162,26 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 /* Historique : Vider tout a gauche, pagination juste apres. */
 .h-barre.h-barre{display:flex;justify-content:flex-start;column-gap:28px}.h-barre>.o-haut{order:-1}
 /* Ligne de partie : Rejeu et resultat de meme largeur fixe ; elements du deck sous Rejeu ; version apres le score. */
-.h-carte.h-carte{grid-template-columns:minmax(0,1fr) 112px 112px}
+.h-carte.h-carte{grid-template-columns:minmax(0,1fr) 150px 150px}
 .h-carte .h-rj{justify-self:stretch;justify-content:center;padding:0 6px}
 .h-res-ab{font-size:14px;padding:7px 4px}
 .h-carte .h-mvp{grid-column:1}
 .h-els{grid-column:2;grid-row:2;justify-self:end;display:flex;gap:3px}.h-els img{display:block;width:21px;height:21px}
 .h-ver-l{margin-left:-2px;align-self:baseline;white-space:nowrap}
 @media (max-width:640px){.h-carte.h-carte{grid-template-columns:minmax(0,1fr) 84px 88px;column-gap:8px}.h-els img{width:15px;height:15px}.h-els{gap:1px}}
+/* Telephone : partie sur trois lignes. 1 = date, adversaire, score, version (retour a la ligne, rien de coupe) ;
+   2 = MVP a gauche (80 px au moins), elements puis deck a droite (entier si la place le permet, sinon « … » et title) ;
+   3 = Rejeu et resultat cote a cote, chacun la moitie de la largeur. */
+@media (max-width:640px){
+.h-carte.h-carte{grid-template-columns:minmax(min-content,1fr) auto minmax(0,max-content);gap:8px}
+.h-carte .h-l1{grid-column:1/-1;grid-row:1}
+.h-carte .h-adv{white-space:normal;overflow:visible;overflow-wrap:break-word}
+.h-carte .h-mvp{grid-column:1;grid-row:2;min-width:80px;white-space:normal;overflow:visible;overflow-wrap:break-word}
+.h-carte .h-els{grid-column:2;grid-row:2}
+.h-carte .h-deck.h-deck{grid-column:3;grid-row:2;min-width:0;max-width:none}
+.h-carte .h-rj,.h-carte .h-res{grid-column:1/-1;grid-row:3;width:calc(50% - 4px);box-sizing:border-box;min-width:0}
+.h-carte .h-rj{justify-self:start}.h-carte .h-res{justify-self:end}
+}
 /* Compteur de deck : rouge hors limites (moins de 24 ou plus de 30), vert si valide. */
 .d-compte.ko{color:#ff6b5e}
 /* Tuile de deck : crayon de renommage a gauche du compteur, clic sur le nom = renommer. */
@@ -1622,7 +1635,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
- {version:'Version 0.2b',date:'4 novembre 2026',notes:["K-Chan devient Magma + Brume","Statistiques avec filtres par patch et par adversaire","Profils publics consultables depuis le classement (interrupteur Profil public / privé)","Onglet Cartes : nouveaux filtres et tri par coût et par Force","Aide en partie avec le cercle des éléments","Decks affichés à 3 par ligne","Historique repensé"]},
+ {version:'Version 0.2b',date:'4 novembre 2026',notes:["K-Chan devient Magma + Brume","Statistiques avec filtres par patch et par adversaire","Profils publics consultables depuis le classement (interrupteur Profil public / privé)","Onglet Cartes : nouveaux filtres et tri par coût et par Force","Aide en partie avec le cercle des éléments","Decks affichés à 3 par ligne","Historique repensé","À venir : un nouveau type de carte, les animaux de compagnie"]},
  {version:'Version 0.2a',date:'3 novembre 2026',notes:["Jeu en ligne sur le site, avec comptes (pseudo et code)","Parties publiques et privées, avec discussion","Apprendre à jouer (tutoriel) et entraînement contre les Golems","Decks, historique, rejeu et profil","Avatars personnalisables"]},
  {version:'Version 0.1',date:'2 novembre 2026',notes:["Création du jeu de cartes communautaire Les Golems","Premières cartes Golem jouables avec leurs évolutions, et 10 terrains","Règles disponibles sur le site","Parties contre les Golems en 3 niveaux et jeu en ligne à deux","Decks personnalisés et historique des parties"]}
 ];
@@ -2833,8 +2846,8 @@ function dessineStats(RT){
   const z=$('statsCorps');z.textContent='';
   if(!RT.length){const v=el('div','bloc st-vide');v.append(el('h3','','Aucune partie pour le moment'),el('p','','Les statistiques apparaîtront dès les premières parties terminées par des joueurs connectés avec un compte, contre un Golem ou en ligne.'));z.append(v);return}
   /* Patch : version du moteur des parties comptees, la plus recente par defaut. */
-  /* Patchs coches : le plus recent par defaut. */
-  const vers=versStats(RT);if(!statsPatchs||![...statsPatchs].some(v=>vers.includes(v)))statsPatchs=new Set([vers[0]]);
+  /* Patchs coches : tous par defaut. */
+  const vers=versStats(RT);if(!statsPatchs||![...statsPatchs].some(v=>vers.includes(v)))statsPatchs=new Set(vers);
   const R=RT.filter(r=>statsPatchs.has(patchSite(r.v))&&statsAdv.has(modeSt(r)));
   const pc=(v,n)=>n?Math.round(100*v/n):null,coul=p=>p===null?'var(--doux)':p>55?'#3ecf6e':p>=45?'#f0a030':'#ef4f4f',txt=p=>p===null?'-':p+' %';
   const pl2=(n,m)=>n+' '+m+(n>1?'s':'');
@@ -2897,7 +2910,7 @@ function dessineStats(RT){
   const ban=el('div','bloc st-bandeau');ban.append(el('h3','st-h','Parties'));
   {const fb=el('div','st-filtres'),g1=el('div','st-fg'),g2=el('div','st-fg');
    const dd=el('details','st-dd'),sm=el('summary'),lst=el('div','st-ddl');sm.setAttribute('aria-label','Patchs comptés');
-   const resume=()=>{sm.textContent=statsPatchs.size===1?'v'+[...statsPatchs][0]:statsPatchs.size+' patchs'};resume();
+   const resume=()=>{sm.textContent=statsPatchs.size===1?'v'+[...statsPatchs][0]:vers.every(v=>statsPatchs.has(v))?'Tous les patchs':statsPatchs.size+' patchs'};resume();
    vers.forEach(v=>{const lb=el('label','st-ddc'),cb=el('input');cb.type='checkbox';cb.checked=statsPatchs.has(v);
      cb.onchange=()=>{if(!cb.checked&&statsPatchs.size<2){cb.checked=true;return}cb.checked?statsPatchs.add(v):statsPatchs.delete(v);dessineStats(RT);const n=$('statsCorps').querySelector('.st-dd');if(n){n.open=true;n.querySelector('summary').focus()}};
      lb.append(cb,'v'+v);lst.append(lb)});
@@ -3084,7 +3097,8 @@ function peintHisto(){
     if(!ok)rj.setAttribute('aria-disabled','true');
     rj.onclick=e=>{e.stopPropagation();if(ok)lanceRejeu(x)};
     const rs=el('b','h-res',x.res+(x.abandon?" (abandon)":""));if(x.abandon)rs.classList.add('h-res-ab');
-    c.append(l1,rj,rs,mvpHisto(x.mvp,''),pe,bandeauDeck(x.deck));
+    const bd=bandeauDeck(x.deck);bd.title=bd.textContent;
+    c.append(l1,rj,rs,mvpHisto(x.mvp,''),pe,bd);
     c.onclick=()=>detailHisto(x);gr.append(c);
   });
 }
