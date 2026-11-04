@@ -2698,7 +2698,8 @@ function agregeStats(R){
   let pj=0,pv=0,golem=0,ab=0;
   R.forEach(r=>{
     /* Deck vide ou illisible (paquet de test) : compte pour la partie, jamais pour une carte ni un element. */
-    [0,1].forEach(p=>{const w=r.g===p,o=M.lisDeck(r['k'+p])||(/^golem-/.test(r.m)&&r['k'+p]===DECK_TEST_TXT?DECK_TEST:null);if(!o)return;Object.keys(o).forEach(id=>add(cartes,id,w));
+    /* Partie contre un Golem : seul le camp du joueur (0) compte, le deck du robot (camp 1) est ignore. */
+    (/^golem-/.test(r.m)?[0]:[0,1]).forEach(p=>{const w=r.g===p,o=M.lisDeck(r['k'+p]);if(!o)return;Object.keys(o).forEach(id=>add(cartes,id,w));
       const e=String(r['e'+p]||'').split(',').filter(x=>NOMS_EL[x]).sort();e.forEach(x=>add(els,x,w));
       for(let i=0;i<e.length;i++)for(let j=i+1;j<e.length;j++)add(duos,e[i]+'+'+e[j],w)});
     Object.values(r.t||{}).forEach(t=>{const o=terr.get(t.n);if(!o)return;o.n++;o.q+=+t.q||0;
