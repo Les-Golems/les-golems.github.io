@@ -118,6 +118,10 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 @media (max-width:600px){.f-ligne{gap:8px 10px}.f-lib{width:100%}.f-els{margin-left:0}.f-fin{margin-left:0;width:100%;justify-content:space-between}}
 .pastille i{width:11px;height:11px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1px var(--encre)}
 .f-animaux{margin-left:10px}@media (max-width:600px){.f-animaux{margin-left:0}}
+/* Editeur de deck : pastilles rondes de l'onglet Cartes, puis Animaux un peu a l'ecart ; un peu plus petites sur petit telephone. */
+.d-filtres{align-items:center}.d-filtres .f-els{margin-left:0}.d-filtres .f-animaux{margin-left:10px}
+@media (max-width:374px){.d-filtres .f-els{gap:6px}.d-filtres .f-el{width:34px;height:34px}.d-filtres .f-el img{width:21px;height:21px}.d-filtres .f-animaux{margin-left:6px}}
+@media (max-width:340px){.d-filtres .f-els{gap:5px}.d-filtres .f-el{width:30px;height:30px}.d-filtres .f-el img{width:19px;height:19px}}
 .grille{--col:4;display:grid;grid-template-columns:repeat(var(--col),minmax(0,1fr));gap:14px;margin-top:18px}
 .paire{display:contents}
 @media (min-width:1200px){.grille{--col:6}}
@@ -1702,9 +1706,11 @@ function pastilles(box,liste,get,set,point){
 pastilles($('filtreType'),TY,()=>fTy,v=>fTy=v);
 /* Elements : 5 pastilles rondes, toutes allumees par defaut ; une carte s'affiche si elle a un element allume. */
 const ELS=EL.filter(x=>x[0]).map(x=>x[0]);let elsOn=new Set(ELS);fEl='';
-ELS.forEach(v=>{const b=document.createElement('button');b.type='button';b.className='f-el';b.dataset.el=v;b.style.setProperty('--c','var(--'+v+')');
+/* Pastille ronde a picto d'un element : meme composant pour l'onglet Cartes et l'editeur de deck. */
+function pastilleEl(v,clic){const b=document.createElement('button');b.type='button';b.className='f-el';b.dataset.el=v;b.style.setProperty('--c','var(--'+v+')');
   const t=EL.find(x=>x[0]===v)[1];b.title=t;b.setAttribute('aria-label',t);const i=document.createElement('img');i.src='cartes/'+v+'.png';i.alt='';b.append(i);
-  b.onclick=()=>{elsOn.has(v)?elsOn.delete(v):elsOn.add(v);if(!elsOn.size)elsOn=new Set(ELS);maj()};$('filtreEl').append(b)});
+  b.onclick=clic;return b}
+ELS.forEach(v=>$('filtreEl').append(pastilleEl(v,()=>{elsOn.has(v)?elsOn.delete(v):elsOn.add(v);if(!elsOn.size)elsOn=new Set(ELS);maj()})));
 $('filtreEl')._get=()=>'';
 const TRI=[['','Numéro'],['cout','Coût'],['force','Force']];let fTri='',triDesc=false;
 pastilles($('filtreTri'),TRI,()=>fTri,v=>fTri=v);
@@ -3224,7 +3230,7 @@ $('salonPublicCase').onchange=e=>{$('salonPublicTxt').textContent=e.target.check
  p.onclick=()=>ouvreProfil();p.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvreProfil()}}}
 /* Decks : visuels pour ce test, le moteur n'en sait rien. */
 const MAX_DECKS=12,MAX_EX=3,DECK_MIN=24,DECK_MAX=30;
-let deckOuvert=null,deckVu=null,filtreDeck='';
+let deckOuvert=null,deckVu=null,filtreDeck='',elsDeckOn=new Set(ELS);
 /* Compte connecte : decks dans Firebase (ecriture groupee apres 600 ms). Invite : sur l'appareil. */
 const decksLocaux=()=>litListe('golems.decks').filter(d=>d&&typeof d.nom==='string'&&d.cartes);
 const lesDecks=()=>compteCo()?room.compte.donnees().decks.map(d=>({...d,cartes:{...d.cartes}})):decksLocaux();
@@ -3489,10 +3495,14 @@ function editeur(b,l,d){
   const h=el('div','d-haut'),r=el('button','btn sec','Retour aux decks');r.type='button';r.onclick=()=>{deckOuvert=null;peintDecks()};
   h.append(el('h3','',d.nom),compteDeck(d),r);b.append(h);
   if(totalDeck(d)<DECK_MIN)b.append(el('p','d-limite dl-invalide','Deck incomplet : '+DECK_MIN+' cartes minimum.'));
-  const f=el('div','filtres');EL.forEach(([v,t])=>{const q=el('button','pastille');if(v){const i=el('i');i.style.setProperty('--c','var(--'+v+')');q.append(i)}q.append(t);q.type='button';q.setAttribute('aria-pressed',v===filtreDeck);q.onclick=()=>{filtreDeck=v;peintDecks()};f.append(q)});
-  {const q=el('button','pastille f-animaux','Animaux');q.type='button';q.setAttribute('aria-pressed',filtreDeck==='a');q.onclick=()=>{filtreDeck='a';peintDecks()};f.append(q)}
+  /* Filtres comme l'onglet Cartes : pastilles rondes des elements, toutes allumees par defaut (une carte s'affiche si elle a un
+     element allume), sans Terrains ; Animaux a l'ecart, bascule (allume : seulement les animaux). */
+  const f=el('div','filtres d-filtres'),fe=el('div','f-els');
+  ELS.forEach(v=>{const q=pastilleEl(v,()=>{elsDeckOn.has(v)?elsDeckOn.delete(v):elsDeckOn.add(v);if(!elsDeckOn.size)elsDeckOn=new Set(ELS);peintDecks()});q.setAttribute('aria-pressed',String(elsDeckOn.has(v)));fe.append(q)});
+  f.append(fe);
+  {const q=el('button','pastille f-animaux','Animaux');q.type='button';q.setAttribute('aria-pressed',filtreDeck==='a');q.onclick=()=>{filtreDeck=filtreDeck==='a'?'':'a';peintDecks()};f.append(q)}
   b.append(f);
-  const g=el('div','grille'),vues=CARTES.filter(c=>!filtreDeck||(filtreDeck==='a'?estAnimal(c):c[2].includes(filtreDeck)));
+  const g=el('div','grille'),vues=CARTES.filter(c=>(c[2].some(x=>elsDeckOn.has(x))||!c[2].length)&&(filtreDeck!=='a'||estAnimal(c)));
   if(!vues.length)b.append(el('p','vide',filtreDeck==='a'?MSG_ANIMAUX:'Aucune carte pour ce filtre.'));
   vues.forEach(c=>{
     const z=el('div','d-carte'),i=el('img'),n=d.cartes[c[0]]||0;i.src='cartes/'+c[0]+'.jpg';i.alt=c[1];i.loading='lazy';
@@ -3806,8 +3816,10 @@ function affiche(){
     e.type='button';e.append(ico('oeil'));e.setAttribute('aria-label','Agrandir '+T.nom);
     d.onclick=()=>zoomTerrain(T);d.onmouseenter=()=>montreApercu(d,srcTerrain(T));d.onmouseleave=cacheApercu;
     d.append(te,to,el('span','p-valeur',T.pts+(T.pts>1?' pts':' pt')),e);t.append(d)});
-    const gm=grilleVue(A,me,cols,[0,1,2],cible);if(aMoi)gm.classList.add('active');
-    plat.textContent='';plat.append(camp(s,me,true),gm,t,grilleVue(A,lui,cols,[0,1,2],cibleAdv),camp(s,lui,false));
+    /* Miroir, comme aux echecs : l'adversaire en haut, moi en bas ; la ligne 0 du moteur (ligne 1 des regles) colle aux terrains
+       des deux cotes, donc lignes 2,1,0 pour lui et 0,1,2 pour moi. Memes colonnes des deux cotes : chaque terrain reste face a face. */
+    const gm=grilleVue(A,me,cols,[0,1,2],cible);gm.classList.add('mienne');if(aMoi)gm.classList.add('active');
+    plat.textContent='';plat.append(camp(s,lui,false),grilleVue(A,lui,cols,[2,1,0],cibleAdv),t,gm,camp(s,me,true));
   };
   repeint();
   const tdt=el('div','p-tourde'+(aMoi?' amoi':''));tdt.append(el('span','',texteTour(s,me)),outils());b.append(tdt);
@@ -3966,7 +3978,7 @@ const gAct=(t,m)=>s=>gTour(s)&&s.manche===(m||1)&&s.tour===t&&!gJ().etapeForge;
 const gForgee=n=>()=>gJ().forge.length>=n;
 const ETAPES=[
  {q:gMull,t:"Bienvenue ! Cette partie guidée t'apprend les bases contre un Golem Facile. Lis chaque bulle, puis fais ce qu'elle demande.",suiv:1},
- {q:gMull,c:'.p-grille',t:"Voici ta grille : 3 lignes et 3 colonnes. Celle du Golem est de l'autre côté, en miroir.",suiv:1},
+ {q:gMull,c:'.p-grille.mienne',t:"Voici ta grille : 3 lignes et 3 colonnes. Celle du Golem est de l'autre côté, en miroir.",suiv:1},
  {q:gMull,c:'.p-terrains',t:"Chaque colonne correspond à un <b>terrain</b>. À la fin de chaque manche, le plus fort de la colonne conquiert le terrain et marque ses points.",suiv:1},
  {q:gMull,c:'.p-main',t:"Voici ta <b>main</b> : 5 cartes. Au départ, tu peux en remplacer jusqu'à 3. Ici, ta main est bonne.",suiv:1},
  {q:gMull,c:'.p-poste .p-btns .btn',t:"Touche <b>Garder ma main</b>.",f:s=>s.mull[partie.moi]},

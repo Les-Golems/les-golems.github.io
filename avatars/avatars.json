@@ -44,7 +44,31 @@
   "nom": "La Salle Verrouillée"
  },
  {
-  "id": "k-chan",
-  "nom": "K-Chan"
+  "id": "cooking",
+  "nom": "Cooking"
+ },
+ {
+  "id": "golem67v2",
+  "nom": "Golem 67"
+ },
+ {
+  "id": "golemheart",
+  "nom": "Golem Heart"
+ },
+ {
+  "id": "golemhic",
+  "nom": "Golem Hic"
+ },
+ {
+  "id": "highrollem",
+  "nom": "High Rollem"
+ },
+ {
+  "id": "mangolem",
+  "nom": "Mangolem"
+ },
+ {
+  "id": "vision",
+  "nom": "Vision"
  }
 ]
