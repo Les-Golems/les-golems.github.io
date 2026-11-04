@@ -117,6 +117,7 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 .f-reinit:hover{color:var(--texte)}
 @media (max-width:600px){.f-ligne{gap:8px 10px}.f-lib{width:100%}.f-els{margin-left:0}.f-fin{margin-left:0;width:100%;justify-content:space-between}}
 .pastille i{width:11px;height:11px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1px var(--encre)}
+.f-animaux{margin-left:10px}@media (max-width:600px){.f-animaux{margin-left:0}}
 .grille{--col:4;display:grid;grid-template-columns:repeat(var(--col),minmax(0,1fr));gap:14px;margin-top:18px}
 .paire{display:contents}
 @media (min-width:1200px){.grille{--col:6}}
@@ -1670,6 +1671,8 @@ const CARTES=[
  ['008','K-Chan, Reine du tilt',['magma','brume'],0],
  ['013','Indra, La Groupie',['cristal','magma'],0],['013e','Indra, La Fan enflammée',['cristal','magma'],1],
  ['009','Glad, /Poll',['roche','magma'],0],['009e','Glad, GymRat',['roche','magma'],1]];
+/* 4e champ d'une carte : 0 = base, 1 = évolution, 'a' = animal de compagnie (ex. ['041','Kiwi',['brume'],'a']). */
+const estAnimal=c=>c[3]==='a';
 /* Aperçus : visibles dans la galerie, absents du moteur, des decks et de l'éditeur. */
 const APERCUS=[],GALERIE=[...CARTES,...APERCUS];
 /* Numéro AFFICHÉ des Golems (ordre où ils deviennent jouables) : code interne -> numéro. Les codes internes ne changent jamais.
@@ -1677,7 +1680,8 @@ const APERCUS=[],GALERIE=[...CARTES,...APERCUS];
 const NUMERO_AFFICHE={'001':1,'002':2,'003':3,'004':4,'007':5,'008':6,'013':7,'009':8};
 const numeroAffiche=id=>{const n=NUMERO_AFFICHE[String(id).slice(0,3)];return n?'G-'+String(n).padStart(3,'0')+(String(id).endsWith('e')?' ★':''):''};
 const EL=[['','Tous'],['magma','Magma'],['cristal','Cristal'],['foudre','Foudre'],['brume','Brume'],['roche','Roche']];
-const TY=[['','Toutes'],['0','Base'],['1','Évolution'],['t','Terrains'],['v','À venir']];
+const TY=[['','Toutes'],['0','Base'],['1','Évolution'],['a','Animaux'],['t','Terrains'],['v','À venir']];
+const MSG_ANIMAUX="Aucun animal de compagnie pour l'instant.";
 /* Cartes à venir, hors moteur : retirer la ligne d'un membre quand sa carte arrive, les numéros restent fixes. */
 const A_VENIR=[
  ['005','Driscop'],['006','Falys'],['010','Orotembu'],
@@ -1757,13 +1761,13 @@ function maj(){
   $('grille').querySelectorAll('[data-terrain]').forEach(b=>{b.hidden=!ter});
   ['filtreType'].forEach(id=>{const box=$(id);box.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===box._get()))});
   let n=0;
-  GALERIE.forEach(c=>{const ok=!ter&&!av&&c[2].some(x=>elsOn.has(x))&&(fTy===''||String(c[3])===fTy);
+  GALERIE.forEach(c=>{const ok=!ter&&!av&&(c[2].some(x=>elsOn.has(x))||!c[2].length)&&(fTy===''||String(c[3])===fTy);
     $('grille').querySelector('[data-id="'+c[0]+'"]').hidden=!ok;if(ok)n++});
-  $('grille').querySelectorAll('.paire').forEach(p=>{p.hidden=![...p.children].some(b=>!b.hidden)});
   trie();
+  $('grille').querySelectorAll('.paire').forEach(p=>{p.hidden=![...p.children].some(b=>!b.hidden)});
   $('grille').classList.toggle('groupee',fTy===''&&!fTri);
   const nb=ter?$('grille').querySelectorAll('[data-terrain]').length:av?A_VENIR.length:n;$('nbCartes').textContent=nb+(nb>1?' cartes':' carte');
-  $('vide').hidden=n>0||ter||av;
+  $('vide').textContent=fTy==='a'?MSG_ANIMAUX:'Aucune carte pour ce filtre.';$('vide').hidden=n>0||ter||av;
 }
 maj();
 function zoom(src,alt,detail){
@@ -3485,9 +3489,12 @@ function editeur(b,l,d){
   const h=el('div','d-haut'),r=el('button','btn sec','Retour aux decks');r.type='button';r.onclick=()=>{deckOuvert=null;peintDecks()};
   h.append(el('h3','',d.nom),compteDeck(d),r);b.append(h);
   if(totalDeck(d)<DECK_MIN)b.append(el('p','d-limite dl-invalide','Deck incomplet : '+DECK_MIN+' cartes minimum.'));
-  const f=el('div','filtres');EL.forEach(([v,t])=>{const q=el('button','pastille');if(v){const i=el('i');i.style.setProperty('--c','var(--'+v+')');q.append(i)}q.append(t);q.type='button';q.setAttribute('aria-pressed',v===filtreDeck);q.onclick=()=>{filtreDeck=v;peintDecks()};f.append(q)});b.append(f);
-  const g=el('div','grille');
-  CARTES.filter(c=>!filtreDeck||c[2].includes(filtreDeck)).forEach(c=>{
+  const f=el('div','filtres');EL.forEach(([v,t])=>{const q=el('button','pastille');if(v){const i=el('i');i.style.setProperty('--c','var(--'+v+')');q.append(i)}q.append(t);q.type='button';q.setAttribute('aria-pressed',v===filtreDeck);q.onclick=()=>{filtreDeck=v;peintDecks()};f.append(q)});
+  {const q=el('button','pastille f-animaux','Animaux');q.type='button';q.setAttribute('aria-pressed',filtreDeck==='a');q.onclick=()=>{filtreDeck='a';peintDecks()};f.append(q)}
+  b.append(f);
+  const g=el('div','grille'),vues=CARTES.filter(c=>!filtreDeck||(filtreDeck==='a'?estAnimal(c):c[2].includes(filtreDeck)));
+  if(!vues.length)b.append(el('p','vide',filtreDeck==='a'?MSG_ANIMAUX:'Aucune carte pour ce filtre.'));
+  vues.forEach(c=>{
     const z=el('div','d-carte'),i=el('img'),n=d.cartes[c[0]]||0;i.src='cartes/'+c[0]+'.jpg';i.alt=c[1];i.loading='lazy';
     const q=el('div','d-qte'),m=el('button','j-btn','-'),p=el('button','j-btn','+');m.type=p.type='button';m.setAttribute('aria-label','Retirer '+c[1]);p.setAttribute('aria-label','Ajouter '+c[1]);
     m.disabled=!n;p.disabled=n>=MAX_EX||totalDeck(d)>=DECK_MAX;
