@@ -11,6 +11,7 @@
 // Arborescence :
 //   pseudos/{pseudo minuscule}  uid du propriétaire
 //   joueurs/{uid}               pseudo, avatarId, cree, importe, decks/0..11, historique/{id} {d, x}
+//   profils/{uid}               résumé public du profil (chiffres de la fenêtre de compte), m = profil privé
 //   hall/{uid}                  présence dans l'accueil (pseudo, salon, quitte), comptes seulement
 //   salons/{code}/joueurs/{uid} présence dans le salon (pseudo, arrivee, sid, pret, deck,
 //                               graine, jg, adv, veut, quitte), effacée par onDisconnect
@@ -85,7 +86,7 @@ async function ouvre() {
   if (!auth.currentUser) { await setPersistence(auth, browserSessionPersistence); await signInAnonymously(auth); }
   const estCompte = () => !!auth.currentUser && !auth.currentUser.isAnonymous;
   let moi = auth.currentUser.uid;
-  let donnees = null;        // copie de joueurs/{uid} pour un compte
+  let donnees = null, resumeur = null;        // copie de joueurs/{uid} pour un compte
   const ecouteCompte = [];
   const signale = () => ecouteCompte.forEach(f => { try { f(); } catch (e) {} });
 
@@ -140,8 +141,11 @@ async function ouvre() {
       cree: +v.cree || 0,
       decks: versListe(v.decks).map(d => ({ id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0 })),
       historique: Object.keys(v.historique || {}).map(k => { try { return JSON.parse(v.historique[k].x); } catch (e) { return null; } })
-        .filter(x => x && x.id).sort((a, b) => b.date - a.date)
+        .filter(x => x && x.id).sort((a, b) => b.date - a.date),
+      masque: false
     };
+    // Profil privé : champ m du résumé public (profils/{uid}).
+    try { donnees.masque = (await get(ref(db, P + "profils/" + moi + "/m"))).val() === true; } catch (e) {}
   }
   // Après connexion : pseudo et réservation réparés si besoin (réinitialisation partielle par Romain).
   async function repare(pseudo) {
@@ -195,6 +199,28 @@ async function ouvre() {
       const h = donnees.historique, v = h.filter(x => x.res === "Victoire").length;
       try { await set(ref(db, P + "joueurs/" + moi + "/stats"), { v, n: h.length }); } catch (e) {}
       try { await set(ref(db, P + "classement/" + moi), { p: donnees.pseudo, v, n: h.length }); } catch (e) {}
+      compte.publieProfil();
+    },
+    // Résumé public du profil : fabriqué par la page (mêmes calculs que la fenêtre de compte),
+    // publié à la connexion et à chaque fin de partie. Profil privé : pseudo, parties, victoires, défaites seulement.
+    resumeur(f) { resumeur = f; },
+    async publieProfil() {
+      if (!compte.connecte() || !resumeur) return false;
+      let r; try { r = resumeur(donnees.historique.slice()); } catch (e) { console.warn("profil", e); return false; }
+      if (!r) return false;
+      const o = { p: donnees.pseudo, m: !!donnees.masque, n: r.n, v: r.v, d: r.d, t: serverTimestamp() };
+      if (donnees.cree) o.cr = donnees.cree;
+      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
+      try { await set(ref(db, P + "profils/" + moi), o); return true; } catch (e) { console.warn("profil", e); return false; }
+    },
+    async masquerProfil(b) {
+      if (!compte.connecte()) return;
+      const avant = donnees.masque; donnees.masque = !!b;
+      if (!(await compte.publieProfil())) { donnees.masque = avant; throw new Error("profil"); }
+    },
+    async profilDe(uid) {
+      if (typeof uid !== "string" || !uid) return null;
+      try { const v = (await get(ref(db, P + "profils/" + uid))).val(); return v && typeof v.p === "string" && Number.isInteger(v.n) ? v : null; } catch (e) { return null; }
     },
     async statsDe(uid) {
       if (typeof uid !== "string" || !uid) return null;

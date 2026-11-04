@@ -1,7 +1,7 @@
 /* Les Golems : moteur pur, sans affichage. Etat = f(graine, journaux). Charge en page et en Node. */
 (function(racine){
 'use strict';
-const VERSION='0.2a.2';const TRAIT_CUMULE=true; /* 0.2.1 : Trait cumule (+1 par voisin allie par element partage), plus de match nul. 0.2.2 : coup 'a' = abandon (a tout moment, hors tour). 0.2a.1 : Indra (013, 013e), favori et coup 'g'. 0.2a.2 : Glad (009, 009e), Slam (coup 'h') et Menfou palu */
+const VERSION='0.2b';const TRAIT_CUMULE=true; /* 0.2.1 : Trait cumule (+1 par voisin allie par element partage), plus de match nul. 0.2.2 : coup 'a' = abandon (a tout moment, hors tour). 0.2a.1 : Indra (013, 013e), favori et coup 'g'. 0.2a.2 : Glad (009, 009e), Slam (coup 'h') et Menfou palu. 0.2b : K-Chan (008) Magma + Brume au lieu de Magma + Roche */
 const POIDS_MVP={force:1,bonus:1,degats:1,morts:3};
 const CARTES={
  '001':{id:'001',nom:'KaTarN',el:['magma','foudre'],cout:1,force:8,texte:'Pose uniquement en manche 1. Perds 4 de Force à chaque fin de manche.'},
@@ -14,7 +14,7 @@ const CARTES={
  '004e':{id:'004e',nom:'Oracle des Stats',el:['brume','cristal'],cout:3,force:2,base:'004',texte:'À la pose : regarde la main adverse, puis échange 2 de tes Golems.'},
  '007':{id:'007',nom:'Trigas',el:['foudre','brume'],cout:1,force:1,texte:'Spam : à la pose, pioche 1 carte, puis place-en 1 de ta main dans ta Forge.'},
  '007e':{id:'007e',nom:'Roi du Mobile',el:['foudre','brume'],cout:4,force:4,base:'007',texte:'Mode Avion : tu ne peux pas être ciblé par les effets de cartes adverses.'},
- '008':{id:'008',nom:'K-Chan',el:['magma','roche'],cout:2,force:2,texte:'Rage : chaque fois que tu subis des dégâts et survis, gagne +1 de Force (3 maximum).'},
+ '008':{id:'008',nom:'K-Chan',el:['magma','brume'],cout:2,force:2,texte:'Rage : chaque fois que tu subis des dégâts et survis, gagne +1 de Force (3 maximum).'},
  '013':{id:'013',nom:'Indra',el:['cristal','magma'],cout:2,force:2,texte:'Soutien inconditionnel : à la pose, choisis un autre de tes Golems en jeu, ton favori. Tant que tu es en jeu, il gagne +1 de Force.'},
  '013e':{id:'013e',nom:'La Fan enflammée',el:['cristal','magma'],cout:4,force:3,base:'013',texte:'Ragebait : ton favori le reste et gagne +2 de Force au lieu de +1. À la pose, le Golem adverse en face de lui perd 2 de Force. Sans favori en jeu, choisis-en un nouveau.'},
  '009':{id:'009',nom:'Glad',el:['roche','magma'],cout:2,force:1,texte:'Slam : à la pose, déplace un Golem adverse sur une case libre adjacente, si possible. Il perd 1 de Force.'},

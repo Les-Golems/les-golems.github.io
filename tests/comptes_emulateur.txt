@@ -5,3 +5,8 @@ essai-02b-2 : doa5926vft
 essai-02b-3 : hmy3k9ac72
 test-abd-a : uf7cpjk31v
 test-abd-b : 2cm65q4kwe
+
+Ajoutés le 4 nov. (profils publics) :
+essai-pub : k7dq2mzp4w
+essai-prive : r3vn8xya5c
+essai-moi : t9bw4hqe6j

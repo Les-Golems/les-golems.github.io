@@ -71,7 +71,8 @@ const gol=(c,f,d=0)=>({c,f,d});
   assert.strictEqual(M.forceDe(s,0,1,1),8+2,'un voisin Magma + Foudre = +2 a lui seul');
   s.j[0].grille[1][0]=gol(24,1);s.j[0].grille[2][1]=gol(30,2);
   assert.strictEqual(M.forceDe(s,0,1,1),8+4,'double + Foudre + Magma = +4');
-  s.j[1].grille[1][1]=gol(31,3);assert.strictEqual(M.forceDe(s,0,1,1),8+4,'K-Chan en face : pas de cercle');
+  s.j[1].grille[1][1]=gol(39,3);assert.strictEqual(M.forceDe(s,0,1,1),8+4,'Glad en face : pas de cercle');
+  s.j[1].grille[1][1]=gol(31,3);assert.strictEqual(M.forceDe(s,0,1,1),8+4+1,'K-Chan en face (0.2b, Magma + Brume) : Foudre domine Brume, cercle +1');
   s.j[1].grille[1][1]=gol(18,3);assert.strictEqual(M.forceDe(s,0,1,1),8+4+1,'Le Q en face, double domination : cercle +1 seulement');
 }
 { // 0.2.1 plus de nul : terrains conquis, puis second joueur de la manche 3
@@ -324,7 +325,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Abandon 0.2.2 OK');
 }
 { // 0.2a.1 : Indra (013, 013e). Ids : Indra 33-35, Fan enflammee 36-38, Cyrdan 12, Alrevan 6, K-Chan 30, Roi du Mobile 27, Le Q 18.
-  assert(['0.2a.1','0.2a.2'].includes(M.VERSION));
+  assert(['0.2a.1','0.2a.2','0.2b'].includes(M.VERSION));
   const D=M.deckTexte({'002':3,'003':3,'004':3,'007e':3,'008':3,'013':3,'013e':3,'001':3});assert(M.lisDeck(D),'deck Indra valide');
   assert.strictEqual(M.decode(M.code({t:'p',c:38,l:1,k:2})).c,38,'code base 36 etendu');assert.strictEqual(M.code({t:'p',c:36,l:0,k:0}),'pA00');
   assert.deepStrictEqual(M.decode('g12'),{t:'g',l:1,k:2});
@@ -372,7 +373,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Indra 0.2a.1 OK : 150 parties aleatoires ('+nG+' favoris) et 300 parties robot sans blocage ('+nR+' Ragebait), rejeux identiques');
 }
 { // 0.2a.2 : Glad (009, 009e). Ids : Glad 39-41, GymRat 42-44, KaTarN 0, Slim K 3, Cyrdan 12, Indra 33, Fan enflammee 36, Roi du Mobile 27, K-Chan 30, Alrevan 6.
-  assert.strictEqual(M.VERSION,'0.2a.2');
+  assert(['0.2a.2','0.2b'].includes(M.VERSION));
   const D=M.deckTexte({'001':3,'001e':3,'003':3,'008':3,'013':3,'013e':3,'009':3,'009e':3});assert(M.lisDeck(D),'deck Glad valide');
   assert.strictEqual(M.code({t:'p',c:44,l:0,k:0}),'pI00');assert.strictEqual(M.decode('pI00').c,44,'code etendu a 44');
   assert.deepStrictEqual(M.decode('h0102'),{t:'h',l:0,k:1,m:0,n:2});assert.strictEqual(M.code({t:'h',l:2,k:0,m:1,n:0}),'h2010');
@@ -427,4 +428,23 @@ duel('facile','normal');duel('normal','difficile');
     const r=M.rejoue(gr,[M.litJournal(M.ecritJournal(j[0])),M.litJournal(M.ecritJournal(j[1]))],[D,D]);assert(!r.erreur,r.erreur);assert.strictEqual(JSON.stringify(r.etat),JSON.stringify(s),'rejeu Glad');M.bilan(s)}
   assert(nS>0,'Glad jamais joue');
   console.log('Glad 0.2a.2 OK : 150 parties aleatoires ('+nS+' Slam) et 300 parties robot sans blocage ('+nM+' Menfou palu), rejeux identiques');
+}
+{ // 0.2b : K-Chan (008) Magma + Brume au lieu de Magma + Roche. Ids : K-Chan 30-32, Trigas 24, Cyrdan 12, Alrevan 6, Le Q 18, Glad 39.
+  assert.strictEqual(M.VERSION,'0.2b');assert.deepStrictEqual(M.CARTES['008'].el,['magma','brume'],'K-Chan Magma + Brume');
+  const s=vide();s.j[0].grille[1][1]=gol(30,2);
+  s.j[0].grille[0][1]=gol(24,1);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Trait avec Trigas : Brume partagee');
+  s.j[0].grille[0][1]=gol(12,1);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Cyrdan voisin : son +1 seulement, plus de Trait Roche');
+  s.j[0].grille[0][1]=gol(6,3);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Alrevan : Brume partagee');
+  s.j[0].grille[0][1]=null;s.j[1].grille[1][1]=gol(24,3);assert.strictEqual(M.forceDe(s,0,1,1),2,'Trigas en face : pas de cercle');
+  s.j[1].grille[1][1]=gol(39,3);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Glad en face : Brume domine Roche, cercle +1');
+  s.j[1].grille[1][1]=gol(12,1);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Cyrdan en face : Magma domine Cristal et Brume domine Roche, cercle +1 seulement');
+  const D=M.deckTexte({'002':3,'003':3,'004':3,'007':3,'008':3,'009':3,'013':3,'001':3});assert(M.lisDeck(D),'deck K-Chan valide');
+  let nR=0;const niv=['facile','normal','difficile'];
+  for(let i=0;i<150;i++){const r=partie((i*6151+29)|0,[D,D]);nR+=r.s.log.filter(x=>/Rage/.test(x[1])).length}
+  for(let i=0;i<300;i++){const gr=(i*104729+31)|0,s=M.nouvelle(gr,[D,i%2?D:'']),j=[[],[]];let pas=0;
+    while(!s.fin){assert(++pas<2000,'blocage robot K-Chan '+gr);const p=M.attendus(s)[0],a=M.robot(s,p,niv[(i+p)%3]);assert(a,'robot sans coup');M.applique(s,p,a);j[p].push(M.code(a));verifie(s)}
+    nR+=s.log.filter(x=>/Rage/.test(x[1])).length;
+    const r=M.rejoue(gr,[M.litJournal(M.ecritJournal(j[0])),M.litJournal(M.ecritJournal(j[1]))],[D,i%2?D:'']);assert(!r.erreur,r.erreur);assert.strictEqual(JSON.stringify(r.etat),JSON.stringify(s),'rejeu K-Chan');M.bilan(s)}
+  assert(nR>0,'Rage jamais declenchee');
+  console.log('K-Chan 0.2b OK : Trait et cercle Magma + Brume, 150 parties aleatoires et 300 parties robot sans blocage ('+nR+' Rage), rejeux identiques');
 }

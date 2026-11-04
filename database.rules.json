@@ -194,6 +194,37 @@
       }
     },
 
+    // Résumé public du profil (mêmes chiffres que la fenêtre de compte), publié par son propriétaire à la connexion et à chaque fin de partie.
+    // m = profil privé : seuls p, m, n, v, d, t, cr sont alors acceptés. L'historique complet reste privé (joueurs/{uid}/historique).
+    "profils": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
+        ".validate": "newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo')))",
+        "p":  { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()" },
+        "m":  { ".validate": "newData.isBoolean()" },
+        "t":  { ".validate": "newData.val() === now" },
+        "cr": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "n":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" },
+        "v":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" },
+        "d":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" },
+        "s":  { ".validate": "newData.isNumber() && newData.val() >= -50 && newData.val() <= 50 && newData.val() % 1 === 0" },
+        // Meilleurs decks (3 au plus) : nom, éléments, parties, victoires, peu de parties.
+        "dk": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['nom', 'e', 'n', 'v'])", "nom": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24" }, "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)" }, "peu": { ".validate": "newData.isBoolean()" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
+        // Meilleures cartes, cartes les moins bonnes, cartes MVP : code de carte, parties, victoires.
+        "cb": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "peu": { ".validate": "newData.isBoolean()" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
+        "cm": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
+        "mv": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
+        // Contre l'ordinateur, par niveau.
+        "o": {
+          "$niv": { ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])", "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } }
+        },
+        // Joueurs les plus affrontés (3 au plus) : pseudo, parties, victoires.
+        "jo": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['p', 'n', 'v'])", "p": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
+        "$autre": { ".validate": false }
+      }
+    },
+
     // Archive commune des parties (onglet Statistiques) : resume/{graine-debut}, anonyme (ni pseudo ni uid).
     // Lecture par tout connecté ; écriture par un compte seulement, ajout seulement (jamais modifié ni effacé).
     "resume": {
@@ -248,6 +279,37 @@
           "p": { ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20" },
           "v": { ".validate": "newData.isNumber() && newData.val() >= 0" },
           "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50" },
+          "$autre": { ".validate": false }
+        }
+      },
+
+      // Résumé public du profil (mêmes chiffres que la fenêtre de compte), publié par son propriétaire à la connexion et à chaque fin de partie.
+      // m = profil privé : seuls p, m, n, v, d, t, cr sont alors acceptés. L'historique complet reste privé (joueurs/{uid}/historique).
+      "profils": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
+          ".validate": "newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo')))",
+          "p":  { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()" },
+          "m":  { ".validate": "newData.isBoolean()" },
+          "t":  { ".validate": "newData.val() === now" },
+          "cr": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "n":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" },
+          "v":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" },
+          "d":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" },
+          "s":  { ".validate": "newData.isNumber() && newData.val() >= -50 && newData.val() <= 50 && newData.val() % 1 === 0" },
+          // Meilleurs decks (3 au plus) : nom, éléments, parties, victoires, peu de parties.
+          "dk": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['nom', 'e', 'n', 'v'])", "nom": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24" }, "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)" }, "peu": { ".validate": "newData.isBoolean()" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
+          // Meilleures cartes, cartes les moins bonnes, cartes MVP : code de carte, parties, victoires.
+          "cb": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "peu": { ".validate": "newData.isBoolean()" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
+          "cm": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
+          "mv": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
+          // Contre l'ordinateur, par niveau.
+          "o": {
+            "$niv": { ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])", "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } }
+          },
+          // Joueurs les plus affrontés (3 au plus) : pseudo, parties, victoires.
+          "jo": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['p', 'n', 'v'])", "p": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
           "$autre": { ".validate": false }
         }
       },
