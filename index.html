@@ -1966,7 +1966,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
- {version:'Version 0.2c',date:'5 novembre 2026',notes:["La Boutique réduit aussi le coût des évolutions","Éditeur de deck : teste tes placements dans un bac à sable","Statistiques repensées : recherche, classement complet, toutes tes parties comptées","Profil des joueurs réorganisé, avec ton rang au classement","Partage de deck par lien cliquable","Résumé de partie prêt à coller sur Discord","Version vérifiée dans le salon, page mise à jour automatiquement","Nouvel écran de chargement de l'appli installée","QoL ajoutés"]},
+ {version:'Version 0.2c',date:'5 novembre 2026',notes:["La Boutique réduit aussi le coût des évolutions","Éditeur de deck : teste tes placements dans un bac à sable","Statistiques repensées : recherche, classement complet, toutes tes parties comptées","Profil des joueurs réorganisé, avec ton rang au classement","Partage de deck par lien cliquable","Résumé de partie prêt à coller sur Discord","Version vérifiée dans le salon, page mise à jour automatiquement","Appli installée : nouvelle icône, lancement bleu ciel","QoL ajoutés"]},
  {version:'Version 0.2b',date:'4 novembre 2026',notes:["Nouveaux Golems : trop nombreux pour les citer","Premier animal de compagnie : Kiwi, le lapin de Titom76","K-Chan devient Magma + Brume","Plateau en miroir : ton camp en bas","Statistiques par patch et par adversaire, profils publics","Cartes et éditeur de deck : nouveaux filtres et tri","Aide en partie avec le cercle des éléments","Historique repensé, decks à 3 par ligne, 7 nouveaux avatars, QoL ajoutés"]},
  {version:'Version 0.2a',date:'3 novembre 2026',notes:["Jeu en ligne sur le site, avec comptes (pseudo et code)","Parties publiques et privées, avec discussion","Apprendre à jouer (tutoriel) et entraînement contre les Golems","Decks, historique, rejeu et profil","Avatars personnalisables"]},
  {version:'Version 0.1',date:'2 novembre 2026',notes:["Création du jeu de cartes communautaire Les Golems","Premières cartes Golem jouables avec leurs évolutions, et 10 terrains","Règles disponibles sur le site","Parties contre les Golems en 3 niveaux et jeu en ligne à deux","Decks personnalisés et historique des parties"]}
@@ -1998,14 +1998,22 @@ const DETAILS_VERSIONS={
    "Salon et parties publiques : le deck de ton adversaire reste caché. Tu vois seulement qu'il a choisi un deck et son nombre de cartes.",
    "La version du jeu s'affiche dans l'en-tête (touche-la pour voir les nouveautés), dans le salon, dans l'Historique et sur chaque bloc des Nouveautés.",
    "Historique : « Copier les données » copie les données d'une partie, à joindre à un signalement de bug.",
-   "Nouvel écran de chargement de l'appli installée."],
+   "Appli installée : nouvelle icône et écran de lancement sur fond bleu ciel, le logo ne saute plus au démarrage. Si l'ancienne icône reste, désinstalle puis réinstalle l'appli.",
+   "Historique : le mot « Golem » prend la couleur du niveau de l'ordinateur affronté (Facile en vert, Normal en jaune, Difficile en rouge), avec une légende.",
+   "Bac à sable « Tester des placements » : un encart Détail reste affiché sous ta main, et le calcul de la Force s'y affiche au lieu d'ouvrir une fenêtre.",
+   {t:"QoL ajoutés :",l:[
+    "Pictogrammes des éléments dans les textes des Nouveautés et de ces Détails.",
+    "Statistiques : messages vides harmonisés, et « Aucune partie avec ces filtres. » quand un filtre vide la liste.",
+    "La bulle « À toi » est retirée : le grand bandeau « À toi de jouer » reste.",
+    "Boutons Fermer harmonisés dans toutes les fenêtres."]}],
   corrections:[
    "Deux joueurs sur des versions différentes ne peuvent plus lancer une partie ensemble : la partie risquait de se dérégler.",
    "« Remplacer » et « Améliorer » deviennent « Remp. » et « Amél. » quand la case est trop étroite : le bandeau tient toujours sur une ligne, sur téléphone comme sur un petit écran.",
    "Champs du code secret : un œil affiche ou masque ce que tu tapes.",
    "Statistiques : le classement des joueurs commence à 5 parties, et une note indique combien de joueurs n'en ont pas encore assez.",
    "Journal : en revenant à la partie, il se replace sur la manche en cours.",
-   "Historique : le bouton « Vider » est retiré, la pagination passe à gauche."],
+   "Historique : le bouton « Vider » est retiré, la pagination passe à gauche.",
+   "Statistiques : les parties jouées depuis la sortie de la 0.2c sont bien rangées en 0.2c."],
   regles:[
    "La Boutique : jouer un Golem ici coûte 1 de moins, évolutions comprises. Avant, la réduction ne valait que pour la pose et le remplacement.",
    "La réduction s'applique après la hausse de coût d'Elessar, sans descendre sous 0. Elle ne touche jamais un animal de compagnie.",
