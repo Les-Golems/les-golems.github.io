@@ -21,22 +21,22 @@
 <meta name="twitter:image" content="https://les-golems.github.io/og.jpg">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<link rel="manifest" href="manifest.webmanifest?v=2">
 <meta name="apple-mobile-web-app-title" content="Golems">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <style>
-/* Ecran de chargement : en ligne pour s'afficher des les premiers octets, meme fond que l'en-tete (et que background_color du manifeste), logo au centre exact et a la taille de l ecran de demarrage de Chrome (icone 128 px : logo de 108 px de haut). */
+/* Ecran de chargement : en ligne pour s'afficher des les premiers octets, meme fond que l'en-tete et que background_color du manifeste. Logo calque sur l'ecran de demarrage Android (icone maskable de 240 dp centree sur la fenetre entiere, logo = 60 % de l'icone soit 144 px, ombre identique incrustee dans l'icone). */
 #ecranCharge{position:fixed;inset:0;z-index:2147483000;background:#01C1F0;color:#0a121a;transition:opacity .35s ease;-webkit-user-select:none;user-select:none}
 #ecranCharge.part{opacity:0;pointer-events:none}
-#ecranCharge img{position:absolute;left:50%;top:50%;width:122px;height:122px;margin:-61px 0 0 -61px;filter:drop-shadow(0 2px 3px rgba(10,18,26,.45))}
-#ecranCharge .ec-txt{position:absolute;left:0;right:0;top:calc(50% + 74px);padding:0 16px;text-align:center}
+#ecranCharge img{position:absolute;left:50%;top:50%;width:144px;height:144px;margin:-72px 0 0 -72px;filter:drop-shadow(0 2px 3px rgba(10,18,26,.45))}
+#ecranCharge .ec-txt{position:absolute;left:0;right:0;top:calc(50% + 84px);padding:0 16px;text-align:center}
 #ecranCharge .ec-titre{display:block;font:400 34px/1.1 'Lilita One',Impact,'Arial Black',sans-serif}
 #ecranCharge .ec-sous{display:block;margin-top:6px;font:600 16px/1.2 'Nunito Sans',system-ui,sans-serif}
 @media (display-mode:browser){#ecranCharge{transition-duration:.2s}}
 @media (prefers-reduced-motion:reduce){#ecranCharge{transition:none}}
 </style>
-<script defer src="signal-tour.js?v=0.2b.2"></script>
+<script defer src="signal-tour.js?v=0.2c"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Fredoka:wght@700&family=Lilita+One&family=Nunito+Sans:wght@400;700;800&display=swap');
 :root{
@@ -150,6 +150,9 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 .voile{position:fixed;inset:0;z-index:20;background:rgba(5,10,15,.86);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
 .boite{background:var(--panneau);border:1px solid var(--trait);border-radius:14px;padding:24px;width:100%;max-width:360px;text-align:center;margin:auto}
 .boite img{width:120px;height:120px}
+/* Pictos d'elements dans les textes (Nouveautes, Details) : 1,2 em sur la ligne, sans l'agrandir. */
+img.el-pic,.boite img.el-pic{display:inline-block;width:1.2em;height:1.2em;vertical-align:middle;margin:-.25em 0 -.15em}
+.el-mot{white-space:nowrap}
 .boite h2{margin:6px 0 16px}
 #formPseudo .btn{width:100%;margin-top:8px}#formPseudo input{margin-bottom:10px}.co-aide{font-size:14px;margin:0 0 12px}
 .choixDeck{display:flex;flex-direction:column;gap:4px;margin:0 0 12px;text-align:left}
@@ -657,10 +660,8 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 .r-quiz p{margin:0}
 .r-effets{list-style:none;margin:10px 0 0;padding:0;color:var(--doux);font-size:14.5px}
 .r-total{font:400 26px/1.2 var(--titre);text-align:center;margin:12px 0 14px;overflow-wrap:anywhere}
-#absence,#bandeau{position:fixed;z-index:12;left:50%;transform:translateX(-50%);max-width:calc(100vw - 32px);width:max-content;pointer-events:none;border-radius:12px 8px 13px 7px;text-align:center}
+#absence{position:fixed;z-index:12;left:50%;transform:translateX(-50%);max-width:calc(100vw - 32px);width:max-content;pointer-events:none;border-radius:12px 8px 13px 7px;text-align:center}
 #absence{bottom:6px;margin:0;color:var(--doux);font-size:13px;line-height:1.2}
-#bandeau{top:64px;background:var(--panneau2);border:1px solid var(--bleu);color:var(--texte);padding:6px 22px;font:400 24px/1.2 var(--titre);box-shadow:0 6px 18px rgba(0,0,0,.55)}
-#bandeau.amoi{background:var(--bleu);color:var(--encre)}
 /* Partie non enregistree (echec d'ecriture) : visible dans tous les onglets, au-dessus des fenetres */
 #nonEnr{position:fixed;z-index:40;left:50%;bottom:16px;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);display:flex;align-items:center;gap:12px;margin:0;background:var(--panneau2);border:1px solid var(--erreur);color:var(--texte);padding:10px 12px 10px 16px;border-radius:12px 8px 13px 7px;font-size:15px;line-height:1.35;box-shadow:0 6px 18px rgba(0,0,0,.55)}
 #nonEnr b{color:var(--erreur)}
@@ -671,7 +672,7 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 #des.roule svg{animation:deTourne .27s linear infinite}
 #des h3{font-size:19px;color:var(--bleu)}
 #des p{margin:0;font:400 24px/1.2 var(--titre);color:var(--or);min-height:29px}
-body:has(#jouer[hidden]) :is(#recap,#absence,#bandeau,#des){display:none}
+body:has(#jouer[hidden]) :is(#recap,#absence,#des){display:none}
 /* Animations : transform et opacite seulement, jamais de changement de taille de page */
 .arrive{animation:arrive .48s ease-out both}
 .fx-frappe{animation:frappe .51s ease-out both}
@@ -683,7 +684,6 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#bandeau,#des){display:none}
 .fx-evo{position:absolute;z-index:3;inset:0;border-radius:inherit;pointer-events:none;box-shadow:0 0 0 2px var(--or),0 0 22px 7px rgba(241,195,90,.9),inset 0 0 22px rgba(241,195,90,.8);animation:evoLueur 1.95s ease-out both}
 .fx-evo::after{content:'';position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:radial-gradient(circle,#fff6d6 0,rgba(241,195,90,.85) 22%,transparent 62%),repeating-conic-gradient(rgba(241,195,90,.75) 0 12deg,transparent 12deg 45deg);-webkit-mask:radial-gradient(circle,#000 40%,transparent 70%);mask:radial-gradient(circle,#000 40%,transparent 70%);animation:evoEclat 1.35s ease-out both}
 .bascule{animation:bascule .75s ease-out both}
-#bandeau{animation:bandeau 2.1s ease-out both}
 @keyframes arrive{from{opacity:0;transform:translateY(15px) scale(.91)}to{opacity:1;transform:none}}
 @keyframes frappe{0%,100%{transform:none}25%{transform:translateX(-4.5px)}60%{transform:translateX(4.5px)}}
 @keyframes degat{0%{opacity:0;transform:translate(-50%,-20%)}15%,70%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-103%)}}
@@ -693,7 +693,6 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#bandeau,#des){display:none}
 @keyframes evoLueur{0%{opacity:0}18%,55%{opacity:1}100%{opacity:0}}
 @keyframes evoEclat{0%{opacity:0;transform:scale(.3) rotate(0)}30%{opacity:1}100%{opacity:0;transform:scale(1.7) rotate(50deg)}}
 @keyframes bascule{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
-@keyframes bandeau{0%{opacity:0;transform:translate(-50%,-8px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-4px)}}
 @keyframes deTourne{0%{transform:rotate(-14deg) translateY(-4px)}50%{transform:rotate(14deg) translateY(4px)}100%{transform:rotate(-14deg) translateY(-4px)}}
 @media (max-width:899px){
   .mini .els{top:2px;right:3px;gap:1px}
@@ -704,7 +703,6 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#bandeau,#des){display:none}
   .mini .cout .ico{font-size:14px}
   .p-tourde .ico{font-size:16px}
   .p-tourde{gap:3px}
-  #bandeau{top:8px;font-size:20px}
   .r-terrain h3{font-size:17px}
 }
 @media (prefers-reduced-motion:reduce){
@@ -712,7 +710,6 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#bandeau,#des){display:none}
   .fx-fantome,.fx-bonus,.fx-evo{animation:fondu 1.8s linear both}
   .fx-evo::after{display:none}
   .fx-deg{animation:fondu 1.4s linear both}
-  #bandeau{animation:none}
 }
 .p-terrain{cursor:pointer}
 .p-journal{position:relative}
@@ -991,13 +988,12 @@ html.galOuverte,html.galOuverte body{overflow:hidden}
 .st-ddc{display:flex;align-items:center;gap:8px;padding:6px 8px;font-weight:700;font-size:14.5px;white-space:nowrap;cursor:pointer;border-radius:6px}.st-ddc:hover{background:rgba(1,193,240,.08)}.st-ddc input{accent-color:#01C1F0;width:17px;height:17px;margin:0}
 .st-advs{display:flex;flex-wrap:wrap;gap:8px}.st-adv{cursor:pointer;background:#2a3138;border-color:#4a545e;color:#9aa5af}.st-adv[aria-pressed=true]{background:var(--c);border-color:var(--c);color:var(--encre)}
 .st-tuiles.st-tuiles{grid-template-columns:1fr 1fr 1.7fr 1fr 1fr}.st-tuiles .pf-tuile{min-height:84px}.st-trois{display:flex;justify-content:center;gap:16px}.st-trois b{font-size:20px}.st-tuiles sup{font-size:.7em;line-height:0}
-.st-aucune{grid-column:1/-1}
 .st-dd.st-dd{background:none;border:0;border-radius:0;margin:0}.st-dd.st-dd summary{margin:0}
 .st-adv.st-adv{--bord:#15191d;background:linear-gradient(#3b4249,#2b3137);color:#b3bcc4}
 .st-adv.st-adv[aria-pressed=true]{--bord:rgba(0,0,0,.45);background:var(--c);color:var(--encre)}
 @media (max-width:1199px){.st-tuiles.st-tuiles{grid-template-columns:repeat(2,minmax(0,1fr))}.st-tuiles .st-ordi{grid-column:span 2}}
 @media (max-width:640px){.st-filtres{gap:10px}.st-fg{width:100%}.st-fl{width:100%}.st-trois{gap:10px}}
-.st-periode{margin:8px 0 0}.st-vide{text-align:center}
+.st-periode{margin:8px 0 0}
 /* Fin de partie : Partager le resume et Rejouer cote a cote, memes dimensions */
 .p-duo{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}.p-duo .btn{width:100%}
 .p-pied.trio{grid-template-columns:1fr 1fr}.p-pied.trio>:first-child{grid-column:1/-1}
@@ -1181,6 +1177,9 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
 .h-v .h-res{background:#6fd08c}.h-d .h-res{background:#ea7a6c}
 .h-adv{min-width:0;max-width:100%;font-weight:800;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .h-sc{font:400 19px/1 var(--titre);color:var(--or);white-space:nowrap}
+.h-adv .niv{font-weight:800}
+.h-leg{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:0 0 10px;font-size:13.5px;color:var(--doux)}
+.h-leg b{font-weight:800}
 .h-mvp{grid-column:1/3;grid-row:2;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .h-mvp-e{display:inline-block;margin-right:6px;padding:1px 6px;border-radius:4px;background:var(--or);color:var(--encre);font:400 12px/1.3 var(--titre);letter-spacing:.04em;vertical-align:1px}
 .h-mvp-n{font-weight:800}
@@ -1466,9 +1465,22 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 .bac-haut h3{margin:0;font:400 22px/1.1 var(--titre);color:var(--texte);margin-right:auto}
 .bac-haut .btn{min-height:38px;padding:6px 14px;font-size:16px}
 .bac-corps{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
-@media (min-width:900px){.bac-corps{grid-template-columns:minmax(0,1fr) minmax(0,600px);align-items:start}.bac-plateau{order:2}.bac-gauche{order:1}}
-.bac-res{margin:0 0 8px;font-size:13.5px;color:var(--doux);line-height:1.35}
-.bac-res b{color:var(--texte)}
+/* Grand ecran : gauche (main, Detail, mention) etiree sur la hauteur du plateau, bas aligne sur les totaux ;
+   contain:size pour que la gauche ne grandisse jamais la rangee (le Detail defile s'il deborde). La somme passe dessous, a droite. */
+@media (min-width:900px){.bac-corps{grid-template-columns:minmax(0,1fr) minmax(0,600px);align-items:start}.bac-plateau{grid-column:2;grid-row:1}.bac-gauche{grid-column:1;grid-row:1;align-self:stretch;contain:size;display:flex;flex-direction:column}.bac-corps>.bac-somme{grid-column:2;grid-row:2;margin-top:-6px}.bac-gauche>.bac-pool{flex:none}.bac-gauche>.bac-det{flex:1 1 auto;min-height:0;overflow:auto}.bac-gauche>.bac-mention{flex:none}}
+.bac-det{margin-top:8px;padding:9px 14px 10px;background:var(--panneau2);border:1px solid var(--trait);border-radius:12px 9px 14px 8px;font-size:13.5px;line-height:1.35;scrollbar-width:thin}
+.bac-det>h4{margin:0 0 6px;font:400 18px/1.15 var(--titre);color:var(--bleu)}
+.bac-det p{margin:0 0 6px;color:var(--doux)}
+.bac-det p b{color:var(--texte)}
+.bac-det h5{margin:0 0 4px;font:800 13.5px var(--corps);color:var(--texte)}
+.bac-det ol{margin:0 0 8px;padding-left:20px;color:var(--doux)}.bac-det ol li{padding:1px 0}
+.bac-det .lg{display:flex;justify-content:space-between;gap:10px;padding:2px 0;border-top:1px solid rgba(42,63,80,.55)}
+.bac-det .lg b{flex:none;font-family:var(--titre);font-weight:400}
+.bac-det .tot{color:var(--or);font-weight:800}
+.bac-det section>h3{display:none}
+.bac-det .t{display:flex;align-items:baseline;gap:6px 10px;flex-wrap:wrap;margin-bottom:4px}
+.bac-det .t b{font:400 18px var(--titre);color:var(--texte)}.bac-det .t .fo{font:400 18px var(--titre);color:var(--bleu)}
+.bac-det .bs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.bac-det .pastille{min-height:34px;padding:4px 11px;font-size:13.5px}
 .bac-pool{display:flex;flex-wrap:wrap;gap:8px;padding:8px;border:1px dashed var(--trait);border-radius:12px;min-height:110px;align-content:flex-start}
 .bac-pool.survol{border-color:var(--bleu);background:rgba(1,193,240,.06)}
 .bac-slot{position:relative;flex:none}
@@ -1492,15 +1504,9 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 .bac-totaux div{background:var(--panneau2);border:1px solid var(--trait);border-radius:9px 14px 10px 15px/15px 10px 14px 9px;text-align:center;padding:3px 4px}
 .bac-totaux span{display:block;font-size:11.5px;color:var(--doux)}
 .bac-totaux b{font:400 26px/1.1 var(--titre);color:var(--bleu)}
-.bac-somme{margin:6px 0 0;text-align:center;font-size:13.5px;color:var(--doux)}
+.bac-somme{margin:-6px 0 0;text-align:center;font-size:13.5px;color:var(--doux)}
+.bac-plateau{order:1}.bac-corps>.bac-somme{order:2}.bac-gauche{order:3}
 .bac-somme b{color:var(--texte);font:400 17px var(--titre)}
-.bac-outils{margin-top:8px;padding:8px 10px;background:var(--panneau2);border:1px solid var(--trait);border-radius:10px;font-size:13.5px;line-height:1.35}
-.bac-outils .t{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-bottom:4px}
-.bac-outils .t b{font:400 18px var(--titre);color:var(--texte)}
-.bac-outils .t .fo{color:var(--bleu);font:400 18px var(--titre)}
-.bac-outils p{margin:2px 0 6px;color:var(--doux)}
-.bac-outils .bs{display:flex;flex-wrap:wrap;gap:6px}
-.bac-outils .pastille{min-height:34px;padding:4px 11px;font-size:13.5px}
 .bac-des{margin-top:6px;display:grid;gap:5px}
 .bac-des .bs{align-items:center}
 .bac-des .bs>span{min-width:44px;color:var(--doux)}
@@ -1527,7 +1533,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 }
 </style>
 
-<div id="ecranCharge" aria-hidden="true"><img src="cartes/logo.png" alt="" width="122" height="122" fetchpriority="high"><span class="ec-txt"><b class="ec-titre">Les Golems</b><span class="ec-sous">Jeu de cartes communautaire</span></span></div>
+<div id="ecranCharge" aria-hidden="true"><img src="cartes/logo.png" alt="" width="144" height="144" fetchpriority="high"><span class="ec-txt"><b class="ec-titre">Les Golems</b><span class="ec-sous">Jeu de cartes communautaire</span></span></div>
 <script>(function(){var e=document.getElementById('ecranCharge'),f=0;function pret(){if(f)return;f=1;e.className='part';setTimeout(function(){e.remove()},600)}window.__golemsPret=pret;setTimeout(pret,5000);addEventListener('pageshow',function(v){if(v.persisted)pret()})})();</script>
 <header><div class="large haut">
   <img src="cartes/logo.png" alt="">
@@ -1754,7 +1760,6 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 <div class="voile" id="recap" role="dialog" aria-modal="true" aria-labelledby="recapTitre" hidden></div>
 <p id="absence" role="status" hidden></p>
 <div id="nonEnr" role="alert" hidden><span><b>Partie non enregistrée.</b> Nouvel essai automatique au prochain chargement.</span><button class="btn sec" id="nonEnrOk" type="button">OK</button></div>
-<div id="bandeau" role="status" hidden></div>
 <div id="des" role="status" hidden></div>
 <div id="scene" aria-hidden="true"></div>
 <button id="passer" class="btn sec" type="button" hidden>Passer</button>
@@ -1780,8 +1785,8 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 </div>
 <button class="btn sec" id="gPasser" type="button" hidden>Passer le tutoriel</button>
 <script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
-<script type="module" src="salon-firebase.js?v=0.2b.2"></script>
-<script src="moteur.js?v=0.2b.2"></script>
+<script type="module" src="salon-firebase.js?v=0.2c"></script>
+<script src="moteur.js?v=0.2c"></script>
 <script>
 const ETOILE_G='<path d="M150.0 162.0 L103.0 97.3 L150.0 20.0 Z" fill="#ffe48a" stroke="#ffe48a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 20.0 L197.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L197.0 97.3 L288.9 116.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L288.9 116.9 L222.3 185.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L222.3 185.5 L231.1 273.6 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L231.1 273.6 L150.0 244.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 244.0 L65.4 278.5 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L65.4 278.5 L75.8 186.1 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L75.8 186.1 L16.9 118.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L16.9 118.7 L103.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 20.0 L197.0 97.3 L190.4 106.3 L150.0 39.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M197.0 97.3 L288.9 116.9 L269.4 123.2 L190.4 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M288.9 116.9 L222.3 185.5 L212.2 182.2 L269.4 123.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M222.3 185.5 L231.1 273.6 L219.8 258.0 L212.2 182.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M231.1 273.6 L150.0 244.0 L150.0 232.5 L219.8 258.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M150.0 244.0 L65.4 278.5 L77.2 262.2 L150.0 232.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M65.4 278.5 L75.8 186.1 L86.2 182.7 L77.2 262.2 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M75.8 186.1 L16.9 118.7 L35.5 124.8 L86.2 182.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M16.9 118.7 L103.0 97.3 L109.6 106.3 L35.5 124.8 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M103.0 97.3 L150.0 20.0 L150.0 39.9 L109.6 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M150.0 20.0 L197.0 97.3 L288.9 116.9 L222.3 185.5 L231.1 273.6 L150.0 244.0 L65.4 278.5 L75.8 186.1 L16.9 118.7 L103.0 97.3 Z" fill="none" stroke="#0b0b10" stroke-width="13" stroke-linejoin="round"/>';
 (function(){
@@ -1793,7 +1798,8 @@ if(ESSAI){document.title='Les Golems (Essai)';document.addEventListener('DOMCont
 function lire(k){try{return localStorage.getItem(LS(k))}catch(e){return null}}
 function ecrire(k,v){try{localStorage.setItem(LS(k),v)}catch(e){}}
 /* Le moteur est revenu de 0.2a a 0.2 sans changement de regles : les sauvegardes et rejeux 0.2a restent valides. */
-function memeVersion(v){return v===M.VERSION||(M.VERSION==='0.2'&&v==='0.2a')}
+/* 0.2c = 0.2b.2 renomme, memes regles : une partie 0.2b.2 sauvegardee se reprend. */
+function memeVersion(v){return v===M.VERSION||(M.VERSION==='0.2'&&v==='0.2a')||(M.VERSION==='0.2c'&&v==='0.2b.2')}
 
 /* Avatar : rond avec initiale sur une couleur tiree du pseudo. avatarId (futur choix en galerie, a stocker plus tard dans la presence ou Firebase) : si fourni, image avatars/<id>.png a la place. */
 const AVATAR_COULEURS=["--fm-magma","--fm-cristal","--fm-foudre","--fm-brume","--fm-roche"];
@@ -2127,14 +2133,30 @@ const DETAILS_VERSIONS={
    "Mode Avion bloque Slim K, pas les terrains."]
  }
 };
+/* Pictos d'elements, ajoutes au rendu (blocs Nouveautes et Details, futurs blocs compris) :
+   nom d'element ecrit avec majuscule et isole (pas dans un mot ni un mot compose avec -) -> picto juste avant le mot, insecables ;
+   parens=true (Details) : liste entre parentheses faite seulement d'elements, « (Magma, Roche) » -> pictos seuls, nom en infobulle. */
+const EL_TXT={Magma:'magma',Cristal:'cristal',Foudre:'foudre',Brume:'brume',Roche:'roche'};
+function textePictos(s,parens){
+  const f=document.createDocumentFragment(),pic=n=>{const i=document.createElement('img');i.className='el-pic';i.src='cartes/'+EL_TXT[n]+'.png';i.alt=n;i.title=n;return i},
+    N='(?:Magma|Cristal|Foudre|Brume|Roche)',
+    re=new RegExp((parens?'\\(('+N+'(?:, '+N+')*)\\)|':'')+'(?<![\\p{L}\\p{N}-])('+N+')(?![\\p{L}\\p{N}-])','gu');
+  let k=0,m;
+  while((m=re.exec(s))){
+    f.append(s.slice(k,m.index));k=re.lastIndex;
+    if(parens&&m[1]){const p=document.createElement('span');p.className='el-mot';p.append('(');m[1].split(', ').forEach((n,j)=>{if(j)p.append(' ');p.append(pic(n))});p.append(')');f.append(p)}
+    else{const n=m[parens?2:1],w=document.createElement('span');w.className='el-mot';w.append(pic(n),' '+n);w.querySelector('img').alt='';f.append(w)}
+  }
+  f.append(s.slice(k));return f;
+}
 /* Fenetre « Détails » : note de patch complete d'une version, en trois rubriques. Fermer, Echap ou clic dehors. */
 const RUBRIQUES_VERSION=[['nouveautes','Nouveautés'],['corrections','Corrections'],['regles','Équilibrage et règles']];
 function ouvreDetailsVersion(n,bouton){
   $('popDetailsVersion')?.remove();
   const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-  const D=DETAILS_VERSIONS[n.version],v=mk('div','voile'),x=mk('div','boite dv-boite'),te=mk('div','dv-tete'),h=mk('h2','',n.version),co=mk('div','dv-corps'),pb=mk('div','p-btns dv-pied'),fe=mk('button','btn sec fermer','Fermer');
+  const D=DETAILS_VERSIONS[n.version],v=mk('div','voile'),x=mk('div','boite dv-boite'),te=mk('div','dv-tete'),h=mk('h2','',n.version),co=mk('div','dv-corps'),pb=mk('div','p-btns dv-pied'),fe=mk('button','btn fermer','Fermer');
   v.id='popDetailsVersion';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','dvTitre');h.id='dvTitre';fe.type='button';
-  const fr=s=>s.replace(/« /g,'«\u00a0').replace(/ (»|:)/g,'\u00a0$1'),liste=L=>{const u=mk('ul');L.forEach(y=>{const li=mk('li','',fr(typeof y==='string'?y:y.t));if(y.l)li.append(liste(y.l));u.append(li)});return u};
+  const fr=s=>s.replace(/« /g,'«\u00a0').replace(/ (»|:)/g,'\u00a0$1'),liste=L=>{const u=mk('ul');L.forEach(y=>{const li=mk('li');li.append(textePictos(fr(typeof y==='string'?y:y.t),true));if(y.l)li.append(liste(y.l));u.append(li)});return u};
   RUBRIQUES_VERSION.forEach(([k,titre])=>{const L=D[k]||[];co.append(mk('h3','',titre),L.length?liste(L):mk('p','dv-vide',k==='corrections'&&n===NOUVEAUTES[NOUVEAUTES.length-1]?'Première version du jeu.':'Rien pour cette version.'))});
   const esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc);bouton?.focus()};addEventListener('keydown',esc);
   fe.onclick=ferme;v.onclick=e=>{if(e.target===v)ferme()};
@@ -2145,7 +2167,7 @@ const etqBloc=v=>{const e=document.createElement('span');e.className='etq-v nv-e
 NOUVEAUTES.forEach(n=>{
   const a=document.createElement('article'),h=document.createElement('h3'),d=document.createElement('time'),u=document.createElement('ul');
   a.className='note';h.textContent=n.version;d.textContent=n.date;
-  n.notes.forEach(x=>{const li=document.createElement('li');li.textContent=x;u.append(li)});
+  n.notes.forEach(x=>{const li=document.createElement('li');li.append(textePictos(x));u.append(li)});
   a.append(h,etqBloc(n.version),d,u);$('notes').append(a);
   /* Bouton « Détails » : blocs de version seulement (jamais les blocs video), s'ils ont leurs details. */
   if(DETAILS_VERSIONS[n.version]){const b=document.createElement('button');b.type='button';b.className='btn sec nv-det';b.textContent='Détails';
@@ -2668,7 +2690,7 @@ async function entre(c){
 /* M : moteur en service. Le rejeu le remplace le temps de la partie par le moteur archive de sa version (moteurs/moteur-<v>.js). */
 const M0=window.GolemsMoteur;let M=M0;
 /* Versions archivees dans moteurs/ : en ajouter une a chaque nouvelle version du moteur (voir README). */
-const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2'];
+const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c'];
 const versionMoteur=v=>v==='0.2a'?'0.2':v;
 const rejeuPossible=R=>!!(R&&typeof R.v==='string'&&Number.isInteger(R.graine)&&Array.isArray(R.j)&&(versionMoteur(R.v)===M0.VERSION||MOTEURS_ARCHIVES.includes(versionMoteur(R.v))));
 const moteursCharges={};
@@ -2684,7 +2706,7 @@ function chargeMoteur(v){
   });
 }
 const REDUIT=matchMedia('(prefers-reduced-motion:reduce)');
-let robotT=0,sid='',arrivee=0,recapAff=0,fx=[],fileDes=[],desActif=false,minBandeau=0,desT=0,desF=0;
+let robotT=0,sid='',arrivee=0,recapAff=0,fx=[],fileDes=[],desActif=false,desT=0,desF=0;
 /* Graines terminees ou quittees : jamais relancees par majPartie. */
 const grainesFinies=new Set();
 let partie=null,notice='',sel=null,selMull=[],selCases=[],modeVaisseau=false,modeFaille=false,modeCaramel=false;
@@ -2722,7 +2744,7 @@ document.querySelectorAll('input[type=password]').forEach(oeilCode);
 /* envoiPub : dernier envoi de presence (et du journal), attendu avant d'annoncer un depart. */
 let envoiPub=null;
 function pub(p){if(r)envoiPub=r.presence(p).catch(()=>{})}
-function finPartie(){arreteGuide();M=M0;clearTimeout(rejeuT);rejeuT=0;{const b=$('barreRejeu');if(b)b.remove()}arreteAnim();clearTimeout(robotT);robotT=0;fermeAide();stopCompte();jePret=false;$('vueTas').hidden=true;$('absence').hidden=true;partie=null;fx=[];derniereAdv=null;zoneSurvol=null;fermeRecap();arreteDes();$('bandeau').hidden=true;$('partie').hidden=true;$('jouer').classList.remove('enJeu')}
+function finPartie(){arreteGuide();M=M0;clearTimeout(rejeuT);rejeuT=0;{const b=$('barreRejeu');if(b)b.remove()}arreteAnim();clearTimeout(robotT);robotT=0;fermeAide();stopCompte();jePret=false;$('vueTas').hidden=true;$('absence').hidden=true;partie=null;fx=[];derniereAdv=null;zoneSurvol=null;fermeRecap();arreteDes();$('partie').hidden=true;$('jouer').classList.remove('enJeu')}
 function nouveauSid(){return Math.random().toString(36).slice(2,12)}
 /* Sauvegarde locale par code de salon */
 function cleSalon(c){return 'golems.partie.'+c}
@@ -3126,19 +3148,8 @@ function etapes(av,s,a,p){
   }
   const n=s.j[1-me].main.length-av.j[1-me].main.length,nf=a.t==='x'&&p!==me?Math.max(0,Math.min(n,av.j[1-me].forge.length-s.j[1-me].forge.length)):0; /* reprise de Forge eclair adverse */
   if(n>0)L.push(()=>{for(let i=0;i<n;i++)vol(rectDe(i<nf?'.p-camp.lui .c-enclume':'.p-camp.lui .c-deck'),rectDe('.p-camp.lui .c-main'),DOS,420,i*140);return T(420+140*(n-1))});
-  const t0=texteTour(av,me),t1=texteTour(s,me);
-  if(t0!==t1||(s.phase==='jeu'&&(av.tour!==s.tour||av.manche!==s.manche||quiJoue(av)!==quiJoue(s))))L.push(()=>{
-    if(!s.fin&&s.phase==='jeu'&&!vite()&&!partie.rejeu)montreBandeau(t1,quiJoue(s)===me);
-    return 0;
-  });
   if(dec)verrou=true;
   return L;
-}
-function montreBandeau(t,amoi){
-  const b=$('bandeau'),nv=document.querySelector('nav');
-  /* Sous la barre des onglets quand elle est visible, jamais par-dessus. */
-  b.style.top=Math.max(8,Math.round(nv?nv.getBoundingClientRect().bottom:0)+8)+'px';b.textContent=t;b.classList.toggle('amoi',amoi);b.hidden=true;void b.offsetWidth;b.hidden=false;
-  clearTimeout(minBandeau);minBandeau=setTimeout(()=>{b.hidden=true},2100);
 }
 /* Des : purement visuel, la valeur vient du journal du moteur. */
 const PIPS={1:[[50,50]],2:[[30,30],[70,70]],3:[[30,30],[50,50],[70,70]],4:[[30,30],[70,30],[30,70],[70,70]],5:[[30,30],[70,30],[50,50],[30,70],[70,70]],6:[[30,27],[70,27],[30,50],[70,50],[30,73],[70,73]]};
@@ -3637,7 +3648,7 @@ function forceAff(C){if(C.force!=null)return String(C.force);const v=forceMoy(C.
 const NOMS_EL_ST={magma:'Magma',cristal:'Cristal',foudre:'Foudre',brume:'Brume',roche:'Roche'};
 /* Patch du site d'une version du moteur : table unique pour les anciens moteurs,
    puis tout moteur nomme d'apres une version du site (0.2a.1, 0.2b...) est regroupe sous elle. */
-const PATCH_MOTEUR={'0.2':'0.2a','0.2a':'0.2a','0.2.1':'0.2a','0.2.2':'0.2a','0.2a.1':'0.2a','0.2a.2':'0.2a','0.2b':'0.2b','0.2b.1':'0.2b','0.2b.2':'0.2b'};
+const PATCH_MOTEUR={'0.2':'0.2a','0.2a':'0.2a','0.2.1':'0.2a','0.2.2':'0.2a','0.2a.1':'0.2a','0.2a.2':'0.2a','0.2b':'0.2b','0.2b.1':'0.2b','0.2b.2':'0.2c'};
 function patchSite(v){v=String(v||'');if(PATCH_MOTEUR[v])return PATCH_MOTEUR[v];const m=/^(\d+\.\d+[a-z])/.exec(v);return m?m[1]:v}
 /* Patchs presents dans l'archive, le plus recent en premier. */
 function versStats(RT){
@@ -3677,7 +3688,7 @@ function agregZoom(){
 function encartZoom(lignes){
   const b=el('div','zs');b.hidden=true;
   const pose=(nom,txt)=>{let r=b.querySelector('[data-l="'+nom+'"]');if(!r){r=el('div','zs-l');r.dataset.l=nom;r.append(el('b','zs-n',nom),el('span','zs-v'));b.append(r)}r.lastChild.textContent=txt};
-  const montre=()=>{const ok=lignes.some(x=>x.v);if(!ok){b.hidden=true;return}b.hidden=false;lignes.forEach(x=>pose(x.nom,x.v||'Pas encore assez de parties'));
+  const montre=()=>{const ok=lignes.some(x=>x.v);if(!ok){b.hidden=true;return}b.hidden=false;lignes.forEach(x=>pose(x.nom,x.v||VIDE_ST));
     const d=$('vueDetail');if(d.contains(b)){d.hidden=false;$('vueGrand').classList.add('avecDetail')}};
   return {b,montre};
 }
@@ -3698,19 +3709,25 @@ function statZoomTerrain(T){
    Colonne 1 : Joueurs puis Terrains, chacun a demi-hauteur ; puis Meilleures cartes, Cartes les plus jouees, Elements, de meme hauteur H.
    H = hauteur naturelle la plus grande des trois (10 cartes), verrouillee ; recalcul seulement quand la largeur change. */
 let statsAjuste=null,statsLarg=0;addEventListener('resize',()=>{if(statsAjuste&&innerWidth!==statsLarg){statsLarg=innerWidth;statsAjuste()}});
+/* Message vide des Statistiques : un seul texte, une seule classe (pf-vide). */
+const VIDE_ST='Pas encore assez de parties.';
+/* Meme classe, autre texte quand ce sont les filtres qui vident la liste. */
+const VIDE_FILTRES='Aucune partie avec ces filtres.';
 function dessineStats(RT){
   const z=$('statsCorps');z.textContent='';statsAjuste=null;
-  if(!RT.length){const v=el('div','bloc st-vide');v.append(el('h3','','Aucune partie pour le moment'),el('p','','Les statistiques apparaîtront dès les premières parties terminées par des joueurs connectés avec un compte, contre un Golem ou en ligne.'));z.append(v);return}
+  if(!RT.length){const v=el('div','bloc');v.append(el('p','pf-vide',VIDE_ST),el('p','pf-note','Les statistiques apparaîtront dès les premières parties terminées par des joueurs connectés avec un compte, contre un Golem ou en ligne.'));z.append(v);return}
   /* Patchs coches : tous par defaut. */
   const vers=versStats(RT);if(!statsPatchs||![...statsPatchs].some(v=>vers.includes(v)))statsPatchs=new Set(vers);
   const R=uneParGraine(RT).filter(r=>statsPatchs.has(patchSite(r.v))&&statsAdv.has(modeSt(r)));
+  /* Liste videe par les filtres : meme classe, texte des filtres (Joueurs, Cartes, Elements). */
+  const VIDE_R=R.length?VIDE_ST:VIDE_FILTRES;
   const pc=(v,n)=>n?Math.round(100*v/n):null,coul=p=>p===null?'var(--doux)':p>55?'#3ecf6e':p>=45?'#f0a030':'#ef4f4f',txt=p=>p===null?'-':p+' %';
   const pl2=(n,m)=>n+' '+m+(n>1?'s':''),rangTx=i=>i+(i===1?'er':'e');
   const NOMS_EL=NOMS_EL_ST;
   const {cartes,els,duos,terr,pj,pv,golem,ab}=agregeStats(R);
   const g=el('div','st-g4'),pile=el('div','st-pile');g.append(pile);
   const panneau=(dans,cle,titre,note)=>{const c=el('div','bloc st-col st-p'),h=el('div','st-ph');c.dataset.p=cle;h.append(el('h3','st-h',titre));c.append(h);if(note)c.append(el('p','pf-note st-sous',note));dans.append(c);return {c,h}};
-  const sous=(c,t)=>c.append(el('h4','st-sh',t)),vide=c=>c.append(el('p','pf-vide','Pas encore assez de parties.'));
+  const sous=(c,t)=>c.append(el('h4','st-sh',t)),vide=c=>c.append(el('p','pf-vide',VIDE_R));
   const plie=()=>matchMedia('(min-width:641px)').matches; /* plusieurs colonnes : hauteurs verrouillees */
   const norm=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
   /* Liste de panneau : k lignes (10 au plus ; Joueurs et Terrains : ce qui tient dans la demi-hauteur).
@@ -3776,7 +3793,7 @@ function dessineStats(RT){
        li.onclick=()=>ouvreProfil({uid:x.uid,p:x.p,v:x.v,n:x.n});li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();li.onclick()}}}
      return li};
    listes.push(listeP(P,J,x=>ligneJ(x,false),{demi:true,tous:J.concat(P5),rech:'Chercher un joueur',aucun:'Aucun joueur à ce nom.',
-     vide:tousAdv&&tousPatchs?'Aucun joueur avec 5 parties pour le moment.':'Aucun joueur avec 5 parties '+surF+'.',
+     vide:VIDE_R,
      piedPlus:(pd,s)=>{if(moi&&!s.q&&!s.ouvert&&moi.rang>s.k)pd.append(ligneJ(moi,true));
        if(peu)pd.append(el('p','pf-note',pl2(peu,'joueur')+' avec moins de 5 parties '+surF+'.'));
        if(prives)pd.append(el('p','pf-note',pl2(prives,'joueur')+' au profil privé, non '+(prives>1?'comptés':'compté')+' avec ce filtre.'));
@@ -3786,7 +3803,7 @@ function dessineStats(RT){
    const cols=[['nom','Terrain','Nom du terrain'],['taux','Victoire',"Taux de victoire du conquérant : part des conquêtes de ce terrain où le joueur qui le remporte gagne aussi la partie."],['pts','Pts',"Points moyens : points rapportés par ce terrain en moyenne sur une partie."],['eg','Égalités',"Égalités : part des manches où les deux joueurs ont la même Force, personne ne marque."]];
    const L=[...terr].map(([nom,o])=>({nom,cle:nom,n:o.n,taux:pc(o.cv,o.c),pts:o.n?Math.round(10*o.q/o.n)/10:null,conq:pc(o.c,o.m),eg:pc(o.e,o.m)}));
    const v=x=>x===null?-1:x,trie=()=>L.sort((a,b)=>statsTri==='nom'?a.nom.localeCompare(b.nom,'fr'):v(b[statsTri])-v(a[statsTri])||a.nom.localeCompare(b.nom,'fr'));trie();
-   const o={demi:true,rech:'Chercher un terrain',aucun:'Aucun terrain à ce nom.',vide:'Pas encore assez de parties.'};
+   const o={demi:true,rech:'Chercher un terrain',aucun:'Aucun terrain à ce nom.',vide:VIDE_ST};
    o.entete=()=>{const h=el('div','st-tl st-th');cols.forEach(([k,t,d])=>{const b=el('button','st-tri'+(statsTri===k?' actif':''),t+(statsTri===k?(k==='nom'?' ▲':' ▼'):''));b.setAttribute('aria-pressed',statsTri===k);b.type='button';b.title=d;b.setAttribute('aria-label','Trier par '+d.split(' :')[0].toLowerCase());b.onclick=()=>{statsTri=k;trie();o.repeint()};h.append(b)});return h};
    const ligneT=x=>{const r=el('div','st-tl'),t=el('b','',txt(x.taux)),TT=M.TERRAINS.find(T=>T.nom===x.nom);if(TT){r.classList.add('st-tc');r.tabIndex=0;r.onmouseenter=()=>montreApercu(r,srcTerrain(TT));r.onmouseleave=cacheApercu;r.onclick=()=>zoomTerrain(TT);r.onkeydown=e=>{if(e.key==='Enter')zoomTerrain(TT)}}t.style.color=coul(x.taux);const nm=el('span','st-tn',x.nom);nm.title=pl2(x.n,'partie');
      r.append(nm,t,el('span','',x.pts===null?'-':String(x.pts).replace('.',',')),el('span','',txt(x.eg)));return r};
@@ -3807,10 +3824,10 @@ function dessineStats(RT){
   {const P=panneau(g,'m','Meilleures cartes','Taux de victoire, 5 parties minimum');
    const tv=lc.filter(x=>x.n>=5).sort((a,b)=>b.p-a.p||b.n-a.n).map((x,i)=>({...x,rang:i+1}));
    const p5=lc.filter(x=>x.n<5).sort((a,b)=>b.p-a.p||b.n-a.n).map(x=>({...x,rang:null,peu:true}));
-   listes.push(listeP(P,tv,ligneC,{tous:tv.concat(p5),rech:'Chercher une carte',aucun:'Aucune carte à ce nom.',vide:'Il faut au moins 5 parties par carte.'}));}
+   listes.push(listeP(P,tv,ligneC,{tous:tv.concat(p5),rech:'Chercher une carte',aucun:'Aucune carte à ce nom.',vide:R.length?'Il faut au moins 5 parties par carte.':VIDE_FILTRES}));}
   {const P=panneau(g,'p','Cartes les plus jouées','Nombre de parties où elle est jouée');
    const lp=lc.slice().sort((a,b)=>b.n-a.n||b.p-a.p).map((x,i)=>({...x,rang:i+1}));
-   listes.push(listeP(P,lp,ligneC,{rech:'Chercher une carte',aucun:'Aucune carte à ce nom.',vide:'Pas encore assez de parties.'}));}
+   listes.push(listeP(P,lp,ligneC,{rech:'Chercher une carte',aucun:'Aucune carte à ce nom.',vide:VIDE_R}));}
   /* Elements : taux par element puis duos les plus joues, dans le meme panneau (sans Voir tout ni recherche). */
   {const P=panneau(g,'e','Éléments',null),c=P.c,l=[...els].map(([e,o])=>({e,n:o.n,p:pc(o.v,o.n)}));
    const barre=(nom,n,p,ic,u)=>{const li=el('div','pf-barre pf-item'),h=el('div','pf-bh'),j=el('div','pf-jauge'),f=el('i'),b=el('b','',txt(p)),s=el('span','st-bn');
@@ -3847,7 +3864,7 @@ function dessineStats(RT){
    ban.append(tu);}
   z.append(ban,g);
   /* Hors de la grille : sinon le message prendrait une rangee de hauteur H. */
-  if(!R.length)g.before(el('p','pf-vide st-aucune','Aucune partie avec ces filtres.'));
+  if(!R.length)g.before(el('p','pf-vide',VIDE_FILTRES));
   /* Apres mise en page : H mesuree puis verrouillee, Joueurs et Terrains gardent les lignes qui tiennent.
      H minimale = grille avec 10 cartes : pendant la mesure, Meilleures cartes est completee par des lignes de carte invisibles (messages masques), retirees ensuite. */
   const sonde=()=>{const c=g.querySelector('[data-p=m] .st-corps'),id=(CARTES.find(x=>M.CARTES[x[0]])||[])[0];if(!c||!id)return ()=>{};
@@ -4020,11 +4037,18 @@ function peintHisto(){
   const pb=(t,d,off)=>{const q=el('button','btn sec',t);q.type='button';q.disabled=off;q.onclick=()=>{pageHisto+=d;peintHisto()};return q};
   /* Une seule page : pas de rangee de pagination (aucun vide au-dessus de la liste). */
   if(nb>1)pg.append(pb('Précédente',-1,pageHisto===0),el('span','','Page '+(pageHisto+1)+' sur '+nb),pb('Suivante',1,pageHisto>=nb-1));else barre.remove();
-  const gr=el('div','h-grille');b.append(gr);
-  l.slice(pageHisto*lignesPage,(pageHisto+1)*lignesPage).forEach(x=>{
+  const gr=el('div','h-grille'),pageL=l.slice(pageHisto*lignesPage,(pageHisto+1)*lignesPage);
+  /* Niveau du Golem : le mot Golem prend la couleur du niveau (memes couleurs que le filtre Adversaires des Statistiques), legende au-dessus. */
+  const nivG=a=>{const m=/^Golem \((facile|normal|difficile)\)$/i.exec(a||'');return m?NIV_ORDI.find(n=>n[0]===m[1].toLowerCase()):null};
+  const NIV_LB={facile:'Facile',normal:'Normal',difficile:'Difficile'};
+  if(pageL.some(x=>nivG(x.adv))){const lg=el('p','h-leg');lg.append(el('span','','Niveau des Golems :'));NIV_ORDI.forEach(([k,c])=>{const q=el('b','',NIV_LB[k]);q.style.color=c;lg.append(q)});b.append(lg)}
+  b.append(gr);
+  pageL.forEach(x=>{
     const c=el('div','h-carte '+(x.res==='Victoire'?'h-v':x.res==='Défaite'?'h-d':'h-n'));c.tabIndex=0;c.setAttribute('role','button');
     c.onkeydown=e=>{if(e.target===c&&(e.key==='Enter'||e.key===' ')){e.preventDefault();detailHisto(x)}};
-    const l1=el('span','h-l1');const vh=versionAff(x);l1.append(el('span','h-date',new Date(x.date).toLocaleDateString('fr-FR',{dateStyle:'short'})),el('span','h-adv','contre '+advAff(x.adv)),el('span','h-sc',x.score),el('span','h-ver h-ver-l etq-v',/^[0-9]/.test(vh)?'v'+vh:vh));
+    const l1=el('span','h-l1');const vh=versionAff(x),nv=nivG(x.adv),ha=el('span','h-adv','contre '+(nv?'':advAff(x.adv)));
+    if(nv){const q=el('span','niv','Golem');q.style.color=nv[1];ha.append(q);ha.title='Golem, niveau '+NIV_LB[nv[0]];ha.setAttribute('aria-label','contre Golem, niveau '+NIV_LB[nv[0]])}
+    l1.append(el('span','h-date',new Date(x.date).toLocaleDateString('fr-FR',{dateStyle:'short'})),ha,el('span','h-sc',x.score),el('span','h-ver h-ver-l etq-v',/^[0-9]/.test(vh)?'v'+vh:vh));
     /* Elements du deck joue (paquet de test : ses elements). */
     const pe=el('span','h-els');(x.deck&&x.deck.nom==='Test'&&!x.deck.cartes?elsTexte(DECK_TEST_TXT):(x.deck&&Array.isArray(x.deck.els)?x.deck.els:[])).filter(y=>/^(magma|cristal|foudre|brume|roche)$/.test(y)).forEach(y=>pe.append(picto(y)));
     const rj=el('button','h-rj'),ok=rejeuPossible(x.rejeu);rj.type='button';rj.append(el('span','h-rj-i','▶'),'Replay');
@@ -4441,7 +4465,7 @@ function partageDeck(z,d){
   const v=el('div','voile'),x=el('div','boite');v.id='popPartage';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','ppTitre');
   const ap=el('div','pp-dc'),a=el('a','','Voir le deck'),E=elsOrdre(d).map(nomEl).join(', ');a.href=lien;a.target='_blank';a.rel='noopener';
   ap.append(el('b','',d.nom),' · '+totalDeck(d)+' cartes'+(E?' · '+E:'')+' · ',a);
-  const msg=el('p','pp-m','Colle le message dans Discord : « Voir le deck » ouvre le deck sur le site.'),pb=el('div','p-btns'),cp=el('button','btn','Copier pour Discord'),cl=el('button','btn sec','Copier le lien seul'),fe=el('button','btn sec fermer','Fermer');cp.type=cl.type=fe.type='button';
+  const msg=el('p','pp-m','Colle le message dans Discord : « Voir le deck » ouvre le deck sur le site.'),pb=el('div','p-btns'),cp=el('button','btn','Copier pour Discord'),cl=el('button','btn sec','Copier le lien seul'),fe=el('button','btn fermer','Fermer');cp.type=cl.type=fe.type='button';
   const esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc)};addEventListener('keydown',esc);
   fe.onclick=ferme;v.onclick=e=>{if(e.target===v)ferme()};
   const sel=t=>()=>{const s=document.createElement('textarea');s.value=t;s.style.cssText='position:fixed;opacity:0';document.body.append(s);s.select();setTimeout(()=>s.remove(),2000)};
@@ -4463,7 +4487,7 @@ function ouvreDeckLien(c){
   const o=litCodeDeck(c),v=el('div','voile'),x=el('div','boite vd-boite');v.id='popVueDeck';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-label','Deck partagé');
   const esc=e=>{if(e.key==='Escape'&&$('vue').hidden)ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc)};addEventListener('keydown',esc);v.onclick=e=>{if(e.target===v)ferme()};
   if(o.err||!Object.keys(o.cartes).length){
-    x.classList.remove('vd-boite');const pb=el('div','p-btns'),fe=el('button','btn sec fermer','Fermer');fe.type='button';fe.onclick=ferme;pb.append(fe);
+    x.classList.remove('vd-boite');const pb=el('div','p-btns'),fe=el('button','btn fermer','Fermer');fe.type='button';fe.onclick=ferme;pb.append(fe);
     x.append(el('h2','','Lien de deck illisible'),el('p','',o.err||'Aucune carte connue dans ce lien.'),pb);v.append(x);document.body.append(v);fe.focus();return;
   }
   const d={id:'',nom:o.nom,cartes:o.cartes},E=elsOrdre(d),R=raisonsDeck(d);
@@ -4776,17 +4800,9 @@ function bacASable(b,d){
   h.append(el('h3','','Tester des placements'),ha,ef);z.append(h);
   const corps=el('div','bac-corps'),gauche=el('div','bac-gauche'),pl=el('div','bac-plateau');corps.append(pl,gauche);z.append(corps);
   const s=bacEtat(B),G=B.G,cols=[0,1,2];
-  /* Detail de la Force d'une carte posee : meme fenetre et meme detailForce qu'en partie, plus le choix des des. */
-  const detail=(l,k)=>{
-    const v=G[l][k],C=M.carte(v.c);dernier=null;
-    if(C.animal){zoom('cartes/'+C.id+'.jpg',C.nom,detailAnimal(C));return}
-    const D=detailForce(s,0,l,k),id=M.idEff(v);
-    if(BAC_DES[id])D.push(bacDes(v,id,()=>{peint();detailDe(l,k)}));
-    zoom('cartes/'+C.id+'.jpg',C.nom,D,[badgeForce(M.forceDe(s,0,l,k),v.f)]);
-  };
-  const choisit=(l,k)=>{B.sel=null;B.selC=[l,k];B.mode=null;peint();detailDe(l,k)};
+  /* Carte posee touchee : son detail s'affiche dans l'encart Detail sous la main (plus de fenetre). */
+  const choisit=(l,k)=>{B.sel=null;B.selC=[l,k];B.mode=null;peint()};
   /* Cartes du deck, comme la main en partie : toucher la carte la choisit, l'oeil l'ouvre en grand. Pastille : exemplaires restant a poser. */
-  gauche.append(el('p','bac-res',B.sel?'Touche une case en surbrillance pour poser '+M.CARTES[B.sel].nom+'.':'Touche une carte de ton deck, puis une case. Touche une carte posée pour voir le détail de sa Force, la déplacer ou la retirer.'));
   const pool=el('div','bac-pool');pool.setAttribute('aria-label','Cartes du deck');
   M.TYPES.filter(t=>+d.cartes[t]>0).forEach(t=>{
     const C=M.CARTES[t],reste=+d.cartes[t]-bacUtilises(B,t),sl=el('div','bac-slot'),q=el('button','bac-carte'),i=el('img'),o=el('button','oeil');q.type=o.type='button';
@@ -4814,7 +4830,7 @@ function bacASable(b,d){
   else if(B.selC&&B.mode==='fav')cible=(l,k)=>l===sa&&k===sb?{choisie:true,fait:()=>{}}:bacGolem(G[l][k])?{texte:'Favori',fait:()=>{G[sa][sb].fav=G[l][k].c;B.mode=null;peint()}}:null;
   else if(B.selC&&B.mode==='copie')cible=(l,k)=>l===sa&&k===sb?{choisie:true,fait:()=>{}}:bacVois(sa,sb).some(([a,b])=>a===l&&b===k)&&bacGolem(G[l][k])?{texte:'Copier',fait:()=>{const g=G[sa][sb];g.cp=M.idEff(G[l][k]);delete g.de;g.f=M.carte(g.c).force||0;B.mode=null;bacPose(B,sa,sb);peint()}}:null;
   else if(B.selC&&B.mode==='bouge')cible=(l,k)=>l===sa&&k===sb?{choisie:true,fait:()=>{B.mode=null;peint()}}:bacPeut(B,sa,sb,l,k)?{texte:G[l][k]?'Échanger':'Ici',fait:()=>{bacBouge(B,sa,sb,l,k);B.selC=[l,k];B.mode=null;peint()}}:null;
-  else if(B.selC)cible=(l,k)=>l===sa&&k===sb?{choisie:true,fait:()=>detail(l,k)}:null;
+  else if(B.selC)cible=(l,k)=>l===sa&&k===sb?{choisie:true,fait:()=>{}}:null;
   const g=grilleVue(s,0,cols,[0,1,2],cible);g.classList.add('mienne');
   g.querySelectorAll('.p-case').forEach(q=>{
     const l=+q.dataset.l,k=+q.dataset.k,v=G[l][k];
@@ -4833,25 +4849,35 @@ function bacASable(b,d){
   /* Energie pour tout poser (moteur : coutPose, La Boutique comprise ; evolution = base puis evolution) */
   let en=0;G.forEach((L,l)=>L.forEach((v,k)=>{if(!v)return;const C=M.carte(v.c);en+=M.coutPose(s,0,v.c,l,k);if(C.base)en+=M.coutPose(s,0,M.TYPES.indexOf(C.base)*3,l,k)}));
   const so=el('p','bac-somme');so.append('Force totale ',el('b','',String(cc.reduce((a,c)=>a+c[0],0))),' · énergie pour tout poser ',el('b','',String(en)));
-  pl.append(t,g,to,so);
-  /* Carte posee choisie : detail, deplacer, retirer, des, favori, copie */
-  if(B.selC){
-    const v=G[sa][sb],C=M.carte(v.c),id=M.idEff(v),o=el('div','bac-outils'),tt=el('div','t'),bs=el('div','bs');
+  pl.append(t,g,to);corps.append(so);
+  /* Encart Detail permanent sous la main : sans selection, mode d'emploi et Force par terrain ;
+     carte posee choisie, calcul de sa Force (detailForce, comme en partie), note, des, deplacer, retirer, favori, copie. */
+  const o=el('div','bac-det');o.setAttribute('aria-live','polite');o.append(el('h4','','Détail'));
+  const lgn=(a,v,c)=>{const x=el('div','lg'+(c?' '+c:''));x.append(el('span','',a),el('b','',v));return x};
+  if(!B.selC){
+    if(B.sel)o.append(el('p','','Touche une case en surbrillance pour poser '+M.CARTES[B.sel].nom+'.'));
+    const ol=el('ol');['Touche une carte de ton deck, puis une case en surbrillance (ou glisse-la).','Touche une carte posée pour voir le calcul de sa Force ici.','Déplace, échange ou retire-la avec les boutons qui apparaissent.'].forEach(x=>ol.append(el('li','',x)));
+    o.append(ol,el('h5','','Force par terrain'));
+    let tot=0;cols.forEach(k=>{tot+=cc[k][0];o.append(lgn(s.terrains[k].nom+' ('+s.terrains[k].pts+(s.terrains[k].pts>1?' pts)':' pt)'),'Force '+cc[k][0]))});
+    o.append(lgn('Total','Force '+tot,'tot'));
+  }else{
+    const v=G[sa][sb],C=M.carte(v.c),id=M.idEff(v),tt=el('div','t'),bs=el('div','bs');
     const bt=(x,f,p)=>{const q=el('button','pastille',x);q.type='button';q.onclick=f;if(p!==undefined)q.setAttribute('aria-pressed',String(p));bs.append(q);return q};
-    tt.append(el('b','',M.nomDetail(C)));if(!C.animal)tt.append(el('span','fo','Force '+M.forceDe(s,0,sa,sb)));o.append(tt,bs);
+    tt.append(el('b','',M.nomDetail(C)));if(!C.animal)tt.append(el('span','fo','Force '+M.forceDe(s,0,sa,sb)));o.append(tt);
+    o.append(...(C.animal?detailAnimal(C):detailForce(s,0,sa,sb)));
     if(B.mode==='fav')o.append(el('p','','Choisis son favori : touche un de tes Golems.'));
     else if(B.mode==='copie')o.append(el('p','','Déguisement : touche le voisin à copier.'));
     else if(B.mode==='bouge')o.append(el('p','','Touche une case libre, ou un autre Golem pour échanger.'));
-    const notes=[BAC_NOTE[C.id]];if(C.id!==id&&id&&BAC_NOTE[id])notes.push('Copie : '+BAC_NOTE[id]);o.append(el('p','',notes.filter(Boolean).join(' ')));
-    bt('Détail de la Force',()=>detail(sa,sb));
+    const notes=[BAC_NOTE[C.id]];if(C.id!==id&&id&&BAC_NOTE[id])notes.push('Copie : '+BAC_NOTE[id]);const nt=notes.filter(Boolean).join(' ');if(nt)o.append(el('p','',nt));
+    if(BAC_DES[id])o.append(bacDes(v,id,peint));
+    o.append(bs);
     bt('Déplacer',()=>{B.mode=B.mode==='bouge'?null:'bouge';peint()},B.mode==='bouge');
     bt('Retirer',()=>{bacRetire(B,sa,sb);B.selC=null;B.mode=null;peint()});
     if(M.FAV_BONUS[id])bt('Changer le favori',()=>{B.mode='fav';peint()},B.mode==='fav');
     if(C.id==='029e'&&bacVois(sa,sb).filter(([a,b])=>bacGolem(G[a][b])).length>1)bt('Changer la copie',()=>{delete v.cp;delete v.fav;B.mode='copie';peint()},B.mode==='copie');
     bt('Désélectionner',()=>{B.selC=null;B.mode=null;peint()});
-    if(BAC_DES[id]&&v.de)o.append(bacDes(v,id,peint));
-    gauche.prepend(o); /* telephone : sous la grille, avant les cartes du deck */
   }
+  gauche.append(o);
   /* Ce que le bac a sable compte : resume visible, detail depliable */
   const m=el('details','bac-mention'),sm=el('summary','','Ton côté seulement : ni cercle des éléments, ni effet adverse, ni fin de manche.');m.append(sm);
   const ul=el('ul');
@@ -4866,7 +4892,6 @@ function bacASable(b,d){
   b.append(z);return z;
 }
 /* Ouvre le detail de la Force d'une case du bac a sable (apres repeint : l'etat du moteur est relu). */
-function detailDe(l,k){const q=document.querySelector('#bacASable .p-grille .p-case[data-l="'+l+'"][data-k="'+k+'"]');if(q&&q.classList.contains('choisie'))q.click()}
 function nouvelleGraine(){return Math.floor(Math.random()*2147483646)+1}
 /* Depart volontaire : aussi publie dans le lobby, car la presence du salon disparait avec lui. */
 function adversaireParti(){

@@ -1,4 +1,5 @@
 {
+  "id": "./",
   "name": "Les Golems",
   "short_name": "Golems",
   "description": "Jeu de cartes communautaire",
@@ -9,8 +10,9 @@
   "background_color": "#01C1F0",
   "theme_color": "#0a121a",
   "icons": [
-    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
-    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {"src": "icon-v2-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-v2-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-v2-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
+    {"src": "icon-maskable-v2-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
   ]
 }
