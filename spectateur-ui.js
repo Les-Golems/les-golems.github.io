@@ -124,7 +124,7 @@ function peindreSalon(etat){
 /* ---------- Partie ---------- */
 const nomJoueur=(E,p)=>E.noms&&E.noms[p]||'Joueur '+(p+1);
 function avatarJoueur(E,p){const n=nomJoueur(E,p),u=E.uids&&E.uids[p];return u&&typeof avatarUid==='function'?avatarUid(n,u,E.avatars&&E.avatars[p]||''):avatarDe(n,E.avatars&&E.avatars[p]||'')}
-/* etatPartie : etat du moteur (s), ou {etat:s, noms:[j0,j1], avatars:[..], uids:[..], derniere:{c,p}} */
+/* etatPartie : etat du moteur (s), ou {etat:s, noms:[j0,j1], avatars:[..], uids:[..], derniere:{id:type,p} ou {c:numero de carte,p}} */
 function lisEntree(x){
   if(!x)return null;
   if(x.etat&&x.etat.j){
@@ -139,7 +139,7 @@ function derniereDuLog(s){
   if(typeof NOMS_LOG==='undefined')return null;
   for(let i=s.log.length-1;i>=0;i--){const[p,x]=s.log[i];if(p===null||!/^(pose|remplace|améliore) /.test(x))continue;
     const m=[...x.matchAll(NOMS_LOG.re)].map(z=>NOMS_LOG.m.get(z[0])).filter(o=>o&&o.C);
-    if(m.length)return {c:m[m.length-1].C.id,p,id:true}}
+    if(m.length)return {id:m[m.length-1].C.id,p}} /* id = identifiant de TYPE ('008'), pas un numero de carte de partie */
   return null;
 }
 function camp(E,s,p,haut){
@@ -166,6 +166,15 @@ function detailMain(C){
   if(C.texte)a.append(mk('p','',C.texte));return [a];
 }
 function zoomMain(c){const C=M.carte(c);cacheApercu();zoom(srcC(c),C.nom,detailMain(C))}
+/* Zoom par identifiant de type : si la carte est en jeu chez son joueur, meme zoom que sa case (detail de Force), sinon detail de la carte */
+function zoomId(id,p){
+  const C=M.CARTES[id];if(!C)return;cacheApercu();
+  const s=dernierEtat&&dernierEtat.etat;
+  if(s&&p!=null&&s.j[p]){const G=s.j[p].grille;
+    for(let l=0;l<G.length;l++)for(let k=0;k<G[l].length;k++){const v=G[l][k];
+      if(v&&M.carte(v.c).id===id){const b=document.querySelector('#partie .p-case[data-p="'+p+'"][data-l="'+l+'"][data-k="'+k+'"]');if(b&&b.onclick){b.onclick();return}}}}
+  zoom('cartes/'+id+'.jpg',C.nom,detailMain(C));
+}
 function main(E,s,p,cl,ap){
   const m=mk('div','p-main sp-main '+cl);
   /* Une seule ligne : au-dela de 5 cartes, elles retrecissent */
@@ -174,7 +183,7 @@ function main(E,s,p,cl,ap){
     const C=M.carte(c),z=mk('div','p-slot'),b=mk('button','p-carte'),i=mk('img');
     b.type='button';i.src=srcC(c);i.alt=C.nom;b.append(i);b.setAttribute('aria-label','Agrandir '+M.nomDetail(C));b.onclick=()=>zoomMain(c);
     z.dataset.c=c;z.append(b);
-    z.onmouseenter=()=>{if(ap&&ap.offsetParent&&SURVOL.matches)montre(ap,c,'Aperçu');else montreApercu(z,srcC(c))};
+    z.onmouseenter=()=>{if(ap&&ap.offsetParent&&SURVOL.matches)montre(ap,M.carte(c).id,'Aperçu',null);else montreApercu(z,srcC(c))};
     z.onmouseleave=()=>{cacheApercu();if(ap)montreDerniere(ap)};
     m.append(z)});
   return m;
@@ -183,16 +192,20 @@ function titreMain(E,s,p,cl){
   const h=mk('div','sp-tmain '+cl),n=s.j[p].main.length,c=mk('span','p-compteur');
   c.append(mk('b','',String(n)),n>1?'cartes':'carte');h.append(mk('b','','Main de '+nomJoueur(E,p)),c);return h;
 }
-function montre(ap,c,leg){
-  const im=ap.querySelector('img'),l=ap.querySelector('.p-ap-leg');
-  if(c==null){delete ap.dataset.c;ap.classList.add('vide');im.hidden=true;l.textContent='Aucune carte jouée pour le moment.';return}
-  ap.dataset.c=c;ap.classList.remove('vide');im.hidden=false;const src=srcC(c);if(im.getAttribute('src')!==src)im.src=src;im.alt=M.carte(c).nom;l.textContent=leg;
+/* id : identifiant de TYPE de carte ('008'), image cartes/<id>.jpg ; p : joueur qui l'a jouee (zoom sur sa case en jeu) */
+function montre(ap,id,leg,p){
+  const im=ap.querySelector('img'),l=ap.querySelector('.p-ap-leg'),C=id!=null?M.CARTES[id]:null;
+  if(!C){delete ap.dataset.id;delete ap.dataset.p;ap.classList.add('vide');im.hidden=true;l.textContent='Aucune carte jouée pour le moment.';return}
+  ap.dataset.id=id;if(p!=null)ap.dataset.p=p;else delete ap.dataset.p;
+  ap.classList.remove('vide');im.hidden=false;const src='cartes/'+id+'.jpg';if(im.getAttribute('src')!==src)im.src=src;im.alt=C.nom;l.textContent=leg;
 }
 function montreDerniere(ap){
   const E=dernierEtat;if(!E)return;
   const d=E.derniere;
-  if(!d||d.c==null){montre(ap,null);return}
-  montre(ap,d.c,'Dernière carte jouée par '+nomJoueur(E,d.p));
+  /* derniere : {id:type} (journal) ou {c:numero de carte de partie} (fourni) */
+  const id=d?(d.id!=null?d.id:d.c!=null?M.carte(d.c).id:null):null;
+  if(id==null){montre(ap,null);return}
+  montre(ap,id,'Dernière carte jouée par '+nomJoueur(E,d.p),d.p);
 }
 function journal(E,s){
   const jo=mk('details','p-journal'),li=mk('div','p-lignes'),su=mk('summary','','Journal');
@@ -232,7 +245,7 @@ function peindrePartieSpectateur(etatPartie){
   plat.append(camp(E,s,haut,true),gh,terrains(s,cols,haut,bas),gb,camp(E,s,bas,false));
   /* Colonne centrale : main du haut, derniere carte jouee, main du bas */
   const ap=mk('div','p-apercu'),fi=mk('div','p-ap-img'),im=mk('img');im.alt='';fi.append(im);ap.append(mk('p','p-ap-leg'),fi);
-  ap.onclick=()=>{if(ap.dataset.c===undefined)return;zoomMain(ap.dataset.c)};
+  ap.onclick=()=>{if(ap.dataset.id===undefined)return;zoomId(ap.dataset.id,ap.dataset.p!==undefined?+ap.dataset.p:null)};
   const mh=[titreMain(E,s,haut,'lui'),main(E,s,haut,'lui',ap)],mb=[titreMain(E,s,bas,'toi'),main(E,s,bas,'toi',ap)];
   if(s.fin)pl.append(finBloc(E,s));
   if(LARGE.matches){pl.append(...mh,ap,...mb)}
