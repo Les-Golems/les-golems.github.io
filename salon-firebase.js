@@ -210,7 +210,7 @@ async function ouvre() {
       if (!r) return false;
       const o = { p: donnees.pseudo, m: !!donnees.masque, n: r.n, v: r.v, d: r.d, t: serverTimestamp() };
       if (donnees.cree) o.cr = donnees.cree;
-      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
+      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
       try { await set(ref(db, P + "profils/" + moi), o); return true; } catch (e) { console.warn("profil", e); return false; }
     },
     async masquerProfil(b) {
@@ -298,13 +298,17 @@ async function ouvre() {
       if (!compte.connecte()) return;
       const maj = {};
       // Trop long : on retire d'abord le bilan, puis le detail des manches, le rejeu en dernier, jamais en coupant le JSON.
-      const texte = x => { let t = JSON.stringify(x); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [], rejeu: null }); return t.length > 12000 ? null : t; };
-      entrees.forEach(x => { const t = x && x.id && texte(x); if (t && !donnees.historique.some(y => y.id === x.id)) { donnees.historique.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; } });
+      // En dernier recours, l'essentiel seulement (résultat, score, adversaire) : la partie compte toujours.
+      const texte = x => { let t = JSON.stringify(x); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [], rejeu: null }); if (t.length > 12000) t = JSON.stringify({ id: x.id, date: x.date, adv: x.adv, res: x.res, abandon: x.abandon, score: x.score, mvp: x.mvp, pseudo: x.pseudo, advNom: x.advNom, moteur: x.moteur }); return t.length > 12000 ? null : t; };
+      const trop = [];
+      entrees.forEach(x => { const t = x && x.id && texte(x); if (x && x.id && !t) trop.push(x.id); if (t && !donnees.historique.some(y => y.id === x.id)) { donnees.historique.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; } });
       donnees.historique.sort((a, b) => b.date - a.date);
       donnees.historique.splice(MAX_HISTO).forEach(x => { maj[x.id] = null; });
       for (const k in maj) if (maj[k] && !donnees.historique.some(y => y.id === k)) delete maj[k];
       if (Object.keys(maj).length) await update(ref(db, P + "joueurs/" + moi + "/historique"), maj);
       compte.publieStats();
+      // Plus d'échec silencieux : la page affiche « Partie non enregistrée ».
+      if (trop.length) throw Object.assign(new Error("historique trop long"), { code: "golems/trop-long" });
     },
     async videHisto() {
       if (!compte.connecte()) return;
@@ -359,6 +363,12 @@ async function ouvre() {
       for (let i = 0; i < l.length && l[i] !== undefined; i++) sortie.push(l[i]);
       return window.GolemsMoteur.ecritJournal(sortie);
     }
+    // Coups à jour avant une décision (adversaire parti ou absent). get() sur coups rendrait le cache de
+    // l'écoute en cours : on lit à la place un chemin non écouté (engages). Sa réponse passe par la même
+    // connexion, après les données que le serveur renvoie aux écoutes (reconnexion) : l'écoute des coups est alors à jour.
+    async function relitCoups() {
+      await get(ref(db, base + "/engages"));
+    }
     // Envois à la file : deux appels rapprochés ne poussent jamais deux fois le même rang.
     let file = Promise.resolve();
     function envoieJournal(j) { const p = file.then(() => envoie(j)); file = p.catch(() => {}); return p; }
@@ -396,6 +406,10 @@ async function ouvre() {
         });
       },
       onPeers(f, g) { ecoute.push(f); if (g) perdu.push(g); },
+      // Journal d'un joueur (sid, graine) lu dans les coups du salon, même s'il a quitté le salon :
+      // son dernier coup n'est jamais perdu. journalFrais relit d'abord le serveur.
+      journalDe: (sid, g) => journal(sid, g),
+      async journalFrais(sid, g) { await relitCoups(); return journal(sid, g); },
       // Verrou de partie : les deux uid engagés (sans effet s'il existe déjà).
       async engage(uids) {
         const o = {}; uids.forEach(u => { if (typeof u === "string") o[u] = true; });
@@ -484,15 +498,19 @@ async function ouvre() {
       return n;
     },
     // Archive commune (onglet Statistiques) : resume/{id}, anonyme. Écrite par un compte, une seule fois.
+    // En ligne, chaque joueur écrit le sien (clé graine-début) ; l'affichage n'en garde qu'un par graine.
+    // Échec d'écriture : l'erreur remonte à la page (message et nouvel essai), jamais avalée ici.
     async ecritResume(id, o) {
       if (!estCompte() || !/^-?[0-9]{1,12}-[0-9]{13}$/.test(id)) return false;
       const r = ref(db, P + "resume/" + id);
-      try { if ((await get(r)).exists()) return false; await set(r, { ...o, d: serverTimestamp() }); return true; } catch (e) { console.warn("resume", e); return false; }
+      if ((await get(r)).exists()) return false;
+      await set(r, { ...o, d: serverTimestamp() });
+      return true;
     },
-    // Les n résumés les plus récents (2000 par défaut), du plus ancien au plus récent.
+    // Les n résumés les plus récents (2000 par défaut), du plus ancien au plus récent, avec leur clé (id = graine-début).
     async litResumes(n) {
       const s = await get(query(ref(db, P + "resume"), orderByChild("d"), limitToLast(n || 2000)));
-      const l = []; s.forEach(c => { l.push(c.val()); }); return l;
+      const l = []; s.forEach(c => { const v = c.val(); if (v && typeof v === "object") l.push({ ...v, id: c.key }); }); return l;
     },
     // Classement public : liste de { uid, p, v, n }.
     async litClassement() {

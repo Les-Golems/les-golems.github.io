@@ -23,7 +23,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<script defer src="signal-tour.js"></script>
+<script defer src="signal-tour.js?v=0.2b.1"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Fredoka:wght@700&family=Lilita+One&family=Nunito+Sans:wght@400;700;800&display=swap');
 :root{
@@ -102,27 +102,28 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 .pastille{background:var(--panneau);border:1px solid var(--trait);border-radius:999px;padding:7px 14px;min-height:38px;font-size:14.5px;font-weight:700;display:inline-flex;align-items:center;gap:7px}
 .pastille:disabled{opacity:.4;cursor:not-allowed}
 .pastille[aria-pressed=true]{background:var(--bleu);border-color:var(--bleu);color:var(--encre)}
-.f-ligne{align-items:center;gap:8px 18px;margin-bottom:12px}
-.f-lib{flex:none;width:86px;font-weight:700;color:var(--doux);font-size:14.5px}
+/* Lignes de filtres (onglet Cartes et editeur de deck) : libelle dans une colonne fixe (--lib), boutons alignes au meme x sur toutes
+   les lignes, meme quand ils passent a la ligne ; 8 px entre boutons d'un groupe, --grp entre groupes. */
+.f-ligne{--lib:86px;--grp:18px;position:relative;align-items:center;gap:8px var(--grp);margin-bottom:12px;padding-left:calc(var(--lib) + var(--grp));min-height:38px}
+.f-lib{position:absolute;left:0;top:0;width:var(--lib);height:38px;display:flex;align-items:center;font-weight:700;color:var(--doux);font-size:14.5px}
+.f-ligne .pastille{margin-block:1px} /* pastilles de 36 px dans des lignes de 38 : libelle et boutons centres sur la meme ligne */
 .f-btns,.f-els{display:flex;flex-wrap:wrap;gap:8px}
-.f-els{gap:8px;margin-left:6px}
+.f-els{gap:8px}
 .f-el{width:38px;height:38px;padding:0;border-radius:50%;border:2px solid var(--trait);background:var(--panneau);display:grid;place-items:center;cursor:pointer}
 .f-el img{width:24px;height:24px;filter:grayscale(1) brightness(.75);opacity:.6}
-.f-el[aria-pressed=true]{background:var(--c);border-color:var(--c);box-shadow:0 3px 0 rgba(0,0,0,.35)}
-.f-el[aria-pressed=true] img{filter:drop-shadow(0 1px 1px rgba(0,0,0,.4));opacity:1}
+.f-el[aria-pressed=true],.f-els.neutre .f-el{background:var(--c);border-color:var(--c);box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.f-el[aria-pressed=true] img,.f-els.neutre .f-el img{filter:drop-shadow(0 1px 1px rgba(0,0,0,.4));opacity:1}
 .f-el:disabled{opacity:.4;cursor:not-allowed}
 #triSens svg,.tri-sens svg{width:16px;height:16px;transition:transform .25s}#triSens[data-sens=desc] svg,.tri-sens[data-sens=desc] svg{transform:rotate(180deg)}
-.d-tri{margin-top:-2px}
-.f-fin{margin-left:auto;display:flex;align-items:center;gap:16px;color:var(--doux);font-size:14.5px;font-weight:700}
+/* En-tete des resultats, juste au-dessus de la grille et aligne sur elle : nombre de cartes puis Reinitialiser. */
+.f-res{display:flex;align-items:center;gap:16px;margin-top:16px;color:var(--doux);font-size:14.5px;font-weight:700}.f-res~.grille{margin-top:10px}
 .f-reinit{background:none;border:0;padding:4px 0;color:var(--bleu);font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .f-reinit:hover{color:var(--texte)}
-@media (max-width:600px){.f-ligne{gap:8px 10px}.f-lib{width:100%}.f-els{margin-left:0}.f-fin{margin-left:0;width:100%;justify-content:space-between}}
+@media (max-width:600px){.f-ligne{--lib:84px;--grp:10px}}
 .pastille i{width:11px;height:11px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1px var(--encre)}
-.f-animaux{margin-left:10px}@media (max-width:600px){.f-animaux{margin-left:0}}
-/* Editeur de deck : pastilles rondes de l'onglet Cartes, puis Animaux un peu a l'ecart ; un peu plus petites sur petit telephone. */
-.d-filtres{align-items:center}.d-filtres .f-els{margin-left:0}.d-filtres .f-animaux{margin-left:10px}
-@media (max-width:374px){.d-filtres .f-els{gap:6px}.d-filtres .f-el{width:34px;height:34px}.d-filtres .f-el img{width:21px;height:21px}.d-filtres .f-animaux{margin-left:6px}}
-@media (max-width:340px){.d-filtres .f-els{gap:5px}.d-filtres .f-el{width:30px;height:30px}.d-filtres .f-el img{width:19px;height:19px}}
+/* Recherche par nom ou numero : 1re ligne, meme x que les boutons ; toute la colonne sur telephone. 16 px : pas de zoom sur iPhone. */
+.f-rech{width:459px;max-width:100%;min-width:0;height:38px;padding:0 12px;background:var(--encre);border:1px solid var(--trait);border-radius:8px;color:var(--texte);font-size:16px}
+.f-rech::placeholder{color:var(--doux)}
 .grille{--col:4;display:grid;grid-template-columns:repeat(var(--col),minmax(0,1fr));gap:14px;margin-top:18px}
 .paire{display:contents}
 @media (min-width:1200px){.grille{--col:6}}
@@ -154,7 +155,7 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 .cd-tuile .d-pict img{width:22px;height:22px}
 .cd-haut .d-compte{flex:none;font-size:16px;line-height:22px;padding:0 6px}
 .cd-tuile[aria-pressed=true]{border-color:var(--or);box-shadow:0 0 0 1px var(--or)}
-.cd-tuile.cd-off{opacity:.45;cursor:not-allowed}
+.cd-tuile.cd-off{cursor:not-allowed}.cd-tuile.cd-off>:not(.d-raison){opacity:.45}
 .cd-nb{font-size:13px;color:var(--doux)}
 .barreRejeu{position:fixed;left:12px;right:12px;bottom:8px;width:max-content;margin-inline:auto;z-index:60;display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;gap:5px;padding:4px 8px;background:var(--panneau);border:1px solid var(--trait);border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.45);max-width:calc(100vw - 32px)}
 .barreRejeu>b{font-size:13px}#barreRejeu#barreRejeu .btn{min-height:30px;padding:2px 9px;font-size:13px}.barreRejeu .r-pos{font-variant-numeric:tabular-nums;min-width:56px;text-align:center;font-size:13px}
@@ -170,9 +171,9 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .btn.sec{--bord:#121b24;background:linear-gradient(#3d4e5d,#283643);color:#e8eff4}
 .btn.plein{width:100%}
 .grand{display:flex;flex-direction:column;align-items:center;gap:12px;margin:auto;width:100%}
-.grand img{display:block;width:min(420px,100%,calc((100vh - 110px)*5/7));height:auto;border-radius:16px}
+.grand img{display:block;width:min(462px,100%,calc((100vh - 110px)*5/7));height:auto;border-radius:16px}
 /* Image du zoom et son calque (coût surtaxé, Force actuelle) redessiné au repère de la carte */
-.vue-img{position:relative;display:block;width:min(420px,100%,calc((100vh - 110px)*5/7));line-height:0}
+.vue-img{position:relative;display:block;width:min(462px,100%,calc((100vh - 110px)*5/7));line-height:0}
 .vue-img[hidden]{display:none}
 .grand .vue-img img{width:100%}
 .vue-calque{position:absolute;inset:0;pointer-events:none}
@@ -411,6 +412,21 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 .p-tourde.amoi{background:var(--bleu);color:var(--encre)}
 .p-consigne{background:var(--panneau2);border-radius:8px;padding:8px 12px;min-height:60px;font-size:15px;line-height:1.4;overflow-wrap:anywhere}
 .p-consigne em{display:block;font-style:normal;font-weight:800;color:var(--or)}
+/* Signal de tour au-dessus de la main (consigne gardee en dessous) : bleu a ton tour ; au tour adverse rouge-orange, main grisee mais consultable. */
+.p-signal{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 12px;padding:6px 14px;border-radius:12px 8px 13px 7px/8px 12px 7px 13px;min-width:0}
+.p-signal b{font:400 26px/1.15 Anton,var(--titre);text-transform:uppercase;letter-spacing:.03em;min-width:0;overflow-wrap:anywhere}
+.p-signal span{font-size:15px;line-height:1.35}
+.p-signal.s-moi{background:var(--bleu);color:var(--encre)}
+.p-signal.s-lui{background:color-mix(in srgb,var(--lui) 18%,var(--panneau2));border-left:4px solid var(--lui);border-radius:4px;color:var(--texte)}
+.p-signal.s-lui b{color:var(--lui)}
+.p-main.en-veille .p-slot{filter:grayscale(.75) brightness(.6);transition:filter .3s}
+@media (max-width:899px){.p-signal b{font-size:23px}}
+/* Ordinateur : bande compacte, et la zone d'apercu lui cede sa hauteur minimale (jamais de defilement ajoute). */
+@media (min-width:1200px){
+  .p-signal{padding:3px 12px}.p-signal b{font-size:22px}.p-signal span{font-size:14px}
+  .p-poste:has(>.p-signal)>.p-apercu{min-height:146px}
+}
+@media (min-width:1200px) and (max-height:759px){.p-poste:has(>.p-signal)>.p-apercu{min-height:86px}}
 .p-main{display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));gap:9px;padding:4px 2px}
 .p-carte{padding:0;border:3px solid transparent;border-radius:13px;background:none;position:relative;transition:transform .12s;min-width:0}
 .p-carte img{display:block;width:100%;height:auto;aspect-ratio:5/7;border-radius:10px;background:var(--panneau)}
@@ -500,7 +516,7 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 /* Boutons en relief, encarts plats */
 #partie .btn,#recap .btn{border-radius:12px 8px 13px 7px/8px 12px 7px 13px}
 .oeil{box-shadow:0 2px 0 #08708c,0 3px 6px rgba(0,0,0,.5)}
-.p-tourde{gap:8px;background:var(--panneau2);border-left:4px solid var(--doux);border-radius:4px;cursor:default}
+.p-tourde{gap:8px;background:var(--panneau2);border-left:4px solid var(--doux);border-radius:4px;cursor:default;color:var(--texte)}
 .p-tourde .ico{font-size:24px}
 .p-tourde.amoi{background:rgba(1,193,240,.15);color:var(--bleu);border-left-color:var(--bleu)}
 .p-consigne{border-left:4px solid var(--trait);border-radius:4px;cursor:default}
@@ -556,7 +572,7 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 .tas{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:14px}
 .tas img{display:block;width:100%;height:auto;aspect-ratio:5/7;border-radius:10px}
 /* Carte en grand avec detail de Force */
-.grand.avecDetail{display:grid;grid-template-columns:minmax(0,420px) minmax(240px,340px);justify-content:center;align-items:start;gap:12px 16px;max-width:780px}
+.grand.avecDetail{display:grid;grid-template-columns:minmax(0,462px) minmax(240px,340px);justify-content:center;align-items:start;gap:12px 16px;max-width:822px}
 .grand.avecDetail .btn{grid-column:1/-1;justify-self:center}
 #vueDetail{background:var(--panneau);border:1px solid var(--trait);border-radius:12px 9px 14px 8px;padding:12px 14px;font-size:15px;line-height:1.4;min-width:0}
 #vueDetail h3{font-size:18px;color:var(--bleu);margin:0 0 6px}
@@ -566,7 +582,7 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 #vueDetail .tot{color:var(--or);font-weight:800}
 #vueDetail section+section{margin-top:12px}
 #vueDetail .zs-l{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;padding:5px 0}#vueDetail .zs-l+.zs-l{border-top:1px solid rgba(42,63,80,.55)}#vueDetail .zs-n{flex:none;min-width:96px;font-family:var(--titre);font-weight:400;color:var(--bleu)}#vueDetail .zs-v{flex:1 1 160px;min-width:0;color:var(--doux);font-size:14px}
-@media (max-width:760px){.grand.avecDetail{grid-template-columns:minmax(0,1fr)}.grand.avecDetail .vue-img{justify-self:center;width:min(280px,100%)}}
+@media (max-width:760px){.grand.avecDetail{grid-template-columns:minmax(0,1fr)}.grand.avecDetail .vue-img{justify-self:center;width:min(308px,100%)}}
 @media (max-width:1199px){.p-tourde{grid-column:1/-1}}
 @media (max-width:899px){.p-tourde{height:36px}.p-ener{font-size:25px}}
 .p-lignes .ico{font-size:15px;margin-top:2px}
@@ -594,6 +610,10 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 #absence{bottom:6px;margin:0;color:var(--doux);font-size:13px;line-height:1.2}
 #bandeau{top:64px;background:var(--panneau2);border:1px solid var(--bleu);color:var(--texte);padding:6px 22px;font:400 24px/1.2 var(--titre);box-shadow:0 6px 18px rgba(0,0,0,.55)}
 #bandeau.amoi{background:var(--bleu);color:var(--encre)}
+/* Partie non enregistree (echec d'ecriture) : visible dans tous les onglets, au-dessus des fenetres */
+#nonEnr{position:fixed;z-index:40;left:50%;bottom:16px;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);display:flex;align-items:center;gap:12px;margin:0;background:var(--panneau2);border:1px solid var(--erreur);color:var(--texte);padding:10px 12px 10px 16px;border-radius:12px 8px 13px 7px;font-size:15px;line-height:1.35;box-shadow:0 6px 18px rgba(0,0,0,.55)}
+#nonEnr b{color:var(--erreur)}
+#nonEnr .btn{flex:none;padding:6px 14px}
 #des{position:fixed;z-index:14;left:50%;top:50%;transform:translate(-50%,-50%);width:min(300px,calc(100vw - 32px));pointer-events:none;background:var(--panneau);border:2px solid var(--or);border-radius:16px 11px 17px 10px;padding:14px 16px;text-align:center;box-shadow:0 12px 34px rgba(0,0,0,.7)}
 #des .faces{display:flex;justify-content:center;gap:14px;margin:8px 0}
 #des svg{display:block;width:84px;height:84px}
@@ -672,6 +692,10 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#bandeau,#des){display:none}
 .p-hint{font-family:var(--titre);font-weight:400;color:var(--texte)}
 .p-case.cible>.p-hint{display:block;font-size:17px;margin-top:2px}
 .p-case .act .p-hint{margin-left:5px;font-size:13.5px}
+.p-case .act .act-c{display:none}
+@media (max-width:640px){.p-case .act:has(>.act-c){white-space:nowrap}.p-case .act .act-l{display:none}.p-case .act .act-c{display:inline}}
+/* Petit telephone : « Remp. N +X » prend toute la largeur du bas de la case, l'hexagone de Force remonte juste au-dessus (rien de cache). */
+@media (max-width:413px){.p-case .act:has(>.act-c){right:0;border-radius:0}.p-case:has(>.act>.act-c) .f{bottom:24px}}
 .btnCode{display:block;margin:0 0 12px;min-height:40px;padding:6px 14px;font-size:16px}
 .r-fin{text-align:left;margin:0 0 10px;font-size:15px;line-height:1.4}
 .r-fin div{padding:4px 0;border-top:1px solid var(--trait)}
@@ -884,7 +908,7 @@ html.galOuverte,html.galOuverte body{overflow:hidden}
 .st-tri{white-space:nowrap}.st-tc{cursor:pointer}.st-tc:hover{background:rgba(1,193,240,.06)}.st-jl{position:relative;cursor:pointer}.st-fiche{display:none;position:absolute;left:0;right:0;top:100%;z-index:20;background:var(--panneau2);border:1px solid rgba(1,193,240,.5);border-radius:10px;padding:10px 12px;box-shadow:0 6px 18px rgba(0,0,0,.45);font-size:13.5px}.st-jl:hover .st-fiche,.st-jl:focus-within .st-fiche{display:block}.st-fiche p{margin:4px 0 0}.st-ft{display:flex;align-items:center;gap:8px}.st-ft .avatar{width:40px;height:40px;font-size:20px}.st-fp{font-size:16px}.st-patch{align-items:center;gap:4px}.st-patch label{order:2}.st-tri.actif{color:#01C1F0}.st-tri:hover{color:var(--texte)}
 .st-leg{margin-top:10px;font-size:12px;color:var(--doux)}.st-leg p{margin:0 0 4px}.st-leg b{color:var(--texte);font-weight:600}
 .st-liste li{align-items:center;font-size:14px}.st-liste li b{white-space:nowrap}
-.st-bandeau{margin-bottom:16px}.st-bandeau .st-h{color:#01C1F0;margin:0 0 10px}.st-tuiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.st-patch select{font:600 18px/1.2 inherit;background:var(--panneau);color:var(--texte);border:1px solid var(--trait);border-radius:6px;padding:2px 4px;margin:0 auto;max-width:100%}.st-patch select:disabled{appearance:none;border-color:transparent;opacity:1}.st-patch label{font-size:13px;color:var(--doux)}.st-tuiles .pf-tuile{justify-content:center}.st-tuiles .pf-tuile b{font-size:20px;line-height:1.15;overflow-wrap:anywhere}.st-pt{font-size:12px!important;opacity:.8}.st-sous{margin:0 0 8px}.st-rang{width:18px;text-align:right;color:var(--doux);font-size:13px;flex:none}.st-joueurs .avatar{width:28px;height:28px;font-size:14px;flex:none}.st-ps{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.st-jn{display:flex;flex-direction:column;min-width:0;line-height:1.2}.st-jp{font-size:12px;color:var(--doux)}.st-joueurs li b{font-size:16px}.st-bn{gap:6px}@media (max-width:1199px){.st-tuiles{grid-template-columns:repeat(3,minmax(0,1fr))}.st-tuiles .st-patch{grid-column:span 2}}@media (max-width:640px){.st-tuiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.st-bandeau{margin-bottom:16px}.st-bandeau .st-h{color:#01C1F0;margin:0 0 10px}.st-tuiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.st-patch select{font:600 18px/1.2 inherit;background:var(--panneau);color:var(--texte);border:1px solid var(--trait);border-radius:6px;padding:2px 4px;margin:0 auto;max-width:100%}.st-patch select:disabled{appearance:none;border-color:transparent;opacity:1}.st-patch label{font-size:13px;color:var(--doux)}.st-tuiles .pf-tuile{justify-content:center}.st-tuiles .pf-tuile b{font-size:20px;line-height:1.15;overflow-wrap:anywhere}.st-pt{font-size:12px!important;opacity:.8}.st-sous{margin:0 0 8px}.st-rang{width:18px;text-align:right;color:var(--doux);font-size:13px;flex:none}.st-joueurs .avatar{width:31px;height:31px;font-size:15px;flex:none}.st-bn .avatar img{width:100%;height:100%}.st-ps{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.st-jn{display:flex;flex-direction:column;min-width:0;line-height:1.2}.st-jp{font-size:12px;color:var(--doux)}.st-joueurs li b{font-size:16px}.st-bn{gap:6px}@media (max-width:1199px){.st-tuiles{grid-template-columns:repeat(3,minmax(0,1fr))}.st-tuiles .st-patch{grid-column:span 2}}@media (max-width:640px){.st-tuiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .st-filtres{display:flex;flex-wrap:wrap;align-items:center;gap:10px 28px;margin:0 0 12px}.st-fg{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.st-fl{font-weight:700;color:var(--doux);font-size:14.5px}
 .st-dd{position:relative}.st-dd summary{list-style:none;cursor:pointer;background:var(--panneau);border:1px solid var(--trait);border-radius:999px;padding:7px 34px 7px 14px;min-height:38px;box-sizing:border-box;font-size:14.5px;font-weight:700;display:flex;align-items:center;position:relative}
 .st-dd summary::-webkit-details-marker{display:none}.st-dd summary::after{content:'';position:absolute;right:14px;top:50%;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-70%) rotate(45deg)}
@@ -931,6 +955,8 @@ html.galOuverte,html.galOuverte body{overflow:hidden}
 .pf-mn{font-size:14px;overflow-wrap:anywhere}.pf-mc{font-size:12px;background:rgba(0,0,0,.35);border-radius:6px;padding:2px 4px}
 @media (max-width:440px){.pf-boite.boite{padding:18px 14px}.pf-ring{width:108px;height:108px}.pf-ring b{font-size:21px}.pf-trio{grid-template-columns:1fr;gap:0}.pf-vdn .pf-serie b{font-size:15px}.pf-vdn .pf-flamme{font-size:18px}.pf-hero{gap:10px}.pf-vdn{gap:6px;grid-template-columns:1fr 1fr}.pf-vdn .pf-tuile{padding:8px 4px}.pf-vdn .pf-tuile b{font-size:20px}.pf-mvps .dl-ligne{grid-template-columns:36px 36px 40px minmax(0,1fr) auto;gap:4px}.pf-sl{display:none}.pf-mn{font-size:12.5px}.pf-bh{flex-direction:column;gap:1px}.pf-bh b{text-align:left}}
 .d-tuile{cursor:pointer}
+/* Deck injouable : contour rouge comme le contour dore de la tuile choisie (taille inchangee) ; choisie et injouable : rouge, puis anneau dore autour. */
+.d-tuile.d-injouable{outline:3px solid #ff6b5e;outline-offset:1px}.d-tuile.d-injouable.choisie{outline-color:#ff6b5e;box-shadow:0 0 0 7px var(--or)}
 .d-tuile.choisie{outline:3px solid var(--or);outline-offset:1px}
 .d-zone{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 .d-panneau{min-width:0;padding:12px;border:1px solid var(--trait);border-radius:12px;background:var(--panneau)}
@@ -1018,6 +1044,23 @@ html.galOuverte,html.galOuverte body{overflow:hidden}
 @media (max-width:440px){.dl-courbe{grid-template-columns:repeat(7,minmax(0,38px));column-gap:6px}.dl-col i{width:22px}.dl-total{padding:0 4px}}
 .d-limite{color:var(--or);font-weight:700}
 .dl-invalide{margin:0 0 8px}
+/* Deck injouable : toutes les raisons en clair (editeur, liste du deck), carte en cause cerclee de rouge. */
+.dl-erreurs{margin:0 0 8px;padding:6px 10px;border:1px solid #ff6b5e;border-left-width:4px;border-radius:8px;background:rgba(255,107,94,.1);overflow-wrap:anywhere}
+.dl-erreurs>b{color:#ff6b5e}
+.dl-erreurs ul{margin:2px 0 0;padding-left:20px}
+.dl-erreurs li+li{margin-top:2px}
+#listeDecks#listeDecks .dl-erreurs .btn{min-height:32px;margin:2px 0 2px 8px;padding:3px 10px;font-size:14px;vertical-align:middle} /* comme Renommer (.dl-renomme) */
+.d-carte.d-fautive img{outline:3px solid #ff6b5e;outline-offset:2px}
+.d-carte-err{margin:4px 0 0;text-align:center;font-size:13px;font-weight:700;line-height:1.25;color:#ff8a80}
+.dl-ligne.dl-fautive{box-shadow:inset 0 0 0 2px #ff6b5e}
+/* Tuile d'un deck injouable (onglet Decks, choix du deck) : raison courte, toujours visible (souris et toucher). */
+/* Bandeau a droite d'Importer un deck : raison du deck ouvert dans le panneau ; seul sur sa ligne et pleine largeur s'il manque de place. */
+/* Largeur au contenu, plafonnee a la place libre ; 46 px et rebord de 3 px comme les boutons (.btn : 0 3px 0) ; 2 lignes au plus. */
+.d-bandeau{flex:0 1 auto;width:max-content;max-width:100%;min-width:0;height:46px;box-sizing:border-box;display:flex;align-items:center;margin:0;padding:2px 12px;border:1px solid #ff6b5e;border-radius:8px;background:rgba(255,107,94,.1);box-shadow:0 3px 0 #7a2a24;line-height:1.15;overflow-wrap:anywhere}
+.d-bandeau>span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}.d-bandeau b{color:#ff6b5e}
+/* 600 px et plus : le bandeau reste a cote des boutons et se resserre ; en dessous, il passe dessous (largeur au contenu, pleine largeur s'il est long). */
+@media (min-width:600px){.d-btns:has(.d-bandeau){flex-wrap:nowrap}.d-btns:has(.d-bandeau)>.btn{flex:none}}
+.d-raison{display:block;margin:0;padding:2px 8px;border-radius:8px;background:rgba(10,18,26,.75);color:#ff8a80;font-size:14px;font-weight:700;line-height:1.35;overflow-wrap:anywhere}
 .d-panneau{scrollbar-width:thin;scrollbar-color:#3d4e5d transparent}
 .d-panneau::-webkit-scrollbar{width:8px}.d-panneau::-webkit-scrollbar-thumb{background:#3d4e5d;border-radius:4px}.d-panneau::-webkit-scrollbar-track{background:transparent}
 .d-haut .dl-renomme,#listeDecks#listeDecks .dl-renomme{min-height:32px;padding:3px 10px;font-size:14px}
@@ -1046,6 +1089,7 @@ html.galOuverte,html.galOuverte body{overflow:hidden}
 .d-tuile.mono .d-haut h3{color:var(--bleu)}
 .d-act>:not(.btn){grid-column:1/-1}
 .d-carte img{display:block;width:100%;aspect-ratio:5/7;height:auto;border-radius:10px}
+.d-carte img.d-zoom{cursor:zoom-in}
 .d-qte{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;font-family:var(--titre)}
 .d-qte b{font-weight:400;min-width:30px;text-align:center}
 .h-barre{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
@@ -1235,17 +1279,48 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 .p-apercu{display:none}
 @media (min-width:1200px){
   .p-table:has(.p-apercu) .p-poste{align-self:stretch}
+  /* La hauteur de la rangee suit le plateau, pas le journal : le poste finit au bas du bandeau de ton pseudo (journal inchange). */
+  .p-table:has(.p-apercu) .p-cote{align-self:stretch;contain:size}
   .p-poste>.p-apercu{order:2;display:flex;flex-direction:column;flex:1 1 0;min-height:180px;border:1px dashed var(--trait);border-radius:10px;padding:8px;gap:6px}
+  /* Boutons d'action a hauteur du bandeau du pseudo (34 px) ; la zone d'apercu finit au bas de ta grille (6 px au-dessus, comme sur le plateau).
+     Plusieurs rangees de boutons : la zone d'apercu raccourcit d'autant. */
   .p-poste>.p-btns{order:3}
+  .p-poste:has(>.p-apercu)>.p-btns{margin-top:-2px}
+  :is(#partie .p-poste:has(>.p-apercu)>.p-btns .btn,#f#f#f){min-height:34px;height:34px;padding:0 6px;font-size:15px}
   .p-apercu .p-ap-leg{margin:0;text-align:center;font-size:13px;color:var(--doux);min-height:17px}
   .p-apercu .p-ap-img{position:relative;flex:1 1 0;min-height:0}
   .p-apercu .p-ap-img img{position:absolute;inset:0;margin:auto;height:100%;max-width:100%;aspect-ratio:5/7;object-fit:contain;border-radius:5.07%/3.62%;box-shadow:0 6px 18px rgba(0,0,0,.45)}
   .p-apercu .p-ap-img img[hidden],.p-apercu.vol .p-ap-img img{visibility:hidden}
+  .p-apercu:not(.vide){cursor:zoom-in}
   .p-apercu.vide{justify-content:center}.p-apercu.vide .p-ap-img{display:none}.p-apercu.vol .p-ap-leg{visibility:hidden}
   .barreRejeu.dansPoste{order:3;position:static;width:auto;max-width:none;margin:0;box-shadow:none;padding:1px 3px;gap:6px;justify-content:center}
   #barreRejeu#barreRejeu.dansPoste .btn{flex:1 1 0;min-height:30px;padding:2px 10px;font-size:15px;box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
   .barreRejeu.dansPoste>b,.barreRejeu.dansPoste .r-pos{font-size:15px;padding:0 6px}
 }
+/* Boutons d'action toujours a portee : quand la page depasse l'ecran (telephone, fenetre basse), ils restent colles au bas de l'ecran
+   tant que ton poste est visible ; sinon ils restent a leur place. Fond de la page autour, pour ne rien laisser voir au travers. */
+#partie .p-poste>.p-btns:has(>.btn:not(:disabled)){position:sticky;bottom:6px;z-index:4;background:var(--encre);box-shadow:0 0 0 6px var(--encre)}
+/* Fenetre basse (ordinateur, moins de 760 px de haut) : le poste tient dans l'ecran (haut a 132 px), la carte d'apercu reduit et reste entiere au-dessus des boutons. */
+@media (min-width:1200px) and (max-height:759px){
+  .p-table:has(.p-apercu) .p-poste{max-height:calc(100vh - 138px)}
+  .p-poste>.p-apercu{min-height:120px}
+}
+/* Boutons d'action : 3 par ligne au plus, memes largeurs, une ligne de texte (1, 2 ou 3 colonnes ; 4 boutons = 2 x 2 ; 5 = 3 + 2, le dernier a droite). */
+#partie .p-poste>.p-btns{display:grid;grid-template-columns:minmax(0,1fr)}
+#partie .p-poste>.p-btns:has(>:nth-child(2)){grid-template-columns:repeat(2,minmax(0,1fr))}
+#partie .p-poste>.p-btns:has(>:nth-child(3)){grid-template-columns:repeat(3,minmax(0,1fr))}
+#partie .p-poste>.p-btns:has(>:nth-child(4):last-child){grid-template-columns:repeat(2,minmax(0,1fr))}
+#partie .p-poste>.p-btns>:nth-child(4):nth-last-child(2){grid-column:2}
+:is(#partie .p-poste>.p-btns .btn,#f#f#f){min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:1199px){:is(#partie .p-poste>.p-btns .btn,#f#f#f){padding:0 6px;font-size:16px}}
+@media (max-width:899px){:is(#partie .p-poste>.p-btns:has(>:nth-child(3)) .btn,#f#f#f#f){padding:0 3px;font-size:min(16px,3.4vw)}}
+/* Choix du Caramel : les terrains sur une ligne (2 ou 3 colonnes, memes largeurs), Annuler seul sur la ligne du dessous, a droite. */
+#partie .p-poste>.p-btns.p-choix.p-choix{grid-template-columns:repeat(2,minmax(0,1fr))}
+#partie .p-poste>.p-btns.p-choix.p-choix:has(>:nth-child(4)){grid-template-columns:repeat(3,minmax(0,1fr))}
+#partie .p-poste>.p-btns.p-choix.p-choix>:last-child{grid-column:-2}
+/* 3 terrains : marges reduites (et texte un peu plus petit au telephone) pour que le nom le plus long, numerote, tienne sur sa ligne. */
+:is(#partie .p-poste>.p-btns.p-choix:has(>:nth-child(4)) .btn,#f#f#f#f#f){padding:0 2px}
+@media (max-width:899px){:is(#partie .p-poste>.p-btns.p-choix:has(>:nth-child(4)) .btn,#f#f#f#f#f){font-size:min(16px,3.2vw)}}
 @media (max-width:640px){#gPasser{position:static;display:block;margin:4px auto 16px}#gPasser[hidden]{display:none}body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:0}}
 </style>
 
@@ -1376,9 +1451,10 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 
 <section id="cartes" role="tabpanel" aria-labelledby="t-cartes" hidden>
   <p class="intro">Découvre toutes les cartes du jeu.</p>
-  <div class="filtres f-ligne"><span class="f-lib">Afficher</span><div class="f-btns" id="filtreType"></div><div class="f-els" id="filtreEl"></div></div>
-  <div class="filtres f-ligne"><span class="f-lib">Trier par</span><div class="f-btns" id="filtreTri"></div>
-    <div class="f-fin"><span id="nbCartes" aria-live="polite"></span><button class="f-reinit" id="toutAfficher" type="button">Réinitialiser</button></div></div>
+  <div class="filtres f-ligne"><label class="f-lib" for="rechCarte">Rechercher</label><input type="search" class="f-rech" id="rechCarte" placeholder="Nom ou numéro" autocomplete="off"></div>
+  <div class="filtres f-ligne"><span class="f-lib">Afficher</span><div class="f-btns" id="filtreType"></div></div>
+  <div class="filtres f-ligne"><span class="f-lib">Trier par</span><div class="f-btns" id="filtreTri"></div></div>
+  <div class="f-res"><span id="nbCartes" aria-live="polite"></span><button class="f-reinit" id="toutAfficher" type="button">Réinitialiser</button></div>
   <p class="vide" id="vide" hidden>Aucune carte pour ce filtre.</p>
   <div class="grille" id="grille"></div>
 </section>
@@ -1473,6 +1549,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 <img id="apercu" alt="" hidden>
 <div class="voile" id="recap" role="dialog" aria-modal="true" aria-labelledby="recapTitre" hidden></div>
 <p id="absence" role="status" hidden></p>
+<div id="nonEnr" role="alert" hidden><span><b>Partie non enregistrée.</b> Nouvel essai automatique au prochain chargement.</span><button class="btn sec" id="nonEnrOk" type="button">OK</button></div>
 <div id="bandeau" role="status" hidden></div>
 <div id="des" role="status" hidden></div>
 <div id="scene" aria-hidden="true"></div>
@@ -1499,8 +1576,8 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 </div>
 <button class="btn sec" id="gPasser" type="button" hidden>Passer le tutoriel</button>
 <script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
-<script type="module" src="salon-firebase.js"></script>
-<script src="moteur.js"></script>
+<script type="module" src="salon-firebase.js?v=0.2b.1"></script>
+<script src="moteur.js?v=0.2b.1"></script>
 <script>
 const ETOILE_G='<path d="M150.0 162.0 L103.0 97.3 L150.0 20.0 Z" fill="#ffe48a" stroke="#ffe48a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 20.0 L197.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L197.0 97.3 L288.9 116.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L288.9 116.9 L222.3 185.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L222.3 185.5 L231.1 273.6 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L231.1 273.6 L150.0 244.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 244.0 L65.4 278.5 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L65.4 278.5 L75.8 186.1 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L75.8 186.1 L16.9 118.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L16.9 118.7 L103.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 20.0 L197.0 97.3 L190.4 106.3 L150.0 39.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M197.0 97.3 L288.9 116.9 L269.4 123.2 L190.4 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M288.9 116.9 L222.3 185.5 L212.2 182.2 L269.4 123.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M222.3 185.5 L231.1 273.6 L219.8 258.0 L212.2 182.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M231.1 273.6 L150.0 244.0 L150.0 232.5 L219.8 258.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M150.0 244.0 L65.4 278.5 L77.2 262.2 L150.0 232.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M65.4 278.5 L75.8 186.1 L86.2 182.7 L77.2 262.2 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M75.8 186.1 L16.9 118.7 L35.5 124.8 L86.2 182.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M16.9 118.7 L103.0 97.3 L109.6 106.3 L35.5 124.8 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M103.0 97.3 L150.0 20.0 L150.0 39.9 L109.6 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M150.0 20.0 L197.0 97.3 L288.9 116.9 L222.3 185.5 L231.1 273.6 L150.0 244.0 L65.4 278.5 L75.8 186.1 L16.9 118.7 L103.0 97.3 Z" fill="none" stroke="#0b0b10" stroke-width="13" stroke-linejoin="round"/>';
 (function(){
@@ -1679,7 +1756,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
- {version:'Version 0.2b',date:'4 novembre 2026',notes:["Nouveaux Golems : toujours trop nombreux pour les citer","Premier animal de compagnie : Kiwi, le lapin de Titom76","K-Chan devient Magma + Brume","Plateau en miroir : ton camp en bas","Statistiques par patch et par adversaire, profils publics","Cartes et éditeur de deck : nouveaux filtres et tri","Aide en partie avec le cercle des éléments","Historique repensé, decks à 3 par ligne, 7 nouveaux avatars"]},
+ {version:'Version 0.2b',date:'4 novembre 2026',notes:["Nouveaux Golems : trop nombreux pour les citer","Premier animal de compagnie : Kiwi, le lapin de Titom76","K-Chan devient Magma + Brume","Plateau en miroir : ton camp en bas","Statistiques par patch et par adversaire, profils publics","Cartes et éditeur de deck : nouveaux filtres et tri","Aide en partie avec le cercle des éléments","Historique repensé, decks à 3 par ligne, 7 nouveaux avatars, QoL ajoutés"]},
  {version:'Version 0.2a',date:'3 novembre 2026',notes:["Jeu en ligne sur le site, avec comptes (pseudo et code)","Parties publiques et privées, avec discussion","Apprendre à jouer (tutoriel) et entraînement contre les Golems","Decks, historique, rejeu et profil","Avatars personnalisables"]},
  {version:'Version 0.1',date:'2 novembre 2026',notes:["Création du jeu de cartes communautaire Les Golems","Premières cartes Golem jouables avec leurs évolutions, et 10 terrains","Règles disponibles sur le site","Parties contre les Golems en 3 niveaux et jeu en ligne à deux","Decks personnalisés et historique des parties"]}
 ];
@@ -1759,21 +1836,57 @@ function pastilles(box,liste,get,set,point){
   box._get=get;
 }
 pastilles($('filtreType'),TY,()=>fTy,v=>fTy=v);
-/* Elements : 5 pastilles rondes, toutes allumees par defaut ; une carte s'affiche si elle a un element allume. */
-const ELS=EL.filter(x=>x[0]).map(x=>x[0]);let elsOn=new Set(ELS);fEl='';
+/* Elements : meme composant et meme regle pour l'onglet Cartes et l'editeur de deck. Aucune pastille choisie (depart, toutes en couleur)
+   = aucun filtre ; les 5 choisies reviennent a aucune. Mode « Au moins un » : la carte a un des elements choisis ; « Tous » : elle les a tous.
+   Les animaux (sans element) ne passent que sans filtre d'element ; avec Animaux, les pastilles sont grisees. */
+const ELS=EL.filter(x=>x[0]).map(x=>x[0]);
+const MODES_EL=[['ou','Au moins un'],['et','Tous']]; /* 3e mode possible : ['seul','Seulement'] = aucun element hors de ceux choisis */
+const passeEl=(c,f)=>!f.sel.size||c[2].length>0&&(f.mode==='et'?[...f.sel].every(x=>c[2].includes(x)):f.mode==='seul'?c[2].every(x=>f.sel.has(x)):c[2].some(x=>f.sel.has(x)));
+/* Recherche : nom ou numero affiche (G-009), sans accents ni majuscules. */
+const sansAccent=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const cleRech=c=>sansAccent(c[1]+' '+numeroAffiche(c[0]));
+const passeRech=(cle,q)=>{q=sansAccent(q.trim());return !q||cle.includes(q)};
 /* Pastille ronde a picto d'un element : meme composant pour l'onglet Cartes et l'editeur de deck. */
 function pastilleEl(v,clic){const b=document.createElement('button');b.type='button';b.className='f-el';b.dataset.el=v;b.style.setProperty('--c','var(--'+v+')');
   const t=EL.find(x=>x[0]===v)[1];b.title=t;b.setAttribute('aria-label',t);const i=document.createElement('img');i.src='cartes/'+v+'.png';i.alt='';b.append(i);
   b.onclick=clic;return b}
-/* Tous eteints = aucun Golem (les animaux, sans element, restent) ; Reinitialiser rallume tout. */
-ELS.forEach(v=>$('filtreEl').append(pastilleEl(v,()=>{elsOn.has(v)?elsOn.delete(v):elsOn.add(v);maj()})));
-$('filtreEl')._get=()=>'';
+function ligneEls(f,change,off){
+  const r=el('div','filtres f-ligne'),box=el('div','f-els'),m=el('div','f-btns f-mode');
+  ELS.forEach(v=>box.append(pastilleEl(v,()=>{f.sel.has(v)?f.sel.delete(v):f.sel.add(v);if(f.sel.size===ELS.length)f.sel.clear();change()})));
+  MODES_EL.forEach(([v,t])=>{const b=el('button','pastille',t);b.type='button';b.dataset.mode=v;b.onclick=()=>{f.mode=v;change()};m.append(b)});
+  m.setAttribute('role','group');m.setAttribute('aria-label','Une carte doit avoir');
+  r.append(el('span','f-lib','Éléments'),m,box);peintEls(r,f,off);return r}
+/* Mode toujours actif (on peut le choisir avant les pastilles) ; grise avec Animaux, Terrains, A venir. */
+function peintEls(r,f,off){
+  r.querySelector('.f-els').classList.toggle('neutre',!f.sel.size);
+  r.querySelectorAll('.f-el').forEach(b=>{b.disabled=off;b.setAttribute('aria-pressed',String(f.sel.has(b.dataset.el)))});
+  r.querySelectorAll('[data-mode]').forEach(b=>{b.disabled=off;b.setAttribute('aria-pressed',String(b.dataset.mode===f.mode))});
+}
+function msgVide(f){
+  if(f.mode==='et'&&f.sel.size>1&&!CARTES.some(c=>passeEl(c,f))){
+    if(f.sel.size>2)return 'Aucune carte n’a '+f.sel.size+' éléments : une carte en a deux au plus.';
+    const [a,b]=[...f.sel].map(v=>EL.find(x=>x[0]===v)[1]);return 'Aucune carte n’a à la fois '+a+' et '+b+'.'}
+  return 'Aucune carte pour ce filtre.'}
+const fCartes={sel:new Set(),mode:'ou'},ligneElC=ligneEls(fCartes,()=>maj(),false);$('filtreType').parentElement.after(ligneElC);
+$('rechCarte').oninput=()=>maj();
 const TRI=[['','Numéro'],['cout','Coût'],['force','Force']];let fTri='',triDesc=false;
 pastilles($('filtreTri'),TRI,()=>fTri,v=>fTri=v);
-{const s=document.createElement('button');s.className='pastille';s.id='triSens';s.type='button';s.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span></span>';s.onclick=()=>{triDesc=!triDesc;maj()};$('filtreTri').append(s)}
-/* Force au de : moyenne (Alrevan 3,5 ; KEKWRevan 6,4). */
+{const s=document.createElement('button');s.className='pastille';s.id='triSens';s.type='button';s.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span></span>';s.onclick=()=>{triDesc=!triDesc;maj()};const g=el('div','f-btns');g.append(s);$('filtreTri').after(g)}
+/* Force au de : moyenne reelle des lancers (forceMoy), sinon theorique (Alrevan 3,5 ; KEKWRevan 6,4). */
 const FORCE_TRI={'002':3.5,'002e':6.4};
-const valTri=(id,k)=>{const C=window.GolemsMoteur.CARTES[id];if(!C)return 99;return k==='force'?(C.force==null?FORCE_TRI[id]??0:C.force):C.cout}; /* animal : ni Force ni de, trie a 0 */
+const valTri=(id,k)=>{const C=window.GolemsMoteur.CARTES[id];if(!C)return 99;return k==='force'?(C.force==null?forceMoy(id)??0:C.force):C.cout}; /* animal : ni Force ni de, trie a 0 */
+/* Moyenne reelle : forces tirees (champ dr des resumes deja charges pour les Statistiques), par code, 1 decimale ;
+   theorique tant qu'un code a moins de 30 lancers ou sans donnees (invite, hors ligne). Aucune lecture ni ecriture en plus. */
+let forceMoySrc=null,forceMoyVal={};
+function forceMoy(id){
+  if(!(id in FORCE_TRI))return null;
+  let L=null;try{L=statsData}catch(e){} /* statsData est declare plus bas */
+  if(L!==forceMoySrc){forceMoySrc=L;forceMoyVal={};const t={};
+    (Array.isArray(L)?L:[]).forEach(r=>{const d=r&&r.dr;if(!d||typeof d!=='object')return;
+      for(const k in FORCE_TRI)if(Array.isArray(d[k]))d[k].forEach(f=>{f=+f;if(Number.isInteger(f)&&f>=1&&f<=12){const x=t[k]=t[k]||{n:0,s:0};x.n++;x.s+=f}})});
+    for(const k in t)if(t[k].n>=30)forceMoyVal[k]=Math.round(10*t[k].s/t[k].n)/10}
+  return forceMoyVal[id]??FORCE_TRI[id];
+}
 function trie(){
   const g=$('grille');
   if(!fTri){const ps=[...g.querySelectorAll('.paire')];if(triDesc)ps.reverse();ps.forEach(p=>g.append(p));
@@ -1784,10 +1897,10 @@ function trie(){
   const s=$('triSens');s.dataset.sens=triDesc?'desc':'asc';s.querySelector('span').textContent=triDesc?'Décroissant':'Croissant';s.setAttribute('aria-label','Ordre '+(triDesc?'décroissant':'croissant')+', inverser');
   $('filtreTri').querySelectorAll('button').forEach(b=>{if(b.id!=='triSens')b.setAttribute('aria-pressed',String(b.dataset.v===fTri))});
 }
-/* Reinitialiser : meme fonction que l'ancien Tout afficher (type et elements), plus le tri remis a Numero croissant. */
-$('toutAfficher').onclick=()=>{fTy='';elsOn=new Set(ELS);fTri='';triDesc=false;maj()};
+/* Reinitialiser : meme fonction que l'ancien Tout afficher (type, elements et leur mode, recherche), plus le tri remis a Numero croissant. */
+$('toutAfficher').onclick=()=>{fTy='';fCartes.sel.clear();fCartes.mode='ou';$('rechCarte').value='';fTri='';triDesc=false;maj()};
 GALERIE.forEach(c=>{
-  const b=document.createElement('button');b.className='carte';b.dataset.id=c[0];b.setAttribute('aria-label',[numeroAffiche(c[0]),c[1]].filter(Boolean).join(', '));
+  const b=document.createElement('button');b.className='carte';b.dataset.id=c[0];b.dataset.q=cleRech(c);b.setAttribute('aria-label',[numeroAffiche(c[0]),c[1]].filter(Boolean).join(', '));
   const i=document.createElement('img');i.src='cartes/'+c[0]+'.jpg';i.alt=c[1];i.loading='lazy';i.width=600;i.height=840;
   b.append(i);b.onclick=()=>{dernier=b;zoom(i.src,c[1],statZoomCarte(c[0]))};
   const num=c[0].slice(0,3);let p=$('grille').querySelector('[data-paire="'+num+'"]');
@@ -1797,7 +1910,7 @@ GALERIE.forEach(c=>{
 function tuilesTerrains(){
   if($('grille').querySelector('[data-terrain]'))return;
   window.GolemsMoteur.TERRAINS.forEach(T=>{
-    const b=document.createElement('button'),i=document.createElement('img');b.className='carte';b.dataset.terrain=T.nom;b.setAttribute('aria-label',T.nom+', '+T.pts+(T.pts>1?' points':' point'));
+    const b=document.createElement('button'),i=document.createElement('img');b.className='carte';b.dataset.terrain=T.nom;b.dataset.q=sansAccent(T.nom);b.setAttribute('aria-label',T.nom+', '+T.pts+(T.pts>1?' points':' point'));
     i.src=srcTerrain(T);i.alt=T.nom+'. '+T.texte;i.loading='lazy';i.width=600;i.height=840;b.append(i);b.onclick=()=>{zoomTerrain(T);dernier=b};$('grille').append(b);
   });
 }
@@ -1807,7 +1920,7 @@ function carteAVenir(num,nom){
 function tuilesAVenir(){
   if($('grille').querySelector('[data-avenir]'))return;
   A_VENIR.forEach(([num,nom])=>{
-    const b=el('button','carte');b.type='button';b.dataset.avenir=num;b.setAttribute('aria-label',nom+', à venir');b.append(carteAVenir(num,nom));
+    const b=el('button','carte');b.type='button';b.dataset.avenir=num;b.dataset.q=sansAccent(nom);b.setAttribute('aria-label',nom+', à venir');b.append(carteAVenir(num,nom));
     b.onclick=()=>{
       cacheApercu();dernier=b;zoom('',nom,[el('p','',nom+" n'a pas encore sa carte. Elle arrivera bientôt.")]);
       const v=$('vueTerrain');v.textContent='';v.append(carteAVenir(num,nom));$('vueImg').hidden=$('vueBoite').hidden=true;v.hidden=false;
@@ -1816,21 +1929,19 @@ function tuilesAVenir(){
   });
 }
 function maj(){
-  const ter=fTy==='t',av=fTy==='v';if(ter){fEl='';tuilesTerrains()}
+  const ter=fTy==='t',av=fTy==='v',offEl=ter||av||fTy==='a',q=$('rechCarte').value;if(ter){fEl='';tuilesTerrains()}
   if(av){fEl='';tuilesAVenir()}
-  $('grille').querySelectorAll('[data-avenir]').forEach(b=>{b.hidden=!av});
-  $('filtreEl').querySelectorAll('button').forEach(b=>{b.disabled=ter||av;b.setAttribute('aria-pressed',String(elsOn.has(b.dataset.el)))});
-  $('grille').querySelectorAll('[data-terrain]').forEach(b=>{b.hidden=!ter});
+  let n=0;const vu=(b,ok)=>{ok=ok&&passeRech(b.dataset.q,q);b.hidden=!ok;if(ok)n++};
+  $('grille').querySelectorAll('[data-avenir]').forEach(b=>vu(b,av));
+  peintEls(ligneElC,fCartes,offEl);
+  $('grille').querySelectorAll('[data-terrain]').forEach(b=>vu(b,ter));
   ['filtreType'].forEach(id=>{const box=$(id);box.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===box._get()))});
-  let n=0;
-  GALERIE.forEach(c=>{const ok=!ter&&!av&&(c[2].some(x=>elsOn.has(x))||!c[2].length)&&(fTy===''||String(c[3])===fTy);
-    $('grille').querySelector('[data-id="'+c[0]+'"]').hidden=!ok;if(ok)n++});
+  GALERIE.forEach(c=>vu($('grille').querySelector('[data-id="'+c[0]+'"]'),!ter&&!av&&(offEl||passeEl(c,fCartes))&&(fTy===''||String(c[3])===fTy)));
   trie();
   $('grille').querySelectorAll('.paire').forEach(p=>{p.hidden=![...p.children].some(b=>!b.hidden)});
   $('grille').classList.toggle('groupee',fTy===''&&!fTri);
-  const nb=ter?$('grille').querySelectorAll('[data-terrain]').length:av?A_VENIR.length:n;$('nbCartes').textContent=nb+(nb>1?' cartes':' carte');
-  const sansEl=!elsOn.size&&!ter&&!av&&fTy!=='a';
-  $('vide').textContent=fTy==='a'?MSG_ANIMAUX:sansEl?(n?'Aucun élément allumé : aucun Golem affiché, seulement les animaux. Touche une pastille d’élément ou Réinitialiser.':'Aucun élément allumé : aucun Golem affiché. Touche une pastille d’élément ou Réinitialiser.'):'Aucune carte pour ce filtre.';$('vide').hidden=(n>0&&!sansEl)||ter||av;
+  $('nbCartes').textContent=n+(n>1?' cartes':' carte');
+  $('vide').textContent=fTy==='a'&&!q.trim()?MSG_ANIMAUX:offEl?'Aucune carte pour ce filtre.':msgVide(fCartes);$('vide').hidden=n>0;
 }
 maj();
 /* calque : éléments redessinés par-dessus l'image (badgeSurcout, badgeForce), repère 750 x 1050 de la carte */
@@ -2126,7 +2237,7 @@ async function entre(c){
 /* M : moteur en service. Le rejeu le remplace le temps de la partie par le moteur archive de sa version (moteurs/moteur-<v>.js). */
 const M0=window.GolemsMoteur;let M=M0;
 /* Versions archivees dans moteurs/ : en ajouter une a chaque nouvelle version du moteur (voir README). */
-const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b'];
+const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b','0.2b.1'];
 const versionMoteur=v=>v==='0.2a'?'0.2':v;
 const rejeuPossible=R=>!!(R&&typeof R.v==='string'&&Number.isInteger(R.graine)&&Array.isArray(R.j)&&(versionMoteur(R.v)===M0.VERSION||MOTEURS_ARCHIVES.includes(versionMoteur(R.v))));
 const moteursCharges={};
@@ -2143,7 +2254,9 @@ function chargeMoteur(v){
 }
 const REDUIT=matchMedia('(prefers-reduced-motion:reduce)');
 let robotT=0,sid='',arrivee=0,recapAff=0,fx=[],fileDes=[],desActif=false,minBandeau=0,desT=0,desF=0;
-let partie=null,notice='',sel=null,selMull=[],selCases=[],modeVaisseau=false,modeFaille=false;
+/* Graines terminees ou quittees : jamais relancees par majPartie. */
+const grainesFinies=new Set();
+let partie=null,notice='',sel=null,selMull=[],selCases=[],modeVaisseau=false,modeFaille=false,modeCaramel=false;
 const ZONE=matchMedia('(min-width:1200px)');let derniereAdv=null,zoneSurvol=null; /* zone d'apercu de la partie (ordinateur) */
 const ICONES={
  force:'<svg width="66" height="66" viewBox="71 35 458 529"><path d="M300 98 L285 98 Q210 152 144 164 L144 370 L281 490 Z" fill="#bf6049" stroke="#bf6049" stroke-width="1.5" stroke-linejoin="round"/><path d="M300 98 L315 98 Q390 152 456 164 L456 367 L281 490 Z" fill="#8a3524" stroke="#8a3524" stroke-width="1.5" stroke-linejoin="round"/><path d="M281.2 52 L300 52 L300 98 L285 98Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M300 52 L318.8 52 L315 98 L300 98Z" fill="#a4452f" stroke="#a4452f" stroke-width="1.5" stroke-linejoin="round"/><path d="M318.8 52 Q398.7 112 499.75 126 L456 164 Q390 152 315 98Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M499.75 126 L499.75 390 L456 367 L456 164Z" fill="#70291b" stroke="#70291b" stroke-width="1.5" stroke-linejoin="round"/><path d="M499.75 390 L325.85 512 L295.3 534 L280 547 L281 490 L456 367Z" fill="#551d13" stroke="#551d13" stroke-width="1.5" stroke-linejoin="round"/><path d="M280 547 L100.25 390 L144 370 L281 490Z" fill="#a4452f" stroke="#a4452f" stroke-width="1.5" stroke-linejoin="round"/><path d="M100.25 390 L100.25 126 L144 164 L144 370Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M100.25 126 Q201.3 112 281.2 52 L285 98 Q210 152 144 164Z" fill="#efb096" stroke="#efb096" stroke-width="1.5" stroke-linejoin="round"/><path d="M160 180 Q222 166 288 116" fill="none" stroke="#ffe3d6" stroke-opacity=".55" stroke-width="7" stroke-linecap="round"/><path d="M281.2 52 L318.8 52 Q398.7 112 499.75 126 L499.75 390 L325.85 512 L295.3 534 L280 547 L100.25 390 L100.25 126 Q201.3 112 281.2 52Z" fill="none" stroke="#0b0a10" stroke-width="34" stroke-linejoin="round"/></svg>',
@@ -2162,7 +2275,9 @@ function points(n,lib){const d=el('span','p-pts');d.setAttribute('role','img');d
 function info(cls,n,lib,suite){const d=el('div','p-info '+cls);d.append(el('small','',lib),ico(n),suite);return d}
 function compteur(n,lib,v,cls){const d=el('span','p-compteur c-'+n+(cls?' '+cls:''));d.append(ico(n),lib+' ');d.append(el('b','',String(v)));return d}
 function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
-function pub(p){if(r)r.presence(p).catch(()=>{})}
+/* envoiPub : dernier envoi de presence (et du journal), attendu avant d'annoncer un depart. */
+let envoiPub=null;
+function pub(p){if(r)envoiPub=r.presence(p).catch(()=>{})}
 function finPartie(){arreteGuide();M=M0;clearTimeout(rejeuT);rejeuT=0;{const b=$('barreRejeu');if(b)b.remove()}arreteAnim();clearTimeout(robotT);robotT=0;fermeAide();stopCompte();jePret=false;$('vueTas').hidden=true;$('absence').hidden=true;partie=null;fx=[];derniereAdv=null;zoneSurvol=null;fermeRecap();arreteDes();$('bandeau').hidden=true;$('partie').hidden=true;$('jouer').classList.remove('enJeu')}
 function nouveauSid(){return Math.random().toString(36).slice(2,12)}
 /* Sauvegarde locale par code de salon */
@@ -2227,7 +2342,7 @@ function lancer(g,moi,adv,sv){
   const dks=sv&&Array.isArray(sv.decks)&&sv.decks.length===2?sv.decks.map(t=>typeof t==='string'?t:''):['',''];
   partie={decks:dks,deckNom:sv&&typeof sv.deckNom==='string'?sv.deckNom:'',rejeu:sv&&sv.rejeu||null,debut:sv&&+sv.debut||Date.now(),local:!!(sv&&sv.local),tuto:!!(sv&&sv.tuto),niveau:sv&&sv.niveau||'normal',graine:g,moi:moi,mien:sv?sv.mien:[],sien:sv?sv.sien:[],etat:null,erreur:null,veut:!!(sv&&sv.veut),adv:adv||'',advNom:sv&&typeof sv.advNom==='string'?nettoie(sv.advNom):'',recapVu:sv?+sv.recapVu||0:0};
   CARTES.forEach(c=>{new Image().src='cartes/'+c[0]+'.jpg'});M.TERRAINS.forEach(T=>{new Image().src=srcTerrain(T)});new Image().src=DOS;
-  notice='';sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;fx=[];journalPage=null;
+  notice='';sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;fx=[];journalPage=null;
   stopCompte();jePret=false;
   pub({jg:g,j:M.ecritJournal(partie.mien),veut:partie.veut?g:null,adv:partie.adv||null,pret:null});
   if(room)room.presence({salon:null}).catch(()=>{});
@@ -2252,11 +2367,27 @@ function calcule(){
   }
   partie.etat=x.etat;partie.erreur=x.erreur;
   if(x.etat&&x.etat.fin&&!partie.rejeu&&!partie.tuto)enregistrePartie(x.etat); /* partie guidee : hors historique et profil */
+  if(x.etat&&x.etat.fin&&!partie.local&&!partie.rejeu&&!partie.tuto)grainesFinies.add(partie.graine);
   affiche();
   lanceFile();
   verifieRecap();
   sauve();
   suiteRobot();
+  choixFinal();
+}
+/* Fin de la manche 3 : un choix de fin de manche (Carrousel : defausse, Buzzer : ordre du deck) ne change plus le score.
+   Il est joue tout de suite, avec le meme coup qu'un clic (premiere carte de la main, ordre garde), pour que la partie
+   atteigne sa fin et soit enregistree meme si le gagnant quitte aussitot. En ligne, chaque ecran ne joue que son choix. */
+function choixFinal(){
+  if(!partie||partie.rejeu||partie.tuto||partie.erreur)return;
+  const s=partie.etat,a=s&&s.attente;
+  if(!a||s.fin||s.manche!==3||!s.fil)return;
+  if(a.p!==partie.moi&&!partie.local)return;
+  let c=null;
+  if(a.t==='b')c={t:'b',o:a.options.slice()};
+  else{const l=M.legales(s,a.p);if(a.t==='d')c=l.find(x=>x.t==='d'&&x.c===s.j[a.p].main[0])||l[0];else c=l[0]}
+  if(!c)return;
+  if(a.p===partie.moi)joue(c);else{clearTimeout(robotT);robotT=0;partie.sien.push(M.code(c));calcule()}
 }
 function quiJoue(s){return s.attente?s.attente.p:s.joueur}
 function texteTour(s,me){
@@ -2531,7 +2662,7 @@ function etapes(av,s,a,p){
     L.push(()=>{vol(de,rectDe(piles(p,'forge')),p===me?srcC(a.c):DOS,600);return T(600)});
   }else if(a.t==='d'){
     const de=p===me?rectDe('.p-slot[data-c="'+a.c+'"]'):rectDe('.p-camp.lui .c-main');
-    L.push(()=>{vol(de,rectDe(piles(p,'defausse')),srcC(a.c),500);return T(500)});
+    L.push(()=>{vol(de,rectDe(piles(p,'defausse')),p===me||partie.rejeu?srcC(a.c):DOS,500);return T(500)}); /* defausse adverse de dos, comme sa pioche */
   }else if(bouge){
     L.push(()=>{fixe(s,tenusDe(av,s,avant));
       for(let q=0;q<2;q++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){const u=av.j[q].grille[l][k],w=s.j[q].grille[l][k];if(w&&(!u||u.c!==w.c))ajoutFx({q:caseDe(q,l,k),classe:'arrive',mini:true},480)}
@@ -2553,7 +2684,6 @@ function etapes(av,s,a,p){
   if(n>0)L.push(()=>{for(let i=0;i<n;i++)vol(rectDe(i<nf?'.p-camp.lui .c-enclume':'.p-camp.lui .c-deck'),rectDe('.p-camp.lui .c-main'),DOS,420,i*140);return T(420+140*(n-1))});
   const t0=texteTour(av,me),t1=texteTour(s,me);
   if(t0!==t1||(s.phase==='jeu'&&(av.tour!==s.tour||av.manche!==s.manche||quiJoue(av)!==quiJoue(s))))L.push(()=>{
-    ajoutFx({q:'.p-tourde',classe:'bascule'},750);
     if(!s.fin&&s.phase==='jeu'&&!vite()&&!partie.rejeu)montreBandeau(t1,quiJoue(s)===me);
     return 0;
   });
@@ -2789,7 +2919,12 @@ function causesLog(s){
     i+=n});
   return m;
 }
-function ligneLog(p,x,me){return (p===null?'':(p===me?'Toi : ':nomJ(p)+' : '))+x}
+/* Secret des mains : chez l'adversaire (robot compris), la carte piochee (Comeback, Winstreak) ou defaussee (Le Carrousel) n'est pas nommee. Le rejeu montre tout. */
+function masqueLog(p,x,me){
+  if(p===null||p===me||(partie&&partie.rejeu))return x;
+  return x.replace(/^(.+? : (?:Comeback|Winstreak)), pioche .+ dans son deck, puis le mélange\.$/,'$1, pioche une carte dans son deck, puis le mélange.').replace(/^(.+?) : défausse .+\.$/,'$1 : défausse une carte.');
+}
+function ligneLog(p,x,me){return (p===null?'':(p===me?'Toi : ':nomJ(p)+' : '))+masqueLog(p,x,me)}
 function effetsManche(s){
   const x=s.reperes[s.reperes.length-1];
   return x?s.log.slice(x[1],x[2]):[];
@@ -2832,14 +2967,38 @@ const lesParties=()=>compteCo()?room.compte.donnees().historique.slice():litList
 function enregistrePartie(s){
   const l=lesParties(),id=partie.graine+'-'+partie.debut;
   if(l.some(x=>x.id===id))return;
-  archiveResume(s,id);
-  if(compteCo()){const k=room.compte;enregistreDans(l,s,id);k.ajouteHisto([l[0]]).catch(e=>console.warn(e));return}
+  const o=archiveResume(s,id);
   enregistreDans(l,s,id);
+  if(compteCo()){const x={id,u:room.compte.uid(),h:l[0]};if(o)x.r=o;majAttente(id,y=>Object.assign(y,x));envoieAttente(id);return}
   ecrire('golems.historique',JSON.stringify(l.slice(0,50)));
 }
-/* Archive commune (onglet Statistiques) : resume anonyme, un compte seulement ; en ligne, seul le joueur 0 l'ecrit. */
+/* Ecriture d'une partie (compte) : mise en attente sur l'appareil avant l'envoi, retiree une fois ecrite.
+   Echec ou pas de reponse en 15 s : message visible ; nouvel essai automatique au chargement suivant. */
+const ATTENTE='golems.enAttente';let reessai=false;
+function majAttente(id,f){const l=litListe(ATTENTE).filter(x=>x&&typeof x.id==='string');let x=l.find(y=>y.id===id);if(!x){x={id};l.unshift(x)}f(x);ecrire(ATTENTE,JSON.stringify(l.filter(y=>y.h||y.r).slice(0,20)))}
+function nonEnregistre(on){$('nonEnr').hidden=!on}
+$('nonEnrOk').onclick=()=>nonEnregistre(false);
+function archivee(id){const l=litListe('golems.archives');if(!l.includes(id)){l.unshift(id);ecrire('golems.archives',JSON.stringify(l.slice(0,200)))}}
+function envoieAttente(id){
+  const u=compteCo()?room.compte.uid():'',x=litListe(ATTENTE).find(y=>y&&y.id===id&&y.u===u);
+  if(!x)return Promise.resolve(true);
+  let tard=false;const t=setTimeout(()=>{tard=true;nonEnregistre(true)},15000);
+  const h=x.h?room.compte.ajouteHisto([x.h]).then(()=>majAttente(id,y=>{delete y.h}),e=>{if(e&&e.code==='golems/trop-long')majAttente(id,y=>{delete y.h});throw e}):null;
+  const z=x.r&&room.ecritResume?room.ecritResume(id,x.r).then(()=>{archivee(id);majAttente(id,y=>{delete y.r})}):null;
+  return Promise.allSettled([h,z]).then(v=>{clearTimeout(t);const ok=v.every(e=>e.status==='fulfilled');
+    v.forEach(e=>{if(e.status==='rejected')console.warn('Partie non enregistrée',e.reason)});
+    if(!ok)nonEnregistre(true);else if(tard)nonEnregistre(false);return ok});
+}
+/* Au chargement (compte connecte) : nouvel essai des parties restees en attente. */
+async function reessaie(){
+  if(reessai||!compteCo())return;const u=room.compte.uid(),l=litListe(ATTENTE).filter(x=>x&&x.u===u&&typeof x.id==='string');if(!l.length)return;
+  reessai=true;try{for(const x of l)await envoieAttente(x.id)}finally{reessai=false}
+  if(!$('historique').hidden)peintHisto();
+}
+/* Archive commune (onglet Statistiques) : resume anonyme, un compte seulement ; en ligne, chacun des deux joueurs l'ecrit
+   (cle graine-debut differente), l'affichage n'en garde qu'un par graine (uneParGraine). Renvoie le resume a ecrire. */
 function archiveResume(s,id){
-  if(!compteCo()||!room.ecritResume||!s.fin||!(partie.local||partie.moi===0))return;
+  if(!compteCo()||!room.ecritResume||!s.fin)return null;
   const w=s.fin.gagnant,p0=s.premier^((s.manche-1)&1),B=M.bilan(s),st=(s.stats&&s.stats.t)||[];
   const t={};s.terrains.forEach((T,k)=>{const e=st.filter(x=>x.k===k);
     t[k]={n:String(T.nom).slice(0,40),r:e.map(x=>x.gagnant===0||x.gagnant===1?String(x.gagnant):T.nom==='La Salle Verrouillée'&&x.manche<3?'-':x.forces[0]===x.forces[1]?'=':'-').join('').slice(0,3)||'-',q:Math.min(20,e.reduce((a,x)=>a+(+x.points||0),0))}});
@@ -2854,9 +3013,11 @@ function archiveResume(s,id){
      if(m){const f=+m[1];if(f>=1&&f<=12)(dr[id]=dr[id]||[]).length<30&&dr[id].push(f)}});
    if(Object.keys(dr).length)o.dr=dr}
   /* Une seule fois par partie sur cet appareil, quel que soit le compte (la regle refuse aussi toute reecriture). */
-  const vu=litListe('golems.archives');if(vu.includes(id))return;
-  room.ecritResume(id,o).then(ok=>{const l=litListe('golems.archives');if(!l.includes(id)){l.unshift(id);ecrire('golems.archives',JSON.stringify(l.slice(0,200)))}}).catch(e=>console.warn(e));
+  const vu=litListe('golems.archives');if(vu.includes(id))return null;
+  return o;
 }
+/* En ligne, les deux joueurs ecrivent un resume (cle graine-debut) : une seule partie par graine dans les Statistiques. */
+function uneParGraine(l){const vu=new Set();return l.filter(r=>{if(r.m!=='ligne'||typeof r.id!=='string')return true;const g=r.id.slice(0,r.id.lastIndexOf('-'));if(vu.has(g))return false;vu.add(g);return true})}
 function enregistreDans(l,s,id){
   const me=partie.moi,lui=1-me,w=s.fin.gagnant,nm=p=>p===me?'Toi':nomJ(p),B=M.bilan(s);
   const ps=pseudo||'Joueur',np=p=>p===me?ps:nomJ(p);
@@ -2878,18 +3039,17 @@ async function peintStats(){
   try{statsJoueurs=room.litClassement?await room.litClassement().catch(()=>[]):[]}catch(e){statsJoueurs=[]}
   /* Resume public de chaque joueur classe : clic seulement si son profil est public. */
   try{const pr=await Promise.all(statsJoueurs.filter(x=>x.n>=5).map(x=>room.compte.profilDe?room.compte.profilDe(x.uid).then(r=>[x.uid,r]):[x.uid,null]));statsProfils=Object.fromEntries(pr)}catch(e){statsProfils={}}
-  try{statsData=(await room.litResumes(2000)).filter(r=>r&&typeof r.d==='number'&&(r.g===0||r.g===1||r.g===-1))}catch(e){console.warn(e);if(!statsData){z.textContent='';z.append(el('p','pf-vide','Lecture impossible pour le moment.'))}return}
+  try{statsData=uneParGraine((await room.litResumes(2000)).filter(r=>r&&typeof r.d==='number'&&(r.g===0||r.g===1||r.g===-1)))}catch(e){console.warn(e);if(!statsData){z.textContent='';z.append(el('p','pf-vide','Lecture impossible pour le moment.'))}return}
   if(!$('stats').hidden)dessineStats(statsData);
 }
 /* Paquet de test (deck du robot), en texte de deck : accepte dans les Statistiques pour les parties contre les Golems seulement. */
 const DECK_TEST=Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])),DECK_TEST_TXT=M.deckTexte(DECK_TEST);
-/* Force affichee dans les listes : Force moyenne exacte des cartes a des (Alrevan 3,5 ; KEKWRevan 2 des, un seul sur un double : 231/36). Affichage seulement. */
-const FORCE_MOY={'002':'3,5','002e':'6,4'};
-function forceAff(C){return C.force!=null?String(C.force):FORCE_MOY[C.id]||null}
+/* Force affichee dans les listes : cartes a des, Force moyenne (forceMoy : reelle des 30 lancers, sinon theorique 3,5 et 6,4), une decimale. Affichage seulement. */
+function forceAff(C){if(C.force!=null)return String(C.force);const v=forceMoy(C.id);return v==null?null:v.toFixed(1).replace('.',',')}
 const NOMS_EL_ST={magma:'Magma',cristal:'Cristal',foudre:'Foudre',brume:'Brume',roche:'Roche'};
 /* Patch du site d'une version du moteur : table unique pour les anciens moteurs,
    puis tout moteur nomme d'apres une version du site (0.2a.1, 0.2b...) est regroupe sous elle. */
-const PATCH_MOTEUR={'0.2':'0.2a','0.2a':'0.2a','0.2.1':'0.2a','0.2.2':'0.2a','0.2a.1':'0.2a','0.2a.2':'0.2a','0.2b':'0.2b'};
+const PATCH_MOTEUR={'0.2':'0.2a','0.2a':'0.2a','0.2.1':'0.2a','0.2.2':'0.2a','0.2a.1':'0.2a','0.2a.2':'0.2a','0.2b':'0.2b','0.2b.1':'0.2b'};
 function patchSite(v){v=String(v||'');if(PATCH_MOTEUR[v])return PATCH_MOTEUR[v];const m=/^(\d+\.\d+[a-z])/.exec(v);return m?m[1]:v}
 /* Patchs presents dans l'archive, le plus recent en premier. */
 function versStats(RT){
@@ -2904,7 +3064,7 @@ function agregeStats(R){
   const cartes=new Map(),els=new Map(),duos=new Map(),add=(m,k,w)=>{const o=m.get(k)||{n:0,v:0};o.n++;if(w)o.v++;m.set(k,o)};
   const terr=new Map();M.TERRAINS.forEach(T=>terr.set(T.nom,{n:0,m:0,c:0,cv:0,e:0,q:0}));
   let pj=0,pv=0,golem=0,ab=0;
-  R.forEach(r=>{
+  uneParGraine(R).forEach(r=>{
     /* Deck vide ou illisible (paquet de test) : compte pour la partie, jamais pour une carte ni un element. */
     /* Partie contre un Golem : seul le camp du joueur (0) compte, le deck du robot (camp 1) est ignore. */
     (/^golem-/.test(r.m)?[0]:[0,1]).forEach(p=>{const w=r.g===p,o=M.lisDeck(r['k'+p]);if(!o)return;Object.keys(o).forEach(id=>add(cartes,id,w));
@@ -2922,7 +3082,7 @@ let zoomAgreg=null,zoomAgregSrc=null,zoomCharge=null;
 function agregZoom(){
   if(statsData){if(zoomAgregSrc!==statsData){const v=versStats(statsData)[0];zoomAgregSrc=statsData;zoomAgreg=v?agregeStats(statsData.filter(r=>patchSite(r.v)===v)):null}return Promise.resolve(zoomAgreg)}
   if(!room||!room.litResumes)return Promise.resolve(null);
-  if(!zoomCharge)zoomCharge=room.litResumes(2000).then(l=>{if(!statsData)statsData=l.filter(r=>r&&typeof r.d==='number'&&(r.g===0||r.g===1||r.g===-1));return agregZoom()}).catch(e=>{console.warn(e);return null}).finally(()=>{zoomCharge=null});
+  if(!zoomCharge)zoomCharge=room.litResumes(2000).then(l=>{if(!statsData)statsData=uneParGraine(l.filter(r=>r&&typeof r.d==='number'&&(r.g===0||r.g===1||r.g===-1)));return agregZoom()}).catch(e=>{console.warn(e);return null}).finally(()=>{zoomCharge=null});
   return zoomCharge;
 }
 /* Encart sous le zoom : lignes Toi / Communaute ; masque tant qu'aucune donnee. */
@@ -2952,7 +3112,7 @@ function dessineStats(RT){
   /* Patch : version du moteur des parties comptees, la plus recente par defaut. */
   /* Patchs coches : tous par defaut. */
   const vers=versStats(RT);if(!statsPatchs||![...statsPatchs].some(v=>vers.includes(v)))statsPatchs=new Set(vers);
-  const R=RT.filter(r=>statsPatchs.has(patchSite(r.v))&&statsAdv.has(modeSt(r)));
+  const R=uneParGraine(RT).filter(r=>statsPatchs.has(patchSite(r.v))&&statsAdv.has(modeSt(r)));
   const pc=(v,n)=>n?Math.round(100*v/n):null,coul=p=>p===null?'var(--doux)':p>55?'#3ecf6e':p>=45?'#f0a030':'#ef4f4f',txt=p=>p===null?'-':p+' %';
   const pl2=(n,m)=>n+' '+m+(n>1?'s':'');
   const NOMS_EL=NOMS_EL_ST;
@@ -2974,9 +3134,19 @@ function dessineStats(RT){
     if(ic)ic.forEach(x=>s.append(picto(x)));s.append(nom);b.style.color=coul(p);h.append(s,b);f.style.width=(p||0)+'%';f.style.background=coul(p);j.append(f);
     li.append(h,j,el('div','pf-dk pf-np',pl2(n,u||'partie')));return li};
   /* Colonne 1 : cartes */
-  /* Colonne Joueurs : classement public (50 dernieres parties de chacun), 5 parties minimum. */
-  {const c=colonne('Joueurs'),J=(statsJoueurs||[]).filter(x=>x.n>=5).map(x=>({...x,pct:pc(x.v,x.n)})).sort((a,b)=>b.pct-a.pct||b.n-a.n||a.p.localeCompare(b.p,'fr')).slice(0,10);
-      if(!J.length)c.append(el('p','pf-vide','Aucun joueur avec 5 parties pour le moment.'));
+  /* Colonne Joueurs : classement public (50 dernieres parties de chacun), 5 parties minimum.
+     Filtre Adversaires : parties par niveau du profil public (o), entre joueurs = le reste ; profil prive ecarte.
+     Filtre Patch : detail par version du profil public (pv) ; profil prive ecarte, profil sans ce detail (pas encore republie) ecarte aussi. */
+  {const c=colonne('Joueurs'),tousAdv=ADV_ST.every(([k])=>statsAdv.has(k)),tousPatchs=vers.every(v=>statsPatchs.has(v));let prives=0,anciens=0;
+   const parPatch=rp=>{if(rp&&rp.m===true){prives++;return null}const pv=rp&&rp.pv?Object.values(rp.pv):[];if(!pv.length){anciens++;return null}
+     const f={n:0,v:0};pv.forEach(z=>{if(!z||!statsPatchs.has(z.p)||!Number.isInteger(z.n))return;const zv=Number.isInteger(z.v)?z.v:0;
+       if(tousAdv){f.n+=z.n;f.v+=zv;return}const o=resumeLu({o:z.o}).o,g={n:0,v:0};NIV_ORDI.forEach(([k])=>{g.n+=o[k].n;g.v+=o[k].v});
+       o.ligne={n:Math.max(0,z.n-g.n),v:Math.max(0,zv-g.v)};statsAdv.forEach(k=>{if(o[k]){f.n+=o[k].n;f.v+=o[k].v}})});return f};
+   const parAdv=x=>{if(tousAdv&&tousPatchs)return {n:x.n,v:x.v};const rp=statsProfils[x.uid];if(!tousPatchs)return parPatch(rp);if(!rp||rp.m===true||!rp.o){prives++;return null}
+     const o=resumeLu(rp).o,g={n:0,v:0};NIV_ORDI.forEach(([k])=>{g.n+=o[k].n;g.v+=o[k].v});o.ligne={n:Math.max(0,(rp.n|0)-g.n),v:Math.max(0,(rp.v|0)-g.v)};
+     const f={n:0,v:0};statsAdv.forEach(k=>{if(o[k]){f.n+=o[k].n;f.v+=o[k].v}});return f};
+   const J=(statsJoueurs||[]).filter(x=>x.n>=5).map(x=>{const f=parAdv(x);return f&&{...x,...f,pct:pc(f.v,f.n)}}).filter(x=>x&&x.n>=5).sort((a,b)=>b.pct-a.pct||b.n-a.n||a.p.localeCompare(b.p,'fr')).slice(0,10);
+      if(!J.length)c.append(el('p','pf-vide',tousAdv&&tousPatchs?'Aucun joueur avec 5 parties pour le moment.':'Aucun joueur avec 5 parties avec ces filtres.'));
    const ul=el('ul','pf-liste st-liste st-joueurs');J.forEach((x,i)=>{const li=el('li'),s=el('span','st-bn'),t=el('b','',txt(x.pct));t.style.color=coul(x.pct);
      const nm=el('span','st-jn');nm.append(el('span','st-ps',x.p),el('span','st-jp',pl2(x.n,'partie')));s.append(avatarUid(x.p,x.uid),nm);li.append(s,t);
      li.tabIndex=0;li.classList.add('st-jl');const fi=el('div','st-fiche'),ft=el('div','st-ft'),fv=el('b','',txt(x.pct));fv.style.color=coul(x.pct);
@@ -2984,7 +3154,9 @@ function dessineStats(RT){
      fi.children[1].append('Taux de victoire : ',fv);fi.children[2].textContent=pl2(x.v,'victoire')+', '+pl2(x.n-x.v,'défaite');fi.children[3].textContent=pl2(x.n,'partie')+' (50 dernières au plus)';li.append(fi);const rp=statsProfils[x.uid],moiJ=compteCo()&&x.uid===room.compte.uid();
      if(rp&&rp.m===true&&!moiJ)fi.append(el('p','st-fprive','Profil privé'));
      if(moiJ||rp&&rp.m!==true){li.classList.add('st-jclic');li.setAttribute('role','button');li.setAttribute('aria-label','Profil de '+x.p);
-       li.onclick=()=>ouvreProfil({uid:x.uid,p:x.p,v:x.v,n:x.n});li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();li.onclick()}}}ul.append(li)});if(J.length)c.append(ul);}
+       li.onclick=()=>ouvreProfil({uid:x.uid,p:x.p,v:x.v,n:x.n});li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();li.onclick()}}}ul.append(li)});if(J.length)c.append(ul);
+   if(prives)c.append(el('p','pf-note',pl2(prives,'joueur')+' au profil privé, non '+(prives>1?'comptés':'compté')+' avec ce filtre.'));
+   if(anciens)c.append(el('p','pf-note',pl2(anciens,'joueur')+' pas encore à jour, non '+(anciens>1?'comptés':'compté')+' avec ce filtre.'));}
   {let c=colonne('Cartes');const l=[...cartes].map(([id,o])=>({id,n:o.n,p:pc(o.v,o.n)}));
    sous(c,'Meilleures cartes');c.append(el('p','pf-note st-sous','Taux de victoire, 5 parties minimum'));
    const tv=l.filter(x=>x.n>=5).sort((a,b)=>b.p-a.p||b.n-a.n).slice(0,10);if(!tv.length)c.append(el('p','pf-vide','Il faut au moins 5 parties par carte.'));
@@ -3109,7 +3281,7 @@ function detailHisto(x){
   const esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc)};
   f.onclick=ferme;v.onclick=e=>{if(e.target===v)ferme()};addEventListener('keydown',esc);
   const pile=el('div','p-pile'),sh=el('button','btn sec','Partager le résumé');sh.type='button';sh.id='partageHisto';sh.onclick=()=>partageFin(sh,texteHisto(x));
-  if(rejeuPossible(x.rejeu)){const q=el('button','btn','▶ Rejeu');q.type='button';q.onclick=()=>{ferme();lanceRejeu(x)};pile.append(q)}
+  if(rejeuPossible(x.rejeu)){const q=el('button','btn','▶ Replay');q.type='button';q.onclick=()=>{ferme();lanceRejeu(x)};pile.append(q)}
   pile.append(sh);z.append(pile,f);d.append(z);v.append(d);document.body.append(v);f.focus();
 }
 /* Rejeu : la partie est recalculee coup par coup depuis la graine, les decks et les deux journaux, sans reseau. */
@@ -3123,27 +3295,27 @@ function ordreRejeu(R,j){
 }
 async function lanceRejeu(x){
   const R=x.rejeu,err=t=>{onglet('historique');alert(t)};
-  if(r){err('Quitte le salon avant de regarder un rejeu.');return}
-  if(!R){err('Rejeu impossible : cette partie a été enregistrée sans ses journaux.');return}
-  if(!rejeuPossible(R)){err('Rejeu impossible : le moteur de la version '+R.v+' n’est pas archivé.');return}
-  let Mr;try{Mr=await chargeMoteur(R.v)}catch(e){err('Rejeu impossible : moteur de la version '+R.v+' introuvable.');return}
+  if(r){err('Quitte le salon avant de regarder un replay.');return}
+  if(!R){err('Replay impossible : cette partie a été enregistrée sans ses journaux.');return}
+  if(!rejeuPossible(R)){err('Replay impossible : le moteur de la version '+R.v+' n’est pas archivé.');return}
+  let Mr;try{Mr=await chargeMoteur(R.v)}catch(e){err('Replay impossible : moteur de la version '+R.v+' introuvable.');return}
   if(partie)finPartie();
   M=Mr;
-  let j,seq;try{j=R.j.map(M.litJournal);seq=ordreRejeu(R,j)}catch(e){M=M0;err('Rejeu impossible : partie illisible.');return}
+  let j,seq;try{j=R.j.map(M.litJournal);seq=ordreRejeu(R,j)}catch(e){M=M0;err('Replay impossible : partie illisible.');return}
   onglet('jouer');
   lancer(R.graine,R.moi===1?1:0,'',{mien:[],sien:[],decks:Array.isArray(R.decks)?R.decks:['',''],advNom:x.advNom||String(x.adv||'Adversaire'),local:true,
     rejeu:{seq,j,pos:0,n:[0,0],lecture:true,vitesse:1}});
   barreRejeu();pasRejeu();
 }
 function barreRejeu(){
-  let b=$('barreRejeu');if(!b){b=el('div','barreRejeu');b.id='barreRejeu';b.setAttribute('role','toolbar');b.setAttribute('aria-label','Rejeu');document.body.append(b)}
+  let b=$('barreRejeu');if(!b){b=el('div','barreRejeu');b.id='barreRejeu';b.setAttribute('role','toolbar');b.setAttribute('aria-label','Replay');document.body.append(b)}
   const R=partie&&partie.rejeu;if(!R){b.remove();return}
   b.textContent='';
   const bt=(t,f,lib)=>{const q=el('button','btn sec',t);q.type='button';if(lib)q.setAttribute('aria-label',lib);q.onclick=f;b.append(q);return q};
-  b.append(el('b','','Rejeu'),el('span','r-pos',R.pos+' / '+R.seq.length));
+  b.append(el('b','','Replay'),el('span','r-pos',R.pos+' / '+R.seq.length));
   bt(R.lecture?'Pause':'Lecture',()=>{R.lecture=!R.lecture;if(R.lecture&&R.pos>=R.seq.length)return relanceRejeu();barreRejeu();pasRejeu()});
   const vt=bt('',()=>{R.vitesse=R.vitesse===1?2:R.vitesse===2?4:1;barreRejeu();pasRejeu()},'Changer la vitesse');vt.append(el('span','r-long','Vitesse '),'x'+R.vitesse);
-  bt('Quitter',finRejeu,'Quitter le rejeu');
+  bt('Quitter',finRejeu,'Quitter le replay');
   /* Ordinateur : sous la zone d'apercu, dans la colonne du joueur ; ailleurs, barre flottante en bas. */
   const po=ZONE.matches&&document.querySelector('#partie .p-poste:has(.p-apercu)');
   if(po){if(b.parentNode!==po)po.append(b);b.classList.add('dansPoste')}else{if(b.parentNode!==document.body)document.body.append(b);b.classList.remove('dansPoste')}
@@ -3163,12 +3335,12 @@ function pasRejeu(){
 }
 function finRejeu(){clearTimeout(rejeuT);rejeuT=0;finPartie();const b=$('barreRejeu');if(b)b.remove();$('accueil').hidden=false;onglet('historique')}
 window.__golemsRejeu=()=>partie&&partie.rejeu?{pos:partie.rejeu.pos,total:partie.rejeu.seq.length,fin:!!(partie.etat&&partie.etat.fin)}:null;
-function confirmeAbandon(msg,oui){
-  const v=el('div','voile'),d=el('div','boite'),z=el('div','p-btns ab-btns'),n=el('button','btn danger','Abandonner'),a=el('button','btn sec','Annuler');n.type=a.type='button';
+function confirmeAbandon(msg,oui,titre,bouton){
+  const v=el('div','voile'),d=el('div','boite'),z=el('div','p-btns ab-btns'),n=el('button','btn danger',bouton||'Abandonner'),a=el('button','btn sec','Annuler');n.type=a.type='button';
   v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','abTitre');v.id='popAbandon';
   const esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc)};
   a.onclick=ferme;n.onclick=()=>{ferme();oui()};v.onclick=e=>{if(e.target===v)ferme()};addEventListener('keydown',esc);
-  const h=el('h2','','Abandonner la partie ?');h.id='abTitre';z.append(n,a);d.append(h,el('p','',msg),z);v.append(d);document.body.append(v);a.focus();
+  const h=el('h2','',titre||'Abandonner la partie ?');h.id='abTitre';z.append(n,a);d.append(h,el('p','',msg),z);v.append(d);document.body.append(v);a.focus();
 }
 function confirmePage(box,msg,oui){
   box.textContent='';const n=el('button','btn danger','Confirmer'),a=el('button','btn sec','Annuler');n.type=a.type='button';
@@ -3196,8 +3368,8 @@ function peintHisto(){
     const l1=el('span','h-l1');const vh=versionAff(x);l1.append(el('span','h-date',new Date(x.date).toLocaleDateString('fr-FR',{dateStyle:'short'})),el('span','h-adv','contre '+advAff(x.adv)),el('span','h-sc',x.score),el('span','h-ver h-ver-l',/^[0-9]/.test(vh)?'v'+vh:vh));
     /* Elements du deck joue (paquet de test : ses elements). */
     const pe=el('span','h-els');(x.deck&&x.deck.nom==='Test'&&!x.deck.cartes?elsTexte(DECK_TEST_TXT):(x.deck&&Array.isArray(x.deck.els)?x.deck.els:[])).filter(y=>/^(magma|cristal|foudre|brume|roche)$/.test(y)).forEach(y=>pe.append(picto(y)));
-    const rj=el('button','h-rj'),ok=rejeuPossible(x.rejeu);rj.type='button';rj.append(el('span','h-rj-i','▶'),'Rejeu');
-    rj.setAttribute('aria-label',ok?'Rejeu de cette partie':'Rejeu indisponible');rj.title=ok?'Rejeu':x.rejeu?'Rejeu indisponible : moteur de la version '+x.rejeu.v+' non archivé':'Rejeu indisponible : partie enregistrée sans ses journaux';
+    const rj=el('button','h-rj'),ok=rejeuPossible(x.rejeu);rj.type='button';rj.append(el('span','h-rj-i','▶'),'Replay');
+    rj.setAttribute('aria-label',ok?'Replay de cette partie':'Replay indisponible');rj.title=ok?'Replay':x.rejeu?'Replay indisponible : moteur de la version '+x.rejeu.v+' non archivé':'Replay indisponible : partie enregistrée sans ses journaux';
     if(!ok)rj.setAttribute('aria-disabled','true');
     rj.onclick=e=>{e.stopPropagation();if(ok)lanceRejeu(x)};
     const rs=el('b','h-res',x.res+(x.abandon?" (abandon)":""));if(x.abandon)rs.classList.add('h-res-ab');
@@ -3232,6 +3404,12 @@ function resumeProfil(l){
   {R.o={};NIV_ORDI.forEach(([k])=>{const a=l.filter(x=>x.adv==='Golem ('+k+')');R.o[k]={n:a.length,v:cpt(a).v}})}
   {const m=new Map();l.forEach(x=>{const a=String(x.adv||'');if(!a||/^Golem \(/.test(a))return;const k=a.slice(0,20);const o=m.get(k)||{p:k,n:0,v:0};o.n++;if(x.res==='Victoire')o.v++;m.set(k,o)});
    R.jo=[...m.values()].sort((a,b)=>b.n-a.n||pct(b)-pct(a)).slice(0,3)}
+  /* Detail par version du site (filtre Patch du panneau Joueurs) : chaque partie garde sa version (moteur), regroupee comme les Statistiques ;
+     10 versions au plus, la plus recente d'abord ; partie sans version ignoree. */
+  {const m=new Map();l.forEach(x=>{const vm=x.moteur||(x.rejeu&&x.rejeu.v);if(typeof vm!=='string'||!vm)return;const p=patchSite(vm);if(!/^[0-9a-z.]{1,12}$/.test(p))return;
+     const o=m.get(p)||{p,n:0,v:0,o:{facile:{n:0,v:0},normal:{n:0,v:0},difficile:{n:0,v:0}}},w=x.res==='Victoire';o.n++;if(w)o.v++;
+     const k=/^Golem \((facile|normal|difficile)\)$/.exec(String(x.adv||''));if(k){o.o[k[1]].n++;if(w)o.o[k[1]].v++}m.set(p,o)});
+   R.pv=versStats([...m.keys()].map(v=>({v}))).map(p=>m.get(p)).slice(0,10)}
   return R;
 }
 /* Lecture d'un resume publie : tableaux Firebase (objets 0, 1, 2) remis en listes. */
@@ -3325,10 +3503,33 @@ $('salonPublicCase').onchange=e=>{$('salonPublicTxt').textContent=e.target.check
 /* Decks : visuels pour ce test, le moteur n'en sait rien. */
 const MAX_DECKS=12,MAX_EX=3,DECK_MIN=24,DECK_MAX=30;
 const maxEx=id=>M.maxEx?M.maxEx(id):MAX_EX; /* animal : 1 exemplaire */
-/* Regle d'animal non respectee (exemplaires, maitre absent) : message du moteur, sinon '' (le nombre de cartes a son propre message). */
-function erreurAnimal(d){const o={};for(const k in d.cartes)if(+d.cartes[k]>0)o[k]=+d.cartes[k];if(!M.estAnimal||!Object.keys(o).some(k=>M.estAnimal(k)))return '';
-  const e=M.erreurDeck(o)||'';return /Kiwi|exemplaire|demande/.test(e)?e:''}
-let deckOuvert=null,deckVu=null,filtreDeck='',elsDeckOn=new Set(ELS),triDeck='',triDeckDesc=false;
+/* Toutes les raisons qui rendent un deck injouable (memes regles que M.erreurDeck, qui s'arrete a la premiere) :
+   [{t:texte long, c:texte court, ids:cartes en cause, inc:cartes retirees du jeu}]. [] = deck jouable. */
+function raisonsDeck(d){
+  const o={},R=[],nom=k=>M.CARTES[k].nom;let n=0;
+  for(const k in d.cartes){const v=+d.cartes[k];if(v>0){o[k]=v;n+=v}}
+  const inc=Object.keys(o).filter(k=>!M.TYPES.includes(k)),ok=Object.keys(o).filter(k=>M.TYPES.includes(k));
+  if(inc.length){const q=inc.reduce((t,k)=>t+o[k],0);R.push({c:q>1?q+' cartes retirées':'1 carte retirée',t:(q>1?q+' cartes retirées du jeu':'1 carte retirée du jeu')+' (code '+inc.join(', ')+').',ids:[],inc})}
+  ok.forEach(k=>{const mx=maxEx(k);if(!Number.isInteger(o[k])||o[k]>mx)R.push({c:nom(k)+' ×'+o[k],t:nom(k)+' : '+(mx===1?'1 exemplaire au plus (animal de compagnie)':mx+' exemplaires au plus')+', '+o[k]+' dans le deck.',ids:[k]})});
+  ok.filter(k=>M.estAnimal(k)).forEach(k=>{const m=M.maitreDe(k),ev=M.TYPES.find(t=>M.CARTES[t].base===m);
+    if(!M.TYPES.some(t=>(t===m||M.CARTES[t].base===m)&&o[t]>0))R.push({c:nom(k)+' sans '+nom(m),t:nom(k)+' demande au moins un '+nom(m)+(ev?' (ou '+nom(ev)+')':'')+' dans le deck.',ids:[k]})});
+  if(n<DECK_MIN)R.push({c:n+' cartes sur '+DECK_MIN,t:'Deck incomplet : '+n+' carte'+(n>1?'s':'')+' sur '+DECK_MIN+' minimum, il en manque '+(DECK_MIN-n)+'.',ids:[]});
+  if(n>DECK_MAX)R.push({c:n+' cartes sur '+DECK_MAX,t:'Trop de cartes : '+n+' pour '+DECK_MAX+' au plus, '+(n-DECK_MAX)+' en trop.',ids:[]});
+  /* Le moteur fait foi : s'il refuse le deck pour une raison non prevue ici, son message est repris. */
+  if(!R.length){let e='';try{e=M.erreurDeck(o)||''}catch(x){e='deck illisible'}if(e)R.push({c:e,t:'Deck injouable : '+e+'.',ids:[]})}
+  return R;
+}
+/* Encadre des raisons dans l'editeur ; Retirer enleve les cartes retirees du jeu, invisibles dans la grille. */
+function blocErreurs(R,d,l){
+  const z=el('div','dl-erreurs');z.setAttribute('role','status');
+  const ret=r=>{const q=el('button','btn sec','Retirer');q.type='button';q.onclick=e=>{e.stopPropagation();r.inc.forEach(k=>delete d.cartes[k]);gardeDecks(l);peintDecks()};return q};
+  if(R.length===1){z.append(el('b','','Deck injouable : '),R[0].t);if(R[0].inc)z.append(ret(R[0]));return z}
+  const u=el('ul');R.forEach(r=>{const li=el('li','',r.t);if(r.inc)li.append(ret(r));u.append(li)});
+  z.append(el('b','','Deck injouable, '+R.length+' raisons :'),u);return z;
+}
+/* Raison courte sur une tuile de deck : visible sans survol (telephone), texte complet en title pour la souris. */
+function raisonTuile(R){const p=el('span','d-raison','Injouable : '+R.map(r=>r.c).join(' · '));p.title=R.map(r=>r.t).join('\n');return p}
+let deckOuvert=null,deckVu=null,triDeck='',triDeckDesc=false;const fDeck={ty:'',sel:new Set(),mode:'ou',q:''};
 /* Compte connecte : decks dans Firebase (ecriture groupee apres 600 ms). Invite : sur l'appareil. */
 const decksLocaux=()=>litListe('golems.decks').filter(d=>d&&typeof d.nom==='string'&&d.cartes);
 const lesDecks=()=>compteCo()?room.compte.donnees().decks.map(d=>({...d,cartes:{...d.cartes}})):decksLocaux();
@@ -3364,20 +3565,19 @@ function choisirDeck(suite,libOk){
   v.id='popDeck';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-label','Choisis ton deck');
   let sel=deckChoisi().id;
   const tuiles=[];
-  const tuile=(id,nom,els,nb,raison)=>{
-    const t=el('button','cd-tuile'+(raison?' cd-off':''));t.type='button';
-    t.append(...enteteDeck(nom,els,nb));
-    if(raison){t.setAttribute('aria-disabled','true');t.title=raison}
+  const tuile=(id,nom,els,nb,R)=>{
+    const raison=R.length>0,t=el('button','cd-tuile'+(raison?' cd-off':''));t.type='button';
+    t.append(...enteteDeck(nom,els,nb,raison));
+    if(raison){t.setAttribute('aria-disabled','true');const s=raisonTuile(R);t.title=s.title;t.append(s)}
     else t.onclick=()=>{sel=id;tuiles.forEach(x=>x.t.setAttribute('aria-pressed',x.id===sel?'true':'false'))};
     t.ondblclick=()=>{if(!raison){sel=id;go()}};
     t.setAttribute('aria-pressed',!raison&&id===sel?'true':'false');tuiles.push({id,t});g.append(t);
   };
-  tuile('','Test',M.TYPES?[...new Set(M.TYPES.flatMap(k=>M.CARTES[k].el))]:[],33,'');
+  tuile('','Test',M.TYPES?[...new Set(M.TYPES.flatMap(k=>M.CARTES[k].el))]:[],33,[]);
   lesDecks().forEach(d=>{
     const o={};for(const k in d.cartes)if(+d.cartes[k]>0)o[k]=+d.cartes[k];
-    let r='';try{r=M.erreurDeck(o)||''}catch(e){r='deck illisible'}
     const els=[...new Set(Object.keys(o).filter(k=>M.CARTES[k]).flatMap(k=>M.CARTES[k].el))];
-    tuile(d.id,d.nom,els,totalDeck(d),r);
+    tuile(d.id,d.nom,els,totalDeck(d),raisonsDeck(d));
   });
   const ferme=()=>{v.remove();document.removeEventListener('keydown',esc)};
   const esc=e=>{if(e.key==='Escape')ferme()};document.addEventListener('keydown',esc);
@@ -3411,12 +3611,13 @@ function proposeImport(){
 const totalDeck=d=>Object.values(d.cartes).reduce((t,n)=>t+(+n||0),0);
 const elsDeck=d=>[...new Set(CARTES.filter(c=>d.cartes[c[0]]>0).flatMap(c=>c[2]))];
 const valide=d=>{const n=totalDeck(d);return n>=DECK_MIN&&n<=DECK_MAX};
-function compteNb(n){return el('span','d-compte'+(n>=DECK_MIN&&n<=DECK_MAX?' ok':' ko'),n+'/'+DECK_MAX)}
-function compteDeck(d){return compteNb(totalDeck(d))}
+/* Vert seulement si le deck est jouable : bon nombre de cartes mais deck injouable = compteur neutre. */
+function compteNb(n,injouable){return el('span','d-compte'+(n<DECK_MIN||n>DECK_MAX?' ko':injouable?'':' ok'),n+'/'+DECK_MAX)}
+function compteDeck(d){return compteNb(totalDeck(d),raisonsDeck(d).length>0)}
 /* Tuile de deck du salon et de la fenetre de choix : bandeau + compteur comme l'onglet Decks, puis pictos. */
-function enteteDeck(nom,els,nb){
-  /* Compteur rouge hors de 24 a 30 cartes, paquet de test (33/30) compris. */
-  const h=el('div','cd-haut');h.append(bandeauDeck({nom,els}),compteNb(nb));
+function enteteDeck(nom,els,nb,injouable){
+  /* Compteur rouge hors de 24 a 30 cartes, paquet de test (33/30) compris ; neutre si le deck est injouable pour une autre raison. */
+  const h=el('div','cd-haut');h.append(bandeauDeck({nom,els}),compteNb(nb,injouable));
   const p=el('div','d-pict');(els||[]).filter(x=>/^(magma|cristal|foudre|brume|roche)$/.test(x)).forEach(e=>p.append(picto(e)));
   return [h,p];
 }
@@ -3429,11 +3630,13 @@ function peintDecks(){
   n.onclick=()=>{if(l.length>=MAX_DECKS)return;const d={id:nouveauSid(),nom:'Deck '+(l.length+1),cartes:{}};l.push(d);gardeDecks(l);deckOuvert=d.id;peintDecks()};
   const plein=l.length>=MAX_DECKS;
   const im=el('button','btn','Importer un deck');im.type='button';im.onclick=()=>importeDeck(b,l);
-  const nb=el('div','d-btns');nb.append(n,im);b.append(nb,el('p','intro o-nb'+(plein?' d-limite':''),l.length+' deck'+(l.length>1?'s':'')+' sur '+MAX_DECKS+(plein?'. Limite atteinte : supprime un deck pour en créer un nouveau.':'')));
+  const nb=el('div','d-btns');nb.append(n,im);
+  const bandeau=d=>{nb.querySelector('.d-bandeau')?.remove();const R=d?raisonsDeck(d):[];if(!R.length)return;
+    const s=el('p','d-bandeau'),x=el('span');s.setAttribute('role','status');s.title=R.map(r=>r.t).join('\n');x.append(el('b','',d.nom+' : '),R.map(r=>r.c).join(' · '));s.append(x);nb.append(s)};b.append(nb,el('p','intro o-nb'+(plein?' d-limite':''),l.length+' deck'+(l.length>1?'s':'')+' sur '+MAX_DECKS+(plein?'. Limite atteinte : supprime un deck pour en créer un nouveau.':'')));
   const zo=el('div','d-zone sans-pan'),g=el('div','d-grille'),pan=el('aside','d-panneau');pan.id='panneauDeck';pan.setAttribute('aria-label','Liste du deck');pan.setAttribute('aria-live','polite');
   const montre=(d,t)=>{
     deckVu=d.id;zo.classList.remove('sans-pan');g.querySelectorAll('.d-tuile').forEach(x=>{const o=x===t;x.classList.toggle('choisie',o);x.setAttribute('aria-pressed',o)});
-    pan.textContent='';decklist(pan,d,l);
+    pan.textContent='';decklist(pan,d,l);bandeau(d);
     /* Tuiles empilees : le panneau est sous la pile, on l'amene a l'ecran. */
     if(matchMedia('(max-width:1199px)').matches)pan.scrollIntoView({block:'start'});
   };
@@ -3455,14 +3658,14 @@ function peintDecks(){
       gardeDecks(l.concat(c));peintDecks()});
     bt('Partager',()=>partageDeck(z,d));
     bt('Supprimer',()=>confirmePage(z,'Supprimer '+d.nom+' ?',()=>{gardeDecks(l.filter(x=>x!==d));peintDecks()})).classList.add('danger');
-    t.append(h,p,z);g.append(t);
+    t.append(h,p,z);if(raisonsDeck(d).length)t.classList.add('d-injouable');g.append(t);
     t.tabIndex=0;t.setAttribute('role','button');t.setAttribute('aria-label','Voir la liste de '+d.nom);
     const vue=d.id===deckVu;t.setAttribute('aria-pressed',vue);if(vue)t.classList.add('choisie');
     t.onclick=e=>{if(!e.target.closest('.d-act,a,.d-haut .ligne'))montre(d,t)};
     t.onkeydown=e=>{if(e.target===t&&(e.key==='Enter'||e.key===' ')){e.preventDefault();montre(d,t)}};
   });
   const vu=l.find(x=>x.id===deckVu);
-  if(vu){zo.classList.remove('sans-pan');decklist(pan,vu,l)}else pan.append(el('p','intro o-nb',l.length?'Choisis un deck pour voir sa liste.':'Aucun deck pour le moment.'));
+  if(vu){zo.classList.remove('sans-pan');decklist(pan,vu,l);bandeau(vu)}else pan.append(el('p','intro o-nb',l.length?'Choisis un deck pour voir sa liste.':'Aucun deck pour le moment.'));
   zo.append(g,pan);b.append(zo);hauteurDecks();
 }
 /* Partage de deck par code : GOL1- + base64 URL de "nom\ntexte du deck" (format 1). */
@@ -3552,8 +3755,7 @@ function decklist(b,d,l){
   /* Renommer se fait sur la tuile du deck (crayon a gauche du compteur). */
   h.append(el('h3','',d.nom),p,compteDeck(d));
   b.append(h);
-  if(totalDeck(d)<DECK_MIN)b.append(el('p','d-limite dl-invalide','Deck incomplet : '+DECK_MIN+' cartes minimum.'));
-  {const e=erreurAnimal(d);if(e)b.append(el('p','d-limite dl-invalide','Deck injouable : '+e+'.'))}
+  const fautes=new Set(raisonsDeck(d).flatMap(r=>r.ids)); /* raison dans le bandeau a cote d'Importer un deck */
   /* M.CARTES est indexe par identifiant ('001e') ; M.carte attend un numero d'exemplaire de partie. */
   const L=CARTES.filter(c=>d.cartes[c[0]]>0).map(c=>({c,C:M.CARTES[c[0]],n:+d.cartes[c[0]]})).sort((x,y)=>x.C.cout-y.C.cout||x.c[1].localeCompare(y.c[1],'fr'));
   if(!L.length){b.append(el('p','intro o-nb','Ce deck est vide.'));return}
@@ -3561,7 +3763,7 @@ function decklist(b,d,l){
   const place=e=>{const W=220,H=308,x=e.clientX+18,y=e.clientY-H/2;ap.style.left=(x+W>innerWidth?e.clientX-W-18:x)+'px';ap.style.top=Math.max(8,Math.min(innerHeight-H-8,y))+'px'};
   L.forEach(({c,C,n})=>{
     const li=el('li'),q=el('button','dl-ligne'),co=el('span','dl-cout'),e=el('span','dl-els'),fo=el('span','dl-force');
-    const src='cartes/'+c[0]+'.jpg';q.type='button';
+    const src='cartes/'+c[0]+'.jpg';q.type='button';if(fautes.has(c[0]))q.classList.add('dl-fautive');
     if(c[2].length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+c[2][0]+')');q.style.setProperty('--b','var(--fm-'+c[2][1]+')')}
     q.setAttribute('aria-label',n+' exemplaire'+(n>1?'s':'')+' de '+c[1]+', coût '+C.cout+(C.force!=null?', Force '+C.force:''));
     co.append(ico('enclume'),String(C.cout));c[2].forEach(x=>e.append(picto(x)));
@@ -3593,35 +3795,48 @@ function decklist(b,d,l){
 function editeur(b,l,d){
   const h=el('div','d-haut'),r=el('button','btn sec','Retour aux decks');r.type='button';r.onclick=()=>{deckOuvert=null;peintDecks()};
   h.append(el('h3','',d.nom),compteDeck(d),r);b.append(h);
-  if(totalDeck(d)<DECK_MIN)b.append(el('p','d-limite dl-invalide','Deck incomplet : '+DECK_MIN+' cartes minimum.'));
-  {const e=erreurAnimal(d);if(e){const q=el('p','d-limite dl-invalide dl-animal','Deck injouable : '+e+'.');q.id='erreurAnimal';b.append(q)}}
-  /* Filtres comme l'onglet Cartes : pastilles rondes des elements, toutes allumees par defaut (une carte s'affiche si elle a un
-     element allume), sans Terrains ; Animaux a l'ecart, bascule (allume : seulement les animaux). */
-  const f=el('div','filtres d-filtres'),fe=el('div','f-els');
-  ELS.forEach(v=>{const q=pastilleEl(v,()=>{elsDeckOn.has(v)?elsDeckOn.delete(v):elsDeckOn.add(v);peintDecks()});q.setAttribute('aria-pressed',String(elsDeckOn.has(v)));fe.append(q)});
-  f.append(fe);
-  {const q=el('button','pastille f-animaux','Animaux');q.type='button';q.setAttribute('aria-pressed',filtreDeck==='a');q.onclick=()=>{filtreDeck=filtreDeck==='a'?'':'a';peintDecks()};f.append(q)}
-  b.append(f);
+  /* Raisons a jour a chaque ajout ou retrait (peintDecks repeint l'editeur) ; carte en cause cerclee dans la grille. */
+  const R=raisonsDeck(d),fautes=new Map();R.forEach(r=>r.ids.forEach(k=>fautes.set(k,r.c)));if(R.length)b.append(blocErreurs(R,d,l));
+  /* Filtres : memes lignes et memes composants que l'onglet Cartes (Rechercher, Afficher, Elements, Trier par, puis le compte et
+     Reinitialiser au-dessus de la grille), sans Terrains ni A venir. La recherche masque les cartes sans tout repeindre (le champ garde le focus et le clavier du telephone). */
+  const offEl=fDeck.ty==='a';
+  {const t=el('div','filtres f-ligne'),s=el('input','f-rech'),lb=el('label','f-lib','Rechercher');s.id='rechDeck';lb.htmlFor='rechDeck';
+   s.type='search';s.placeholder='Nom ou numéro';s.autocomplete='off';s.value=fDeck.q;s.oninput=()=>{fDeck.q=s.value;filtreNom()};t.append(lb,s);b.append(t)}
+  {const t=el('div','filtres f-ligne'),bx=el('div','f-btns');
+   TY.filter(x=>x[0]!=='t'&&x[0]!=='v').forEach(([v,x])=>{const q=el('button','pastille',x);q.type='button';q.setAttribute('aria-pressed',String(v===fDeck.ty));q.onclick=()=>{fDeck.ty=v;peintDecks()};bx.append(q)});
+   t.append(el('span','f-lib','Afficher'),bx);b.append(t)}
+  b.append(ligneEls(fDeck,peintDecks,offEl));
   /* Tri : memes options et meme composant que l'onglet Cartes (numero, cout, Force ; croissant ou decroissant). */
+  const nb=el('span');nb.setAttribute('aria-live','polite');
   {const t=el('div','filtres f-ligne d-tri'),bx=el('div','f-btns');t.append(el('span','f-lib','Trier par'),bx);
    TRI.forEach(([v,x])=>{const q=el('button','pastille',x);q.type='button';q.dataset.v=v;q.setAttribute('aria-pressed',String(v===triDeck));q.onclick=()=>{triDeck=v;peintDecks()};bx.append(q)});
    const q=el('button','pastille tri-sens');q.type='button';q.dataset.sens=triDeckDesc?'desc':'asc';
    q.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
    q.append(el('span','',triDeckDesc?'Décroissant':'Croissant'));q.setAttribute('aria-label','Ordre '+(triDeckDesc?'décroissant':'croissant')+', inverser');
-   q.onclick=()=>{triDeckDesc=!triDeckDesc;peintDecks()};bx.append(q);b.append(t)}
-  /* Elements : une carte reste visible si un de ses elements est allume ; tous eteints = aucun Golem. Les animaux ignorent les elements. */
-  const vues=CARTES.map((c,i)=>[c,i]).filter(([c])=>(estAnimal(c)||c[2].some(x=>elsDeckOn.has(x)))&&(filtreDeck!=='a'||estAnimal(c)))
-    .sort((x,y)=>{const d=triDeck?valTri(x[0][0],triDeck)-valTri(y[0][0],triDeck):x[1]-y[1];return (triDeckDesc?-d:d)||x[1]-y[1]}).map(x=>x[0]),g=el('div','grille');
-  if(!elsDeckOn.size&&filtreDeck!=='a')b.append(el('p','vide d-sans-el',vues.length?'Aucun élément allumé : aucun Golem affiché, seulement les animaux. Touche une pastille pour la rallumer.':'Aucun élément allumé : aucun Golem affiché. Touche une pastille pour la rallumer.'));
-  else if(!vues.length)b.append(el('p','vide',filtreDeck==='a'?MSG_ANIMAUX:'Aucune carte pour ce filtre.'));
+   q.onclick=()=>{triDeckDesc=!triDeckDesc;peintDecks()};const bs=el('div','f-btns');bs.append(q);t.append(bs);
+   b.append(t)}
+  {const f=el('div','f-res'),z=el('button','f-reinit','Réinitialiser');z.type='button';
+   z.onclick=()=>{fDeck.ty='';fDeck.sel.clear();fDeck.mode='ou';fDeck.q='';triDeck='';triDeckDesc=false;peintDecks()};
+   f.append(nb,z);b.append(f)}
+  const vues=CARTES.map((c,i)=>[c,i]).filter(([c])=>(offEl||passeEl(c,fDeck))&&(fDeck.ty===''||String(c[3])===fDeck.ty))
+    .sort((x,y)=>{const d=triDeck?valTri(x[0][0],triDeck)-valTri(y[0][0],triDeck):x[1]-y[1];return (triDeckDesc?-d:d)||x[1]-y[1]}).map(x=>x[0]),g=el('div','grille'),vide=el('p','vide');
+  b.append(vide);
   vues.forEach(c=>{
-    const z=el('div','d-carte'),i=el('img'),n=d.cartes[c[0]]||0;i.src='cartes/'+c[0]+'.jpg';i.alt=c[1];i.loading='lazy';
+    const z=el('div','d-carte'),i=el('img'),n=d.cartes[c[0]]||0;i.src='cartes/'+c[0]+'.jpg';i.alt=c[1];i.loading='lazy';z.dataset.q=cleRech(c);
     const q=el('div','d-qte'),m=el('button','j-btn','-'),p=el('button','j-btn','+');m.type=p.type='button';m.setAttribute('aria-label','Retirer '+c[1]);p.setAttribute('aria-label','Ajouter '+c[1]);
     const mx=maxEx(c[0]);m.disabled=!n;p.disabled=n>=mx||totalDeck(d)>=DECK_MAX;if(mx===1&&!n&&!p.disabled)p.title='1 exemplaire au plus';
     const ch=v=>{d.cartes[c[0]]=n+v;gardeDecks(l);peintDecks()};m.onclick=()=>ch(-1);p.onclick=()=>ch(1);
-    q.append(m,el('b','',n+'/'+mx),p);z.append(i,q);g.append(z);
+    /* Clic sur l'image : la carte en grand, comme dans l'onglet Cartes (les boutons + et - restent a part). */
+    i.classList.add('d-zoom');i.tabIndex=0;i.setAttribute('role','button');i.setAttribute('aria-label','Agrandir '+c[1]);
+    i.onclick=()=>{dernier=i;zoom(i.src,c[1],statZoomCarte(c[0]))};i.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();i.onclick()}};
+    q.append(m,el('b','',n+'/'+mx),p);z.append(i,q);
+    if(fautes.has(c[0])){z.classList.add('d-fautive');z.append(el('p','d-carte-err',fautes.get(c[0])))}
+    g.append(z);
   });
   b.append(g);
+  function filtreNom(){let n=0;g.querySelectorAll('.d-carte').forEach(z=>{const ok=passeRech(z.dataset.q,fDeck.q);z.hidden=!ok;if(ok)n++});
+    nb.textContent=n+(n>1?' cartes':' carte');vide.textContent=fDeck.ty==='a'&&!vues.length?MSG_ANIMAUX:offEl?'Aucune carte pour ce filtre.':msgVide(fDeck);vide.hidden=n>0}
+  filtreNom();
 }
 function nouvelleGraine(){return Math.floor(Math.random()*2147483646)+1}
 /* Depart volontaire : aussi publie dans le lobby, car la presence du salon disparait avec lui. */
@@ -3629,20 +3844,52 @@ function adversaireParti(){
   const g=partie.graine,vu=p=>!p.sameTab&&p.presence&&p.presence.quitte===g;
   return personnes(r.peers()).some(vu)||!!room&&personnes(room.peers()).some(vu);
 }
-function quittePartie(){
+/* envoi : promesse du coup d'abandon, attendue avant d'annoncer le depart. */
+function quittePartie(envoi){
   if(partie&&partie.rejeu){finRejeu();return}
   if(partie&&partie.local){if(!partie.tuto)oublieLocal();sortie();return}
   const a=r,g=partie&&partie.graine;
   oublie(code);
   if(!a||!g){sortie();return}
+  grainesFinies.add(g);
   if(a.libere)a.libere();
-  if(room)room.presence({quitte:g}).catch(()=>{});
-  sortie('',a.presence({quitte:g}).catch(()=>{}).then(()=>pause(400)));
+  /* Derniers coups envoyes d'abord, puis depart publie dans le salon, puis dans le lobby : chez l'adversaire, le salon voit le depart avant le lobby (sinon la partie se relancait en boucle). */
+  sortie('',Promise.all([envoi,envoiPub]).catch(()=>{}).then(()=>a.presence({quitte:g})).catch(()=>{}).then(()=>room&&room.presence({quitte:g})).catch(()=>{}).then(()=>pause(400)));
+}
+/* Bouton Quitter la partie : en ligne et en cours, confirmation puis abandon (coup 'a' envoye avant le depart). */
+function quitteBouton(){
+  const enCours=()=>partie&&!partie.local&&!partie.rejeu&&!partie.tuto&&r&&partie.etat&&!partie.etat.fin&&M.VERSION===M0.VERSION;
+  if(!enCours()){quittePartie();return}
+  confirmeAbandon('Quitter maintenant compte comme un abandon.',()=>{
+    if(!enCours()){quittePartie();return}
+    partie.mien.push(M.code({t:'a'}));sel=null;
+    const envoi=r.presence({j:M.ecritJournal(partie.mien)});
+    calcule(); /* fin par abandon : defaite enregistree ici */
+    quittePartie(envoi);
+  },'Quitter la partie ?','Quitter');
+}
+/* Journal de l'adversaire lu dans les coups du salon, meme s'il est parti : son dernier coup est toujours joue (et la partie enregistree). */
+function litSien(j){
+  if(!partie||partie.local||partie.rejeu||typeof j!=='string')return;
+  let l;try{l=M.litJournal(j)}catch(e){return}
+  if(l.length>partie.sien.length){partie.sien=l;sel=null;calcule()}
+}
+function rattrape(){if(partie&&r&&r.journalDe&&partie.adv)litSien(r.journalDe(partie.adv,partie.graine))}
+/* Relecture sur le serveur, une fois par partie et par cas (cle), puis suite(). */
+function relit(cle,suite){
+  const p=partie,a=r;if(!p||!a||!a.journalFrais||!p.adv||p[cle]||(p.etat&&p.etat.fin))return false;
+  p[cle]=1;
+  a.journalFrais(p.adv,p.graine).then(j=>{if(partie===p&&r===a)litSien(j)},()=>{}).then(()=>{p[cle]=2;if(suite&&partie===p&&r===a)suite()});
+  return true;
 }
 function majPartie(){
   if(!r)return;
   if(partie&&adversaireParti()){
-    oublie(code);finPartie();notice='Ton adversaire a quitté la partie.';if(r.libere)r.libere();
+    /* Avant de fermer : coups de l'adversaire pas encore recus (lus dans le salon, puis relus sur le serveur). */
+    rattrape();if(partie.relDep===1||relit('relDep',majPartie))return;
+    const ab=partie.etat&&partie.etat.fin&&partie.etat.fin.abandon===1-partie.moi;
+    grainesFinies.add(partie.graine);
+    oublie(code);finPartie();notice=ab?'Ton adversaire a abandonné la partie.':'Ton adversaire a quitté la partie.';if(r.libere)r.libere();
     pub({graine:null,jg:null,j:null,veut:null,adv:null});
     $('salon').hidden=false;majSalon();return;
   }
@@ -3652,6 +3899,7 @@ function majPartie(){
   const prets=l.length===2&&l.every(p=>+p.presence.arrivee>0);
   if(partie){
     if(l.length<2){
+      rattrape();relit('relAbs'); /* son dernier coup est peut-etre deja dans le salon */
       $('absence').textContent='Adversaire absent';$('absence').hidden=false; /* coupure ou rechargement : attente sans limite */
       return;
     }
@@ -3666,6 +3914,7 @@ function majPartie(){
   if(neuf&&!Number.isInteger(g))return;
   if(moi===0&&(!Number.isInteger(g)||rejouer)){pub({graine:nouvelleGraine()});return}
   if(!Number.isInteger(g))return;
+  if((!partie||partie.graine!==g)&&grainesFinies.has(g))return; /* partie terminee ou quittee : jamais relancee */
   if(!partie||partie.graine!==g){
     /* Decks : le mien tel que publie avec Pret (ou garde par la partie precedente en cas de Rejouer), le sien lu dans sa presence. */
     const mien=partie?{texte:partie.decks[partie.moi]||'',nom:partie.deckNom}:deckPret,sien=typeof lui.presence.deck==='string'?lui.presence.deck:'';
@@ -3680,7 +3929,7 @@ function majPartie(){
 function joue(a){
   if(!partie||partie.rejeu)return;
   partie.mien.push(M.code(a));
-  sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;
+  sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;
   sauve();pub({j:M.ecritJournal(partie.mien)});calcule();
 }
 function uidJ(p){
@@ -3712,7 +3961,7 @@ function miniVue(s,p,l,k){
   co.append(ico('enclume'),String(C.cout));ba.append(co); /* degats, Rage, bonus : plus de pastille, la couleur du chiffre de Force et le zoom suffisent */
   const fv=M.favori?M.favori(s,p,v.c):0; /* 0.2a.1 : favori d'Indra, coeur seul a gauche de l'hexagone (le bonus est dans le chiffre et au zoom) */
   let hf=null;if(fv){hf=el('span','fav');hf.innerHTML=COEUR;hf.title="Favori d'Indra";hf.setAttribute('role','img');hf.setAttribute('aria-label',"Favori d'Indra, +"+fv+' de Force')}
-  if(COPIEUR[C.id]&&v.cp!==undefined){const n=v.cp?M.CARTES[v.cp]:null,h=el('span','cp',n?'Copie '+(n.base?M.CARTES[n.base].nom:n.nom):'Sans copie');h.title=n?COPIEUR[C.id]+" : copie l'effet de "+M.nomDetail(n):COPIEUR[C.id]+' : rien à copier';m.append(h)}
+  if(COPIEUR[C.id]&&v.cp!==undefined){const n=v.cp?M.CARTES[v.cp]:null,h=el('span','cp',n?'Copie '+(n.base?M.CARTES[n.base].nom:n.nom):'Sans copie');h.title=h.textContent+'\n'+(n?COPIEUR[C.id]+" : copie l'effet de "+M.nomDetail(n):COPIEUR[C.id]+' : rien à copier'); /* texte entier en premiere ligne (l'etiquette peut etre coupee) */m.append(h)}
   const fa=M.forceDe(s,p,l,k),sf=sensForce(fa,v.f);if(sf)f.classList.add(sf);
   f.append(ico('force'),el('b','',String(fa)));
   m.append(el('span','nom',C.base?M.CARTES[C.base].nom:C.nom),e,ba,f);if(hf)m.append(hf);
@@ -3836,7 +4085,10 @@ function grilleVue(s,p,cols,lignes,cible){
     if(lib){
       b.classList.add(lib.choisie?'choisie':'cible');b.dataset.act='case';
       let porte=b;
-      if(lib.texte){if(v){porte=el('span','act',lib.texte);b.append(porte)}else b.textContent=lib.texte}
+      if(lib.texte){if(v){porte=el('span','act');b.append(porte);
+        /* Telephone : « Remp. » (une ligne, le cout de la carte en place reste visible) ; ordinateur : « Remplacer ». */
+        if(/^Remplacer /.test(lib.texte))porte.append(el('span','act-l','Remplacer'),el('span','act-c','Remp.'),lib.texte.slice(9));else porte.textContent=lib.texte}
+        else b.textContent=lib.texte}
       if(lib.bonus){
         const B=lib.bonus,n=B.trait+B.cercle+(B.synergie||0)+(B.survolte||0)+(B.kekwait||0)+(B.comeback||0)+(B.winstreak||0)+(B.doubleup||0),det='Bonus prévu : Trait +'+B.trait+', cercle +'+B.cercle+(B.synergie?', Full synergie +'+B.synergie:'')+(B.survolte?', Survolté +'+B.survolte:'')+(B.kekwait?', KEKWait +'+B.kekwait:'')+(B.comeback?', Comeback +'+B.comeback:'')+(B.winstreak?', Winstreak +'+B.winstreak:'')+(B.doubleup?', Double up ? +'+B.doubleup:''),h=el('small','p-hint','+'+n);
         h.dataset.n=n;porte.append(h);b.title=det;
@@ -3962,6 +4214,8 @@ function affiche(){
   if(!coupsV.length)modeVaisseau=false;
   const coupsF=leg.filter(a=>a.t==='y');
   if(!coupsF.length)modeFaille=false;
+  const coupsZ=leg.filter(a=>a.t==='z');
+  if(coupsZ.length<2)modeCaramel=false;
   if(modeFaille){
     const kf=s.terrains.findIndex(x=>x.nom==='La Faille');
     cible=(l,k)=>{
@@ -4044,7 +4298,8 @@ function affiche(){
     plat.textContent='';plat.append(camp(s,lui,false),grilleVue(A,lui,cols,[2,1,0],cibleAdv),t,gm,camp(s,me,true));
   };
   repeint();
-  const tdt=el('div','p-tourde'+(aMoi?' amoi':''));tdt.append(el('span','',texteTour(s,me)),outils());b.append(tdt);
+  /* Case du haut : etat de la partie seulement, couleur neutre ; le tour se lit sur la bande au-dessus de la main. */
+  const tdt=el('div','p-tourde');tdt.append(el('span','',partie.rejeu?'Replay':s.fin?'Partie terminée':'Partie en cours'),outils());b.append(tdt);
   let btnRejouer=null,btnPartage=null;
   if(s.fin){
     const f=el('div','bloc p-fin'),w=s.fin.gagnant;
@@ -4117,10 +4372,11 @@ function affiche(){
     pl.append(mainVue(J.main,{}));
     const z=el('div','p-btns'),r=leg.find(x=>x.t==='v'),bu=bouton('Ne pas échanger',()=>{if(r)joue(r)},true);bu.id='nePasEchanger';z.append(bu);pl.append(z);
   }else if(att&&att.t==='r'){
-    /* Bellock et Loxim, « si tu forges cette carte » : les deux versions du partenaire trouvées dans le deck, base puis évolution ; on en touche une (coup 'r'). */
-    const D=M.carte(att.de),nP=M.DUO&&M.DUO[D.id]?M.CARTES[M.DUO[D.id]].nom:'ton partenaire';
-    con(M.nomDetail(D)+' : '+(capa(D.id)||'Duo')+'. Choisis la version de '+nP+' à piocher dans ton deck : touche la base ou son évolution. Ton deck sera ensuite mélangé.');
-    pl.append(mainVue(att.options,{clic:c=>joue({t:'r',c})}),mainVue(J.main,{}));
+    /* Ancienne règle de Bellock et Loxim (moteur 0.2b, coup 'r') : base ou évolution du partenaire au choix. Depuis 0.2b.1, pioche au hasard sans attente :
+       ne sert plus qu'au replay des parties 0.2b, sans clic. */
+    const D=M.carte(att.de),nP=M.DUO&&M.DUO[D.id]?M.CARTES[M.DUO[D.id]].nom:'son partenaire';
+    con(M.nomDetail(D)+' : '+(capa(D.id)||'Duo')+'. Choix de la version de '+nP+' à piocher dans le deck (règle de la version 0.2b).');
+    pl.append(mainVue(att.options,{}),mainVue(J.main,{}));
   }else if(att&&att.t==='s'){
     /* Spam de Trigas : choix comme a la Forge (carte pressee, changement d'avis possible), puis confirmation ; meme coup 's'. */
     if(sel!==null&&!J.main.includes(sel))sel=null;
@@ -4151,6 +4407,15 @@ function affiche(){
       con('Le Vaisseau : touche 2 de tes Golems de ce terrain pour les échanger. Une fois par manche.');
       pl.append(mainVue(J.main,{}));
       const z=el('div','p-btns');z.append(bouton('Annuler',()=>{modeVaisseau=false;selCases=[];affiche()},true));pl.append(z);
+    }else if(modeCaramel){
+      /* Plusieurs Titom76 (Maître du bilig) : un seul bouton Caramel en jeu, le terrain se choisit ici (meme coup 'z' qu'avant). */
+      con('Caramel : choisis le Titom76 (Maître du bilig) qui te donne +1 énergie. Une fois par manche chacun.');
+      pl.append(mainVue(J.main,{}));
+      /* Libelle = nom du terrain seul (la consigne dit deja Caramel) ; deux Titom76 sur un meme terrain : numerotes, rangee dans le title. */
+      const z=el('div','p-btns p-choix'),nT=a=>s.terrains[a.k].nom,meme=a=>coupsZ.filter(b=>b.k===a.k);
+      coupsZ.forEach((a,i)=>{const d=meme(a),T=nT(a)+(d.length>1?' '+(d.indexOf(a)+1):''),bc=bouton(T,()=>{modeCaramel=false;joue(a)});
+        bc.title='Caramel : +1 énergie ('+nT(a)+(d.length>1?', rangée '+(a.l+1):'')+')';bc.setAttribute('aria-label',bc.title);bc.classList.add('caramel');bc.id='caramel'+i;z.append(bc)});
+      const ba=bouton('Annuler',()=>{modeCaramel=false;affiche()},true);ba.id='annulerCaramel';z.append(ba);pl.append(z);
     }else{
     if(sel!==null&&!J.main.includes(sel))sel=null;
     const C=sel!==null?M.carte(sel):null;
@@ -4166,19 +4431,26 @@ function affiche(){
       const v=sel;
       const bz=el('button','btn sec','Voir');bz.type='button';bz.onclick=()=>{dernier=null;const n=surcout(s,me,v);zoom('cartes/'+C.id+'.jpg',C.nom,detailSurcout(C,n),calqueSurcout(C,n))};z.append(bz);
     }
-    if(coupsF.length){const bf=bouton('Déplacement de La Faille',()=>{modeFaille=true;sel=null;selCases=[];affiche()},true);bf.id='deplaceFaille';z.append(bf)}
-    if(coupsV.length){const bv=bouton('Échange du Vaisseau',()=>{modeVaisseau=true;sel=null;selCases=[];affiche()},true);bv.id='echangeVaisseau';z.append(bv)}
-    {const cz=leg.filter(a=>a.t==='z');cz.forEach((a,i)=>{const bc=bouton('Caramel : +1 énergie'+(cz.length>1?' ('+s.terrains[a.k].nom+')':''),()=>joue(a),true);bc.classList.add('caramel');if(!i)bc.id='caramel';bc.title='Titom76 (Maître du bilig) : une fois par manche, +1 énergie';z.append(bc)})}
+    /* Libelles courts (une ligne par case, 3 boutons par ligne au plus) ; explication complete en title et aria-label. */
+    const expl=(b,x)=>{b.title=x;b.setAttribute('aria-label',x);return b};
+    if(coupsF.length){const bf=expl(bouton('Faille',()=>{modeFaille=true;sel=null;selCases=[];affiche()},true),'Déplacement de La Faille : une fois par manche, déplace un de tes Golems vers une case libre de La Faille');bf.id='deplaceFaille';z.append(bf)}
+    if(coupsV.length){const bv=expl(bouton('Vaisseau',()=>{modeVaisseau=true;sel=null;selCases=[];affiche()},true),'Échange du Vaisseau : une fois par manche, échange 2 de tes Golems du Vaisseau');bv.id='echangeVaisseau';z.append(bv)}
+    /* Un seul bouton Caramel : un Caramel possible = coup direct ; plusieurs = choix du terrain (modeCaramel). 6 boutons au plus. */
+    if(coupsZ.length){const n=coupsZ.length,bc=expl(bouton('Caramel',()=>{if(n===1)joue(coupsZ[0]);else{modeCaramel=true;sel=null;selCases=[];affiche()}},true),
+      n===1?'Caramel : +1 énergie. Titom76 (Maître du bilig) : une fois par manche, +1 énergie':'Caramel : +1 énergie, '+n+' Titom76 (Maître du bilig) possibles, choisis le terrain. Une fois par manche chacun');bc.classList.add('caramel');bc.id='caramel';z.append(bc)}
     const fx=bouton('Fin du tour',()=>joue({t:'x'}));fx.id='finTour';z.append(fx);pl.append(z);
     }
   }else{
-    con(nomJ(qui)+(s.fil?' choisit, fin de manche.':' joue.'));
+    /* « X joue. » : deja dit par la bande de tour adverse, seule la fin de manche garde sa consigne. */
+    if(s.fil||aMoi)con(nomJ(qui)+(s.fil?' choisit, fin de manche.':' joue.'));
     pl.append(mainVue(J.main,{}));
   }
   const piles=el('div','p-piles');
   piles.append(pile('deck','Deck',J.deck.length),pile('forge','Forge',J.forge.length,J.forge.slice()),pile('defausse','Défausse',J.defausse.length,J.defausse.slice().reverse()));
   pl.append(piles);
-  if(ZONE.matches&&!s.fin){const ap=el('div','p-apercu'),fi=el('div','p-ap-img'),im=el('img');im.alt='';fi.append(im);ap.append(el('p','p-ap-leg'),fi);pl.append(ap)}
+  if(ZONE.matches&&!s.fin){const ap=el('div','p-apercu'),fi=el('div','p-ap-img'),im=el('img');im.alt='';fi.append(im);ap.append(el('p','p-ap-leg'),fi);pl.append(ap);
+    /* Clic sur la zone : la carte montree en grand (comme l'oeil de la main). */
+    ap.onclick=()=>{if(ap.dataset.c===undefined||!partie)return;const c=+ap.dataset.c,C=M.carte(c),n=partie.etat.j[partie.moi].main.includes(c)?surcout(partie.etat,partie.moi,c):0;cacheApercu();dernier=null;zoom(srcC(c),C.nom,detailSurcout(C,n),calqueSurcout(C,n))}}
   const jo=el('details','p-journal'),li=el('div','p-lignes'),su=el('summary','','Journal');
   jo.open=journalOuvert||LARGE.matches;
   jo.ontoggle=()=>{if(!LARGE.matches)journalOuvert=jo.open;if(jo.open)li.scrollTop=li.scrollHeight};
@@ -4187,7 +4459,7 @@ function affiche(){
   su.append(' ',el('span','j-manche','Manche '+pg));nav.append(va('<','Manche précédente',pg-1,pg<=1),va('>','Manche suivante',pg+1,pg>=nb));
   const causes=causesLog(s);pages[pg-1].forEach(e=>{const[p,x]=e,[c,n]=genreLog(x),d=el('div',c);d.append(ico(n),texteLog(ligneLog(p,x,me)+(causes.get(e)||'')));li.append(d)});
   jo.append(su,nav,li);
-  const pied=el('div','p-pied'),q=el('button','btn sec plein','Quitter la partie');q.type='button';q.onclick=quittePartie;pied.append(q);
+  const pied=el('div','p-pied'),q=el('button','btn sec plein','Quitter la partie');q.type='button';q.onclick=quitteBouton;pied.append(q);
   let enTuto=false;try{enTuto=!!tuto}catch(e){}
   if(partie.tuto&&enTuto&&!s.fin){const gp=el('button','btn sec plein','Passer le tutoriel');gp.type='button';gp.id='passerTuto';gp.onclick=()=>{arreteGuide();affiche()};pied.classList.add('duo');pied.append(gp)}
   else if(btnRejouer){pied.classList.add('duo','trio');pied.append(btnPartage,btnRejouer)}
@@ -4197,6 +4469,13 @@ function affiche(){
     pied.classList.add('duo');pied.append(ab)}
   const cote=el('div','p-cote');if(!partie.local&&!partie.rejeu&&r&&!s.fin)cote.append(reactions()); /* fin de partie (abandon compris) : plus de reactions */cote.append(pied,jo);
   table.append(b,plat,pl,cote);
+  /* Signal de tour juste au-dessus de la main, la consigne reste en dessous ; au tour adverse, main grisee (toujours consultable). */
+  if(!s.fin&&s.phase==='jeu'){
+    const sg=el('div','p-signal '+(aMoi?'s-moi':'s-lui')),av=pl.querySelector('.p-consigne,.p-main');
+    if(aMoi)sg.append(el('b','','À toi de jouer'));
+    else{sg.append(el('b','','Tour de '+nomJ(qui)),el('span','','Tu peux regarder ta main en attendant.'));pl.querySelectorAll('.p-main').forEach(m=>m.classList.add('en-veille'))}
+    pl.insertBefore(sg,av||pl.firstChild);
+  }
   box.append(table);
   li.scrollTop=li.scrollHeight;
   /* Rejeu : on regarde seulement, toutes les commandes de jeu sont inactives. */
@@ -4212,9 +4491,9 @@ function zoneMaj(){
   const z=zoneEl();if(!z||!partie||!partie.etat)return;
   const main=partie.etat.j[partie.moi].main,c=zoneSurvol!==null?zoneSurvol:sel!==null&&main.includes(sel)?sel:derniereAdv;
   const im=z.querySelector('img'),lg=z.querySelector('.p-ap-leg');
-  if(c===null){z.classList.add('vide');im.hidden=true;lg.textContent='Survole une carte de ta main pour la voir en grand.';return}
+  if(c===null){delete z.dataset.c;z.classList.add('vide');im.hidden=true;lg.textContent='Survole une carte de ta main pour la voir en grand.';return}
   let src;try{src=srcC(c)}catch(e){return}
-  z.classList.remove('vide');im.hidden=false;if(im.getAttribute('src')!==src)im.src=src;im.alt=M.carte(c).nom;
+  z.dataset.c=c;z.classList.remove('vide');im.hidden=false;if(im.getAttribute('src')!==src)im.src=src;im.alt=M.carte(c).nom;
   lg.textContent=c===derniereAdv&&c!==zoneSurvol&&c!==sel?'Dernière carte jouée par '+nomJ(1-partie.moi):'Aperçu';
 }
 LARGE.addEventListener('change',()=>{if(partie)affiche()});
@@ -4448,8 +4727,9 @@ majChoixDeck();
   room.onConnection(majEtat,fin);
   if(room.annonces)room.annonces(l=>{annoncesL=l;peintListe()});
   if(room.compte.resumeur){room.compte.resumeur(resumeProfil);if(compteCo())room.compte.publieProfil()}
-  room.compte.onChange(()=>{surCompte();if(compteCo()&&room.compte.publieProfil)room.compte.publieProfil();if(compteCo()){room.presence({pseudo:pseudo}).catch(()=>{});if(invit)suitInvit()}});
+  room.compte.onChange(()=>{surCompte();if(compteCo()&&room.compte.publieProfil)room.compte.publieProfil();if(compteCo()){room.presence({pseudo:pseudo}).catch(()=>{});if(invit)suitInvit();reessaie()}});
   surCompte();
+  reessaie(); /* parties restees en attente d'ecriture */
   if(compteCo())room.presence({pseudo:pseudo}).catch(()=>{});
   else if(!lire('golems.invite')&&!invit)ouvrePseudo();
   majEtat();

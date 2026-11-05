@@ -327,7 +327,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Abandon 0.2.2 OK');
 }
 { // 0.2a.1 : Indra (013, 013e). Ids : Indra 33-35, Fan enflammee 36-38, Cyrdan 12, Alrevan 6, K-Chan 30, Roi du Mobile 27, Le Q 18.
-  assert(['0.2a.1','0.2a.2','0.2b'].includes(M.VERSION));
+  assert(['0.2a.1','0.2a.2','0.2b','0.2b.1'].includes(M.VERSION));
   const D=M.deckTexte({'002':3,'003':3,'004':3,'007e':3,'008':3,'013':3,'013e':3,'001':3});assert(M.lisDeck(D),'deck Indra valide');
   assert.strictEqual(M.decode(M.code({t:'p',c:38,l:1,k:2})).c,38,'code base 36 etendu');assert.strictEqual(M.code({t:'p',c:36,l:0,k:0}),'pA00');
   assert.deepStrictEqual(M.decode('g12'),{t:'g',l:1,k:2});
@@ -375,7 +375,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Indra 0.2a.1 OK : 150 parties aleatoires ('+nG+' favoris) et 300 parties robot sans blocage ('+nR+' Ragebait), rejeux identiques');
 }
 { // 0.2a.2 : Glad (009, 009e). Ids : Glad 39-41, GymRat 42-44, KaTarN 0, Slim K 3, Cyrdan 12, Indra 33, Fan enflammee 36, Roi du Mobile 27, K-Chan 30, Alrevan 6.
-  assert(['0.2a.2','0.2b'].includes(M.VERSION));
+  assert(['0.2a.2','0.2b','0.2b.1'].includes(M.VERSION));
   const D=M.deckTexte({'001':3,'001e':3,'003':3,'008':3,'013':3,'013e':3,'009':3,'009e':3});assert(M.lisDeck(D),'deck Glad valide');
   assert.strictEqual(M.code({t:'p',c:44,l:0,k:0}),'pI00');assert.strictEqual(M.decode('pI00').c,44,'code etendu a 44');
   assert.deepStrictEqual(M.decode('h0102'),{t:'h',l:0,k:1,m:0,n:2});assert.strictEqual(M.code({t:'h',l:2,k:0,m:1,n:0}),'h2010');
@@ -432,7 +432,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Glad 0.2a.2 OK : 150 parties aleatoires ('+nS+' Slam) et 300 parties robot sans blocage ('+nM+' Menfou palu), rejeux identiques');
 }
 { // 0.2b : K-Chan (008) Magma + Brume au lieu de Magma + Roche. Ids : K-Chan 30-32, Trigas 24, Cyrdan 12, Alrevan 6, Le Q 18, Glad 39.
-  assert.strictEqual(M.VERSION,'0.2b');assert.deepStrictEqual(M.CARTES['008'].el,['magma','brume'],'K-Chan Magma + Brume');
+  assert(['0.2b','0.2b.1'].includes(M.VERSION));assert.deepStrictEqual(M.CARTES['008'].el,['magma','brume'],'K-Chan Magma + Brume');
   const s=vide();s.j[0].grille[1][1]=gol(30,2);
   s.j[0].grille[0][1]=gol(24,1);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Trait avec Trigas : Brume partagee');
   s.j[0].grille[0][1]=gol(12,1);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Cyrdan voisin : son +1 seulement, plus de Trait Roche');
@@ -884,7 +884,7 @@ duel('facile','normal');duel('normal','difficile');
   assert(rt.p&&rt.m,'robot : Kiwi jamais pose '+JSON.stringify(rt));
   console.log('Kiwi OK : '+nv+' verifications, 300 parties aleatoires ('+tot.p+' Kiwi poses, '+tot.m+' Mignonitude, '+tot.o+' departs a la mort du maitre) et '+nr+' parties robot (dont 300 a niveaux melanges ; '+rt.p+' Kiwi poses, '+rt.m+' Mignonitude, '+rt.o+' departs), rejeux identiques');
 }
-{ // ESSAI Elessar : Elessar (018, cartes 72-74, codes ~9 ~a ~b) et Le pomplard (018e, cartes 75-77, codes ~c ~d ~e).
+{ // Elessar : Elessar (018, cartes 72-74, codes ~9 ~a ~b) et Le pomplard (018e, cartes 75-77, codes ~c ~d ~e).
   // Autres : KaTarN 0 (Magma Foudre), Alrevan 6 (KEKWRevan 9), Cyrdan 12, Le Q 18, Trigas 24 (Roi du Mobile 27), K-Chan 30 (Magma Brume), Indra 33, Glad 39, GymRat 42,
   // Apo 45 (Magma Roche), Maitre du deguisement 48, Titom76 57, Spom 63, Kiwi 69.
   let nv=0;const ok=(c,m)=>{assert(c,m);nv++},eq=(a,b,m)=>{assert.strictEqual(a,b,m);nv++},deq=(a,b,m)=>{assert.deepStrictEqual(a,b,m);nv++};
@@ -997,9 +997,9 @@ duel('facile','normal');duel('normal','difficile');
     const c=cpt(u.log.map(x=>x[1]));for(const k in rt)rt[k]+=c[k];
     const r=M.rejoue(gr,[M.litJournal(M.ecritJournal(j[0])),M.litJournal(M.ecritJournal(j[1]))],dk);assert(!r.erreur,r.erreur);assert.strictEqual(JSON.stringify(r.etat),JSON.stringify(u),'rejeu robot Elessar');M.bilan(u);nr++;nv++}
   assert(rt.r&&rt.x&&rt.t,'robot : effet jamais joue '+JSON.stringify(rt));
-  console.log('ESSAI Elessar OK : '+nv+' verifications, 300 parties aleatoires ('+tot.r+' evolutions surtaxees, '+tot.x+' Extinctions dont '+tot.t+' avec perte, '+mortsP+' morts, '+tot.ae+' Apo en Elessar, '+tot.ap+' Apo en Pomplard) et '+nr+' parties robot (dont 150 a niveau egal ; '+rt.r+' evolutions surtaxees, '+rt.x+' Extinctions dont '+rt.t+' avec perte, '+rt.ae+' Apo en Elessar, '+rt.ap+' Apo en Pomplard), rejeux identiques');
+  console.log('Elessar OK : '+nv+' verifications, 300 parties aleatoires ('+tot.r+' evolutions surtaxees, '+tot.x+' Extinctions dont '+tot.t+' avec perte, '+mortsP+' morts, '+tot.ae+' Apo en Elessar, '+tot.ap+' Apo en Pomplard) et '+nr+' parties robot (dont 150 a niveau egal ; '+rt.r+' evolutions surtaxees, '+rt.x+' Extinctions dont '+rt.t+' avec perte, '+rt.ae+' Apo en Elessar, '+rt.ap+' Apo en Pomplard), rejeux identiques');
 }
-{ // ESSAI Velnen : Velnen (041, cartes 78-80, codes ~f ~g ~h) et Le chansonnier (041e, cartes 81-83, codes ~i ~j ~k), coup 'i' (Imitation : i1 copier, i0 refuser).
+{ // Velnen : Velnen (041, cartes 78-80, codes ~f ~g ~h) et Le chansonnier (041e, cartes 81-83, codes ~i ~j ~k), coup 'i' (Imitation : i1 copier, i0 refuser).
   // Autres : KaTarN 0, Alrevan 6 (KEKWRevan 9), Cyrdan 12, Le Q 18, Roi du Mobile 27, K-Chan 30, Indra 33, Glad 39, Apo 45, Maitre du deguisement 48,
   // Titom76 57, Spom 63, Kiwi 69, Elessar 72, Le pomplard 75. Elements de Velnen : M.EL_VELNEN (Roche puis Brume), aucun test n'en depend.
   let nv=0;const ok=(c,m)=>{assert(c,m);nv++},eq=(a,b,m)=>{assert.strictEqual(a,b,m);nv++},deq=(a,b,m)=>{assert.deepStrictEqual(a,b,m);nv++};
@@ -1125,14 +1125,14 @@ duel('facile','normal');duel('normal','difficile');
   const niv=['facile','normal','difficile'],rt={};let nr=0;
   for(let i=0;i<450;i++){add(rt,jouer((i*15485863+977)|0,[[DV1,DV2,DV3][i%3],[DV3,DV1,'',DV2][i%4]],p=>niv[i<300?(i+p)%3:i%3]));nr++}
   ok(rt.c&&rt.i1&&rt.g,'robot : Imitation jamais jouee '+JSON.stringify(rt));
-  console.log('ESSAI Velnen OK : '+nv+' verifications, 300 parties aleatoires ('+tot.c+' copies, '+tot.r+' refus, '+tot.n+' Imitations sans cible, '+tot.g+' Graines de Golem) et '+nr+' parties robot (dont 150 a niveau egal ; '+rt.c+' copies, '+rt.r+' refus, '+rt.n+' sans cible, '+rt.g+' Graines), rejeux identiques');
+  console.log('Velnen OK : '+nv+' verifications, 300 parties aleatoires ('+tot.c+' copies, '+tot.r+' refus, '+tot.n+' Imitations sans cible, '+tot.g+' Graines de Golem) et '+nr+' parties robot (dont 150 a niveau egal ; '+rt.c+' copies, '+rt.r+' refus, '+rt.n+' sans cible, '+rt.g+' Graines), rejeux identiques');
 }
-{ // ESSAI Shifukuro : Shifukuro (025, cartes 84-86, codes ~l ~m ~n, KEKWait) et Le moderateur (025e, cartes 87-89, codes ~o ~p ~q), meandyou : attente 'u', coup 'e' (echange) ou 'v' (passer).
+{ // Shifukuro : Shifukuro (025, cartes 84-86, codes ~l ~m ~n, KEKWait) et Le moderateur (025e, cartes 87-89, codes ~o ~p ~q), meandyou : attente 'u', coup 'e' (echange) ou 'v' (passer).
   // Autres : KaTarN 0, Slim K 3, Trigas 24, K-Chan 30, Glad 39, Apo 45, Maitre du deguisement 48, SuperFishman 51 (memes elements que Shifukuro), Titom76 57, Kiwi 69, Velnen 78, chansonnier 81.
   let nv=0;const ok=(c,m)=>{assert(c,m);nv++},eq=(a,b,m)=>{assert.strictEqual(a,b,m);nv++},deq=(a,b,m)=>{assert.deepStrictEqual(a,b,m);nv++};
   const SH=84,MO=87,TR=24,KC=30,SF=51,AP=45,MD=48,VE=78,CH=81;
   eq(M.carte(84).id,'025');eq(M.carte(86).id,'025');eq(M.carte(87).id,'025e');eq(M.carte(89).id,'025e');eq(M.carte(83).id,'041e','chansonnier inchange');eq(M.carte(78).id,'041','Velnen inchange');
-  eq(M.TYPES.indexOf('025'),28);eq(M.TYPES.indexOf('025e'),29);eq(M.TYPES.length,34); /* 30 avant ESSAI Bellock/Loxim */eq(M.TYPES.indexOf('041e'),27);eq(M.TYPES_TEST.length,11,'paquet de test inchange');
+  eq(M.TYPES.indexOf('025'),28);eq(M.TYPES.indexOf('025e'),29);eq(M.TYPES.length,34); /* 30 avant Bellock/Loxim */eq(M.TYPES.indexOf('041e'),27);eq(M.TYPES_TEST.length,11,'paquet de test inchange');
   const C0=M.CARTES['025'],C1=M.CARTES['025e'];
   eq(C0.nom,'Shifukuro');eq(C0.cout,2);eq(C0.force,1);deq(C0.el,['roche','cristal']);ok(!C0.base);
   eq(C1.nom,'Le modérateur');eq(C1.base,'025');eq(C1.cout,3);eq(C1.force,4);deq(C1.el,['roche','cristal']);
@@ -1248,11 +1248,11 @@ duel('facile','normal');duel('normal','difficile');
   const niv=['facile','normal','difficile'],rt={};let nr=0;
   for(let i=0;i<450;i++){add(rt,jouer((i*15485863+1231)|0,[[DS1,DS2,DS3][i%3],[DS3,DS1,'',DS2][i%4]],p=>niv[i<300?(i+p)%3:i%3]));nr++}
   ok(rt.e&&rt.kb&&rev,'robot : meandyou jamais joue '+JSON.stringify(rt));
-  console.log('ESSAI Shifukuro OK : '+nv+' verifications, 300 parties aleatoires ('+tot.ps+' Shifukuro poses, '+tot.pm+' moderateurs, '+tot.e+' echanges dont '+rev0+' paires inversees, '+tot.v+' refus, '+tot.n+' sans cible, '+tot.kb+' bonus KEKWait au decompte, '+tot.m+' morts par perte du bonus, copies '+tot.c0+'/'+tot.c1+')'
+  console.log('Shifukuro OK : '+nv+' verifications, 300 parties aleatoires ('+tot.ps+' Shifukuro poses, '+tot.pm+' moderateurs, '+tot.e+' echanges dont '+rev0+' paires inversees, '+tot.v+' refus, '+tot.n+' sans cible, '+tot.kb+' bonus KEKWait au decompte, '+tot.m+' morts par perte du bonus, copies '+tot.c0+'/'+tot.c1+')'
     +' et '+nr+' parties robot (dont 150 a niveau egal ; '+rt.ps+' Shifukuro, '+rt.pm+' moderateurs, '+rt.e+' echanges dont '+rev+' paires inversees, '+rt.v+' refus, '+rt.n+' sans cible, '+rt.kb+' bonus KEKWait, '+rt.m+' morts par perte du bonus, copies '+rt.c0+'/'+rt.c1+'), rejeux identiques');
 }
-{ // ESSAI Bellock/Loxim : Bellock (015, cartes 90-92, ~r ~s ~t), Aiges Captain (015e, 93-95, ~u ~v ~w), Loxim (016, 96-98, ~x ~y ~z), Le Ace de Aiges (016e, 99-101, ~A ~B ~C).
-  // Comeback / Winstreak (s.resultats), « si tu forges cette carte » (attente 'r', coup 'r' + carte), Double up ? (REGLAGE_DUO.doubleUp).
+{ // Bellock/Loxim : Bellock (015, cartes 90-92, ~r ~s ~t), Aiges Captain (015e, 93-95, ~u ~v ~w), Loxim (016, 96-98, ~x ~y ~z), Le Ace de Aiges (016e, 99-101, ~A ~B ~C).
+  // Comeback / Winstreak (s.resultats), « si tu forges cette carte » (0.2b.1 : pioche au hasard parmi tous les exemplaires du partenaire, plus de coup 'r'), Double up ? (REGLAGE_DUO.doubleUp).
   // Autres : KaTarN 0, Slim K 3, Cyrdan 12, Trigas 24, K-Chan 30, Apo 45, Maitre du deguisement 48, Titom76 57, Spom 63, Kiwi 69, Velnen 78, chansonnier 81.
   let nv=0;const ok=(c,m)=>{assert(c,m);nv++},eq=(a,b,m)=>{assert.strictEqual(a,b,m);nv++},deq=(a,b,m)=>{assert.deepStrictEqual(a,b,m);nv++};
   const BE=90,AC=93,LO=96,AA=99,TR=24,KC=30,AP=45,MD=48,TI=57,SP=63,VE=78,CH=81;
@@ -1266,8 +1266,8 @@ duel('facile','normal');duel('normal','difficile');
   eq(M.nomDetail(M.carte(AC)),'Bellock (Aiges Captain)');eq(M.nomDetail(M.carte(AA)),'Loxim (Le Ace de Aiges)');deq(Object.keys(M.COPIEURS).sort(),['029e','041e'],'pas un copieur');eq(M.REGLAGE_DUO.doubleUp,3);
   // --- encodage (limite 125)
   deq([90,91,92,93,94,95,96,97,98,99,100,101].map(c=>M.code({t:'f',c})),['f~r','f~s','f~t','f~u','f~v','f~w','f~x','f~y','f~z','f~A','f~B','f~C']);
-  eq(M.code({t:'p',c:AA,l:2,k:1}),'p~A21');deq(M.decode('p~A21'),{t:'p',c:AA,l:2,k:1});eq(M.code({t:'r',c:AA}),'r~A');deq(M.decode('r~A'),{t:'r',c:AA});deq(M.decode('r5'),{t:'r',c:5});
-  for(let c=0;c<102;c++){for(const t of ['f','j','c','d','s','r'])deq(M.decode(M.code({t,c})),{t,c});deq(M.decode(M.code({t:'p',c,l:1,k:2})),{t:'p',c,l:1,k:2})}
+  eq(M.code({t:'p',c:AA,l:2,k:1}),'p~A21');deq(M.decode('p~A21'),{t:'p',c:AA,l:2,k:1});assert.throws(()=>M.decode('r~A'),'plus de coup r');assert.throws(()=>M.decode('r5'),'plus de coup r');nv+=2;
+  for(let c=0;c<102;c++){for(const t of ['f','j','c','d','s'])deq(M.decode(M.code({t,c})),{t,c});deq(M.decode(M.code({t:'p',c,l:1,k:2})),{t:'p',c,l:1,k:2})}
   assert.throws(()=>M.decode('r'));assert.throws(()=>M.decode('r~'));nv+=2;
   // --- decks
   const DB1=M.deckTexte({'015':3,'015e':3,'016':3,'016e':3,'007':3,'036':3,'008':3,'029':2,'029e':2});
@@ -1308,31 +1308,45 @@ duel('facile','normal');duel('normal','difficile');
   s=prep([AA]);moi(s,LO,4,1,2);s.resultats=[[null,null,0]];eq(M.forceDe(s,0,1,2),5);pose(s,AA,1,2);eq(M.forceDe(s,0,1,2),6,'Le Ace de Aiges : 4 + 2');
   // deplace : compte les manches de son nouveau terrain (La Faille en terrain 0)
   s=prep([],[0,8,9]);moi(s,BE,1,0,1);s.resultats=[[1,0,null]];eq(hb(s,0,0,1),0);M.applique(s,0,{t:'y',l:0,k:1,d:2});ok(s.j[0].grille[2][0]&&s.j[0].grille[2][0].c===BE);eq(hb(s,0,2,0),1,'deplace : +1 sur La Faille');
-  // --- « si tu forges cette carte » : Forge normale, choix entre deux versions
+  // --- « si tu forges cette carte » (0.2b.1) : un exemplaire du partenaire AU HASARD parmi tous ceux du deck (bases et evolutions), sans choix ni attente
   const forge=(main,deck)=>{const s=prep(main);s.j[0].deck=deck.slice();s.j[0].energie=0;s.j[0].etapeForge=true;return s};
-  s=forge([BE,KC],[TR,LO,KC+1,AA,LO+1]);ok(codes(s).includes('f~r'));let rg=JSON.stringify(s.rng);M.applique(s,0,{t:'f',c:BE});
-  ok(s.attente&&s.attente.t==='r'&&s.attente.p===0);deq(s.attente.options,[LO,AA],'premier exemplaire de chaque version, base d abord');deq(codes(s),['r~A','r~x']);deq(M.attendus(s),[0]);eq(s.j[0].energie,1);
-  assert.throws(()=>M.applique(s,0,{t:'r',c:LO+1}),'autre exemplaire');assert.throws(()=>M.applique(s,0,{t:'n'}));assert.throws(()=>M.applique(s,1,{t:'r',c:AA}));nv+=3;
-  M.applique(s,0,{t:'r',c:AA});eq(s.attente,null);ok(s.j[0].main.includes(AA));ok(!s.j[0].deck.includes(AA));eq(s.j[0].deck.length,4);deq(s.j[0].deck.slice().sort((a,b)=>a-b),[TR,KC+1,LO,LO+1]);
-  ok(JSON.stringify(s.rng)!==rg,'deck melange');eq(s.j[0].etapeForge,false,'etape de Forge finie');ok(L(s).includes('Bellock : Comeback, pioche Loxim (Le Ace de Aiges) dans son deck, puis le mélange.'),JSON.stringify(L(s).slice(-2)));
+  /* pioche : la carte du duo arrivee en main (une seule) ; ligne de journal attendue pour cette carte */
+  const pioche=(s,av)=>{const n=s.j[0].main.filter(c=>!av.includes(c));eq(n.length,1,'une carte piochee');return n[0]};
+  const ligneP=(de,c)=>de+', pioche '+M.nomDetail(M.carte(c))+' dans son deck, puis le mélange.';
+  s=forge([BE,KC],[TR,LO,KC+1,AA,LO+1]);ok(codes(s).includes('f~r'));deq(M.partenaires(s.j[0],BE),[LO,LO+1,AA],'tous les exemplaires, par numero');deq(M.partenaires(s.j[0],KC),[],'pas du duo');
+  let rg=JSON.stringify(s.rng);const s2=JSON.parse(JSON.stringify(s));M.applique(s,0,{t:'f',c:BE});
+  eq(s.attente,null,'pas de choix');ok(!M.legales(s,0).some(a=>a.t==='r'),'plus de coup r');deq(M.attendus(s),[0]);eq(s.j[0].energie,1);
+  let x=pioche(s,[KC]);ok([LO,LO+1,AA].includes(x),'un Loxim');ok(!s.j[0].deck.includes(x));eq(s.j[0].deck.length,4);deq(s.j[0].deck.concat(x).sort((a,b)=>a-b),[TR,KC+1,LO,LO+1,AA]);
+  ok(JSON.stringify(s.rng)!==rg,'tirage et melange');eq(s.j[0].etapeForge,false,'etape de Forge finie');ok(L(s).includes(ligneP('Bellock : Comeback',x)),JSON.stringify(L(s).slice(-2)));
   ok(s.stats.act.some(x=>x.nom==='Comeback'&&x.e==='Cherche Loxim'));
-  // une seule version : d'office ; aucune : rien, pas de melange
-  s=forge([BE,KC],[TR,LO,KC+1]);M.applique(s,0,{t:'f',c:BE});eq(s.attente,null);ok(s.j[0].main.includes(LO));eq(s.j[0].deck.length,2);
-  s=forge([BE,KC],[TR,KC+1]);rg=JSON.stringify(s.rng);M.applique(s,0,{t:'f',c:BE});eq(s.attente,null);deq(s.j[0].deck,[TR,KC+1],'deck intact');eq(JSON.stringify(s.rng),rg,'pas de melange');
+  M.applique(s2,0,{t:'f',c:BE});eq(JSON.stringify(s2),JSON.stringify(s),'meme graine : meme tirage, meme deck');
+  // ancien coup 'r' refuse
+  s=forge([BE,KC],[LO,AA]);M.applique(s,0,{t:'f',c:BE});assert.throws(()=>M.applique(s,0,{t:'r',c:LO}),'coup r interdit');nv++;
+  // pondere par les exemplaires : graines variees du generateur du joueur, frequence de chaque exemplaire
+  const freq=(deck,N)=>{const s0=forge([BE,KC],deck),n={};for(let i=0;i<N;i++){const s=JSON.parse(JSON.stringify(s0));s.rng[0]=Math.imul(i+1,2654435761)|0;
+      M.applique(s,0,{t:'f',c:BE});const c=pioche(s,[KC]);n[c]=(n[c]||0)+1}return n};
+  const N=6000,proche=(n,p,m)=>{const e=Math.abs((n||0)/N-p);ok(e<.025,m+' : '+((n||0)/N).toFixed(3)+' attendu '+p.toFixed(3))};
+  let fq=freq([LO,LO+1,LO+2,AA,TR,KC+1],N);deq(Object.keys(fq).map(Number).sort((a,b)=>a-b),[LO,LO+1,LO+2,AA],'jamais une autre carte');
+  [LO,LO+1,LO+2,AA].forEach(c=>proche(fq[c],.25,'3 Loxim et 1 Ace : exemplaire '+c));proche(fq[AA],.25,'evolution 1 fois sur 4');
+  fq=freq([LO,AA,AA+1,AA+2],N);proche((fq[AA]||0)+(fq[AA+1]||0)+(fq[AA+2]||0),.75,'1 Loxim et 3 Ace : evolution 3 fois sur 4');
+  fq=freq([LO,AA],N);proche(fq[LO],.5,'1 et 1');proche(fq[AA],.5,'1 et 1');
+  fq=freq([TR,AA+2,KC+1],200);deq(Object.keys(fq).map(Number),[AA+2],'un seul exemplaire : toujours lui');
+  // aucun : rien, pas de melange
+  s=forge([BE,KC],[TR,KC+1]);rg=JSON.stringify(s.rng);M.applique(s,0,{t:'f',c:BE});eq(s.attente,null);deq(s.j[0].deck,[TR,KC+1],'deck intact');eq(JSON.stringify(s.rng),rg,'pas de tirage ni de melange');
   ok(L(s).includes('Bellock : Comeback, aucun Loxim dans le deck.'));ok(s.stats.act.some(x=>x.nom==='Comeback'&&x.e==='Aucun Loxim'));
-  // Loxim et les evolutions cherchent aussi
-  s=forge([LO+2,KC],[TR,AC,BE+1,AC+1]);M.applique(s,0,{t:'f',c:LO+2});deq(s.attente.options,[BE+1,AC]);M.applique(s,0,{t:'r',c:BE+1});ok(L(s).includes('Loxim : Winstreak, pioche Bellock dans son deck, puis le mélange.'));
+  // Loxim et les evolutions piochent aussi
+  s=forge([LO+2,KC],[TR,AC,BE+1,AC+1]);M.applique(s,0,{t:'f',c:LO+2});eq(s.attente,null);x=pioche(s,[KC]);ok([BE+1,AC,AC+1].includes(x));ok(L(s).includes(ligneP('Loxim : Winstreak',x)));
   s=forge([AC,KC],[LO]);M.applique(s,0,{t:'f',c:AC});ok(s.j[0].main.includes(LO));ok(L(s).includes('Bellock (Aiges Captain) : Comeback, pioche Loxim dans son deck, puis le mélange.'));
   s=forge([AA+1,KC],[BE,TR]);M.applique(s,0,{t:'f',c:AA+1});ok(s.j[0].main.includes(BE));
   s=forge([KC,TR],[LO]);M.applique(s,0,{t:'f',c:KC});deq(s.j[0].deck,[LO],'autre carte forgee : rien');
   // Forge eclair (Spom) : compte comme forger ; l'etape reprend si la main se remplit
   s=forge([BE],[LO]);moi(s,SP,1,2,2);s.j[0].eclair=1;M.applique(s,0,{t:'f',c:BE});deq(s.j[0].main,[LO]);eq(s.j[0].etapeForge,true,'main remplie : Forge eclair encore possible');ok(codes(s).includes('j~x'));
   M.applique(s,0,{t:'j',c:LO});deq(s.j[0].main,[]);ok(L(s).includes('Loxim : Winstreak, aucun Bellock dans le deck.'));
-  s=forge([KC,BE,TR],[LO,AA]);moi(s,SP,1,2,2);s.j[0].eclair=1;M.applique(s,0,{t:'f',c:KC});M.applique(s,0,{t:'j',c:BE});ok(s.attente&&s.attente.t==='r'&&s.attente.etape);M.applique(s,0,{t:'r',c:LO});
-  eq(s.j[0].etapeForge,false,'eclair use, Forge faite');ok(s.j[0].main.includes(LO));eq(s.j[0].eclairUtil,1);
+  s=forge([KC,BE,TR],[LO,AA,LO+1]);moi(s,SP,1,2,2);s.j[0].eclair=1;M.applique(s,0,{t:'f',c:KC});M.applique(s,0,{t:'j',c:BE});eq(s.attente,null,'Forge eclair : pas de choix');
+  x=pioche(s,[TR]);ok([LO,LO+1,AA].includes(x));eq(s.j[0].deck.length,2);eq(s.j[0].etapeForge,false,'eclair use, Forge faite');eq(s.j[0].eclairUtil,1);ok(L(s).includes(ligneP('Bellock : Comeback',x)));
   // Spam de Trigas : compte comme forger (hors etape de Forge)
-  s=prep([TR,BE]);s.j[0].deck=[KC,LO,AA];pose(s,TR,0,0);ok(s.attente&&s.attente.t==='s');M.applique(s,0,{t:'s',c:BE});ok(s.attente&&s.attente.t==='r'&&!s.attente.etape);deq(codes(s),['r~A','r~x']);
-  M.applique(s,0,{t:'r',c:LO});ok(s.j[0].main.includes(LO));eq(s.j[0].etapeForge,false);ok(L(s).includes('Bellock : Comeback, pioche Loxim dans son deck, puis le mélange.'));
+  s=prep([TR,BE]);s.j[0].deck=[KC,LO,AA];pose(s,TR,0,0);ok(s.attente&&s.attente.t==='s');let av=s.j[0].main.filter(c=>c!==BE);M.applique(s,0,{t:'s',c:BE});eq(s.attente,null,'Spam : pas de choix');
+  x=pioche(s,av);ok([LO,AA].includes(x));eq(s.j[0].etapeForge,false);ok(L(s).includes(ligneP('Bellock : Comeback',x)));
   s=prep([TR,BE]);s.j[0].deck=[KC,LO];pose(s,TR,0,0);M.applique(s,0,{t:'s',c:BE});eq(s.attente,null);ok(s.j[0].main.includes(LO));
   // defausse a 7 : ce n'est pas forger
   s=prep([BE,KC,KC+1,TR,TR+1,TR+2,AP,AP+1]);s.j[0].deck=[LO];M.applique(s,0,{t:'x'});ok(s.attente&&s.attente.t==='d');M.applique(s,0,{t:'d',c:BE});deq(s.j[0].deck,[LO]);ok(!L(s).some(x=>/Comeback/.test(x)),'pas de recherche');
@@ -1373,9 +1387,8 @@ duel('facile','normal');duel('normal','difficile');
   eq(kc(s,1,1),5,'chansonnier en Le Ace de Aiges : Winstreak de son camp + Double up ? avec Bellock');
   // --- robot : version du partenaire, carte a forger, Double up ? vise
   for(const niv of ['normal','difficile']){
-    s=forge([BE,KC],[LO,AA,TR]);M.applique(s,0,{t:'f',c:BE});eq(M.code(M.robot(s,0,niv)),'r~x',niv+' : sans Loxim nulle part, la base');
-    s=forge([BE,KC],[LO,AA,TR]);moi(s,LO+1,4,2,2);M.applique(s,0,{t:'f',c:BE});eq(M.code(M.robot(s,0,niv)),'r~A',niv+' : Loxim en jeu, l evolution');
-    s=forge([BE,KC,LO+2],[LO,AA,TR]);M.applique(s,0,{t:'f',c:BE});eq(M.code(M.robot(s,0,niv)),'r~A',niv+' : Loxim en main, l evolution');
+    s=forge([BE,KC],[LO,AA,TR]);x=M.robot(s,0,niv);eq(M.code(x),'f~r',niv+' : forge Bellock');M.applique(s,0,x);eq(s.attente,null);ok(s.j[0].main.some(c=>c===LO||c===AA),niv+' : Loxim pioche sans choix');
+    ok(M.robot(s,0,niv).t!=='r',niv+' : pas de coup r');
     s=forge([KC,BE],[LO]);s.j[0].forge=[0,1,2,4,5,6,7];eq(M.code(M.robot(s,0,niv)),'f~r',niv+' : forge Bellock pour chercher Loxim, meme au-dela de la cible');
     s=forge([KC,BE],[TR]);s.j[0].forge=[0,1,2,4,5,6,7];eq(M.robot(s,0,niv).t,'n',niv+' : sans Loxim au deck, pas de Forge en plus');
     s=forge([AC,KC],[LO]);moi(s,BE,1,0,0);s.j[0].forge=[0,1,2,4,5,6,7];eq(M.robot(s,0,niv).t,'n',niv+' : garde Aiges Captain, sa base est en jeu');
@@ -1385,29 +1398,27 @@ duel('facile','normal');duel('normal','difficile');
   }
   // --- parties aleatoires et robot contre robot : rejeux identiques
   const golem=h=>!!h&&!M.estAnimal(h.c);
-  const verifieR=u=>{const a=u.attente;if(!a||a.t!=='r')return;const J=u.j[a.p],P=M.DUO[M.carte(a.de).id];ok(a.options.length===2,'choix sans deux versions');
-    a.options.forEach(c=>{ok(J.deck.includes(c),'option hors du deck');const C=M.carte(c);ok(C.id===P||C.base===P,'pas le partenaire')});ok(J.forge.includes(a.de),'carte forgee')};
-  const cpt=(X,u)=>{const r={fo:0,pi:0,ch:0,au:0,no:0,cb:0,ws:0,dup:0,mc:0,cop:0,pB:0,pL:0,ev:0};
-    X.forEach(x=>{if(/: (Comeback|Winstreak), pioche /.test(x))r.pi++;if(/: (Comeback|Winstreak), aucun /.test(x))r.no++;if(/il perd le bonus de (Bellock|Loxim)/.test(x))r.mc++;if(/copie (Bellock|Loxim)/.test(x))r.cop++});
+  const verifieR=u=>assert(!u.attente||u.attente.t!=='r','attente r'); /* 0.2b.1 : plus jamais d'attente 'r' */
+  const cpt=(X,u)=>{const r={fo:0,pi:0,pe:0,ch:0,au:0,no:0,cb:0,ws:0,dup:0,mc:0,cop:0,pB:0,pL:0,ev:0};
+    X.forEach(x=>{if(/: (Comeback|Winstreak), pioche /.test(x)){r.pi++;if(/, pioche (Bellock|Loxim) \(/.test(x))r.pe++}if(/: (Comeback|Winstreak), aucun /.test(x))r.no++;if(/il perd le bonus de (Bellock|Loxim)/.test(x))r.mc++;if(/copie (Bellock|Loxim)/.test(x))r.cop++});
     u.stats.act.forEach(x=>{if(x.nom==='Comeback'||x.nom==='Winstreak')r.fo++});
     u.stats.ev.forEach(e=>{if(e.t==='b'){if(e.y==='comeback')r.cb++;if(e.y==='winstreak')r.ws++;if(e.y==='doubleup')r.dup++}
       if(e.t==='p'){const id=M.carte(e.cc).id;if(id==='015')r.pB++;if(id==='016')r.pL++;if(id==='015e'||id==='016e')r.ev++}});
     return r};
-  let nch=0;
   const jouer=(gr,dk,choix)=>{const u=M.nouvelle(gr,dk),j=[[],[]];let pas=0;
     while(!u.fin){assert(++pas<2000,'blocage Bellock/Loxim '+gr);const att=M.attendus(u),p=choix?att[0]:att[rnd(att.length)],l=M.legales(u,p);assert(l.length,'aucune action '+gr);let x;
       if(choix){x=M.robot(u,p,choix(p));assert(x,'robot sans coup');}else{const pref=l.filter(y=>y.t==='p'||y.t==='f'||y.t==='j'||y.t==='i'||y.t==='e'||y.t==='w'||y.t==='y');x=pref.length&&rnd(5)?pref[rnd(pref.length)]:l[rnd(l.length)]}
-      if(x.t==='r')nch++;
+      assert(x.t!=='r','coup r');
       M.applique(u,p,x);j[p].push(M.code(x));verifie(u);verifieR(u)}
     eq(u.resultats.length,3,'trois manches memorisees');
     const r=M.rejoue(gr,[M.litJournal(M.ecritJournal(j[0])),M.litJournal(M.ecritJournal(j[1]))],dk);assert(!r.erreur,r.erreur);assert.strictEqual(JSON.stringify(r.etat),JSON.stringify(u),'rejeu Bellock/Loxim '+gr);M.bilan(u);nv++;
     return cpt(u.log.map(y=>y[1]),u)};
   const add=(t,c)=>{for(const k in c)t[k]=(t[k]||0)+c[k]};
   const tot={};for(let i=0;i<300;i++)add(tot,jouer((i*7741+911)|0,[[DB1,DB2,DB3,DB4][i%4],[DB4,DB1,'',DB2][i%4]]));
-  const nch0=nch;nch=0;ok(tot.pi&&tot.no&&tot.cb&&tot.ws&&tot.dup&&nch0,'aleatoire : effet jamais vu '+JSON.stringify(tot));
+  ok(tot.pi&&tot.pe&&tot.pi>tot.pe&&tot.no&&tot.cb&&tot.ws&&tot.dup,'aleatoire : effet jamais vu '+JSON.stringify(tot));
   const niv=['facile','normal','difficile'],rt={};let nr=0;
   for(let i=0;i<450;i++){add(rt,jouer((i*15485863+4211)|0,[[DB1,DB2,DB3,DB4][i%4],[DB4,DB1,'',DB2][(i>>2)%4]],p=>niv[i<300?(i+p)%3:i%3]));nr++}
-  ok(rt.pi&&rt.cb&&rt.ws&&rt.dup&&nch,'robot : effet jamais vu '+JSON.stringify(rt));
-  const f=o=>o.fo+' cartes du duo forgees ('+o.pi+' partenaires pioches, '+o.no+' sans partenaire), '+o.pB+' Bellock et '+o.pL+' Loxim poses, '+o.ev+' evolutions, bonus au decompte : Comeback '+o.cb+', Winstreak '+o.ws+', Double up ? '+o.dup+', '+o.mc+' morts par perte du partenaire, '+o.cop+' copies';
-  console.log('ESSAI Bellock/Loxim OK : '+nv+' verifications, 300 parties aleatoires ('+f(tot)+', '+nch0+' choix de version) et '+nr+' parties robot (dont 150 a niveau egal ; '+f(rt)+', '+nch+' choix de version), rejeux identiques');
+  ok(rt.pi&&rt.pe&&rt.pi>rt.pe&&rt.cb&&rt.ws&&rt.dup,'robot : effet jamais vu '+JSON.stringify(rt));
+  const f=o=>o.fo+' cartes du duo forgees ('+o.pi+' partenaires pioches au hasard dont '+o.pe+' evolutions, '+o.no+' sans partenaire), '+o.pB+' Bellock et '+o.pL+' Loxim poses, '+o.ev+' evolutions, bonus au decompte : Comeback '+o.cb+', Winstreak '+o.ws+', Double up ? '+o.dup+', '+o.mc+' morts par perte du partenaire, '+o.cop+' copies';
+  console.log('Bellock/Loxim 0.2b.1 OK : '+nv+' verifications (dont tirages ponderes sur '+N+' graines), 300 parties aleatoires ('+f(tot)+') et '+nr+' parties robot (dont 150 a niveau egal ; '+f(rt)+'), aucun coup r, rejeux identiques');
 }

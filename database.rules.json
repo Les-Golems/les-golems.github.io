@@ -200,7 +200,7 @@
       ".read": "auth != null",
       "$uid": {
         ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-        ".validate": "newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo')))",
+        ".validate": "newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))",
         "p":  { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()" },
         "m":  { ".validate": "newData.isBoolean()" },
         "t":  { ".validate": "newData.val() === now" },
@@ -221,6 +221,9 @@
         },
         // Joueurs les plus affrontés (3 au plus) : pseudo, parties, victoires.
         "jo": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['p', 'n', 'v'])", "p": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
+        // Détail par version du site (0.2a, 0.2b...) pour le filtre Patch du panneau Joueurs : 10 versions au plus (emplacements 0 à 9),
+        // chacune avec son nom p, ses parties n, ses victoires v et le detail contre l'ordinateur o (comme ci-dessus).
+        "pv": { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^[0-9]$/) && newData.hasChildren(['p', 'n', 'v'])", "p": { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "o": { "$niv": { ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])", "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } }, "$autre": { ".validate": false } } },
         "$autre": { ".validate": false }
       }
     },
@@ -289,7 +292,7 @@
         ".read": "auth != null",
         "$uid": {
           ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-          ".validate": "newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo')))",
+          ".validate": "newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))",
           "p":  { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()" },
           "m":  { ".validate": "newData.isBoolean()" },
           "t":  { ".validate": "newData.val() === now" },
@@ -310,6 +313,9 @@
           },
           // Joueurs les plus affrontés (3 au plus) : pseudo, parties, victoires.
           "jo": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['p', 'n', 'v'])", "p": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
+          // Détail par version du site (0.2a, 0.2b...) pour le filtre Patch du panneau Joueurs : 10 versions au plus (emplacements 0 à 9),
+          // chacune avec son nom p, ses parties n, ses victoires v et le detail contre l'ordinateur o (comme ci-dessus).
+          "pv": { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^[0-9]$/) && newData.hasChildren(['p', 'n', 'v'])", "p": { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "o": { "$niv": { ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])", "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50 && newData.val() % 1 === 0" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } }, "$autre": { ".validate": false } } },
           "$autre": { ".validate": false }
         }
       },
