@@ -130,7 +130,7 @@
           "$uid": {
             // Chaque compte n'écrit que sous son propre uid (le jeu en ligne exige un compte),
             // et seulement s'il est engagé quand une partie a commencé.
-            ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && (!newData.exists() || !root.child('salons').child($code).child('engages').exists() || root.child('salons').child($code).child('engages').hasChild($uid))",
+            ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && (!newData.exists() || !root.child('salons').child($code).child('engages').exists() || root.child('salons').child($code).child('engages').hasChild($uid)) && (!newData.exists() || !root.child('salons').child($code).child('spectateurs').hasChild($uid))",
             ".validate": "newData.hasChild('t')",
             "pseudo":  { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()" },
             "sid":     { ".validate": "newData.isString() && newData.val().length <= 16" },
@@ -156,7 +156,7 @@
           "$coup": {
             // Ajout seulement (jamais de modification ni d'effacement),
             // et uniquement ses propres coups : le champ a doit être son uid.
-            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && (!root.child('salons').child($code).child('engages').exists() || root.child('salons').child($code).child('engages').hasChild(auth.uid))",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && !root.child('salons').child($code).child('spectateurs').hasChild(auth.uid) && (!root.child('salons').child($code).child('engages').exists() || root.child('salons').child($code).child('engages').hasChild(auth.uid))",
             ".validate": "newData.hasChildren(['a', 's', 'g', 'n', 'c'])",
             "a": { ".validate": "newData.isString() && newData.val().length <= 128" },
             "s": { ".validate": "newData.isString() && newData.val().length <= 16" },
@@ -171,12 +171,28 @@
         // sous son propre uid et son pseudo. Effacé avec le salon.
         "chat": {
           "$m": {
-            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && (root.child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('salons').child($code).child('engages').hasChild(auth.uid))",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && (root.child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('salons').child($code).child('engages').hasChild(auth.uid) || root.child('salons').child($code).child('spectateurs').hasChild(auth.uid))",
             ".validate": "newData.hasChildren(['a', 'p', 't', 'm'])",
             "a": { ".validate": "newData.isString() && newData.val().length <= 128" },
             "p": { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child(auth.uid).child('pseudo').val()" },
             "t": { ".validate": "newData.val() === now" },
             "m": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200" },
+            "$autre": { ".validate": false }
+          }
+        },
+
+        // Mode spectateur (0.3). siege = uid de l'adversaire, pris par transaction s'il est libre, rendu par son seul détenteur.
+        "siege": {
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))",
+          ".validate": "newData.isString() && newData.val().length <= 128"
+        },
+        // Spectateurs présents : chacun n'écrit que sous son uid, pseudo de son compte et heure serveur.
+        "spectateurs": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
+            ".validate": "newData.hasChildren(['p', 't'])",
+            "p": { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()" },
+            "t": { ".validate": "newData.val() === now" },
             "$autre": { ".validate": false }
           }
         },
@@ -483,7 +499,7 @@
             "$uid": {
               // Chaque compte n'écrit que sous son propre uid (le jeu en ligne exige un compte),
               // et seulement s'il est engagé quand une partie a commencé.
-              ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && (!newData.exists() || !root.child('essai').child('salons').child($code).child('engages').exists() || root.child('essai').child('salons').child($code).child('engages').hasChild($uid))",
+              ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && (!newData.exists() || !root.child('essai').child('salons').child($code).child('engages').exists() || root.child('essai').child('salons').child($code).child('engages').hasChild($uid)) && (!newData.exists() || !root.child('essai').child('salons').child($code).child('spectateurs').hasChild($uid))",
               ".validate": "newData.hasChild('t')",
               "pseudo":  { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()" },
               "sid":     { ".validate": "newData.isString() && newData.val().length <= 16" },
@@ -509,7 +525,7 @@
             "$coup": {
               // Ajout seulement (jamais de modification ni d'effacement),
               // et uniquement ses propres coups : le champ a doit être son uid.
-              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && (!root.child('essai').child('salons').child($code).child('engages').exists() || root.child('essai').child('salons').child($code).child('engages').hasChild(auth.uid))",
+              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && !root.child('essai').child('salons').child($code).child('spectateurs').hasChild(auth.uid) && (!root.child('essai').child('salons').child($code).child('engages').exists() || root.child('essai').child('salons').child($code).child('engages').hasChild(auth.uid))",
               ".validate": "newData.hasChildren(['a', 's', 'g', 'n', 'c'])",
               "a": { ".validate": "newData.isString() && newData.val().length <= 128" },
               "s": { ".validate": "newData.isString() && newData.val().length <= 16" },
@@ -523,12 +539,28 @@
           // Chat du salon : comme en haut, sous essai/.
           "chat": {
             "$m": {
-              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && (root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('essai').child('salons').child($code).child('engages').hasChild(auth.uid))",
+              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && (root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('essai').child('salons').child($code).child('engages').hasChild(auth.uid) || root.child('essai').child('salons').child($code).child('spectateurs').hasChild(auth.uid))",
               ".validate": "newData.hasChildren(['a', 'p', 't', 'm'])",
               "a": { ".validate": "newData.isString() && newData.val().length <= 128" },
               "p": { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child(auth.uid).child('pseudo').val()" },
               "t": { ".validate": "newData.val() === now" },
               "m": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200" },
+              "$autre": { ".validate": false }
+            }
+          },
+
+          // Mode spectateur (0.3). siege = uid de l'adversaire, pris par transaction s'il est libre, rendu par son seul détenteur.
+          "siege": {
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))",
+            ".validate": "newData.isString() && newData.val().length <= 128"
+          },
+          // Spectateurs présents : chacun n'écrit que sous son uid, pseudo de son compte et heure serveur.
+          "spectateurs": {
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
+              ".validate": "newData.hasChildren(['p', 't'])",
+              "p": { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()" },
+              "t": { ".validate": "newData.val() === now" },
               "$autre": { ".validate": false }
             }
           },

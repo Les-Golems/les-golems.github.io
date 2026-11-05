@@ -46,7 +46,7 @@ for(let i=0;i<N;i++){const r=partie((i*2654435761)|0);tMax=Math.max(tMax,r.taill
   assert(M.erreurDeck({'001':4}),'4 exemplaires');assert(M.erreurDeck({'001':3}),'trop petit');assert(M.erreurDeck({'999':3}),'carte inconnue');
   const gros={};M.TYPES.forEach(k=>gros[k]=3);assert(M.erreurDeck(gros),'33 cartes : hors regle');
   assert.strictEqual(M.lisDeck('0014'),null);assert.strictEqual(M.lisDeck(''),null);assert.strictEqual(M.lisDeck('00130013'),null,'doublon');
-  const s=M.nouvelle(77,[t,'']);assert.strictEqual(s.j[0].deck.length+s.j[0].main.length,24);assert.strictEqual(s.j[1].deck.length+s.j[1].main.length,33);
+  const s=M.nouvelle(77,[t,'']);assert.strictEqual(s.j[0].deck.length+s.j[0].main.length,24);assert.strictEqual(s.j[1].deck.length+s.j[1].main.length,30);
   assert.strictEqual(JSON.stringify(M.nouvelle(77)),JSON.stringify(M.nouvelle(77,['',''])),'paquet de test inchange');
   assert.strictEqual(M.nouvelle(77,['n importe quoi','']).decks[0],'','deck invalide = paquet de test');
   const d30={...d24,'001e':3,'004e':3};
@@ -74,7 +74,7 @@ const gol=(c,f,d=0)=>({c,f,d});
   s.j[0].grille[1][0]=gol(24,1);s.j[0].grille[2][1]=gol(30,2);
   assert.strictEqual(M.forceDe(s,0,1,1),8+4,'double + Foudre + Magma = +4');
   s.j[1].grille[1][1]=gol(39,3);assert.strictEqual(M.forceDe(s,0,1,1),8+4,'Glad en face : pas de cercle');
-  s.j[1].grille[1][1]=gol(31,3);assert.strictEqual(M.forceDe(s,0,1,1),8+4+1,'K-Chan en face (0.2b, Magma + Brume) : Foudre domine Brume, cercle +1');
+  s.j[1].grille[1][1]=gol(31,3);assert.strictEqual(M.forceDe(s,0,1,1),8+4+1,'K-Chan en face (Magma + Cristal) : Magma domine Cristal, cercle +1');
   s.j[1].grille[1][1]=gol(18,3);assert.strictEqual(M.forceDe(s,0,1,1),8+4+1,'Le Q en face, double domination : cercle +1 seulement');
 }
 { // 0.2.1 plus de nul : terrains conquis, puis second joueur de la manche 3
@@ -256,7 +256,15 @@ function finDeManche(s){s.joueur=1;s.premier=0;s.tour=3;M.applique(s,1,{t:'x'})}
   assert(B.joueurs[0].vuesNonPosees.length===1);
   assert.strictEqual(M.CARTES['002e'].cout,3);assert.strictEqual(M.CARTES['004e'].cout,3);assert.strictEqual(M.CARTES['001'].cout,1);assert.strictEqual(T('La Faille').pts,2);
   {let dbl=0;for(let g=1;g<200;g++){const u=vide();u.rng=[g,g*7];u.j[0].main=[9];u.j[0].energie=9;u.j[0].grille[0][0]=gol(6,3);M.applique(u,0,{t:'p',c:9,l:0,k:0});const m=/lance (\d) et (\d) : Force (\d+)/.exec(u.log.map(x=>x[1]).join(' '));assert(m);const[a,b,f]=[+m[1],+m[2],+m[3]];if(a===b)dbl++;assert.strictEqual(f,a===b?a:a+b,'KEKWRevan')}assert(dbl)}
-  assert.strictEqual(M.TAILLE_DECK,33);
+  assert.strictEqual(M.TAILLE_DECK,30);
+  { /* 0.3 : 'tuto33', paquet de 33 cartes du Golem de la partie guidee, refuse comme deck de joueur */
+    assert.strictEqual(M.DECK_TUTO,'tuto33');assert.strictEqual(M.lisDeck('tuto33'),null,'tuto33 jamais un deck de joueur');
+    const a=M.nouvelle(19445,['0013001e30023002e30033003e300430083','tuto33']),ids=a.j[1].deck.concat(a.j[1].main).sort((x,y)=>x-y);
+    assert.deepStrictEqual(ids,Array.from({length:33},(_,i)=>i),'tuto33 : identifiants 0 a 32');
+    assert.deepStrictEqual(a.j[1].main.map(c=>M.carte(c).id),['001e','008','008','002e','003'],'main du Golem de la partie guidee comme en 0.2c');
+    const b=M.nouvelle(19445,['0013001e30023002e30033003e300430083','']);assert.strictEqual(b.j[1].deck.length+b.j[1].main.length,30,'deck par defaut inchange');
+    assert.deepStrictEqual(a.j[0],b.j[0],'camp du joueur inchange');assert.deepStrictEqual(a.terrains,b.terrains,'terrains inchanges');
+  }
   for(let c=0;c<45;c++){assert.strictEqual(M.decode(M.code({t:'f',c})).c,c);assert.strictEqual(M.decode(M.code({t:'p',c,l:2,k:1})).c,c)}
   assert.throws(()=>M.decode('f~'),'f~ incomplet refuse (63 et plus = ~ + 1 caractere ; J et _ acceptes)');assert.strictEqual(M.decode('fJ').c,45);assert.strictEqual(M.code({t:'f',c:62}),'f_');assert.strictEqual(M.decode('f_').c,62);assert.strictEqual(M.carte(23).id,'004e');assert.strictEqual(M.carte(2).id,'001');assert.strictEqual(M.carte(3).id,'001e');
 }
@@ -283,7 +291,7 @@ function finDeManche(s){s.joueur=1;s.premier=0;s.tour=3;M.applique(s,1,{t:'x'})}
   const m=vide();m.j[0].main=[3];m.j[0].energie=9;m.j[0].grille[0][0]=gol(0,8);m.j[1].grille[0][1]=gol(30,2,1);M.applique(m,0,{t:'p',c:3,l:0,k:0});
   assert.strictEqual(m.j[1].grille[0][1],null,'morte sans bonus');
   const x=vide();x.j[0].main=[3];x.j[0].energie=9;x.j[0].grille[0][0]=gol(0,8);x.j[1].grille[0][1]={c:30,f:2,d:0,ra:3};M.applique(x,0,{t:'p',c:3,l:0,k:0});assert.strictEqual(x.j[1].grille[0][1].ra,3,'plafond');
-  assert(!M.TYPES.some(t=>M.CARTES[t].base==='008'),'aucune evolution');
+  assert.strictEqual(M.TYPES.filter(t=>M.CARTES[t].base==='008').join(),'008e','une evolution : L attachiante');
 }
 // Humain aleatoire contre robot : 300 parties, deux places, jamais de coup illegal
 const R=+process.argv[3]||300,vr={robot:0,hum:0,nul:0};let pts=[0,0];
@@ -327,7 +335,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Abandon 0.2.2 OK');
 }
 { // 0.2a.1 : Indra (013, 013e). Ids : Indra 33-35, Fan enflammee 36-38, Cyrdan 12, Alrevan 6, K-Chan 30, Roi du Mobile 27, Le Q 18.
-  assert(['0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c'].includes(M.VERSION));
+  assert(['0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c','0.3'].includes(M.VERSION));
   const D=M.deckTexte({'002':3,'003':3,'004':3,'007e':3,'008':3,'013':3,'013e':3,'001':3});assert(M.lisDeck(D),'deck Indra valide');
   assert.strictEqual(M.decode(M.code({t:'p',c:38,l:1,k:2})).c,38,'code base 36 etendu');assert.strictEqual(M.code({t:'p',c:36,l:0,k:0}),'pA00');
   assert.deepStrictEqual(M.decode('g12'),{t:'g',l:1,k:2});
@@ -375,7 +383,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Indra 0.2a.1 OK : 150 parties aleatoires ('+nG+' favoris) et 300 parties robot sans blocage ('+nR+' Ragebait), rejeux identiques');
 }
 { // 0.2a.2 : Glad (009, 009e). Ids : Glad 39-41, GymRat 42-44, KaTarN 0, Slim K 3, Cyrdan 12, Indra 33, Fan enflammee 36, Roi du Mobile 27, K-Chan 30, Alrevan 6.
-  assert(['0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c'].includes(M.VERSION));
+  assert(['0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c','0.3'].includes(M.VERSION));
   const D=M.deckTexte({'001':3,'001e':3,'003':3,'008':3,'013':3,'013e':3,'009':3,'009e':3});assert(M.lisDeck(D),'deck Glad valide');
   assert.strictEqual(M.code({t:'p',c:44,l:0,k:0}),'pI00');assert.strictEqual(M.decode('pI00').c,44,'code etendu a 44');
   assert.deepStrictEqual(M.decode('h0102'),{t:'h',l:0,k:1,m:0,n:2});assert.strictEqual(M.code({t:'h',l:2,k:0,m:1,n:0}),'h2010');
@@ -432,14 +440,14 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Glad 0.2a.2 OK : 150 parties aleatoires ('+nS+' Slam) et 300 parties robot sans blocage ('+nM+' Menfou palu), rejeux identiques');
 }
 { // 0.2b : K-Chan (008) Magma + Brume au lieu de Magma + Roche. Ids : K-Chan 30-32, Trigas 24, Cyrdan 12, Alrevan 6, Le Q 18, Glad 39.
-  assert(['0.2b','0.2b.1','0.2b.2','0.2c'].includes(M.VERSION));assert.deepStrictEqual(M.CARTES['008'].el,['magma','brume'],'K-Chan Magma + Brume');
+  assert(['0.2b','0.2b.1','0.2b.2','0.2c','0.3'].includes(M.VERSION));assert.deepStrictEqual(M.CARTES['008'].el,['magma','cristal'],'K-Chan Magma + Cristal');
   const s=vide();s.j[0].grille[1][1]=gol(30,2);
-  s.j[0].grille[0][1]=gol(24,1);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Trait avec Trigas : Brume partagee');
-  s.j[0].grille[0][1]=gol(12,1);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Cyrdan voisin : son +1 seulement, plus de Trait Roche');
-  s.j[0].grille[0][1]=gol(6,3);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Alrevan : Brume partagee');
-  s.j[0].grille[0][1]=null;s.j[1].grille[1][1]=gol(24,3);assert.strictEqual(M.forceDe(s,0,1,1),2,'Trigas en face : pas de cercle');
-  s.j[1].grille[1][1]=gol(39,3);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Glad en face : Brume domine Roche, cercle +1');
-  s.j[1].grille[1][1]=gol(12,1);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Cyrdan en face : Magma domine Cristal et Brume domine Roche, cercle +1 seulement');
+  s.j[0].grille[0][1]=gol(24,1);assert.strictEqual(M.forceDe(s,0,1,1),2,'Trigas voisin : plus de Trait');
+  s.j[0].grille[0][1]=gol(12,1);assert.strictEqual(M.forceDe(s,0,1,1),2+2,'Cyrdan voisin : son +1 et Trait Cristal');
+  s.j[0].grille[0][1]=gol(6,3);assert.strictEqual(M.forceDe(s,0,1,1),2,'Alrevan : plus rien en commun');
+  s.j[0].grille[0][1]=null;s.j[1].grille[1][1]=gol(24,3);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Trigas en face : Cristal domine Foudre, cercle +1');
+  s.j[1].grille[1][1]=gol(39,3);assert.strictEqual(M.forceDe(s,0,1,1),2,'Glad en face : plus de cercle');
+  s.j[1].grille[1][1]=gol(12,1);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Cyrdan en face : Magma domine Cristal, cercle +1');
   const D=M.deckTexte({'002':3,'003':3,'004':3,'007':3,'008':3,'009':3,'013':3,'001':3});assert(M.lisDeck(D),'deck K-Chan valide');
   let nR=0;const niv=['facile','normal','difficile'];
   for(let i=0;i<150;i++){const r=partie((i*6151+29)|0,[D,D]);nR+=r.s.log.filter(x=>/Rage/.test(x[1])).length}
@@ -448,7 +456,7 @@ duel('facile','normal');duel('normal','difficile');
     nR+=s.log.filter(x=>/Rage/.test(x[1])).length;
     const r=M.rejoue(gr,[M.litJournal(M.ecritJournal(j[0])),M.litJournal(M.ecritJournal(j[1]))],[D,i%2?D:'']);assert(!r.erreur,r.erreur);assert.strictEqual(JSON.stringify(r.etat),JSON.stringify(s),'rejeu K-Chan');M.bilan(s)}
   assert(nR>0,'Rage jamais declenchee');
-  console.log('K-Chan 0.2b OK : Trait et cercle Magma + Brume, 150 parties aleatoires et 300 parties robot sans blocage ('+nR+' Rage), rejeux identiques');
+  console.log('K-Chan 0.2b OK : Trait et cercle Magma + Cristal, 150 parties aleatoires et 300 parties robot sans blocage ('+nR+' Rage), rejeux identiques');
 }
 { // Apo (029, 029e), SuperFishman (037, 037e), Titom76 (026, 026e). Ids : Apo 45-47, Maitre du deguisement 48-50, SuperFishman 51-53, Monsieur Poisson 54-56, Titom76 57-59, Maitre du bilig 60-62.
   // Anciens : KaTarN 0, Slim K 3, Alrevan 6, Cyrdan 12, Le Q 18, Trigas 24, Roi du Mobile 27, K-Chan 30, Indra 33, Glad 39, GymRat 42.
@@ -573,7 +581,7 @@ duel('facile','normal');duel('normal','difficile');
   deq(M.decode('f~_'),{t:'f',c:125});deq(M.decode('ja'),{t:'j',c:10});
   eq(M.code({t:'m',c:[68,5,63]}),'m5~0~5','mulligan trie, jetons mixtes');deq(M.decode('m5~0~5'),{t:'m',c:[5,63,68]});deq(M.decode('m~0~1~2'),{t:'m',c:[63,64,65]});deq(M.decode('m'),{t:'m',c:[]});
   eq(M.code({t:'b',o:[68,1,63]}),'b~51~0');deq(M.decode('b~51~0'),{t:'b',o:[68,1,63]});
-  for(const x of ['f~','j~','j','f~~0','p~0','p~01','p~0122','m~0~1~2~3','b','b~0~1~2~3','j~0x','f~ ','~0','q~0','f-'])assert.throws(()=>M.decode(x),'illisible '+x),nv++;
+  for(const x of ['f~','j~','j','f~~~~0','p~0','p~01','p~0122','m~0~1~2~3','b','b~0~1~2~3','j~0x','f~ ','~0','q~0','f-'])assert.throws(()=>M.decode(x),'illisible '+x),nv++;
   for(let c=0;c<69;c++)for(const t of ['f','j','c','d','s']){deq(M.decode(M.code({t,c})),{t,c});eq(M.code({t,c}).length,c<63?2:3)}
   for(let c=0;c<69;c++){deq(M.decode(M.code({t:'p',c,l:1,k:2})),{t:'p',c,l:1,k:2})}
   for(let i=0;i<300;i++){const c=[(i*7)%69,(i*13+5)%69,(i*29+11)%69];deq(M.decode(M.code({t:'m',c})).c,c.slice().sort((a,b)=>a-b));deq(M.decode(M.code({t:'b',o:c})).o,c)}
@@ -1131,9 +1139,9 @@ duel('facile','normal');duel('normal','difficile');
 { // Shifukuro : Shifukuro (025, cartes 84-86, codes ~l ~m ~n, KEKWait) et Le moderateur (025e, cartes 87-89, codes ~o ~p ~q), meandyou : attente 'u', coup 'e' (echange) ou 'v' (passer).
   // Autres : KaTarN 0, Slim K 3, Trigas 24, K-Chan 30, Glad 39, Apo 45, Maitre du deguisement 48, SuperFishman 51 (memes elements que Shifukuro), Titom76 57, Kiwi 69, Velnen 78, chansonnier 81.
   let nv=0;const ok=(c,m)=>{assert(c,m);nv++},eq=(a,b,m)=>{assert.strictEqual(a,b,m);nv++},deq=(a,b,m)=>{assert.deepStrictEqual(a,b,m);nv++};
-  const SH=84,MO=87,TR=24,KC=30,SF=51,AP=45,MD=48,VE=78,CH=81;
+  const SH=84,MO=87,TR=24,KC=90 /* K-Chan : Bellock, memes elements que l'ancienne K-Chan */,SF=51,AP=45,MD=48,VE=78,CH=81;
   eq(M.carte(84).id,'025');eq(M.carte(86).id,'025');eq(M.carte(87).id,'025e');eq(M.carte(89).id,'025e');eq(M.carte(83).id,'041e','chansonnier inchange');eq(M.carte(78).id,'041','Velnen inchange');
-  eq(M.TYPES.indexOf('025'),28);eq(M.TYPES.indexOf('025e'),29);eq(M.TYPES.length,34); /* 30 avant Bellock/Loxim */eq(M.TYPES.indexOf('041e'),27);eq(M.TYPES_TEST.length,11,'paquet de test inchange');
+  eq(M.TYPES.indexOf('025'),28);eq(M.TYPES.indexOf('025e'),29);eq(M.TYPES.length,42); /* 30 avant Bellock/Loxim */eq(M.TYPES.indexOf('041e'),27);eq(M.TYPES_TEST.length,11,'paquet de test inchange');
   const C0=M.CARTES['025'],C1=M.CARTES['025e'];
   eq(C0.nom,'Shifukuro');eq(C0.cout,2);eq(C0.force,1);deq(C0.el,['roche','cristal']);ok(!C0.base);
   eq(C1.nom,'Le modérateur');eq(C1.base,'025');eq(C1.cout,3);eq(C1.force,4);deq(C1.el,['roche','cristal']);
@@ -1208,7 +1216,7 @@ duel('facile','normal');duel('normal','difficile');
   // Apo qui copie meandyou : joue depuis sa case
   s=prep([MD]);moi(s,MO,4,2,0);moi(s,TR,1,0,1);moi(s,KC,1,0,2);moi(s,AP,2,2,1);pose(s,MD,2,1);g=s.j[0].grille[2][1];eq(g.cp,'025e');ok(L(s).includes('Apo (Maître du déguisement) copie Shifukuro (Le modérateur).'));
   ok(s.attente&&s.attente.t==='u');deq(s.attente.i,[2,1]);deq(codes(s),['e0102','v']);M.applique(s,0,{t:'e',a:[0,1],b:[0,2]});eq(s.j[0].grille[0][1].c,KC);
-  ok(L(s).includes('Apo (Maître du déguisement) : meandyou, échange Trigas et K-Chan.'));
+  ok(L(s).includes('Apo (Maître du déguisement) : meandyou, échange Trigas et Bellock.'));
   s=prep([MD]);moi(s,MO,4,2,0);moi(s,AP,2,2,1);pose(s,MD,2,1);ok(!s.attente);ok(L(s).includes('Apo (Maître du déguisement) : meandyou, aucun échange possible.'));
   // chansonnier qui copie meandyou (Moderateur adverse en face) : depuis sa case, dans sa grille
   s=prep([CH]);moi(s,TR,1,0,1);moi(s,VE,2,1,1);adv(s,MO,4,1,1);adv(s,KC,2,0,1);pose(s,CH,1,1);M.applique(s,0,{t:'i',o:1});g=s.j[0].grille[1][1];eq(g.cp,'025e');
@@ -1259,7 +1267,7 @@ duel('facile','normal');duel('normal','difficile');
   const BE=90,AC=93,LO=96,AA=99,TR=24,KC=30,AP=45,MD=48,TI=57,SP=63,VE=78,CH=81;
   eq(M.carte(90).id,'015');eq(M.carte(92).id,'015');eq(M.carte(93).id,'015e');eq(M.carte(95).id,'015e');eq(M.carte(96).id,'016');eq(M.carte(98).id,'016');eq(M.carte(99).id,'016e');eq(M.carte(101).id,'016e');
   eq(M.carte(89).id,'025e','moderateur inchange');eq(M.carte(84).id,'025','Shifukuro inchange');
-  eq(M.TYPES.indexOf('015'),30);eq(M.TYPES.indexOf('015e'),31);eq(M.TYPES.indexOf('016'),32);eq(M.TYPES.indexOf('016e'),33);eq(M.TYPES.length,34);eq(M.TYPES.indexOf('025e'),29);eq(M.TYPES_TEST.length,11,'paquet de test inchange');
+  eq(M.TYPES.indexOf('015'),30);eq(M.TYPES.indexOf('015e'),31);eq(M.TYPES.indexOf('016'),32);eq(M.TYPES.indexOf('016e'),33);eq(M.TYPES.length,42);eq(M.TYPES.indexOf('025e'),29);eq(M.TYPES_TEST.length,11,'paquet de test inchange');
   const B0=M.CARTES['015'],B1=M.CARTES['015e'],L0=M.CARTES['016'],L1=M.CARTES['016e'];
   eq(B0.nom,'Bellock');eq(B0.cout,1);eq(B0.force,1);ok(!B0.base);eq(B1.nom,'Aiges Captain');eq(B1.base,'015');eq(B1.cout,5);eq(B1.force,4);
   eq(L0.nom,'Loxim');eq(L0.cout,5);eq(L0.force,4);ok(!L0.base);eq(L1.nom,'Le Ace de Aiges');eq(L1.base,'016');eq(L1.cout,1);eq(L1.force,4);
@@ -1296,14 +1304,14 @@ duel('facile','normal');duel('normal','difficile');
   eq(un(BE,1,0,0,1),0,'adversaire : il a gagne le terrain 0');eq(un(LO,4,0,0,1),2,'adversaire : Winstreak 2');eq(un(AC,4,2,2,1),2,'adversaire : terrain 2 perdu une fois');
   {const s=prep([]);moi(s,BE,1,0,0);eq(M.forceDe(s,0,0,0),1,'sans historique : Force de la carte');s.resultats=H;eq(M.forceDe(s,0,0,0),3);moi(s,BE,1,0,0,{d:2});eq(M.forceDe(s,0,0,0),1,'degats deduits');}
   // decompte reel : historique memorise, bonus au decompte suivant (statistiques), egalite qui ne compte pas
-  let s=prep([]);moi(s,BE,1,0,0);adv(s,KC,2,0,0);moi(s,LO,4,2,1);finManche(s);
+  let s=prep([]);moi(s,BE,1,0,0);adv(s,BE+1,2,0,0);moi(s,LO,4,2,1);finManche(s);
   deq(s.resultats,[[1,0,null]],'historique de la manche 1');eq(s.manche,2);eq(M.forceDe(s,0,0,0),2,'Bellock : +1 aussitot');eq(M.forceDe(s,0,2,1),5,'Loxim : +1 aussitot');
   ok(!s.stats.ev.some(e=>e.t==='b'&&(e.y==='comeback'||e.y==='winstreak')),'rien au premier decompte');
   finManche(s);deq(s.resultats,[[1,0,null],[null,0,null]],'egalite 2 contre 2 sur le terrain 0');eq(M.forceDe(s,0,0,0),2,'egalite : pas de +1');eq(M.forceDe(s,0,2,1),6);
   eq(s.stats.ev.filter(e=>e.t==='b'&&e.y==='comeback'&&e.r===BE).length,1,'Comeback au decompte');eq(s.stats.ev.filter(e=>e.t==='b'&&e.y==='winstreak'&&e.r===LO).length,1,'Winstreak au decompte');
   {const bl=M.bilan(s),c=bl.joueurs[0].cartes;eq(c.find(x=>x.carte==='Bellock').bonusRecus.comeback,1);eq(c.find(x=>x.carte==='Loxim').bonusRecus.winstreak,1);eq(c.find(x=>x.carte==='Loxim').bonusDonnes.winstreak,undefined,'pas donne a soi');}
   // Salle Verrouillee avant la manche 3 : personne ne la remporte
-  s=prep([],[4,8,9]);moi(s,BE,1,0,0);adv(s,KC,2,0,0);finManche(s);deq(s.resultats,[[null,null,null]]);eq(M.forceDe(s,0,0,0),1,'Salle : rien avant la manche 3');
+  s=prep([],[4,8,9]);moi(s,BE,1,0,0);adv(s,BE+1,2,0,0);finManche(s);deq(s.resultats,[[null,null,null]]);eq(M.forceDe(s,0,0,0),1,'Salle : rien avant la manche 3');
   // evolution : relit le meme historique en +2, rien n'est perdu
   s=prep([AC]);moi(s,BE,1,0,0,{d:1});s.resultats=[[1,null,null],[1,null,null]];eq(M.forceDe(s,0,0,0),2);pose(s,AC,0,0);eq(M.forceDe(s,0,0,0),8,'Aiges Captain : 4 + 2 x 2, degats effaces');ok(!s.attente);
   s=prep([AA]);moi(s,LO,4,1,2);s.resultats=[[null,null,0]];eq(M.forceDe(s,0,1,2),5);pose(s,AA,1,2);eq(M.forceDe(s,0,1,2),6,'Le Ace de Aiges : 4 + 2');
@@ -1431,7 +1439,7 @@ duel('facile','normal');duel('normal','difficile');
   const moi=(s,c,f,l,k,x)=>{s.j[0].grille[l][k]={c,f,d:0,...(x||{})}},adv=(s,c,f,l,k,x)=>{s.j[1].grille[l][k]={c,f,d:0,...(x||{})}};
   const C=(s,p,c,l,k)=>M.coutPose(s,p,c,l,k),L=s=>s.log.map(x=>x[1]),leg=(s,c,l,k)=>M.legales(s,0).some(a=>a.t==='p'&&a.c===c&&a.l===l&&a.k===k);
   const E=72,KW=9,AL=6,LX=96,ACE=99,KIWI=69,TI=57,CY=12;
-  eq(M.VERSION,'0.2c');eq(TA(2).nom,'La Boutique');eq(TA(2).texte,'Jouer un Golem ici coûte 1 de moins.');
+  eq(M.VERSION,'0.3');eq(TA(2).nom,'La Boutique');eq(TA(2).texte,'Jouer un Golem ici coûte 1 de moins.');
   eq(M.carte(KW).id,'002e');eq(M.carte(ACE).id,'016e');eq(M.carte(LX).id,'016');eq(M.carte(KIWI).id,'901');eq(M.carte(E).id,'018');
   // evolution -1 sur la Boutique (colonne 0), cout plein ailleurs ; pose et remplacement aussi
   let s=prep([KW,CY]);moi(s,AL,3,0,0);moi(s,AL,3,1,1);moi(s,CY,1,2,0);

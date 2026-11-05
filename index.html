@@ -23,6 +23,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="manifest" href="manifest.webmanifest?v=2">
+<link rel="stylesheet" href="spectateur.css?v=0.3">
 <meta name="apple-mobile-web-app-title" content="Golems">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <style>
@@ -36,7 +37,7 @@
 @media (display-mode:browser){#ecranCharge{transition-duration:.2s}}
 @media (prefers-reduced-motion:reduce){#ecranCharge{transition:none}}
 </style>
-<script defer src="signal-tour.js?v=0.2c"></script>
+<script defer src="signal-tour.js?v=0.3"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Fredoka:wght@700&family=Lilita+One&family=Nunito+Sans:wght@400;700;800&display=swap');
 :root{
@@ -715,6 +716,7 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#des){display:none}
 .p-journal{position:relative}
 .j-lien{all:unset;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .j-lien:hover{color:var(--bleu)}
+.j-colle{white-space:nowrap}
 .j-lien:focus-visible{outline:2px solid var(--bleu);outline-offset:1px}
 .j-nav{position:absolute;top:6px;right:10px;display:flex;align-items:center;gap:6px;font:400 15px/1 var(--titre);color:var(--texte)}
 .j-btn{width:30px;height:28px;padding:0;border:0;border-radius:8px 6px 9px 5px;background:var(--bleu);color:var(--encre);font:400 16px/1 var(--titre);box-shadow:0 2px 0 #08708c}
@@ -1373,11 +1375,17 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 }
 /* Compteur de deck : rouge hors limites (moins de 24 ou plus de 30), vert si valide. */
 .d-compte.ko{color:#ff6b5e}
-/* Tuile de deck : crayon de renommage a gauche du compteur, clic sur le nom = renommer. */
+/* Tuile de deck : crayon de renommage a gauche du compteur, clic sur le nom = ouvrir la liste. */
 .d-tuile .d-haut:has(.dl-crayon){gap:5px}.d-tuile .d-haut .dl-crayon svg{width:15px;height:15px}
 .d-tuile .d-haut .dl-crayon{margin-left:0;width:22px;height:22px;padding:3px;color:#fff;background:rgba(10,18,26,.55)}
 .d-tuile .d-haut .dl-crayon:hover{color:var(--bleu);background:rgba(10,18,26,.8)}
-.d-tuile .dl-renom{cursor:pointer}.d-tuile .dl-renom:hover{color:var(--bleu)}
+.d-tuile .dl-renom{cursor:pointer}
+/* Editeur avec la liste compacte a droite : colonne gauche retrecie, rien ne deborde. */
+.d-zone-ed .d-ed{min-width:0}
+.d-zone-ed .d-ed>.d-haut{margin-bottom:6px}
+/* En-tete de l'editeur sur toute la largeur, comme sans panneau (le panneau commence plus bas). */
+@media (min-width:1200px){.d-zone-ed:not(.sans-pan) .d-ed>.d-haut{margin-right:-516px}.d-zone-ed:not(.sans-pan) .d-ed>.d-haut>.d-compte{display:none}}
+.d-zone-ed:not(.sans-pan) .d-qte{gap:4px}#listeDecks#listeDecks .d-zone-ed:not(.sans-pan) .d-qte .j-btn{width:24px;min-width:24px;height:24px;min-height:24px;font-size:13px}.d-zone-ed:not(.sans-pan) .d-qte b{min-width:24px;font-size:14px}
 .d-tuile .d-haut.dl-edit .ligne{display:flex;gap:6px;width:100%}
 /* Partage de deck : petite fenetre, code dans un champ sombre lisible. */
 #popPartage .boite{max-width:460px;text-align:center}
@@ -1390,7 +1398,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 #popPartage .pp-l{margin:0 0 6px;text-align:left;font-size:13px;color:var(--doux)}
 #popPartage .pp-dc{text-align:left;background:#313338;border:1px solid #1e1f22;border-radius:8px;padding:10px 12px;font:15px/1.4 "gg sans","Segoe UI",system-ui,sans-serif;color:#dbdee1;overflow-wrap:anywhere}
 #popPartage .pp-dc b{color:#f2f3f5}#popPartage .pp-dc a{color:#00a8fc;text-decoration:none}
-#popPartage .pp-lien{margin:8px 0 0;text-align:left;font:12px/1.35 ui-monospace,Consolas,monospace;color:var(--doux);word-break:break-all}
+#popPartage .pp-lien{user-select:all;-webkit-user-select:all;margin:8px 0 0;text-align:left;font:12px/1.35 ui-monospace,Consolas,monospace;color:var(--doux);word-break:break-all}
 /* Deck ouvert par un lien ?deck= : bandeau aux couleurs du deck, liste comme le panneau de l'onglet Decks, courbe, boutons en bas.
    Sous la carte en grand (#vue, z-index 20) pour le zoom d'une ligne. */
 #popVueDeck{z-index:19}
@@ -1653,6 +1661,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
     <li><b>Son maître :</b> s'il quitte le jeu (détruit, remplacé, La Nuit au Village), l'animal part à la défausse. S'il évolue ou est déplacé, l'animal reste. Un Golem qui copie son effet n'est pas son maître.</li>
     <li><b>Intouchable :</b> aucun Golem ne se pose à sa place, rien ne le déplace ni ne l'échange (La Faille, Le Vaisseau, effets de cartes). Seul moyen de s'en défaire : faire quitter le jeu à son maître.</li>
     <li><b>Kiwi :</b> la Mignonitude se résout avant le décompte, puis Kiwi part à la défausse. Deux Kiwi : celui du premier joueur d'abord, jamais deux fois le même Golem.</li>
+    <li><b>Jacen et Jaina :</b> les chats de KaTarN (ou Slim K). À la pose, pioche 1 carte. Si leur maître est détruit, pioche 1 carte, puis les chats partent à la défausse. Si tu remplaces toi-même leur maître, pas de pioche. Deck vide : pas de pioche.</li>
     <li><b>Hors décompte :</b> le Golem tiré par Kiwi reste en jeu avec ses bonus ; seule sa Force sort de sa colonne. Les effets de fin de manche le concernent toujours (La Nuit au Village, KaTarN).</li>
     <li>Un animal n'est jamais MVP.</li>
   </ul></div></details>
@@ -1785,8 +1794,10 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 </div>
 <button class="btn sec" id="gPasser" type="button" hidden>Passer le tutoriel</button>
 <script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
-<script type="module" src="salon-firebase.js?v=0.2c"></script>
-<script src="moteur.js?v=0.2c"></script>
+<script type="module" src="salon-firebase.js?v=0.3"></script>
+<script type="module" src="spectateur.js?v=0.3"></script>
+<script src="spectateur-ui.js?v=0.3" defer></script>
+<script src="moteur.js?v=0.3"></script>
 <script>
 const ETOILE_G='<path d="M150.0 162.0 L103.0 97.3 L150.0 20.0 Z" fill="#ffe48a" stroke="#ffe48a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 20.0 L197.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L197.0 97.3 L288.9 116.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L288.9 116.9 L222.3 185.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L222.3 185.5 L231.1 273.6 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L231.1 273.6 L150.0 244.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 244.0 L65.4 278.5 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L65.4 278.5 L75.8 186.1 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L75.8 186.1 L16.9 118.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L16.9 118.7 L103.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 20.0 L197.0 97.3 L190.4 106.3 L150.0 39.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M197.0 97.3 L288.9 116.9 L269.4 123.2 L190.4 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M288.9 116.9 L222.3 185.5 L212.2 182.2 L269.4 123.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M222.3 185.5 L231.1 273.6 L219.8 258.0 L212.2 182.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M231.1 273.6 L150.0 244.0 L150.0 232.5 L219.8 258.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M150.0 244.0 L65.4 278.5 L77.2 262.2 L150.0 232.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M65.4 278.5 L75.8 186.1 L86.2 182.7 L77.2 262.2 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M75.8 186.1 L16.9 118.7 L35.5 124.8 L86.2 182.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M16.9 118.7 L103.0 97.3 L109.6 106.3 L35.5 124.8 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M103.0 97.3 L150.0 20.0 L150.0 39.9 L109.6 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M150.0 20.0 L197.0 97.3 L288.9 116.9 L222.3 185.5 L231.1 273.6 L150.0 244.0 L65.4 278.5 L75.8 186.1 L16.9 118.7 L103.0 97.3 Z" fill="none" stroke="#0b0b10" stroke-width="13" stroke-linejoin="round"/>';
 (function(){
@@ -1966,6 +1977,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
+ {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
  {version:'Version 0.2c',date:'5 novembre 2026',notes:["La Boutique réduit aussi le coût des évolutions","Éditeur de deck : teste tes placements dans un bac à sable","Statistiques repensées : recherche, classement complet, toutes tes parties comptées","Profil des joueurs réorganisé, avec ton rang au classement","Partage de deck par lien cliquable","Résumé de partie prêt à coller sur Discord","Version vérifiée dans le salon, page mise à jour automatiquement","Appli installée : nouvelle icône, lancement bleu ciel","QoL ajoutés"]},
  {version:'Version 0.2b',date:'4 novembre 2026',notes:["Nouveaux Golems : trop nombreux pour les citer","Premier animal de compagnie : Kiwi, le lapin de Titom76","K-Chan devient Magma + Brume","Plateau en miroir : ton camp en bas","Statistiques par patch et par adversaire, profils publics","Cartes et éditeur de deck : nouveaux filtres et tri","Aide en partie avec le cercle des éléments","Historique repensé, decks à 3 par ligne, 7 nouveaux avatars, QoL ajoutés"]},
  {version:'Version 0.2a',date:'3 novembre 2026',notes:["Jeu en ligne sur le site, avec comptes (pseudo et code)","Parties publiques et privées, avec discussion","Apprendre à jouer (tutoriel) et entraînement contre les Golems","Decks, historique, rejeu et profil","Avatars personnalisables"]},
@@ -1975,6 +1987,43 @@ const NOUVEAUTES=[
    Une ligne = une phrase courte pour les joueurs. Sous-liste : {t:"titre :",l:[...]}. Rubrique vide : [] (message neutre affiché).
    Nouvelle version : ajouter son entree en tete, comme dans NOUVEAUTES. */
 const DETAILS_VERSIONS={
+ 'Version 0.3':{
+  nouveautes:[
+   "Mode spectateur : dans un salon, ton adversaire peut céder sa place et devenir spectateur. Un spectateur peut prendre une place libre.",
+   "La liste des spectateurs s'affiche dans le salon.",
+   "En partie, le spectateur voit les deux grilles, les deux mains et le journal, et il peut agrandir les cartes.",
+   {t:"3 nouveaux Golems, chacun avec sa base et son évolution :",l:[
+    "G-018 JackJoy : Viewer de l'ombre, puis Drafteur expérimenté (Foudre, Cristal)",
+    "G-019 Vic222 : Lurker du discord, puis Baby gamer (Cristal, Roche)",
+    "G-020 GénéralBrioche : Le pas sûr de lui, puis Le civ player (Cristal, Roche)"]},
+   "G-006 K-Chan reçoit son évolution : L'attachiante (Magma, Cristal).",
+   "Nouvel animal de compagnie : A-001 Jacen et Jaina, les chats de KaTarN.",
+   "JackJoy : quand il te demande un Golem, les cases possibles s'allument en doré. Touche celle de ton choix.",
+   "K-Chan (L'attachiante) : le bouton « Love » sur ta ligne d'actions, puis touche le Golem blessé à soigner.",
+   "Le détail de la Force affiche les nouveaux bonus : Sub offert, Draft diff, Info tchat, Grand Général, Bonus d'adjacence, et l'état de Chance du débutant (disponible ou utilisée).",
+   "Le bilan de fin de partie compte les soins de K-Chan.",
+   "Onglet Decks : un clic sur un deck ouvre son panneau. Il reste ouvert pendant « Modifier » et se masque dans « Tester des placements ».",
+   "Onglet Decks : le nom se renomme seulement avec le crayon.",
+   "Onglet Decks : boutons + et − plus petits, champ de recherche plus court."],
+  corrections:[
+   "Journal : le point final reste collé au dernier mot, il ne passe plus seul à la ligne.",
+   "Historique : une ancienne partie jouée avec le deck par défaut affiche la liste de cartes de l'époque (33 cartes).",
+   "Copier le lien d'un deck fonctionne de nouveau sur téléphone et dans Discord."],
+  regles:[
+   "JackJoy (Viewer de l'ombre), coût 2, Force 1. Sub offert : si tu forges cette carte, un Golem allié en jeu de ton choix gagne +1 de Force jusqu'à la fin de la partie.",
+   "JackJoy (Drafteur expérimenté), coût 4, Force 3. Draft diff : chaque fois que tu forges, un Golem allié non voisin (les diagonales comptent, jamais lui-même) gagne +1 de Force jusqu'à la fin de la partie.",
+   "Sub offert et Draft diff : tu choisis la cible à chaque fois, les bonus se cumulent. Sans Golem possible, rien ne se passe. Kiwi n'est jamais choisi. La Forge éclair de Spom et le Spam de Trigas comptent comme forger.",
+   "Ces bonus suivent le Golem s'il évolue, est déplacé ou échangé. Ils sont perdus s'il meurt ou est remplacé.",
+   "Vic222 (Lurker du discord), coût 3, Force 1. Info tchat : les Golems alliés de sa colonne, lui compris, gagnent +2 au lieu de +1 grâce au cercle. Jamais plus de +2, même avec SuperFishman ou plusieurs Vic222.",
+   "Vic222 (Baby gamer), coût 3, Force 4. Chance du débutant : la première perte de Force causée par un effet adverse est annulée en entier. Une fois par exemplaire en jeu, de nouveau disponible si la carte revient en jeu. Le cercle, le Trait et les terrains ne sont pas bloqués.",
+   "GénéralBrioche (Le pas sûr de lui), coût 2, Force 1. Grand Général : les autres Golems alliés de sa colonne gagnent +1 de Force. Il n'en profite pas lui-même, plusieurs GénéralBrioche se cumulent.",
+   "GénéralBrioche (Le civ player), coût 4, Force 2. Bonus d'adjacence : +1 de Force par voisin allié (haut, bas, gauche, droite), sans plafond. Les diagonales et les animaux ne comptent pas.",
+   "K-Chan (Reine du tilt) passe en Magma et Cristal (avant : Magma et Brume). Coût 2, Force 2, Rage inchangée.",
+   "K-Chan (L'attachiante), coût 4, Force 4. Love inconditionnel : une fois par manche, à ton tour après la Forge, retire 1 dégât à un Golem allié blessé (K-Chan comprise), sans dépasser sa Force imprimée. Facultatif, une fois par exemplaire, proposé seulement s'il y a un blessé.",
+   "Jacen et Jaina, animal de KaTarN (ou Slim K), coût 1, un seul exemplaire, KaTarN obligatoire dans le deck. Ils se posent à côté de leur maître. zqrinohbqzroihg : à la pose, pioche 1 carte. Quand leur maître est détruit, pioche 1 carte, puis les chats partent à la défausse.",
+   "Jacen et Jaina : si leur maître évolue, ils restent. Si tu remplaces toi-même leur maître, ils partent à la défausse sans pioche. Deck vide : pas de pioche.",
+   "Deck par défaut (ex « Test ») : 30 cartes. Un exemplaire de moins pour KEKWRevan, Roi du Karaoké et Oracle des Stats."]
+ },
  'Version 0.2c':{
   nouveautes:[
    "Éditeur de deck : le bouton « Tester des placements » ouvre un bac à sable avec ta grille et 3 terrains au choix.",
@@ -2184,6 +2233,8 @@ NOUVEAUTES.forEach(n=>{
 /* Une seule liste du plus récent au plus ancien (grille 2 colonnes, gauche puis droite) : tout nouveau bloc s'insère en tête.
    Blocs vidéo : présentation seule, cadrée à la hauteur du bloc voisin, juste avant le bloc de sa version. Un bloc par entrée, le plus récent en tête. */
 const NOUVEAUX_GOLEMS=[
+ {titre:'Nouveaux Golems disponibles : GénéralBrioche, JackJoy, K-Chan, Vic222.\nEt plus encore…',date:'5 novembre 2026',version:'Version 0.3',apres:true,
+  video:'videos/nouvelles_cartes_05nov.mp4',affiche:'videos/nouvelles_cartes_05nov.jpg',aria:'Présentation des nouvelles cartes de la version 0.3'},
  {titre:'Nouveaux Golems disponibles : trop nombreux pour les citer',date:'4 novembre 2026',version:'Version 0.2b',
   video:'videos/nouvelles_cartes_04nov.mp4',affiche:'videos/nouvelles_cartes_04nov.jpg',aria:'Présentation des nouvelles cartes'},
  {titre:'Nouveaux Golems disponibles : Indra et Glad',date:'3 novembre 2026',version:'Version 0.2a',
@@ -2193,8 +2244,9 @@ NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t)
   const a=mk('article','note nv-golem'),l=mk('div','nv-ligne'),v=mk('video','nv-video');
   v.src=g.video;v.poster=g.affiche;v.preload='metadata';v.controls=v.playsInline=true;v.volume=0.6;
   v.setAttribute('playsinline','');v.setAttribute('aria-label',g.aria);
-  l.append(v);a.append(mk('h3','',g.titre),etqBloc(g.version),mk('time','',g.date),l);
-  {const n=$('notes'),ver=[...n.children].find(x=>x.querySelector('h3')?.textContent===g.version);if(ver)ver.before(a);else n.prepend(a)}
+  const ti=mk('h3');g.titre.split('\n').forEach((x,i)=>{if(i)ti.append(document.createElement('br'));ti.append(x)}); /* \n dans le titre : retour a la ligne force */
+  l.append(v);a.append(ti,etqBloc(g.version),mk('time','',g.date),l);
+  {const n=$('notes'),ver=[...n.children].find(x=>x.querySelector('h3')?.textContent===g.version);if(ver)(g.apres?ver.after(a):ver.before(a));else n.prepend(a)} /* apres : juste apres le bloc de sa version (0.3) */
   /* Aucune lecture automatique : tu cliques sur lecture (avec le son, volume 0,6). Une seule lecture, pas de boucle. Pause hors de l'onglet. */
   const sec=$('nouveautes');new MutationObserver(()=>{if(sec.hidden)v.pause()}).observe(sec,{attributes:true,attributeFilter:['hidden']});
 });
@@ -2206,7 +2258,7 @@ const CARTES=[
  ['003','Cyrdan, Le Champion des Tournois Annexes',['cristal','roche'],0],['003e','Cyrdan, Le Roi du Karaoké',['cristal','roche'],1],
  ['004',"Le Q, Maître de l'Excel",['brume','cristal'],0],['004e',"Le Q, L'Oracle des Stats",['brume','cristal'],1],
  ['007','Trigas, Accro au Gacha',['foudre','brume'],0],['007e','Trigas, Le Roi du Mobile',['foudre','brume'],1],
- ['008','K-Chan, Reine du tilt',['magma','brume'],0],
+ ['008','K-Chan, Reine du tilt',['magma','cristal'],0],['008e',"K-Chan, L'attachiante",['magma','cristal'],1],
  ['013','Indra, La Groupie',['cristal','magma'],0],['013e','Indra, La Fan enflammée',['cristal','magma'],1],
  ['009','Glad, /Poll',['roche','magma'],0],['009e','Glad, GymRat',['roche','magma'],1],
  ['029','Apo, Clown junior',['magma','roche'],0],['029e','Apo, Maître du déguisement',['magma','roche'],1],
@@ -2218,7 +2270,10 @@ const CARTES=[
  ['025','Shifukuro, Le chatteur',['roche','cristal'],0],['025e','Shifukuro, Le modérateur',['roche','cristal'],1],
  ['015','Bellock, La terreur du PBE',['brume','magma'],0],['015e','Bellock, Aiges Captain',['brume','magma'],1],
  ['016',"Loxim, Le roi de l'impro",['brume','magma'],0],['016e','Loxim, Le Ace de Aiges',['brume','magma'],1],
- ['901','Kiwi, Le lapin de Titom76',[],'a']];
+ ['035',"JackJoy, Viewer de l'ombre",['foudre','cristal'],0],['035e','JackJoy, Drafteur expérimenté',['foudre','cristal'],1],
+ ['042','Vic222, Lurker du discord',['cristal','roche'],0],['042e','Vic222, Baby gamer',['cristal','roche'],1],
+ ['020','GénéralBrioche, Le pas sûr de lui',['cristal','roche'],0],['020e','GénéralBrioche, Le civ player',['cristal','roche'],1],
+ ['901','Kiwi, Le lapin de Titom76',[],'a'],['902','Jacen et Jaina, Les chats de KaTarN',[],'a']];
 /* 4e champ d'une carte : 0 = base, 1 = évolution, 'a' = animal de compagnie (ex. ['041','Kiwi',['brume'],'a']). */
 const estAnimal=c=>c[3]==='a';
 const coulT=c=>c[2][0]?'var(--'+c[2][0]+')':'var(--or)';
@@ -2226,9 +2281,9 @@ const coulT=c=>c[2][0]?'var(--'+c[2][0]+')':'var(--or)';
 const APERCUS=[],GALERIE=[...CARTES,...APERCUS];
 /* Numéro AFFICHÉ des Golems (ordre où ils deviennent jouables) : code interne -> numéro. Les codes internes ne changent jamais.
    Golem à venir : absent de la table, aucun numéro affiché. Prochain jouable : 18. */
-const NUMERO_AFFICHE={'001':1,'002':2,'003':3,'004':4,'007':5,'008':6,'013':7,'009':8,'029':9,'037':10,'026':11,'036':12,'018':13,'041':14,'025':15,'015':16,'016':17};
+const NUMERO_AFFICHE={'001':1,'002':2,'003':3,'004':4,'007':5,'008':6,'013':7,'009':8,'029':9,'037':10,'026':11,'036':12,'018':13,'041':14,'025':15,'015':16,'016':17,'035':18,'042':19,'020':20};
 /* Animaux de compagnie : numero affiche A-0NN, table a part (codes internes 9xx). */
-const NUMERO_ANIMAL={'901':11};
+const NUMERO_ANIMAL={'901':11,'902':1};
 const numeroAffiche=id=>{if(NUMERO_ANIMAL[id])return 'A-'+String(NUMERO_ANIMAL[id]).padStart(3,'0');const n=NUMERO_AFFICHE[String(id).slice(0,3)];return n?'G-'+String(n).padStart(3,'0')+(String(id).endsWith('e')?' ★':''):''};
 const EL=[['','Tous'],['magma','Magma'],['cristal','Cristal'],['foudre','Foudre'],['brume','Brume'],['roche','Roche']];
 const TY=[['','Toutes'],['0','Base'],['1','Évolution'],['a','Animaux'],['t','Terrains'],['v','À venir']];
@@ -2237,10 +2292,10 @@ const MSG_ANIMAUX="Aucun animal de compagnie pour l'instant.";
 const A_VENIR=[
  ['005','Driscop'],['006','Falys'],['010','Orotembu'],
  ['011','Sleepy'],['012','Simon'],['014','Boubou'],
- ['017','Letran'],['019','Victone'],['020','GénéralBrioche'],['021','Elccino'],['022','Shantiruka'],
+ ['017','Letran'],['019','Victone'],['021','Elccino'],['022','Shantiruka'],
  ['023','Kun_Mamba'],['024','MrTitou'],['027','Merser'],['028','Nadzu'],
  ['030','Cyd'],['031','Obsess'],['032','Marech'],['033','Greeny'],['034','Harentros'],
- ['035','Jackjoy'],['038','TortueGourmande'],['039','TortueVéloce'],['040','PoulpeHome']];
+ ['038','TortueGourmande'],['039','TortueVéloce'],['040','PoulpeHome']];
 let fEl='',fTy='',dernier=null;
 function pastilles(box,liste,get,set,point){
   liste.forEach(([v,t])=>{
@@ -2442,13 +2497,14 @@ function majSalon(){
   {const d=l.slice(0,MAX),o=d.find(p=>!p.sameTab);vxEcart=!partie&&!!maV&&d.length>=MAX&&!!o&&vDe(o)!==maV;vxRouge=vxEcart?(vAncienne(vDe(o))?o.peer:'moi'):'';
    if(vxEcart&&jePret){jePret=false;pub({pret:null,deck:null});majChoixDeck()}
    if(vxRouge==='moi')vJeSuisAncien()}
-  const u=$('joueurs');u.textContent='';
+  const u=$('joueurs'),specUI=!!(window.SPEC&&window.SPEC_UI&&SPEC.etatSalon().actif); /* mode spectateur : sieges peints par spectateur-ui.js */
+  if(!specUI)u.textContent='';
   const sieges=l.slice(0,MAX).map(siegeSalon);
   while(sieges.length<MAX){const v=el('div','sl-j sl-libre'),a=el('div','avatar','?'),t=el('div','cd-tuile');
     t.append(el('span','h-deck h-sans','Place libre'),el('span','cd-nb','Partage le code ci-dessus'));
     const e=etiquetteV(maV,false);e.classList.add('sl-vide');
     v.append(a,el('div','sl-nom','Adversaire'),el('span','sl-etat sl-vide','En attente'),e,t);sieges.push(v)}
-  u.append(sieges[0],el('div','sl-vs','VS'),sieges[1]);
+  if(!specUI)u.append(sieges[0],el('div','sl-vs','VS'),sieges[1]);
   const adv=l.slice(0,MAX).find(p=>!p.sameTab);majFace(adv?nomDe(adv):'');
   if(!partie&&l.some(p=>!p.sameTab&&Number.isInteger(p.presence.jg)&&typeof p.presence.adv==='string'&&p.presence.adv!==sid&&p.presence.sid!==sid)&&Date.now()-entree>1500){sortie('Ce salon est complet.');return}
   const c=l.length>=MAX;
@@ -2465,9 +2521,9 @@ function majSalon(){
 }
 /* Siege d'un joueur : avatar, pseudo, etat, deck en tuile (comme l'onglet Decks) */
 function infoDeck(t){
-  if(typeof t!=='string'||!t)return {nom:'Test',els:[...new Set(M.TYPES.flatMap(k=>M.CARTES[k].el))],nb:33};
+  if(typeof t!=='string'||!t)return {nom:'Deck par défaut',els:[...new Set(M.TYPES.flatMap(k=>M.CARTES[k].el))],nb:M.TAILLE_DECK};
   const o=M.lisDeck(t);let nb=0;if(o)for(const k in o)nb+=+o[k]||0;
-  return {nom:'',els:elsTexte(t),nb:nb||33};
+  return {nom:'',els:elsTexte(t),nb:nb||M.TAILLE_DECK};
 }
 function siegeSalon(p){
   const nom=nomDe(p),moi=p.sameTab,pr=estPret(p),s=el('div','sl-j'+(pr?' pret':'')+(moi?' sl-moi':''));
@@ -2568,7 +2624,7 @@ $('copieCode').onclick=e=>{
 function lienSalon(){return 'https://les-golems.github.io/'+(ESSAI?'essai/':'')+'?salon='+code}
 $('copieLien').onclick=e=>{
   const b=e.currentTarget,t=lienSalon();
-  copie(t,b,'Copier le lien',()=>{const s=document.createElement('textarea');s.value=t;s.style.cssText='position:fixed;opacity:0';document.body.append(s);s.select();setTimeout(()=>s.remove(),2000)});
+  copie(t,b,'Copier le lien',null);
 };
 /* Ouverture par un lien ?salon=CODE : parametre lu puis retire de l'adresse, suivi apres connexion. */
 let invit=(()=>{try{const u=new URL(location.href);if(!u.searchParams.has('salon'))return '';
@@ -2605,6 +2661,7 @@ $('pret').onclick=()=>{
   pub({pret:jePret||null,deck:jePret&&deckPret.texte||null});majChoixDeck();majSalon();
 };
 async function sortie(msg,avant){
+  if(window.SPEC){if(SPEC.estSpectateur()&&window.SPEC_UI&&SPEC_UI.quitterVuePartie)try{SPEC_UI.quitterVuePartie()}catch(e){}SPEC.sortir().catch(()=>{})}
   const a=r;r=null;code='';finPartie();annonceVue='';createur=false;peintListe();
   $('salon').hidden=true;$('accueil').hidden=false;$('erreurJeu').textContent=msg||'';
   if(a)try{if(avant)await avant;await a.leave()}catch(e){}
@@ -2658,9 +2715,10 @@ function peintChat(l){
   if(bas||!rep)ul.scrollTop=ul.scrollHeight;
 }
 function placeChat(){
-  const c=chatBox.c,enLigne=!!r&&!!partie&&!partie.local,salon=!!r&&!partie;
+  const c=chatBox.c,enLigne=!!r&&!!partie&&!partie.local,salon=!!r&&!partie,spec=!r&&!!(window.SPEC&&SPEC.estSpectateur());
   if(salon){c.classList.remove('flottant','replie');$('chatPlace').append(c)}
   else if(enLigne){if(!c.classList.contains('flottant')){c.classList.add('flottant');c.classList.toggle('replie',!chatOuvert);document.body.append(c)}}
+  else if(spec){if(window.SPEC.chat)peintChat(SPEC.chat())} /* spectateur : boite gardee, placee par spectateur-ui.js */
   else{c.remove();chatOuvert=false;chatBox.ul.textContent='';chatBox.nb.textContent='';chatBox.inf.textContent=''}
   if(c.isConnected&&r&&r.chat)peintChat(r.chat());
 }
@@ -2668,11 +2726,17 @@ function msgInvite(){
   const z=$('erreurJeu'),b=el('button','modif','Se connecter');z.textContent='Crée un compte ou connecte-toi pour jouer en ligne. ';
   b.type='button';b.style.marginLeft='6px';b.onclick=ouvrePseudo;z.append(b);
 }
+/* Mode spectateur (spectateur.js) : quitter joueurs sans revenir a l'accueil, ou y entrer comme adversaire. */
+window.__golemsSpecQuitte=async()=>{const a=r;r=null;finPartie();if(a)try{await a.leave()}catch(e){}};
+window.__golemsSpecRejoint=c=>{if(window.SPEC_UI&&SPEC_UI.quitterVuePartie)try{SPEC_UI.quitterVuePartie()}catch(e){}$('partie').hidden=true;$('jouer').classList.remove('enJeu');return entre(c)};
+/* Spectateur : la vue de partie s'ouvre comme au lancement d'une partie des qu'une partie tourne dans le salon. */
+let specVue=false;function specBranche(){if(specVue||!window.SPEC)return;specVue=true;SPEC.onChange(()=>{if(!SPEC.estSpectateur()||!SPEC.etatPartie())return;if($('partie').hidden||!$('jouer').classList.contains('enJeu')){$('salon').hidden=true;$('accueil').hidden=true;$('partie').hidden=false;$('jouer').classList.add('enJeu')}})}
 async function entre(c){
   if(!compteCo()){occupe=false;majEtat();msgInvite();return}
   occupe=true;majEtat();$('erreurJeu').textContent='';jePret=false;nbSalon=0;
   const sv=chargeSalon(c);
   try{
+    if(window.SPEC){const rl=await SPEC.entrer(c,{createur});if(rl==='spec'){specBranche();r=null;code=c;$('codeSalon').textContent=c.toUpperCase();$('accueil').hidden=true;$('salon').hidden=false;occupe=false;majEtat();return}}
     const s=await room.join(c);
     r=s;code=c;entree=Date.now();
     sid=sv?sv.sid:nouveauSid();arrivee=sv?sv.arrivee:entree;
@@ -2698,7 +2762,7 @@ async function entre(c){
 /* M : moteur en service. Le rejeu le remplace le temps de la partie par le moteur archive de sa version (moteurs/moteur-<v>.js). */
 const M0=window.GolemsMoteur;let M=M0;
 /* Versions archivees dans moteurs/ : en ajouter une a chaque nouvelle version du moteur (voir README). */
-const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c'];
+const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c','0.3'];
 const versionMoteur=v=>v==='0.2a'?'0.2':v;
 const rejeuPossible=R=>!!(R&&typeof R.v==='string'&&Number.isInteger(R.graine)&&Array.isArray(R.j)&&(versionMoteur(R.v)===M0.VERSION||MOTEURS_ARCHIVES.includes(versionMoteur(R.v))));
 const moteursCharges={};
@@ -2708,7 +2772,7 @@ function chargeMoteur(v){
   if(moteursCharges[v])return moteursCharges[v];
   return moteursCharges[v]=new Promise((ok,ko)=>{
     const s=document.createElement('script');s.src='moteurs/moteur-'+v+'.js';
-    s.onload=()=>{const m=window.GolemsMoteur;window.GolemsMoteur=M0;s.remove();if(m&&m!==M0&&m.VERSION===v)ok(m);else{delete moteursCharges[v];ko(new Error('moteur '+v))}};
+    s.onload=()=>{const m=window.GolemsMoteur;window.GolemsMoteur=M0;s.remove();if(m&&m!==M0&&m.VERSION===v){moteursCharges[v].__m=m;ok(m)}else{delete moteursCharges[v];ko(new Error('moteur '+v))}};
     s.onerror=()=>{window.GolemsMoteur=M0;s.remove();delete moteursCharges[v];ko(new Error('moteur '+v+' introuvable'))};
     document.head.append(s);
   });
@@ -2717,7 +2781,7 @@ const REDUIT=matchMedia('(prefers-reduced-motion:reduce)');
 let robotT=0,sid='',arrivee=0,recapAff=0,fx=[],fileDes=[],desActif=false,desT=0,desF=0;
 /* Graines terminees ou quittees : jamais relancees par majPartie. */
 const grainesFinies=new Set();
-let partie=null,notice='',sel=null,selMull=[],selCases=[],modeVaisseau=false,modeFaille=false,modeCaramel=false;
+let partie=null,notice='',sel=null,selMull=[],selCases=[],modeVaisseau=false,modeFaille=false,modeCaramel=false,modeLove=false;
 const ZONE=matchMedia('(min-width:1200px)');let derniereAdv=null,zoneSurvol=null; /* zone d'apercu de la partie (ordinateur) */
 const ICONES={
  force:'<svg width="66" height="66" viewBox="71 35 458 529"><path d="M300 98 L285 98 Q210 152 144 164 L144 370 L281 490 Z" fill="#bf6049" stroke="#bf6049" stroke-width="1.5" stroke-linejoin="round"/><path d="M300 98 L315 98 Q390 152 456 164 L456 367 L281 490 Z" fill="#8a3524" stroke="#8a3524" stroke-width="1.5" stroke-linejoin="round"/><path d="M281.2 52 L300 52 L300 98 L285 98Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M300 52 L318.8 52 L315 98 L300 98Z" fill="#a4452f" stroke="#a4452f" stroke-width="1.5" stroke-linejoin="round"/><path d="M318.8 52 Q398.7 112 499.75 126 L456 164 Q390 152 315 98Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M499.75 126 L499.75 390 L456 367 L456 164Z" fill="#70291b" stroke="#70291b" stroke-width="1.5" stroke-linejoin="round"/><path d="M499.75 390 L325.85 512 L295.3 534 L280 547 L281 490 L456 367Z" fill="#551d13" stroke="#551d13" stroke-width="1.5" stroke-linejoin="round"/><path d="M280 547 L100.25 390 L144 370 L281 490Z" fill="#a4452f" stroke="#a4452f" stroke-width="1.5" stroke-linejoin="round"/><path d="M100.25 390 L100.25 126 L144 164 L144 370Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M100.25 126 Q201.3 112 281.2 52 L285 98 Q210 152 144 164Z" fill="#efb096" stroke="#efb096" stroke-width="1.5" stroke-linejoin="round"/><path d="M160 180 Q222 166 288 116" fill="none" stroke="#ffe3d6" stroke-opacity=".55" stroke-width="7" stroke-linecap="round"/><path d="M281.2 52 L318.8 52 Q398.7 112 499.75 126 L499.75 390 L325.85 512 L295.3 534 L280 547 L100.25 390 L100.25 126 Q201.3 112 281.2 52Z" fill="none" stroke="#0b0a10" stroke-width="34" stroke-linejoin="round"/></svg>',
@@ -2816,7 +2880,7 @@ function lancer(g,moi,adv,sv){
   const dks=sv&&Array.isArray(sv.decks)&&sv.decks.length===2?sv.decks.map(t=>typeof t==='string'?t:''):['',''];
   partie={decks:dks,deckNom:sv&&typeof sv.deckNom==='string'?sv.deckNom:'',rejeu:sv&&sv.rejeu||null,debut:sv&&+sv.debut||Date.now(),local:!!(sv&&sv.local),tuto:!!(sv&&sv.tuto),niveau:sv&&sv.niveau||'normal',graine:g,moi:moi,mien:sv?sv.mien:[],sien:sv?sv.sien:[],etat:null,erreur:null,veut:!!(sv&&sv.veut),adv:adv||'',advNom:sv&&typeof sv.advNom==='string'?nettoie(sv.advNom):'',recapVu:sv?+sv.recapVu||0:0};
   CARTES.forEach(c=>{new Image().src='cartes/'+c[0]+'.jpg'});M.TERRAINS.forEach(T=>{new Image().src=srcTerrain(T)});new Image().src=DOS;
-  notice='';sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;fx=[];journalPage=null;journalReperes=0;
+  notice='';sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;modeLove=false;fx=[];journalPage=null;journalReperes=0;
   stopCompte();jePret=false;
   pub({jg:g,j:M.ecritJournal(partie.mien),veut:partie.veut?g:null,adv:partie.adv||null,pret:null});
   if(room)room.presence({salon:null}).catch(()=>{});
@@ -3062,7 +3126,7 @@ function etapesLignes(L,av,s,lignes,a){
       if(o&&/perd 2 de Force$/.test(m[3]))L.push(()=>touche([[v<=2?p:1-p,o[0],o[1]]],2))}
     if(/^Glad : Slam, .* perd 1 de Force\.$/.test(x)&&a&&a.t==='h')L.push(()=>touche([[1-p,a.m,a.n]],1));
     if(/^Slim K : 1 dégât/.test(x)&&a&&a.t==='p'){const c=[];[0,1,2].forEach(k=>{if(M.ciblable(av,1-p,a.l,k,p))c.push([1-p,a.l,k])});L.push(()=>touche(c,1))}
-    if(/^Kiwi part à la défausse : son maître/.test(x))L.push(()=>{for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=av.j[p].grille[l][k];if(g&&M.carte(g.c).animal&&!s.j[p].grille[l][k])vol(rectDe(caseDe(p,l,k)),rectDe(piles(p,'defausse')),srcC(g.c),450,0)}return T(300)});
+    if(/^(Kiwi|Jacen et Jaina) part à la défausse : son maître/.test(x))L.push(()=>{for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=av.j[p].grille[l][k];if(g&&M.carte(g.c).animal&&!s.j[p].grille[l][k])vol(rectDe(caseDe(p,l,k)),rectDe(piles(p,'defausse')),srcC(g.c),450,0)}return T(300)});
     if(x==='KaTarN perd 4 de Force.'){const c=[];for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=av.j[p].grille[l][k];if(g&&M.carte(g.c).id==='001')c.push([p,l,k])}L.push(()=>touche(c,4))}
     m=/: \+(\d+) points?\.$/.exec(x);
     if(m){const n=+m[1];L.push(()=>{etoile(rectDe('.p-plateau'),'+'+n);return T(700)},()=>{if(ecranFin)ecranFin.score[p]+=n;peintFin();ajoutFx({q:'.p-info.score',classe:'bascule'},700);return 0})}
@@ -3239,15 +3303,19 @@ function outils(){
   m.onclick=()=>{sonOn=!sonOn;ecrire('golems.son',sonOn?'1':'0');if(sonOn){armeSon();setTimeout(()=>joueSons(['tour']),60)}peint()};
   peint();d.append(v,q,m);return d;
 }
-/* Copie : presse-papiers dans le clic, sinon selection pour Ctrl+C. */
-function copie(txt,b,lib,selectionne){
-  const ok=m=>{b.textContent=m;setTimeout(()=>{b.textContent=lib},1800)};
-  const repli=()=>{
-    selectionne();
-    let fait=false;try{fait=document.execCommand('copy')}catch(e){}
-    ok(fait?'Copié':'Sélectionné : Ctrl+C');
-  };
-  try{navigator.clipboard.writeText(txt).then(()=>ok('Copié'),repli)}catch(e){repli()}
+/* Copie : d'abord execCommand dans le clic meme (iOS, WebView de Discord et appli installee refusent une copie faite plus tard),
+   champ cache en lecture seule et selection complete ; sinon presse-papiers asynchrone ; sinon repli : selectionne (texte montre
+   a l'ecran pour Ctrl+C) s'il est donne, ou fenetre avec le texte a copier a la main. surOk : seulement si la copie a reussi. */
+function copie(txt,b,lib,selectionne,surOk){
+  const ok=m=>{b.textContent=m;setTimeout(()=>{b.textContent=lib},1800)},reussi=()=>{ok('Copié');if(surOk)surOk()};
+  const s=document.createElement('textarea');s.value=txt;s.readOnly=true;s.setAttribute('aria-hidden','true');
+  s.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;font-size:16px';
+  document.body.append(s);s.focus();s.select();try{s.setSelectionRange(0,txt.length)}catch(e){}
+  let fait=false;try{fait=document.execCommand('copy')}catch(e){}
+  s.remove();try{b.focus()}catch(e){}
+  if(fait){reussi();return}
+  const echec=()=>{if(selectionne){selectionne();ok('Sélectionné : Ctrl+C')}else{ok('Copie impossible');window.prompt('Copie ce texte :',txt)}};
+  try{if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(txt).then(reussi,echec);else echec()}catch(e){echec()}
 }
 /* Fin de partie : tout vient du journal, le moteur ne garde que la derniere manche. */
 function parManche(s){
@@ -3272,8 +3340,8 @@ function ligneMvp(B){
 function lignesBilan(s,n){
   const B=M.bilan(s),l=(B.mvp?[ligneMvp(B)]:[]).concat('Bilan par carte');
   B.joueurs.forEach((J,p)=>{
-    l.push(n(p)+' : infligés '+J.degats+', subis '+J.subis+', morts causées '+J.morts+', morts subies '+J.mortsSubies);
-    J.cartes.forEach(c=>l.push('  '+c.carte+' : infligés '+c.degats+', subis '+c.subis+', morts causées '+c.morts+', morts subies '+c.mortsSubies+(c.sources.length?' ('+texteSources(c)+')':'')));
+    l.push(n(p)+' : infligés '+J.degats+', subis '+J.subis+', morts causées '+J.morts+', morts subies '+J.mortsSubies+(J.soins?', soins '+J.soins:''));
+    J.cartes.forEach(c=>l.push('  '+c.carte+' : infligés '+c.degats+', subis '+c.subis+', morts causées '+c.morts+', morts subies '+c.mortsSubies+(c.soinsDonnes?', soins donnés '+c.soinsDonnes:'')+(c.sources.length?' ('+texteSources(c)+')':'')));
   });
   B.autres.forEach(o=>l.push('Autre source, '+o.source+' : '+pl(o.morts,'mort')));
   (B.mignonitude||[]).forEach(o=>l.push('Mignonitude, manche '+o.manche+' (Kiwi de '+n(o.joueur)+') : '+o.carte+' ne compte pas au décompte (Force '+o.force+')'));
@@ -3282,7 +3350,7 @@ function lignesBilan(s,n){
 function vueBilan(s,nm){
   const B=M.bilan(s),d=el('details','b-fin');d.open=true;d.append(el('summary','','Bilan par carte'));
   B.joueurs.forEach((J,p)=>{
-    d.append(el('h4',nm(p)==='Toi'?'h-moi':'h-lui',nm(p)+' : infligés '+J.degats+', subis '+J.subis+', morts causées '+J.morts+', morts subies '+J.mortsSubies));
+    d.append(el('h4',nm(p)==='Toi'?'h-moi':'h-lui',nm(p)+' : infligés '+J.degats+', subis '+J.subis+', morts causées '+J.morts+', morts subies '+J.mortsSubies+(J.soins?', soins '+J.soins:''))); /* K-Chan : soins donnes */
     if(!J.cartes.length){d.append(el('p','','Aucun Golem joué.'));return}
     const t=el('table','h-tab'),cg=el('colgroup');['c','n','n','n','n'].forEach(k=>cg.append(el('col','h-col-'+k)));t.append(cg);
     const h=el('tr');['Carte','Infligés','Subis','Morts causées','Morts subies'].forEach(x=>h.append(el('th','',x)));t.append(h);
@@ -3290,6 +3358,7 @@ function vueBilan(s,nm){
     J.cartes.forEach(c=>{
       const r=el('tr');[c.carte,c.degats,c.subis,c.morts,c.mortsSubies].forEach((x,k)=>{if(!k){const td=el('td','h-cn');td.append(carteHisto(x));r.append(td);return}r.append(el('td',+x?cl[k]:'h-zero',String(x)))});t.append(r);
       if(c.sources.length){const q=el('tr'),z=el('td','src',texteSources(c));z.colSpan=5;q.append(z);t.append(q)}
+      if(c.soinsDonnes){const q=el('tr'),z=el('td','src','Soins donnés : '+c.soinsDonnes);z.colSpan=5;q.append(z);t.append(q)}
     });
     d.append(t);
   });
@@ -3320,7 +3389,7 @@ function deFin(s){
   const robot=rj?/^Golem( \(|$)/.test(partie.advNom||''):!!partie.local;
   const nom=p=>p===me?(pseudo||'Joueur'):rj?advAff(nomJ(p)):robot?'Golem ('+cap(partie.niveau||'normal')+')':nomJ(p);
   const noms=[nom(0),nom(1)];
-  const dn=p=>p===me?(rj?'':partie.decks&&partie.decks[me]?(partie.deckNom||'Deck'):'Deck de test'):(robot?'Deck de test':'');
+  const dn=p=>p===me?(rj?'':partie.decks&&partie.decks[me]?(partie.deckNom||'Deck'):'Deck par défaut'):(robot?'Deck par défaut':'');
   const decks=[0,1].map(p=>({nom:dn(p),els:els(elsTexte(s.decks[p]||DECK_TEST_TXT))}));
   const manches=parManche(s).map((o,i)=>{const pts=[0,0];o.terrains.forEach(t=>pts[t.p]+=t.pts);[0,1].forEach(p=>pts[p]+=o.bonus[p]);
     const f=(B.terrains||[]).filter(t=>t.manche===i+1);
@@ -3353,7 +3422,7 @@ function deHisto(x){
   const chiffres=[0,1].map(p=>{const c=(bl[p]&&bl[p].cartes)||[];return {degats:c.reduce((a,z)=>a+(+z[1]||0),0),morts:c.reduce((a,z)=>a+(+z[3]||0),0)}});
   return {noms,scores:sc,gagnant:g,abandon:x.abandon==='moi'?0:x.abandon==='adv'?1:undefined,departage:'',
     mode:robot?'robot':'ligne',
-    decks:[x.deck&&typeof x.deck.nom==='string'?{nom:x.deck.nom==='Test'?'Deck de test':x.deck.nom,els:els(x.deck.els)}:{nom:'',els:[]},robot?{nom:'Deck de test',els:els(elsTexte(DECK_TEST_TXT))}:{nom:'',els:[]}],
+    decks:[x.deck&&typeof x.deck.nom==='string'?{nom:x.deck.nom==='Test'?'Deck par défaut':x.deck.nom,els:els(x.deck.els)}:{nom:'',els:[]},robot?{nom:'Deck par défaut',els:els(elsTexte(DECK_TEST_TXT))}:{nom:'',els:[]}],
     manches,mvp:x.mvp?{carte:nomComplet(x.mvp),p:g,score:q?+q[1]:null,force:q?+q[2]:null,bonus:q?+q[3]:null,degats:q?+q[4]:null,morts:q?+q[5]:null}:null,
     chiffres,version:versionAff(x),nomsCourts:[ps,advCourt]};
 }
@@ -3475,7 +3544,7 @@ function texteHisto(x){return VD.texteDiscord(VD.deHisto(x),'B')}
 function bonusPrevu(s,me,c,l,k){
   const G=s.j[me].grille,C=M.carte(c),vs=[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([x,y])=>G[x]&&G[x][y]).filter(Boolean);
   const trait=C.el.reduce((t,e)=>{const n=vs.filter(v=>M.carte(v.c).el.includes(e)).length;return t+(M.TRAIT_CUMULE?n:Math.min(n,1))},0),f=s.j[1-me].grille[l][k];
-  const dom=f&&C.el.some(e=>M.carte(f.c).el.includes(M.DOMINE[e])),o={trait,cercle:dom?(CERCLE_2.includes(C.id)?2:1):0};
+  const dom=f&&C.el.some(e=>M.carte(f.c).el.includes(M.DOMINE[e])),c2=M.cercle2?M.cercle2(G,k,C.id)||C.id==='042':CERCLE_2.includes(C.id),o={trait,cercle:dom?(c2?2:1):0}; /* Vic222 : Info tchat dans la colonne */
   if(C.id==='037e'){const n=C.el.filter(e=>vs.some(v=>M.carte(v.c).el.includes(e))).length;if(n)o.synergie=n}
   if(C.id==='036e'&&M.foudres){const n=M.foudres(G)-(G[l][k]&&M.carte(G[l][k].c).el.includes('foudre')?1:0)+(C.el.includes('foudre')?1:0);if(n)o.survolte=n}
   if(C.id==='025'&&M.kekwait){const n=M.kekwait(G,l,k);if(n)o.kekwait=n} /* Shifukuro : KEKWait */
@@ -3507,7 +3576,7 @@ function genreLog(x){
   if(/^(Le Vaisseau|Le Carrousel|Le Buzzer|La Faille|L'Écran du MJ) : /.test(x))return ['j-pose','main'];
   if(/^La Bretagne : /.test(x))return ['j-pose','main'];
   if(/^Kiwi : Mignonitude/.test(x))return ['j-bonus','bouclier'];
-  if(/^Kiwi part à la défausse/.test(x))return ['','defausse'];
+  if(/^(Kiwi|Jacen et Jaina) part à la défausse/.test(x))return ['','defausse'];
   if(/^Spom : Forge éclair/.test(x))return ['j-pose','enclume'];
   if(/^Réalisation de l'âge : /.test(x))return ['j-degat','enclume'];
   if(/: Extinction du feu, /.test(x))return ['j-degat','degat'];
@@ -3609,7 +3678,7 @@ function archiveResume(s,id){
   const o={v:String(M.VERSION).slice(0,12),m:partie.local?'golem-'+partie.niveau:'ligne',g:w===0||w===1?w:-1,pg:w===p0,a:s.fin.abandon!==undefined,
     s0:Math.min(30,s.j[0].score),s1:Math.min(30,s.j[1].score),mvp:B.mvp?String(B.mvp.carte).slice(0,40):'',t};
   [0,1].forEach(p=>{const k=M.lisDeck(s.decks[p])?s.decks[p]:'';o['k'+p]=k;o['e'+p]=elsTexte(k).join(',')});
-  /* Partie contre un Golem : le robot joue le paquet de test, enregistre sous son texte (33 cartes, reconnu par agregeStats). */
+  /* Partie contre un Golem : le robot joue le deck par defaut, enregistre sous son texte (30 cartes depuis 0.3, 33 avant ; camp ignore par agregeStats). */
   if(partie.local){const r=1-partie.moi;if(!o['k'+r])o['k'+r]=DECK_TEST_TXT}
   /* Forces reellement tirees par Alrevan (002) et KEKWRevan (002e), des deux camps. */
   {const dr={};(s.log||[]).forEach(x=>{const t=String(x[1]);let m=/^Alrevan lance le dé : Force (\d+)\.$/.exec(t),id='002';
@@ -3649,8 +3718,17 @@ async function peintStats(){
   try{statsData=uneParGraine((await room.litResumes(2000)).filter(r=>r&&typeof r.d==='number'&&(r.g===0||r.g===1||r.g===-1)))}catch(e){console.warn(e);if(!statsData){z.textContent='';z.append(el('p','pf-vide','Lecture impossible pour le moment.'))}return}
   if(!$('stats').hidden)dessineStats(statsData);
 }
-/* Paquet de test (deck du robot), en texte de deck : accepte dans les Statistiques pour les parties contre les Golems seulement. */
-const DECK_TEST=Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])),DECK_TEST_TXT=M.deckTexte(DECK_TEST);
+/* Deck par defaut (deck du robot, ancien paquet de test), en texte de deck : 30 cartes depuis 0.3 (33 avant). Le camp du robot est ignore dans les Statistiques. */
+const DECK_TEST=M.DECK_DEFAUT?{...M.DECK_DEFAUT}:Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])),DECK_TEST_TXT=M.deckTexte(DECK_TEST);
+/* Deck par defaut d'une partie selon la version de son moteur : jusqu'a 0.2c, celui des moteurs archives (moteurs/moteur-<v>.js : pas de DECK_DEFAUT,
+   TYPES_TEST a 3 exemplaires, 33 cartes) ; texte lu dans le moteur archive s'il est deja charge, sinon meme composition ecrite ici. */
+const DECK_ANCIEN_TXT=M.deckTexte(Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])));
+function deckDefautTxt(v){
+  v=typeof v==='string'?versionMoteur(v):'';if(!v||v===M0.VERSION)return DECK_TEST_TXT;
+  const A=moteursCharges[v]&&moteursCharges[v].__m;if(A)return A.deckTexte(A.DECK_DEFAUT||Object.fromEntries(A.TYPES_TEST.map(t=>[t,3])));
+  return MOTEURS_ARCHIVES.indexOf(v)>=0&&MOTEURS_ARCHIVES.indexOf(v)<MOTEURS_ARCHIVES.indexOf('0.3')?DECK_ANCIEN_TXT:DECK_TEST_TXT;
+}
+const vPartie=x=>x&&(x.moteur||(x.rejeu&&x.rejeu.v));
 /* Force affichee dans les listes : cartes a des, Force moyenne (forceMoy : reelle des 30 lancers, sinon theorique 3,5 et 6,4), une decimale. Affichage seulement. */
 function forceAff(C){if(C.force!=null)return String(C.force);const v=forceMoy(C.id);return v==null?null:v.toFixed(1).replace('.',',')}
 const NOMS_EL_ST={magma:'Magma',cristal:'Cristal',foudre:'Foudre',brume:'Brume',roche:'Roche'};
@@ -4058,7 +4136,7 @@ function peintHisto(){
     if(nv){const q=el('span','niv','Golem');q.style.color=nv[1];ha.append(q);ha.title='Golem, niveau '+NIV_LB[nv[0]];ha.setAttribute('aria-label','contre Golem, niveau '+NIV_LB[nv[0]])}
     l1.append(el('span','h-date',new Date(x.date).toLocaleDateString('fr-FR',{dateStyle:'short'})),ha,el('span','h-sc',x.score),el('span','h-ver h-ver-l etq-v',/^[0-9]/.test(vh)?'v'+vh:vh));
     /* Elements du deck joue (paquet de test : ses elements). */
-    const pe=el('span','h-els');(x.deck&&x.deck.nom==='Test'&&!x.deck.cartes?elsTexte(DECK_TEST_TXT):(x.deck&&Array.isArray(x.deck.els)?x.deck.els:[])).filter(y=>/^(magma|cristal|foudre|brume|roche)$/.test(y)).forEach(y=>pe.append(picto(y)));
+    const pe=el('span','h-els');(x.deck&&x.deck.nom==='Test'&&!x.deck.cartes?elsTexte(deckDefautTxt(vPartie(x))):(x.deck&&Array.isArray(x.deck.els)?x.deck.els:[])).filter(y=>/^(magma|cristal|foudre|brume|roche)$/.test(y)).forEach(y=>pe.append(picto(y)));
     const rj=el('button','h-rj'),ok=rejeuPossible(x.rejeu);rj.type='button';rj.append(el('span','h-rj-i','▶'),'Replay');
     rj.setAttribute('aria-label',ok?'Replay de cette partie':'Replay indisponible');rj.title=ok?'Replay':x.rejeu?'Replay indisponible : moteur de la version '+x.rejeu.v+' non archivé':'Replay indisponible : partie enregistrée sans ses journaux';
     if(!ok)rj.setAttribute('aria-disabled','true');
@@ -4099,8 +4177,8 @@ function cumulAjoute(c,l){
     {const dt=+x.date||0;if(dt>=o.sd){o.sd=dt;o.s=w?(o.s>0?o.s+1:1):x.res==='Défaite'?(o.s<0?o.s-1:-1):0}}
     const add=(k,cle,pos)=>{let e=T[k].get(cle);if(!e){e=[cle,0,0,0];T[k].set(cle,e)}e[1]++;if(w)e[2]++;e[3]=q+999-pos;return e};
     if(d&&typeof d.nom==='string'&&d.nom)add('dk',d.nom.slice(0,24),0)[4]=(Array.isArray(d.els)?d.els:[]).filter(y=>/^(magma|cristal|foudre|brume|roche)$/.test(y)).slice(0,5).join(',');
-    /* Cartes : liste du deck notee dans la partie ; paquet de test (deck note "Test" sans liste) : ses 33 cartes. */
-    {let t=d&&typeof d.cartes==='string'?d.cartes:'';if(!t&&d&&d.nom==='Test')t=DECK_TEST_TXT;
+    /* Cartes : liste du deck notee dans la partie ; paquet de test (deck note "Test" sans liste) : ses cartes (30 depuis 0.3). */
+    {let t=d&&typeof d.cartes==='string'?d.cartes:'';if(!t&&d&&d.nom==='Test')t=deckDefautTxt(vPartie(x)); /* composition de la version de la partie (33 cartes jusqu'a 0.2c) */
      const ids=new Set(),re=/([0-9]{3}e?)[1-3]/g;let r;while((r=re.exec(t)))ids.add(r[1]);[...ids].forEach((id,i)=>add('c',id,Math.min(i,999)))}
     if(typeof x.mvp==='string'&&x.mvp)add('mv',x.mvp.slice(0,60),0);
     {const a=String(x.adv||'');if(a)add('a',a.slice(0,20),0)}
@@ -4291,7 +4369,7 @@ function deckChoisi(){
 function majChoixDeck(){
   const l=decksJouables(),c=deckChoisi();
   document.querySelectorAll('.selDeck').forEach(s=>{
-    s.textContent='';const o0=el('option','','Test (33/30)');o0.value='';s.append(o0);
+    s.textContent='';const o0=el('option','','Deck par défaut ('+M.TAILLE_DECK+'/30)');o0.value='';s.append(o0);
     l.forEach(d=>{const o=el('option','',d.nom+' ('+totalDeck(d)+' cartes)');o.value=d.id;s.append(o)});
     s.value=c.id;s.disabled=s.id==='deckSalon'&&jePret;
   });
@@ -4313,7 +4391,7 @@ function choisirDeck(suite,libOk){
     t.ondblclick=()=>{if(!raison){sel=id;go()}};
     t.setAttribute('aria-pressed',!raison&&id===sel?'true':'false');tuiles.push({id,t});g.append(t);
   };
-  tuile('','Test',M.TYPES?[...new Set(M.TYPES.flatMap(k=>M.CARTES[k].el))]:[],33,[]);
+  tuile('','Deck par défaut',M.TYPES?[...new Set(M.TYPES.flatMap(k=>M.CARTES[k].el))]:[],M.TAILLE_DECK,[]);
   lesDecks().forEach(d=>{
     const o={};for(const k in d.cartes)if(+d.cartes[k]>0)o[k]=+d.cartes[k];
     const els=[...new Set(Object.keys(o).filter(k=>M.CARTES[k]).flatMap(k=>M.CARTES[k].el))];
@@ -4356,7 +4434,7 @@ function compteNb(n,injouable){return el('span','d-compte'+(n<DECK_MIN||n>DECK_M
 function compteDeck(d){return compteNb(totalDeck(d),raisonsDeck(d).length>0)}
 /* Tuile de deck du salon et de la fenetre de choix : bandeau + compteur comme l'onglet Decks, puis pictos. */
 function enteteDeck(nom,els,nb,injouable){
-  /* Compteur rouge hors de 24 a 30 cartes, paquet de test (33/30) compris ; neutre si le deck est injouable pour une autre raison. */
+  /* Compteur rouge hors de 24 a 30 cartes, deck par defaut compris ; neutre si le deck est injouable pour une autre raison. */
   const h=el('div','cd-haut');h.append(bandeauDeck({nom,els}),compteNb(nb,injouable));
   const p=el('div','d-pict');(els||[]).filter(x=>/^(magma|cristal|foudre|brume|roche)$/.test(x)).forEach(e=>p.append(picto(e)));
   return [h,p];
@@ -4366,7 +4444,16 @@ function pastilleInconnue(){const s=el('span','dk-inc','?');s.setAttribute('aria
 function picto(e){const i=el('img');i.src='cartes/'+e+'.png';i.alt=e;i.width=26;i.height=26;return i}
 function peintDecks(){
   const b=$('listeDecks'),l=lesDecks();b.textContent='';
-  if(deckOuvert){const d=l.find(x=>x.id===deckOuvert);if(d){editeur(b,l,d);return}deckOuvert=null}
+  if(deckOuvert){const d=l.find(x=>x.id===deckOuvert);if(d){
+    /* Editeur a gauche, liste compacte du deck a droite (reste ouverte pendant la modification). */
+    deckVu=d.id;const zo=el('div','d-zone d-zone-ed'),ed=el('div','d-ed'),pan=el('aside','d-panneau');pan.id='panneauDeck';pan.setAttribute('aria-label','Liste du deck');pan.setAttribute('aria-live','polite');
+    editeur(ed,l,d);decklist(pan,d,l);zo.append(ed,pan);if(bacDe(d).ouvert)zo.classList.add('sans-pan');
+    /* Meme hauteur que dans la liste : decalage mesure sur les vrais elements de la liste (boutons + compteur), aussitot retires. */
+    if(matchMedia('(min-width:1200px)').matches){const nb=el('div','d-btns'),q=el('button','btn','Nouveau deck'),o=el('p','intro o-nb','1 deck');nb.append(q);b.append(nb,o,zo);
+      const y=zo.getBoundingClientRect().top;nb.remove();o.remove();pan.style.marginTop=(y-zo.getBoundingClientRect().top)+'px';
+      /* Rechercher s'arrete au bord droit du dernier bouton d'element. */
+      if(!bacDe(d).ouvert){const s=ed.querySelector('.f-rech'),e=ed.querySelector('.f-els')?.lastElementChild;if(s&&e)s.style.width=(e.getBoundingClientRect().right-s.getBoundingClientRect().left)+'px'}}else b.append(zo);
+    hauteurDecks();return}deckOuvert=null}
   if(deckVu&&!l.some(x=>x.id===deckVu))deckVu=null;
   const n=el('button','btn','Nouveau deck');n.type='button';n.disabled=l.length>=MAX_DECKS;
   n.onclick=()=>{if(l.length>=MAX_DECKS)return;const d={id:nouveauSid(),nom:'Deck '+(l.length+1),cartes:{}};l.push(d);gardeDecks(l);deckOuvert=d.id;peintDecks()};
@@ -4386,14 +4473,13 @@ function peintDecks(){
     const E=elsDeck(d),t=el('article',E.length>1?'d-tuile':'d-tuile mono');
     t.style.background=E.length>1?'linear-gradient(120deg,'+E.map(e=>'color-mix(in srgb,var(--'+e+') 60%,#0a121a)').join(',')+')':E.length?'color-mix(in srgb,var(--'+E[0]+') 60%,#0a121a)':'var(--panneau2)';
     const p=el('div','d-pict');E.forEach(e=>p.append(picto(e)));
-    /* Renommer sur la tuile : clic sur le nom ou sur le crayon, a gauche du compteur. */
+    /* Renommer sur la tuile : crayon seul, a gauche du compteur ; clic sur le nom = ouvrir la liste comme le reste de la tuile. */
     const h=el('div','d-haut'),ti=el('h3','dl-renom',d.nom),cr=el('button','dl-crayon');cr.type='button';cr.title='Renommer';cr.setAttribute('aria-label','Renommer '+d.nom);
     cr.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg>';
-    ti.title='Renommer';
-    const ren=e=>{e.stopPropagation();h.classList.add('dl-edit');renomme(h,l,d)};ti.onclick=ren;cr.onclick=ren;
+    const ren=e=>{e.stopPropagation();h.classList.add('dl-edit');renomme(h,l,d)};cr.onclick=ren;
     h.append(ti,cr,compteDeck(d));
     const z=el('div','d-act'),bt=(x,f)=>{const q=el('button','btn sec',x);q.type='button';q.onclick=f;z.append(q);return q};
-    bt('Modifier',()=>{deckOuvert=d.id;peintDecks()});
+    bt('Modifier',()=>{deckOuvert=d.id;deckVu=d.id;peintDecks()});
     bt('Dupliquer',()=>{
       if(l.length>=MAX_DECKS){z.querySelector('.d-limite')?.remove();z.append(el('p','d-limite','Limite de '+MAX_DECKS+' decks atteinte.'));return}
       const c={id:nouveauSid(),nom:nettoie(d.nom.slice(0,16).trim()+' (copie)',24)||'Deck',cartes:{...d.cartes}};
@@ -4420,7 +4506,7 @@ function codeDeck(d){
 }
 /* Format 2 (lien ?deck=) : 1 octet N, puis N quantites sur 2 bits dans l'ordre ORDRE_CODE, puis "nom\nauteur" en UTF-8, le tout en base64 URL.
    ORDRE_CODE : AJOUTER LES NOUVELLES CARTES EN FIN SEULEMENT, ne jamais retirer ni deplacer (les anciens liens restent lisibles). */
-const ORDRE_CODE='001 001e 002 002e 003 003e 004 004e 007 007e 008 013 013e 009 009e 029 029e 037 037e 026 026e 036 036e 018 018e 041 041e 025 025e 015 015e 016 016e 901'.split(' ');
+const ORDRE_CODE='001 001e 002 002e 003 003e 004 004e 007 007e 008 013 013e 009 009e 029 029e 037 037e 026 026e 036 036e 018 018e 041 041e 025 025e 015 015e 016 016e 901 035 035e 042 042e 008e 020 020e 902'.split(' ');
 const b64u=u=>{let s='';u.forEach(x=>s+=String.fromCharCode(x));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
 function codeDeck2(d,auteur){
   if(Object.keys(d.cartes).some(k=>+d.cartes[k]>0&&!ORDRE_CODE.includes(k)))return codeDeck(d); /* carte oubliee dans ORDRE_CODE : format 1 */
@@ -4476,9 +4562,9 @@ function partageDeck(z,d){
   const msg=el('p','pp-m','Colle le message dans Discord : « Voir le deck » ouvre le deck sur le site.'),pb=el('div','p-btns'),cp=el('button','btn','Copier pour Discord'),cl=el('button','btn sec','Copier le lien seul'),fe=el('button','btn fermer','Fermer');cp.type=cl.type=fe.type='button';
   const esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc)};addEventListener('keydown',esc);
   fe.onclick=ferme;v.onclick=e=>{if(e.target===v)ferme()};
-  const sel=t=>()=>{const s=document.createElement('textarea');s.value=t;s.style.cssText='position:fixed;opacity:0';document.body.append(s);s.select();setTimeout(()=>s.remove(),2000)};
-  cp.onclick=()=>{copie(md,cp,'Copier pour Discord',sel(md));msg.textContent='Message copié : colle-le dans Discord.'};
-  cl.onclick=()=>{copie(lien,cl,'Copier le lien seul',sel(lien));msg.textContent='Lien copié : colle-le à un ami.'};
+  /* Message seulement si la copie a reussi (sinon copie() propose le texte a copier a la main). */
+  cp.onclick=()=>copie(md,cp,'Copier pour Discord',null,()=>{msg.textContent='Message copié : colle-le dans Discord.'});
+  cl.onclick=()=>copie(lien,cl,'Copier le lien seul',null,()=>{msg.textContent='Lien copié : colle-le à un ami.'});
   const h=el('h2','','Partager « '+d.nom+' »');h.id='ppTitre';
   pb.append(cp,cl,fe);x.append(h,el('p','pp-l','Aperçu dans Discord'),ap,el('p','pp-lien',lien),msg,pb);v.append(x);document.body.append(v);v.hidden=false;cp.focus();
 }
@@ -4562,7 +4648,8 @@ function hauteurDecks(){
   /* Grand ecran : le bas du panneau s'aligne sur le bas de la derniere ligne de tuiles. */
   const g=z.querySelector('.d-grille'),gh=g&&innerWidth>=1200?Math.round(g.getBoundingClientRect().height):0;
   if(g&&!g._obs&&window.ResizeObserver){g._obs=new ResizeObserver(()=>hauteurDecks());g._obs.observe(g)}
-  z.style.setProperty('--d-h',(gh>=320?gh:Math.min(570,Math.max(320,innerHeight-Math.ceil(z.getBoundingClientRect().top+scrollY)-12)))+'px');
+  const zt=(z.querySelector('.d-ed~.d-panneau')||z).getBoundingClientRect().top; /* editeur : haut du panneau (decale comme dans la liste) */
+  z.style.setProperty('--d-h',(gh>=320?gh:Math.min(570,Math.max(320,innerHeight-Math.ceil(zt+scrollY)-12)))+'px');
 }
 addEventListener('resize',hauteurDecks);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(hauteurDecks);
@@ -4685,6 +4772,7 @@ const BAC_NOTE={
  '007':'Spam (pioche et Forge) : sans effet sur la Force.',
  '007e':'Mode Avion (protection) : sans effet ici.',
  '008':'Rage : il faut subir des dégâts, non comptée.',
+ '008e':"Love inconditionnel (soin d'un Golem blessé) : sans effet ici.",
  '013':'Soutien inconditionnel compté : choisis son favori (+1).',
  '013e':'Favori +2 compté ; Ragebait vise le Golem en face : non compté.',
  '009':'Slam vise un Golem adverse : non compté.',
@@ -4698,6 +4786,7 @@ const BAC_NOTE={
  '036':'Forge éclair : sans effet sur la Force.',
  '036e':'Survolté compté : +1 par Golem Foudre de ta grille.',
  '901':'Animal : pas de Force. Mignonitude (hasard, fin de manche) non comptée.',
+ '902':'Animal : pas de Force. zqrinohbqzroihg (pioche) : sans effet sur la Force.',
  '018':'Réalisation de l\'âge (coût adverse) : sans effet sur la Force.',
  '018e':'Extinction du feu vise les Golems adverses : non compté.',
  '041':'Graine de Golem (pioche) : sans effet sur la Force.',
@@ -4707,7 +4796,13 @@ const BAC_NOTE={
  '015':'Comeback dépend des manches perdues : non compté (manche 1).',
  '015e':'Double up ? compté ; Comeback non compté (manche 1).',
  '016':'Winstreak dépend des manches remportées : non compté (manche 1).',
- '016e':'Double up ? compté ; Winstreak non compté (manche 1).'
+ '016e':'Double up ? compté ; Winstreak non compté (manche 1).',
+ '035':'Sub offert : il faut forger la carte, non compté.',
+ '035e':'Draft diff : il faut forger, non compté.',
+ '042':'Info tchat (cercle +2 dans sa colonne) : il faut un Golem en face, non compté.',
+ '042e':'Chance du débutant (protection) : sans effet ici.',
+ '020':'Grand Général compté : +1 aux autres Golems alliés de sa colonne.',
+ '020e':"Bonus d'adjacence compté : +1 par voisin allié."
 };
 const bacVide=()=>[[null,null,null],[null,null,null],[null,null,null]];
 const bacTirage=()=>M.TERRAINS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,3);
@@ -4991,8 +5086,9 @@ function majPartie(){
 }
 function joue(a){
   if(!partie||partie.rejeu)return;
+  if(window.SPEC&&SPEC.estSpectateur())return; /* spectateur : aucun coup */
   partie.mien.push(M.code(a));
-  sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;
+  sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;modeLove=false;
   sauve();pub({j:M.ecritJournal(partie.mien)});calcule();
 }
 function uidJ(p){
@@ -5061,6 +5157,10 @@ function detailForce(s,p,l,k){
     const n=Math.min(Math.floor(d/4),s.log.filter(([q,x])=>q===p&&x==='KaTarN perd 4 de Force.').length);
     if(n){ajoute('Jeunesse éphémère : fin de manche',-4*n);d-=4*n}
   }
+  if(M.generaux){const n=M.generaux(G,l,k);if(n)ajoute('Grand Général',n)} /* GeneralBrioche : +1 par GeneralBrioche allie de la colonne (pas lui-meme) */
+  if(id==='020e'){const n=vs.filter(v=>!M.carte(v.c).animal).length;ajoute("Bonus d'adjacence"+(n?'':' : aucun voisin'),n)} /* Le civ player : +1 par voisin allie */
+  if(g.sub&&g.sub.length)ajoute('Sub offert',g.sub.length); /* JackJoy : bonus recus, gardes jusqu'a la fin de la partie */
+  if(g.dr&&g.dr.length)ajoute('Draft diff',g.dr.length);
   if(d>0)ajoute('Dégâts subis',-d);
   const gs=vs.filter(v=>!M.carte(v.c).animal);
   C.el.forEach(e=>{const n=gs.filter(v=>M.carte(v.c).el.includes(e)).map(v=>M.nomDetail(M.carte(v.c)));
@@ -5074,8 +5174,9 @@ function detailForce(s,p,l,k){
   if(M.doubleUp&&M.DUO&&M.DUO[id]&&M.CARTES[id].base){ /* Double up ? des évolutions du duo : une seule fois, ligne ou terrain */
     const v=M.doubleUp(G,l,k,id),nP=M.CARTES[M.DUO[id]].nom;
     ajoute(v?'Double up ? : seul avec '+M.nomDetail(M.carte(v.c))+' sur '+(G[l].includes(v)?'sa ligne':'son terrain'):'Double up ? : pas seul avec '+nP+' sur sa ligne ni son terrain',v?M.REGLAGE_DUO.doubleUp:0)}
-  const h=s.j[1-p].grille[l][k],hC=h?M.carte(h.c):null,dom=hC?C.el.find(e=>hC.el.includes(M.DOMINE[e])):null,c2=dom&&CERCLE_2.includes(id);
-  ajoute(dom?'Cercle : '+NOMS_EL[dom]+' domine '+NOMS_EL[M.DOMINE[dom]]+' ('+M.nomDetail(hC)+' en face)'+(c2?', Counter-pick':''):hC&&!hC.animal?'Cercle : '+M.nomDetail(hC)+' en face, pas de domination':'Cercle : aucun Golem en face',dom?(c2?2:1):0,dom?(c2?'+2':'+1'):'+0');
+  const h=s.j[1-p].grille[l][k],hC=h?M.carte(h.c):null,dom=hC?C.el.find(e=>hC.el.includes(M.DOMINE[e])):null,c2=dom&&(M.cercle2?M.cercle2(G,k,id):CERCLE_2.includes(id)),c2n=CERCLE_2.includes(id)?', Counter-pick':', Info tchat'; /* Vic222 : +2 aussi dans sa colonne */
+  ajoute(dom?'Cercle : '+NOMS_EL[dom]+' domine '+NOMS_EL[M.DOMINE[dom]]+' ('+M.nomDetail(hC)+' en face)'+(c2?c2n:''):hC&&!hC.animal?'Cercle : '+M.nomDetail(hC)+' en face, pas de domination':'Cercle : aucun Golem en face',dom?(c2?2:1):0,dom?(c2?'+2':'+1'):'+0');
+  if(id==='042e')a.append(lg('Chance du débutant',g.cdb?'utilisée':'disponible')); /* Vic222 : bouclier unique (g.cdb une fois utilisé) */
   if(fa!==somme)ajoute('Autres effets',fa-somme); /* filet : le total affiché reste celui du moteur */
   const t=lg('Force actuelle',String(fa),'tot'),sf=sensForce(fa,g.f);if(sf)t.lastChild.classList.add(sf);a.append(t);
   return [a];
@@ -5196,7 +5297,10 @@ function lienLog(nom){
 }
 function texteLog(x){
   const s=el('span','');let d=0;
-  for(const m of x.matchAll(NOMS_LOG.re)){s.append(x.slice(d,m.index),lienLog(m[0]));d=m.index+m[0].length}
+  /* Ponctuation qui suit un lien (point, virgule...) collee a lui : un bouton laisse sinon le navigateur couper la ligne juste avant. */
+  for(const m of x.matchAll(NOMS_LOG.re)){s.append(x.slice(d,m.index));d=m.index+m[0].length;
+    const p=/^[.,;:!?)…]+/.exec(x.slice(d)),b=lienLog(m[0]);
+    if(p){const n=el('span','j-colle');n.append(b,p[0]);s.append(n);d+=p[0].length}else s.append(b)}
   s.append(x.slice(d));return s;
 }
 function cacheApercu(){$('apercu').hidden=true}
@@ -5270,6 +5374,7 @@ function raisonPose(s,me,c,leg){
 }
 function bouton(txt,fait,sec){const b=el('button','btn'+(sec?' sec':''),txt);b.type='button';b.dataset.act='btn';b.onclick=fait;return b}
 function affiche(){
+  if(window.SPEC&&SPEC.estSpectateur())return; /* spectateur : vue peinte par spectateur-ui.js */
   if(!partie||!partie.etat)return;
   const s=partie.etat,me=partie.moi,lui=1-me,J=s.j[me],box=$('partie');
   const cols=me===0?[0,1,2]:[2,1,0],leg=M.legales(s,me),att=s.attente&&s.attente.p===me?s.attente:null;
@@ -5291,7 +5396,19 @@ function affiche(){
   if(!coupsF.length)modeFaille=false;
   const coupsZ=leg.filter(a=>a.t==='z');
   if(coupsZ.length<2)modeCaramel=false;
-  if(modeFaille){
+  const coupsR=leg.filter(a=>a.t==='r'); /* K-Chan (L'attachiante) : Love inconditionnel, coup 'r' + case de K-Chan + case du blesse */
+  if(!coupsR.length)modeLove=false;
+  const srcR=[...new Set(coupsR.map(a=>a.l+','+a.k))];
+  if(modeLove&&!selCases.length&&srcR.length===1)selCases=[srcR[0].split(',').map(Number)];
+  if(modeLove){
+    cible=(l,k)=>{
+      if(!selCases.length)return srcR.includes(l+','+k)?{texte:'Choisir',fait:()=>{selCases=[[l,k]];affiche()}}:null;
+      const[x,y]=selCases[0],a=coupsR.find(c=>c.l===x&&c.k===y&&c.m===l&&c.n===k);
+      if(a)return {texte:'Soigner',fait:()=>{modeLove=false;selCases=[];joue(a)}};
+      if(x===l&&y===k&&srcR.length>1)return {choisie:true,fait:()=>{selCases=[];affiche()}};
+      return null;
+    };
+  }else if(modeFaille){
     const kf=s.terrains.findIndex(x=>x.nom==='La Faille');
     cible=(l,k)=>{
       if(!selCases.length)return coupsF.some(a=>a.l===l&&a.k===k)?{texte:'Choisir',fait:()=>{selCases=[[l,k]];affiche()}}:null;
@@ -5325,6 +5442,8 @@ function affiche(){
     };
   }else if(att&&att.t==='g'){ /* 0.2a.1 : favori d'Indra, cases dorees */
     cible=(l,k)=>{const a=leg.find(x=>x.t==='g'&&x.l===l&&x.k===k);return a?{texte:'Favori',fait:()=>joue(a)}:null};
+  }else if(att&&att.t==='l'){ /* JackJoy : Sub offert (035) ou Draft diff (035e), Golem allie qui recoit +1, cases dorees, pas de bouton passer */
+    cible=(l,k)=>{const a=leg.find(x=>x.t==='l'&&x.l===l&&x.k===k);return a?{texte:'+1',fait:()=>joue(a)}:null};
   }else if(att&&att.t==='k'){ /* Deguisement d'Apo (029e) : voisin dont il copie l'effet, cases dorees */
     cible=(l,k)=>{const a=leg.find(x=>x.t==='k'&&x.l===l&&x.k===k);return a?{texte:'Copier',fait:()=>joue(a)}:null};
   }else if(att&&att.t==='i'){ /* Imitation du chansonnier (041e) : le Golem adverse en face, case doree sur la grille adverse ; refus par le bouton Ne pas copier */
@@ -5427,6 +5546,10 @@ function affiche(){
     const I=J.grille[att.i[0]][att.i[1]],evo=I&&M.carte(I.c).id==='013e';
     con('Indra'+(evo?' (La Fan enflammée)':'')+' : touche une case dorée pour choisir son favori'+(evo?' (+2 de Force, et le Golem adverse en face perd 2 de Force).':' (+1 de Force).'));
     pl.append(mainVue(J.main,{}));
+  }else if(att&&att.t==='l'){
+    con(att.y==='sub'?"JackJoy (Sub offert) : touche une case dorée pour choisir le Golem allié qui gagne +1 de Force jusqu'à la fin de la partie."
+      :"JackJoy (Draft diff) : touche une case dorée pour choisir le Golem allié non voisin qui gagne +1 de Force jusqu'à la fin de la partie.");
+    pl.append(mainVue(J.main,{}));
   }else if(att&&att.t==='k'){
     const vs=leg.filter(x=>x.t==='k').map(x=>{const v=J.grille[x.l][x.k];return v?M.nomDetail(M.carte(v.c)):''}).filter(Boolean);
     con('Apo (Maître du déguisement) : touche un de tes Golems voisins en surbrillance pour copier son effet'+(vs.length?' ('+vs.join(', ')+')':'')+". S'il agit à la pose, il se déclenche aussitôt.");
@@ -5474,6 +5597,10 @@ function affiche(){
       const z=el('div','p-btns');
       if(sel!==null){const v=sel,bf=eclair?bouton('Forge éclair',()=>joue({t:'j',c:v})):bouton('Forger',()=>joue({t:'f',c:v}));bf.id=eclair?'forgeEclair':'forger';z.append(bf)}
       const bn=bouton(deja?'Terminer la Forge':'Ne pas forger',()=>joue({t:'n'}),true);bn.id='nePasForger';z.append(bn);pl.append(z);
+    }else if(modeLove){
+      con(selCases.length?"Love inconditionnel : touche un Golem allié blessé (case dorée), il récupère 1 de Force. Une fois par manche.":"Love inconditionnel : touche la K-Chan (L'attachiante) qui soigne.");
+      pl.append(mainVue(J.main,{}));
+      const z=el('div','p-btns'),ba=bouton('Annuler',()=>{modeLove=false;selCases=[];affiche()},true);ba.id='annulerLove';z.append(ba);pl.append(z);
     }else if(modeFaille){
       con(selCases.length?'La Faille : touche une case libre de ce terrain.':'La Faille : touche un de tes Golems sur un autre terrain. Une fois par manche, gratuit.');
       pl.append(mainVue(J.main,{}));
@@ -5513,6 +5640,7 @@ function affiche(){
     /* Un seul bouton Caramel : un Caramel possible = coup direct ; plusieurs = choix du terrain (modeCaramel). 6 boutons au plus. */
     if(coupsZ.length){const n=coupsZ.length,bc=expl(bouton('Caramel',()=>{if(n===1)joue(coupsZ[0]);else{modeCaramel=true;sel=null;selCases=[];affiche()}},true),
       n===1?'Caramel : +1 énergie. Titom76 (Maître du bilig) : une fois par manche, +1 énergie':'Caramel : +1 énergie, '+n+' Titom76 (Maître du bilig) possibles, choisis le terrain. Une fois par manche chacun');bc.classList.add('caramel');bc.id='caramel';z.append(bc)}
+    if(coupsR.length){const br=expl(bouton('Love',()=>{modeLove=true;sel=null;selCases=[];affiche()},true),"Love inconditionnel de K-Chan (L'attachiante) : une fois par manche, un Golem allié blessé récupère 1 de Force");br.id='love';z.append(br)}
     const fx=bouton('Fin du tour',()=>joue({t:'x'}));fx.id='finTour';z.append(fx);pl.append(z);
     }
   }else{
@@ -5612,7 +5740,7 @@ const ETAPES=[
  {q:gForge(3),c:gSlot(17),t:"Dernier tour de la manche. Forge <b>Roi du Karaoké</b> : tu auras 3 énergies.",f:()=>sel===17||gJ().forge.length>=3},
  {q:gForge(3),c:'#forger',t:"Touche <b>Forger</b>.",f:gForgee(3)},
  {q:gAct(3),c:caseDe(1,0,2),t:"Le Golem a posé <b>Le Q</b> ici. Ses éléments : Brume et Cristal.",suiv:1},
- {q:gAct(3),c:gSlot(32),t:"<b>K-Chan</b> est Magma et Brume, et Magma domine Cristal. Touche K-Chan.",f:()=>sel===32||!!gG(0,2)},
+ {q:gAct(3),c:gSlot(32),t:"<b>K-Chan</b> est Magma et Cristal, et Magma domine Cristal. Touche K-Chan.",f:()=>sel===32||!!gG(0,2)},
  {q:gAct(3),c:caseDe(0,0,2),t:"Pose-le <b>en face</b> de Le Q : même terrain, même ligne.",f:()=>!!gG(0,2)},
  {q:gAct(3),c:caseDe(0,0,2),t:"C'est le <b>cercle</b> : +1 si le Golem en face a un élément que le tien domine. Jamais plus de +1, sauf effet de carte. K-Chan passe de 2 à 3.",suiv:1},
  {q:gAct(3),c:'#finTour',t:"Touche <b>Fin du tour</b>. Le Golem joue son dernier tour, puis la manche se termine.",f:s=>s.manche>1||s.tour>3||s.joueur!==partie.moi},
@@ -5635,7 +5763,7 @@ function lanceGuide(){
   if(partie)finPartie();
   $('propGuide').hidden=true;
   $('erreurJeu').textContent='';onglet('jouer');
-  lancer(GUIDE.graine,0,'',{mien:[],sien:[],advNom:'Golem',niveau:'facile',local:true,tuto:true,decks:[GUIDE.deck,''],deckNom:'Deck de la partie guidée'});
+  lancer(GUIDE.graine,0,'',{mien:[],sien:[],advNom:'Golem',niveau:'facile',local:true,tuto:true,decks:[GUIDE.deck,M.DECK_TUTO||''],deckNom:'Deck de la partie guidée'});
   tuto={i:0,vu:-1,T:setInterval(tickGuide,150)};
   const b=el('div','g-bulle'),a=el('div','g-anneau'),f=el('div','g-fleche');b.hidden=a.hidden=f.hidden=true;
   b.setAttribute('role','status');tuto.b=b;tuto.a=a;tuto.f=f;document.body.append(a,f,b);
@@ -5831,6 +5959,7 @@ if(deckLien!==null){onglet('decks');ouvreDeckLien(deckLien)}
   majEtat();
   if(aReprendre&&compteCo()){invit='';onglet('jouer');entre(aReprendre)}else{majReprise();suitInvit()}
 })();
+  window.GOLEMS_UI={el,avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
 })();
 </script>
 <script>window.__golemsPret&&window.__golemsPret()</script>
