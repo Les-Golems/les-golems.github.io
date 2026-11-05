@@ -170,9 +170,9 @@ function finDeManche(s){s.joueur=1;s.premier=0;s.tour=3;M.applique(s,1,{t:'x'})}
   const v=sur('Le Carrousel');v.j[0].grille[0][0]=gol(6,3);finDeManche(v);assert(v.log.some(([,x])=>/main vide/.test(x)));assert(!v.attente);assert.strictEqual(v.manche,2);
   assert.strictEqual(T('Le Carrousel').pts,3);
 }
-{ // Boutique : poser et remplacer, evolution exclue, minimum 0
+{ // Boutique : poser, remplacer et faire evoluer (0.2b.2), minimum 0
   const s=sur('La Boutique');s.j[0].grille[0][0]=gol(6,3);
-  assert.strictEqual(M.coutPose(s,0,12,0,0),2,'remplace');assert.strictEqual(M.coutPose(s,0,12,1,0),2,'pose');assert.strictEqual(M.coutPose(s,0,9,0,0),3,'evolution pleine');
+  assert.strictEqual(M.coutPose(s,0,12,0,0),2,'remplace');assert.strictEqual(M.coutPose(s,0,12,1,0),2,'pose');assert.strictEqual(M.coutPose(s,0,9,0,0),2,'evolution : 1 de moins aussi');
   assert.strictEqual(M.coutPose(s,0,0,1,0),0,'KaTarN 1 - 1');
 }
 { // Plateau de Jeu : 5 ou 6 seulement, pas de de sans gagnant
@@ -327,7 +327,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Abandon 0.2.2 OK');
 }
 { // 0.2a.1 : Indra (013, 013e). Ids : Indra 33-35, Fan enflammee 36-38, Cyrdan 12, Alrevan 6, K-Chan 30, Roi du Mobile 27, Le Q 18.
-  assert(['0.2a.1','0.2a.2','0.2b','0.2b.1'].includes(M.VERSION));
+  assert(['0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2'].includes(M.VERSION));
   const D=M.deckTexte({'002':3,'003':3,'004':3,'007e':3,'008':3,'013':3,'013e':3,'001':3});assert(M.lisDeck(D),'deck Indra valide');
   assert.strictEqual(M.decode(M.code({t:'p',c:38,l:1,k:2})).c,38,'code base 36 etendu');assert.strictEqual(M.code({t:'p',c:36,l:0,k:0}),'pA00');
   assert.deepStrictEqual(M.decode('g12'),{t:'g',l:1,k:2});
@@ -375,7 +375,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Indra 0.2a.1 OK : 150 parties aleatoires ('+nG+' favoris) et 300 parties robot sans blocage ('+nR+' Ragebait), rejeux identiques');
 }
 { // 0.2a.2 : Glad (009, 009e). Ids : Glad 39-41, GymRat 42-44, KaTarN 0, Slim K 3, Cyrdan 12, Indra 33, Fan enflammee 36, Roi du Mobile 27, K-Chan 30, Alrevan 6.
-  assert(['0.2a.2','0.2b','0.2b.1'].includes(M.VERSION));
+  assert(['0.2a.2','0.2b','0.2b.1','0.2b.2'].includes(M.VERSION));
   const D=M.deckTexte({'001':3,'001e':3,'003':3,'008':3,'013':3,'013e':3,'009':3,'009e':3});assert(M.lisDeck(D),'deck Glad valide');
   assert.strictEqual(M.code({t:'p',c:44,l:0,k:0}),'pI00');assert.strictEqual(M.decode('pI00').c,44,'code etendu a 44');
   assert.deepStrictEqual(M.decode('h0102'),{t:'h',l:0,k:1,m:0,n:2});assert.strictEqual(M.code({t:'h',l:2,k:0,m:1,n:0}),'h2010');
@@ -432,7 +432,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Glad 0.2a.2 OK : 150 parties aleatoires ('+nS+' Slam) et 300 parties robot sans blocage ('+nM+' Menfou palu), rejeux identiques');
 }
 { // 0.2b : K-Chan (008) Magma + Brume au lieu de Magma + Roche. Ids : K-Chan 30-32, Trigas 24, Cyrdan 12, Alrevan 6, Le Q 18, Glad 39.
-  assert(['0.2b','0.2b.1'].includes(M.VERSION));assert.deepStrictEqual(M.CARTES['008'].el,['magma','brume'],'K-Chan Magma + Brume');
+  assert(['0.2b','0.2b.1','0.2b.2'].includes(M.VERSION));assert.deepStrictEqual(M.CARTES['008'].el,['magma','brume'],'K-Chan Magma + Brume');
   const s=vide();s.j[0].grille[1][1]=gol(30,2);
   s.j[0].grille[0][1]=gol(24,1);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Trait avec Trigas : Brume partagee');
   s.j[0].grille[0][1]=gol(12,1);assert.strictEqual(M.forceDe(s,0,1,1),2+1,'Cyrdan voisin : son +1 seulement, plus de Trait Roche');
@@ -922,8 +922,9 @@ duel('facile','normal');duel('normal','difficile');
   adv(s,P,3,0,0);eq(C(s,0,9,1,1),3,'Elessar evolue en Pomplard : plus de Realisation');s.j[1].grille[0][0]=null;eq(C(s,0,9,1,1),3,'Elessar parti : cout normal');
   // Kiwi : un animal n'est pas une evolution
   adv(s,E,2,0,0);eq(C(s,0,69,0,1),1,'Kiwi : cout inchange');
-  // Boutique : reduit les Golems de base seulement, jamais sous 0 ; les evolutions restent a +1
-  s.terrains=[TA(2),TA(8),TA(4)];eq(s.terrains[0].nom,'La Boutique');eq(C(s,0,0,0,0),0,'KaTarN sur la Boutique : 0, jamais negatif');eq(C(s,0,12,1,0),2);eq(C(s,0,9,1,0),4,'evolution sur la Boutique : +1, pas de reduction');
+  // Boutique (0.2b.2) : reduit tout Golem joue dessus, evolutions comprises, sur le cout total apres la surtaxe d'Elessar, jamais sous 0 ; jamais un animal
+  s.terrains=[TA(2),TA(8),TA(4)];eq(s.terrains[0].nom,'La Boutique');eq(C(s,0,0,0,0),0,'KaTarN sur la Boutique : 0, jamais negatif');eq(C(s,0,12,1,0),2);eq(C(s,0,9,1,0),3,'evolution sur la Boutique : 3 + 1 (Elessar) - 1');
+  eq(C(s,0,9,1,1),4,'meme evolution hors de la Boutique : 3 + 1');eq(C(s,0,99,1,0),1,'Le Ace de Aiges : 1 + 1 - 1');
   eq(C(s,0,69,0,0),1,'Kiwi sur la Boutique : inchange');
   // Apo evolue qui copie Realisation de l'age : +1 de plus ; qui copie Extinction du feu : rien
   adv(s,48,3,2,2,{cp:'018'});eq(C(s,0,9,1,1),5,'Elessar + Maitre du deguisement en Elessar');adv(s,48,3,2,2,{cp:'018e'});eq(C(s,0,9,1,1),4,'copie de Pomplard : pas de Realisation');
@@ -977,8 +978,8 @@ duel('facile','normal');duel('normal','difficile');
     s=prep([48]);s.j[0].energie=5;moi(s,45,2,1,1);moi(s,P,3,0,1);moi(s,12,1,1,0);adv(s,30,1,2,2);M.applique(s,0,M.robot(s,0,niv));if(s.attente&&s.attente.t==='k'){a=M.robot(s,0,niv);ok(M.legales(s,0).some(x=>M.code(x)===M.code(a)),'choix de copie legal');M.applique(s,0,a)}
   }
   // --- parties aleatoires et robot contre robot avec Elessar dans les decks : invariant du cout, sans exception ni blocage, rejeux identiques
-  const coutAttendu=(u,p,c)=>{const K=M.carte(c);let n=0;u.j[1-p].grille.forEach(R=>R.forEach(g=>{if(g&&!M.estAnimal(g.c)&&M.idEff(g)==='018')n++}));return K.base?K.cout+n:null};
-  const verifieE=u=>{for(const p of [0,1])for(const c of u.j[p].main){const x=coutAttendu(u,p,c);if(x!==null){eq(M.coutPose(u,p,c,0,0),x,'cout de l evolution '+c);eq(M.coutPose(u,p,c,1,2),x)}}
+  const coutAttendu=(u,p,c,k)=>{const K=M.carte(c);let n=0;u.j[1-p].grille.forEach(R=>R.forEach(g=>{if(g&&!M.estAnimal(g.c)&&M.idEff(g)==='018')n++}));return K.base?Math.max(0,K.cout+n-(u.terrains[k].nom==='La Boutique'?1:0)):null}; /* 0.2b.2 : -1 sur la Boutique */
+  const verifieE=u=>{for(const p of [0,1])for(const c of u.j[p].main){const x=coutAttendu(u,p,c,0);if(x!==null){eq(M.coutPose(u,p,c,0,0),x,'cout de l evolution '+c);eq(M.coutPose(u,p,c,1,2),coutAttendu(u,p,c,2))}}
     for(const p of M.attendus(u))M.legales(u,p).forEach(a=>{if(a.t==='p')assert(M.coutPose(u,p,a.c,a.l,a.k)<=u.j[p].energie,'coup legal impayable')})};
   const cpt=X=>({r:X.filter(x=>/^Réalisation de l'âge : /.test(x)).length,x:X.filter(x=>/: Extinction du feu/.test(x)).length,t:X.filter(x=>/: Extinction du feu, .* perd/.test(x)).length,
     ae:X.filter(x=>/déguisement\) copie Elessar\./.test(x)).length,ap:X.filter(x=>/déguisement\) copie Elessar \(Le pomplard\)/.test(x)).length});
@@ -1421,4 +1422,50 @@ duel('facile','normal');duel('normal','difficile');
   ok(rt.pi&&rt.pe&&rt.pi>rt.pe&&rt.cb&&rt.ws&&rt.dup,'robot : effet jamais vu '+JSON.stringify(rt));
   const f=o=>o.fo+' cartes du duo forgees ('+o.pi+' partenaires pioches au hasard dont '+o.pe+' evolutions, '+o.no+' sans partenaire), '+o.pB+' Bellock et '+o.pL+' Loxim poses, '+o.ev+' evolutions, bonus au decompte : Comeback '+o.cb+', Winstreak '+o.ws+', Double up ? '+o.dup+', '+o.mc+' morts par perte du partenaire, '+o.cop+' copies';
   console.log('Bellock/Loxim 0.2b.1 OK : '+nv+' verifications (dont tirages ponderes sur '+N+' graines), 300 parties aleatoires ('+f(tot)+') et '+nr+' parties robot (dont 150 a niveau egal ; '+f(rt)+'), aucun coup r, rejeux identiques');
+}
+{ // 0.2b.2 : La Boutique reduit aussi les evolutions (poser, remplacer, faire evoluer), minimum 0 sur le cout total apres la surtaxe d'Elessar, jamais un animal
+  let nv=0;const ok=(c,m)=>{assert(c,m);nv++},eq=(a,b,m)=>{assert.strictEqual(a,b,m);nv++};
+  const vide3=()=>[[null,null,null],[null,null,null],[null,null,null]];
+  const prep=(main,rg)=>{const s=M.nouvelle(5,['','']);s.phase='jeu';s.mull=[true,true];s.joueur=0;s.premier=0;s.tour=1;s.manche=2;const J=s.j[0];J.etapeForge=false;J.energie=30;J.main=main.slice();J.deck=[];J.forge=[];
+    J.grille=vide3();s.j[1].grille=vide3();s.j[1].main=[];s.j[1].deck=[];s.j[1].etapeForge=false;s.terrains=[TA(2),TA(8),TA(4)];if(rg!==undefined)s.rng=[rg,rg*7];return s};
+  const moi=(s,c,f,l,k,x)=>{s.j[0].grille[l][k]={c,f,d:0,...(x||{})}},adv=(s,c,f,l,k,x)=>{s.j[1].grille[l][k]={c,f,d:0,...(x||{})}};
+  const C=(s,p,c,l,k)=>M.coutPose(s,p,c,l,k),L=s=>s.log.map(x=>x[1]),leg=(s,c,l,k)=>M.legales(s,0).some(a=>a.t==='p'&&a.c===c&&a.l===l&&a.k===k);
+  const E=72,KW=9,AL=6,LX=96,ACE=99,KIWI=69,TI=57,CY=12;
+  eq(M.VERSION,'0.2b.2');eq(TA(2).nom,'La Boutique');eq(TA(2).texte,'Jouer un Golem ici coûte 1 de moins.');
+  eq(M.carte(KW).id,'002e');eq(M.carte(ACE).id,'016e');eq(M.carte(LX).id,'016');eq(M.carte(KIWI).id,'901');eq(M.carte(E).id,'018');
+  // evolution -1 sur la Boutique (colonne 0), cout plein ailleurs ; pose et remplacement aussi
+  let s=prep([KW,CY]);moi(s,AL,3,0,0);moi(s,AL,3,1,1);moi(s,CY,1,2,0);
+  eq(C(s,0,KW,0,0),2,'evolution sur la Boutique : 3 - 1');eq(C(s,0,KW,1,1),3,'evolution ailleurs : 3');eq(C(s,0,CY,1,0),2,'pose : 3 - 1');eq(C(s,0,CY,2,0),2,'remplacement : 3 - 1');eq(C(s,0,CY,1,1),3);
+  s.j[0].energie=2;ok(leg(s,KW,0,0),'evolution payable a 2 sur la Boutique');ok(!leg(s,KW,1,1),'pas ailleurs');
+  M.applique(s,0,{t:'p',c:KW,l:0,k:0});eq(s.j[0].energie,0,'2 payes');ok(s.stats.act.some(x=>x.nom==='La Boutique'&&x.e==='Coût réduit de 1 pour Alrevan (KEKWRevan)'),'declenchement de la Boutique');
+  ok(!L(s).some(x=>/^Réalisation de l'âge/.test(x)),'sans Elessar : pas de surtaxe');ok(s.stats.ev.some(e=>e.t==='p'&&e.cc===KW&&e.n===2),'cout paye dans le bilan');
+  // avec Elessar : surtaxe puis reduction, les deux annoncees
+  s=prep([KW]);moi(s,AL,3,0,0);moi(s,AL,3,1,1);adv(s,E,2,0,0);
+  eq(C(s,0,KW,0,0),3,'3 + 1 - 1');eq(C(s,0,KW,1,1),4,'3 + 1 hors de la Boutique');adv(s,E+1,2,1,1);eq(C(s,0,KW,0,0),4,'3 + 2 - 1');eq(C(s,0,KW,1,1),5);s.j[1].grille[1][1]=null;
+  s.j[0].energie=3;ok(leg(s,KW,0,0),'payable a 3 sur la Boutique');ok(!leg(s,KW,1,1));M.applique(s,0,{t:'p',c:KW,l:0,k:0});eq(s.j[0].energie,0,'3 payes');
+  ok(s.stats.act.some(x=>x.nom==='La Boutique'&&x.e==='Coût réduit de 1 pour Alrevan (KEKWRevan)'),'Boutique annoncee');ok(s.stats.act.some(x=>x.nom==='Réalisation de l\'âge'&&x.e==='Coût +1 pour Alrevan (KEKWRevan)'),'Elessar annonce');
+  ok(L(s).includes('Réalisation de l\'âge : Alrevan (KEKWRevan) coûte 1 de plus.'),'journal Elessar');
+  // minimum 0 : Le Ace de Aiges (1) sur la Boutique, sans puis avec Elessar ; jamais negatif
+  s=prep([ACE]);moi(s,LX,4,0,0);moi(s,LX,4,1,1);eq(C(s,0,ACE,0,0),0,'1 - 1 = 0');eq(C(s,0,ACE,1,1),1);
+  s.j[0].energie=0;ok(leg(s,ACE,0,0),'evolution gratuite jouable a 0');ok(!leg(s,ACE,1,1));M.applique(s,0,{t:'p',c:ACE,l:0,k:0});eq(s.j[0].energie,0,'rien paye');
+  s=prep([ACE]);moi(s,LX,4,0,0);adv(s,E,2,0,0);eq(C(s,0,ACE,0,0),1,'1 + 1 - 1');adv(s,E+1,2,0,1);adv(s,E+2,2,0,2);eq(C(s,0,ACE,0,0),3,'1 + 3 - 1');
+  s=prep([0]);s.manche=1;eq(C(s,0,0,0,0),0,'KaTarN : 1 - 1 = 0');
+  for(let k=0;k<3;k++)for(let l=0;l<3;l++)for(const c of [0,KW,ACE,CY,KIWI])ok(C(s,0,c,l,k)>=0,'jamais negatif');
+  // animal : jamais reduit, meme avec Elessar adverse
+  s=prep([KIWI]);moi(s,TI,1,0,0);eq(C(s,0,KIWI,1,0),1,'Kiwi sur la Boutique : 1');eq(C(s,0,KIWI,0,1),1,'Kiwi ailleurs : 1');adv(s,E,2,0,0);eq(C(s,0,KIWI,1,0),1,'Kiwi : ni surtaxe ni reduction');
+  s.j[0].energie=0;ok(!leg(s,KIWI,1,0),'Kiwi impayable a 0 sur la Boutique');s.j[0].energie=1;ok(leg(s,KIWI,1,0),'Kiwi payable a 1');
+  // robot : evolution payable seulement sur la Boutique ; parties robot contre robot avec la Boutique en jeu, rejeux identiques
+  for(const niv of ['facile','normal','difficile'])for(let g=1;g<20;g++){s=prep([KW],g);moi(s,AL,1,0,0);moi(s,AL,1,1,1);s.j[0].energie=2;const a=M.robot(s,0,niv);
+    ok(a&&M.legales(s,0).some(x=>M.code(x)===M.code(a)),'robot : coup legal');ok(!(a.t==='p'&&a.c===KW&&a.k!==0),'robot : pas d evolution impayable hors Boutique')}
+  let evB=0,evE=0,nr=0;const niv=['facile','normal','difficile'];
+  for(let i=0;i<400&&nr<150;i++){const gr=(i*2654435761+97)|0,u=M.nouvelle(gr,['','']);let pas=0;const j=[[],[]];
+    if(!u.terrains.some(t=>t.nom==='La Boutique'))continue;
+    while(!u.fin){assert(++pas<2000,'blocage Boutique '+gr);const p=M.attendus(u)[0],x=M.robot(u,p,niv[i%3]);assert(x,'robot sans coup');
+      if(x.t==='p'){const K=M.carte(x.c),cout=M.coutPose(u,p,x.c,x.l,x.k),av=u.j[p].energie,b=u.terrains[x.k].nom==='La Boutique';
+        eq(cout,Math.max(0,K.cout+(K.base?M.elessars(u.j[1-p].grille):0)-(b&&!K.animal?1:0)),'cout de '+K.id);
+        if(K.base&&b){evB++;if(M.elessars(u.j[1-p].grille))evE++}
+        M.applique(u,p,x);eq(u.j[p].energie,av-cout,'energie payee')}else M.applique(u,p,x);j[p].push(M.code(x))}
+    const r=M.rejoue(gr,[M.litJournal(M.ecritJournal(j[0])),M.litJournal(M.ecritJournal(j[1]))],['','']);assert(!r.erreur,r.erreur);assert.strictEqual(JSON.stringify(r.etat),JSON.stringify(u),'rejeu Boutique '+gr);nr++}
+  ok(evB>0,'aucune evolution jouee sur la Boutique par le robot');
+  console.log('Boutique 0.2b.2 OK : '+nv+' verifications, '+nr+' parties robot avec La Boutique ('+evB+' evolutions jouees dessus, dont '+evE+' avec Elessar adverse), rejeux identiques');
 }

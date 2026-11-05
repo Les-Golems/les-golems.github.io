@@ -10,17 +10,18 @@
 //
 // Arborescence :
 //   pseudos/{pseudo minuscule}  uid du propriétaire
-//   joueurs/{uid}               pseudo, avatarId, cree, importe, decks/0..11, historique/{id} {d, x}
+//   joueurs/{uid}               pseudo, avatarId, cree, importe, decks/0..11, historique/{id} {d, x},
+//                               cumul (texte JSON : cumuls de toutes les parties, fabriqués par la page)
 //   profils/{uid}               résumé public du profil (chiffres de la fenêtre de compte), m = profil privé
 //   hall/{uid}                  présence dans l'accueil (pseudo, salon, quitte), comptes seulement
 //   salons/{code}/joueurs/{uid} présence dans le salon (pseudo, arrivee, sid, pret, deck,
-//                               graine, jg, adv, veut, quitte), effacée par onDisconnect
+//                               graine, jg, adv, veut, quitte, v = version du site), effacée par onDisconnect
 //   salons/{code}/coups/{push}  journal : un coup par entrée, jamais modifié
 //                               { a: uid auteur, s: sid, g: graine, n: rang, c: code du coup }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, setPersistence, browserSessionPersistence, browserLocalPersistence,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, orderByValue, endAt, limitToFirst, limitToLast, equalTo, connectDatabaseEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, orderByValue, endAt, limitToFirst, limitToLast, equalTo, runTransaction, connectDatabaseEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { firebaseConfig as configEnLigne } from "./firebase-config.js";
 
 // Servi depuis localhost ou 127.0.0.1 : émulateur Firebase local (projet de démonstration
@@ -33,7 +34,9 @@ const firebaseConfig = EMULATEUR
   : configEnLigne;
 
 const CHAMPS_HALL = ["pseudo", "salon", "quitte"];
-const CHAMPS_SALON = ["pseudo", "arrivee", "sid", "pret", "deck", "graine", "jg", "adv", "veut", "quitte"];
+// v : version du site ("0.2b|<build>" lu dans version.json), comparée dans le salon et les parties publiques.
+const CHAMPS_SALON = ["pseudo", "arrivee", "sid", "pret", "deck", "graine", "jg", "adv", "veut", "quitte", "v"];
+const VERSION_OK = /^[0-9a-z.|: -]{1,40}$/;
 const MAX_HISTO = 50, MAX_DECKS = 12;
 // Préfixe de base : vide pour le site public, "essai/" pour le site d'essai (les-golems.github.io/essai/).
 // Comptes Auth partagés ; pseudos, données, accueil et salons séparés.
@@ -86,7 +89,7 @@ async function ouvre() {
   if (!auth.currentUser) { await setPersistence(auth, browserSessionPersistence); await signInAnonymously(auth); }
   const estCompte = () => !!auth.currentUser && !auth.currentUser.isAnonymous;
   let moi = auth.currentUser.uid;
-  let donnees = null, resumeur = null;        // copie de joueurs/{uid} pour un compte
+  let donnees = null, resumeur = null, cumuleur = null;        // copie de joueurs/{uid} pour un compte
   const ecouteCompte = [];
   const signale = () => ecouteCompte.forEach(f => { try { f(); } catch (e) {} });
 
@@ -130,6 +133,7 @@ async function ouvre() {
 
   // Données du compte
   function versListe(o) { return Object.values(o || {}).filter(Boolean); }
+  function lisCumul(t) { if (typeof t !== "string") return null; try { const c = JSON.parse(t); return c && typeof c === "object" ? c : null; } catch (e) { return null; } }
   async function chargeDonnees() {
     if (!estCompte()) { donnees = null; return; }
     const v = (await get(ref(db, P + "joueurs/" + moi))).val() || {};
@@ -142,6 +146,7 @@ async function ouvre() {
       decks: versListe(v.decks).map(d => ({ id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0 })),
       historique: Object.keys(v.historique || {}).map(k => { try { return JSON.parse(v.historique[k].x); } catch (e) { return null; } })
         .filter(x => x && x.id).sort((a, b) => b.date - a.date),
+      cumul: lisCumul(v.cumul),
       masque: false
     };
     // Profil privé : champ m du résumé public (profils/{uid}).
@@ -164,6 +169,26 @@ async function ouvre() {
     await chargeDonnees();
     demarreHall();
     signale();
+  }
+
+  // Cumuls de toutes les parties (joueurs/{uid}/cumul, texte JSON fabriqué par la page) : les parties de l'historique,
+  // et celles qui viennent d'être écrites (extra), pas encore comptées y sont ajoutées par transaction, chacune une seule
+  // fois, même depuis deux onglets ou deux appareils. Première connexion : reconstruits depuis l'historique.
+  // Échec (hors ligne, règles pas encore à jour) : sans effet, nouvel essai à la prochaine partie ou connexion.
+  // Les appels passent l'un après l'autre. Renvoie true si les cumuls ont changé.
+  let fileCumul = Promise.resolve();
+  function rattrape(extra) {
+    const f = async () => {
+      if (!compte.connecte() || !cumuleur) return false;
+      const qui = moi, l = (extra || []).concat(donnees.historique);
+      try { if (!cumuleur(donnees.cumul, l)) return false; } catch (e) { console.warn("cumul", e); return false; }
+      try {
+        const r = await runTransaction(ref(db, P + "joueurs/" + qui + "/cumul"), t => { const c = cumuleur(lisCumul(t), l); return c ? JSON.stringify(c) : undefined; });
+        if (qui === moi && donnees) donnees.cumul = lisCumul(r.snapshot.val()) || donnees.cumul;
+        return r.committed;
+      } catch (e) { console.warn("cumul", e); return false; }
+    };
+    return (fileCumul = fileCumul.then(f, f));
   }
 
   const compte = {
@@ -193,21 +218,32 @@ async function ouvre() {
       try { const i = (await get(ref(db, P + "joueurs/" + uid + "/avatarImg"))).val(); if (typeof i === "string" && i) return i; } catch (e) {}
       try { const v = (await get(ref(db, P + "joueurs/" + uid + "/avatarId"))).val(); return typeof v === "string" ? v : ""; } catch (e) { return ""; }
     },
-    // Résumé public des parties (joueurs/{uid}/stats = { v: victoires, n: parties }), tiré de l'historique.
-    async publieStats() {
+    // Résumé public des parties (joueurs/{uid}/stats = { v: victoires, n: parties }) et classement, sur toutes les parties
+    // (cumuls), après ajout au cumul des parties qui viennent d'être écrites (extra). Sans la page : l'historique seul.
+    async publieStats(extra) {
       if (!compte.connecte()) return;
+      await rattrape(extra);
+      if (resumeur) { await compte.publieProfil(); return; }
       const h = donnees.historique, v = h.filter(x => x.res === "Victoire").length;
       try { await set(ref(db, P + "joueurs/" + moi + "/stats"), { v, n: h.length }); } catch (e) {}
       try { await set(ref(db, P + "classement/" + moi), { p: donnees.pseudo, v, n: h.length }); } catch (e) {}
-      compte.publieProfil();
     },
-    // Résumé public du profil : fabriqué par la page (mêmes calculs que la fenêtre de compte),
-    // publié à la connexion et à chaque fin de partie. Profil privé : pseudo, parties, victoires, défaites seulement.
+    // Résumé public du profil : fabriqué par la page (mêmes calculs que la fenêtre de compte), sur toutes les parties,
+    // publié à la connexion et à chaque fin de partie, avec stats et classement (mêmes n et v).
+    // Profil privé : pseudo, parties, victoires, défaites seulement.
     resumeur(f) { resumeur = f; },
+    // Fabrique des cumuls (page) : f(cumuls, parties) renvoie de nouveaux cumuls si une partie est nouvelle, sinon null.
+    cumuleur(f) { cumuleur = f; },
     async publieProfil() {
       if (!compte.connecte() || !resumeur) return false;
-      let r; try { r = resumeur(donnees.historique.slice()); } catch (e) { console.warn("profil", e); return false; }
+      await rattrape();
+      if (!compte.connecte()) return false;
+      let r; try { r = resumeur(donnees.historique.slice(), donnees.cumul || null); } catch (e) { console.warn("profil", e); return false; }
       if (!r) return false;
+      if (r.n > 0) {
+        try { await set(ref(db, P + "joueurs/" + moi + "/stats"), { v: r.v, n: r.n }); } catch (e) {}
+        try { await set(ref(db, P + "classement/" + moi), { p: donnees.pseudo, v: r.v, n: r.n }); } catch (e) {}
+      }
       const o = { p: donnees.pseudo, m: !!donnees.masque, n: r.n, v: r.v, d: r.d, t: serverTimestamp() };
       if (donnees.cree) o.cr = donnees.cree;
       if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
@@ -293,27 +329,23 @@ async function ouvre() {
       donnees.decks = l.slice(0, MAX_DECKS);
       await set(ref(db, P + "joueurs/" + moi + "/decks"), o);
     },
-    // Historique : ajoute les entrées, puis purge au-delà des 50 plus récentes.
+    // Historique : ajoute les entrées, puis purge au-delà des 50 plus récentes (liste et replays).
+    // Les cumuls (profil, classement) comptent toutes les parties, même celles purgées aussitôt.
     async ajouteHisto(entrees) {
       if (!compte.connecte()) return;
-      const maj = {};
+      const maj = {}, ajoutes = [];
       // Trop long : on retire d'abord le bilan, puis le detail des manches, le rejeu en dernier, jamais en coupant le JSON.
       // En dernier recours, l'essentiel seulement (résultat, score, adversaire) : la partie compte toujours.
       const texte = x => { let t = JSON.stringify(x); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [], rejeu: null }); if (t.length > 12000) t = JSON.stringify({ id: x.id, date: x.date, adv: x.adv, res: x.res, abandon: x.abandon, score: x.score, mvp: x.mvp, pseudo: x.pseudo, advNom: x.advNom, moteur: x.moteur }); return t.length > 12000 ? null : t; };
       const trop = [];
-      entrees.forEach(x => { const t = x && x.id && texte(x); if (x && x.id && !t) trop.push(x.id); if (t && !donnees.historique.some(y => y.id === x.id)) { donnees.historique.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; } });
+      entrees.forEach(x => { const t = x && x.id && texte(x); if (x && x.id && !t) trop.push(x.id); if (t && !donnees.historique.some(y => y.id === x.id)) { donnees.historique.push(x); ajoutes.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; } });
       donnees.historique.sort((a, b) => b.date - a.date);
       donnees.historique.splice(MAX_HISTO).forEach(x => { maj[x.id] = null; });
       for (const k in maj) if (maj[k] && !donnees.historique.some(y => y.id === k)) delete maj[k];
       if (Object.keys(maj).length) await update(ref(db, P + "joueurs/" + moi + "/historique"), maj);
-      compte.publieStats();
+      compte.publieStats(ajoutes);
       // Plus d'échec silencieux : la page affiche « Partie non enregistrée ».
       if (trop.length) throw Object.assign(new Error("historique trop long"), { code: "golems/trop-long" });
-    },
-    async videHisto() {
-      if (!compte.connecte()) return;
-      donnees.historique = [];
-      await remove(ref(db, P + "joueurs/" + moi + "/historique"));
     },
     async marqueImport() {
       if (!compte.connecte()) return;
@@ -435,11 +467,12 @@ async function ouvre() {
         touche();
         if (j !== undefined && j !== null) await envoieJournal(j);
       },
-      // o = { d: nom du deck, e: éléments "brume,roche" } pour publier, null pour retirer.
+      // o = { d: nom du deck, e: éléments "brume,roche", v: version du site } pour publier, null pour retirer.
       async annonce(o) {
         if (o) {
           const v = { u: uid, p: donnees && donnees.pseudo || "", a: donnees && donnees.avatarId || "", d: String(o.d || "").slice(0, 24), e: String(o.e || "").slice(0, 60), t: serverTimestamp() };
           if (!v.a) delete v.a; if (!v.d) delete v.d; if (!v.e) delete v.e;
+          if (typeof o.v === "string" && VERSION_OK.test(o.v)) v.v = o.v;
           if (!annonceOn) await onDisconnect(annRef).remove();
           await set(annRef, v); annonceOn = true;
         } else {
@@ -475,7 +508,7 @@ async function ouvre() {
       await update(hallRef, { ...q, t: serverTimestamp() });
     },
     compte,
-    // Salons publics en attente : f(liste de { code, u, p, a, d, e, t }) à chaque changement.
+    // Salons publics en attente : f(liste de { code, u, p, a, d, e, t, v }) à chaque changement (v absent = ancienne version).
     annonces(f) {
       return onValue(ref(db, P + "annonces"), s => {
         const v = s.val() || {};
