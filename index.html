@@ -463,13 +463,10 @@ b[class^="chat-"][title]{cursor:help}
 #notes.nv-romain .nv-etq{right:44px}
 #notes.nv-romain .note>h3::before{width:92px}
 #notes.nv-romain .nv-fdr>h3{padding-right:32px}
-.note.nv-plus{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;min-height:120px;border:1px dashed #3d5566;background:rgba(17,29,40,.55);color:var(--bleu);font:inherit;text-align:center;cursor:pointer}
-.note.nv-plus:hover,.note.nv-plus:focus-visible{background:var(--panneau);border-color:var(--bleu)}
-.nv-plus b{font-family:var(--titre);font-weight:400;font-size:20px;line-height:1.15}
-.nv-plus small{color:var(--doux);font-size:13.5px}
-.nv-chev{display:flex;width:30px;height:30px;border-radius:50%;border:1px solid #3d5566;align-items:center;justify-content:center}
-.nv-chev svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.nv-plus.ouvert .nv-chev svg{transform:rotate(180deg)}
+.nv-pages{display:flex;align-items:center;gap:6px;margin:0;font:400 15px/1 var(--titre);color:var(--texte);flex:none}
+.nv-pages[hidden]{display:none}
+.nv-pages .nv-num{padding:0 4px}
+#nouveautes>.intro.va{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:none}
 :is(.note>.btn.nv-det,#f#f#f#f){position:absolute;right:12px;bottom:11px;margin:0;min-height:24px;height:24px;padding:0 8px;font-size:13px;line-height:24px;border-radius:7px;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 0 var(--bord),0 3px 6px rgba(0,0,0,.3)}
 /* Fenetre des details d'une version : en-tete fixe, rubriques qui defilent, Fermer en bas. */
 .dv-boite{max-width:620px;width:calc(100vw - 32px);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);padding:0;overflow:hidden;display:flex;flex-direction:column;text-align:left}
@@ -2471,7 +2468,8 @@ NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t)
    Epingles : 2 au plus, en tete et COMPRIS dans les 6 blocs affiches (1 epingle : 5 recents ; 2 epingles : 4 recents) (ligne 1 colonnes 1 et 2 ; un seul epingle : le bloc le plus recent prend la colonne 2 ;
    telephone : epingles en premier). Etat dans Firebase (nouveautes/epingles), ecrit par le seul compte de Romain ; noeud vide = Feuille de route epinglee.
    Pagination : 6 blocs au total, epingles compris ; un couple version + video n'est jamais coupe (il passe entier a la page suivante) ;
-   la tuile « Voir les versions précédentes » prend la case suivante de la grille et sert aussi a replier. */
+   page 1 = epingles + recents ; pages suivantes : 6 blocs chacune, sans epingles. Fleches < x / n > a droite de la ligne d'intro
+   (alignees sur le bord droit de la grille), masquees s'il n'y a qu'une page ; changer de page remonte en haut de la liste. */
 const FEUILLE_DE_ROUTE=[
  {v:'0.4',nom:'Nouvelle vue spectateur',etat:'actuelle'},
  {v:'0.5',nom:'Parties classées',etat:'proche'},
@@ -2482,7 +2480,7 @@ const FEUILLE_DE_ROUTE=[
 ];
 const ETATS_FDR={actuelle:'Version actuelle',proche:'Prochaine mise à jour',prevu:'Prévu',tard:'Plus tard'};
 const SVG_EPINGLE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.6 2.6l6.8 6.8-1.9.9-3.4 3.4.4 4.6-1.6 1.6-4.2-4.2-5.6 5.6-1.3-1.3 5.6-5.6-4.2-4.2 1.6-1.6 4.6.4 3.4-3.4z"/></svg>';
-const NV={epingles:null,romain:false,ouvert:false,room:null,blocs:[...$('notes').children]}; /* blocs : ordre d'origine, du plus recent au plus ancien */
+const NV={epingles:null,romain:false,page:0,room:null,blocs:[...$('notes').children]}; /* blocs : ordre d'origine, du plus recent au plus ancien */
 {
   const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
   const N=$('notes');
@@ -2509,14 +2507,15 @@ function epinglesNotes(){
 function peintNotes(){
   const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
   const N=$('notes'),ep=epinglesNotes(),fdr=N.querySelector('.nv-fdr'),par=id=>N.querySelector(':scope>article[data-id="'+id+'"]');
-  N.querySelector(':scope>.nv-plus')?.remove();
   /* Feuille de route desepinglee : premier bloc de la liste (Romain peut la reepingler) */
   const U=[...(ep.includes('feuille-de-route')?[]:[[fdr]]),...unitesNotes()].map(u=>u.filter(a=>!ep.includes(a.dataset.id))).filter(u=>u.length);
-  const recents=[],anciens=[];let n=0;
-  U.forEach(u=>{if(!anciens.length&&n+u.length<=6-ep.length){recents.push(...u);n+=u.length}else anciens.push(...u)});
-  const ordre=[...ep.map(par),...recents,...anciens];
+  const pages=[[]];let n=ep.length;
+  U.forEach(u=>{if(n+u.length>6&&n>0){pages.push([]);n=0}pages[pages.length-1].push(...u);n+=u.length});
+  if(pages.length>1&&!pages[0].length)pages.shift();
+  NV.page=Math.max(0,Math.min(NV.page,pages.length-1));
+  const ordre=[...ep.map(par),...pages.flat()],vus=new Set([...(NV.page===0?ep.map(par):[]),...pages[NV.page]]);
   if(ordre.some((a,i)=>N.children[i]!==a))ordre.forEach(a=>N.append(a));
-  N.querySelectorAll(':scope>article.note').forEach(a=>{const e=ep.includes(a.dataset.id);a.classList.toggle('nv-epingle',e);a.hidden=!e&&!NV.ouvert&&anciens.includes(a);
+  N.querySelectorAll(':scope>article.note').forEach(a=>{const e=ep.includes(a.dataset.id);a.classList.toggle('nv-epingle',e);a.hidden=!vus.has(a);
     a.querySelector('h3>.nv-pin')?.remove();if(e)a.querySelector('h3').prepend(Object.assign(mk('span','nv-pin'),{innerHTML:SVG_EPINGLE}));
     if(a.hidden)a.querySelector('video')?.pause();
     let b=a.querySelector(':scope>.nv-epingler');
@@ -2524,16 +2523,21 @@ function peintNotes(){
     if(!b){b=mk('button','nv-epingler');b.type='button';b.innerHTML=SVG_EPINGLE;b.onclick=()=>basculeEpingle(a.dataset.id,b);a.append(b)}
     b.classList.toggle('on',e);b.setAttribute('aria-pressed',String(e));b.title=e?'Désépingler ce bloc':'Épingler ce bloc';b.setAttribute('aria-label',b.title)});
   N.classList.toggle('nv-romain',NV.romain);
-  if(anciens.length){
-    const t=mk('button','note nv-plus'),ch=mk('span','nv-chev'),noms=anciens.map(a=>a.querySelector('.nv-etq')?.textContent).filter((x,i,l)=>x&&l.indexOf(x)===i);
-    t.type='button';t.setAttribute('aria-expanded',String(NV.ouvert));
-    ch.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
-    t.append(ch,mk('b','',NV.ouvert?'Masquer les versions précédentes':'Voir les versions précédentes'),
-      mk('small','',NV.ouvert?'Revenir aux dernières nouveautés':anciens.length+(anciens.length>1?' blocs plus anciens':' bloc plus ancien')+(noms.length?' : '+noms.join(', '):'')));
-    t.classList.toggle('ouvert',NV.ouvert);
-    t.onclick=()=>{NV.ouvert=!NV.ouvert;peintNotes();const z=N.querySelector(':scope>.nv-plus');if(z){z.focus({preventScroll:true});if(!NV.ouvert)z.scrollIntoView({block:'nearest'})}};
-    N.append(t);
-  }
+  /* Fleches de pagination, a droite de la phrase d'intro (style des fleches du Journal), creees une fois */
+  {
+    let z=document.querySelector('#nouveautes .nv-pages');
+    if(!z){z=mk('div','nv-pages haut');z.setAttribute('role','navigation');z.setAttribute('aria-label','Pages des nouveautés');
+      const p=mk('button','j-btn nv-prec','<'),s=mk('button','j-btn nv-suiv','>');p.type=s.type='button';
+      p.title='Page précédente';s.title='Page suivante';p.setAttribute('aria-label',p.title);s.setAttribute('aria-label',s.title);
+      p.onclick=()=>pageNotes(-1);s.onclick=()=>pageNotes(1);z.append(p,mk('span','nv-num'),s);
+      const i=document.querySelector('#nouveautes>.intro');i.classList.add('va');i.append(z)}
+    z.hidden=pages.length<2;z.querySelector('.nv-num').textContent=(NV.page+1)+' / '+pages.length;
+    z.querySelector('.nv-prec').disabled=NV.page===0;z.querySelector('.nv-suiv').disabled=NV.page>=pages.length-1}
+}
+function pageNotes(d){
+  NV.page+=d;peintNotes();
+  const h=document.querySelector('#nouveautes .nv-pages.haut'),y=(h&&!h.hidden?h:$('notes')).getBoundingClientRect().top+scrollY-(document.querySelector('body>nav,nav.onglets')?.offsetHeight||0)-12;
+  if(y<scrollY)scrollTo({top:Math.max(0,y)});
 }
 function basculeEpingle(id,b){
   const l=epinglesNotes(),e=l.includes(id);
