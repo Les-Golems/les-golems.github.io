@@ -467,12 +467,23 @@ async function ouvre() {
         touche();
         if (j !== undefined && j !== null) await envoieJournal(j);
       },
-      // o = { d: nom du deck, e: éléments "brume,roche", v: version du site } pour publier, null pour retirer.
+      // o = { d: nom du deck, e: éléments "brume,roche", v: version du site, w: uid de l'adversaire, q: son pseudo,
+      //       n: nombre de spectateurs } pour publier, null pour retirer. L'annonce reste tant que la partie n'a pas commencé.
+      // Une fois publiée, elle est mise à jour sans toucher à t (heure de création).
       async annonce(o) {
         if (o) {
           const v = { u: uid, p: donnees && donnees.pseudo || "", a: donnees && donnees.avatarId || "", d: String(o.d || "").slice(0, 24), e: String(o.e || "").slice(0, 60), t: serverTimestamp() };
           if (!v.a) delete v.a; if (!v.d) delete v.d; if (!v.e) delete v.e;
           if (typeof o.v === "string" && VERSION_OK.test(o.v)) v.v = o.v;
+          if (typeof o.w === "string" && o.w) { v.w = o.w; v.q = String(o.q || "").slice(0, 24); }
+          if (Number.isInteger(o.n) && o.n > 0) v.n = Math.min(o.n, 999);
+          // Partie en cours : g, manche m, score k ("a-b").
+          if (o.g === true) { v.g = true; if (typeof o.f === "string" && /^[a-z,]{0,60}$/.test(o.f) && o.f) v.f = o.f; if (Number.isInteger(o.m)) v.m = Math.min(Math.max(o.m, 1), 9); if (typeof o.k === "string" && /^\d{1,2}-\d{1,2}$/.test(o.k)) v.k = o.k; }
+          if (annonceOn) {
+            const { t, ...maj } = v;
+            for (const k of ["a", "d", "e", "v", "w", "q", "n", "g", "m", "k", "f"]) if (!(k in maj)) maj[k] = null;
+            try { await update(annRef, maj); return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
+          }
           if (!annonceOn) await onDisconnect(annRef).remove();
           await set(annRef, v); annonceOn = true;
         } else {
@@ -508,7 +519,9 @@ async function ouvre() {
       await update(hallRef, { ...q, t: serverTimestamp() });
     },
     compte,
-    // Salons publics en attente : f(liste de { code, u, p, a, d, e, t, v }) à chaque changement (v absent = ancienne version).
+    // Salons publics pas encore lancés : f(liste de { code, u, p, a, d, e, t, v, w, q, n }) à chaque changement
+    // (v absent = ancienne version ; w, q = adversaire assis, absent = place libre ; n = spectateurs ;
+    //  g = partie en cours, m = manche, k = score "a-b", e et f = éléments principaux des decks place 0 et place 1).
     annonces(f) {
       return onValue(ref(db, P + "annonces"), s => {
         const v = s.val() || {};

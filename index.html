@@ -287,6 +287,14 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .sl-liste .btn{min-height:40px;padding:5px 14px;font-size:16px;margin:0}
 .sl-liste.sl-grille{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .sl-liste li.sl-carte{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 12px 14px;text-align:center;border-radius:18px 11px 20px 10px/11px 19px 10px 18px;background:linear-gradient(180deg,var(--panneau2),var(--panneau));min-height:300px;box-sizing:border-box}
+/* Design B (0.4) : fond teinte par les elements (--tinte), voile sombre par-dessus, liseré de la meme teinte */
+.b-teinte{border:2px solid transparent!important;background:linear-gradient(180deg,rgba(10,18,26,.5),rgba(10,18,26,.86)) padding-box,var(--tinte) padding-box,var(--tinte) border-box!important}
+.b-teinte.sl-mien{box-shadow:0 0 0 2px var(--or)}
+/* Parties ouvertes : tuiles toutes de la meme taille, quel que soit le contenu */
+.sl-liste.sl-grille{grid-auto-rows:310px}
+.sl-liste li.sl-carte{height:310px;min-height:0;overflow:hidden}
+.sl-carte .sl-nm{width:100%;flex:none}
+.sl-carte .sl-att{margin-top:auto}
 .sl-liste li.sl-mien{border-color:var(--or);box-shadow:inset 0 0 0 1px var(--or)}
 .sl-liste .sl-carte .avatar{width:88px;height:88px;font-size:40px;flex:none}
 .sl-nm{font:400 24px/1.1 var(--titre);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -304,8 +312,61 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .sl-carte .btn{margin-top:auto!important;width:100%;font-size:18px!important;min-height:46px!important}
 .sl-att{margin-top:auto;font-size:13px;color:var(--doux);font-style:italic;min-height:46px;display:flex;align-items:center}
 .sl-badge{position:absolute;top:8px;right:8px;padding:2px 8px;border-radius:6px;background:var(--or);color:var(--encre);font-weight:800;font-size:12px}
+/* Parties ouvertes (0.4) : titres de groupe, Rejoindre + Observer, lignes des salons complets */
+.po-gt{margin:4px 0 8px;font-size:12.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--doux)}
+.po-gt b{color:var(--texte);margin-left:4px}
+.sl-liste+.po-gt{margin-top:16px}
+.po-inf{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 12px}
+.po-spec{display:inline-flex;align-items:center;gap:5px;font-size:13px;line-height:16px;color:var(--doux)}
+.po-spec svg{width:15px;height:15px;flex:none;display:block}
+.po-spec>b,.po-spec>span{display:block;line-height:16px;height:16px}
+.po-spec b{color:var(--texte)}
+.po-els{display:inline-flex;align-items:center;gap:2px;flex:none;opacity:.9}
+.po-els img{width:18px;height:18px;display:block}
+/* Parties en cours (design B, compact) : 4 par ligne sur bureau, 2 sur tablette, 1 sur telephone */
+#listeEnCours .po-lignes{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#listeEnCours .sl-vide{grid-column:1/-1}
+@media (max-width:1199px){#listeEnCours .po-lignes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:699px){#listeEnCours .po-lignes{grid-template-columns:minmax(0,1fr)}}
+#listeEnCours li.po-ec{container-type:inline-size;display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:10px 10px 10px;border-radius:14px;position:relative;text-align:center}
+#listeEnCours .po-duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:6px;flex:none}
+#listeEnCours .po-j{flex-direction:column;align-items:center;gap:3px;min-width:0}
+#listeEnCours .po-j .avatar{width:40px;height:40px;font-size:18px;border:2px solid rgba(255,255,255,.85)}
+#listeEnCours .po-j b{font:400 15px/1.15 var(--titre);white-space:normal;overflow-wrap:anywhere;text-overflow:clip;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+#listeEnCours .po-els img{width:16px;height:16px}
+#listeEnCours .po-score{align-self:center;display:flex;flex-direction:column;align-items:center;gap:0;padding:0;background:none;border:0;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+#listeEnCours .po-score b{font:400 24px/1.05 var(--titre);color:var(--texte);letter-spacing:0;white-space:nowrap}
+#listeEnCours .po-pied{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
+#listeEnCours .po-obs{min-height:36px;padding:4px 12px;font-size:15px}
+#listeEnCours .po-badge{position:static}
+#listeEnCours .po-pied .po-obs{width:auto;flex:none}
+/* Salons complets sur telephone : joueurs en colonne de part et d'autre du VS, pseudos longs sur 2 lignes plutot que coupes */
+@media (max-width:600px){.po-ligne .po-j b{white-space:normal;overflow-wrap:anywhere;text-overflow:clip;text-align:center}.po-ligne .po-duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start}.po-ligne .po-j{flex-direction:column;gap:4px}.po-ligne .po-vs{align-self:center}}
+/* Carte etroite : Observer en icone seule (infobulle « Observer ») */
+@container (max-width:250px){#listeEnCours .po-obs-t{display:none}#listeEnCours .po-obs{padding:4px 10px}}
+.po-btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;margin-top:auto}
+.sl-carte .po-btns .btn{margin-top:0!important;font-size:16px!important;padding-left:6px;padding-right:6px}
+.po-obs{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.po-obs svg{width:17px;height:17px;flex:none}
+.sl-liste li.po-ligne{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;position:relative}
+.po-duo{display:flex;align-items:center;gap:10px;flex:1 1 280px;min-width:0}
+.po-j{display:flex;align-items:center;gap:8px;min-width:0}
+.po-j b{font:400 18px/1.15 var(--titre);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-liste .po-j .avatar{width:36px;height:36px;font-size:17px;flex:none}
+.po-vs{font:400 15px var(--titre);color:var(--doux);flex:none}
+.po-ligne .po-inf{justify-content:flex-end}
+.po-ligne .po-obs{flex:none}
+.po-ligne .po-badge{position:static}
+/* Parties en cours (0.4) : manche et score */
+.po-score{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;background:var(--panneau);border:1px solid var(--trait);font-size:13px;color:var(--doux);white-space:nowrap}
+.po-score b{color:var(--texte);font-size:14px}
+@media (max-width:600px){.sl-liste li.po-ligne{flex-direction:column;align-items:stretch;text-align:center}.po-duo{flex:none;justify-content:center}.po-ligne .po-inf{justify-content:center}.po-ligne .po-obs{width:100%}}
 @media (max-width:1100px){.sl-liste.sl-grille{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:600px){.sl-liste.sl-grille{grid-template-columns:minmax(0,1fr)}.sl-liste li.sl-carte{min-height:0;gap:6px;padding:14px 12px 12px}.sl-liste .sl-carte .avatar{width:68px;height:68px;font-size:32px}}
+@media (max-width:600px){.sl-liste.sl-grille{grid-template-columns:minmax(0,1fr)}.sl-liste li.sl-carte{gap:6px;padding:14px 12px 12px}.sl-liste .sl-carte .avatar{width:68px;height:68px;font-size:32px}}
+.sl-liste .sl-carte .avatar{border:3px solid rgba(255,255,255,.85)}
+/* Salon (design B) : sieges teintes */
+#joueurs .sl-j.b-teinte{border-width:2px!important}
+#joueurs .sl-j.b-teinte.pret{box-shadow:0 0 0 2px #3fcf6e}
 @media (max-width:520px){#salon{padding:12px}.sl-duo{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.sl-vs{display:none}.sl-j{padding:10px 6px}#joueurs .sl-j .avatar{width:48px;height:48px;font-size:22px}.sl-nom{font-size:18px}#salon .sl-j .btn{font-size:14px;padding:5px 8px;white-space:nowrap}.sl-haut .code{font-size:32px}.sl-compte b{font-size:90px}}
 /* Chat */
 .chat{display:flex;flex-direction:column;background:var(--encre);border:1px solid var(--trait);border-radius:10px;text-align:left;margin:4px 0 8px;min-height:0}
@@ -550,6 +611,7 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 #finTour{flex:2 1 170px;font-size:23px}
 .niveaux{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
 .niveaux .btn{min-width:0;padding-left:4px;padding-right:4px;color:#0a121a}
+.niveaux #lanceGuide{color:var(--encre)}
 .niv-f{--bord:#2f7d49;background:linear-gradient(#6fd08c,#46a866)}
 .niv-n{--bord:#9c7a1e;background:linear-gradient(#f3d163,#d9ae35)}
 .niv-d{--bord:#8f2f25;background:linear-gradient(#ea7a6c,#c9493c)}
@@ -859,23 +921,28 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#des){display:none}
   #accueil>.bloc>.btn,#accueil>.bloc>form,#accueil>.bloc>.p-btns{margin-top:auto}
   #accueil>.bloc>form{margin-bottom:0}
   #accueil{grid-template-columns:repeat(4,minmax(0,1fr));column-gap:16px}
-  #blocCreer{grid-area:1/1}
-  #blocRejoindre{grid-area:1/2}
-  #blocGuide{grid-area:1/3}
-  #blocRobot{grid-area:1/4}
+  #premierePartie{grid-area:1/1/auto/-1}
+  #blocCreer{grid-area:2/1}
+  #blocRejoindre{grid-area:2/2}
+  #blocRobot{grid-area:2/3/auto/span 2}
   #accueil>.bloc{padding:16px}
-  #reprise{grid-area:2/1/auto/-1}
-  #blocListe{grid-area:3/1/auto/-1}
-  #accueil>.erreur{grid-area:4/1/auto/-1}
+  #reprise{grid-area:3/1/auto/-1}
+  #blocListe{grid-area:4/1/auto/-1}
+  #blocEnCours{grid-area:5/1/auto/-1}
+  #accueil>.erreur{grid-area:6/1/auto/-1}
+  #blocRobot .niveaux{grid-template-columns:repeat(4,minmax(0,1fr))}
+  #accueil>#blocRobot>.p-btns{margin-top:0} /* selecteur Ton deck masque : boutons juste sous le titre */
 }
-/* Onglet Jouer : 4 blocs (Creer, Rejoindre, Apprendre, S'entrainer), 2 x 2 sur tablette, colonne sur telephone. */
+/* Onglet Jouer : bandeau Premiere partie, 3 blocs (Creer, Rejoindre, Apprendre et s'entrainer en pleine largeur) sur tablette, colonne sur telephone. */
 @media (min-width:700px) and (max-width:1199px){
   #accueil{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px}
   #accueil>.bloc{display:flex;flex-direction:column}
   #accueil>.bloc>.btn,#accueil>.bloc>form,#accueil>.bloc>.p-btns{margin-top:auto}
-  #reprise,#blocListe,#accueil>.erreur{grid-column:1/-1}
+  #reprise,#blocListe,#blocEnCours,#accueil>.erreur,#premierePartie,#blocRobot{grid-column:1/-1}
+  #blocRobot .niveaux{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
-#blocGuide p{margin:0 0 12px;color:var(--doux)}
+/* Telephone : Tutoriel sur toute la largeur, les 3 niveaux dessous */
+@media (max-width:699px){#blocRobot .niveaux #lanceGuide{grid-column:1/-1}}
 #formCode #champCode{width:8.5ch;text-transform:uppercase}
 #formCode{flex-wrap:nowrap}#formCode>div{flex:0 1 auto}
 :is(#rejoindre,.niveaux .btn,#accueil #creer,#lanceGuide){height:46px;min-height:46px;padding-top:0;padding-bottom:0;font-size:16px}
@@ -1364,7 +1431,14 @@ html.essai header{box-shadow:inset 0 5px 0 #ff7a1a}
 .g-fleche.bas{border-top-color:#fdf6e3}.g-fleche.haut{border-bottom-color:#fdf6e3}
 #gPasser{position:fixed;z-index:71;bottom:12px;left:12px;padding:7px 12px;font-size:14px;min-height:0}
 body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
-#propGuide .boite p{margin:0 0 16px}#propGuide .boite .btn{width:100%;margin-top:8px}
+/* Premiere partie ? (0.4) : bandeau discret en haut de l'onglet Jouer, une seule fois par navigateur */
+#accueil>#premierePartie{display:flex;flex-direction:row;align-items:center;flex-wrap:wrap;gap:10px 16px;border-color:var(--or);border-left:4px solid var(--or);padding:12px 16px}
+#accueil>#premierePartie[hidden]{display:none}
+.pp-tx{flex:1 1 260px;min-width:0}
+.pp-tx b{display:block;font:400 19px/1.2 var(--titre);color:var(--or)}
+.pp-tx span{color:var(--doux);font-size:14.5px}
+.pp-btns{display:flex;gap:8px;flex:0 1 auto}
+.pp-btns .btn{min-height:42px;padding:4px 16px;font-size:15px;margin:0;white-space:nowrap}
 /* Reprises du 3 nov. */
 .btn.danger{--bord:#7a1d1d;background:linear-gradient(#e2574c,#b9342b);color:#fff}
 #popAbandon .boite p{margin:0 0 16px}#popAbandon .p-btns .btn{flex:1 1 0}
@@ -1410,6 +1484,17 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 @media (max-width:520px){#joueurs .sl-nom{white-space:normal;overflow:visible;text-align:center}#joueurs .sl-nom em{display:table;margin:3px auto 0}}
 @media (min-width:900px){#partie .p-pied.duo .btn{min-height:34px;padding:3px 10px;font-size:15px}}
 .d-btns{display:flex;flex-wrap:wrap;gap:8px}
+/* Decks conseilles (0.4) */
+.dc-boite{max-width:640px}
+.dc-liste{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:4px 0 8px}
+.dc-deck{display:flex;flex-direction:column;align-items:stretch;gap:4px;text-align:left;border:1px solid var(--trait);border-radius:12px 8px 13px 7px/8px 12px 7px 13px;padding:10px 12px;color:var(--texte);font:inherit;cursor:pointer;min-width:0}
+.dc-deck:hover,.dc-deck:focus-visible{border-color:var(--bleu);box-shadow:0 0 0 2px var(--bleu);outline:none}
+.dc-haut{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dc-nom{font:400 20px/1.15 var(--titre)}
+.dc-pict{display:inline-flex;gap:3px;flex:none}.dc-pict img{width:26px;height:26px;flex:none}
+.dc-els{font-size:13px;font-weight:800;color:#d5e3ea}
+.dc-tx{font-size:14px;line-height:1.35;color:var(--texte)}
+@media (max-width:600px){.dc-liste{grid-template-columns:minmax(0,1fr)}}
 .d-zone.sans-pan .d-panneau{display:none}
 @media (min-width:1200px){.d-zone.sans-pan{grid-template-columns:minmax(0,1fr)}}
 .d-panneau .dl-renom{cursor:pointer;border-radius:5px;transition:color .15s,background .15s}
@@ -1766,6 +1851,10 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
   <div class="jeu"><div>
     <p class="erreur" id="erreurJeu" role="alert"></p>
     <div id="accueil">
+      <div class="bloc" id="premierePartie" role="region" aria-labelledby="propTitre" hidden>
+        <div class="pp-tx"><b id="propTitre">Première partie ?</b><span>Joue une partie guidée contre un Golem Facile pour apprendre les bases.</span></div>
+        <div class="pp-btns"><button class="btn plein" id="propOui" type="button">Lancer le tutoriel</button><button class="btn sec" id="propNon" type="button">Plus tard</button></div>
+      </div>
       <div class="bloc" id="blocCreer">
         <h3>Créer une partie</h3>
         <label class="pf-inter caseSalon" title="Privé : la partie n'apparaît pas dans les parties publiques, seul son code permet de la rejoindre."><span class="pf-itx" id="salonPublicTxt">Salon public</span><input type="checkbox" id="salonPublicCase" role="switch" checked><span class="pf-glis"></span></label>
@@ -1778,18 +1867,18 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
           <button class="btn" id="rejoindre" disabled>Rejoindre</button>
         </form>
       </div>
-      <div class="bloc" id="blocGuide">
-        <h3>Apprendre à jouer</h3>
-        <button class="btn plein" id="lanceGuide" type="button">Partie guidée</button>
-      </div>
       <div class="bloc" id="blocRobot">
-        <h3>S'entraîner contre un Golem</h3>
+        <h3>Apprendre et s'entraîner</h3>
         <div class="choixDeck"><label for="deckRobot">Ton deck</label><select id="deckRobot" class="selDeck"></select></div>
-        <div class="p-btns"><div class="niveaux" role="group" aria-label="Niveau du Golem"><button class="btn niv-f" data-niveau="facile" type="button">Facile</button><button class="btn niv-n" data-niveau="normal" type="button">Normal</button><button class="btn niv-d" data-niveau="difficile" type="button">Difficile</button></div><button class="btn sec" id="repriseRobot" type="button" hidden>Reprendre l'entraînement</button></div>
+        <div class="p-btns"><div class="niveaux" role="group" aria-label="Tutoriel ou niveau du Golem"><button class="btn plein" id="lanceGuide" type="button">Tutoriel</button><button class="btn niv-f" data-niveau="facile" type="button">Facile</button><button class="btn niv-n" data-niveau="normal" type="button">Normal</button><button class="btn niv-d" data-niveau="difficile" type="button">Difficile</button></div><button class="btn sec" id="repriseRobot" type="button" hidden>Reprendre l'entraînement</button></div>
       </div>
       <div class="bloc" id="blocListe">
-        <h3>Parties publiques en attente</h3>
-        <ul class="sl-liste" id="listeSalons" aria-live="polite"></ul>
+        <h3>Parties ouvertes</h3>
+        <div id="listeSalons" aria-live="polite"></div>
+      </div>
+      <div class="bloc" id="blocEnCours">
+        <h3>Parties en cours</h3>
+        <div id="listeEnCours" aria-live="polite"></div>
       </div>
       <div class="bloc" id="reprise" hidden>
         <h3>Partie en cours</h3>
@@ -1868,10 +1957,6 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
     <h3>Score</h3><p><b>Fin de manche</b> : dans chaque colonne, on additionne la Force actuelle de ses Golems. Le plus fort conquiert le terrain et marque ses points, personne en cas d'égalité. Puis les effets de fin de manche.</p><p><b>Fin de partie</b> : 3 manches. Tu gagnes si tu as le plus de points après la manche 3, effets compris.</p>
     <h3>À retenir</h3><p>Les cartes et les dégâts restent d'une manche à l'autre.</p>
     <button class="btn plein fermer" id="aideFermer" type="button">Fermer</button></div>
-</div>
-<div class="voile" id="propGuide" role="dialog" aria-modal="true" aria-labelledby="propTitre" hidden>
-  <div class="boite"><h2 id="propTitre">Première partie ?</h2><p>Une partie guidée contre un Golem Facile t'apprend les bases pas à pas.</p>
-    <button class="btn plein" id="propOui" type="button">Partie guidée</button><button class="btn sec" id="propNon" type="button">Plus tard</button></div>
 </div>
 <button class="btn sec" id="gPasser" type="button" hidden>Passer le tutoriel</button>
 <script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
@@ -2723,45 +2808,123 @@ function majFace(nom){
   const v=h.filter(x=>x.res==='Victoire').length,d=h.filter(x=>x.res==='Défaite').length;
   z.hidden=!(v+d);if(v+d)z.textContent='Face-à-face : '+(pseudo||'Toi')+' '+v+' - '+d+' '+nom;
 }
-/* Annonce publique : le createur seul dans un salon public, partie non commencee. */
-let salonPublic=false,createur=false,annonceVue='';
+/* Annonce publique (0.4) : tenue par le createur d'un salon public tant que la partie n'a pas commence
+   (adversaire assis w, q et spectateurs n), puis pendant la partie par le joueur de la place 0 (en cours g, manche m,
+   score k), retiree a la fin. Les autres joueurs n'y touchent pas. Salon public note sur l'appareil (rechargement en partie). */
+let salonPublic=false,createur=false,annonceVue='',specAnn=false;
+const estPublic=c=>!!c&&lire('golems.pub.'+c)==='1';
+function notePublic(c,v){try{if(v)ecrire('golems.pub.'+c,'1');else localStorage.removeItem(LS('golems.pub.'+c))}catch(e){}}
 function majAnnonce(l){
   if(!r||!r.annonce)return;
-  const seul=createur&&salonPublic&&!partie&&l.length===1&&l[0].sameTab&&!l.some(p=>Number.isInteger(p.presence.jg));
-  const d=deckChoisi(),cle=seul?d.nom+'|'+elsTexte(d.texte).join(',')+'|'+maV:'';
+  const E=window.SPEC&&SPEC.etatSalon?SPEC.etatSalon():null,ns=E&&E.actif&&Array.isArray(E.spectateurs)?E.spectateurs.length:0;
+  const adv=l.slice(0,MAX).find(p=>!p.sameTab),d=deckChoisi();
+  let o=null;
+  if(partie&&!partie.local){
+    if(partie.moi!==0||!(salonPublic||estPublic(code)))return;
+    const st=partie.etat;
+    if(st&&!st.fin)o={d:d.nom,e:elsPrincipaux(partie.decks[0]).join(','),f:elsPrincipaux(partie.decks[1]).join(','),v:maV,n:ns,g:true,m:st.manche,k:st.j[0].score+'-'+st.j[1].score};
+    else if(!st)return;
+  }else{
+    if(!createur||l.some(p=>Number.isInteger(p.presence.jg)))return; /* lancement en cours : rien a changer */
+    if(salonPublic)o={d:d.nom,e:elsTexte(d.texte).join(','),v:maV,n:ns};
+  }
+  if(o&&adv){o.w=adv.peer;o.q=nomDe(adv)}
+  const cle=o?JSON.stringify(o):'';
   if(cle===annonceVue)return;annonceVue=cle;
-  r.annonce(seul?{d:d.nom,e:elsTexte(d.texte).join(','),v:maV}:null).catch(e=>console.warn(e));
+  r.annonce(o).catch(e=>{console.warn(e);annonceVue=''});
+}
+/* Design B (0.4) : tuiles teintees. Avant la partie (parties ouvertes, salon) : teinte neutre, rien du deck n'est revele.
+   Parties en cours : degrade d'apres les elements des decks des deux joueurs. */
+const TEINTE_NEUTRE='linear-gradient(135deg,#4a5a68,#26323d)';
+function teinte(els,sens){const l=(els||[]).filter(e=>NOMS_EL[e]);if(!l.length)return TEINTE_NEUTRE;
+  const c=l.map(e=>'color-mix(in srgb,var(--'+e+') 70%,#0a121a)');if(c.length===1)c.push(c[0]);return 'linear-gradient('+(sens||'135deg')+','+c.join(',')+')'}
+/* Elements principaux d'un deck (texte, '' = deck par defaut) : par nombre de cartes, ceux qui couvrent au moins 30 % du deck, 2 au moins, 3 au plus. */
+function elsPrincipaux(t){
+  const o=(typeof t==='string'&&t&&M.lisDeck(t))||M.DECK_DEFAUT||{},n={};let tot=0;
+  for(const k in o){const C=M.CARTES[k];if(!C)continue;tot+=+o[k]||0;(C.el||[]).forEach(e=>n[e]=(n[e]||0)+(+o[k]||0))}
+  const l=Object.keys(n).sort((a,b)=>n[b]-n[a]);return l.filter((e,i)=>i<2||(i<3&&n[e]>=0.3*tot));
 }
 function depuis(t){const m=Math.max(0,Math.round((Date.now()-(+t||Date.now()))/60000));return m<1?'à l\'instant':m<60?'il y a '+m+' min':'il y a '+Math.floor(m/60)+' h'}
 let annoncesL=[];
+const OEIL_PO='<svg viewBox="0 0 66 66" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round" d="M4 33C14 17 23 12 33 12S52 17 62 33C52 49 43 54 33 54S14 49 4 33Z"/><circle cx="33" cy="33" r="10" fill="currentColor"/></svg>';
+function nbSpec(x){const n=Number.isInteger(x.n)&&x.n>0?x.n:0,z=el('span','po-spec');z.innerHTML=OEIL_PO;z.append(el('b','',String(n)),el('span','','spectateur'+(n>1?'s':'')));return z}
+/* Observer : entrer dans le salon en spectateur (vue diffusion des que la partie commence). */
+function observer(x){if(!compteCo()){msgInvite();return}createur=false;salonPublic=false;annonceVue='';entre(x.code,{observer:true})}
+function boutonObserver(x,off){const b=el('button','btn sec po-obs');b.type='button';b.innerHTML=OEIL_PO;b.append(el('span','po-obs-t','Observer'));b.title='Observer';b.setAttribute('aria-label','Observer');b.disabled=!!r||occupe||off;b.onclick=()=>observer(x);return b}
+/* Parties en cours (0.4) : parties publiques lancees et pas finies, une ligne chacune (joueurs, manche, score, spectateurs, Observer). */
+function peintEnCours(moi){
+  const u=$('listeEnCours');if(!u)return;u.textContent='';
+  const l=annoncesL.filter(x=>x.g===true&&typeof x.w==='string');
+  const g=el('ul','sl-liste po-lignes');
+  if(!l.length){g.append(el('li','sl-vide','Aucune partie en cours.'));u.append(g);return}
+  l.forEach(x=>{
+    const mien=!!moi&&(x.u===moi||x.w===moi),li=el('li','po-ligne po-ec b-teinte'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur',nq=nettoie(typeof x.q==='string'?x.q:'')||'Joueur';
+    const ea=String(x.e||'').split(',').filter(z=>NOMS_EL[z]).slice(0,3),eb=String(x.f||'').split(',').filter(z=>NOMS_EL[z]).slice(0,3);
+    /* Partie lancee : les elements sont visibles des spectateurs, la teinte suit chaque joueur (gauche, droite) */
+    const ca=ea[0]?'color-mix(in srgb,var(--'+ea[0]+') 70%,#0a121a)':'#3a4955',cb=eb[0]?'color-mix(in srgb,var(--'+eb[0]+') 70%,#0a121a)':'#3a4955';
+    li.style.setProperty('--tinte','linear-gradient(90deg,'+ca+','+cb+')');
+    const xv=vOk(x.v),vd=!mien&&!!maV&&xv!==maV,duo=el('div','po-duo');
+    /* Joueur : avatar, pseudo, pictos discrets des elements principaux de son deck (2 ou 3) */
+    const j=(n,a,e)=>{const s=el('span','po-j'),pi=el('span','po-els');e.forEach(z=>{const i=picto(z);i.width=i.height=16;i.title=nomEl(z);pi.append(i)});
+      s.append(a,el('b','',n));if(pi.childNodes.length)s.append(pi);return s};
+    const k=typeof x.k==='string'&&/^\d{1,2}-\d{1,2}$/.test(x.k)?x.k.split('-'):['0','0'],sc=el('span','po-score');
+    sc.append('Manche '+(Number.isInteger(x.m)?x.m:1),el('b','',k[0]+' - '+k[1]));
+    duo.append(j(nom,x.u?avatarUid(nom,x.u,x.a):avatarDe(nom,x.a),ea),sc,j(nq,avatarUid(nq,x.w),eb));
+    const pied=el('div','po-pied');pied.append(nbSpec(x));
+    if(mien)pied.append(el('span','sl-badge po-badge','Ta partie'));else pied.append(boutonObserver(x,vd));
+    li.append(duo,pied);g.append(li);
+  });
+  u.append(g);
+}
+/* Parties ouvertes (variante C) : places libres en cartes (Rejoindre / Observer), puis salons complets en lignes (Observer). */
 function peintListe(){
   const u=$('listeSalons');if(!u)return;u.textContent='';
   const moi=room&&room.compte?room.compte.uid():'';
-  const l=[...annoncesL.filter(x=>moi&&x.u===moi),...annoncesL.filter(x=>x.u!==moi)];
-  u.classList.toggle('sl-grille',l.length>0);
-  if(!l.length){u.append(el('li','sl-vide','Aucune partie en attente. Crée la tienne !'));return}
-  l.forEach(x=>{
-    const mien=!!moi&&x.u===moi,li=el('li','sl-carte'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur';
-    const els=(x.e||'').split(',').filter(e=>NOMS_EL[e]);
-    const tx=el('span','sl-tx',x.u in statsCache?tauxCourt(statsCache[x.u]):'…');
+  peintEnCours(moi);
+  const l=[...annoncesL.filter(x=>moi&&x.u===moi),...annoncesL.filter(x=>x.u!==moi)].filter(x=>x.g!==true);
+  if(!l.length){const v=el('ul','sl-liste');v.append(el('li','sl-vide','Aucune partie ouverte. Crée la tienne !'));u.append(v);return}
+  const libres=l.filter(x=>typeof x.w!=='string'),pleins=l.filter(x=>typeof x.w==='string');
+  const titre=(t,n)=>{const h=el('p','po-gt',t+' ');h.append(el('b','',String(n)));u.append(h)};
+  const stats=x=>{const tx=el('span','sl-tx',x.u in statsCache?tauxCourt(statsCache[x.u]):'…');
     if(x.u&&!(x.u in statsCache)&&room&&room.compte.statsDe){statsCache[x.u]=false;room.compte.statsDe(x.u).then(s=>{statsCache[x.u]=s;if(!r)peintListe()})}
-    else if(x.u in statsCache)colTaux(tx,statsCache[x.u]);
-    /* Deck du createur masque chez les autres (bandeau neutre « Deck choisi » et pastille « ? ») ; le mien reste visible sur ma propre annonce. */
-    const dk=mien?bandeauDeck({nom:typeof x.d==='string'&&x.d?x.d:'Deck',els}):el('span','h-deck dk-neutre');dk.classList.add('sl-dk');
-    if(mien){const pi=el('span','sl-pi');els.forEach(e=>{const i=picto(e);i.width=i.height=22;pi.append(i)});dk.append(pi)}
-    else dk.append('Deck choisi',pastilleInconnue());
-    if(mien)li.append(el('span','sl-badge','Ta partie'));
-    /* Version de l'annonce : differente de la mienne = Rejoindre bloque, etiquette rouge si c'est elle la plus ancienne. */
-    const xv=mien?maV:vOk(x.v),vd=!mien&&!!maV&&xv!==maV,vr=vd&&vAncienne(xv);if(vd&&!vr)vJeSuisAncien();
-    li.append(x.u?avatarUid(nom,x.u,x.a):x.a?avatarDe(nom,x.a):avatarDe(nom),el('b','sl-nm',nom),tx,dk,el('span','sl-dep','En attente '+depuis(x.t)),etiquetteV(xv,vr));
-    if(mien)li.append(el('span','sl-att','Partage le lien ou attends un adversaire'));
-    else{
-      const b=el('button','btn',vd?'Version différente':'Rejoindre');b.type='button';b.disabled=!!r||occupe||vd;
-      b.onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(()=>{salonPublic=false;createur=false;annonceVue='?';entre(x.code)})}; /* '?' : le nouvel arrivant retire l'annonce */
-      li.append(b);
-    }
-    u.append(li);
-  });
+    else if(x.u in statsCache)colTaux(tx,statsCache[x.u]);return tx};
+  /* Version de l'annonce : differente de la mienne = Rejoindre et Observer bloques, etiquette rouge si c'est elle la plus ancienne. */
+  const version=(x,mien)=>{const xv=mien?maV:vOk(x.v),vd=!mien&&!!maV&&xv!==maV,vr=vd&&vAncienne(xv);if(vd&&!vr)vJeSuisAncien();return {xv,vd,vr}};
+  if(libres.length){
+    titre('Place libre',libres.length);
+    const g=el('ul','sl-liste sl-grille');
+    libres.forEach(x=>{
+      const mien=!!moi&&x.u===moi,li=el('li','sl-carte'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur';
+      /* Design B : tuile a teinte neutre (le deck du createur n'est pas revele avant la partie) */
+      li.classList.add('b-teinte');li.style.setProperty('--tinte',TEINTE_NEUTRE);
+      if(mien)li.append(el('span','sl-badge','Ta partie'));
+      const V=version(x,mien),inf=el('span','po-inf');inf.append(el('span','sl-dep','Créée '+depuis(x.t)),nbSpec(x));
+      const nm=el('b','sl-nm',nom);nm.title=nom;
+      li.append(x.u?avatarUid(nom,x.u,x.a):x.a?avatarDe(nom,x.a):avatarDe(nom),nm,stats(x),inf,etiquetteV(V.xv,V.vr));
+      if(mien)li.append(el('span','sl-att','Partage le lien ou attends un adversaire'));
+      else{
+        const z=el('div','po-btns'),b=el('button','btn',V.vd?'Version différente':'Rejoindre');b.type='button';b.disabled=!!r||occupe||V.vd;
+        b.onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(()=>{salonPublic=false;createur=false;annonceVue='';entre(x.code)})};
+        z.append(b,boutonObserver(x,V.vd));li.append(z);
+      }
+      g.append(li);
+    });
+    u.append(g);
+  }
+  if(pleins.length){
+    titre('Salon complet, à observer',pleins.length);
+    const g=el('ul','sl-liste po-lignes');
+    pleins.forEach(x=>{
+      const mien=!!moi&&x.u===moi,li=el('li','po-ligne b-teinte'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur',nq=nettoie(typeof x.q==='string'?x.q:'')||'Joueur';
+      li.style.setProperty('--tinte',TEINTE_NEUTRE);
+      const V=version(x,mien),duo=el('div','po-duo'),j=(n,a)=>{const s=el('span','po-j');s.append(a,el('b','',n));return s};
+      duo.append(j(nom,x.u?avatarUid(nom,x.u,x.a):avatarDe(nom,x.a)),el('span','po-vs','VS'),j(nq,avatarUid(nq,x.w)));
+      const inf=el('span','po-inf');inf.append(nbSpec(x),el('span','sl-dep','Créée '+depuis(x.t)));
+      li.append(duo,inf);if(mien)li.append(el('span','sl-badge po-badge','Ta partie'));else li.append(boutonObserver(x,V.vd));
+      g.append(li);
+    });
+    u.append(g);
+  }
 }
 function tauxCourt(s){return s&&s.n?Math.round(100*s.v/s.n)+' % de victoires · '+s.n+' partie'+(s.n>1?'s':''):s===false?'…':'Aucune partie jouée'}
 function colTaux(z,s){if(!s||!s.n)return;const p=100*s.v/s.n;z.style.color=p>=55?'#6fd08c':p>=45?'var(--or)':'#ef7a6c'}
@@ -2819,7 +2982,7 @@ async function suitInvit(){
   if(!n){$('erreurJeu').textContent='Salon '+C+" introuvable : la partie est terminée ou son créateur est parti.";return}
   if(!(j&&j[moi])&&(eng&&!eng[moi]||n>=MAX)){$('erreurJeu').textContent='Le salon '+C+' est complet.';return}
   $('erreurJeu').textContent='';
-  choisirDeck(()=>{createur=false;salonPublic=false;annonceVue='?';entre(c)});
+  choisirDeck(()=>{createur=false;salonPublic=false;annonceVue='';entre(c)});
 }
 $('pret').onclick=()=>{
   jePret=!jePret;
@@ -2894,15 +3057,18 @@ function msgInvite(){
 }
 /* Mode spectateur (spectateur.js) : quitter joueurs sans revenir a l'accueil, ou y entrer comme adversaire. */
 window.__golemsSpecQuitte=async()=>{const a=r;r=null;finPartie();if(a)try{await a.leave()}catch(e){}};
+/* 0.4 : le createur est parti avant la partie, je deviens createur (spectateur.js) ; salon public = annonce republiee par majAnnonce. */
+window.__golemsSpecPromu=o=>{createur=true;salonPublic=!!(o&&o.public);notePublic(code,salonPublic);annonceVue='';nbSalon=1;if(r)majSalon()};
 window.__golemsSpecRejoint=c=>{if(window.SPEC_UI&&SPEC_UI.quitterVuePartie)try{SPEC_UI.quitterVuePartie()}catch(e){}$('partie').hidden=true;$('jouer').classList.remove('enJeu');return entre(c)};
 /* Spectateur : la vue de partie s'ouvre comme au lancement d'une partie des qu'une partie tourne dans le salon. */
 let specVue=false;function specBranche(){if(specVue||!window.SPEC)return;specVue=true;SPEC.onChange(()=>{if(!SPEC.estSpectateur()||!SPEC.etatPartie())return;if($('partie').hidden||!$('jouer').classList.contains('enJeu')){$('salon').hidden=true;$('accueil').hidden=true;$('partie').hidden=false;$('jouer').classList.add('enJeu')}})}
-async function entre(c){
+async function entre(c,opt){
   if(!compteCo()){occupe=false;majEtat();msgInvite();return}
   occupe=true;majEtat();$('erreurJeu').textContent='';jePret=false;nbSalon=0;
   const sv=chargeSalon(c);
   try{
-    if(window.SPEC){const rl=await SPEC.entrer(c,{createur});if(rl==='spec'){specBranche();r=null;code=c;$('codeSalon').textContent=c.toUpperCase();$('accueil').hidden=true;$('salon').hidden=false;occupe=false;majEtat();return}}
+    if(window.SPEC&&!specAnn){specAnn=true;SPEC.onChange(()=>{if(r)majAnnonce(ordre(r.peers()))})} /* spectateurs comptes dans l'annonce */
+    if(window.SPEC){const rl=await SPEC.entrer(c,{createur,observer:!!(opt&&opt.observer)});if(rl==='spec'){specBranche();r=null;code=c;$('codeSalon').textContent=c.toUpperCase();$('accueil').hidden=true;$('salon').hidden=false;occupe=false;majEtat();return}}
     const s=await room.join(c);
     r=s;code=c;entree=Date.now();
     sid=sv?sv.sid:nouveauSid();arrivee=sv?sv.arrivee:entree;
@@ -2986,7 +3152,7 @@ function finPartie(){arreteGuide();M=M0;clearTimeout(rejeuT);rejeuT=0;{const b=$
 function nouveauSid(){return Math.random().toString(36).slice(2,12)}
 /* Sauvegarde locale par code de salon */
 function cleSalon(c){return 'golems.partie.'+c}
-function oublie(c){try{localStorage.removeItem(LS(cleSalon(c)));if(lire('golems.derniere')===c)localStorage.removeItem(LS('golems.derniere'))}catch(e){}}
+function oublie(c){notePublic(c,false);try{localStorage.removeItem(LS(cleSalon(c)));if(lire('golems.derniere')===c)localStorage.removeItem(LS('golems.derniere'))}catch(e){}}
 function sauve(){
   if(partie&&(partie.rejeu||partie.tuto))return; /* partie guidee : ni reprise ni sauvegarde */
   if(partie&&partie.local){ecrire('golems.local',JSON.stringify({version:M.VERSION,niveau:partie.niveau,debut:partie.debut,graine:partie.graine,mien:partie.mien,sien:partie.sien,decks:partie.decks,deckNom:partie.deckNom,recapVu:partie.recapVu,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));return}
@@ -4632,7 +4798,8 @@ function peintDecks(){
   n.onclick=()=>{if(l.length>=MAX_DECKS)return;const d={id:nouveauSid(),nom:'Deck '+(l.length+1),cartes:{}};l.push(d);gardeDecks(l);deckOuvert=d.id;peintDecks()};
   const plein=l.length>=MAX_DECKS;
   const im=el('button','btn','Importer un deck');im.type='button';im.onclick=()=>importeDeck(b,l);
-  const nb=el('div','d-btns');nb.append(n,im);
+  const dc=el('button','btn','Partir d\'un deck conseillé');dc.type='button';dc.onclick=deckConseille;
+  const nb=el('div','d-btns');nb.append(n,im,dc);
   const bandeau=d=>{nb.querySelector('.d-bandeau')?.remove();const R=d?raisonsDeck(d):[];if(!R.length)return;
     const s=el('p','d-bandeau'),x=el('span');s.setAttribute('role','status');s.title=R.map(r=>r.t).join('\n');x.append(el('b','',d.nom+' : '),R.map(r=>r.c).join(' · '));s.append(x);nb.append(s)};b.append(nb,el('p','intro o-nb'+(plein?' d-limite':''),l.length+' deck'+(l.length>1?'s':'')+' sur '+MAX_DECKS+(plein?'. Limite atteinte : supprime un deck pour en créer un nouveau.':'')));
   const zo=el('div','d-zone sans-pan'),g=el('div','d-grille'),pan=el('aside','d-panneau');pan.id='panneauDeck';pan.setAttribute('aria-label','Liste du deck');pan.setAttribute('aria-live','polite');
@@ -4786,6 +4953,44 @@ function ouvreDeckLien(c){
   jo.onclick=()=>{const r=ajoute();if(r.err)return ko(r);ecrire('golems.deckChoisi',r.id);majChoixDeck();ferme();onglet('jouer');
     $('infoDeckJeu')?.remove();const q=el('p','vd-info','Deck « '+r.nom+' » choisi : lance une partie contre un Golem ou crée un salon.');q.id='infoDeckJeu';$('erreurJeu').before(q)};
   pb.append(imp,jo);pied.append(pb,msg);x.append(t,corps,pied);v.append(x);document.body.append(v);majVueDeck();fx.focus();
+}
+/* Decks de depart conseilles (0.4) : 4 decks valides de 30 cartes, copies dans les decks du joueur (invite compris). */
+const DECKS_CONSEILLES=[
+ {nom:"Tempête",cartes:{"007":3,"007e":3,"026":3,"026e":3,"901":1,"004":3,"004e":3,"018":2,"018e":2,"036":2,"036e":2,"035":2,"035e":1},
+  txt:"Forge tôt, pioche beaucoup avec Trigas et Titom76, puis améliore tes Golems en Roi du Mobile et Maître du bilig pour finir fort."},
+ {nom:"Forge rapide",cartes:{"007":3,"007e":2,"029":3,"036":3,"035":3,"009":3,"018":3,"015":3,"004":2,"008":3,"001":1,"902":1},
+  txt:"Pose 2 Golems pas chers par tour, remplis la grille avant l'adversaire et serre tes Golems pour profiter du Trait."},
+ {nom:"Gros Golems",cartes:{"016":3,"015":3,"015e":2,"002":3,"002e":3,"041":3,"041e":3,"004":3,"004e":2,"007e":3,"007":2},
+  txt:"Ne te presse pas : garde ton énergie pour Loxim, Le chansonnier et Roi du Mobile, et forge Bellock pour aller chercher Loxim."},
+ {nom:"Roche et Magma",cartes:{"009":3,"009e":3,"029":3,"029e":2,"001":3,"001e":3,"018":3,"018e":3,"036":2,"036e":2,"002":2,"902":1},
+  txt:"Fais baisser la Force des Golems d'en face avec Apo, Glad et Slim K, et pose KaTarN dès la manche 1."}
+];
+/* Deux elements dominants d'un deck (nombre de cartes par element). */
+function elsDominants(c){const n={};for(const k in c){const C=M.CARTES[k];if(C)(C.el||[]).forEach(e=>n[e]=(n[e]||0)+c[k])}return Object.keys(n).sort((a,b)=>n[b]-n[a]).slice(0,2)}
+function deckConseille(){
+  const old=$('popConseil');if(old)old.remove();
+  const v=el('div','voile'),x=el('div','boite dc-boite');v.id='popConseil';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','dcTitre');
+  const esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc)};addEventListener('keydown',esc);
+  v.onclick=e=>{if(e.target===v)ferme()};
+  const msg=el('p','d-code-m',''),g=el('div','dc-liste');
+  DECKS_CONSEILLES.forEach(o=>{
+    const E=elsDominants(o.cartes),b=el('button','dc-deck');b.type='button';
+    b.style.background=E.length>1?'linear-gradient(120deg,'+E.map(e=>'color-mix(in srgb,var(--'+e+') 60%,#0a121a)').join(',')+')':'color-mix(in srgb,var(--'+E[0]+') 60%,#0a121a)';
+    const h=el('span','dc-haut'),pi=el('span','dc-pict');E.forEach(e=>pi.append(picto(e)));
+    h.append(el('b','dc-nom',o.nom),pi);
+    b.append(h,el('span','dc-els',E.map(nomEl).join(' et ')+' · '+Object.values(o.cartes).reduce((a,n)=>a+n,0)+' cartes'),el('span','dc-tx',o.txt));
+    b.onclick=()=>{
+      const L=lesDecks();if(L.length>=MAX_DECKS){msg.textContent='Limite de '+MAX_DECKS+' decks atteinte : supprime un deck avant d’en ajouter un.';return}
+      const pris=new Set(L.map(d=>d.nom));let nom=o.nom,k=2;while(pris.has(nom)){const s=' ('+k+++')';nom=o.nom.slice(0,24-s.length).trim()+s}
+      const d={id:nouveauSid(),nom,cartes:{...o.cartes}};gardeDecks(L.concat(d));deckVu=d.id;deckOuvert=null;ferme();peintDecks();
+      const p=$('listeDecks').querySelector('.o-nb');if(p)p.after(el('p','d-code-m','Deck « '+nom+' » ajouté à tes decks ('+totalDeck(d)+' cartes). Tu peux le modifier comme les autres.'));
+    };
+    g.append(b);
+  });
+  const z=el('div','p-btns'),an=el('button','btn sec','Annuler');an.type='button';an.onclick=ferme;z.append(an);
+  const t=el('h2','','Partir d\'un deck conseillé');t.id='dcTitre';
+  x.append(t,el('p','','Choisis un deck de départ : il est copié dans tes decks et tu pourras le modifier.'),g,msg,z);v.append(x);document.body.append(v);
+  g.querySelector('button').focus();
 }
 function importeDeck(b,l){
   const old=$('popImportDeck');if(old)old.remove();
@@ -5960,7 +6165,7 @@ const G_LIBRES='.p-outils button,.p-pied button,.oeil';
 function lanceGuide(){
   if(r){$('erreurJeu').textContent='Quitte le salon avant de lancer la partie guidée.';onglet('jouer');return}
   if(partie)finPartie();
-  $('propGuide').hidden=true;
+  $('premierePartie').hidden=true;
   $('erreurJeu').textContent='';onglet('jouer');
   lancer(GUIDE.graine,0,'',{mien:[],sien:[],advNom:'Golem',niveau:'facile',local:true,tuto:true,decks:[GUIDE.deck,M.DECK_TUTO||''],deckNom:'Deck de la partie guidée'});
   tuto={i:0,vu:-1,T:setInterval(tickGuide,150)};
@@ -6039,17 +6244,13 @@ document.addEventListener('click',e=>{
 },true);
 $('gPasser').onclick=()=>arreteGuide();
 $('lanceGuide').onclick=lanceGuide;
-$('propOui').onclick=()=>{$('propGuide').hidden=true;lanceGuide()};
-$('propNon').onclick=()=>{$('propGuide').hidden=true;$('lanceGuide').focus()};
-/* Proposee une seule fois, a la premiere visite de l'onglet Jouer, apres la fenetre de connexion. */
+$('propOui').onclick=()=>{$('premierePartie').hidden=true;lanceGuide()};
+$('propNon').onclick=()=>{$('premierePartie').hidden=true};
+/* Premiere partie ? (0.4) : bandeau discret en haut de l'onglet Jouer, montre une seule fois par navigateur (cle golems.guide) ;
+   il reste visible jusqu'a Lancer le tutoriel, Plus tard ou le prochain chargement. Tutoriel permanent dans Apprendre et s'entrainer. */
 function proposeGuide(){
-  if(lire('golems.guide'))return;
-  const essai=()=>{
-    if(!$('popPseudo').hidden){setTimeout(essai,500);return}
-    if($('jouer').hidden||partie||r||lire('golems.guide'))return;
-    ecrire('golems.guide','1');$('propGuide').hidden=false;$('propOui').focus();
-  };
-  setTimeout(essai,0);
+  if(lire('golems.guide')||partie||r)return;
+  ecrire('golems.guide','1');$('premierePartie').hidden=false;
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname))window.__golemsGuide=()=>tuto&&{i:tuto.i,n:ETAPES.length,c:ETAPES[tuto.i].c||null,suiv:!!ETAPES[tuto.i].suiv};
 /* Tests automatiques, en local seulement */
@@ -6060,9 +6261,9 @@ $('creer').onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(creerSalo
 const creerSalon=async()=>{
   occupe=true;majEtat();
   const reste=attenteLobby-Date.now();if(reste>0)await pause(reste);
-  createur=true;salonPublic=$('salonPublicCase').checked;
+  createur=true;salonPublic=$('salonPublicCase').checked;const c0=nouveauCode();notePublic(c0,salonPublic);
   if(room&&room.nettoie)room.nettoie().catch(()=>{}); /* salons inactifs depuis plus de 7 jours */
-  await entre(nouveauCode());
+  await entre(c0);
 };
 $('formCode').onsubmit=e=>{
   e.preventDefault();
@@ -6158,7 +6359,7 @@ if(deckLien!==null){onglet('decks');ouvreDeckLien(deckLien)}
   majEtat();
   if(aReprendre&&compteCo()){invit='';onglet('jouer');entre(aReprendre)}else{majReprise();suitInvit()}
 })();
-  window.GOLEMS_UI={el,avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
+  window.GOLEMS_UI={el,avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
 })();
 </script>
 <script>window.__golemsPret&&window.__golemsPret()</script>

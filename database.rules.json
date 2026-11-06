@@ -96,7 +96,7 @@
     "annonces": {
       ".read": "auth != null",
       "$code": {
-        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid) && root.child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && (data.child('u').val() === auth.uid || root.child('salons').child($code).child('joueurs').hasChild(auth.uid))))",
+        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid || !root.child('salons').child($code).child('joueurs').hasChild(data.child('u').val())) && root.child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && (data.child('u').val() === auth.uid || root.child('salons').child($code).child('joueurs').hasChild(auth.uid))))",
         ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.hasChildren(['u', 'p', 't'])",
         "u": { ".validate": "newData.val() === auth.uid" },
         "p": { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child(auth.uid).child('pseudo').val()" },
@@ -105,6 +105,15 @@
         "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
         // Version du site du créateur ("0.2b|<build>" de version.json) ; absente = ancienne version.
         "v": { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.|: -]{1,40}$/)" },
+        // 0.4 : adversaire assis (uid w présent dans le salon, pseudo q) et nombre de spectateurs n.
+        "w": { ".validate": "newData.isString() && root.child('salons').child($code).child('joueurs').hasChild(newData.val())" },
+        "q": { ".validate": "newData.isString() && newData.val().length <= 24" },
+        "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
+        // Partie en cours : g = true, manche m (1 a 9), score k "a-b" (place 0 - place 1), mis a jour en fin de manche.
+        "g": { ".validate": "newData.val() === true" },
+        "m": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9" },
+        "k": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,2}-[0-9]{1,2}$/)" },
+        "f": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
         "t": { ".validate": "newData.val() === now" },
         "$autre": { ".validate": false }
       }
@@ -489,7 +498,7 @@
       "annonces": {
         ".read": "auth != null",
         "$code": {
-          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid) && root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && (data.child('u').val() === auth.uid || root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid))))",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid || !root.child('essai').child('salons').child($code).child('joueurs').hasChild(data.child('u').val())) && root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && (data.child('u').val() === auth.uid || root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid))))",
           ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.hasChildren(['u', 'p', 't'])",
           "u": { ".validate": "newData.val() === auth.uid" },
           "p": { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child(auth.uid).child('pseudo').val()" },
@@ -498,6 +507,15 @@
           "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
           // Version du site du créateur ("0.2b|<build>" de version.json) ; absente = ancienne version.
           "v": { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.|: -]{1,40}$/)" },
+          // 0.4 : adversaire assis (uid w présent dans le salon, pseudo q) et nombre de spectateurs n.
+          "w": { ".validate": "newData.isString() && root.child('essai').child('salons').child($code).child('joueurs').hasChild(newData.val())" },
+          "q": { ".validate": "newData.isString() && newData.val().length <= 24" },
+          "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
+          // Partie en cours : g = true, manche m (1 a 9), score k "a-b" (place 0 - place 1), mis a jour en fin de manche.
+          "g": { ".validate": "newData.val() === true" },
+          "m": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9" },
+          "k": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,2}-[0-9]{1,2}$/)" },
+          "f": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
           "t": { ".validate": "newData.val() === now" },
           "$autre": { ".validate": false }
         }
