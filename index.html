@@ -1375,6 +1375,17 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 @media (max-width:520px){#joueurs .sl-nom{white-space:normal;overflow:visible;text-align:center}#joueurs .sl-nom em{display:table;margin:3px auto 0}}
 @media (min-width:900px){#partie .p-pied.duo .btn{min-height:34px;padding:3px 10px;font-size:15px}}
 .d-btns{display:flex;flex-wrap:wrap;gap:8px}
+/* Decks conseilles (0.4) */
+.dc-boite{max-width:640px}
+.dc-liste{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:4px 0 8px}
+.dc-deck{display:flex;flex-direction:column;align-items:stretch;gap:4px;text-align:left;border:1px solid var(--trait);border-radius:12px 8px 13px 7px/8px 12px 7px 13px;padding:10px 12px;color:var(--texte);font:inherit;cursor:pointer;min-width:0}
+.dc-deck:hover,.dc-deck:focus-visible{border-color:var(--bleu);box-shadow:0 0 0 2px var(--bleu);outline:none}
+.dc-haut{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dc-nom{font:400 20px/1.15 var(--titre)}
+.dc-pict{display:inline-flex;gap:3px;flex:none}.dc-pict img{width:26px;height:26px;flex:none}
+.dc-els{font-size:13px;font-weight:800;color:#d5e3ea}
+.dc-tx{font-size:14px;line-height:1.35;color:var(--texte)}
+@media (max-width:600px){.dc-liste{grid-template-columns:minmax(0,1fr)}}
 .d-zone.sans-pan .d-panneau{display:none}
 @media (min-width:1200px){.d-zone.sans-pan{grid-template-columns:minmax(0,1fr)}}
 .d-panneau .dl-renom{cursor:pointer;border-radius:5px;transition:color .15s,background .15s}
@@ -4544,7 +4555,8 @@ function peintDecks(){
   n.onclick=()=>{if(l.length>=MAX_DECKS)return;const d={id:nouveauSid(),nom:'Deck '+(l.length+1),cartes:{}};l.push(d);gardeDecks(l);deckOuvert=d.id;peintDecks()};
   const plein=l.length>=MAX_DECKS;
   const im=el('button','btn','Importer un deck');im.type='button';im.onclick=()=>importeDeck(b,l);
-  const nb=el('div','d-btns');nb.append(n,im);
+  const dc=el('button','btn','Partir d\'un deck conseillé');dc.type='button';dc.onclick=deckConseille;
+  const nb=el('div','d-btns');nb.append(n,im,dc);
   const bandeau=d=>{nb.querySelector('.d-bandeau')?.remove();const R=d?raisonsDeck(d):[];if(!R.length)return;
     const s=el('p','d-bandeau'),x=el('span');s.setAttribute('role','status');s.title=R.map(r=>r.t).join('\n');x.append(el('b','',d.nom+' : '),R.map(r=>r.c).join(' · '));s.append(x);nb.append(s)};b.append(nb,el('p','intro o-nb'+(plein?' d-limite':''),l.length+' deck'+(l.length>1?'s':'')+' sur '+MAX_DECKS+(plein?'. Limite atteinte : supprime un deck pour en créer un nouveau.':'')));
   const zo=el('div','d-zone sans-pan'),g=el('div','d-grille'),pan=el('aside','d-panneau');pan.id='panneauDeck';pan.setAttribute('aria-label','Liste du deck');pan.setAttribute('aria-live','polite');
@@ -4698,6 +4710,44 @@ function ouvreDeckLien(c){
   jo.onclick=()=>{const r=ajoute();if(r.err)return ko(r);ecrire('golems.deckChoisi',r.id);majChoixDeck();ferme();onglet('jouer');
     $('infoDeckJeu')?.remove();const q=el('p','vd-info','Deck « '+r.nom+' » choisi : lance une partie contre un Golem ou crée un salon.');q.id='infoDeckJeu';$('erreurJeu').before(q)};
   pb.append(imp,jo);pied.append(pb,msg);x.append(t,corps,pied);v.append(x);document.body.append(v);majVueDeck();fx.focus();
+}
+/* Decks de depart conseilles (0.4) : 4 decks valides de 30 cartes, copies dans les decks du joueur (invite compris). */
+const DECKS_CONSEILLES=[
+ {nom:"Tempête",cartes:{"007":3,"007e":3,"026":3,"026e":3,"901":1,"004":3,"004e":3,"018":2,"018e":2,"036":2,"036e":2,"035":2,"035e":1},
+  txt:"Pioche beaucoup avec Trigas, Titom76 et Le Q, puis fais grandir A encore menti avec tes Golems Foudre."},
+ {nom:"Forge rapide",cartes:{"007":3,"007e":2,"029":3,"036":3,"035":3,"009":3,"018":3,"015":3,"004":2,"008":3,"001":1,"902":1},
+  txt:"Forge à chaque tour : Spom, JackJoy et Bellock en profitent, et KaTarN frappe fort dès la manche 1."},
+ {nom:"Gros Golems",cartes:{"016":3,"015":3,"015e":2,"002":3,"002e":3,"041":3,"041e":3,"004":3,"004e":2,"007e":3,"007":2},
+  txt:"Des Golems à forte Force : le duo Bellock et Loxim, les dés d'Alrevan, et Velnen pour piocher plus."},
+ {nom:"Roche et Magma",cartes:{"009":3,"009e":3,"029":3,"029e":2,"001":3,"001e":3,"018":3,"018e":3,"036":2,"036e":2,"002":2,"902":1},
+  txt:"Affaiblis l'adversaire avec Glad, Apo et Slim K, pendant que GymRat et Elessar tiennent la ligne."}
+];
+/* Deux elements dominants d'un deck (nombre de cartes par element). */
+function elsDominants(c){const n={};for(const k in c){const C=M.CARTES[k];if(C)(C.el||[]).forEach(e=>n[e]=(n[e]||0)+c[k])}return Object.keys(n).sort((a,b)=>n[b]-n[a]).slice(0,2)}
+function deckConseille(){
+  const old=$('popConseil');if(old)old.remove();
+  const v=el('div','voile'),x=el('div','boite dc-boite');v.id='popConseil';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','dcTitre');
+  const esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc)};addEventListener('keydown',esc);
+  v.onclick=e=>{if(e.target===v)ferme()};
+  const msg=el('p','d-code-m',''),g=el('div','dc-liste');
+  DECKS_CONSEILLES.forEach(o=>{
+    const E=elsDominants(o.cartes),b=el('button','dc-deck');b.type='button';
+    b.style.background=E.length>1?'linear-gradient(120deg,'+E.map(e=>'color-mix(in srgb,var(--'+e+') 60%,#0a121a)').join(',')+')':'color-mix(in srgb,var(--'+E[0]+') 60%,#0a121a)';
+    const h=el('span','dc-haut'),pi=el('span','dc-pict');E.forEach(e=>pi.append(picto(e)));
+    h.append(el('b','dc-nom',o.nom),pi);
+    b.append(h,el('span','dc-els',E.map(nomEl).join(' et ')+' · '+Object.values(o.cartes).reduce((a,n)=>a+n,0)+' cartes'),el('span','dc-tx',o.txt));
+    b.onclick=()=>{
+      const L=lesDecks();if(L.length>=MAX_DECKS){msg.textContent='Limite de '+MAX_DECKS+' decks atteinte : supprime un deck avant d’en ajouter un.';return}
+      const pris=new Set(L.map(d=>d.nom));let nom=o.nom,k=2;while(pris.has(nom)){const s=' ('+k+++')';nom=o.nom.slice(0,24-s.length).trim()+s}
+      const d={id:nouveauSid(),nom,cartes:{...o.cartes}};gardeDecks(L.concat(d));deckVu=d.id;deckOuvert=null;ferme();peintDecks();
+      const p=$('listeDecks').querySelector('.o-nb');if(p)p.after(el('p','d-code-m','Deck « '+nom+' » ajouté à tes decks ('+totalDeck(d)+' cartes). Tu peux le modifier comme les autres.'));
+    };
+    g.append(b);
+  });
+  const z=el('div','p-btns'),an=el('button','btn sec','Annuler');an.type='button';an.onclick=ferme;z.append(an);
+  const t=el('h2','','Partir d\'un deck conseillé');t.id='dcTitre';
+  x.append(t,el('p','','Choisis un deck de départ : il est copié dans tes decks et tu pourras le modifier.'),g,msg,z);v.append(x);document.body.append(v);
+  g.querySelector('button').focus();
 }
 function importeDeck(b,l){
   const old=$('popImportDeck');if(old)old.remove();
