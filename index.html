@@ -23,6 +23,11 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="manifest" href="manifest.webmanifest?v=2">
+<script>/* Version des images (cartes, terrains, verso, avatars) : imgV(u) ajoute ?v=<build>, pour que les joueurs voient aussitot une image remplacee.
+   A CHAQUE PUBLICATION : IMG_V = champ build de version.json (meme valeur). Fonction centrale, utilisable par tous les scripts du site. */
+window.IMG_V='2026-11-05 18:40';window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
+document.documentElement.style.setProperty('--verso','url("'+imgV('cartes/verso.jpg')+'")');
+document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[data-src]').forEach(i=>{i.src=imgV(i.dataset.src)}));</script>
 <link rel="stylesheet" href="spectateur.css?v=0.3">
 <link rel="stylesheet" href="diffusion.css?v=0.3">
 <meta name="apple-mobile-web-app-title" content="Golems">
@@ -823,7 +828,7 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#des){display:none}
 .b-fin th:first-child,.b-fin td:first-child{width:38%;text-align:left}
 .b-fin td.src{width:auto;text-align:left;border-top:0;padding-top:0;font-size:12px;opacity:.8}
 .r-repli{width:100%;height:96px;margin-bottom:8px;background:var(--encre);color:var(--texte);border:1px solid var(--trait);border-radius:8px;padding:6px;font-size:13px}
-.c-avenir{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:5/7;overflow:hidden;border-radius:4.5%/3.2%;container-type:inline-size;background:linear-gradient(rgba(5,10,15,.74),rgba(5,10,15,.74)),url(cartes/verso.jpg) center/cover;color:var(--texte);text-align:center}
+.c-avenir{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;aspect-ratio:5/7;overflow:hidden;border-radius:4.5%/3.2%;container-type:inline-size;background:linear-gradient(rgba(5,10,15,.74),rgba(5,10,15,.74)),var(--verso,url(cartes/verso.jpg)) center/cover;color:var(--texte);text-align:center}
 .p-case .cp{position:absolute;left:5px;bottom:calc(var(--bas) + 26px);padding:0 5px;border-radius:9px 6px 10px 5px;background:#3a6a50;color:#fff;font-size:11px;font-weight:800;line-height:20px;white-space:nowrap;max-width:62%;overflow:hidden;text-overflow:ellipsis}
 .mini.animal{background:linear-gradient(90deg,#5d4f78 20%,#3e5a6e 80%)}
 .p-case .ani{padding:0 5px;border-radius:9px 6px 10px 5px;background:rgba(10,18,26,.72);color:#f3d163;font-size:11px;font-weight:800;line-height:20px}
@@ -1710,7 +1715,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
     <p>Magma (attaque), Cristal (soutien), Foudre (énergie), Brume (pioche), Roche (terrain).</p>
     <div id="cercleEl"></div>
     <p>Chaque flèche part de l'élément qui domine vers l'élément dominé.</p>
-    <div class="face"><figure><img src="cartes/001.jpg" alt="KaTarN" loading="lazy" width="600" height="840">+1 de Force</figure><span>face à face</span><figure><img src="cartes/003.jpg" alt="Cyrdan" loading="lazy" width="600" height="840">+1 de Force</figure></div>
+    <div class="face"><figure><img data-src="cartes/001.jpg" alt="KaTarN" loading="lazy" width="600" height="840">+1 de Force</figure><span>face à face</span><figure><img data-src="cartes/003.jpg" alt="Cyrdan" loading="lazy" width="600" height="840">+1 de Force</figure></div>
     <p><b>Exemple :</b> KaTarN (Magma, Foudre) fait face à Cyrdan (Cristal, Roche). Magma domine Cristal : KaTarN gagne +1. Roche domine Magma : Cyrdan gagne +1 aussi.</p>
     <ul>
       <li><b>Cercle :</b> +1 si le Golem en face (la case adverse sur le même terrain et la même ligne) a un élément que le tien domine. Jamais plus de +1, sauf effet de carte.</li>
@@ -1892,7 +1897,7 @@ function avatarDe(nom,avatarId){
   let h=0;for(const c of n.toLowerCase())h=(h*31+c.codePointAt(0))>>>0;
   a.style.background="var("+AVATAR_COULEURS[h%AVATAR_COULEURS.length]+")";
   const imp=typeof avatarId==='string'&&/^data:image\/(jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(avatarId);
-  if(imp||avatarId&&/^[a-z0-9_-]{1,40}$/.test(avatarId)){const i=document.createElement("img");i.alt="";i.src=imp?avatarId:"avatars/"+avatarId+".jpg";i.onerror=()=>{i.remove();a.textContent=Array.from(n)[0]};a.append(i)}
+  if(imp||avatarId&&/^[a-z0-9_-]{1,40}$/.test(avatarId)){const i=document.createElement("img");i.alt="";i.src=imp?avatarId:imgV("avatars/"+avatarId+".jpg");i.onerror=()=>{i.remove();a.textContent=Array.from(n)[0]};a.append(i)}
   else a.textContent=Array.from(n)[0];
   return a;
 }
@@ -2527,7 +2532,7 @@ function trie(){
 $('toutAfficher').onclick=()=>{fTy='';fCartes.sel.clear();fCartes.mode='ou';$('rechCarte').value='';fTri='';triDesc=false;maj()};
 GALERIE.forEach(c=>{
   const b=document.createElement('button');b.className='carte';b.dataset.id=c[0];b.dataset.q=cleRech(c);b.setAttribute('aria-label',[numeroAffiche(c[0]),c[1]].filter(Boolean).join(', '));
-  const i=document.createElement('img');i.src='cartes/'+c[0]+'.jpg';i.alt=c[1];i.loading='lazy';i.width=600;i.height=840;
+  const i=document.createElement('img');i.src=imgV('cartes/'+c[0]+'.jpg');i.alt=c[1];i.loading='lazy';i.width=600;i.height=840;
   b.append(i);b.onclick=()=>{dernier=b;zoom(i.src,c[1],statZoomCarte(c[0]))};
   const num=c[0].slice(0,3);let p=$('grille').querySelector('[data-paire="'+num+'"]');
   if(!p){p=el('div','paire');p.dataset.paire=num;$('grille').append(p)}
@@ -3035,7 +3040,7 @@ $('repriseRobot').onclick=()=>{const v=chargeLocal();if(v)lanceLocal(v)};
 function lancer(g,moi,adv,sv){
   const dks=sv&&Array.isArray(sv.decks)&&sv.decks.length===2?sv.decks.map(t=>typeof t==='string'?t:''):['',''];
   partie={decks:dks,deckNom:sv&&typeof sv.deckNom==='string'?sv.deckNom:'',rejeu:sv&&sv.rejeu||null,debut:sv&&+sv.debut||Date.now(),local:!!(sv&&sv.local),tuto:!!(sv&&sv.tuto),niveau:sv&&sv.niveau||'normal',graine:g,moi:moi,mien:sv?sv.mien:[],sien:sv?sv.sien:[],etat:null,erreur:null,veut:!!(sv&&sv.veut),adv:adv||'',advNom:sv&&typeof sv.advNom==='string'?nettoie(sv.advNom):'',recapVu:sv?+sv.recapVu||0:0};
-  CARTES.forEach(c=>{new Image().src='cartes/'+c[0]+'.jpg'});M.TERRAINS.forEach(T=>{new Image().src=srcTerrain(T)});new Image().src=DOS;
+  CARTES.forEach(c=>{new Image().src=imgV('cartes/'+c[0]+'.jpg')});M.TERRAINS.forEach(T=>{new Image().src=srcTerrain(T)});new Image().src=DOS;
   notice='';sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;modeLove=false;fx=[];journalPage=null;journalReperes=0;
   stopCompte();jePret=false;
   pub({jg:g,j:M.ecritJournal(partie.mien),veut:partie.veut?g:null,adv:partie.adv||null,pret:null});
@@ -3135,9 +3140,9 @@ function vol(de,vers,src,ms,delai){
   const d=carteVol(src),a=d.animate([{transform:tf(cadre(de,56))},{transform:tf(cadre(vers,56))}],{duration:T(ms),delay:T(delai||0),easing:'cubic-bezier(.3,.7,.3,1)',fill:'both'});
   a.finished.finally(()=>d.remove()).catch(()=>{});
 }
-const srcC=c=>'cartes/'+M.carte(c).id+'.jpg',DOS='cartes/verso.jpg';
+const srcC=c=>imgV('cartes/'+M.carte(c).id+'.jpg'),DOS=imgV('cartes/verso.jpg');
 /* Image du terrain, rendue par generer_terrains.py ; le texte de regle reste dans moteur.js. */
-const srcTerrain=T=>'cartes/t'+String(window.GolemsMoteur.TERRAINS.findIndex(x=>x.nom===T.nom)+1).padStart(3,'0')+'.jpg';
+const srcTerrain=T=>imgV('cartes/t'+String(window.GolemsMoteur.TERRAINS.findIndex(x=>x.nom===T.nom)+1).padStart(3,'0')+'.jpg');
 /* Carte jouee : grande au centre environ 1,5 s, puis glissade vers sa case. */
 function montreGrand(c,de,vers){
   if(vite())return 0;
@@ -3781,7 +3786,7 @@ function verifieRecap(){
   if(ec&&ec.p===me&&ec.main){
     const z=el('div','r-quiz r-ecran'),l=el('div','r-mains');
     z.append(el('p','',"L'Écran du MJ : main de "+nl+(ec.main.length?'.':' : vide.')));
-    ec.main.forEach(c=>{const C=M.carte(c),i=el('img');i.src='cartes/'+C.id+'.jpg';i.alt=C.nom;l.append(i)});
+    ec.main.forEach(c=>{const C=M.carte(c),i=el('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;l.append(i)});
     z.append(l);d.append(z);
   }
   d.append(el('p','r-total','Score : '+s.j[me].score+' - '+s.j[lui].score));
@@ -4052,7 +4057,7 @@ function dessineStats(RT){
    listes.push(listeP(P,L,ligneT,o));}
   /* Ligne de carte compacte (comme le profil), apercu au survol, zoom au clic ; rang reel, « moins de 5 parties » hors classement. */
   const ligneC=x=>{const id=x.id,n=x.n,p=x.p,c=CARTES.find(y=>y[0]===id),C=M.CARTES[id];if(!c||!C)return null;
-    const li=el('div','pf-item pf-mvps st-carte'),q=el('button','dl-ligne'),fo=el('span','dl-force'),e=el('span','dl-els'),src='cartes/'+c[0]+'.jpg';q.type='button';
+    const li=el('div','pf-item pf-mvps st-carte'),q=el('button','dl-ligne'),fo=el('span','dl-force'),e=el('span','dl-els'),src=imgV('cartes/'+c[0]+'.jpg');q.type='button';
     if(c[2].length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+c[2][0]+')');q.style.setProperty('--b','var(--fm-'+c[2][1]+')')}else if(estAnimal(c))q.classList.add('dl-animal')
     const co=el('span','dl-cout');co.append(ico('enclume'),String(C.cout));{const f=forceAff(C);if(f!=null){fo.append(ico('force'),f);if(f.includes(','))fo.classList.add('dl-dec')}}c[2].forEach(y=>e.append(picto(y)));
     const v=c[1].indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',v<0?c[1]:c[1].slice(0,v)));
@@ -4447,7 +4452,7 @@ async function ouvreProfil(autre){
   const stat=o=>{const p=pc(o),s=el('div','pf-dst'),t=el('b','pf-dt',p===null?'-':p+' %');t.style.color=coul(p);s.append(el('span','pf-dk',pl(o.n)+' · '),t,el('span','pf-dk',' de victoires'));if(o.peu)s.append(el('span','pf-peu','peu de parties'));return s};
   /* Ligne de carte compacte : apercu au survol, carte en grand au clic. */
   const ligneCarte=(x,lab)=>{const C=M.CARTES[x.c],c=C&&CARTES.find(y=>y[0]===C.id);if(!c)return null;
-    const li=el('div','pf-item pf-mvps pf-slot'),q=el('button','dl-ligne'),fo=el('span','dl-force'),e=el('span','dl-els'),src='cartes/'+c[0]+'.jpg';q.type='button';
+    const li=el('div','pf-item pf-mvps pf-slot'),q=el('button','dl-ligne'),fo=el('span','dl-force'),e=el('span','dl-els'),src=imgV('cartes/'+c[0]+'.jpg');q.type='button';
     if(c[2].length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+c[2][0]+')');q.style.setProperty('--b','var(--fm-'+c[2][1]+')')}else if(estAnimal(c))q.classList.add('dl-animal')
     q.setAttribute('aria-label',c[1]+', '+lab);
     const co=el('span','dl-cout');co.append(ico('enclume'),String(C.cout));{const f=forceAff(C);if(f!=null){fo.append(ico('force'),f);if(f.includes(','))fo.classList.add('dl-dec')}}c[2].forEach(y=>e.append(picto(y)));
@@ -4836,7 +4841,7 @@ function decklist(b,d,l){
   const place=e=>{const W=220,H=308,x=e.clientX+18,y=e.clientY-H/2;ap.style.left=(x+W>innerWidth?e.clientX-W-18:x)+'px';ap.style.top=Math.max(8,Math.min(innerHeight-H-8,y))+'px'};
   L.forEach(({c,C,n})=>{
     const li=el('li'),q=el('button','dl-ligne'),co=el('span','dl-cout'),e=el('span','dl-els'),fo=el('span','dl-force');
-    const src='cartes/'+c[0]+'.jpg';q.type='button';if(fautes.has(c[0]))q.classList.add('dl-fautive');
+    const src=imgV('cartes/'+c[0]+'.jpg');q.type='button';if(fautes.has(c[0]))q.classList.add('dl-fautive');
     if(c[2].length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+c[2][0]+')');q.style.setProperty('--b','var(--fm-'+c[2][1]+')')}else if(estAnimal(c))q.classList.add('dl-animal')
     q.setAttribute('aria-label',n+' exemplaire'+(n>1?'s':'')+' de '+c[1]+', coût '+C.cout+(C.force!=null?', Force '+C.force:''));
     co.append(ico('enclume'),String(C.cout));c[2].forEach(x=>e.append(picto(x)));
@@ -4899,7 +4904,7 @@ function editeur(b,l,d){
     .sort((x,y)=>{const d=triDeck?valTri(x[0][0],triDeck)-valTri(y[0][0],triDeck):x[1]-y[1];return (triDeckDesc?-d:d)||x[1]-y[1]}).map(x=>x[0]),g=el('div','grille'),vide=el('p','vide');
   b.append(vide);
   vues.forEach(c=>{
-    const z=el('div','d-carte'),i=el('img'),n=d.cartes[c[0]]||0;i.src='cartes/'+c[0]+'.jpg';i.alt=c[1];i.loading='lazy';z.dataset.q=cleRech(c);
+    const z=el('div','d-carte'),i=el('img'),n=d.cartes[c[0]]||0;i.src=imgV('cartes/'+c[0]+'.jpg');i.alt=c[1];i.loading='lazy';z.dataset.q=cleRech(c);
     const q=el('div','d-qte'),m=el('button','j-btn','-'),p=el('button','j-btn','+');m.type=p.type='button';m.setAttribute('aria-label','Retirer '+c[1]);p.setAttribute('aria-label','Ajouter '+c[1]);
     const mx=maxEx(c[0]);m.disabled=!n;p.disabled=n>=mx||totalDeck(d)>=DECK_MAX;if(mx===1&&!n&&!p.disabled)p.title='1 exemplaire au plus';
     const ch=v=>{d.cartes[c[0]]=n+v;gardeDecks(l);peintDecks()};m.onclick=()=>ch(-1);p.onclick=()=>ch(1);
@@ -5072,12 +5077,12 @@ function bacASable(b,d){
   const pool=el('div','bac-pool');pool.setAttribute('aria-label','Cartes du deck');
   M.TYPES.filter(t=>+d.cartes[t]>0).forEach(t=>{
     const C=M.CARTES[t],reste=+d.cartes[t]-bacUtilises(B,t),sl=el('div','bac-slot'),q=el('button','bac-carte'),i=el('img'),o=el('button','oeil');q.type=o.type='button';
-    i.src='cartes/'+t+'.jpg';i.alt='';i.loading='lazy';q.append(i,el('span','n',String(reste)));
+    i.src=imgV('cartes/'+t+'.jpg');i.alt='';i.loading='lazy';q.append(i,el('span','n',String(reste)));
     q.setAttribute('aria-label',M.nomDetail(C)+', '+reste+' sur '+d.cartes[t]+' à poser');q.title=M.nomDetail(C)+(C.base?' : se pose sur '+M.CARTES[C.base].nom:C.animal?' : à côté de '+M.CARTES[C.maitre].nom:'');
     q.setAttribute('aria-pressed',String(B.sel===t));q.disabled=reste<=0;
     q.onclick=()=>{B.sel=B.sel===t?null:t;B.selC=null;B.mode=null;peint()};
     q.draggable=reste>0;q.ondragstart=e=>{e.dataTransfer.setData('text/plain','t:'+t);e.dataTransfer.effectAllowed='move'};
-    o.append(ico('oeil'));o.setAttribute('aria-label','Agrandir '+C.nom);o.onclick=()=>{cacheApercu();dernier=o;zoom('cartes/'+t+'.jpg',C.nom,statZoomCarte(t))};
+    o.append(ico('oeil'));o.setAttribute('aria-label','Agrandir '+C.nom);o.onclick=()=>{cacheApercu();dernier=o;zoom(imgV('cartes/'+t+'.jpg'),C.nom,statZoomCarte(t))};
     sl.append(q,o);pool.append(sl);
   });
   pool.ondragover=e=>{e.preventDefault();pool.classList.add('survol')};pool.ondragleave=()=>pool.classList.remove('survol');
@@ -5378,7 +5383,7 @@ function badgeForce(fa,f){
 function detailAnimal(C){const a=el('section');a.append(el('h3','','Animal de compagnie'),lg('Maître',M.CARTES[C.maitre].nom),lg('Force','aucune'),el('p','',C.texte));return [a]}
 function ouvreTas(titre,ids){
   const b=$('tasCartes');b.textContent='';$('tasTitre').textContent=titre;$('tasVide').hidden=ids.length>0;
-  ids.forEach(c=>{const C=M.carte(c),i=el('img');i.src='cartes/'+C.id+'.jpg';i.alt=C.nom;b.append(i)});
+  ids.forEach(c=>{const C=M.carte(c),i=el('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;b.append(i)});
   $('vueTas').hidden=false;$('tasFermer').focus();
 }
 let uidN=0;
@@ -5413,11 +5418,11 @@ function grilleVue(s,p,cols,lignes,cible){
     if(v){
       const C=M.carte(v.c);if(C.base)b.classList.add('evo');
       b.append(miniVue(s,p,l,k));
-      if(C.animal){b.classList.add('animal');b.setAttribute('aria-label',C.nom+', animal de compagnie de '+M.CARTES[C.maitre].nom+', coût '+C.cout);b.onclick=()=>{dernier=null;zoom('cartes/'+C.id+'.jpg',C.nom,detailAnimal(C))}}
+      if(C.animal){b.classList.add('animal');b.setAttribute('aria-label',C.nom+', animal de compagnie de '+M.CARTES[C.maitre].nom+', coût '+C.cout);b.onclick=()=>{dernier=null;zoom(imgV('cartes/'+C.id+'.jpg'),C.nom,detailAnimal(C))}}
       else{
       const fa=M.forceDe(s,p,l,k);
       b.setAttribute('aria-label',M.nomDetail(C)+(C.base?', évolution':'')+', coût '+C.cout+', Force '+fa+(fa!==v.f?' (base '+v.f+')':'')+(v.d>0?', dégâts '+v.d:'')+(v.ra?', Rage +'+v.ra:'')+(M.favori&&M.favori(s,p,v.c)?", favori d'Indra":''));
-      b.onclick=()=>{dernier=null;zoom('cartes/'+C.id+'.jpg',C.nom,detailForce(s,p,l,k),[badgeForce(fa,v.f)])};}
+      b.onclick=()=>{dernier=null;zoom(imgV('cartes/'+C.id+'.jpg'),C.nom,detailForce(s,p,l,k),[badgeForce(fa,v.f)])};}
     }else b.disabled=!lib;
     if(lib){
       b.classList.add(lib.choisie?'choisie':'cible');b.dataset.act='case';
@@ -5455,7 +5460,7 @@ const NOMS_LOG=(()=>{const m=new Map();
 function lienLog(nom){
   const o=NOMS_LOG.m.get(nom),b=el('button','j-lien',nom);b.type='button';
   if(o.T){b.onclick=()=>zoomTerrain(o.T);b.onmouseenter=()=>montreApercu(b,srcTerrain(o.T))}
-  else{const src='cartes/'+o.C.id+'.jpg';b.onclick=()=>{cacheApercu();dernier=null;zoom(src,o.C.nom)};b.onmouseenter=()=>montreApercu(b,src)}
+  else{const src=imgV('cartes/'+o.C.id+'.jpg');b.onclick=()=>{cacheApercu();dernier=null;zoom(src,o.C.nom)};b.onmouseenter=()=>montreApercu(b,src)}
   b.onmouseleave=cacheApercu;return b;
 }
 function texteLog(x){
@@ -5479,7 +5484,7 @@ function zoomTerrain(T){cacheApercu();dernier=null;zoom(srcTerrain(T),T.nom+'. '
    Toujours 3 lignes (une par case, « Case vide » discret), cartes en lignes condensees (comme le panneau Decks), Force finale en couleur du joueur.
    Valeurs = M.valeurDecompte (comme diffusion.js) ; total en bas de chaque bloc = « n contre m » de la tuile (M.colonnes). */
 function ligneZt(c){
-  const C=M.carte(c),cc=CARTES.find(z=>z[0]===C.id),q=el('button','dl-ligne'),co=el('span','dl-cout'),fo=el('span','dl-force'),e=el('span','dl-els'),els=C.el||[],src='cartes/'+C.id+'.jpg';q.type='button';
+  const C=M.carte(c),cc=CARTES.find(z=>z[0]===C.id),q=el('button','dl-ligne'),co=el('span','dl-cout'),fo=el('span','dl-force'),e=el('span','dl-els'),els=C.el||[],src=imgV('cartes/'+C.id+'.jpg');q.type='button';
   if(els.length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+els[0]+')');q.style.setProperty('--b','var(--fm-'+els[1]+')')}else if(C.animal)q.classList.add('dl-animal');
   co.append(ico('enclume'),String(C.cout));if(C.force!=null)fo.append(ico('force'),String(C.force));els.forEach(x=>e.append(picto(x)));
   const pl=cc?cc[1]:C.nom,v=pl.indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',v<0?pl:pl.slice(0,v)));
@@ -5531,15 +5536,15 @@ function mainVue(ids,opts){
   const m=el('div','p-main'),s=partie&&partie.etat,sp=opts.p!==undefined?opts.p:partie&&partie.moi;
   ids.forEach(c=>{
     const C=M.carte(c),b=el('button','p-carte');b.type='button';
-    const i=el('img');i.src='cartes/'+C.id+'.jpg';i.alt=C.nom;b.append(i);
+    const i=el('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;b.append(i);
     const rz=opts.raison&&opts.raison(c),sc=surcout(s,sp,c);
     if(sc>0){b.classList.add('surtaxe');b.append(badgeSurcout(C,sc));b.title=txtSurcout(C,sc)}
     if(rz){b.classList.add('grisee');b.append(el('span','raison',rz.court));b.title=rz.long+(sc>0?' Coût imprimé '+C.cout+' : '+causeSurcout(sc):'')}
     if(opts.presse)b.setAttribute('aria-pressed',opts.presse(c));
     if(opts.clic){b.dataset.act='carte';b.onclick=()=>opts.clic(c)}else b.onclick=()=>{dernier=null;zoom(i.src,C.nom,detailSurcout(C,sc),calqueSurcout(C,sc))};
     const z=el('div','p-slot'),o=el('button','oeil');o.type='button';o.append(ico('oeil'));
-    o.setAttribute('aria-label','Agrandir '+C.nom);o.onclick=()=>{cacheApercu();dernier=null;zoom('cartes/'+C.id+'.jpg',C.nom,detailSurcout(C,sc),calqueSurcout(C,sc))};
-    z.dataset.c=c;z.onmouseenter=()=>{if(zoneEl()&&SURVOL.matches){zoneSurvol=c;zoneMaj()}else montreApercu(z,'cartes/'+C.id+'.jpg')};
+    o.setAttribute('aria-label','Agrandir '+C.nom);o.onclick=()=>{cacheApercu();dernier=null;zoom(imgV('cartes/'+C.id+'.jpg'),C.nom,detailSurcout(C,sc),calqueSurcout(C,sc))};
+    z.dataset.c=c;z.onmouseenter=()=>{if(zoneEl()&&SURVOL.matches){zoneSurvol=c;zoneMaj()}else montreApercu(z,imgV('cartes/'+C.id+'.jpg'))};
     z.onmouseleave=()=>{cacheApercu();if(zoneSurvol!==null){zoneSurvol=null;zoneMaj()}};
     z.append(b,o);m.append(z);
   });
@@ -5820,7 +5825,7 @@ function affiche(){
     const z=el('div','p-btns');
     if(sel!==null){
       const v=sel;
-      const bz=el('button','btn sec','Voir');bz.type='button';bz.onclick=()=>{dernier=null;const n=surcout(s,me,v);zoom('cartes/'+C.id+'.jpg',C.nom,detailSurcout(C,n),calqueSurcout(C,n))};z.append(bz);
+      const bz=el('button','btn sec','Voir');bz.type='button';bz.onclick=()=>{dernier=null;const n=surcout(s,me,v);zoom(imgV('cartes/'+C.id+'.jpg'),C.nom,detailSurcout(C,n),calqueSurcout(C,n))};z.append(bz);
     }
     /* Libelles courts (une ligne par case, 3 boutons par ligne au plus) ; explication complete en title et aria-label. */
     const expl=(b,x)=>{b.title=x;b.setAttribute('aria-label',x);return b};
@@ -6067,7 +6072,7 @@ const memo=lire('golems.onglet');onglet(noms.includes(memo)?memo:'nouveautes');
 /* Aperçu au survol de l'onglet Cartes, comme en partie */
 $('grille').addEventListener('mouseover',e=>{
   const b=e.target.closest('.carte');if(!b||b.contains(e.relatedTarget))return;
-  if(b.dataset.id)montreApercu(b,'cartes/'+b.dataset.id+'.jpg');
+  if(b.dataset.id)montreApercu(b,imgV('cartes/'+b.dataset.id+'.jpg'));
   else if(b.dataset.terrain)montreApercu(b,srcTerrain({nom:b.dataset.terrain}));
 });
 $('grille').addEventListener('mouseout',e=>{const b=e.target.closest('.carte');if(b&&!b.contains(e.relatedTarget))cacheApercu()});
@@ -6084,7 +6089,7 @@ function annote(box,visuel,items){
   v.innerHTML='<svg class="an-liens" viewBox="0 0 330 392" aria-hidden="true">'+g+'</svg>';v.prepend(c);box.textContent='';box.append(v,o);
 }
 (()=>{
-  const i=el('img');i.src='cartes/001.jpg';i.alt=numeroAffiche('001')+', KaTarN';i.loading='lazy';
+  const i=el('img');i.src=imgV('cartes/001.jpg');i.alt=numeroAffiche('001')+', KaTarN';i.loading='lazy';
   annote($('lireCarte'),i,[['Coût en énergie',.03,.02,.23,.15,.012,.13],['Force',.82,.025,.96,.15,.09],['Nom et sous-titre',.05,.615,.33,.71,.6,.2],['Éléments du Golem',.735,.605,.953,.682,.65],['Capacité',.11,.745,.9,.872,.8],["Encart d'évolution : la carte qui la remplace",.317,.884,.682,.933,.908],['Citation, sans effet en jeu',.055,.95,.245,.985,.933,.15],['Numéro de carte',.855,.952,.93,.982,.967]]);
   const T=window.GolemsMoteur.TERRAINS.find(x=>x.nom==='La Boutique'),t=el('img');t.src=srcTerrain(T);t.alt=T.nom+'. '+T.texte;t.loading='lazy';
   annote($('lireTerrain'),t,[['Points rapportés par le terrain',.77,.02,.97,.16,.09],['Nom',.05,.605,.49,.71,.65],['Effet, actif toute la partie',.145,.79,.855,.837,.75,.7],['Citation, sans effet en jeu',.055,.95,.605,.986,.933,.3],['Numéro du terrain',.855,.952,.925,.984,.967]]);

@@ -197,7 +197,7 @@ function montre(ap,id,leg,p){
   const im=ap.querySelector('img'),l=ap.querySelector('.p-ap-leg'),C=id!=null?M.CARTES[id]:null;
   if(!C){delete ap.dataset.id;delete ap.dataset.p;ap.classList.add('vide');im.hidden=true;l.textContent='Aucune carte jouée pour le moment.';return}
   ap.dataset.id=id;if(p!=null)ap.dataset.p=p;else delete ap.dataset.p;
-  ap.classList.remove('vide');im.hidden=false;const src='cartes/'+id+'.jpg';if(im.getAttribute('src')!==src)im.src=src;im.alt=C.nom;l.textContent=leg;
+  ap.classList.remove('vide');im.hidden=false;const src=window.imgV?imgV('cartes/'+id+'.jpg'):'cartes/'+id+'.jpg';if(im.getAttribute('src')!==src)im.src=src;im.alt=C.nom;l.textContent=leg;
 }
 function montreDerniere(ap){
   const E=dernierEtat;if(!E)return;
