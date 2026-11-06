@@ -299,7 +299,7 @@
 
     // Nouveautés (0.4) : blocs épinglés, nouveautes/epingles = { "0": id, "1": id } (2 au plus ; "aucun" = rien d'épinglé ;
     // nœud vide = Feuille de route épinglée par défaut). Lus par tous ; écrits par le seul compte de Romain, reconnu par son uid.
-    // À COLLER : remplacer doSJZ1I6ixVUFejD842Jz2JrkFs1 par l'uid de son compte (console Firebase, Authentication).
+    // Épinglage des Nouveautés : réservé au compte de Romain (KaTarN).
     "nouveautes": {
       "epingles": {
         ".read": true,
@@ -314,7 +314,7 @@
     "essai": {
       // Nouveautés (0.4) : blocs épinglés, nouveautes/epingles = { "0": id, "1": id } (2 au plus ; "aucun" = rien d'épinglé ;
       // nœud vide = Feuille de route épinglée par défaut). Lus par tous ; écrits par le seul compte de Romain, reconnu par son uid.
-      // À COLLER : remplacer doSJZ1I6ixVUFejD842Jz2JrkFs1 par l'uid de son compte (console Firebase, Authentication).
+      // Épinglage des Nouveautés : réservé au compte de Romain (KaTarN).
       "nouveautes": {
         "epingles": {
           ".read": true,
