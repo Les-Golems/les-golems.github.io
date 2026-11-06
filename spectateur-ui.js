@@ -49,8 +49,11 @@ function etiquette(o){
   if(typeof etiquetteV==='function')return etiquetteV(o.v!==undefined?o.v:maV,!!o.vRouge);
   return mk('span','etq-v vx-etq','');
 }
+/* Design B (0.4) : sieges a teinte neutre avant la partie (aucun deck revele). */
+function teinteSiege(){const g=window.GOLEMS_UI;return g&&g.teinte?g.teinte([]):''}
 function siege(o,moi,btns,createur){
-  const s=mk('div','sl-j'+(o.pret?' pret':'')+(moi?' sl-moi':'')),n=mk('div','sl-nom',nomP(o));
+  const s=mk('div','sl-j b-teinte'+(o.pret?' pret':'')+(moi?' sl-moi':'')),n=mk('div','sl-nom',nomP(o));
+  const t=teinteSiege(o,moi);if(t)s.style.setProperty('--tinte',t);
   if(moi)n.append(mk('em','','toi'));
   s.append(av(o),n);if(createur)s.append(mk('span','sp-role','Créateur'));
   s.append(mk('span','sl-etat',o.pret?'Prêt':'En attente'),etiquette(o),tuileDeck(o,moi));
@@ -59,7 +62,8 @@ function siege(o,moi,btns,createur){
   return s;
 }
 function siegeLibre(btns){
-  const v=mk('div','sl-j sl-libre'),t=mk('div','cd-tuile'),e=etiquette({});e.classList.add('sl-vide');
+  const v=mk('div','sl-j sl-libre b-teinte'),t=mk('div','cd-tuile'),e=etiquette({});e.classList.add('sl-vide');
+  const g=window.GOLEMS_UI;if(g&&g.teinte)v.style.setProperty('--tinte',g.teinte([]));
   t.append(mk('span','h-deck h-sans','Place libre'),mk('span','cd-nb','Un spectateur peut la prendre'));
   v.append(mk('div','avatar','?'),mk('div','sl-nom','Adversaire'),mk('span','sl-etat sl-vide','En attente'),e,t);
   if(btns.length){const w=mk('div','sp-btns');w.append(...btns);v.append(w)}

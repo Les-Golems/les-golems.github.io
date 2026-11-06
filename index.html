@@ -281,6 +281,14 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .sl-liste .btn{min-height:40px;padding:5px 14px;font-size:16px;margin:0}
 .sl-liste.sl-grille{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .sl-liste li.sl-carte{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 12px 14px;text-align:center;border-radius:18px 11px 20px 10px/11px 19px 10px 18px;background:linear-gradient(180deg,var(--panneau2),var(--panneau));min-height:300px;box-sizing:border-box}
+/* Design B (0.4) : fond teinte par les elements (--tinte), voile sombre par-dessus, liseré de la meme teinte */
+.b-teinte{border:2px solid transparent!important;background:linear-gradient(180deg,rgba(10,18,26,.5),rgba(10,18,26,.86)) padding-box,var(--tinte) padding-box,var(--tinte) border-box!important}
+.b-teinte.sl-mien{box-shadow:0 0 0 2px var(--or)}
+/* Parties ouvertes : tuiles toutes de la meme taille, quel que soit le contenu */
+.sl-liste.sl-grille{grid-auto-rows:310px}
+.sl-liste li.sl-carte{height:310px;min-height:0;overflow:hidden}
+.sl-carte .sl-nm{width:100%;flex:none}
+.sl-carte .sl-att{margin-top:auto}
 .sl-liste li.sl-mien{border-color:var(--or);box-shadow:inset 0 0 0 1px var(--or)}
 .sl-liste .sl-carte .avatar{width:88px;height:88px;font-size:40px;flex:none}
 .sl-nm{font:400 24px/1.1 var(--titre);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -309,16 +317,27 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .po-spec b{color:var(--texte)}
 .po-els{display:inline-flex;align-items:center;gap:2px;flex:none;opacity:.9}
 .po-els img{width:18px;height:18px;display:block}
-/* Parties en cours : 2 par ligne sur bureau (joueurs en haut, manche, score, spectateurs et Observer dessous), 1 colonne ailleurs ; pseudos longs sur 2 lignes plutot que coupes */
-#listeEnCours .po-j b{white-space:normal;overflow-wrap:anywhere;text-overflow:clip}
-/* Joueurs en colonne (avatar, pseudo, pictos) de part et d'autre du VS : pseudos longs sur 2 lignes au besoin */
-#listeEnCours .po-duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px}
-#listeEnCours .po-j{flex-direction:column;justify-content:flex-start;gap:4px;text-align:center}
-#listeEnCours .po-vs{align-self:center}
-#listeEnCours .po-j .avatar{width:44px;height:44px;font-size:20px}
+/* Parties en cours (design B, compact) : 4 par ligne sur bureau, 2 sur tablette, 1 sur telephone */
+#listeEnCours .po-lignes{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#listeEnCours .sl-vide{grid-column:1/-1}
+@media (max-width:1199px){#listeEnCours .po-lignes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:699px){#listeEnCours .po-lignes{grid-template-columns:minmax(0,1fr)}}
+#listeEnCours li.po-ec{container-type:inline-size;display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:10px 10px 10px;border-radius:14px;position:relative;text-align:center}
+#listeEnCours .po-duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:6px;flex:none}
+#listeEnCours .po-j{flex-direction:column;align-items:center;gap:3px;min-width:0}
+#listeEnCours .po-j .avatar{width:40px;height:40px;font-size:18px;border:2px solid rgba(255,255,255,.85)}
+#listeEnCours .po-j b{font:400 15px/1.15 var(--titre);white-space:normal;overflow-wrap:anywhere;text-overflow:clip;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+#listeEnCours .po-els img{width:16px;height:16px}
+#listeEnCours .po-score{align-self:center;display:flex;flex-direction:column;align-items:center;gap:0;padding:0;background:none;border:0;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+#listeEnCours .po-score b{font:400 24px/1.05 var(--titre);color:var(--texte);letter-spacing:0;white-space:nowrap}
+#listeEnCours .po-pied{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
+#listeEnCours .po-obs{min-height:36px;padding:4px 12px;font-size:15px}
+#listeEnCours .po-badge{position:static}
+#listeEnCours .po-pied .po-obs{width:auto;flex:none}
+/* Salons complets sur telephone : joueurs en colonne de part et d'autre du VS, pseudos longs sur 2 lignes plutot que coupes */
 @media (max-width:600px){.po-ligne .po-j b{white-space:normal;overflow-wrap:anywhere;text-overflow:clip;text-align:center}.po-ligne .po-duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start}.po-ligne .po-j{flex-direction:column;gap:4px}.po-ligne .po-vs{align-self:center}}
-@media (min-width:1200px){#listeEnCours .po-lignes{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#listeEnCours .sl-vide{grid-column:1/-1}
-  #listeEnCours .po-duo{flex:1 1 100%}#listeEnCours .po-ligne .po-inf{flex:1 1 auto;justify-content:flex-start}}
+/* Carte etroite : Observer en icone seule (infobulle « Observer ») */
+@container (max-width:250px){#listeEnCours .po-obs-t{display:none}#listeEnCours .po-obs{padding:4px 10px}}
 .po-btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;margin-top:auto}
 .sl-carte .po-btns .btn{margin-top:0!important;font-size:16px!important;padding-left:6px;padding-right:6px}
 .po-obs{display:inline-flex;align-items:center;justify-content:center;gap:6px}
@@ -337,7 +356,11 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .po-score b{color:var(--texte);font-size:14px}
 @media (max-width:600px){.sl-liste li.po-ligne{flex-direction:column;align-items:stretch;text-align:center}.po-duo{flex:none;justify-content:center}.po-ligne .po-inf{justify-content:center}.po-ligne .po-obs{width:100%}}
 @media (max-width:1100px){.sl-liste.sl-grille{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:600px){.sl-liste.sl-grille{grid-template-columns:minmax(0,1fr)}.sl-liste li.sl-carte{min-height:0;gap:6px;padding:14px 12px 12px}.sl-liste .sl-carte .avatar{width:68px;height:68px;font-size:32px}}
+@media (max-width:600px){.sl-liste.sl-grille{grid-template-columns:minmax(0,1fr)}.sl-liste li.sl-carte{gap:6px;padding:14px 12px 12px}.sl-liste .sl-carte .avatar{width:68px;height:68px;font-size:32px}}
+.sl-liste .sl-carte .avatar{border:3px solid rgba(255,255,255,.85)}
+/* Salon (design B) : sieges teintes */
+#joueurs .sl-j.b-teinte{border-width:2px!important}
+#joueurs .sl-j.b-teinte.pret{box-shadow:0 0 0 2px #3fcf6e}
 @media (max-width:520px){#salon{padding:12px}.sl-duo{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.sl-vs{display:none}.sl-j{padding:10px 6px}#joueurs .sl-j .avatar{width:48px;height:48px;font-size:22px}.sl-nom{font-size:18px}#salon .sl-j .btn{font-size:14px;padding:5px 8px;white-space:nowrap}.sl-haut .code{font-size:32px}.sl-compte b{font-size:90px}}
 /* Chat */
 .chat{display:flex;flex-direction:column;background:var(--encre);border:1px solid var(--trait);border-radius:10px;text-align:left;margin:4px 0 8px;min-height:0}
@@ -2659,6 +2682,11 @@ function majAnnonce(l){
   if(cle===annonceVue)return;annonceVue=cle;
   r.annonce(o).catch(e=>{console.warn(e);annonceVue=''});
 }
+/* Design B (0.4) : tuiles teintees. Avant la partie (parties ouvertes, salon) : teinte neutre, rien du deck n'est revele.
+   Parties en cours : degrade d'apres les elements des decks des deux joueurs. */
+const TEINTE_NEUTRE='linear-gradient(135deg,#4a5a68,#26323d)';
+function teinte(els,sens){const l=(els||[]).filter(e=>NOMS_EL[e]);if(!l.length)return TEINTE_NEUTRE;
+  const c=l.map(e=>'color-mix(in srgb,var(--'+e+') 70%,#0a121a)');if(c.length===1)c.push(c[0]);return 'linear-gradient('+(sens||'135deg')+','+c.join(',')+')'}
 /* Elements principaux d'un deck (texte, '' = deck par defaut) : par nombre de cartes, ceux qui couvrent au moins 30 % du deck, 2 au moins, 3 au plus. */
 function elsPrincipaux(t){
   const o=(typeof t==='string'&&t&&M.lisDeck(t))||M.DECK_DEFAUT||{},n={};let tot=0;
@@ -2671,7 +2699,7 @@ const OEIL_PO='<svg viewBox="0 0 66 66" aria-hidden="true"><path fill="none" str
 function nbSpec(x){const n=Number.isInteger(x.n)&&x.n>0?x.n:0,z=el('span','po-spec');z.innerHTML=OEIL_PO;z.append(el('b','',String(n)),el('span','','spectateur'+(n>1?'s':'')));return z}
 /* Observer : entrer dans le salon en spectateur (vue diffusion des que la partie commence). */
 function observer(x){if(!compteCo()){msgInvite();return}createur=false;salonPublic=false;annonceVue='';entre(x.code,{observer:true})}
-function boutonObserver(x,off){const b=el('button','btn sec po-obs');b.type='button';b.innerHTML=OEIL_PO;b.append('Observer');b.disabled=!!r||occupe||off;b.onclick=()=>observer(x);return b}
+function boutonObserver(x,off){const b=el('button','btn sec po-obs');b.type='button';b.innerHTML=OEIL_PO;b.append(el('span','po-obs-t','Observer'));b.title='Observer';b.setAttribute('aria-label','Observer');b.disabled=!!r||occupe||off;b.onclick=()=>observer(x);return b}
 /* Parties en cours (0.4) : parties publiques lancees et pas finies, une ligne chacune (joueurs, manche, score, spectateurs, Observer). */
 function peintEnCours(moi){
   const u=$('listeEnCours');if(!u)return;u.textContent='';
@@ -2679,17 +2707,21 @@ function peintEnCours(moi){
   const g=el('ul','sl-liste po-lignes');
   if(!l.length){g.append(el('li','sl-vide','Aucune partie en cours.'));u.append(g);return}
   l.forEach(x=>{
-    const mien=!!moi&&(x.u===moi||x.w===moi),li=el('li','po-ligne'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur',nq=nettoie(typeof x.q==='string'?x.q:'')||'Joueur';
+    const mien=!!moi&&(x.u===moi||x.w===moi),li=el('li','po-ligne po-ec b-teinte'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur',nq=nettoie(typeof x.q==='string'?x.q:'')||'Joueur';
+    const ea=String(x.e||'').split(',').filter(z=>NOMS_EL[z]).slice(0,3),eb=String(x.f||'').split(',').filter(z=>NOMS_EL[z]).slice(0,3);
+    /* Partie lancee : les elements sont visibles des spectateurs, la teinte suit chaque joueur (gauche, droite) */
+    const ca=ea[0]?'color-mix(in srgb,var(--'+ea[0]+') 70%,#0a121a)':'#3a4955',cb=eb[0]?'color-mix(in srgb,var(--'+eb[0]+') 70%,#0a121a)':'#3a4955';
+    li.style.setProperty('--tinte','linear-gradient(90deg,'+ca+','+cb+')');
     const xv=vOk(x.v),vd=!mien&&!!maV&&xv!==maV,duo=el('div','po-duo');
     /* Joueur : avatar, pseudo, pictos discrets des elements principaux de son deck (2 ou 3) */
-    const j=(n,a,e)=>{const s=el('span','po-j'),pi=el('span','po-els');String(e||'').split(',').filter(z=>NOMS_EL[z]).slice(0,3).forEach(z=>{const i=picto(z);i.width=i.height=18;i.title=nomEl(z);pi.append(i)});
+    const j=(n,a,e)=>{const s=el('span','po-j'),pi=el('span','po-els');e.forEach(z=>{const i=picto(z);i.width=i.height=16;i.title=nomEl(z);pi.append(i)});
       s.append(a,el('b','',n));if(pi.childNodes.length)s.append(pi);return s};
-    duo.append(j(nom,x.u?avatarUid(nom,x.u,x.a):avatarDe(nom,x.a),x.e),el('span','po-vs','VS'),j(nq,avatarUid(nq,x.w),x.f));
     const k=typeof x.k==='string'&&/^\d{1,2}-\d{1,2}$/.test(x.k)?x.k.split('-'):['0','0'],sc=el('span','po-score');
-    sc.append('Manche ',el('b','',String(Number.isInteger(x.m)?x.m:1)),' · Score ',el('b','',k[0]+' - '+k[1]));
-    const inf=el('span','po-inf');inf.append(sc,nbSpec(x));
-    li.append(duo,inf);if(mien)li.append(el('span','sl-badge po-badge','Ta partie'));else li.append(boutonObserver(x,vd));
-    g.append(li);
+    sc.append('Manche '+(Number.isInteger(x.m)?x.m:1),el('b','',k[0]+' - '+k[1]));
+    duo.append(j(nom,x.u?avatarUid(nom,x.u,x.a):avatarDe(nom,x.a),ea),sc,j(nq,avatarUid(nq,x.w),eb));
+    const pied=el('div','po-pied');pied.append(nbSpec(x));
+    if(mien)pied.append(el('span','sl-badge po-badge','Ta partie'));else pied.append(boutonObserver(x,vd));
+    li.append(duo,pied);g.append(li);
   });
   u.append(g);
 }
@@ -2712,14 +2744,12 @@ function peintListe(){
     const g=el('ul','sl-liste sl-grille');
     libres.forEach(x=>{
       const mien=!!moi&&x.u===moi,li=el('li','sl-carte'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur';
-      const els=(x.e||'').split(',').filter(e=>NOMS_EL[e]);
-      /* Deck du createur masque chez les autres (bandeau neutre « Deck choisi » et pastille « ? ») ; le mien reste visible sur ma propre annonce. */
-      const dk=mien?bandeauDeck({nom:typeof x.d==='string'&&x.d?x.d:'Deck',els}):el('span','h-deck dk-neutre');dk.classList.add('sl-dk');
-      if(mien){const pi=el('span','sl-pi');els.forEach(e=>{const i=picto(e);i.width=i.height=22;pi.append(i)});dk.append(pi)}
-      else dk.append('Deck choisi',pastilleInconnue());
+      /* Design B : tuile a teinte neutre (le deck du createur n'est pas revele avant la partie) */
+      li.classList.add('b-teinte');li.style.setProperty('--tinte',TEINTE_NEUTRE);
       if(mien)li.append(el('span','sl-badge','Ta partie'));
       const V=version(x,mien),inf=el('span','po-inf');inf.append(el('span','sl-dep','Créée '+depuis(x.t)),nbSpec(x));
-      li.append(x.u?avatarUid(nom,x.u,x.a):x.a?avatarDe(nom,x.a):avatarDe(nom),el('b','sl-nm',nom),stats(x),dk,inf,etiquetteV(V.xv,V.vr));
+      const nm=el('b','sl-nm',nom);nm.title=nom;
+      li.append(x.u?avatarUid(nom,x.u,x.a):x.a?avatarDe(nom,x.a):avatarDe(nom),nm,stats(x),inf,etiquetteV(V.xv,V.vr));
       if(mien)li.append(el('span','sl-att','Partage le lien ou attends un adversaire'));
       else{
         const z=el('div','po-btns'),b=el('button','btn',V.vd?'Version différente':'Rejoindre');b.type='button';b.disabled=!!r||occupe||V.vd;
@@ -2734,7 +2764,8 @@ function peintListe(){
     titre('Salon complet, à observer',pleins.length);
     const g=el('ul','sl-liste po-lignes');
     pleins.forEach(x=>{
-      const mien=!!moi&&x.u===moi,li=el('li','po-ligne'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur',nq=nettoie(typeof x.q==='string'?x.q:'')||'Joueur';
+      const mien=!!moi&&x.u===moi,li=el('li','po-ligne b-teinte'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur',nq=nettoie(typeof x.q==='string'?x.q:'')||'Joueur';
+      li.style.setProperty('--tinte',TEINTE_NEUTRE);
       const V=version(x,mien),duo=el('div','po-duo'),j=(n,a)=>{const s=el('span','po-j');s.append(a,el('b','',n));return s};
       duo.append(j(nom,x.u?avatarUid(nom,x.u,x.a):avatarDe(nom,x.a)),el('span','po-vs','VS'),j(nq,avatarUid(nq,x.w)));
       const inf=el('span','po-inf');inf.append(nbSpec(x),el('span','sl-dep','Créée '+depuis(x.t)));
@@ -6151,7 +6182,7 @@ if(deckLien!==null){onglet('decks');ouvreDeckLien(deckLien)}
   majEtat();
   if(aReprendre&&compteCo()){invit='';onglet('jouer');entre(aReprendre)}else{majReprise();suitInvit()}
 })();
-  window.GOLEMS_UI={el,avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
+  window.GOLEMS_UI={el,avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
 })();
 </script>
 <script>window.__golemsPret&&window.__golemsPret()</script>
