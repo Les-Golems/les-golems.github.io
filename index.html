@@ -3516,6 +3516,8 @@ function etapesLignes(L,av,s,lignes,a){
     if(x==='KaTarN perd 4 de Force.'){const c=[];for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=av.j[p].grille[l][k];if(g&&M.carte(g.c).id==='001')c.push([p,l,k])}L.push(()=>touche(c,4))}
     m=/: \+(\d+) points?\.$/.exec(x);
     if(m){const n=+m[1];L.push(()=>{etoile(rectDe('.p-plateau'),'+'+n);return T(700)},()=>{if(ecranFin)ecranFin.score[p]+=n;peintFin();ajoutFx({q:'.p-info.score',classe:'bascule'},700);return 0})}
+    m=p!==null&&RE_DV.exec(x); /* deck vide (meule) : l'etoile part du deck de celui qui n'a pas pu piocher, le point va a l'autre */
+    if(m){const n=+m[1];L.push(()=>{etoile(rectDe(piles(p,'deck'))||rectDe('.p-plateau'),'+'+n);return T(700)},()=>{if(ecranFin)ecranFin.score[1-p]+=n;peintFin();ajoutFx({q:'.p-info.score',classe:'bascule'},700);return 0})}
     const v=vagues[i];
     if(v&&v.cases.length){mort=true;L.push(()=>{
       v.cases.forEach(c=>{
@@ -3705,16 +3707,18 @@ function copie(txt,b,lib,selectionne,surOk){
 }
 /* Fin de partie : tout vient du journal, le moteur ne garde que la derniere manche. */
 function parManche(s){
-  return s.reperes.map(x=>{
+  return s.reperes.map((x,i)=>{
     const o={terrains:[],bonus:[0,0]};
     s.log.slice(x[0],x[1]).forEach(([p,t])=>{const m=/^marque (.+) \(\d+ contre \d+\) : \+(\d+)\.$/.exec(t);if(m)o.terrains.push({p,nom:m[1],pts:+m[2]})});
     s.log.slice(x[1],x[2]).forEach(([p,t])=>{const m=/: \+(\d+) points?\.$/.exec(t);if(m&&p!==null)o.bonus[p]+=+m[1]});
+    o.pioche=piocheImpossible(s,i+1); /* deck vide (meule) : points recus quand l'adversaire n'a pas pu piocher, pendant la manche */
     return o;
   });
 }
 function lignesManche(o,nom){
   const l=o.terrains.map(x=>nom(x.p)+' : '+x.nom+' +'+x.pts);
   [0,1].forEach(p=>{if(o.bonus[p])l.push(nom(p)+' : bonus +'+o.bonus[p])});
+  [0,1].forEach(p=>{if(o.pioche&&o.pioche[p])l.push(nom(p)+' : pioche impossible adverse +'+o.pioche[p])});
   return l.length?l.join(', '):'aucun terrain gagné';
 }
 const pl=(n,m)=>n+' '+m+(n>1?'s':'');
@@ -3726,7 +3730,7 @@ function ligneMvp(B){
 function lignesBilan(s,n){
   const B=M.bilan(s),l=(B.mvp?[ligneMvp(B)]:[]).concat('Bilan par carte');
   B.joueurs.forEach((J,p)=>{
-    l.push(n(p)+' : infligés '+J.degats+', subis '+J.subis+', morts causées '+J.morts+', morts subies '+J.mortsSubies+(J.soins?', soins '+J.soins:''));
+    l.push(n(p)+' : infligés '+J.degats+', subis '+J.subis+', morts causées '+J.morts+', morts subies '+J.mortsSubies+(J.soins?', soins '+J.soins:'')+(J.piochesManquees?', pioches impossibles '+J.piochesManquees:''));
     J.cartes.forEach(c=>l.push('  '+c.carte+' : infligés '+c.degats+', subis '+c.subis+', morts causées '+c.morts+', morts subies '+c.mortsSubies+(c.soinsDonnes?', soins donnés '+c.soinsDonnes:'')+(c.sources.length?' ('+texteSources(c)+')':'')));
   });
   B.autres.forEach(o=>l.push('Autre source, '+o.source+' : '+pl(o.morts,'mort')));
@@ -3736,7 +3740,7 @@ function lignesBilan(s,n){
 function vueBilan(s,nm){
   const B=M.bilan(s),d=el('details','b-fin');d.open=true;d.append(el('summary','','Bilan par carte'));
   B.joueurs.forEach((J,p)=>{
-    d.append(el('h4',nm(p)==='Toi'?'h-moi':'h-lui',nm(p)+' : infligés '+J.degats+', subis '+J.subis+', morts causées '+J.morts+', morts subies '+J.mortsSubies+(J.soins?', soins '+J.soins:''))); /* K-Chan : soins donnes */
+    d.append(el('h4',nm(p)==='Toi'?'h-moi':'h-lui',nm(p)+' : infligés '+J.degats+', subis '+J.subis+', morts causées '+J.morts+', morts subies '+J.mortsSubies+(J.soins?', soins '+J.soins:'')+(J.piochesManquees?', pioches impossibles '+J.piochesManquees:''))); /* K-Chan : soins donnes ; deck vide (meule) */
     if(!J.cartes.length){d.append(el('p','','Aucun Golem joué.'));return}
     const t=el('table','h-tab'),cg=el('colgroup');['c','n','n','n','n'].forEach(k=>cg.append(el('col','h-col-'+k)));t.append(cg);
     const h=el('tr');['Carte','Infligés','Subis','Morts causées','Morts subies'].forEach(x=>h.append(el('th','',x)));t.append(h);
@@ -3777,9 +3781,9 @@ function deFin(s){
   const noms=[nom(0),nom(1)];
   const dn=p=>p===me?(rj?'':partie.decks&&partie.decks[me]?(partie.deckNom||'Deck'):'Deck par défaut'):(robot?'Deck par défaut':'');
   const decks=[0,1].map(p=>({nom:dn(p),els:els(elsTexte(s.decks[p]||DECK_TEST_TXT))}));
-  const manches=parManche(s).map((o,i)=>{const pts=[0,0];o.terrains.forEach(t=>pts[t.p]+=t.pts);[0,1].forEach(p=>pts[p]+=o.bonus[p]);
+  const manches=parManche(s).map((o,i)=>{const pts=[0,0];o.terrains.forEach(t=>pts[t.p]+=t.pts);[0,1].forEach(p=>pts[p]+=o.bonus[p]+o.pioche[p]);
     const f=(B.terrains||[]).filter(t=>t.manche===i+1);
-    return {pts,terrains:o.terrains.map(t=>{const z=f.find(y=>y.terrain===t.nom&&y.gagnant===t.p);return {p:t.p,nom:t.nom,pts:t.pts,forces:z&&z.forces?[z.forces[t.p],z.forces[1-t.p]]:null}}),bonus:o.bonus}});
+    return {pts,terrains:o.terrains.map(t=>{const z=f.find(y=>y.terrain===t.nom&&y.gagnant===t.p);return {p:t.p,nom:t.nom,pts:t.pts,forces:z&&z.forces?[z.forces[t.p],z.forces[1-t.p]]:null}}),bonus:o.bonus,pioche:o.pioche}});
   const m=B.mvp;
   return {noms,scores:[s.j[0].score,s.j[1].score],gagnant:s.fin.gagnant,abandon:s.fin.abandon,deckVide:s.fin.deckVide, /* 0.4 : deck vide */
     departage:s.fin.departage?departageTxt(s,s.fin.gagnant===1?1:0,s.fin.gagnant===1?0:1):'',
@@ -3796,9 +3800,10 @@ function deHisto(x){
   const advCourt=x.advNom||(robot?'Golem':adv);
   const qui=n=>n===ps||n==='Toi'?0:1; /* anciennes entrees : « Toi » */
   const manches=(Array.isArray(x.manches)?x.manches:[]).map(t=>{
-    const o={pts:[0,0],terrains:[],bonus:[0,0]};
+    const o={pts:[0,0],terrains:[],bonus:[0,0],pioche:[0,0]};
     if(t==='aucun terrain gagné')return o;
     String(t).split(', ').forEach(z=>{let r=/^(.+) : bonus \+(\d+)$/.exec(z);if(r){o.bonus[qui(r[1])]+=+r[2];o.pts[qui(r[1])]+=+r[2];return}
+      r=/^(.+) : pioche impossible adverse \+(\d+)$/.exec(z);if(r){o.pioche[qui(r[1])]+=+r[2];o.pts[qui(r[1])]+=+r[2];return} /* deck vide (meule) */
       r=/^(.+) : (.+) \+(\d+)$/.exec(z);if(r){const p=qui(r[1]);o.terrains.push({p,nom:r[2],pts:+r[3],forces:null});o.pts[p]+=+r[3]}});
     return o;
   });
@@ -3829,6 +3834,7 @@ const scoreManche=(D,o)=>C(D,0)+' '+o.pts[0]+', '+C(D,1)+' '+o.pts[1];
 function detailCamp(D,o,p){
   const l=o.terrains.filter(t=>t.p===p).map(t=>esc(t.nom)+' +'+t.pts+(t.forces?' ('+t.forces[0]+' contre '+t.forces[1]+')':''));
   if(o.bonus[p])l.push('bonus +'+o.bonus[p]);
+  if(o.pioche&&o.pioche[p])l.push('pioche impossible adverse +'+o.pioche[p]); /* deck vide (meule) */
   return l.join(', ');
 }
 function ligneMvpD(m){
@@ -3953,7 +3959,8 @@ function genreLog(x){
   if(/: (Comeback|Winstreak), pioche /.test(x))return ['j-pose','main']; /* Bellock et Loxim : partenaire pioché dans le deck, comme Graine de Golem */
   if(/: (Comeback|Winstreak), aucun /.test(x))return ['','tour']; /* aucun partenaire dans le deck : neutre */
   if(/: meandyou, /.test(x))return ['','tour']; /* Shifukuro (Le modérateur) : échange, refus ou rien à échanger, neutre comme l'échange du Q ; en tête, les noms échangés ne doivent rien déclencher */
-  if(/^doit piocher mais son deck est vide/.test(x))return ['j-mort','defausse']; /* 0.4 : defaite par deck vide */
+  if(/^doit piocher mais son deck est vide/.test(x))return ['j-mort','defausse']; /* 0.4 : defaite par deck vide (anciennes parties) */
+  if(RE_DV.test(x))return ['j-point','coupe']; /* deck vide (meule) : point pour l'adversaire */
   if(/meur|est détruit/.test(x))return ['j-mort','defausse'];
   if(/^marque |\+\d points?\.$/.test(x))return ['j-point','coupe'];
   if(/^améliore /.test(x))return ['j-evo','manche'];
@@ -3985,7 +3992,14 @@ function masqueLog(p,x,me){
   if(p===null||p===me||(partie&&partie.rejeu))return x;
   return x.replace(/^(.+? : (?:Comeback|Winstreak)), pioche .+ dans son deck, puis le mélange\.$/,'$1, pioche une carte dans son deck, puis le mélange.').replace(/^(.+?) : défausse .+\.$/,'$1 : défausse une carte.');
 }
+/* Deck vide (regle de la meule) : « n'a pas pu piocher (deck vide) : +1 point pour l'adversaire. », au nom du joueur qui n'a pas pu piocher */
+const RE_DV=/^n'a pas pu piocher \(deck vide\) : \+(\d+) points? pour l'adversaire\.$/;
+function ligneDeckVide(x,nomP,nomQ,toiP,toiQ){const m=RE_DV.exec(x);if(!m)return null;const n=+m[1],pt=n+(n>1?' points':' point');
+  return toiP?"Tu n'as pas pu piocher (deck vide) : +"+pt+' pour '+nomQ+'.':nomP+" n'a pas pu piocher (deck vide) : +"+pt+' pour '+(toiQ?'toi':nomQ)+'.'}
+/* Points donnes par les pioches impossibles a la manche m (evenements 'dv' du moteur) : r[q] = points recus par q */
+function piocheImpossible(s,m){const r=[0,0];((s.stats&&s.stats.ev)||[]).forEach(e=>{if(e.t==='dv'&&e.m===m)r[1-e.cp]+=e.n});return r}
 function ligneLog(p,x,me){
+  if(p!==null&&RE_DV.test(x))return ligneDeckVide(x,nomJ(p),nomJ(1-p),p===me,1-p===me);
   if(p!==null&&x==='doit piocher mais son deck est vide : il perd la partie.')return p===me?'Tu dois piocher mais ton deck est vide : tu perds la partie.':nomJ(p)+' doit piocher mais son deck est vide : '+nomJ(p)+' perd la partie.'; /* 0.4 : deck vide */
   return (p===null?'':(p===me?'Toi : ':nomJ(p)+' : '))+masqueLog(p,x,me)}
 function effetsManche(s){
@@ -4011,6 +4025,8 @@ function verifieRecap(){
   {const ex=s.dernier.exclus||[];if(ex.length){const u=el('ul','r-effets r-mignon');ex.forEach(x=>{const n=M.nomDetail(M.carte(x.c));u.append(el('li','','Mignonitude (Kiwi '+(x.p===me?'à toi':'de '+nl)+') : '+n+(x.q===me?' (à toi)':' ('+nl+')')+' ne compte pas, Force '+x.f+'.'))});d.append(u)}}
   const ef=effetsManche(s);
   if(ef.length){const u=el('ul','r-effets');ef.forEach(([p,x])=>u.append(el('li','',ligneLog(p,x,me))));d.append(u)}
+  {const pi=piocheImpossible(s,n);if(pi[0]+pi[1]){const u=el('ul','r-effets r-pioche'); /* deck vide (meule) : points de la manche hors terrains */
+    [me,lui].forEach(q=>{if(pi[q])u.append(el('li','',q===me?'Pioche impossible de '+nl+' : +'+pi[q]+' pour toi.':'Pioche impossible (ton deck est vide) : +'+pi[q]+' pour '+nl+'.'))});d.append(u)}}
   const ec=s.dernier.ecran;
   if(ec&&ec.p===me&&ec.main){
     const z=el('div','r-quiz r-ecran'),l=el('div','r-mains');
@@ -4018,7 +4034,8 @@ function verifieRecap(){
     ec.main.forEach(c=>{const C=M.carte(c),i=el('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;l.append(i)});
     z.append(l);d.append(z);
   }
-  d.append(el('p','r-total','Score : '+s.j[me].score+' - '+s.j[lui].score));
+  {const ap=[0,0];for(let m=n+1;m<=3;m++){const x=piocheImpossible(s,m);ap[0]+=x[0];ap[1]+=x[1]} /* score a la fin de la manche n : sans les pioches impossibles du debut de la manche suivante */
+  d.append(el('p','r-total','Score : '+(s.j[me].score-ap[me])+' - '+(s.j[lui].score-ap[lui])))}
   const b=el('button','btn plein','Continuer');b.type='button';b.id='continuer';
   b.onclick=()=>{if(partie){partie.recapVu=n;sauve()}fermeRecap()};
   d.append(b);box.textContent='';box.append(d);box.hidden=false;recapAff=n;b.focus({preventScroll:true});
@@ -6418,7 +6435,7 @@ if(deckLien!==null){onglet('decks');ouvreDeckLien(deckLien)}
   majEtat();
   if(aReprendre&&compteCo()){invit='';onglet('jouer');entre(aReprendre)}else{majReprise();suitInvit()}
 })();
-  window.GOLEMS_UI={el,avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
+  window.GOLEMS_UI={el,avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,ligneDeckVide,piocheImpossible,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
 })();
 </script>
 <script>window.__golemsPret&&window.__golemsPret()</script>
