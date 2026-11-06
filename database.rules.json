@@ -113,6 +113,7 @@
         "g": { ".validate": "newData.val() === true" },
         "m": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9" },
         "k": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,2}-[0-9]{1,2}$/)" },
+        "f": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
         "t": { ".validate": "newData.val() === now" },
         "$autre": { ".validate": false }
       }
@@ -490,6 +491,7 @@
           "g": { ".validate": "newData.val() === true" },
           "m": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9" },
           "k": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,2}-[0-9]{1,2}$/)" },
+          "f": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
           "t": { ".validate": "newData.val() === now" },
           "$autre": { ".validate": false }
         }

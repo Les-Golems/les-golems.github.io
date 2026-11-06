@@ -303,9 +303,22 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .po-gt b{color:var(--texte);margin-left:4px}
 .sl-liste+.po-gt{margin-top:16px}
 .po-inf{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 12px}
-.po-spec{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--doux)}
-.po-spec svg{width:15px;height:15px;flex:none}
+.po-spec{display:inline-flex;align-items:center;gap:5px;font-size:13px;line-height:16px;color:var(--doux)}
+.po-spec svg{width:15px;height:15px;flex:none;display:block}
+.po-spec>b,.po-spec>span{display:block;line-height:16px;height:16px}
 .po-spec b{color:var(--texte)}
+.po-els{display:inline-flex;align-items:center;gap:2px;flex:none;opacity:.9}
+.po-els img{width:18px;height:18px;display:block}
+/* Parties en cours : 2 par ligne sur bureau (joueurs en haut, manche, score, spectateurs et Observer dessous), 1 colonne ailleurs ; pseudos longs sur 2 lignes plutot que coupes */
+#listeEnCours .po-j b{white-space:normal;overflow-wrap:anywhere;text-overflow:clip}
+/* Joueurs en colonne (avatar, pseudo, pictos) de part et d'autre du VS : pseudos longs sur 2 lignes au besoin */
+#listeEnCours .po-duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px}
+#listeEnCours .po-j{flex-direction:column;justify-content:flex-start;gap:4px;text-align:center}
+#listeEnCours .po-vs{align-self:center}
+#listeEnCours .po-j .avatar{width:44px;height:44px;font-size:20px}
+@media (max-width:600px){.po-ligne .po-j b{white-space:normal;overflow-wrap:anywhere;text-overflow:clip;text-align:center}.po-ligne .po-duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start}.po-ligne .po-j{flex-direction:column;gap:4px}.po-ligne .po-vs{align-self:center}}
+@media (min-width:1200px){#listeEnCours .po-lignes{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#listeEnCours .sl-vide{grid-column:1/-1}
+  #listeEnCours .po-duo{flex:1 1 100%}#listeEnCours .po-ligne .po-inf{flex:1 1 auto;justify-content:flex-start}}
 .po-btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;margin-top:auto}
 .sl-carte .po-btns .btn{margin-top:0!important;font-size:16px!important;padding-left:6px;padding-right:6px}
 .po-obs{display:inline-flex;align-items:center;justify-content:center;gap:6px}
@@ -2635,7 +2648,7 @@ function majAnnonce(l){
   if(partie&&!partie.local){
     if(partie.moi!==0||!(salonPublic||estPublic(code)))return;
     const st=partie.etat;
-    if(st&&!st.fin)o={d:d.nom,e:elsTexte(d.texte).join(','),v:maV,n:ns,g:true,m:st.manche,k:st.j[0].score+'-'+st.j[1].score};
+    if(st&&!st.fin)o={d:d.nom,e:elsPrincipaux(partie.decks[0]).join(','),f:elsPrincipaux(partie.decks[1]).join(','),v:maV,n:ns,g:true,m:st.manche,k:st.j[0].score+'-'+st.j[1].score};
     else if(!st)return;
   }else{
     if(!createur||l.some(p=>Number.isInteger(p.presence.jg)))return; /* lancement en cours : rien a changer */
@@ -2646,10 +2659,16 @@ function majAnnonce(l){
   if(cle===annonceVue)return;annonceVue=cle;
   r.annonce(o).catch(e=>{console.warn(e);annonceVue=''});
 }
+/* Elements principaux d'un deck (texte, '' = deck par defaut) : par nombre de cartes, ceux qui couvrent au moins 30 % du deck, 2 au moins, 3 au plus. */
+function elsPrincipaux(t){
+  const o=(typeof t==='string'&&t&&M.lisDeck(t))||M.DECK_DEFAUT||{},n={};let tot=0;
+  for(const k in o){const C=M.CARTES[k];if(!C)continue;tot+=+o[k]||0;(C.el||[]).forEach(e=>n[e]=(n[e]||0)+(+o[k]||0))}
+  const l=Object.keys(n).sort((a,b)=>n[b]-n[a]);return l.filter((e,i)=>i<2||(i<3&&n[e]>=0.3*tot));
+}
 function depuis(t){const m=Math.max(0,Math.round((Date.now()-(+t||Date.now()))/60000));return m<1?'à l\'instant':m<60?'il y a '+m+' min':'il y a '+Math.floor(m/60)+' h'}
 let annoncesL=[];
 const OEIL_PO='<svg viewBox="0 0 66 66" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round" d="M4 33C14 17 23 12 33 12S52 17 62 33C52 49 43 54 33 54S14 49 4 33Z"/><circle cx="33" cy="33" r="10" fill="currentColor"/></svg>';
-function nbSpec(x){const n=Number.isInteger(x.n)&&x.n>0?x.n:0,z=el('span','po-spec');z.innerHTML=OEIL_PO;z.append(el('b','',String(n)),' spectateur'+(n>1?'s':''));return z}
+function nbSpec(x){const n=Number.isInteger(x.n)&&x.n>0?x.n:0,z=el('span','po-spec');z.innerHTML=OEIL_PO;z.append(el('b','',String(n)),el('span','','spectateur'+(n>1?'s':'')));return z}
 /* Observer : entrer dans le salon en spectateur (vue diffusion des que la partie commence). */
 function observer(x){if(!compteCo()){msgInvite();return}createur=false;salonPublic=false;annonceVue='';entre(x.code,{observer:true})}
 function boutonObserver(x,off){const b=el('button','btn sec po-obs');b.type='button';b.innerHTML=OEIL_PO;b.append('Observer');b.disabled=!!r||occupe||off;b.onclick=()=>observer(x);return b}
@@ -2661,8 +2680,11 @@ function peintEnCours(moi){
   if(!l.length){g.append(el('li','sl-vide','Aucune partie en cours.'));u.append(g);return}
   l.forEach(x=>{
     const mien=!!moi&&(x.u===moi||x.w===moi),li=el('li','po-ligne'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur',nq=nettoie(typeof x.q==='string'?x.q:'')||'Joueur';
-    const xv=vOk(x.v),vd=!mien&&!!maV&&xv!==maV,duo=el('div','po-duo'),j=(n,a)=>{const s=el('span','po-j');s.append(a,el('b','',n));return s};
-    duo.append(j(nom,x.u?avatarUid(nom,x.u,x.a):avatarDe(nom,x.a)),el('span','po-vs','VS'),j(nq,avatarUid(nq,x.w)));
+    const xv=vOk(x.v),vd=!mien&&!!maV&&xv!==maV,duo=el('div','po-duo');
+    /* Joueur : avatar, pseudo, pictos discrets des elements principaux de son deck (2 ou 3) */
+    const j=(n,a,e)=>{const s=el('span','po-j'),pi=el('span','po-els');String(e||'').split(',').filter(z=>NOMS_EL[z]).slice(0,3).forEach(z=>{const i=picto(z);i.width=i.height=18;i.title=nomEl(z);pi.append(i)});
+      s.append(a,el('b','',n));if(pi.childNodes.length)s.append(pi);return s};
+    duo.append(j(nom,x.u?avatarUid(nom,x.u,x.a):avatarDe(nom,x.a),x.e),el('span','po-vs','VS'),j(nq,avatarUid(nq,x.w),x.f));
     const k=typeof x.k==='string'&&/^\d{1,2}-\d{1,2}$/.test(x.k)?x.k.split('-'):['0','0'],sc=el('span','po-score');
     sc.append('Manche ',el('b','',String(Number.isInteger(x.m)?x.m:1)),' · Score ',el('b','',k[0]+' - '+k[1]));
     const inf=el('span','po-inf');inf.append(sc,nbSpec(x));

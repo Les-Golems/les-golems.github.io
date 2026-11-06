@@ -74,14 +74,16 @@ function puce(x){
   const li=mk('li','sp-puce'+(x.moi?' sp-moi':'')),b=mk('b','',nomP(x));
   if(x.moi)b.append(mk('em','','toi'));li.append(av(x),b);return li;
 }
+/* 0.4 : colonne Spectateurs a droite des sieges (variante C « Tribune ») : oeil, nombre et mot centres, puis une ligne par spectateur.
+   Bureau : meme hauteur que les sieges, la liste defile a l'interieur. Telephone : sous les sieges, hauteur maximale. */
 function tribune(liste){
-  let w=document.querySelector('#salon .sp-tribune');
-  if(!w){w=mk('div','sp-tribune');const sc=document.querySelector('#salon .sl-scene');if(sc)sc.after(w);else return}
-  w.textContent='';
-  const t=mk('div','sp-ttl');t.innerHTML=OEIL;t.append(mk('span','','Spectateurs'),mk('b','sp-nb',String(liste.length)));
+  document.querySelectorAll('#salon .sp-tribune').forEach(x=>x.remove()); /* ancienne bande sous les sieges */
+  const w=mk('div','sp-trib'),n=liste.length;w.setAttribute('aria-label','Spectateurs');
+  const t=mk('div','sp-ttl');t.innerHTML=OEIL;t.append(mk('b','sp-nb',String(n)),mk('span','',n>1?'spectateurs':'spectateur'));
   w.append(t);
-  if(liste.length){const ul=mk('ul','sp-puces');liste.forEach(x=>ul.append(puce(x)));w.append(ul)}
+  if(n){const ul=mk('ul','sp-puces');liste.forEach(x=>ul.append(puce(x)));w.append(ul)}
   else w.append(mk('span','sp-aucun','Aucun spectateur'));
+  return w;
 }
 /* 0.4 : bandeau d'information sous le code du salon quand l'adversaire devient createur (variante A). */
 function bandeauPromotion(p){
@@ -127,8 +129,8 @@ function peindreSalon(etat){
     }
     s2=siegeLibre(bs);
   }
-  u.append(s1,mk('div','sl-vs','VS'),s2);
-  tribune(spec);
+  u.classList.add('sp-3col');
+  u.append(s1,mk('div','sl-vs','VS'),s2,tribune(spec));
   document.body.classList.toggle('sp-spectateur',moi==='spec');
   /* Spectateur : pas de Pret, une phrase d'etat a la place */
   if(moi==='spec'){
