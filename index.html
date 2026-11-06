@@ -2663,7 +2663,7 @@ $('toutAfficher').onclick=()=>{fTy='';fCartes.sel.clear();fCartes.mode='ou';$('r
 GALERIE.forEach(c=>{
   const b=document.createElement('button');b.className='carte';b.dataset.id=c[0];b.dataset.q=cleRech(c);b.setAttribute('aria-label',[numeroAffiche(c[0]),c[1]].filter(Boolean).join(', '));
   const i=document.createElement('img');i.src=imgV('cartes/'+c[0]+'.jpg');i.alt=c[1];i.loading='lazy';i.width=600;i.height=840;
-  b.append(i);b.onclick=()=>{dernier=b;zoom(i.src,c[1],statZoomCarte(c[0]))};
+  b.append(i);b.onclick=()=>{dernier=b;zoom(i.src,c[1],[...statZoomCarte(c[0]),boutonLienCarte(idLienCarte(c[0]))])};
   const num=c[0].slice(0,3);let p=$('grille').querySelector('[data-paire="'+num+'"]');
   if(!p){p=el('div','paire');p.dataset.paire=num;$('grille').append(p)}
   p.append(b);
@@ -2672,7 +2672,7 @@ function tuilesTerrains(){
   if($('grille').querySelector('[data-terrain]'))return;
   window.GolemsMoteur.TERRAINS.forEach(T=>{
     const b=document.createElement('button'),i=document.createElement('img');b.className='carte';b.dataset.terrain=T.nom;b.dataset.q=sansAccent(T.nom);b.setAttribute('aria-label',T.nom+', '+T.pts+(T.pts>1?' points':' point'));
-    i.src=srcTerrain(T);i.alt=T.nom+'. '+T.texte;i.loading='lazy';i.width=600;i.height=840;b.append(i);b.onclick=()=>{zoomTerrain(T);dernier=b};$('grille').append(b);
+    i.src=srcTerrain(T);i.alt=T.nom+'. '+T.texte;i.loading='lazy';i.width=600;i.height=840;b.append(i);b.onclick=()=>{ouvreTerrainGalerie(T);dernier=b};$('grille').append(b);
   });
 }
 function carteAVenir(num,nom){
@@ -2714,7 +2714,19 @@ function zoom(src,alt,detail,calque){
 }
 $('tasFermer').onclick=()=>{$('vueTas').hidden=true};
 $('vueTas').onclick=e=>{if(e.target===$('vueTas'))$('vueTas').hidden=true};
-function fermeVue(){$('vue').hidden=true;if(dernier)dernier.focus()}
+function fermeVue(){$('vue').hidden=true;retireCarteLien();if(dernier)dernier.focus()}
+/* Lien direct vers une carte (0.5) : https://les-golems.github.io/?carte=G-004 (base), G-004e (evolution), A-001 (animal),
+   T-la-boutique (terrain : pas de numero affiche, nom sans accents). Golems et animaux : numero affiche (stable), pas le code interne ;
+   casse et tiret indifferents a la lecture. Lien invalide : onglet Cartes seul. */
+const idLienCarte=id=>numeroAffiche(id).replace(' ★','e');
+const idLienTerrain=T=>'T-'+sansAccent(T.nom).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function lienCarte(k){return 'https://les-golems.github.io/'+(ESSAI?'essai/':'')+'?carte='+k}
+function carteDeLien(v){const k=String(v||'').trim().toUpperCase().replace(/^([GAT])-?/,'$1-');
+  if(k.startsWith('T-')){const T=window.GolemsMoteur.TERRAINS.find(T=>idLienTerrain(T).toUpperCase()===k);return T?{T}:null}
+  const c=CARTES.find(c=>idLienCarte(c[0]).toUpperCase()===k);return c?{id:c[0]}:null}
+function ouvreTerrainGalerie(T){cacheApercu();dernier=null;zoom(srcTerrain(T),T.nom+'. '+T.texte,[...statZoomTerrain(T),boutonLienCarte(idLienTerrain(T))])}
+function retireCarteLien(){try{const u=new URL(location.href);if(!u.searchParams.has('carte'))return;u.searchParams.delete('carte');history.replaceState(history.state,'',u.pathname+u.search+u.hash)}catch(e){}}
+function boutonLienCarte(id){const b=el('button','btn sec btnLienCarte','Copier le lien');b.type='button';b.onclick=()=>copie(lienCarte(id),b,'Copier le lien',null);return b}
 $('fermer').onclick=fermeVue;
 $('vue').onclick=e=>{if(e.target===$('vue'))fermeVue()};
 addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('aide').hidden)fermeAide();else if(!$('vue').hidden)fermeVue();else $('vueTas').hidden=true});
@@ -6455,6 +6467,7 @@ const aReprendre=salonRepris();
 ['brume','cristal','foudre','magma','roche'].forEach(x=>{new Image().src=imgV('cartes/'+x+'.png')});
 majChoixDeck();
 if(deckLien!==null){onglet('decks');ouvreDeckLien(deckLien)}
+else{const v=new URLSearchParams(location.search).get('carte');if(v!==null){onglet('cartes');const o=carteDeLien(v),b=o&&o.id&&$('grille').querySelector('[data-id="'+o.id+'"]');if(b)b.click();else if(o&&o.T)ouvreTerrainGalerie(o.T);else retireCarteLien()}}
 (async()=>{
   try{room=await window.golemsSalon}catch(e){room=null}
   compteCharge=true;majVueDeck();
