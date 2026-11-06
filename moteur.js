@@ -126,6 +126,11 @@ function erreurDeck(o){
   if(n>DECK_MAX)return 'plus de '+DECK_MAX+' cartes';
   return '';
 }
+/* Regle des elements (0.4a) : un deck contient au plus ELEM_MAX elements differents (union des elements de ses cartes ; animaux sans element).
+   Verifiee par le site (editeur, import, choix du deck, salon), jamais par erreurDeck ni lisDeck : rejeux et parties en cours inchanges. */
+const ELEM_MAX=4;
+function elementsDeck(o){const E=new Set();for(const id in o)if(+o[id]>0&&CARTES[id])CARTES[id].el.forEach(e=>E.add(e));return [...E]}
+function erreurElements(o){const n=elementsDeck(o||{}).length;return n>ELEM_MAX?n+' éléments différents ('+ELEM_MAX+' au plus)':''}
 function deckTexte(o){
   if(!o)return '';
   return TYPES.filter(t=>+o[t]>0).map(t=>t+o[t]).join('');
@@ -1305,7 +1310,7 @@ function robotFort(s,p,l,t){
   const b=meilleur(F,p,q);
   return b.a&&b.g>.01?b.a:choixLove(F,p,l)||{t:'x'}; /* K-Chan */
 }
-const api={VERSION,TRAIT_CUMULE,TAILLE_DECK,DECK_MIN,DECK_MAX,MAX_EX,erreurDeck,deckTexte,lisDeck,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
+const api={VERSION,TRAIT_CUMULE,TAILLE_DECK,DECK_MIN,DECK_MAX,MAX_EX,erreurDeck,ELEM_MAX,elementsDeck,erreurElements,deckTexte,lisDeck,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
   nomDetail,forceDe,ciblable,colonnes,valeurDecompte,coutPose,genre,TYPES_TEST,DECK_DEFAUT,DECK_TUTO,FAV_BONUS,favori,indrasDe,idEff,foudres,spoms,
   estAnimal,ANIMAL_MAX,maxEx,maitreDe,peutPoser,elessars,graines,COPIEURS,EL_VELNEN,kekwait,echangesMeandyou,DUO,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,partenaires,forgeUtile,jjBonus,ciblesJJ,REGLAGE_JJ,cercle2,blesse,loves,choixLove,REGLAGE_KC,generaux,nettoie,noteBonus,retire,chatsPioche,effetsGolems,agit,piochesAVenir,risqueDeck,doublons,ilSuffit,jourDePeche,POINT_DECK_VIDE};
 

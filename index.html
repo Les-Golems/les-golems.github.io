@@ -1825,7 +1825,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 
   <details><summary><h3>Cartes et decks</h3></summary><div class="corps"><ul>
     <li>Deck de 24 à 30 cartes, 3 exemplaires maximum de chaque carte, 1 seul par animal. Une base et son évolution sont deux cartes différentes, comptées à part.</li>
-    <li>Aucune limite d'éléments pour l'instant (elle sera fixée à 3 plus tard).</li>
+    <li>4 éléments différents au maximum par deck : un Golem à 2 éléments compte les deux, un animal n'en a aucun.</li>
   </ul></div></details>
 
   <details><summary><h3>Animaux de compagnie</h3></summary><div class="corps"><ul>
@@ -4769,6 +4769,8 @@ function raisonsDeck(d){
     if(!M.TYPES.some(t=>(t===m||M.CARTES[t].base===m)&&o[t]>0))R.push({c:nom(k)+' sans '+nom(m),t:nom(k)+' demande au moins un '+nom(m)+(ev?' (ou '+nom(ev)+')':'')+' dans le deck.',ids:[k]})});
   if(n<DECK_MIN)R.push({c:n+' cartes sur '+DECK_MIN,t:'Deck incomplet : '+n+' carte'+(n>1?'s':'')+' sur '+DECK_MIN+' minimum, il en manque '+(DECK_MIN-n)+'.',ids:[]});
   if(n>DECK_MAX)R.push({c:n+' cartes sur '+DECK_MAX,t:'Trop de cartes : '+n+' pour '+DECK_MAX+' au plus, '+(n-DECK_MAX)+' en trop.',ids:[]});
+  /* 0.4a : 4 elements differents au plus (M.erreurElements ; le moteur ne le verifie pas, pour les rejeux). */
+  {const E=M.elementsDeck?M.elementsDeck(o):[];if(E.length>M.ELEM_MAX)R.push({c:E.length+' éléments sur '+M.ELEM_MAX,t:'Trop d’éléments : '+E.length+' éléments différents ('+E.map(nomEl).join(', ')+') pour '+M.ELEM_MAX+' au plus.',ids:[]})}
   /* Le moteur fait foi : s'il refuse le deck pour une raison non prevue ici, son message est repris. */
   if(!R.length){let e='';try{e=M.erreurDeck(o)||''}catch(x){e='deck illisible'}if(e)R.push({c:e,t:'Deck injouable : '+e+'.',ids:[]})}
   return R;
@@ -4795,7 +4797,7 @@ function gardeDecks(l){
 }
 /* Choix du deck avant Pret et contre le robot : paquet de test ou deck complet (24 a 30 cartes). */
 let deckPret={id:'',nom:'Test',texte:''};
-function decksJouables(){return lesDecks().filter(d=>!M.erreurDeck(Object.fromEntries(Object.entries(d.cartes).filter(([,n])=>+n>0).map(([k,n])=>[k,+n]))))}
+function decksJouables(){return lesDecks().filter(d=>{const o=Object.fromEntries(Object.entries(d.cartes).filter(([,n])=>+n>0).map(([k,n])=>[k,+n]));return !M.erreurDeck(o)&&!(M.erreurElements&&M.erreurElements(o))})}
 function deckChoisi(){
   const id=lire('golems.deckChoisi')||'',d=id&&decksJouables().find(x=>x.id===id);
   if(!d)return {id:'',nom:'Test',texte:''};
@@ -5043,7 +5045,7 @@ function ouvreDeckLien(c){
     const n={id:nouveauSid(),nom,cartes:{...d.cartes}};gardeDecks(L.concat(n));return {id:n.id,nom,deja:false};
   };
   const ko=r=>{msg.className='vd-m';msg.textContent=r.err};
-  imp.onclick=()=>{const r=ajoute();if(r.err)return ko(r);
+  imp.onclick=()=>{const E=M.elementsDeck(d.cartes);if(E.length>M.ELEM_MAX)return ko({err:'Deck refusé : '+E.length+' éléments différents, '+M.ELEM_MAX+' au plus.'});const r=ajoute();if(r.err)return ko(r);
     msg.className='vd-m ok';msg.textContent=(r.deja?'Déjà dans tes decks : « ':'Ajouté à tes decks : « ')+r.nom+' ».';
     imp.textContent='Voir dans mes decks';imp.onclick=()=>{deckVu=r.id;deckOuvert=null;ferme();onglet('decks')}};
   /* Jouer : deck ajoute et preselectionne (Choisis ton deck l'aura coche), onglet Jouer avec un bandeau d'info. */
@@ -5100,6 +5102,7 @@ function importeDeck(b,l){
     const L=lesDecks();if(L.length>=MAX_DECKS){msg.textContent='Limite de '+MAX_DECKS+' decks atteinte : supprime un deck avant d’importer.';return}
     const o=litCodeDeck(t.value);if(o.err){msg.textContent=o.err;return}
     if(!Object.keys(o.cartes).length){msg.textContent='Aucune carte connue dans ce code.';return}
+    {const E=M.elementsDeck(o.cartes);if(E.length>M.ELEM_MAX){msg.textContent='Deck refusé : '+E.length+' éléments différents ('+E.map(nomEl).join(', ')+'), '+M.ELEM_MAX+' au plus.';return}}
     const pris=new Set(L.map(d=>d.nom));let nom=o.nom,k=2;while(pris.has(nom)){const s=' ('+k+++')';nom=o.nom.slice(0,24-s.length).trim()+s}
     const d={id:nouveauSid(),nom,cartes:o.cartes};gardeDecks(L.concat(d));deckVu=d.id;ferme();peintDecks();
     const n=[];if(o.inc)n.push(o.inc+' carte'+(o.inc>1?'s inconnues ignorées':' inconnue ignorée'));if(o.cou)n.push('quantités ramenées à '+MAX_EX+' exemplaires et '+DECK_MAX+' cartes au plus');
@@ -5183,6 +5186,9 @@ function editeur(b,l,d){
   const B=bacDe(d),tb=el('button',(B.ouvert?'btn sec':'btn')+' bac-btn',B.ouvert?'Fermer le test':'Tester des placements');tb.type='button';tb.setAttribute('aria-expanded',String(B.ouvert));
   tb.onclick=()=>{B.ouvert=!B.ouvert;peintDecks()};
   h.append(el('h3','',d.nom),compteDeck(d),tb,r);b.append(h);
+  /* 0.4a : elements du deck (4 au plus), discret sous l'en-tete ; message si un + ferait depasser. */
+  const Ed=M.elementsDeck(d.cartes),eTxt=el('p','d-code-m d-els-nb','Éléments : '+Ed.length+'/'+M.ELEM_MAX+(Ed.length?' ('+Ed.map(nomEl).join(', ')+')':''));
+  if(Ed.length>M.ELEM_MAX)eTxt.style.color='#ff6b5e';const eMsg=el('p','d-code-m');eMsg.setAttribute('role','status');b.append(eTxt,eMsg);
   /* Raisons a jour a chaque ajout ou retrait (peintDecks repeint l'editeur) ; carte en cause cerclee dans la grille. */
   const R=raisonsDeck(d),fautes=new Map();R.forEach(r=>r.ids.forEach(k=>fautes.set(k,r.c)));if(R.length)b.append(blocErreurs(R,d,l));
   if(B.ouvert)bacASable(b,d);
@@ -5214,7 +5220,11 @@ function editeur(b,l,d){
     const z=el('div','d-carte'),i=el('img'),n=d.cartes[c[0]]||0;i.src=imgV('cartes/'+c[0]+'.jpg');i.alt=c[1];i.loading='lazy';z.dataset.q=cleRech(c);
     const q=el('div','d-qte'),m=el('button','j-btn','-'),p=el('button','j-btn','+');m.type=p.type='button';m.setAttribute('aria-label','Retirer '+c[1]);p.setAttribute('aria-label','Ajouter '+c[1]);
     const mx=maxEx(c[0]);m.disabled=!n;p.disabled=n>=mx||totalDeck(d)>=DECK_MAX;if(mx===1&&!n&&!p.disabled)p.title='1 exemplaire au plus';
-    const ch=v=>{d.cartes[c[0]]=n+v;gardeDecks(l);peintDecks()};m.onclick=()=>ch(-1);p.onclick=()=>ch(1);
+    const ch=v=>{d.cartes[c[0]]=n+v;gardeDecks(l);peintDecks()};m.onclick=()=>ch(-1);
+    const neufs=(M.CARTES[c[0]]?M.CARTES[c[0]].el:[]).filter(e=>!Ed.includes(e)),trop=!n&&neufs.length&&Ed.length+neufs.length>M.ELEM_MAX;
+    if(trop&&!p.disabled){p.classList.add('d-trop-el');p.title=M.ELEM_MAX+' éléments au plus par deck';
+      p.onclick=()=>{eMsg.textContent='Impossible d’ajouter '+M.CARTES[c[0]].nom+' : le deck passerait à '+(Ed.length+neufs.length)+' éléments ('+M.ELEM_MAX+' au plus). Retire d’abord les cartes d’un élément.';eMsg.style.color='#ff6b5e'}}
+    else p.onclick=()=>ch(1);
     /* Clic sur l'image : la carte en grand, comme dans l'onglet Cartes (les boutons + et - restent a part). */
     i.classList.add('d-zoom');i.tabIndex=0;i.setAttribute('role','button');i.setAttribute('aria-label','Agrandir '+c[1]);
     i.onclick=()=>{dernier=i;zoom(i.src,c[1],statZoomCarte(c[0]))};i.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();i.onclick()}};
@@ -5552,6 +5562,7 @@ function majPartie(){
     /* Decks : le mien tel que publie avec Pret (ou garde par la partie precedente en cas de Rejouer), le sien lu dans sa presence. */
     const mien=partie?{texte:partie.decks[partie.moi]||'',nom:partie.deckNom}:deckPret,sien=typeof lui.presence.deck==='string'?lui.presence.deck:'';
     const dks=['',''];dks[moi]=mien.texte||'';dks[1-moi]=sien;
+    if(!partie&&M.erreurElements)[0,1].forEach(p=>{const o=M.lisDeck(dks[p]);if(o&&M.erreurElements(o))dks[p]=''}); /* 0.4a : deck a 5 elements = deck par defaut, des deux cotes */
     if(moi===0&&r&&r.engage)r.engage([l[0].peer,l[1].peer]);
     lancer(g,moi,typeof lui.presence.sid==='string'?lui.presence.sid:'',{mien:[],sien:[],decks:dks,deckNom:mien.texte?mien.nom:''});sauve();return}
   if(partie.advNom!==nomDe(lui)){partie.advNom=nomDe(lui);sauve()}
