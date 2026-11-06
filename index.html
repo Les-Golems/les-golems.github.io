@@ -2303,7 +2303,7 @@ const NUMERO_AFFICHE={'001':1,'002':2,'003':3,'004':4,'007':5,'008':6,'013':7,'0
 const NUMERO_ANIMAL={'901':11,'902':1};
 const numeroAffiche=id=>{if(NUMERO_ANIMAL[id])return 'A-'+String(NUMERO_ANIMAL[id]).padStart(3,'0');const n=NUMERO_AFFICHE[String(id).slice(0,3)];return n?'G-'+String(n).padStart(3,'0')+(String(id).endsWith('e')?' ★':''):''};
 const EL=[['','Tous'],['magma','Magma'],['cristal','Cristal'],['foudre','Foudre'],['brume','Brume'],['roche','Roche']];
-const TY=[['','Toutes'],['0','Base'],['1','Évolution'],['a','Animaux'],['t','Terrains'],['v','À venir']];
+const TY=[['','Toutes'],['0','Base'],['1','Évolution'],['a','Animaux'],['t','Terrains']]; /* 0.4 : bouton « À venir » retiré des filtres (tuiles et logique gardées) */
 const MSG_ANIMAUX="Aucun animal de compagnie pour l'instant.";
 /* Cartes à venir, hors moteur : retirer la ligne d'un membre quand sa carte arrive, les numéros restent fixes. */
 const A_VENIR=[

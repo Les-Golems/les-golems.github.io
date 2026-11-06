@@ -32,7 +32,8 @@
 #regles [hidden]{display:none!important}
 #regles details{scroll-margin-top:calc(var(--rgHaut,120px) + 8px)}
 .rg-barre{position:sticky;top:var(--rgNav,49px);z-index:4;background:var(--encre);border-bottom:1px solid var(--trait);margin:0 0 16px;padding:0 0 10px;display:flex;align-items:flex-start;gap:14px} /* champ a la meme hauteur que dans Cartes (20 px sous l intro) */
-.rg-gauche{flex:none;min-width:0;width:calc(86px + 18px + 459px);max-width:100%} /* largeur du champ de Cartes : libelle 86 + 18, champ 459 */
+.rg-gauche{flex:none;min-width:0;width:calc(86px + 18px + var(--rgRech,459px));max-width:100%} /* libelle 86 + 18, puis le champ, de la largeur du champ de Cartes */
+#rechRegles{width:var(--rgRech,459px)}
 .rg-barre .rg-ligne{margin:0;flex-wrap:wrap}
 .rg-compte{flex-basis:100%;color:var(--doux);font-size:14px;white-space:nowrap;margin-top:-4px}
 .rg-pastilles{display:flex;flex-wrap:wrap;gap:6px;min-width:0}

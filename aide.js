@@ -244,4 +244,33 @@ function regles(){
   window.golemsAide.chercheRegles=v=>{inp.value=v;filtre()};
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',regles);else regles();
+
+/* ===== Onglet Cartes : alignements sur le bord droit du bouton Roche (dernier element de la ligne « Éléments ») =====
+   - ligne « Afficher » : ecart entre les boutons ajuste pour que le bord droit de « Terrains » tombe sur celui de Roche ;
+   - champ « Rechercher » : s'arrete au bord droit de Roche (comme l'editeur de deck) ;
+   - champ des Regles : meme largeur (variable --rgRech).
+   Seulement si chaque ligne tient sur une seule rangee ; sinon (telephone), largeurs par defaut. */
+function aligneCartes(){
+  const sec=$('cartes'),rech=$('rechCarte'),ty=$('filtreType');if(!sec||!rech||!ty)return;
+  const els=sec.querySelector('.f-els');if(!els||!els.lastElementChild)return;
+  const cache=sec.hidden;if(cache){sec.style.visibility='hidden';sec.style.position='absolute';const m=sec.parentElement,cs=getComputedStyle(m);sec.style.width=(m.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight))+'px';sec.hidden=false}
+  ty.style.gap='';rech.style.width='';
+  const unique=b=>{const l=[...b.children].filter(x=>!x.hidden);return l.length&&l.every(x=>Math.abs(x.offsetTop-l[0].offsetTop)<2)};
+  const ligneEl=els.parentElement,tous=[...ligneEl.querySelectorAll('.f-mode>*,.f-els>*')];
+  const surUneLigne=tous.every(x=>Math.abs(x.getBoundingClientRect().top-tous[0].getBoundingClientRect().top)<2)&&unique(ty);
+  let larg='';
+  if(surUneLigne){
+    const droite=els.lastElementChild.getBoundingClientRect().right,bs=[...ty.children].filter(x=>!x.hidden);
+    const fin=bs[bs.length-1].getBoundingClientRect().right,g=parseFloat(getComputedStyle(ty).columnGap)||8;
+    if(bs.length>1){const ng=g+(droite-fin)/(bs.length-1);if(ng>=2){ty.style.gap='8px '+ng+'px';if(!unique(ty))ty.style.gap=''}}
+    const w=droite-rech.getBoundingClientRect().left;if(w>120){rech.style.width=w+'px';larg=w+'px'}
+  }
+  if(cache){sec.hidden=true;sec.style.visibility=sec.style.position=sec.style.width=''}
+  if(larg)document.documentElement.style.setProperty('--rgRech',larg);else document.documentElement.style.removeProperty('--rgRech');
+}
+function lanceAligne(){aligneCartes();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(aligneCartes)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',lanceAligne);else lanceAligne();
+addEventListener('load',aligneCartes);
+let tAligne=0;addEventListener('resize',()=>{clearTimeout(tAligne);tAligne=setTimeout(aligneCartes,100)});
+['t-cartes','t-regles'].forEach(i=>$(i)&&$(i).addEventListener('click',()=>requestAnimationFrame(aligneCartes)));
 })();
