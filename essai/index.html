@@ -1276,6 +1276,12 @@ header .haut .moi{min-width:0;flex:0 1 auto}
 @container titre-site (max-width:212px){.haut .st-ligne{margin-top:1px;line-height:1}.ver-etq{margin-top:-3px}}
 @media (max-width:440px){.haut .st-ligne{margin-top:2px;font-size:13.5px;line-height:1.1}.ver-etq{margin-top:-2px;font-size:10px}}
 @media (max-width:359px){.haut .st-ligne{font-size:12px;line-height:1.05}.ver-etq{margin-top:-1px;padding:0 5px;font-size:9.5px;line-height:10px}}
+/* Site d'essai (/essai/) seulement : classe html.essai posee par le script (absente du site public). Liseré orange en haut de l'en-tete
+   (ombre interne, sans changer la hauteur) et pastille « SITE D'ESSAI » a cote du titre. */
+html.essai header{box-shadow:inset 0 5px 0 #ff7a1a}
+.essai-pastille{display:inline-block;margin-left:12px;padding:3px 12px;border:2px solid var(--encre);border-radius:999px;background:#ff7a1a;color:#fff;font:900 15px/1.2 var(--corps);letter-spacing:.06em;white-space:nowrap;vertical-align:5px;text-shadow:0 1px 1px rgba(0,0,0,.45);box-shadow:0 2px 0 #08708c}
+@media (max-width:640px){.essai-pastille{margin-left:7px;padding:2px 8px;font-size:11.5px;vertical-align:3px}}
+@media (max-width:440px){.essai-pastille{display:table;margin:2px 0 1px;padding:1px 7px;font-size:10.5px;border-width:1.5px}}
 /* Historique : version de la partie apres le score, et dans le detail d'une partie. */
 .h-ver-l.etq-v{padding:1px 7px .6px;font-size:11px;line-height:15px}
 .h-dver-v{display:inline-block;padding:0 7px;font-size:11.5px;line-height:1.3;vertical-align:1px}
@@ -1813,7 +1819,7 @@ const $=id=>document.getElementById(id);
 /* Site d'essai (/essai/) : cles locales prefixees pour ne pas se meler au site public (meme origine), titre marque. */
 const ESSAI=location.pathname.split('/')[1]==='essai';
 const LS=k=>(ESSAI?'essai.':'')+k;
-if(ESSAI){document.title='Les Golems (Essai)';document.addEventListener('DOMContentLoaded',()=>{const s=document.querySelector('.haut .sous-titre');if(s)s.textContent+=' · Essai'})}
+if(ESSAI){document.title='Les Golems (Essai)';document.documentElement.classList.add('essai');const h=document.querySelector('.haut h1'),st=h&&h.querySelector('.st-ligne');if(st){const p=document.createElement('span');p.className='essai-pastille';p.textContent="SITE D'ESSAI";h.insertBefore(p,st)}}
 function lire(k){try{return localStorage.getItem(LS(k))}catch(e){return null}}
 function ecrire(k,v){try{localStorage.setItem(LS(k),v)}catch(e){}}
 /* Le moteur est revenu de 0.2a a 0.2 sans changement de regles : les sauvegardes et rejeux 0.2a restent valides. */
