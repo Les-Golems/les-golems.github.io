@@ -49,10 +49,11 @@ function etiquette(o){
   if(typeof etiquetteV==='function')return etiquetteV(o.v!==undefined?o.v:maV,!!o.vRouge);
   return mk('span','etq-v vx-etq','');
 }
-function siege(o,moi,btns){
+function siege(o,moi,btns,createur){
   const s=mk('div','sl-j'+(o.pret?' pret':'')+(moi?' sl-moi':'')),n=mk('div','sl-nom',nomP(o));
   if(moi)n.append(mk('em','','toi'));
-  s.append(av(o),n,mk('span','sl-etat',o.pret?'Prêt':'En attente'),etiquette(o),tuileDeck(o,moi));
+  s.append(av(o),n);if(createur)s.append(mk('span','sp-role','Créateur'));
+  s.append(mk('span','sl-etat',o.pret?'Prêt':'En attente'),etiquette(o),tuileDeck(o,moi));
   const tx=tauxDe(o);if(tx)s.append(mk('span','sl-taux',tx));
   if(btns.length){const w=mk('div','sp-btns');w.append(...btns);s.append(w)}
   return s;
@@ -82,6 +83,20 @@ function tribune(liste){
   if(liste.length){const ul=mk('ul','sp-puces');liste.forEach(x=>ul.append(puce(x)));w.append(ul)}
   else w.append(mk('span','sp-aucun','Aucun spectateur'));
 }
+/* 0.4 : bandeau d'information sous le code du salon quand l'adversaire devient createur (variante A). */
+function bandeauPromotion(p){
+  let w=document.querySelector('#salon .sp-promo');
+  if(!p){if(w)w.remove();return}
+  if(!w){w=mk('div','sp-promo');w.setAttribute('role','status');const h=document.querySelector('#salon .sl-haut');if(h)h.after(w);else return}
+  w.textContent='';
+  const i=mk('span','sp-promo-i','i');i.setAttribute('aria-hidden','true');
+  const t=mk('div','sp-promo-t');t.append(mk('b','',p.ancien+' a quitté le salon.'));
+  t.append(mk('span','',p.moi?"Tu deviens le créateur. La place d'adversaire est libre : un spectateur ou un nouvel arrivant peut la prendre."
+    :(p.nouveau||'Ton adversaire')+" devient le créateur. La place d'adversaire est libre."));
+  const x=mk('button','sp-promo-x','×');x.type='button';x.setAttribute('aria-label','Fermer');
+  x.onclick=()=>{const S=SPECobj();if(S&&S.fermerPromotion)S.fermerPromotion();else w.remove()};
+  w.append(i,t,x);
+}
 let enCours=false;
 function peindreSalon(etat){
   if(!lie())return;
@@ -89,7 +104,8 @@ function peindreSalon(etat){
   const S=SPECobj(),moi=etat.moi,j1=etat.j1||{},adv=etat.adv||null,spec=Array.isArray(etat.spectateurs)?etat.spectateurs:[];
   u.textContent='';
   /* Siege du createur : Changer de deck s'il est a moi (comme siegeSalon) */
-  const s1=siege(j1,moi==='j1',moi==='j1'?[boutonChangerDeck(j1)]:[]);
+  const s1=siege(j1,moi==='j1',moi==='j1'?[boutonChangerDeck(j1)]:[],!!etat.j1);
+  bandeauPromotion(etat.promotion||null);
   let s2;
   if(adv){
     const bs=[];

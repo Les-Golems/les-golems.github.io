@@ -2743,6 +2743,8 @@ function msgInvite(){
 }
 /* Mode spectateur (spectateur.js) : quitter joueurs sans revenir a l'accueil, ou y entrer comme adversaire. */
 window.__golemsSpecQuitte=async()=>{const a=r;r=null;finPartie();if(a)try{await a.leave()}catch(e){}};
+/* 0.4 : le createur est parti avant la partie, je deviens createur (spectateur.js) ; salon public = annonce republiee par majAnnonce. */
+window.__golemsSpecPromu=o=>{createur=true;salonPublic=!!(o&&o.public);annonceVue='';nbSalon=1;if(r)majSalon()};
 window.__golemsSpecRejoint=c=>{if(window.SPEC_UI&&SPEC_UI.quitterVuePartie)try{SPEC_UI.quitterVuePartie()}catch(e){}$('partie').hidden=true;$('jouer').classList.remove('enJeu');return entre(c)};
 /* Spectateur : la vue de partie s'ouvre comme au lancement d'une partie des qu'une partie tourne dans le salon. */
 let specVue=false;function specBranche(){if(specVue||!window.SPEC)return;specVue=true;SPEC.onChange(()=>{if(!SPEC.estSpectateur()||!SPEC.etatPartie())return;if($('partie').hidden||!$('jouer').classList.contains('enJeu')){$('salon').hidden=true;$('accueil').hidden=true;$('partie').hidden=false;$('jouer').classList.add('enJeu')}})}

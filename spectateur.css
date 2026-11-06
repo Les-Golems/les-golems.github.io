@@ -14,6 +14,14 @@
 .sp-puce b{font-size:15px;white-space:nowrap}
 .sp-puce em{font:800 12px var(--corps);font-style:normal;background:var(--bleu);color:var(--encre);border-radius:5px;padding:1px 6px;margin-left:6px}
 .sp-puce.sp-moi{border-color:var(--bleu)}
+/* 0.4 : etiquette Createur sous le pseudo du siege de gauche ; bandeau de promotion sous le code du salon */
+.sp-role{font-size:13px;font-weight:800;color:var(--or);margin-top:-4px}
+.sp-promo{display:flex;align-items:flex-start;gap:10px;background:rgba(1,193,240,.08);border:1px solid var(--trait);border-left:4px solid var(--bleu);border-radius:10px;padding:10px 12px;margin:0 0 14px;font-size:14px;color:var(--doux);text-align:left}
+.sp-promo-i{flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--bleu);color:var(--encre);font:800 13px/1 var(--corps);margin-top:1px}
+.sp-promo-t{flex:1 1 auto;min-width:0}
+.sp-promo-t b{display:block;color:var(--texte);font-size:15px}
+.sp-promo-x{flex:none;background:none;border:0;color:var(--doux);font-size:20px;line-height:1;cursor:pointer;padding:0 2px;min-height:0}
+.sp-promo-x:hover{color:var(--texte)}
 
 /* Partie : lecture seule */
 #partie.sp .p-carte{cursor:zoom-in}
