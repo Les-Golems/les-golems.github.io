@@ -378,7 +378,7 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .fdr-l li::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:2px;background:#2a3f50}
 .fdr-l li:first-child::before{top:50%}.fdr-l li:last-child::before{bottom:50%}
 .fdr-pt{position:absolute;left:1px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:#3d4e5d;border:2px solid var(--panneau);box-shadow:0 0 0 2px #3d4e5d}
-.fdr-proche .fdr-pt{background:var(--bleu);box-shadow:0 0 0 2px var(--bleu),0 0 8px rgba(1,193,240,.6)}
+.fdr-proche .fdr-pt{background:var(--panneau);border-color:var(--bleu);box-shadow:0 0 0 2px var(--bleu),0 0 8px rgba(1,193,240,.6)}
 .fdr-prevu .fdr-pt{background:var(--or);box-shadow:0 0 0 2px var(--or)}
 .fdr-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
 .fdr-t small{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--doux)}
@@ -387,6 +387,9 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .fdr-etat{flex:none;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:800;line-height:1.35;white-space:nowrap;background:#3a4b59;color:#dfe8ee}
 .fdr-proche .fdr-etat{background:var(--bleu);color:var(--encre)}
 .fdr-prevu .fdr-etat{background:var(--or);color:var(--encre)}
+/* Version actuelle : pastille pleine verte, etiquette verte pleine */
+.fdr-actuelle .fdr-pt{background:#3ee86a;border-color:#3ee86a;box-shadow:0 0 0 2px #3ee86a,0 0 8px rgba(62,232,106,.55)}
+.fdr-actuelle .fdr-etat{background:#3ee86a;color:var(--encre)}
 .nv-epingler{position:absolute;top:12px;right:10px;width:26px;height:26px;padding:4px;border:1px solid var(--trait);border-radius:8px 6px 9px 5px;background:var(--panneau2);color:var(--doux);cursor:pointer;opacity:.75}
 .nv-epingler:hover,.nv-epingler:focus-visible{opacity:1;color:var(--texte)}
 .nv-epingler.on{color:var(--or);border-color:var(--or);opacity:1}
@@ -2334,14 +2337,14 @@ NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t)
    Pagination : 6 blocs recents ; un couple version + video n'est jamais coupe (il passe entier a la page suivante) ;
    la tuile « Voir les versions précédentes » prend la case suivante de la grille et sert aussi a replier. */
 const FEUILLE_DE_ROUTE=[
- {v:'0.4',nom:'Mode diffusion',etat:'proche'},
- {v:'0.5',nom:'Parties classées',etat:'prevu'},
- {nom:'Tournois, mode compétitif',etat:'tard'},
+ {v:'0.4',nom:'Nouvelle vue spectateur',etat:'actuelle'},
+ {v:'0.5',nom:'Parties classées',etat:'proche'},
+ {nom:'Tournois',etat:'tard'},
  {nom:'Cartes Événements',etat:'tard'},
  {nom:'Nouvelle interface',etat:'tard'},
  {v:'1.0',nom:'Sortie officielle',etat:'tard'}
 ];
-const ETATS_FDR={proche:'Prochaine mise à jour',prevu:'Prévu',tard:'Plus tard'};
+const ETATS_FDR={actuelle:'Version actuelle',proche:'Prochaine mise à jour',prevu:'Prévu',tard:'Plus tard'};
 const SVG_EPINGLE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.6 2.6l6.8 6.8-1.9.9-3.4 3.4.4 4.6-1.6 1.6-4.2-4.2-5.6 5.6-1.3-1.3 5.6-5.6-4.2-4.2 1.6-1.6 4.6.4 3.4-3.4z"/></svg>';
 const NV={epingles:null,romain:false,ouvert:false,room:null,blocs:[...$('notes').children]}; /* blocs : ordre d'origine, du plus recent au plus ancien */
 {
