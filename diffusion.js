@@ -465,7 +465,7 @@ function popPartie(s,pp){
   const u=U(),Mo=M(),F=s.fin,w=F.gagnant,vic=mk('div','pp-vic');
   if(w===0||w===1){vic.style.setProperty('--c',COL[w]);const h=mk('h2','','Victoire '+d_(nom(w))+nom(w));h.style.color=COL[w];vic.append(avatar(w),h)}
   else vic.append(mk('h2','','Match nul'));
-  if(F.abandon!==undefined)vic.append(mk('p','pp-sous',nom(F.abandon)+' a abandonné'));
+  if(F.abandon!==undefined)vic.append(mk('p','pp-sous',nom(F.abandon)+(F.quitte?' a quitté la partie':' a abandonné')));
   else if(F.deckVide!==undefined)vic.append(mk('p','pp-sous','Victoire par deck vide : '+nom(F.deckVide)+' n\'avait plus de carte à piocher')); /* 0.4 */
   else if(F.departage&&F.scores[0]===F.scores[1])vic.append(mk('p','pp-sous','Égalité de points : départage à la Force'));
   vic.append(score('Score final',F.scores[0],F.scores[1]));pp.append(vic);

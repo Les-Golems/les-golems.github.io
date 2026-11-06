@@ -284,7 +284,7 @@ function peindrePartieSpectateur(etatPartie){
 function finBloc(E,s){
   const f=mk('div','bloc p-fin'),w=s.fin.gagnant;
   f.append(mk('h3',w===null?'f-n':'f-v',w===null?'Match nul':'Victoire de '+nomJoueur(E,w)));
-  if(s.fin.abandon!==undefined)f.append(mk('p','p-abandon',nomJoueur(E,s.fin.abandon)+' a abandonné'));
+  if(s.fin.abandon!==undefined)f.append(mk('p','p-abandon',nomJoueur(E,s.fin.abandon)+(s.fin.quitte?' a quitté la partie':' a abandonné')));
   f.append(mk('p','',nomJoueur(E,0)+' '+s.j[0].score+' à '+s.j[1].score+' '+nomJoueur(E,1)));
   return f;
 }

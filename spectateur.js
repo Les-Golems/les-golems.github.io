@@ -85,20 +85,38 @@ function journal(x, g) {
   return s;
 }
 // État complet de la partie en cours, rejoué depuis la graine : spectateur arrivé en cours de partie compris.
-let cache = { cle: "", val: null };
+// 0.4 : la dernière paire engagée est mémorisée (sid, jg, deck, journal) ; si un joueur part (sa présence disparaît),
+// la partie est rejouée depuis les coups conservés : l'abandon (coup 'a') termine la partie chez le spectateur.
+// Départ sans coup 'a' (verrou engages retiré par un départ volontaire) : fin par départ, fin.quitte = true.
+let cache = { cle: "", val: null }, paire = null;
+function copieJ(x) { return { uid: x.uid, pseudo: x.pseudo || "", sid: x.sid, jg: x.jg, deck: x.deck || "", j: typeof x.j === "string" ? x.j : "", v: x.v || "" }; }
 function etatPartie() {
   const M = window.GolemsMoteur; if (!M) return null;
   const l = presents().filter(x => Number.isInteger(x.jg) && typeof x.sid === "string");
   let a = null, b = null;
   for (const x of l) { const y = l.find(z => z !== x && z.jg === x.jg && x.graine === x.jg); if (y) { a = x; b = y; break; } }
-  if (!a) return null;
-  const g = a.jg, j = [journal(a, g), journal(b, g)], decks = [a.deck || "", b.deck || ""];
-  const cle = g + "|" + j[0].join(",") + "|" + j[1].join(",") + "|" + decks.join("/");
+  if (a) {
+    if (!paire || paire.g !== a.jg || paire.j[0].sid !== a.sid || paire.j[1].sid !== b.sid) paire = { g: a.jg, j: [copieJ(a), copieJ(b)], engVu: false };
+    else paire.j = [copieJ(a), copieJ(b)];
+  }
+  if (!paire) return null;
+  if (engages) paire.engVu = true;
+  const g = paire.g;
+  // Joueurs encore à leur place (même sid, même partie) : leur présence fait foi, sinon la copie mémorisée.
+  const enPlace = paire.j.map(m => { const x = joueurs[m.uid]; return !!(x && !x.quitte && x.sid === m.sid && x.jg === g); });
+  const A = paire.j.map((m, i) => enPlace[i] ? { ...m, ...joueurs[m.uid], uid: m.uid } : m);
+  const j = [journal(A[0], g), journal(A[1], g)], decks = [A[0].deck || "", A[1].deck || ""];
+  // Départ volontaire d'un seul joueur sans coup 'a' : le verrou de partie a été retiré.
+  const parti = !a && paire.engVu && !engages && enPlace.filter(Boolean).length === 1 ? enPlace.indexOf(false) : -1;
+  const cle = g + "|" + j[0].join(",") + "|" + j[1].join(",") + "|" + decks.join("/") + "|" + parti;
   if (cache.cle !== cle) {
     let r; try { r = M.rejoue(g, j, decks); } catch (e) { r = { etat: null, erreur: String(e) }; }
+    if (parti >= 0 && r.etat && !r.etat.fin) {
+      try { const q = j.map((x, i) => i === parti ? x.concat("a") : x), r2 = M.rejoue(g, q, decks); if (r2.etat && r2.etat.fin) { r = r2; r.etat.fin.quitte = true; } } catch (e) {}
+    }
     cache = { cle, val: { graine: g, decks, journaux: j, etat: r.etat, erreur: r.erreur || null } };
   }
-  return { ...cache.val, joueurs: [fiche(a), fiche(b)], fin: !!(cache.val.etat && cache.val.etat.fin) };
+  return { ...cache.val, joueurs: [fiche(A[0]), fiche(A[1])], fin: !!(cache.val.etat && cache.val.etat.fin) };
 }
 
 // Suivi des places : qui était créateur (j1) et adversaire, pour annoncer une promotion à tous ;
