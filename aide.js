@@ -175,10 +175,12 @@ function texteCarte(){
   if(!d||!img||!G||d.querySelector('.aide-carte')||!$('vue')||$('vue').hidden)return;
   if($('vueTerrain')&&!$('vueTerrain').hidden)return;
   /* alt = nom, ou « nom, sous-titre » dans l'onglet Cartes */
-  const alt=img.alt||'',C=Object.values(G.CARTES).filter(c=>c.nom&&(alt===c.nom||alt.startsWith(c.nom+', '))).sort((a,b)=>b.nom.length-a.nom.length)[0];
+  /* Base et evolution portent le meme nom : la carte est d'abord reconnue par son image (cartes/<id>.jpg), le nom ne sert qu'en secours */
+  const fi=/cartes\/([0-9]+e?)\.jpg/.exec(img.getAttribute('src')||''),parImg=fi&&Object.values(G.CARTES).find(c=>c.id===fi[1]);
+  const alt=img.alt||'',C=parImg||Object.values(G.CARTES).filter(c=>c.nom&&(alt===c.nom||alt.startsWith(c.nom+', '))).sort((a,b)=>b.nom.length-a.nom.length)[0];
   if(!C||C.animal||!C.texte)return;
-  const s=h('section','aide-carte'),sous=[],st=alt.slice(C.nom.length+2).trim();
-  if(st)sous.push(st);
+  const s=h('section','aide-carte'),sous=[],v=alt.indexOf(', '),st=(alt.startsWith(C.nom+', ')?alt.slice(C.nom.length+2):v>0?alt.slice(v+2):'').trim();
+  if(st&&st!==C.nom)sous.push(st);
   if(C.base&&G.CARTES[C.base])sous.push('Évolution de '+G.CARTES[C.base].nom);
   if(C.el&&C.el.length)sous.push(C.el.map(e=>NOMS_EL[e]||e).join(', '));
   sous.push('coût '+C.cout);sous.push(C.force==null?'Force au dé':'Force '+C.force);
