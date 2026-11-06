@@ -9,22 +9,22 @@ const h=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=nul
 
 /* ===== Definitions (validees par Romain ; ne pas modifier sans son accord) ===== */
 const MC={
-  forge:{t:'Forge',d:'Au début de ton tour, juste après la pioche, tu peux placer 1 carte de ta main face cachée dans ta Forge, pour toute la partie. Chaque carte de ta Forge te donne 1 énergie par tour, dès ce tour.',va:['energie']},
-  energie:{t:'Énergie',d:'Elle sert à poser, remplacer et améliorer tes Golems. Elle vient de ta Forge, et ce qui reste à la fin de ton tour est perdu.',va:['forge']},
+  forge:{t:'Forge',d:'Au début de ton tour, juste après la pioche, tu peux placer 1 carte de ta main face cachée dans ta Forge, pour toute la partie. Chaque carte de ta Forge te donne 1 énergie par tour, dès ce tour. Certaines cartes permettent de forger autrement (Spom, Trigas).',va:['energie']},
+  energie:{t:'Énergie',d:'Elle sert à poser, remplacer et améliorer tes Golems. Elle vient de ta Forge et de certains effets (Maître du bilig), et ce qui reste à la fin de ton tour est perdu.',va:['forge']},
   voisin:{t:'Voisin',d:'Un Golem allié sur une case adjacente à la tienne (en haut, en bas, à gauche ou à droite, hors diagonale). Un animal n\'est jamais un voisin.',va:['trait']},
   enface:{t:'En face',d:'Le Golem adverse sur le même terrain et la même ligne que le tien.',va:['domine','cercle']},
   taligne:{t:'Ta ligne / ton terrain',d:'Ta ligne, ce sont les 3 cases d\'une même rangée de ta grille. Ton terrain, ce sont les 3 cases de ta colonne sous ce terrain.',va:['enface','voisin']},
   domine:{t:'Domine',d:'Chaque élément en domine un autre : Magma domine Cristal, qui domine Foudre, qui domine Brume, qui domine Roche, qui domine Magma.',va:['cercle']},
-  cercle:{t:'Cercle',d:'+1 de Force si un de tes éléments domine un élément du Golem en face. Jamais plus de +1, sauf si une carte le dit (+2 avec SuperFishman, Monsieur Poisson ou Vic222).',cercle:1,va:['domine','enface']},
+  cercle:{t:'Cercle',d:'+1 de Force si un de tes éléments domine un élément du Golem en face. Jamais plus de +1, sauf si une carte le dit (+2 avec SuperFishman, Monsieur Poisson, ou pour les alliés du terrain de Vic222).',cercle:1,va:['domine','enface']},
   trait:{t:'Trait',d:'Pour chacun de tes 2 éléments, tu gagnes +1 de Force par voisin qui a aussi cet élément, sans plafond. Si tu perds un voisin, tu perds aussitôt ce bonus.',va:['voisin']},
-  degats:{t:'Dégâts',d:'Perdre de la Force, c\'est subir des dégâts. Ils restent d\'une manche à l\'autre et ne disparaissent que si le Golem est amélioré.',va:['detruit']},
+  degats:{t:'Dégâts',d:'Perdre de la Force, c\'est subir des dégâts. Ils restent d\'une manche à l\'autre et ne disparaissent que si le Golem est amélioré ou soigné par un effet (L\'attachiante).',va:['detruit']},
   detruit:{t:'Détruit',d:'À 0 de Force ou moins, ton Golem va aussitôt à la défausse, et tous ceux qui tombent à 0 partent en même temps. Il perd tout ce qu\'il portait, et son animal va aussi à la défausse. Ses voisins perdent le bonus qu\'il leur donnait.',va:['degats','defausse']},
-  ameliorer:{t:'Améliorer / Évolution',d:'Améliorer, c\'est poser l\'évolution sur sa version de base en payant son coût. La base va à la défausse et ses dégâts sont effacés. L\'évolution a sa propre Force et son propre effet, mais garde le favori et l\'animal.',va:['remplacer']},
+  ameliorer:{t:'Améliorer / Évolution',d:'Améliorer, c\'est poser l\'évolution sur sa version de base en payant son coût. La base va à la défausse et ses dégâts sont effacés. L\'évolution a sa propre Force et son propre effet, mais garde le favori, l\'animal et les bonus reçus (Sub offert, Draft diff).',va:['remplacer']},
   remplacer:{t:'Remplacer',d:'Tu poses une nouvelle carte sur un de tes propres Golems en payant son coût, et l\'ancien va à la défausse. Ce n\'est pas une destruction.',va:['defausse','ameliorer']},
   decompte:{t:'Décompte',d:'À la fin de chaque manche, on additionne la Force de tes Golems dans chaque colonne. Le plus fort remporte le terrain et marque ses points. En cas d\'égalité, personne ne marque.',va:['taligne']},
   animal:{t:'Animal de compagnie / Maître',d:'Un animal n\'est pas un Golem : il n\'a ni Force ni élément, il compte 0 et se pose sur une case libre à côté de son maître. Il ne peut être ni déplacé ni recouvert, et il part à la défausse quand son maître quitte le jeu.',va:['detruit']},
   favori:{t:'Favori',d:'Le Golem allié que tu choisis à la pose d\'Indra. Il gagne +1 de Force tant qu\'Indra est en jeu (+2 avec La Fan enflammée), et il le reste si l\'un des deux est amélioré.',va:['ameliorer']},
-  defausse:{t:'Défausse',d:'La pile des cartes détruites, remplacées, des bases d\'une évolution et des animaux qui suivent leur maître. Une carte en défausse ne revient jamais en jeu.',va:['detruit','remplacer']}
+  defausse:{t:'Défausse',d:'La pile des cartes qui quittent le jeu : Golems détruits ou remplacés, base d\'un Golem amélioré, animal qui part, cartes défaussées de ta main. Une carte en défausse ne revient jamais en jeu.',va:['detruit','remplacer']}
 };
 /* Formes reconnues (mot entier, sans tenir compte de la casse) : pluriels et formes conjuguees */
 const FORMES={
@@ -171,6 +171,7 @@ addEventListener('resize',()=>{if(!ib.hidden)place()});
 const NOMS_EL={magma:'Magma',cristal:'Cristal',foudre:'Foudre',brume:'Brume',roche:'Roche'};
 function texteCarte(){
   const d=$('vueDetail'),img=$('vueImg'),G=window.GolemsMoteur;
+  if(window.golemsAide&&window.golemsAide.sansTexteCarte)return; /* reglage de comparaison (captures avant/apres) */
   if(!d||!img||!G||d.querySelector('.aide-carte')||!$('vue')||$('vue').hidden)return;
   if($('vueTerrain')&&!$('vueTerrain').hidden)return;
   /* alt = nom, ou « nom, sous-titre » dans l'onglet Cartes */
