@@ -45,7 +45,7 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-mid{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:24px;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--trait);border-radius:13px 22px 12px 24px/22px 13px 24px 12px}
 #dif .d-sc{display:flex;align-items:center;gap:22px;font:400 92px/1 var(--titre);border-radius:14px 9px 15px 8px;padding:0 10px}
 #dif .d-sc.d-clic{cursor:pointer;transition:background .15s,box-shadow .15s}
-#dif .d-sc.d-clic:hover,#dif .d-sc.d-clic:focus-visible{background:rgba(255,255,255,.09);box-shadow:none;outline:none}
+#dif .d-sc.d-clic:hover,#dif .d-sc.d-clic:focus-visible{background:color-mix(in srgb,var(--or) 10%,transparent);box-shadow:none;outline:none}
 #dif .d-sc b{font-weight:400;color:var(--moi)}
 #dif .d-sc em{font-style:normal;color:var(--lui)}
 #dif .d-sc span{font-size:56px;color:var(--doux)}
@@ -54,8 +54,8 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-cote b{font:400 48px/1 var(--titre);color:var(--texte)}
 #dif .d-pts{display:inline-flex;gap:6px}
 #dif .d-pts i{width:20px;height:20px;background:var(--trait);border-radius:7px 4px 8px 3px/4px 8px 3px 7px;transform:rotate(45deg) scale(.8)}
-#dif .d-pts i.fait{background:#0d6f88}
-#dif .d-pts i.on{background:var(--bleu);box-shadow:0 0 10px var(--bleu)}
+#dif .d-pts i.fait{background:color-mix(in srgb,var(--or) 45%,var(--encre))} /* losanges de Manche et Tour : dore des titres de section */
+#dif .d-pts i.on{background:var(--or);box-shadow:0 0 10px var(--or)}
 /* losanges des manches terminees : rouvrent le recapitulatif de la manche */
 #dif .d-pts i.d-clic{cursor:pointer;transition:transform .15s,box-shadow .15s,background .15s}
 #dif .d-pts i.d-clic:hover,#dif .d-pts i.d-clic:focus-visible{transform:rotate(45deg) scale(1);background:#c9d4e2;box-shadow:0 0 0 4px rgba(255,255,255,.09);outline:none}
