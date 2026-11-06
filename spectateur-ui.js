@@ -238,7 +238,8 @@ function journal(E,s){
   su.append(' ',mk('span','j-manche','Manche '+pg));nav.append(va('<','Manche précédente',pg-1,pg<=1),va('>','Manche suivante',pg+1,pg>=nb));
   const causes=causesLog(s);
   (pages[pg-1]||[]).forEach(e=>{const[p,x]=e,[c,n]=genreLog(x),d=mk('div',c);
-    d.append(ico(n),texteLog((p===null?'':nomJoueur(E,p)+' : ')+x+(causes.get(e)||'')));li.append(d)});
+    const dv=p!==null&&U.ligneDeckVide&&U.ligneDeckVide(x,nomJoueur(E,p),nomJoueur(E,1-p),false,false); /* deck vide (meule) : X n'a pas pu piocher, +1 point pour Y */
+    d.append(ico(n),texteLog(dv||(p===null?'':nomJoueur(E,p)+' : ')+x+(causes.get(e)||'')));li.append(d)});
   jo.append(su,nav,li);
   return {jo,li};
 }

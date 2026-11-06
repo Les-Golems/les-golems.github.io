@@ -89,11 +89,16 @@ function lanceVol(){
     {transform:'translate('+dx+'px,'+dy+'px) scale('+sc+')',opacity:1,offset:.85},{transform:'translate('+dx+'px,'+dy+'px) scale('+sc+')',opacity:0}],{duration:reste,easing:'cubic-bezier(.35,.6,.3,1)',fill:'forwards'});
   an.onfinish=()=>im.remove();an.oncancel=()=>im.remove();
 }
-/* Moments forts du journal : destruction, evolution, terrain remporte ou egalite, pose d'animal, points hors terrains */
+/* Deck vide (regle de la meule) : « n'a pas pu piocher (deck vide) : +1 point pour l'adversaire. », au nom du joueur qui n'a pas pu piocher */
+const RE_DV=/^n'a pas pu piocher \(deck vide\) : \+(\d+) points? pour l'adversaire\.?$/;
+/* Points recus a la manche m quand l'adversaire n'a pas pu piocher (evenements 'dv' du moteur) */
+function piocheImp(s,m){const r=[0,0];(s.stats.ev||[]).forEach(e=>{if(e.t==='dv'&&e.m===m)r[1-e.cp]+=e.n});return r}
+/* Moments forts du journal : destruction, evolution, terrain remporte ou egalite, pose d'animal, points hors terrains, pioche impossible */
 function fort(p,x){
   if(p!==0&&p!==1){if(/ meur(t|ent)( ensuite)?[ .:]/.test(x)||/ est détruit\.$/.test(x))return 'defausse';if(/ : égalité \d+ partout\.$/.test(x))return 'coupe';return null}
   if(/^améliore /.test(x))return 'manche';
   if(/^marque /.test(x))return 'coupe';
+  if(RE_DV.test(x))return 'coupe';
   const a=/^pose (.+)\.$/.exec(x);if(a&&Object.values(M().CARTES).some(c=>c.animal&&c.nom===a[1]))return 'main';
   if(/:\s\+\d+( points?)?\.$/.test(x)&&!(E&&E.etat.terrains.some(T=>x.startsWith(T.nom+' lance '))))return 'coupe';
   return null;
@@ -132,21 +137,23 @@ function ligneDerniere(s){
   for(let i=s.log.length-1;i>=0;i--){const[p,x]=s.log[i];if(p===d.p&&/^(pose|remplace|améliore) /.test(x))return x}
   return null;
 }
-/* Points de chaque joueur a la manche m, lus dans le journal du decompte (terrains, de du Plateau, bonus de cartes) */
+/* Points de chaque joueur a la manche m, lus dans le journal du decompte (terrains, de du Plateau, bonus de cartes), plus les pioches impossibles adverses de la manche */
 function ptsManche(s,m){
   const R=s.reperes[m-1];if(!R)return null;
   const r=[0,0];
   for(let i=R[0];i<s.log.length&&(m<s.reperes.length?i<s.reperes[m][0]:true);i++){const[p,x]=s.log[i];if(p!==0&&p!==1)continue;
     const q=/:\s\+(\d+)( points?)?\.$/.exec(x);if(q)r[p]+=+q[1]}
+  const d=piocheImp(s,m);r[0]+=d[0];r[1]+=d[1]; /* deck vide (meule) : pioches impossibles adverses de la manche */
   return r;
 }
-/* Points de la manche gagnes hors terrains : lignes « Carte (Evolution) : +n points. » du journal (ni « marque T », ni « T lance ») */
+/* Points de la manche gagnes hors terrains : lignes « Carte (Evolution) : +n points. » du journal (ni « marque T », ni « T lance »), puis pioches impossibles adverses */
 function bonusManche(s,m){
   const R=s.reperes[m-1],r=[[],[]];if(!R)return r;
   for(let i=R[0];i<s.log.length&&(m<s.reperes.length?i<s.reperes[m][0]:true);i++){const[p,x]=s.log[i];if(p!==0&&p!==1)continue;
     const q=/:\s\+(\d+)( points?)?\.$/.exec(x);if(!q||/^marque /.test(x)||s.terrains.some(T=>x.startsWith(T.nom+' lance ')))continue;
     const a=/^(.+?) \((.+?)\) : /.exec(x),C=a&&Object.values(M().CARTES).find(c=>c.nom===a[2]),ef=C&&C.texte&&C.texte.indexOf(' : ')>0?C.texte.slice(0,C.texte.indexOf(' : ')):null;
     r[p].push('+'+q[1]+' '+(a?(ef?ef+' ('+a[2]+')':a[1]+' ('+a[2]+')'):x.slice(0,x.indexOf(' : '))))}
+  const d=piocheImp(s,m);[0,1].forEach(p=>{if(d[p])r[p].push('+'+d[p]+' Pioche impossible ('+nom(1-p)+')')}); /* deck vide (meule) */
   return r;
 }
 function deManche(s,m,terrain){
@@ -313,6 +320,8 @@ function phrase(p,x){
   /* « marque T (a contre b) : +n » : sans le detail des Forces */
   const mq=/^marque (.+) \(\d+ contre \d+\) : (\+\d+)$/.exec(x);
   if(mq){t.append(pseudo(p),' marque ');t.append(nbCartes(mq[1]),' : '+mq[2]);return t}
+  /* deck vide (meule) : « X n'a pas pu piocher : +1 point pour Y » */
+  const dv=RE_DV.exec(x);if(dv&&(p===0||p===1)){t.append(pseudo(p)," n'a pas pu piocher : +"+dv[1]+(+dv[1]>1?' points':' point')+' pour ',pseudo(1-p));return t}
   /* « Carte : effet », « Carte (Evolution) lance ... », « Carte perd ... » : la carte en gras, le joueur entre parenthèses */
   const nm=N.re.source.slice(1,-1),m=new RegExp('^((?:'+nm+')(?: \\((?:'+nm+')\\))?)( : | )').exec(x);
   if(m){t.append(nbCartes(m[1]),' (',pseudo(p),')');t.append(nbCartes(x.slice(m[1].length)));return t}

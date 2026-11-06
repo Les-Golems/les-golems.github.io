@@ -30,7 +30,7 @@ function verifie(s){
     assert.strictEqual(new Set(vu).size,n,'cartes perdues');assert.strictEqual(vu.length,n,'cartes doublees');
     J.grille.forEach((L,l)=>L.forEach((g,k)=>{
       if(g&&M.estAnimal(g.c)){assert(J.grille.some(R=>R.some(h=>h&&h.c===g.c?false:h&&h.c===g.maitre)),'animal sans son maitre en jeu');assert.strictEqual(M.forceDe(s,p,l,k),0,'animal : Force 0');return}
-      if(g&&!s.attente&&!(s.fin&&s.fin.deckVide!==undefined))assert(M.forceDe(s,p,l,k)>0,'Golem mort en jeu')})); /* 0.4 : la pioche manquee arrete la partie net, parfois avant la mort d'un Golem */
+      if(g&&!s.attente)assert(M.forceDe(s,p,l,k)>0,'Golem mort en jeu')}));
   });
 }
 let tMax=0,nMax=0;const bilan={0:0,1:0,nul:0};
@@ -274,7 +274,7 @@ function finDeManche(s){s.joueur=1;s.premier=0;s.tour=3;M.applique(s,1,{t:'x'})}
   assert.deepStrictEqual(M.legales(s,0).map(a=>a.c),[6,9]);assert.deepStrictEqual(M.attendus(s),[0]);
   assert.deepStrictEqual(M.decode(M.code({t:'s',c:9})),{t:'s',c:9});
   M.applique(s,0,{t:'s',c:9});assert.deepStrictEqual(s.j[0].forge,[9]);assert.strictEqual(s.j[0].energie,0);assert(!s.attente);assert(M.legales(s,0).some(a=>a.t==='x'));
-  const u=vide();delete u.deckLibre;u.j[0].main=[24];u.j[0].energie=1;M.applique(u,0,{t:'p',c:24,l:0,k:0});assert(!u.attente,'main vide, deck vide');assert(u.fin&&u.fin.deckVide===0&&u.fin.gagnant===1,'0.4 : Spam sur deck vide, defaite');
+  const u=vide();delete u.deckLibre;u.j[0].main=[24];u.j[0].energie=1;M.applique(u,0,{t:'p',c:24,l:0,k:0});assert(!u.attente,'main vide, deck vide');assert(!u.fin&&u.j[1].score===1&&u.j[0].score===0,'Spam sur deck vide : 1 point pour l adversaire');
   const r=vide();r.j[0].main=[24];r.j[0].deck=[6];r.j[0].energie=1;M.applique(r,0,{t:'p',c:24,l:0,k:0});assert.strictEqual(r.attente.t,'s');assert.strictEqual(M.robot(r,0,'difficile').c,6);
 }
 { // Mode Avion : Slim K adverse bloque, ses voisins touches, les terrains non filtres
@@ -540,10 +540,10 @@ duel('facile','normal');duel('normal','difficile');
   s=prep([57]);s.j[0].deck=[1,2,4,5,7];s.j[1].deck=[13,14,16];moi(s,24,1,0,0);moi(s,30,2,0,1);moi(s,18,1,0,2);adv(s,12,1,0,0);adv(s,39,1,0,1);
   pose(s,57,1,1);assert.strictEqual(s.j[0].main.length,3,'4 Golems Brume/Foudre : 3 maximum');assert.strictEqual(s.j[1].main.length,0,'0 Golem : rien');
   assert.deepStrictEqual(s.j[0].deck,[5,7]);assert(s.log.some(x=>/La Bretagne : aucune pioche/.test(x[1])));
-  /* 0.4 : deck vide, defaite. L'adversaire doit piocher 3 cartes, deck vide : il perd ; 3 a piocher avec 1 carte au deck : le joueur de Titom76 perd */
+  /* Deck vide : 1 point a l'adversaire par carte. L'adversaire doit piocher 3 cartes, deck vide : 3 points pour le joueur de Titom76 ; 2 a piocher (Trigas et Titom76, K-Chan n'est ni Brume ni Foudre) avec 1 carte au deck : 1 point pour l'adversaire */
   s=prep([57]);delete s.deckLibre;s.j[0].deck=[1,2];s.j[1].deck=[];adv(s,6,3,0,0);adv(s,0,8,0,1);adv(s,24,1,0,2);pose(s,57,1,1);
-  assert.strictEqual(s.j[0].main.length,1,'Titom76 seul : 1');assert.strictEqual(s.j[1].main.length,0,'deck vide');assert(s.fin&&s.fin.deckVide===1&&s.fin.gagnant===0,'Bretagne : l adversaire perd');
-  s=prep([57]);delete s.deckLibre;s.j[0].deck=[1];moi(s,24,1,0,0);moi(s,30,2,0,1);pose(s,57,1,1);assert.strictEqual(s.j[0].main.length,1,'3 a piocher, 1 carte au deck');assert(s.fin&&s.fin.deckVide===0&&s.fin.gagnant===1,'Bretagne : son joueur perd');
+  assert.strictEqual(s.j[0].main.length,1,'Titom76 seul : 1');assert.strictEqual(s.j[1].main.length,0,'deck vide');assert(!s.fin&&s.j[0].score===3&&s.j[1].score===0,'Bretagne : 3 points pour le joueur de Titom76');
+  s=prep([57]);delete s.deckLibre;s.j[0].deck=[1];moi(s,24,1,0,0);moi(s,30,2,0,1);pose(s,57,1,1);assert.strictEqual(s.j[0].main.length,1,'2 a piocher, 1 carte au deck');assert(!s.fin&&s.j[1].score===1&&s.j[0].score===0,'Bretagne : 1 point pour l adversaire');
   s=prep([60]);s.j[0].deck=[1,2,4];moi(s,57,1,1,1);pose(s,60,1,1);assert.strictEqual(s.j[0].main.length,0,'evolution : pas de Bretagne');
   // --- Caramel a volonte : tour de la pose, une fois par manche, apres la Forge, perdu en fin de tour
   s=prep([60,45]);s.j[0].energie=4;moi(s,57,1,1,1);pose(s,60,1,1);assert.strictEqual(s.j[0].energie,0);
@@ -1098,17 +1098,17 @@ duel('facile','normal');duel('normal','difficile');
   s.j[0].deck=dk(9);moi(s,V,1,2,2);moi(s,V+1,1,2,0);tour(s,1);eq(s.joueur,0);eq(s.tour,2);eq(s.j[0].main.length,4,'2 + 2 Velnen');ok(L(s).includes('Graine de Golem : pioche 2 cartes de plus.'));
   moi(s,V+2,1,0,1);tour(s,0);tour(s,1);eq(s.j[0].main.length,5,'2 + 3 Velnen');
   s=prep([]);s.j[0].deck=dk(9);s.j[1].deck=dk(9);adv(s,12,1,0,0);moi(s,V,1,0,0);tour(s,0);eq(s.j[1].main.length,1,'le Velnen adverse ne compte pas');tour(s,1);eq(s.j[0].main.length,3);
-  /* 0.4 : deck vide, defaite. Deck de 3 et deux Velnen : 2 + 1, puis la 2e pioche de la Graine echoue ; deck de 2 : la Graine echoue ; deck vide : la pioche du tour echoue */
-  s=prep([]);delete s.deckLibre;s.j[0].deck=dk(3);moi(s,V,1,0,0);moi(s,V+1,1,0,1);s.joueur=1;tour(s,1);eq(s.j[0].main.length,3,'deck de 3 : 2 + 1');eq(s.j[0].deck.length,0);ok(s.fin&&s.fin.deckVide===0&&s.fin.gagnant===1,'Graine sur deck vide : defaite');ok(!L(s).some(x=>/Graine de Golem : pioche/.test(x)));
-  s=prep([]);delete s.deckLibre;s.j[0].deck=dk(2);moi(s,V,1,0,0);s.joueur=1;tour(s,1);eq(s.j[0].main.length,2,'deck de 2 : les 2 du tour');ok(s.fin&&s.fin.deckVide===0,'deck de 2 + Velnen : defaite');
-  s=prep([]);delete s.deckLibre;s.j[0].deck=[];moi(s,V,1,0,0);s.joueur=1;tour(s,1);eq(s.j[0].main.length,0,'deck vide');ok(s.fin&&s.fin.deckVide===0&&s.fin.gagnant===1);
+  /* Deck vide : 1 point a l'adversaire par carte. Deck de 3 et deux Velnen : 2 + 1, puis la 2e pioche de la Graine donne 1 point ; deck de 2 : la Graine donne 1 point ; deck vide : 2 + 1 points */
+  s=prep([]);delete s.deckLibre;s.j[0].deck=dk(3);moi(s,V,1,0,0);moi(s,V+1,1,0,1);s.joueur=1;tour(s,1);eq(s.j[0].main.length,3,'deck de 3 : 2 + 1');eq(s.j[0].deck.length,0);ok(!s.fin&&s.j[1].score===1,'Graine sur deck vide : 1 point');
+  s=prep([]);delete s.deckLibre;s.j[0].deck=dk(2);moi(s,V,1,0,0);s.joueur=1;tour(s,1);eq(s.j[0].main.length,2,'deck de 2 : les 2 du tour');ok(!s.fin&&s.j[1].score===1,'deck de 2 + Velnen : 1 point');
+  s=prep([]);delete s.deckLibre;s.j[0].deck=[];moi(s,V,1,0,0);s.joueur=1;tour(s,1);eq(s.j[0].main.length,0,'deck vide');ok(!s.fin&&s.j[1].score===3&&s.j[0].score===0,'deck vide + Velnen : 3 points');
   // copies : Apo deguise en Velnen et chansonnier qui l'a copie comptent ; chansonnier sans copie, non ; Velnen mort ou evolue, non
   s=prep([]);s.j[0].deck=dk(9);moi(s,48,3,0,0,{cp:'041'});moi(s,CH,3,1,1,{cp:'041'});moi(s,CH+1,3,2,2,{cp:null});eq(M.graines(s.j[0].grille),2);s.joueur=1;tour(s,1);eq(s.j[0].main.length,4,'Apo + chansonnier en Velnen');
   s=prep([CH]);s.j[0].deck=dk(9);moi(s,V,1,1,1);eq(M.graines(s.j[0].grille),1);pose(s,CH,1,1);eq(M.graines(s.j[0].grille),0,'evolue : plus de Graine');
   s=prep([48]);s.j[0].deck=dk(9);moi(s,45,2,1,1);moi(s,V,1,0,1);pose(s,48,1,1);eq(s.j[0].grille[1][1].cp,'041','Apo copie la Graine d office');eq(M.graines(s.j[0].grille),2);
   s=prep([]);moi(s,V,1,0,0);moi(s,57,1,0,1);moi(s,69,0,1,1,{maitre:57});eq(M.graines(s.j[0].grille),1,'un animal ne compte pas');
   // robot : Velnen posable et pose de valeur ; evolution qui perd la Graine reste legale
-  for(const niv of ['normal','difficile']){s=prep([V]);s.j[0].energie=3;let a=M.robot(s,0,niv);eq(M.code(a).slice(0,2),'p~',niv+' : Velnen pose')}
+  for(const niv of ['normal','difficile']){s=prep([V]);s.j[0].energie=3;s.j[0].deck=dk(30);let a=M.robot(s,0,niv);eq(M.code(a).slice(0,2),'p~',niv+' : Velnen pose')}
   // --- robot : refus des copies nuisibles, copies utiles, determinisme
   for(const niv of ['normal','difficile']){
     s=prep([CH]);adv(s,0,8,1,1);chanson(s,1,1);let a=M.robot(s,0,niv);deq(a,{t:'i',o:0},niv+' : refuse KaTarN en manche 1');deq(M.robot(s,0,niv),a,'deterministe');
@@ -1421,7 +1421,7 @@ duel('facile','normal');duel('normal','difficile');
       if(choix){x=M.robot(u,p,choix(p));assert(x,'robot sans coup');}else{const pref=l.filter(y=>y.t==='p'||y.t==='f'||y.t==='j'||y.t==='i'||y.t==='e'||y.t==='w'||y.t==='y');x=pref.length&&rnd(5)?pref[rnd(pref.length)]:l[rnd(l.length)]}
       assert(x.t!=='r','coup r');
       M.applique(u,p,x);j[p].push(M.code(x));verifie(u);verifieR(u)}
-    if(u.fin.deckVide===undefined)eq(u.resultats.length,3,'trois manches memorisees'); /* 0.4 : une defaite par deck vide arrete la partie avant */
+    eq(u.resultats.length,3,'trois manches memorisees');
     const r=M.rejoue(gr,[M.litJournal(M.ecritJournal(j[0])),M.litJournal(M.ecritJournal(j[1]))],dk);assert(!r.erreur,r.erreur);assert.strictEqual(JSON.stringify(r.etat),JSON.stringify(u),'rejeu Bellock/Loxim '+gr);M.bilan(u);nv++;
     return cpt(u.log.map(y=>y[1]),u)};
   const add=(t,c)=>{for(const k in c)t[k]=(t[k]||0)+c[k]};
@@ -1479,60 +1479,72 @@ duel('facile','normal');duel('normal','difficile');
   ok(evB>0,'aucune evolution jouee sur la Boutique par le robot');
   console.log('Boutique 0.2b.2 OK : '+nv+' verifications, '+nr+' parties robot avec La Boutique ('+evB+' evolutions jouees dessus, dont '+evE+' avec Elessar adverse), rejeux identiques');
 }
-{ // 0.4 : deck vide. Un joueur qui doit piocher alors que son deck est vide perd aussitot la partie (pioche carte par carte), quel que soit le score.
+{ // Deck vide (regle de la meule) : « Si ton deck est vide, chaque carte que tu dois piocher donne 1 point a ton adversaire. » La partie continue.
   // Ids : KaTarN 0, Slim K 3, Cyrdan 12, Le Q 18, Trigas 24, Titom76 57, Velnen 78, Jacen et Jaina 123.
   let nv=0;const ok=(c,m)=>{assert(c,m);nv++},eq=(a,b,m)=>{assert.strictEqual(a,b,m);nv++},deq=(a,b,m)=>{assert.deepStrictEqual(a,b,m);nv++};
-  const LIGNE='doit piocher mais son deck est vide : il perd la partie.';
+  const LIGNE='n\'a pas pu piocher (deck vide) : +1 point pour l\'adversaire.';
   const prep=()=>{const s=M.nouvelle(11,['','']);s.phase='jeu';s.mull=[true,true];s.joueur=0;s.premier=0;s.tour=1;
     s.j.forEach(J=>{J.main=[];J.deck=[];J.forge=[];J.defausse=[];J.etapeForge=false;J.energie=30;J.grille=[[null,null,null],[null,null,null],[null,null,null]]});s.terrains=[TA(1),TA(8),TA(4)];return s};
   const moi=(s,c,f,l,k,x)=>{s.j[0].grille[l][k]={c,f,d:0,...(x||{})}},adv=(s,c,f,l,k,x)=>{s.j[1].grille[l][k]={c,f,d:0,...(x||{})}};
-  const perd=(s,p,m)=>{ok(s.fin&&s.fin.deckVide===p,m+' : deckVide');eq(s.fin.gagnant,1-p,m+' : l adversaire gagne');eq(s.phase,'fin');
-    eq(s.fin.departage,false);ok(s.fin.abandon===undefined);eq(M.legales(s,0).length+M.legales(s,1).length,0,m+' : plus aucun coup');eq(M.attendus(s).length,0);
-    const d=s.log[s.log.length-1];eq(d[0],p,m+' : journal du perdant');eq(d[1],LIGNE,m+' : journal');ok(!s.attente);
-    const B=M.bilan(s);eq(B.fin.cause,'deck vide');eq(B.fin.perdant,p)};
-  // --- debut de tour : deck vide, score largement en faveur du perdant
-  let s=prep();s.j[1].score=12;M.applique(s,0,{t:'x'});perd(s,1,'debut de tour');eq(s.j[1].main.length,0);deq(s.fin.scores,[0,12]);
-  // --- pioche partielle : 2 a piocher, 1 carte au deck : il la pioche, puis la 2e pioche echoue
-  s=prep();s.tour=2;s.j[1].deck=[40];M.applique(s,0,{t:'x'});perd(s,1,'2 pour 1');deq(s.j[1].main,[40],'la derniere carte est piochee');eq(s.j[1].deck.length,0);
-  // second joueur au 1er tour de la manche : 1 seule carte, deck de 1 : pas de defaite
-  s=prep();s.j[1].deck=[40];M.applique(s,0,{t:'x'});ok(!s.fin,'1 a piocher, 1 au deck');eq(s.joueur,1);
-  // premier joueur : deck vide au tour suivant
-  s=prep();s.tour=2;s.j[1].deck=[40,41];M.applique(s,0,{t:'x'});ok(!s.fin);M.applique(s,1,{t:'n'});M.applique(s,1,{t:'x'});perd(s,0,'premier, deck vide au tour 3');
-  // --- Graine de Golem : 2 du tour + 1 de Velnen, deck de 2
-  s=prep();s.j[1].deck=[40,41];adv(s,78,1,0,0);s.tour=2;M.applique(s,0,{t:'x'});perd(s,1,'Graine de Golem');eq(s.j[1].main.length,2);ok(!s.log.some(x=>/Graine de Golem : pioche/.test(x[1])));
-  // --- Spam de Trigas : deck vide, defaite ; 1 carte au deck : pioche puis Forge
-  s=prep();s.j[0].main=[24];M.applique(s,0,{t:'p',c:24,l:0,k:0});perd(s,0,'Spam');ok(s.j[0].grille[0][0]&&s.j[0].grille[0][0].c===24,'Trigas reste pose');
-  s=prep();s.j[0].main=[24];s.j[0].deck=[40];M.applique(s,0,{t:'p',c:24,l:0,k:0});ok(!s.fin);eq(s.attente.t,'s');
-  // --- La Bretagne : chacun pioche, le joueur de Titom76 d'abord. Deux decks vides : c'est le joueur de Titom76 qui perd
-  s=prep();s.j[0].main=[57];adv(s,24,1,0,0);M.applique(s,0,{t:'p',c:57,l:1,k:1});perd(s,0,'Bretagne, son joueur d abord');
-  s=prep();s.j[0].main=[57];s.j[0].deck=[40];adv(s,24,1,0,0);M.applique(s,0,{t:'p',c:57,l:1,k:1});perd(s,1,'Bretagne, l adversaire');eq(s.j[0].main.length,1);
-  s=prep();s.j[0].main=[57];s.j[0].deck=[40];M.applique(s,0,{t:'p',c:57,l:1,k:1});ok(!s.fin,'adversaire sans Golem Brume ou Foudre : 0 a piocher, pas de defaite');
-  // --- Jacen et Jaina : a la pose (les chats sont poses), puis a la mort du maitre (cause : l'adversaire), jamais quand on remplace soi-meme le maitre
-  s=prep();moi(s,0,8,1,1);s.j[0].main=[123];M.applique(s,0,{t:'p',c:123,l:0,k:1});perd(s,0,'Jacen et Jaina a la pose');ok(s.j[0].grille[0][1]&&s.j[0].grille[0][1].c===123,'chats sur la grille');
-  s=prep();moi(s,0,8,1,1);s.j[0].main=[123];s.j[0].deck=[40];M.applique(s,0,{t:'p',c:123,l:0,k:1});ok(!s.fin);deq(s.j[0].main,[40]);ok(M.bilan(s).joueurs,'bilan apres une pioche des chats (plantait en 0.3)');
+  /* p a manque n pioches : n lignes de journal a son nom, n evenements 'dv', score de l'adversaire sc, partie qui continue, bilan juste */
+  const manque=(s,p,n,sc,m)=>{ok(!s.fin,m+' : la partie continue');eq(s.log.filter(x=>x[0]===p&&x[1]===LIGNE).length,n,m+' : journal');
+    eq(s.stats.ev.filter(e=>e.t==='dv'&&e.cp===p).length,n,m+' : stats');eq(s.j[1-p].score,sc,m+' : score de l adversaire');
+    const B=M.bilan(s);eq(B.joueurs[p].piochesManquees,n,m+' : bilan, pioches manquees');eq(B.joueurs[1-p].pointsDeckVide,n,m+' : bilan, points recus')};
+  // --- debut de tour : second joueur, 1er tour de manche, 1 carte a piocher, deck vide : 1 point ; le score du joueur au deck vide ne bouge pas
+  let s=prep();s.j[1].score=12;M.applique(s,0,{t:'x'});manque(s,1,1,1,'debut de tour');eq(s.j[1].score,12);eq(s.joueur,1);deq(M.attendus(s),[1]);
+  // tour 2 : 2 a piocher, deck vide : 2 points
+  s=prep();s.tour=2;M.applique(s,0,{t:'x'});manque(s,1,2,2,'2 a piocher, deck vide');
+  // --- pioche de 2 avec 1 carte au deck : 1 carte + 1 point
+  s=prep();s.tour=2;s.j[1].deck=[40];M.applique(s,0,{t:'x'});manque(s,1,1,1,'2 pour 1');deq(s.j[1].main,[40],'la derniere carte est piochee');eq(s.j[1].deck.length,0);
+  // second joueur au 1er tour de la manche : 1 seule carte, deck de 1 : aucun point
+  s=prep();s.j[1].deck=[40];M.applique(s,0,{t:'x'});manque(s,1,0,0,'1 a piocher, 1 au deck');
+  // le jeu continue : le joueur au deck vide joue son tour, l'autre repioche normalement
+  s=prep();s.tour=2;s.j[1].deck=[40,41];s.j[0].deck=[42,43,44];M.applique(s,0,{t:'x'});M.applique(s,1,{t:'n'});M.applique(s,1,{t:'x'});eq(s.tour,3);manque(s,0,0,0,'deck de 3');deq(s.j[0].main,[42,43]);
+  // --- Graine de Golem : 2 du tour + 1 de Velnen, deck de 2 : 1 point
+  s=prep();s.j[1].deck=[40,41];adv(s,78,1,0,0);s.tour=2;M.applique(s,0,{t:'x'});manque(s,1,1,1,'Graine de Golem');eq(s.j[1].main.length,2);{const L=s.log.map(x=>x[1]),i=L.indexOf('Graine de Golem : pioche 1 carte de plus.');ok(i>=0&&L[i+1]===LIGNE,'Graine : l effet, puis le point')}
+  // --- Spam de Trigas : deck vide, 1 point, Trigas reste pose ; 1 carte au deck : pioche puis Forge, aucun point
+  s=prep();s.j[0].main=[24];M.applique(s,0,{t:'p',c:24,l:0,k:0});manque(s,0,1,1,'Spam');ok(s.j[0].grille[0][0]&&s.j[0].grille[0][0].c===24,'Trigas reste pose');ok(!s.attente,'main vide : pas de Forge du Spam');
+  s=prep();s.j[0].main=[24];s.j[0].deck=[40];M.applique(s,0,{t:'p',c:24,l:0,k:0});manque(s,0,0,0,'Spam, 1 carte');eq(s.attente.t,'s');
+  // --- La Bretagne : chacun pioche, le joueur de Titom76 d'abord ; c'est le joueur qui pioche qui donne le point
+  s=prep();s.j[0].main=[57];adv(s,24,1,0,0);M.applique(s,0,{t:'p',c:57,l:1,k:1});manque(s,0,1,1,'Bretagne, son joueur');manque(s,1,1,1,'Bretagne, l adversaire');
+  ok(s.log.findIndex(x=>x[0]===0&&x[1]===LIGNE)<s.log.findIndex(x=>x[0]===1&&x[1]===LIGNE),'le joueur de Titom76 pioche le premier');
+  s=prep();s.j[0].main=[57];s.j[0].deck=[40];adv(s,24,1,0,0);adv(s,6,2,0,1);M.applique(s,0,{t:'p',c:57,l:1,k:1});manque(s,1,2,2,'Bretagne sur l adversaire');manque(s,0,0,0,'Bretagne, son joueur pioche');eq(s.j[0].main.length,1);
+  s=prep();s.j[0].main=[57];s.j[0].deck=[40];M.applique(s,0,{t:'p',c:57,l:1,k:1});manque(s,1,0,0,'adversaire sans Golem Brume ou Foudre : 0 a piocher');
+  // --- Jacen et Jaina : a la pose (les chats sont poses, pas de ligne de pioche), puis a la mort du maitre, jamais quand on remplace soi-meme le maitre
+  s=prep();moi(s,0,8,1,1);s.j[0].main=[123];M.applique(s,0,{t:'p',c:123,l:0,k:1});manque(s,0,1,1,'Jacen et Jaina a la pose');ok(s.j[0].grille[0][1]&&s.j[0].grille[0][1].c===123,'chats sur la grille');
+  ok(!s.stats.ev.some(e=>e.t==='jj'),'pas d evenement de pioche des chats');{const i=s.log.findIndex(x=>/^Jacen et Jaina : à la pose, pioche/.test(x[1]));ok(i>=0&&s.log[i+1][1]===LIGNE,'journal : l effet, puis le point')}
+  s=prep();moi(s,0,8,1,1);s.j[0].main=[123];s.j[0].deck=[40];M.applique(s,0,{t:'p',c:123,l:0,k:1});manque(s,0,0,0,'Jacen et Jaina, 1 carte');deq(s.j[0].main,[40]);
   s=prep();moi(s,0,1,0,0);moi(s,123,0,0,1,{maitre:0});adv(s,1,8,0,2);s.joueur=1;s.j[1].main=[3];
-  M.applique(s,1,{t:'p',c:3,l:0,k:2});perd(s,0,'Jacen et Jaina, maitre detruit par Slim K adverse');ok(s.j[0].defausse.includes(123)&&!s.j[0].grille[0][1],'chats a la defausse');ok(s.log.some(x=>/^Slim K : 1 dégât/.test(x[1])));
-  s=prep();moi(s,0,8,1,1);moi(s,123,0,0,1,{maitre:0});s.j[0].main=[12];M.applique(s,0,{t:'p',c:12,l:1,k:1});ok(!s.fin,'maitre remplace par son joueur : pas de pioche');ok(s.j[0].defausse.includes(123));
-  // --- regarder sans piocher : Analyse du Q sur deck vide, rien
-  s=prep();s.j[0].main=[18];M.applique(s,0,{t:'p',c:18,l:0,k:0});ok(!s.fin&&!s.attente,'Le Q, deck vide : pas de defaite');
-  // --- abandon impossible apres la fin
-  s=prep();M.applique(s,0,{t:'x'});assert.throws(()=>M.applique(s,0,{t:'a'}));nv++;
-  // --- robot : evite une pioche facultative perdante (Spam, Jacen et Jaina, Velnen), et pose Titom76 si l'adversaire perd tout de suite
-  s=prep();s.j[0].main=[24];eq(M.robot(s,0,'difficile').t,'x','robot : pas de Spam sur deck vide');eq(M.robot(s,0,'normal').t,'x');
-  s=prep();s.j[0].main=[24];s.j[0].deck=[40];eq(M.robot(s,0,'difficile').c,24,'robot : Spam avec 1 carte');
-  s=prep();moi(s,0,8,1,1);s.j[0].main=[123];eq(M.robot(s,0,'difficile').t,'x','robot : pas de Jacen et Jaina sur deck vide');eq(M.robot(s,0,'normal').t,'x');
-  s=prep();s.j[0].main=[57];s.j[0].deck=[40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56];adv(s,24,1,0,0);adv(s,57,1,0,1);
-  let a=M.robot(s,0,'difficile');eq(a.c,57,'robot : La Bretagne fait perdre l adversaire');M.applique(s,0,a);perd(s,1,'Bretagne du robot');
-  /* Velnen au tour 2 de la manche 3 (premier joueur) : 1 tour a venir, 2 a piocher, 3 avec la Graine : deck de 2, refus ; deck de 3, pose */
-  s=prep();s.manche=3;s.tour=2;s.j[0].main=[78];s.j[0].deck=[40,41];eq(M.robot(s,0,'difficile').t,'x','robot : Velnen rendrait la defaite certaine');
-  s.j[0].deck.push(45);eq(M.robot(s,0,'difficile').c,78,'robot : Velnen sans risque');
-  // --- parties robot contre robot, decks a forte pioche (24 cartes) : rejeux identiques, verifications du plateau
-  const FP=M.deckTexte({'001':3,'007':3,'026':3,'041':3,'004':3,'003':3,'002':3,'029':2,'902':1}),niv=['facile','normal','difficile'];let nd=0;
-  ok(M.lisDeck(FP),'deck a forte pioche valide');
-  for(let i=0;i<120;i++){const gr=(i*2654435761+77)|0,dk=[FP,i%2?FP:''],u=M.nouvelle(gr,dk),j=[[],[]];let pas=0;
-    while(!u.fin){assert(++pas<2000,'blocage deck vide '+gr);const p=M.attendus(u)[0],x=M.robot(u,p,niv[(i+p)%3]);M.applique(u,p,x);j[p].push(M.code(x));verifie(u)}
+  M.applique(s,1,{t:'p',c:3,l:0,k:2});manque(s,0,1,1,'Jacen et Jaina, maitre detruit par Slim K adverse');ok(s.j[0].defausse.includes(123)&&!s.j[0].grille[0][1],'chats a la defausse');
+  s=prep();moi(s,0,8,1,1);moi(s,123,0,0,1,{maitre:0});s.j[0].main=[12];M.applique(s,0,{t:'p',c:12,l:1,k:1});manque(s,0,0,0,'maitre remplace par son joueur : pas de pioche');ok(s.j[0].defausse.includes(123));
+  // --- Le Q : Analyse (prends-en 1 en main) n'est pas une pioche ; deck vide : rien ; deck de 2 : la carte prise ne donne aucun point
+  s=prep();s.j[0].main=[18];M.applique(s,0,{t:'p',c:18,l:0,k:0});manque(s,0,0,0,'Le Q, deck vide');ok(!s.attente);
+  s=prep();s.j[0].main=[18];s.j[0].deck=[40,41];M.applique(s,0,{t:'p',c:18,l:0,k:0});eq(s.attente.t,'q');M.applique(s,0,{t:'c',c:41});manque(s,0,0,0,'Le Q, carte prise');deq(s.j[0].main,[41]);
+  // --- deckLibre (banc d'essai) : pioche arretee sans point
+  s=prep();s.deckLibre=true;s.tour=2;M.applique(s,0,{t:'x'});manque(s,1,0,0,'deckLibre');
+  s=prep();s.deckLibre=true;moi(s,0,8,1,1);s.j[0].main=[123];M.applique(s,0,{t:'p',c:123,l:0,k:1});manque(s,0,0,0,'deckLibre, Jacen et Jaina');
+  // --- fin de partie aux points : plus de cause « deck vide »
+  s=prep();s.manche=3;s.tour=3;s.joueur=1;s.premier=0;s.j[0].score=2;s.j[1].score=0;M.applique(s,1,{t:'x'});ok(s.fin,'partie finie au decompte de la manche 3');ok(s.fin.deckVide===undefined);eq(M.bilan(s).fin.cause,'points');
+  // --- robot : le risque se compte en points (pioches manquees en plus), plus de -50
+  s=prep();eq(M.risqueDeck(s,0,'007',[0,0],0),-1,'Spam sur deck vide : -1');
+  s=prep();s.j[0].deck=Array.from({length:17},(_,i)=>40+i);eq(M.risqueDeck(s,0,'007',[0,0],0),0,'Spam, deck assez grand jusqu a la fin : 0');
+  s=prep();s.j[0].deck=Array.from({length:17},(_,i)=>40+i);eq(M.risqueDeck(s,0,'026',[1,2],0),2,'La Bretagne, adversaire au deck vide avec 2 Golems Brume ou Foudre : +2');
+  /* Velnen au tour 2 de la manche 3 (premier joueur) : 1 tour a venir, 2 a piocher, 3 avec la Graine : deck de 2, -1 ; deck de 3, 0 */
+  s=prep();s.manche=3;s.tour=2;s.j[0].deck=[40,41];eq(M.risqueDeck(s,0,'041',[0,0],1),-1,'Velnen : 1 pioche manquee de plus');s.j[0].deck.push(45);eq(M.risqueDeck(s,0,'041',[0,0],1),0,'Velnen sans risque');
+  // --- parties robot contre robot, decks de 24 a forte pioche : jamais bloquees, rejeux identiques, scores = terrains + effets a points + pioches manquees adverses
+  const FP=M.deckTexte({'001':3,'007':3,'026':3,'041':3,'004':3,'003':3,'002':3,'029':2,'902':1}),niv=['facile','normal','difficile'];let nd=0,np=0,ng=0;
+  ok(M.lisDeck(FP),'deck a forte pioche valide');eq(Object.values(M.lisDeck(FP)).reduce((a,b)=>a+b,0),24);
+  const NP=+process.env.MEULE_PARTIES||300;
+  for(let i=0;i<NP;i++){const gr=(i*2654435761+77)|0,dk=[FP,i%3===0?'':i%3===1?FP:M.deckTexte(M.DECK_DEFAUT)],u=M.nouvelle(gr,dk),j=[[],[]];let pas=0;
+    while(!u.fin){assert(++pas<3000,'blocage deck vide '+gr);const p=M.attendus(u)[0],x=M.robot(u,p,niv[(i+p)%3]);M.applique(u,p,x);j[p].push(M.code(x));verifie(u)}
     const r=M.rejoue(gr,[M.litJournal(M.ecritJournal(j[0])),M.litJournal(M.ecritJournal(j[1]))],dk);assert(!r.erreur,r.erreur);assert.strictEqual(JSON.stringify(r.etat),JSON.stringify(u),'rejeu deck vide '+gr);nv++;
-    if(u.fin.deckVide!==undefined){nd++;eq(u.log[u.log.length-1][1],LIGNE);eq(M.bilan(u).fin.cause,'deck vide')}}
-  ok(nd>0,'aucune partie finie par deck vide');
-  console.log('Deck vide 0.4 OK : '+nv+' verifications, '+nd+' parties robot sur 120 finies par deck vide (decks de 24 a forte pioche), rejeux identiques');
+    eq(u.manche,3,'partie jusqu a la manche 3');ok(u.fin.deckVide===undefined);eq(u.resultats.length,3);deq(u.fin.scores,[u.j[0].score,u.j[1].score]);
+    const B=M.bilan(u);ok(B.fin.cause==='points','cause de fin');
+    for(let q=0;q<2;q++){const ter=u.stats.t.filter(t=>t.gagnant===q).reduce((a,t)=>a+t.points,0),eff=u.log.filter(x=>x[0]===q&&/: \+(\d+) points?\.$/.test(x[1])).reduce((a,x)=>a+ +/: \+(\d+) points?\.$/.exec(x[1])[1],0),
+      dv=u.stats.ev.filter(e=>e.t==='dv'&&e.cp===1-q).length;
+      eq(u.j[q].score,ter+eff+dv,'score '+q+' = terrains + effets + pioches manquees adverses ('+gr+')');eq(B.joueurs[q].pointsDeckVide,dv);eq(B.joueurs[1-q].piochesManquees,dv);
+      eq(u.log.filter(x=>x[0]===1-q&&x[1]===LIGNE).length,dv);np+=dv}
+    if(np>ng)nd++;ng=np}
+  ok(nd>0,'aucune partie avec une pioche manquee');
+  console.log('Deck vide (meule) OK : '+nv+' verifications, '+nd+' parties robot sur '+NP+' avec au moins une pioche manquee ('+np+' points donnes en tout), decks de 24 a forte pioche, rejeux identiques');
 }
