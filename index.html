@@ -6205,7 +6205,7 @@ function zoneMaj(){
 LARGE.addEventListener('change',()=>{if(partie)affiche()});
 /* Partie guidee : graine et deck fixes, Golem Facile. Le robot est deterministe, donc la partie suit toujours
    le meme chemin tant que le joueur fait les gestes demandes (les autres clics sur le plateau sont bloques).
-   Cartes de la graine 19445 : KaTarN 0 et 2, Le Q 19 et 18, Roi du Karaoke 17, K-Chan 32, Cyrdan 12, Slim K 5.
+   Cartes de la graine 19445 : KaTarN 0 et 2, Le Q 19 et 18, Roi du Karaoke 17, K-Chan 32, Cyrdan 12, Slim K 5. Le Golem pose Trigas en (0,2) au tour 3 (Le Q refondu, 6 nov.).
    Hors historique, profil et sauvegarde (voir calcule et sauve). */
 const GUIDE={graine:19445,deck:'0013001e30023002e30033003e300430083'};
 let tuto=null;
@@ -6240,9 +6240,9 @@ const ETAPES=[
  {q:gAct(2),c:'#finTour',t:"Il te reste 1 énergie, mais aucune carte à 1 en main. Touche <b>Fin du tour</b>.",f:s=>s.tour>2||s.joueur!==partie.moi},
  {q:gForge(3),c:gSlot(17),t:"Dernier tour de la manche. Forge <b>Roi du Karaoké</b> : tu auras 3 énergies.",f:()=>sel===17||gJ().forge.length>=3},
  {q:gForge(3),c:'#forger',t:"Touche <b>Forger</b>.",f:gForgee(3)},
- {q:gAct(3),c:caseDe(1,0,2),t:"Le Golem a posé <b>Le Q</b> ici. Ses éléments : Brume et Cristal.",suiv:1},
- {q:gAct(3),c:gSlot(32),t:"<b>K-Chan</b> est Magma et Cristal, et Magma domine Cristal. Touche K-Chan.",f:()=>sel===32||!!gG(0,2)},
- {q:gAct(3),c:caseDe(0,0,2),t:"Pose-le <b>en face</b> de Le Q : même terrain, même ligne.",f:()=>!!gG(0,2)},
+ {q:gAct(3),c:caseDe(1,0,2),t:"Le Golem a posé <b>Trigas</b> ici. Ses éléments : Foudre et Brume.",suiv:1},
+ {q:gAct(3),c:gSlot(32),t:"<b>K-Chan</b> est Magma et Cristal, et Cristal domine Foudre. Touche K-Chan.",f:()=>sel===32||!!gG(0,2)},
+ {q:gAct(3),c:caseDe(0,0,2),t:"Pose-le <b>en face</b> de Trigas : même terrain, même ligne.",f:()=>!!gG(0,2)},
  {q:gAct(3),c:caseDe(0,0,2),t:"C'est le <b>cercle</b> : +1 si le Golem en face a un élément que le tien domine. Jamais plus de +1, sauf effet de carte. K-Chan passe de 2 à 3.",suiv:1},
  {q:gAct(3),c:'#finTour',t:"Touche <b>Fin du tour</b>. Le Golem joue son dernier tour, puis la manche se termine.",f:s=>s.manche>1||s.tour>3||s.joueur!==partie.moi},
  {recap:1,c:'#recap .r-terrain',t:"<b>Décompte</b> : dans chaque colonne, on additionne la Force de tous ses Golems.",suiv:1},
