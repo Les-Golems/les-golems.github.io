@@ -28,8 +28,8 @@
 window.IMG_V='2026-11-05 18:40';window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
 document.documentElement.style.setProperty('--verso','url("'+imgV('cartes/verso.jpg')+'")');
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[data-src]').forEach(i=>{i.src=imgV(i.dataset.src)}));</script>
-<link rel="stylesheet" href="spectateur.css?v=0.3">
-<link rel="stylesheet" href="diffusion.css?v=0.3">
+<link rel="stylesheet" href="spectateur.css?v=0.4">
+<link rel="stylesheet" href="diffusion.css?v=0.4">
 <link rel="stylesheet" href="aide.css?v=0.4">
 <meta name="apple-mobile-web-app-title" content="Golems">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 @media (display-mode:browser){#ecranCharge{transition-duration:.2s}}
 @media (prefers-reduced-motion:reduce){#ecranCharge{transition:none}}
 </style>
-<script defer src="signal-tour.js?v=0.3"></script>
+<script defer src="signal-tour.js?v=0.4"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Fredoka:wght@700&family=Lilita+One&family=Nunito+Sans:wght@400;700;800&display=swap');
 :root{
@@ -1750,7 +1750,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
   <details><summary><h3>Le tour</h3></summary><div class="corps">
     <ol class="etapes" aria-label="Les 4 étapes du tour"><li><b>Pioche</b>2 cartes (1 au premier tour du second)</li><li><b>Forge</b>0 ou 1 carte</li><li><b>Actions</b>Poser, remplacer, améliorer</li><li><b>Fin du tour</b>Énergie perdue, 7 cartes max</li></ol>
     <ol>
-      <li><b>Pioche :</b> 2 cartes. À chaque manche, le joueur qui joue en second ne pioche qu'une carte à son premier tour de la manche. Deck vide : plus de pioche, sans pénalité.</li>
+      <li><b>Pioche :</b> 2 cartes. À chaque manche, le joueur qui joue en second ne pioche qu'une carte à son premier tour de la manche. Deck vide : si tu dois piocher et que ton deck est vide, tu perds aussitôt la partie, quel que soit le score (la pioche se fait carte par carte).</li>
       <li><b>Forge :</b> toujours en premier, après la pioche. Place 0 ou 1 carte de ta main, face cachée, définitivement, avant toute action et avant les effets gratuits de certains terrains. Chaque carte en Forge donne 1 énergie par tour, dès ce tour. La Forge est ta seule source d'énergie.</li>
       <li><b>Actions :</b> paie en énergie, puis passe quand tu ne veux ou ne peux plus agir.
         <figure class="annote" id="lireCarte" aria-label="Lire une carte"></figure>
@@ -1827,7 +1827,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
     <li><b>Son maître :</b> s'il quitte le jeu (détruit, remplacé, La Nuit au Village), l'animal part à la défausse. S'il évolue ou est déplacé, l'animal reste. Un Golem qui copie son effet n'est pas son maître.</li>
     <li><b>Intouchable :</b> aucun Golem ne se pose à sa place, rien ne le déplace ni ne l'échange (La Faille, Le Vaisseau, effets de cartes). Seul moyen de s'en défaire : faire quitter le jeu à son maître.</li>
     <li><b>Kiwi :</b> la Mignonitude se résout avant le décompte, puis Kiwi part à la défausse. Deux Kiwi : celui du premier joueur d'abord, jamais deux fois le même Golem.</li>
-    <li><b>Jacen et Jaina :</b> les chats de KaTarN (ou Slim K). À la pose, pioche 1 carte. Si leur maître est détruit, pioche 1 carte, puis les chats partent à la défausse. Si tu remplaces toi-même leur maître, pas de pioche. Deck vide : pas de pioche.</li>
+    <li><b>Jacen et Jaina :</b> les chats de KaTarN (ou Slim K). À la pose, pioche 1 carte. Si leur maître est détruit, pioche 1 carte, puis les chats partent à la défausse. Si tu remplaces toi-même leur maître, pas de pioche. Deck vide : tu perds la partie.</li>
     <li><b>Hors décompte :</b> le Golem tiré par Kiwi reste en jeu avec ses bonus ; seule sa Force sort de sa colonne. Les effets de fin de manche le concernent toujours (La Nuit au Village, KaTarN).</li>
     <li>Un animal n'est jamais MVP.</li>
   </ul></div></details>
@@ -1960,12 +1960,12 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 </div>
 <button class="btn sec" id="gPasser" type="button" hidden>Passer le tutoriel</button>
 <script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
-<script type="module" src="salon-firebase.js?v=0.3"></script>
-<script type="module" src="spectateur.js?v=0.3"></script>
-<script src="spectateur-ui.js?v=0.3" defer></script>
-<script src="diffusion.js?v=0.3" defer></script>
+<script type="module" src="salon-firebase.js?v=0.4"></script>
+<script type="module" src="spectateur.js?v=0.4"></script>
+<script src="spectateur-ui.js?v=0.4" defer></script>
+<script src="diffusion.js?v=0.4" defer></script>
 <script src="aide.js?v=0.4" defer></script>
-<script src="moteur.js?v=0.3"></script>
+<script src="moteur.js?v=0.4"></script>
 <script>
 const ETOILE_G='<path d="M150.0 162.0 L103.0 97.3 L150.0 20.0 Z" fill="#ffe48a" stroke="#ffe48a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 20.0 L197.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L197.0 97.3 L288.9 116.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L288.9 116.9 L222.3 185.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L222.3 185.5 L231.1 273.6 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L231.1 273.6 L150.0 244.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 244.0 L65.4 278.5 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L65.4 278.5 L75.8 186.1 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L75.8 186.1 L16.9 118.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L16.9 118.7 L103.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 20.0 L197.0 97.3 L190.4 106.3 L150.0 39.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M197.0 97.3 L288.9 116.9 L269.4 123.2 L190.4 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M288.9 116.9 L222.3 185.5 L212.2 182.2 L269.4 123.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M222.3 185.5 L231.1 273.6 L219.8 258.0 L212.2 182.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M231.1 273.6 L150.0 244.0 L150.0 232.5 L219.8 258.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M150.0 244.0 L65.4 278.5 L77.2 262.2 L150.0 232.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M65.4 278.5 L75.8 186.1 L86.2 182.7 L77.2 262.2 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M75.8 186.1 L16.9 118.7 L35.5 124.8 L86.2 182.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M16.9 118.7 L103.0 97.3 L109.6 106.3 L35.5 124.8 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M103.0 97.3 L150.0 20.0 L150.0 39.9 L109.6 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M150.0 20.0 L197.0 97.3 L288.9 116.9 L222.3 185.5 L231.1 273.6 L150.0 244.0 L65.4 278.5 L75.8 186.1 L16.9 118.7 L103.0 97.3 Z" fill="none" stroke="#0b0b10" stroke-width="13" stroke-linejoin="round"/>';
 (function(){
@@ -2189,7 +2189,7 @@ const DETAILS_VERSIONS={
    "K-Chan (Reine du tilt) passe en Magma et Cristal (avant : Magma et Brume). Coût 2, Force 2, Rage inchangée.",
    "K-Chan (L'attachiante), coût 4, Force 4. Love inconditionnel : une fois par manche, à ton tour après la Forge, retire 1 dégât à un Golem allié blessé (K-Chan comprise), sans dépasser sa Force imprimée. Facultatif, une fois par exemplaire, proposé seulement s'il y a un blessé.",
    "Jacen et Jaina, animal de KaTarN (ou Slim K), coût 1, un seul exemplaire, KaTarN obligatoire dans le deck. Ils se posent à côté de leur maître. zqrinohbqzroihg : à la pose, pioche 1 carte. Quand leur maître est détruit, pioche 1 carte, puis les chats partent à la défausse.",
-   "Jacen et Jaina : si leur maître évolue, ils restent. Si tu remplaces toi-même leur maître, ils partent à la défausse sans pioche. Deck vide : pas de pioche.",
+   "Jacen et Jaina : si leur maître évolue, ils restent. Si tu remplaces toi-même leur maître, ils partent à la défausse sans pioche. Deck vide : tu perds la partie.",
    "Deck par défaut (ex « Test ») : 30 cartes. Un exemplaire de moins pour KEKWRevan, Roi du Karaoké et Oracle des Stats."]
  },
  'Version 0.2c':{
@@ -3094,7 +3094,7 @@ async function entre(c,opt){
 /* M : moteur en service. Le rejeu le remplace le temps de la partie par le moteur archive de sa version (moteurs/moteur-<v>.js). */
 const M0=window.GolemsMoteur;let M=M0;
 /* Versions archivees dans moteurs/ : en ajouter une a chaque nouvelle version du moteur (voir README). */
-const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c','0.3'];
+const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c','0.3','0.4'];
 const versionMoteur=v=>v==='0.2a'?'0.2':v;
 const rejeuPossible=R=>!!(R&&typeof R.v==='string'&&Number.isInteger(R.graine)&&Array.isArray(R.j)&&(versionMoteur(R.v)===M0.VERSION||MOTEURS_ARCHIVES.includes(versionMoteur(R.v))));
 const moteursCharges={};
@@ -3727,7 +3727,7 @@ function deFin(s){
     const f=(B.terrains||[]).filter(t=>t.manche===i+1);
     return {pts,terrains:o.terrains.map(t=>{const z=f.find(y=>y.terrain===t.nom&&y.gagnant===t.p);return {p:t.p,nom:t.nom,pts:t.pts,forces:z&&z.forces?[z.forces[t.p],z.forces[1-t.p]]:null}}),bonus:o.bonus}});
   const m=B.mvp;
-  return {noms,scores:[s.j[0].score,s.j[1].score],gagnant:s.fin.gagnant,abandon:s.fin.abandon,
+  return {noms,scores:[s.j[0].score,s.j[1].score],gagnant:s.fin.gagnant,abandon:s.fin.abandon,deckVide:s.fin.deckVide, /* 0.4 : deck vide */
     departage:s.fin.departage?departageTxt(s,s.fin.gagnant===1?1:0,s.fin.gagnant===1?0:1):'',
     mode:robot?'robot':'ligne',decks,manches,
     mvp:m?{carte:nomComplet(m.carte),p:m.joueur,score:m.score,force:m.force,bonus:m.bonus,degats:m.degats,morts:m.morts}:null,
@@ -3752,7 +3752,7 @@ function deHisto(x){
   const g=x.res==='Victoire'?0:x.res==='Défaite'?1:null;
   const bl=Array.isArray(x.bilan)?x.bilan:[];
   const chiffres=[0,1].map(p=>{const c=(bl[p]&&bl[p].cartes)||[];return {degats:c.reduce((a,z)=>a+(+z[1]||0),0),morts:c.reduce((a,z)=>a+(+z[3]||0),0)}});
-  return {noms,scores:sc,gagnant:g,abandon:x.abandon==='moi'?0:x.abandon==='adv'?1:undefined,departage:'',
+  return {noms,scores:sc,gagnant:g,abandon:x.abandon==='moi'?0:x.abandon==='adv'?1:undefined,deckVide:x.deckVide==='moi'?0:x.deckVide==='adv'?1:undefined,departage:'',
     mode:robot?'robot':'ligne',
     decks:[x.deck&&typeof x.deck.nom==='string'?{nom:x.deck.nom==='Test'?'Deck par défaut':x.deck.nom,els:els(x.deck.els)}:{nom:'',els:[]},robot?{nom:'Deck par défaut',els:els(elsTexte(DECK_TEST_TXT))}:{nom:'',els:[]}],
     manches,mvp:x.mvp?{carte:nomComplet(x.mvp),p:g,score:q?+q[1]:null,force:q?+q[2]:null,bonus:q?+q[3]:null,degats:q?+q[4]:null,morts:q?+q[5]:null}:null,
@@ -3765,6 +3765,7 @@ function resultat(D){
   const [a,b]=D.gagnant===1?[1,0]:[0,1];
   if(D.gagnant===null)return {titre:'Match nul, '+D.scores[0]+' partout',vainq:null};
   if(D.abandon!==undefined)return {titre:N(D,a)+' gagne par abandon',vainq:a,perd:b};
+  if(D.deckVide!==undefined)return {titre:N(D,a)+' gagne par deck vide',vainq:a,perd:b}; /* 0.4 */
   return {titre:N(D,a)+' bat '+N(D,b)+', '+D.scores[a]+' à '+D.scores[b],vainq:a,perd:b};
 }
 const contexte=D=>(D.mode==='robot'?"Contre l'ordinateur":'Partie en ligne')+' · version '+esc(D.version);
@@ -3885,19 +3886,20 @@ function bonusPrevu(s,me,c,l,k){
   return o;
 }
 /* Recapitulatif de fin de manche : local, ne touche ni a la presence ni au journal. */
-function mancheFinie(s){return s.fin?(s.fin.abandon!==undefined?s.reperes.length:3):s.manche-1} /* abandon (0.2.2) : seulement les manches decomptees */
+function mancheFinie(s){return s.fin?(s.fin.abandon!==undefined||s.fin.deckVide!==undefined?s.reperes.length:3):s.manche-1} /* 0.4 : deck vide, comme l'abandon */ /* abandon (0.2.2) : seulement les manches decomptees */
 function fermeRecap(){$('recap').hidden=true;$('recap').textContent='';recapAff=0}
 /* Decoupe le journal par manche : chaque page finit avec le decompte et ses effets. */
 function pagesLog(s){
   const r=[];let d=0;
   s.reperes.forEach(x=>{r.push(s.log.slice(d,x[2]));d=x[2]});
-  if(!s.fin||s.fin.abandon!==undefined)r.push(s.log.slice(d)); /* abandon : fin de partie hors decompte */
+  if(!s.fin||s.fin.abandon!==undefined||(s.fin.deckVide!==undefined&&d<s.log.length))r.push(s.log.slice(d)); /* abandon ou deck vide (0.4) : fin de partie hors decompte */
   return r;
 }
 function genreLog(x){
   if(/: (Comeback|Winstreak), pioche /.test(x))return ['j-pose','main']; /* Bellock et Loxim : partenaire pioché dans le deck, comme Graine de Golem */
   if(/: (Comeback|Winstreak), aucun /.test(x))return ['','tour']; /* aucun partenaire dans le deck : neutre */
   if(/: meandyou, /.test(x))return ['','tour']; /* Shifukuro (Le modérateur) : échange, refus ou rien à échanger, neutre comme l'échange du Q ; en tête, les noms échangés ne doivent rien déclencher */
+  if(/^doit piocher mais son deck est vide/.test(x))return ['j-mort','defausse']; /* 0.4 : defaite par deck vide */
   if(/meur|est détruit/.test(x))return ['j-mort','defausse'];
   if(/^marque |\+\d points?\.$/.test(x))return ['j-point','coupe'];
   if(/^améliore /.test(x))return ['j-evo','manche'];
@@ -3929,7 +3931,9 @@ function masqueLog(p,x,me){
   if(p===null||p===me||(partie&&partie.rejeu))return x;
   return x.replace(/^(.+? : (?:Comeback|Winstreak)), pioche .+ dans son deck, puis le mélange\.$/,'$1, pioche une carte dans son deck, puis le mélange.').replace(/^(.+?) : défausse .+\.$/,'$1 : défausse une carte.');
 }
-function ligneLog(p,x,me){return (p===null?'':(p===me?'Toi : ':nomJ(p)+' : '))+masqueLog(p,x,me)}
+function ligneLog(p,x,me){
+  if(p!==null&&x==='doit piocher mais son deck est vide : il perd la partie.')return p===me?'Tu dois piocher mais ton deck est vide : tu perds la partie.':nomJ(p)+' doit piocher mais son deck est vide : '+nomJ(p)+' perd la partie.'; /* 0.4 : deck vide */
+  return (p===null?'':(p===me?'Toi : ':nomJ(p)+' : '))+masqueLog(p,x,me)}
 function effetsManche(s){
   const x=s.reperes[s.reperes.length-1];
   return x?s.log.slice(x[1],x[2]):[];
@@ -4026,7 +4030,7 @@ function uneParGraine(l){const vu=new Set();return l.filter(r=>{if(r.m!=='ligne'
 function enregistreDans(l,s,id){
   const me=partie.moi,lui=1-me,w=s.fin.gagnant,nm=p=>p===me?'Toi':nomJ(p),B=M.bilan(s);
   const ps=pseudo||'Joueur',np=p=>p===me?ps:nomJ(p);
-  l.unshift({id,date:Date.now(),adv:partie.local?'Golem ('+partie.niveau+')':nomJ(lui),res:w===null?'Match nul':w===me?'Victoire':'Défaite',abandon:s.fin.abandon===undefined?undefined:s.fin.abandon===me?'moi':'adv',score:s.j[me].score+' - '+s.j[lui].score,mvp:B.mvp?B.mvp.carte:'',
+  l.unshift({id,date:Date.now(),adv:partie.local?'Golem ('+partie.niveau+')':nomJ(lui),res:w===null?'Match nul':w===me?'Victoire':'Défaite',abandon:s.fin.abandon===undefined?undefined:s.fin.abandon===me?'moi':'adv',deckVide:s.fin.deckVide===undefined?undefined:s.fin.deckVide===me?'moi':'adv',score:s.j[me].score+' - '+s.j[lui].score,mvp:B.mvp?B.mvp.carte:'',
     pseudo:ps,deck:deckJoue(),advNom:lui===1-me?nomJ(lui):'',
     moteur:M.VERSION,rejeu:{v:M.VERSION,graine:partie.graine,moi:me,decks:(partie.decks||['','']).slice(),j:(me===0?[partie.mien,partie.sien]:[partie.sien,partie.mien]).map(x=>M.ecritJournal(x))},
     manches:parManche(s).map(o=>lignesManche(o,np)),mvpLigne:ligneMvp(B),
@@ -4333,7 +4337,7 @@ function carteHisto(nom){
 function detailHisto(x){
   const v=el('div','voile'),d=el('div','boite h-detail'),ps=x.pseudo||pseudo||'Joueur',toi=t=>String(t).replace(/\bToi\b/g,ps);
   v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.id='detailHisto';
-  const h2=el('h2',x.res==='Victoire'?'h-dv':x.res==='Défaite'?'h-dd':'h-dn');h2.append(el('span','',x.res+(x.abandon?' (abandon)':'')),' ',el('span','h-dsc',x.score));
+  const h2=el('h2',x.res==='Victoire'?'h-dv':x.res==='Défaite'?'h-dd':'h-dn');h2.append(el('span','',x.res+(x.abandon?' (abandon)':x.deckVide?' (deck vide)':'')),' ',el('span','h-dsc',x.score));
   d.append(h2,el('p','h-dsub',new Date(x.date).toLocaleString('fr-FR',{dateStyle:'long',timeStyle:'short'})+' contre '+advAff(x.adv)),(()=>{const p=el('p','h-dver','Version du jeu : '),w=versionAff(x);p.append(el('span','etq-v h-dver-v',/^[0-9]/.test(w)?'v'+w:w));return p})());
   const moiN=n=>n===ps;
   if(Array.isArray(x.manches)){
@@ -4473,7 +4477,7 @@ function peintHisto(){
     rj.setAttribute('aria-label',ok?'Replay de cette partie':'Replay indisponible');rj.title=ok?'Replay':x.rejeu?'Replay indisponible : moteur de la version '+x.rejeu.v+' non archivé':'Replay indisponible : partie enregistrée sans ses journaux';
     if(!ok)rj.setAttribute('aria-disabled','true');
     rj.onclick=e=>{e.stopPropagation();if(ok)lanceRejeu(x)};
-    const rs=el('b','h-res',x.res+(x.abandon?" (abandon)":""));if(x.abandon)rs.classList.add('h-res-ab');
+    const rs=el('b','h-res',x.res+(x.abandon?" (abandon)":x.deckVide?" (deck vide)":""));if(x.abandon||x.deckVide)rs.classList.add('h-res-ab');
     const bd=bandeauDeck(x.deck);bd.title=bd.textContent;
     c.append(l1,rj,rs,mvpHisto(x.mvp,''),pe,bd);
     c.onclick=()=>detailHisto(x);gr.append(c);
@@ -5903,6 +5907,7 @@ function affiche(){
     const f=el('div','bloc p-fin'),w=s.fin.gagnant;
     f.append(el('h3',w===null?'f-n':w===me?'f-v':'f-d',w===null?'Match nul':w===me?'Victoire':'Défaite'));
     if(s.fin.abandon!==undefined)f.append(el('p','p-abandon',(s.fin.abandon===me?(pseudo||'Toi'):nomJ(lui))+' a abandonné'));
+    if(s.fin.deckVide!==undefined)f.append(el('p','p-abandon',(w===me?'Victoire':'Victoire de '+nomJ(lui))+' par deck vide')); /* 0.4 : le perdant devait piocher, deck vide */
     f.append(el('p','',J.score+' à '+s.j[lui].score+(s.fin.departage?', '+departageTxt(s,me,lui):'')));
     const b=bouton(partie.veut?"En attente de l'adversaire":'Rejouer',()=>{if(partie.local){niveauChoisi=partie.niveau||niveauChoisi;lanceLocal(null);return}partie.veut=true;sauve();pub({veut:partie.graine});affiche();majPartie()});
     b.id='rejouer';b.disabled=partie.veut;
