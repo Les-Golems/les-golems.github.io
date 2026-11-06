@@ -5083,7 +5083,9 @@ const DECKS_CONSEILLES=[
  {nom:"Gros Golems",cartes:{"016":3,"016e":3,"015":3,"015e":3,"002":3,"002e":3,"041":3,"041e":3,"007e":3,"007":3}, /* Le Q (refonte) : Le Q 3 et Seul contre tous 2 remplaces par Le Ace de Aiges 3, Aiges Captain +1, Trigas +1 */
   txt:"Ne te presse pas : garde ton énergie pour Loxim, Le chansonnier et Roi du Mobile, et forge Bellock pour aller chercher Loxim."},
  {nom:"Roche et Magma",cartes:{"009":3,"009e":3,"029":3,"029e":2,"001":3,"001e":3,"018":3,"018e":3,"036":2,"036e":2,"002":2,"902":1},
-  txt:"Fais baisser la Force des Golems d'en face avec Apo, Glad et Slim K, et pose KaTarN dès la manche 1."}
+  txt:"Fais baisser la Force des Golems d'en face avec Apo, Glad et Slim K, et pose KaTarN dès la manche 1."},
+ {nom:"Marée bretonne",cartes:{"004":3,"004e":1,"026":3,"026e":2,"901":1,"007":3,"007e":3,"001":3,"001e":3,"036":3,"018":3,"018e":2}, /* deck meule autour du nouveau Le Q (0.4a) */
+  txt:"Vide le deck adverse avec Le Q et La Bretagne de Titom76, tiens la grille avec KaTarN et Elessar, et laisse chaque pioche impossible marquer pour toi."}
 ];
 /* Deux elements dominants d'un deck (nombre de cartes par element). */
 function elsDominants(c){const n={};for(const k in c){const C=M.CARTES[k];if(C)(C.el||[]).forEach(e=>n[e]=(n[e]||0)+c[k])}return Object.keys(n).sort((a,b)=>n[b]-n[a]).slice(0,2)}
