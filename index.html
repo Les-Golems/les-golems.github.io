@@ -25,7 +25,7 @@
 <link rel="manifest" href="manifest.webmanifest?v=2">
 <script>/* Version des images (cartes, terrains, verso, avatars) : imgV(u) ajoute ?v=<build>, pour que les joueurs voient aussitot une image remplacee.
    A CHAQUE PUBLICATION : IMG_V = champ build de version.json (meme valeur). Fonction centrale, utilisable par tous les scripts du site. */
-window.IMG_V='2026-11-05 18:40';window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
+window.IMG_V='2026-11-06 10:06';window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
 document.documentElement.style.setProperty('--verso','url("'+imgV('cartes/verso.jpg')+'")');
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[data-src]').forEach(i=>{i.src=imgV(i.dataset.src)}));</script>
 <link rel="stylesheet" href="spectateur.css?v=0.4">
