@@ -1,7 +1,9 @@
 /* Les Golems : moteur pur, sans affichage. Etat = f(graine, journaux). Charge en page et en Node. */
 (function(racine){
 'use strict';
-const VERSION='0.4';const TRAIT_CUMULE=true; /* 0.2.1 : Trait cumule (+1 par voisin allie par element partage), plus de match nul. 0.2.2 : coup 'a' = abandon (a tout moment, hors tour). 0.2a.1 : Indra (013, 013e), favori et coup 'g'. 0.2a.2 : Glad (009, 009e), Slam (coup 'h') et Menfou palu. 0.2b : K-Chan (008) Magma + Brume au lieu de Magma + Roche. Apo (029, 029e), SuperFishman (037, 037e), Titom76 (026, 026e), coups 'k' (Deguisement) et 'z' (Caramel), carte 62 codee '_'. Spom (036, 036e), coup 'j' (Forge eclair), cartes 63 et plus codees '~' + 1 caractere. Kiwi (901), premier animal de compagnie (carte 69, '~6') : pose a cote de son maitre (Titom76), Mignonitude avant le decompte (g.hors), erreurDeck : 1 exemplaire et son maitre dans le deck. Elessar (018, cartes 72-74, '~9' a '~b') et Le pomplard (018e, cartes 75-77, '~c' a '~e'). Velnen : Velnen (041, cartes 78-80, '~f' a '~h', Graine de Golem : +1 a la pioche de chaque tour, cumulatif) et Le chansonnier (041e, cartes 81-83, '~i' a '~k', Imitation, coup 'i'). Shifukuro : Shifukuro (025, cartes 84-86, '~l' a '~n', KEKWait : +1 de Force par Golem allie au-dessus, dans forceDe) et Le moderateur (025e, cartes 87-89, '~o' a '~q', meandyou : attente 'u', coup 'e' pour echanger, 'v' pour passer). Bellock/Loxim : Bellock (015, cartes 90-92, '~r' a '~t'), Aiges Captain (015e, 93-95, '~u' a '~w'), Loxim (016, 96-98, '~x' a '~z'), Le Ace de Aiges (016e, 99-101, '~A' a '~C'). Comeback et Winstreak (+1 ou +2 de Force par manche perdue ou remportee sur son terrain, lues dans s.resultats) ; « si tu forges cette carte » (Forge, Forge eclair, Spam) : partenaire cherche dans le deck, attente 'r' et coup 'r' + carte s'il y a deux versions ; Double up ? des evolutions (+REGLAGE_DUO.doubleUp). 0.2b.1 : Bellock/Loxim, le partenaire est pioche au hasard parmi tous ses exemplaires du deck (bases et evolutions, generateur du joueur), plus d'attente 'r' ni de coup 'r'. 0.2b.2 : La Boutique reduit aussi les evolutions (pose, remplacement et evolution, jamais un animal), minimum 0 sur le cout total apres la surtaxe d'Elessar 0.2c : simple renommage de 0.2b.2 pour suivre la version du site, aucune regle ne change (sauvegardes 0.2b.2 reprises, rejeux 0.2b.2 par moteurs/moteur-0.2b.2.js). JackJoy : JackJoy (035, cartes 102-104, '~D' a '~F', Sub offert) et Drafteur experimente (035e, 105-107, '~G' a '~I', Draft diff) ; bonus g.sub (partie) et g.dr (manche), attente 'l' et coup 'l' + ligne + colonne pour la cible. Vic222 : Vic222 (042, cartes 108-110, '~J' a '~L', Info tchat : cercle +2 pour les Golems allies de sa colonne) et son evolution (042e, 111-113, '~M' a '~O', Chance du debutant : bouclier unique, g.cdb une fois use). Deck par defaut a 30 cartes (DECK_DEFAUT, TAILLE_DECK 30). 0.4 : deck vide, un joueur qui doit piocher alors que son deck est vide perd aussitot la partie (pioche carte par carte, s.fin.deckVide = le perdant ; rejeux 0.3 par moteurs/moteur-0.3.js) */
+const VERSION='0.4';const TRAIT_CUMULE=true; /* 0.2.1 : Trait cumule (+1 par voisin allie par element partage), plus de match nul. 0.2.2 : coup 'a' = abandon (a tout moment, hors tour). 0.2a.1 : Indra (013, 013e), favori et coup 'g'. 0.2a.2 : Glad (009, 009e), Slam (coup 'h') et Menfou palu. 0.2b : K-Chan (008) Magma + Brume au lieu de Magma + Roche. Apo (029, 029e), SuperFishman (037, 037e), Titom76 (026, 026e), coups 'k' (Deguisement) et 'z' (Caramel), carte 62 codee '_'. Spom (036, 036e), coup 'j' (Forge eclair), cartes 63 et plus codees '~' + 1 caractere. Kiwi (901), premier animal de compagnie (carte 69, '~6') : pose a cote de son maitre (Titom76), Mignonitude avant le decompte (g.hors), erreurDeck : 1 exemplaire et son maitre dans le deck. Elessar (018, cartes 72-74, '~9' a '~b') et Le pomplard (018e, cartes 75-77, '~c' a '~e'). Velnen : Velnen (041, cartes 78-80, '~f' a '~h', Graine de Golem : +1 a la pioche de chaque tour, cumulatif) et Le chansonnier (041e, cartes 81-83, '~i' a '~k', Imitation, coup 'i'). Shifukuro : Shifukuro (025, cartes 84-86, '~l' a '~n', KEKWait : +1 de Force par Golem allie au-dessus, dans forceDe) et Le moderateur (025e, cartes 87-89, '~o' a '~q', meandyou : attente 'u', coup 'e' pour echanger, 'v' pour passer). Bellock/Loxim : Bellock (015, cartes 90-92, '~r' a '~t'), Aiges Captain (015e, 93-95, '~u' a '~w'), Loxim (016, 96-98, '~x' a '~z'), Le Ace de Aiges (016e, 99-101, '~A' a '~C'). Comeback et Winstreak (+1 ou +2 de Force par manche perdue ou remportee sur son terrain, lues dans s.resultats) ; « si tu forges cette carte » (Forge, Forge eclair, Spam) : partenaire cherche dans le deck, attente 'r' et coup 'r' + carte s'il y a deux versions ; Double up ? des evolutions (+REGLAGE_DUO.doubleUp). 0.2b.1 : Bellock/Loxim, le partenaire est pioche au hasard parmi tous ses exemplaires du deck (bases et evolutions, generateur du joueur), plus d'attente 'r' ni de coup 'r'. 0.2b.2 : La Boutique reduit aussi les evolutions (pose, remplacement et evolution, jamais un animal), minimum 0 sur le cout total apres la surtaxe d'Elessar 0.2c : simple renommage de 0.2b.2 pour suivre la version du site, aucune regle ne change (sauvegardes 0.2b.2 reprises, rejeux 0.2b.2 par moteurs/moteur-0.2b.2.js). JackJoy : JackJoy (035, cartes 102-104, '~D' a '~F', Sub offert) et Drafteur experimente (035e, 105-107, '~G' a '~I', Draft diff) ; bonus g.sub (partie) et g.dr (manche), attente 'l' et coup 'l' + ligne + colonne pour la cible. Vic222 : Vic222 (042, cartes 108-110, '~J' a '~L', Info tchat : cercle +2 pour les Golems allies de sa colonne) et son evolution (042e, 111-113, '~M' a '~O', Chance du debutant : bouclier unique, g.cdb une fois use). Deck par defaut a 30 cartes (DECK_DEFAUT, TAILLE_DECK 30). 0.4 : deck vide, un joueur qui doit piocher alors que son deck est vide perd aussitot la partie (pioche carte par carte, s.fin.deckVide = le perdant ; rejeux 0.3 par moteurs/moteur-0.3.js). Puis regle de la meule : chaque carte a piocher sur deck vide donne 1 point a l'adversaire, la partie continue (plus de s.fin.deckVide ; evenement de stats t:'dv'). */
+/* Le Q (refonte, 6 nov.) : Brume + Magma. Le Q (004) Jour de peche, attente 'q' (adv:1) sur le deck adverse, coup 'c' = carte defaussee ;
+   Seul contre tous (004e, cout 7, Force 1) Il suffit, balayage des cartes en plusieurs exemplaires de chaque grille (ilSuffit). Plus d'Analyse ni d'Optimisation. */
 const POIDS_MVP={force:1,bonus:1,degats:1,morts:3};
 const EL_VELNEN=['roche','brume']; /* Velnen : elements de Velnen et du chansonnier, ecrits ici seulement */
 const CARTES={
@@ -11,8 +13,8 @@ const CARTES={
  '002e':{id:'002e',nom:'KEKWRevan',el:['brume','roche'],cout:3,force:null,base:'002',texte:'High Roll : à la pose, lance 2 dés. Ta Force est leur somme. Sur un double, ta Force est la valeur d\'un seul dé.'},
  '003':{id:'003',nom:'Cyrdan',el:['cristal','roche'],cout:3,force:1,texte:'Tournoi annexe : en jeu, tes voisins gagnent +1 de Force.'},
  '003e':{id:'003e',nom:'Roi du Karaoké',el:['cristal','roche'],cout:5,force:2,base:'003',texte:'Palmarès : tes voisins gagnent +1 de Force. Fin de manche : si tu remportes le terrain qui rapporte le moins, marque +2 points.'},
- '004':{id:'004',nom:'Le Q',el:['brume','cristal'],cout:2,force:1,texte:'Analyse : à la pose, regarde les 3 premières cartes de ton deck. Prends-en 1 en main et replace les autres dessus, dans l\'ordre de ton choix.'},
- '004e':{id:'004e',nom:'Oracle des Stats',el:['brume','cristal'],cout:3,force:2,base:'004',texte:'Optimisation : à la pose, regarde la main adverse. Puis échange de place 2 de tes Golems.'},
+ '004':{id:'004',nom:'Le Q',el:['brume','magma'],cout:2,force:1,texte:'Jour de pêche : à la pose, regarde les 2 premières cartes du deck adverse. Défausses-en 1 et replace l\'autre dessus.'}, /* Le Q : refonte (6 nov.), ex-Analyse, Brume + Cristal */
+ '004e':{id:'004e',nom:'Seul contre tous',el:['brume','magma'],cout:7,force:1,base:'004',texte:'Il suffit : à la pose, détruis toutes tes cartes et toutes les cartes adverses posées en plusieurs exemplaires, toi compris.'}, /* Le Q : refonte, ex-Oracle des Stats (Optimisation, cout 3, Force 2) */
  '007':{id:'007',nom:'Trigas',el:['foudre','brume'],cout:1,force:1,texte:'Spam : à la pose, pioche 1 carte, puis place-en 1 de ta main dans ta Forge.'},
  '007e':{id:'007e',nom:'Roi du Mobile',el:['foudre','brume'],cout:4,force:4,base:'007',texte:'Mode Avion : tu ne peux pas être ciblé par les effets de cartes adverses.'},
  '008':{id:'008',nom:'K-Chan',el:['magma','cristal'],cout:2,force:2,texte:'Rage : chaque fois que tu subis des dégâts et survis, gagne +1 de Force (3 maximum).'},
@@ -52,9 +54,10 @@ const CARTES={
 };
 const TYPES=['001','001e','002','002e','003','003e','004','004e','007','007e','008','013','013e','009','009e','029','029e','037','037e','026','026e','036','036e','901','018','018e','041','041e','025','025e','015','015e','016','016e','035','035e','042','042e','008e','020','020e','902']; /* toujours ajouter en fin : l'identifiant de carte depend du rang. Kiwi (901) : rang 23, carte de partie 69, codee '~6'. Elessar : 018 rang 24 (72-74, '~9' a '~b'), 018e rang 25 (75-77, '~c' a '~e'). Velnen : 041 rang 26 (78-80, '~f' a '~h'), 041e rang 27 (81-83, '~i' a '~k'). Shifukuro : 025 rang 28 (84-86, '~l' a '~n'), 025e rang 29 (87-89, '~o' a '~q'). Bellock/Loxim : 015 rang 30 (90-92, '~r' a '~t'), 015e rang 31 (93-95, '~u' a '~w'), 016 rang 32 (96-98, '~x' a '~z'), 016e rang 33 (99-101, '~A' a '~C'). JackJoy : 035 rang 34 (102-104, '~D' a '~F'), 035e rang 35 (105-107, '~G' a '~I'). Vic222 : 042 rang 36 (108-110, '~J' a '~L'), 042e rang 37 (111-113, '~M' a '~O') */
 /* Deck par defaut (ancien paquet de test) : les 11 premiers types. 0.3 : 30 cartes, 3 exemplaires sauf 2 de KEKWRevan (002e), Roi du Karaoke (003e)
-   et Oracle des Stats (004e) ; jusqu'a 0.2c, 33 cartes (identifiants 0 a 32, rejeux par moteurs/moteur-0.2c.js et avant). */
+   et Oracle des Stats (004e) ; jusqu'a 0.2c, 33 cartes (identifiants 0 a 32, rejeux par moteurs/moteur-0.2c.js et avant).
+   Le Q (refonte) : Le Q 3 et Seul contre tous 2 remplaces par Velnen 3 et Titom76 2 (cartes qui aident a trouver ses cartes), toujours 30 cartes. */
 const TYPES_TEST=TYPES.slice(0,11);
-const DECK_DEFAUT=Object.fromEntries(TYPES_TEST.map(t=>[t,['002e','003e','004e'].includes(t)?2:3]));
+const DECK_DEFAUT={'001':3,'001e':3,'002':3,'002e':2,'003':3,'003e':2,'007':3,'007e':3,'008':3,'041':3,'026':2};
 /* Partie guidee : le Golem garde l'ancien paquet de 33 cartes (identifiants 0 a 32, comme jusqu'a 0.2c) pour retrouver la meme partie avec la graine 19445.
    Texte reserve, refuse par lisDeck (jamais un deck de joueur), lu seulement par nouvelle. */
 const DECK_TUTO='tuto33';
@@ -285,11 +288,11 @@ function retire(s,p,l,k,rem){
 /* Un animal part a la defausse quand son maitre quitte le jeu (mort, remplace, detruit). Deplace ou evolue, le maitre le garde (agit suit l'evolution). */
 function orphelins(s,p,c,rem){ /* rem : remplacement par son joueur, pas une destruction (Jacen et Jaina) */
   const J=s.j[p];
-  /* 0.4 : les chats quittent la grille avant de piocher (une pioche manquee arrete la partie, plateau coherent) ; journal dans le meme ordre */
+  /* 0.4 : les chats quittent la grille avant de piocher ; journal dans le meme ordre */
   J.grille.forEach(L=>L.forEach((h,k)=>{if(animal(h)&&h.maitre===c){J.defausse.push(h.c);L[k]=null;if(!rem&&carte(h.c).id==='902')chatsPioche(s,p,'son maître est détruit');dire(s,p,carte(h.c).nom+' part à la défausse : son maître a quitté le jeu.')}}));
 }
-/* Jacen et Jaina (902) : pioche 1 carte. 0.4 : deck vide, defaite. */
-function chatsPioche(s,p,pq){pioche(s,p,1);s.stats.ev.push({t:'jj',cp:p,y:pq});dire(s,p,'Jacen et Jaina : '+pq+', pioche 1 carte.')}
+/* Jacen et Jaina (902) : pioche 1 carte. Deck vide : 1 point pour l'adversaire (evenement 'jj' seulement si une carte est piochee). */
+function chatsPioche(s,p,pq){const v=!s.j[p].deck.length&&!s.deckLibre;dire(s,p,'Jacen et Jaina : '+pq+', pioche 1 carte.');pioche(s,p,1);if(!v)s.stats.ev.push({t:'jj',cp:p,y:pq})} /* journal : l'effet, puis le point si le deck est vide */
 /* Statistiques : evenements en lecture seule, aucun effet sur la partie. src = {p,c,lib}, c et p peuvent etre null. */
 function note(s,t,n,src,cp,cc,ch){const o={t,n,sp:src.p,sc:src.c,lib:src.lib,cp,cc};if(ch)o.ch=1;s.stats.ev.push(o)}
 function declenche(s,nom,e){s.stats.act.push({m:s.manche,nom,e})}
@@ -359,27 +362,23 @@ function noteBonus(s){
     (g.sub||[]).forEach(()=>b('sub',p,g.c,p,g.c));(g.dr||[]).forEach(x=>b('draft',p,g.c,p,x)); /* JackJoy : la carte de Sub offert est dans la Forge, rien a lui attribuer */
   }
 }
-/* 0.4 : deck vide. Toute pioche se fait carte par carte (debut de tour, Graine de Golem, Spam, La Bretagne, Jacen et Jaina, mulligan) :
-   le joueur qui doit piocher alors que son deck est vide perd aussitot la partie, quel que soit le score (s.fin.deckVide = le perdant).
-   La partie s'arrete net : FIN_DECK remonte jusqu'a applique, qui l'attrape (rien d'autre ne s'execute apres la pioche manquee).
-   Regarder ou reordonner le deck sans piocher (Analyse du Q, Le Buzzer) ne fait jamais perdre ; Comeback et Winstreak (Bellock/Loxim) cherchent
-   une carte precise dans le deck, ce n'est pas une pioche (aucune : rien). */
-const FIN_DECK={finDeck:true};
+/* Deck vide (regle de la meule, remplace la defaite de 0.4) : « Si ton deck est vide, chaque carte que tu dois piocher donne 1 point a ton adversaire. »
+   Toute pioche se fait carte par carte (debut de tour, Graine de Golem, Spam, La Bretagne, Jacen et Jaina, mulligan) : chaque carte manquante
+   donne POINT_DECK_VIDE au score de l'adversaire (le meme que les terrains), la partie continue. La Bretagne : c'est le joueur qui pioche qui donne le point.
+   Regarder, prendre ou reordonner le deck sans piocher (Jour de peche du Q sur le deck adverse, Le Buzzer) ne donne jamais de point ; Comeback et Winstreak (Bellock/Loxim) cherchent
+   une carte precise dans le deck, ce n'est pas une pioche (aucune : rien). Evenement de stats : {t:'dv',cp:qui pioche,n:points,m:manche}. */
+const POINT_DECK_VIDE=1;
 /* s.deckLibre : banc d'essai seulement (tests unitaires qui vident les decks pour autre chose), jamais pose par nouvelle ni par le site :
-   la pioche s'arrete sans defaite, comme jusqu'a 0.3. */
-function pioche(s,p,n){const J=s.j[p];for(let i=0;i<n;i++){if(!J.deck.length){if(s.deckLibre)return;perdDeck(s,p)}J.main.push(J.deck.shift())}}
-function perdDeck(s,p){
-  dire(s,p,'doit piocher mais son deck est vide : il perd la partie.');
-  if(s.fil&&s.reperes.length)s.reperes[s.reperes.length-1][2]=s.log.length; /* pendant les effets de fin de manche : la page de la manche les garde */
-  const tc=[0,1].map(q=>s.stats.t.filter(t=>t.gagnant===q).length);
-  s.attente=null;s.fil=null;
-  s.fin={gagnant:1-p,scores:[s.j[0].score,s.j[1].score],terrains:tc,departage:false,deckVide:p};
-  s.phase='fin';throw FIN_DECK;
+   la pioche s'arrete sans point, comme jusqu'a 0.3. */
+function pioche(s,p,n){const J=s.j[p];for(let i=0;i<n;i++){if(!J.deck.length){if(s.deckLibre)return;piocheVide(s,p);continue}J.main.push(J.deck.shift())}}
+function piocheVide(s,p){
+  s.j[1-p].score+=POINT_DECK_VIDE;s.stats.ev.push({t:'dv',cp:p,n:POINT_DECK_VIDE,m:s.manche});
+  dire(s,p,'n\'a pas pu piocher (deck vide) : +'+POINT_DECK_VIDE+' point pour l\'adversaire.');
 }
 function debutTour(s){
   const J=s.j[s.joueur];pioche(s,s.joueur,s.tour===1&&s.joueur!==s.premier?1:2); /* 0.2 : le second de la manche ne pioche qu'1 carte a son premier tour */
-  const nv=graines(J.grille); /* Velnen : Graine de Golem, +1 par Velnen en jeu, premier tour de manche compris ; 0.4 : deck vide, defaite */
-  if(nv){pioche(s,s.joueur,nv);declenche(s,'Graine de Golem','Pioche +'+nv);dire(s,s.joueur,'Graine de Golem : pioche '+nv+' carte'+(nv>1?'s':'')+' de plus.')}
+  const nv=graines(J.grille); /* Velnen : Graine de Golem, +1 par Velnen en jeu, premier tour de manche compris ; deck vide : 1 point a l'adversaire par carte */
+  if(nv){declenche(s,'Graine de Golem','Pioche +'+nv);dire(s,s.joueur,'Graine de Golem : pioche '+nv+' carte'+(nv>1?'s':'')+' de plus.');pioche(s,s.joueur,nv)} /* journal : l'effet, puis les points si le deck est vide */
   J.energie=J.forge.length;J.aForge=false;J.aAgi=false;
   J.etapeForge=J.main.length>0; /* la Forge passe avant toute action, Faille et Vaisseau compris */
   J.eclair=spoms(J.grille);J.eclairUtil=0; /* Forge eclair, 1 carte de plus par Spom en jeu au debut du tour ; reprises dues en fin de tour */
@@ -518,18 +517,50 @@ function effetPose(s,p,l,k,g){
     else if(cs.length===1)slam(s,p,g.c,...cs[0]);
     else choix={t:'h',p,i:[l,k],coups:cs};
   }
+  if(C.id==='004e')ilSuffit(s,p,g); /* Le Q : Il suffit, avant les morts en chaine */
   nettoie(s);
   /* 0.2a.2 : la pose a pu tuer un candidat (bonus perdus) : on ne garde que les cases encore occupees */
   if(choix&&choix.t==='g'){choix.cases=choix.cases.filter(([a,b])=>J.grille[a][b]);if(!choix.cases.length)choix=null;else if(choix.cases.length===1){const[a,b]=choix.cases[0];if(J.grille[l][k])choisitFavori(s,p,g,a,b);choix=null;nettoie(s)}}
   if(choix&&choix.t==='h'){choix.coups=slams(s,p);if(!choix.coups.length)choix=null;else if(choix.coups.length===1){slam(s,p,g.c,...choix.coups[0]);choix=null;nettoie(s)}}
   if(choix)s.attente=choix;
-  if(C.id==='004'&&J.deck.length)s.attente={t:'q',p,options:J.deck.slice(0,3)};
-  if(C.id==='004e'&&J.grille[l][k])s.attente={t:'o',p};
+  if(C.id==='004')jourDePeche(s,p,g); /* Le Q : Jour de peche */
   if(C.id==='007'){
-    pioche(s,p,1); /* 0.4 : deck vide, defaite */
     dire(s,p,'Trigas : Spam, pioche 1 carte.');
+    pioche(s,p,1); /* deck vide : 1 point a l'adversaire (journal : l'effet, puis le point) */
     if(J.main.length)s.attente={t:'s',p};
   }
+}
+/* Le Q : Jour de peche (004, ou copieur), a la pose. Deck adverse vide : rien (regarder n'est pas piocher). 1 carte : defaussee d'office.
+   Sinon attente 'q' (adv:1, options = les 2 premieres cartes du deck adverse) ; coup 'c' + carte : elle va a la defausse adverse, l'autre reste dessus. */
+function jourDePeche(s,p,g){
+  const K=s.j[1-p],n=nomDetail(carte(g.c))+' : Jour de pêche';
+  if(!K.deck.length){declenche(s,'Jour de pêche','Deck adverse vide');dire(s,p,n+', deck adverse vide, rien à regarder.');return}
+  if(K.deck.length===1){const c=K.deck.shift();K.defausse.push(c);declenche(s,'Jour de pêche','Défausse la dernière carte');dire(s,p,n+', regarde la dernière carte du deck adverse et la défausse ('+nomDetail(carte(c))+').');return}
+  declenche(s,'Jour de pêche','Regarde 2 cartes');dire(s,p,n+', regarde les 2 premières cartes du deck adverse.');
+  s.attente={t:'q',p,adv:1,options:K.deck.slice(0,2),src:n};
+}
+/* Le Q : Il suffit (Seul contre tous, 004e, ou copieur). Chaque grille a part : carte exacte (id de la carte, base et evolution differentes ;
+   un copieur compte comme sa propre carte) posee en 2 exemplaires ou plus sur la grille. Animaux jamais (1 par deck).
+   Renvoie {T : detruits [{q,l,k,c}], pr : proteges par Mode Avion (chez l'adversaire seulement, ciblable)}. Le Golem protege compte dans les exemplaires. */
+function doublons(s,p){
+  const T=[],pr=[];
+  [p,1-p].forEach(q=>{const G=s.j[q].grille,nb={};
+    G.forEach(L=>L.forEach(h=>{if(golem(h)){const id=carte(h.c).id;nb[id]=(nb[id]||0)+1}}));
+    G.forEach((L,a)=>L.forEach((h,b)=>{if(golem(h)&&nb[carte(h.c).id]>1)(ciblable(s,q,a,b,p)?T:pr).push({q,l:a,k:b,c:h.c})}));
+  });
+  return {T,pr};
+}
+/* Destruction simultanee : toutes les cartes quittent les grilles, puis les animaux orphelins (Jacen et Jaina : pioche, quand detruit), joueur de l'effet d'abord.
+   Les morts en chaine (bonus perdus) : nettoie, apres. */
+function ilSuffit(s,p,g){
+  const {T,pr}=doublons(s,p),n=nomDetail(carte(g.c))+' : Il suffit',m=T.filter(x=>x.q===p).length,a=T.length-m;
+  const nm=x=>x.map(y=>nomDetail(carte(y.c))+(y.q===p?'':' (adverse)')).join(', ');
+  declenche(s,'Il suffit',m+' allié'+(m>1?'s':'')+' et '+a+' adverse'+(a>1?'s':'')+' détruits');
+  if(!T.length&&!pr.length){dire(s,p,n+', aucune carte posée en plusieurs exemplaires.');return}
+  dire(s,p,n+(T.length?', détruit '+nm(T):'')+(pr.length?(T.length?' ; ':', ')+nm(pr)+(pr.length>1?' sont protégés':' est protégé')+' (Mode Avion)':'')+'.');
+  T.forEach(x=>note(s,'m',1,{p,c:g.c,lib:'À la pose'},x.q,x.c));
+  T.forEach(x=>{const J=s.j[x.q];J.defausse.push(x.c);J.grille[x.l][x.k]=null});
+  T.forEach(x=>orphelins(s,x.q,x.c));
 }
 /* Elessar : Extinction du feu (Le pomplard, 018e, ou Maitre du deguisement qui l'a copiee), a la pose : chaque Golem adverse en jeu
    qui a l'element Magma perd 1 de Force, comme une blessure. Mode Avion protege (ciblable), Menfou palu aussi (blesse). Les morts : nettoie, apres. */
@@ -557,8 +588,8 @@ const BRETON=c=>carte(c).el.some(e=>e==='brume'||e==='foudre');
 function bretagne(s,p){
   [p,1-p].forEach(q=>{
     const J=s.j[q];let n=0;J.grille.forEach(L=>L.forEach(g=>{if(g&&BRETON(g.c))n++}));n=Math.min(3,n);
-    pioche(s,q,n); /* 0.4 : carte par carte, deck vide = defaite (le joueur de Titom76 pioche le premier) */
     dire(s,q,'La Bretagne : '+(n?'pioche '+n+' carte'+(n>1?'s':'')+'.':'aucune pioche.'));
+    pioche(s,q,n); /* carte par carte, deck vide : 1 point a l'adversaire du joueur qui pioche (le joueur de Titom76 pioche le premier ; journal : l'effet, puis les points) */
   });
 }
 /* Deguisement (Apo, 029e) : voisins allies (haut, bas, gauche, droite). 0 : rien. 1 : d'office. Sinon : attente 'k'. */
@@ -659,7 +690,7 @@ function agit(s,p,a){
   else dire(s,p,'pose '+nomDetail(C)+'.');
   if(C.base&&REGLAGE_JJ.garde){if(occ.sub)g.sub=occ.sub.slice();if(occ.dr)g.dr=occ.dr.slice()} /* JackJoy, V2 : Sub offert et Draft diff gardes a l'evolution */
   J.grille[a.l][a.k]=g;
-  if(C.id==='902')chatsPioche(s,p,'à la pose'); /* Jacen et Jaina : pioche a la pose, une fois sur la grille (0.4 : deck vide, defaite) */
+  if(C.id==='902')chatsPioche(s,p,'à la pose'); /* Jacen et Jaina : pioche a la pose, une fois sur la grille (deck vide : 1 point a l'adversaire) */
   effetPose(s,p,a.l,a.k,g);
 }
 /* Mignonitude (Kiwi), avant le decompte : pour chaque Kiwi en jeu (premier joueur de la manche d'abord), un Golem au hasard de chaque grille,
@@ -784,14 +815,10 @@ function passe(s){
   s.tour++;s.joueur=s.premier;debutTour(s);
 }
 function vues(s){
-  [0,1].forEach(p=>{const v=s.stats.vues[p],l=s.j[p].main.concat(s.attente&&s.attente.p===p&&s.attente.options||[]);
+  [0,1].forEach(p=>{const v=s.stats.vues[p],l=s.j[p].main.concat(s.attente&&s.attente.p===p&&!s.attente.adv&&s.attente.options||[]);
     l.forEach(c=>{if(!v.includes(c))v.push(c)})});
 }
-/* 0.4 : une pioche sur deck vide (perdDeck) arrete le coup en cours ; la partie est finie, l'etat reste tel quel. */
 function applique(s,p,a){
-  try{return joue(s,p,a)}catch(e){if(e!==FIN_DECK)throw e;return s}
-}
-function joue(s,p,a){
   if(a&&a.t==='e'&&a.a&&a.b&&s.attente&&s.attente.t==='u'&&a.a[0]*3+a.a[1]>a.b[0]*3+a.b[1])a={t:'e',a:a.b,b:a.a}; /* Shifukuro : meandyou, paire remise dans l'ordre de lecture */
   const c=code(a);
   if(a.t==='a')return abandonne(s,p);
@@ -823,8 +850,9 @@ function joue(s,p,a){
     forgeJJ(s,p,a.c); /* JackJoy */
   }
   else if(a.t==='l'){const A=s.attente;s.attente=null;donneJJ(s,p,A,a.l,a.k);suiteJJ(s,p,A.file)} /* JackJoy : cible choisie, puis la suite */
-  else if(a.t==='c'){
-    J.deck.splice(J.deck.indexOf(a.c),1);J.main.push(a.c);s.attente=null;dire(s,p,'garde une carte du dessus du deck.');
+  else if(a.t==='c'){ /* Le Q : Jour de peche, la carte choisie va a la defausse adverse, l'autre reste sur le deck adverse */
+    const K=s.j[1-p],src=s.attente.src||'Le Q : Jour de pêche';K.deck.splice(K.deck.indexOf(a.c),1);s.attente=null;
+    K.defausse.push(a.c);dire(s,p,src+', défausse '+nomDetail(carte(a.c))+' du deck adverse et replace l\'autre carte dessus.');
   }else if(a.t==='v'){ /* Oracle sans echange possible, ou meandyou refuse (Shifukuro) */
     if(s.attente&&s.attente.t==='u'){const [il,ik]=s.attente.i,I=J.grille[il][ik];declenche(s,'meandyou','Refusé');dire(s,p,(I?nomDetail(carte(I.c)):'meandyou')+' : meandyou, pas d\'échange.')}
     s.attente=null;
@@ -938,11 +966,12 @@ function rejoue(graine,journaux,decks){
 /* Bilan par joueur, par carte et par terrain. Les degats sur son propre camp sont a part (auto).
    Bonus : comptes a chaque decompte de fin de manche. */
 function bilan(s){
-  const J=[0,1].map(()=>({degats:0,morts:0,subis:0,mortsSubies:0,auto:0,soins:0,cartes:{}})),autres={},hors=[];
+  const J=[0,1].map(()=>({degats:0,morts:0,subis:0,mortsSubies:0,auto:0,soins:0,piochesManquees:0,pointsDeckVide:0,cartes:{}})),autres={},hors=[];
   const ligne=(p,c)=>{const n=nomDetail(carte(c));return J[p].cartes[n]||(J[p].cartes[n]={carte:n,poses:0,coutPaye:0,manches:[],degats:0,subis:0,morts:0,mortsSubies:0,auto:0,recuperes:0,soinsDonnes:0,forceTerrains:0,
     bonusRecus:{voisins:0,trait:0,cercle:0,favori:0},bonusDonnes:{voisins:0,trait:0,cercle:0,favori:0},sources:{}})};
   s.stats.ev.forEach(e=>{
     if(e.t==='jj')return; /* 0.4 : pioche de Jacen et Jaina, sans carte ni source (en 0.3, bilan plantait des que les chats avaient pioche) */
+    if(e.t==='dv'){J[e.cp].piochesManquees+=1;J[1-e.cp].pointsDeckVide+=e.n;return} /* deck vide : cartes non piochees, points donnes a l'adversaire */
     if(e.t==='p'){const r=ligne(e.cp,e.cc);r.poses++;r.coutPaye+=e.n;r.manches.push(e.m);if(estAnimal(e.cc))r.animal=true;return}
     if(e.t==='a'){ligne(e.cp,e.cc).forceTerrains+=e.n;return}
     if(e.t==='r'){ligne(e.cp,e.cc).recuperes+=e.n;if(e.y==='love'){ligne(e.sp,e.sc).soinsDonnes+=e.n;J[e.sp].soins+=e.n}return} /* K-Chan : soins donnes */
@@ -970,8 +999,8 @@ function bilan(s){
     const score=c.forceTerrains*P.force+bonus*P.bonus+c.degats*P.degats+c.morts*P.morts;
     if(!mvp||score>mvp.score)mvp={carte:c.carte,joueur:s.fin.gagnant,score,force:c.forceTerrains,bonus,degats:c.degats,morts:c.morts};
   });
-  /* 0.4 : cause de la fin (deck vide, abandon ou points) et perdant, pour le bilan et l'Historique */
-  const F=s.fin,fin=!F?null:F.deckVide!==undefined?{cause:'deck vide',perdant:F.deckVide}:F.abandon!==undefined?{cause:'abandon',perdant:F.abandon}:{cause:'points',perdant:F.gagnant===null?null:1-F.gagnant};
+  /* 0.4 : cause de la fin (abandon ou points) et perdant, pour le bilan et l'Historique ; plus de fin par deck vide */
+  const F=s.fin,fin=!F?null:F.abandon!==undefined?{cause:'abandon',perdant:F.abandon}:{cause:'points',perdant:F.gagnant===null?null:1-F.gagnant};
   return {joueurs,autres:Object.values(autres),terrains,tours:s.stats.tours,mvp,mignonitude:hors,fin};
 }
 /* Robot : deterministe, ne regarde que ce qu'un joueur voit (sa main, les grilles, les options proposees). */
@@ -1011,24 +1040,23 @@ function utilite(s,p,c){
   return 5-C.cout*.5;
 }
 const parUtilite=(s,p,l)=>l.slice().sort((a,b)=>utilite(s,p,b)-utilite(s,p,a)||a-b);
-/* 0.4, robot : deck vide. Pioches obligatoires de p d'ici la fin de la partie (debuts de tour a venir, tour en cours exclu), avec g Graines de Golem en jeu.
-   La partie va toujours jusqu'au dernier tour de la manche 3 et aucune carte ne revient dans le deck : au-dela, la defaite est certaine. */
+/* Robot : deck vide. Pioches obligatoires de p d'ici la fin de la partie (debuts de tour a venir, tour en cours exclu), avec g Graines de Golem en jeu.
+   La partie va toujours jusqu'au dernier tour de la manche 3 et aucune carte ne revient dans le deck : au-dela, chaque pioche donne 1 point a l'adversaire. */
 function piochesAVenir(s,p,g){
   let n=0;
   for(let m=s.manche;m<=3;m++){const pr=s.premier^((m-s.manche)&1);
     for(let t=m===s.manche?s.tour:1;t<=3;t++){if(m===s.manche&&t===s.tour&&(p===s.joueur||p===pr))continue;n+=(t===1&&p!==pr?1:2)+g}}
   return n;
 }
-/* Effet de pose id (Spam, Jacen et Jaina, La Bretagne, Graine de Golem) joue par p : -50 s'il fait perdre p (pioche sur deck vide tout de suite,
-   ou defaite certaine plus tard alors qu'elle ne l'etait pas), +50 si La Bretagne fait perdre l'adversaire tout de suite. Sinon 0.
+/* Effet de pose id (Spam, Jacen et Jaina, La Bretagne, Graine de Golem) joue par p : valeur en points de deck vide. Pioches manquees en plus pour p
+   (tout de suite, puis aux debuts de tour a venir), comptees en moins ; pioches manquees en plus pour l'adversaire (La Bretagne), comptees en plus.
    gr : Golems Brume ou Foudre de chaque grille apres la pose (La Bretagne) ; g : Graines de Golem de p apres la pose. Le robot ne voit que la taille des decks. */
 const PIOCHE_POSE={'007':1,'902':1};
 function risqueDeck(s,p,id,gr,g){
-  const D=[s.j[0].deck.length,s.j[1].deck.length],moi=PIOCHE_POSE[id]||(id==='026'?Math.min(3,gr[p]):0),lui=id==='026'?Math.min(3,gr[1-p]):0;
-  if(moi>D[p])return -50;
-  if(lui>D[1-p])return 50;
-  const g0=graines(s.j[p].grille);
-  return D[p]-moi<piochesAVenir(s,p,g)&&D[p]>=piochesAVenir(s,p,g0)?-50:0;
+  const D=[s.j[0].deck.length,s.j[1].deck.length],moi=PIOCHE_POSE[id]||(id==='026'?Math.min(3,gr[p]):0),lui=id==='026'?Math.min(3,gr[1-p]):id==='004'&&D[1-p]>0?1:0; /* Le Q : Jour de peche, 1 carte adverse en moins (risque en points) */
+  const g0=graines(s.j[p].grille),ga=graines(s.j[1-p].grille);
+  const manque=(q,n,gq,gq0)=>Math.max(0,n-D[q])+Math.max(0,piochesAVenir(s,q,gq)-Math.max(0,D[q]-n))-Math.max(0,piochesAVenir(s,q,gq0)-D[q]);
+  return POINT_DECK_VIDE*(manque(1-p,lui,ga,ga)-manque(p,moi,g,g0));
 }
 const bretons=(c,q)=>c.j[q].grille.flat().filter(h=>h&&BRETON(h.c)).length;
 function gainCoup(s,p,a,v0){
@@ -1041,6 +1069,7 @@ function gainCoup(s,p,a,v0){
       if(C.id==='001e')c.j[1-p].grille[a.l].forEach((g,q)=>{if(ciblable(c,1-p,a.l,q,p)&&idEff(g)!=='009e')g.d++});
       if(C.id==='029')gambaEstime(c,p,a.l,a.k);
       if(C.id==='018e')extinctionEstime(c,p); /* Elessar */
+      if(C.id==='004e')ilSuffitEstime(c,p); /* Le Q : Il suffit, simule retire ensuite les morts en chaine */
     }else if(a.t==='w'){const x=G[a.a][a.k];G[a.a][a.k]=G[a.b][a.k];G[a.b][a.k]=x}
     else if(a.t==='y'){G[a.d][s.terrains.findIndex(t=>t.nom==='La Faille')]=G[a.l][a.k];G[a.l][a.k]=null}
     else if(a.t==='e'){const[x,y]=a.a,[u,w]=a.b,q=G[x][y];G[x][y]=G[u][w];G[u][w]=q}
@@ -1066,7 +1095,7 @@ function gainCoup(s,p,a,v0){
   if(a.t==='p'&&carte(a.c).id==='035e'){const r=9-((s.manche-1)*3+s.tour);g+=.1*Math.min(4,r)} /* JackJoy : Draft diff aux Forges suivantes */
   if(a.t==='p'&&carte(a.c).id==='036'&&s.manche*3+s.tour<12)g+=.3;
   if(a.t==='p'&&apres.j[p].grille[a.l][a.k]&&!COPIEURS[carte(a.c).id])g+=risqueDeck(s,p,carte(a.c).id,[0,1].map(q=>bretons(apres,q)),graines(apres.j[p].grille)); /* 0.4 : deck vide (copieurs : dans gainCopie) */ /* Forge eclair aux tours suivants (rien apres le dernier tour) */
-  if(a.t==='p'){g-=.03*coutPose(s,p,a.c,a.l,a.k);if(carte(a.c).id==='004'&&s.j[p].deck.length)g+=.5;if(carte(a.c).id==='007')g+=.3;if(FAV_BONUS[carte(a.c).id]&&s.j[p].grille.some(L=>L.some(Boolean)))g+=.3;if(carte(a.c).id==='009'&&slams(s,p).length)g+=.3}
+  if(a.t==='p'){g-=.03*coutPose(s,p,a.c,a.l,a.k);if(carte(a.c).id==='004'&&s.j[1-p].deck.length)g+=.25;if(carte(a.c).id==='007')g+=.3;if(FAV_BONUS[carte(a.c).id]&&s.j[p].grille.some(L=>L.some(Boolean)))g+=.3;if(carte(a.c).id==='009'&&slams(s,p).length)g+=.3}
   return g;
 }
 /* Kiwi : esperance de la valeur du plateau sur tous les tirages de Mignonitude (1 Golem par grille), moins la valeur sans tirage.
@@ -1090,13 +1119,15 @@ function gambaEstime(c,p,l,k){
 /* Elessar : Extinction du feu estimee (Golems Magma adverses ciblables -1, Menfou palu exclu ; simule retire les morts).
    Realisation de l'age : petit bonus si l'adversaire jouera encore, selon ses Golems de base en jeu qui ont une evolution (seule information visible :
    le robot ne regarde ni la main ni le deck adverses). */
+/* Le Q : Il suffit estime (copie du plateau) : les Golems detruits quittent les grilles, Mode Avion adverse garde. */
+function ilSuffitEstime(c,p){doublons(c,p).T.forEach(x=>{c.j[x.q].grille[x.l][x.k]=null})}
 function extinctionEstime(c,p){const G=c.j[1-p].grille;for(let a=0;a<3;a++)for(let b=0;b<3;b++){const h=G[a][b];if(golem(h)&&carte(h.c).el.includes('magma')&&ciblable(c,1-p,a,b,p)&&idEff(h)!=='009e')h.d++}}
 function elessarEstime(s,p){
   if(s.manche===3&&s.tour===3&&s.joueur!==s.premier)return 0; /* dernier tour de la partie : l'adversaire ne posera plus rien */
   let n=0;s.j[1-p].grille.forEach(L=>L.forEach(g=>{if(golem(g)&&!carte(g.c).base&&TYPES.some(t=>CARTES[t].base===carte(g.c).id))n++}));
   return .1+.1*Math.min(3,n);
 }
-const BONUS_COPIE={'041':.3,'036':.3,'004':.5,'004e':.3,'007':.3,'007e':.3,'008':.3,'009e':.3,'013':.4,'013e':.9,'026e':.4,'003e':.4,'035e':.3,'008e':.3};
+const BONUS_COPIE={'041':.3,'036':.3,'004':.25,'007':.3,'007e':.3,'008':.3,'009e':.3,'013':.4,'013e':.9,'026e':.4,'003e':.4,'035e':.3,'008e':.3};
 function gainCopie(c,p,l,k,id){
   const f=d=>{const G=d.j[p].grille[l][k];if(!G)return;G.cp=id;
     if(id==='001'&&d.manche<3)G.d+=4; /* KaTarN : -4 a chaque fin de manche */
@@ -1105,6 +1136,7 @@ function gainCopie(c,p,l,k,id){
     if(id==='002e')G.f=6.4;
     if(id==='029')gambaEstime(d,p,l,k);
     if(id==='018e')extinctionEstime(d,p); /* Elessar */
+    if(id==='004e')ilSuffitEstime(d,p); /* Le Q : Il suffit copie */
   };
   let v=valeur(simule(c,f),p)+(BONUS_COPIE[id]||0);
   if(id==='009'&&slams(c,p).length)v+=.4;
@@ -1199,6 +1231,8 @@ function choixJJ(s,p,l){
     if(w>v){v=w;m=a}});
   return m;
 }
+/* Le Q, robot : Jour de peche, defausse la carte la plus utile a l'adversaire (utilite vue de son camp, sa main cachee : vide). */
+function choixPeche(s,p,l){const H={...s,j:s.j.map((K,i)=>i===1-p?{...K,main:[]}:K)};return parUtilite(H,1-p,l.map(a=>a.c))[0]}
 function meilleur(s,p,l){
   const v0=valeur(s,p);let m=null,g=-Infinity;
   l.forEach(a=>{const x=gainCoup(s,p,a,v0);if(x>g){g=x;m=a}});
@@ -1222,7 +1256,7 @@ function robot(s,p,niveau){
   }
   if(niveau==='difficile')return robotFort(s,p,l,t);
   if(t==='m')return {t:'m',c:J.main.filter(c=>carte(c).cout>=4||(carte(c).base&&utilite(s,p,c)<3)).slice(0,3)};
-  if(t==='c')return {t:'c',c:parUtilite(s,p,l.map(a=>a.c))[0]};
+  if(t==='c')return {t:'c',c:choixPeche(s,p,l)}; /* Le Q : Jour de peche */
   if(t==='b')return {t:'b',o:parUtilite(s,p,s.attente.options)};
   if(t==='d')return {t:'d',c:parUtilite(s,p,l.map(a=>a.c)).pop()};
   if(t==='s'){const du=forgeUtile(s,p,J.main)??jjForgeRobot(s,p);return {t:'s',c:du!==null?du:parUtilite(s,p,l.map(a=>a.c)).pop()}} /* Bellock/Loxim : Spam */
@@ -1248,7 +1282,7 @@ function robot(s,p,niveau){
 function robotFort(s,p,l,t){
   const J=s.j[p],F={...s,fort:true};
   if(t==='m')return {t:'m',c:J.main.filter(c=>carte(c).cout>=4||(carte(c).base&&utilite(s,p,c)<3)).slice(0,3)};
-  if(t==='c')return {t:'c',c:parUtilite(s,p,l.map(a=>a.c))[0]};
+  if(t==='c')return {t:'c',c:choixPeche(s,p,l)}; /* Le Q : Jour de peche */
   if(t==='b')return {t:'b',o:parUtilite(s,p,s.attente.options)};
   if(t==='d')return {t:'d',c:forgeForte(s,p)};
   if(t==='s'){const du=forgeUtile(s,p,J.main)??jjForgeRobot(s,p);return {t:'s',c:du!==null?du:forgeForte(s,p)}} /* Bellock/Loxim : Spam */
@@ -1273,7 +1307,7 @@ function robotFort(s,p,l,t){
 }
 const api={VERSION,TRAIT_CUMULE,TAILLE_DECK,DECK_MIN,DECK_MAX,MAX_EX,erreurDeck,deckTexte,lisDeck,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
   nomDetail,forceDe,ciblable,colonnes,valeurDecompte,coutPose,genre,TYPES_TEST,DECK_DEFAUT,DECK_TUTO,FAV_BONUS,favori,indrasDe,idEff,foudres,spoms,
-  estAnimal,ANIMAL_MAX,maxEx,maitreDe,peutPoser,elessars,graines,COPIEURS,EL_VELNEN,kekwait,echangesMeandyou,DUO,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,partenaires,forgeUtile,jjBonus,ciblesJJ,REGLAGE_JJ,cercle2,blesse,loves,choixLove,REGLAGE_KC,generaux,nettoie,noteBonus,retire,chatsPioche,effetsGolems,agit,piochesAVenir,risqueDeck};
+  estAnimal,ANIMAL_MAX,maxEx,maitreDe,peutPoser,elessars,graines,COPIEURS,EL_VELNEN,kekwait,echangesMeandyou,DUO,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,partenaires,forgeUtile,jjBonus,ciblesJJ,REGLAGE_JJ,cercle2,blesse,loves,choixLove,REGLAGE_KC,generaux,nettoie,noteBonus,retire,chatsPioche,effetsGolems,agit,piochesAVenir,risqueDeck,doublons,ilSuffit,jourDePeche,POINT_DECK_VIDE};
 
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else racine.GolemsMoteur=api;
 })(typeof window!=='undefined'?window:globalThis);
