@@ -24,7 +24,7 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-nom{font:400 54px/1 var(--titre);white-space:nowrap}
 #dif .d-j.toi .d-nom{color:var(--moi)}
 #dif .d-j.lui .d-nom{color:var(--lui)}
-#dif .d-cpt{display:flex;gap:6px;font-size:22px;font-weight:400;color:#c9d4e2;line-height:1.1;white-space:nowrap}
+#dif .d-cpt{display:flex;align-items:baseline;gap:6px;font-size:22px;font-weight:400;color:#c9d4e2;line-height:1.1;white-space:nowrap}
 #dif .d-j.dr .d-cpt{flex-direction:row-reverse;justify-content:flex-start}
 #dif .d-cpt>span{display:inline-flex;align-items:baseline;gap:3px}
 #dif .d-cpt .ico,#dif .d-ener .ico{align-self:center} /* mot et chiffre sur la meme ligne de base, picto centre */ /* ecarts resserres : Main, Deck, Defausse et Energie a 2 chiffres tiennent avec un pseudo de 54 px */
