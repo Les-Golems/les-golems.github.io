@@ -2152,7 +2152,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
- {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur, pensée pour la diffusion","En spectateur : cartes en grand, piles, récaps et MVP","Parties ouvertes et Parties en cours","Le créateur part : l'adversaire le remplace","Infobulles sur les mots-clés des règles","Onglet Règles : sommaire et recherche","4 decks conseillés dans l'onglet Decks","En partie : la Force de chaque Golem d'un terrain","Deck vide : tu perds la partie"]},
+ {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur, pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","4 decks conseillés dans l'onglet Decks","En partie : détail de la Force sur chaque terrain","Nouvelle règle : deck vide = défaite","Bug de Jacen et Jaina corrigé"]},
  {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
  {version:'Version 0.2c',date:'5 novembre 2026',notes:["La Boutique réduit aussi le coût des évolutions","Éditeur de deck : teste tes placements dans un bac à sable","Statistiques repensées : recherche, classement complet, toutes tes parties comptées","Profil des joueurs réorganisé, avec ton rang au classement","Partage de deck par lien cliquable","Résumé de partie prêt à coller sur Discord","Version vérifiée dans le salon, page mise à jour automatiquement","Appli installée : nouvelle icône, lancement bleu ciel","QoL ajoutés"]},
  {version:'Version 0.2b',date:'4 novembre 2026',notes:["Nouveaux Golems : trop nombreux pour les citer","Premier animal de compagnie : Kiwi, le lapin de Titom76","K-Chan devient Magma + Brume","Plateau en miroir : ton camp en bas","Statistiques par patch et par adversaire, profils publics","Cartes et éditeur de deck : nouveaux filtres et tri","Aide en partie avec le cercle des éléments","Historique repensé, decks à 3 par ligne, 7 nouveaux avatars, QoL ajoutés"]},
@@ -2452,9 +2452,9 @@ NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t)
   const sec=$('nouveautes');new MutationObserver(()=>{if(sec.hidden)v.pause()}).observe(sec,{attributes:true,attributeFilter:['hidden']});
 });
 /* Nouveautes (0.4) : blocs epingles, Feuille de route, pagination.
-   Epingles : 2 au plus, en tete et hors des 6 blocs recents (ligne 1 colonnes 1 et 2 ; un seul epingle : le bloc le plus recent prend la colonne 2 ;
+   Epingles : 2 au plus, en tete et COMPRIS dans les 6 blocs affiches (1 epingle : 5 recents ; 2 epingles : 4 recents) (ligne 1 colonnes 1 et 2 ; un seul epingle : le bloc le plus recent prend la colonne 2 ;
    telephone : epingles en premier). Etat dans Firebase (nouveautes/epingles), ecrit par le seul compte de Romain ; noeud vide = Feuille de route epinglee.
-   Pagination : 6 blocs recents ; un couple version + video n'est jamais coupe (il passe entier a la page suivante) ;
+   Pagination : 6 blocs au total, epingles compris ; un couple version + video n'est jamais coupe (il passe entier a la page suivante) ;
    la tuile « Voir les versions précédentes » prend la case suivante de la grille et sert aussi a replier. */
 const FEUILLE_DE_ROUTE=[
  {v:'0.4',nom:'Nouvelle vue spectateur',etat:'actuelle'},
@@ -2497,7 +2497,7 @@ function peintNotes(){
   /* Feuille de route desepinglee : premier bloc de la liste (Romain peut la reepingler) */
   const U=[...(ep.includes('feuille-de-route')?[]:[[fdr]]),...unitesNotes()].map(u=>u.filter(a=>!ep.includes(a.dataset.id))).filter(u=>u.length);
   const recents=[],anciens=[];let n=0;
-  U.forEach(u=>{if(!anciens.length&&n+u.length<=6){recents.push(...u);n+=u.length}else anciens.push(...u)});
+  U.forEach(u=>{if(!anciens.length&&n+u.length<=6-ep.length){recents.push(...u);n+=u.length}else anciens.push(...u)});
   const ordre=[...ep.map(par),...recents,...anciens];
   if(ordre.some((a,i)=>N.children[i]!==a))ordre.forEach(a=>N.append(a));
   N.querySelectorAll(':scope>article.note').forEach(a=>{const e=ep.includes(a.dataset.id);a.classList.toggle('nv-epingle',e);a.hidden=!e&&!NV.ouvert&&anciens.includes(a);
