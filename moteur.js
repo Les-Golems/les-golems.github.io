@@ -532,17 +532,12 @@ function effetPose(s,p,l,k,g){
 }
 /* Le Q : Jour de peche (004, ou copieur), a la pose. Deck adverse vide : rien (regarder n'est pas piocher). 1 carte : defaussee d'office.
    Sinon attente 'q' (adv:1, options = les 2 premieres cartes du deck adverse) ; coup 'c' + carte : elle va a la defausse adverse, l'autre reste dessus. */
-const REGLAGE_LEQ={defausse:true,seuil:0,aveugle:false}; /* aveugle : simulations seulement, defausse la carte du dessus du deck adverse, sans choix */ /* simulations seulement : defausse si le deck adverse a plus de seuil cartes (defausse:false = jamais) ;
-   sinon la carte choisie va sous le deck adverse (dessous:1 dans l'attente ; 1 seule carte : regardee, rien d'autre) */
-const pecheDefausse=n=>REGLAGE_LEQ.defausse&&n>REGLAGE_LEQ.seuil;
 function jourDePeche(s,p,g){
   const K=s.j[1-p],n=nomDetail(carte(g.c))+' : Jour de pêche';
   if(!K.deck.length){declenche(s,'Jour de pêche','Deck adverse vide');dire(s,p,n+', deck adverse vide, rien à regarder.');return}
-  if(REGLAGE_LEQ.aveugle){const c=K.deck.shift();K.defausse.push(c);declenche(s,'Jour de pêche','Défausse la carte du dessus');dire(s,p,n+', défausse la carte du dessus du deck adverse ('+nomDetail(carte(c))+').');return}
-  if(K.deck.length===1&&!pecheDefausse(1)){declenche(s,'Jour de pêche','Regarde 1 carte');dire(s,p,n+', regarde la dernière carte du deck adverse.');return}
   if(K.deck.length===1){const c=K.deck.shift();K.defausse.push(c);declenche(s,'Jour de pêche','Défausse la dernière carte');dire(s,p,n+', regarde la dernière carte du deck adverse et la défausse ('+nomDetail(carte(c))+').');return}
   declenche(s,'Jour de pêche','Regarde 2 cartes');dire(s,p,n+', regarde les 2 premières cartes du deck adverse.');
-  s.attente={t:'q',p,adv:1,options:K.deck.slice(0,2),src:n};if(!pecheDefausse(K.deck.length))s.attente.dessous=1;
+  s.attente={t:'q',p,adv:1,options:K.deck.slice(0,2),src:n};
 }
 /* Le Q : Il suffit (Seul contre tous, 004e, ou copieur). Chaque grille a part : carte exacte (id de la carte, base et evolution differentes ;
    un copieur compte comme sa propre carte) posee en 2 exemplaires ou plus sur la grille. Animaux jamais (1 par deck).
@@ -856,9 +851,8 @@ function applique(s,p,a){
   }
   else if(a.t==='l'){const A=s.attente;s.attente=null;donneJJ(s,p,A,a.l,a.k);suiteJJ(s,p,A.file)} /* JackJoy : cible choisie, puis la suite */
   else if(a.t==='c'){ /* Le Q : Jour de peche, la carte choisie va a la defausse adverse, l'autre reste sur le deck adverse */
-    const K=s.j[1-p],ds=s.attente.dessous,src=s.attente.src||'Le Q : Jour de pêche';K.deck.splice(K.deck.indexOf(a.c),1);s.attente=null;
-    if(ds){K.deck.push(a.c);dire(s,p,src+', met une carte sous le deck adverse.')} /* variante (simulations seulement) */
-    else{K.defausse.push(a.c);dire(s,p,src+', défausse '+nomDetail(carte(a.c))+' du deck adverse et replace l\'autre carte dessus.')}
+    const K=s.j[1-p],src=s.attente.src||'Le Q : Jour de pêche';K.deck.splice(K.deck.indexOf(a.c),1);s.attente=null;
+    K.defausse.push(a.c);dire(s,p,src+', défausse '+nomDetail(carte(a.c))+' du deck adverse et replace l\'autre carte dessus.');
   }else if(a.t==='v'){ /* Oracle sans echange possible, ou meandyou refuse (Shifukuro) */
     if(s.attente&&s.attente.t==='u'){const [il,ik]=s.attente.i,I=J.grille[il][ik];declenche(s,'meandyou','Refusé');dire(s,p,(I?nomDetail(carte(I.c)):'meandyou')+' : meandyou, pas d\'échange.')}
     s.attente=null;
@@ -1059,7 +1053,7 @@ function piochesAVenir(s,p,g){
    gr : Golems Brume ou Foudre de chaque grille apres la pose (La Bretagne) ; g : Graines de Golem de p apres la pose. Le robot ne voit que la taille des decks. */
 const PIOCHE_POSE={'007':1,'902':1};
 function risqueDeck(s,p,id,gr,g){
-  const D=[s.j[0].deck.length,s.j[1].deck.length],moi=PIOCHE_POSE[id]||(id==='026'?Math.min(3,gr[p]):0),lui=id==='026'?Math.min(3,gr[1-p]):id==='004'&&pecheDefausse(D[1-p])?1:0; /* Le Q : Jour de peche, 1 carte adverse en moins (risque en points) */
+  const D=[s.j[0].deck.length,s.j[1].deck.length],moi=PIOCHE_POSE[id]||(id==='026'?Math.min(3,gr[p]):0),lui=id==='026'?Math.min(3,gr[1-p]):id==='004'&&D[1-p]>0?1:0; /* Le Q : Jour de peche, 1 carte adverse en moins (risque en points) */
   const g0=graines(s.j[p].grille),ga=graines(s.j[1-p].grille);
   const manque=(q,n,gq,gq0)=>Math.max(0,n-D[q])+Math.max(0,piochesAVenir(s,q,gq)-Math.max(0,D[q]-n))-Math.max(0,piochesAVenir(s,q,gq0)-D[q]);
   return POINT_DECK_VIDE*(manque(1-p,lui,ga,ga)-manque(p,moi,g,g0));
@@ -1101,7 +1095,7 @@ function gainCoup(s,p,a,v0){
   if(a.t==='p'&&carte(a.c).id==='035e'){const r=9-((s.manche-1)*3+s.tour);g+=.1*Math.min(4,r)} /* JackJoy : Draft diff aux Forges suivantes */
   if(a.t==='p'&&carte(a.c).id==='036'&&s.manche*3+s.tour<12)g+=.3;
   if(a.t==='p'&&apres.j[p].grille[a.l][a.k]&&!COPIEURS[carte(a.c).id])g+=risqueDeck(s,p,carte(a.c).id,[0,1].map(q=>bretons(apres,q)),graines(apres.j[p].grille)); /* 0.4 : deck vide (copieurs : dans gainCopie) */ /* Forge eclair aux tours suivants (rien apres le dernier tour) */
-  if(a.t==='p'){g-=.03*coutPose(s,p,a.c,a.l,a.k);if(carte(a.c).id==='004'&&pecheDefausse(s.j[1-p].deck.length))g+=.25;if(carte(a.c).id==='007')g+=.3;if(FAV_BONUS[carte(a.c).id]&&s.j[p].grille.some(L=>L.some(Boolean)))g+=.3;if(carte(a.c).id==='009'&&slams(s,p).length)g+=.3}
+  if(a.t==='p'){g-=.03*coutPose(s,p,a.c,a.l,a.k);if(carte(a.c).id==='004'&&s.j[1-p].deck.length)g+=.25;if(carte(a.c).id==='007')g+=.3;if(FAV_BONUS[carte(a.c).id]&&s.j[p].grille.some(L=>L.some(Boolean)))g+=.3;if(carte(a.c).id==='009'&&slams(s,p).length)g+=.3}
   return g;
 }
 /* Kiwi : esperance de la valeur du plateau sur tous les tirages de Mignonitude (1 Golem par grille), moins la valeur sans tirage.
@@ -1313,7 +1307,7 @@ function robotFort(s,p,l,t){
 }
 const api={VERSION,TRAIT_CUMULE,TAILLE_DECK,DECK_MIN,DECK_MAX,MAX_EX,erreurDeck,deckTexte,lisDeck,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
   nomDetail,forceDe,ciblable,colonnes,valeurDecompte,coutPose,genre,TYPES_TEST,DECK_DEFAUT,DECK_TUTO,FAV_BONUS,favori,indrasDe,idEff,foudres,spoms,
-  estAnimal,ANIMAL_MAX,maxEx,maitreDe,peutPoser,elessars,graines,COPIEURS,EL_VELNEN,kekwait,echangesMeandyou,DUO,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,partenaires,forgeUtile,jjBonus,ciblesJJ,REGLAGE_JJ,cercle2,blesse,loves,choixLove,REGLAGE_KC,generaux,nettoie,noteBonus,retire,chatsPioche,effetsGolems,agit,piochesAVenir,risqueDeck,doublons,ilSuffit,jourDePeche,REGLAGE_LEQ,POINT_DECK_VIDE};
+  estAnimal,ANIMAL_MAX,maxEx,maitreDe,peutPoser,elessars,graines,COPIEURS,EL_VELNEN,kekwait,echangesMeandyou,DUO,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,partenaires,forgeUtile,jjBonus,ciblesJJ,REGLAGE_JJ,cercle2,blesse,loves,choixLove,REGLAGE_KC,generaux,nettoie,noteBonus,retire,chatsPioche,effetsGolems,agit,piochesAVenir,risqueDeck,doublons,ilSuffit,jourDePeche,POINT_DECK_VIDE};
 
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else racine.GolemsMoteur=api;
 })(typeof window!=='undefined'?window:globalThis);
