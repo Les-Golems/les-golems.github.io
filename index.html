@@ -3023,9 +3023,11 @@ $('pret').onclick=()=>{
   pub({pret:jePret||null,deck:jePret&&deckPret.texte||null});majChoixDeck();majSalon();
 };
 async function sortie(msg,avant){
-  if(window.SPEC){if(SPEC.estSpectateur()&&window.SPEC_UI&&SPEC_UI.quitterVuePartie)try{SPEC_UI.quitterVuePartie()}catch(e){}SPEC.sortir().catch(()=>{})}
+  let spec=false;
+  if(window.SPEC){spec=SPEC.estSpectateur();if(spec&&window.SPEC_UI&&SPEC_UI.quitterVuePartie)try{SPEC_UI.quitterVuePartie()}catch(e){}SPEC.sortir().catch(()=>{})}
   const a=r;r=null;code='';finPartie();annonceVue='';createur=false;peintListe();
   $('salon').hidden=true;$('accueil').hidden=false;$('erreurJeu').textContent=msg||'';
+  if(spec)onglet('jouer'); /* spectateur : retour sur l'onglet Jouer, pas sur le dernier onglet memorise */
   if(a)try{if(avant)await avant;await a.leave()}catch(e){}
   if(room)room.presence({salon:null}).catch(()=>{});
   majEtat();majReprise();placeChat();

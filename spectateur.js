@@ -165,14 +165,14 @@ async function inscrisSpec() {
   await onDisconnect(r).remove();
   await set(r, { p: await pseudoDe(u), t: serverTimestamp() });
 }
-async function retireSpec() { const r = ref(db, base() + "/spectateurs/" + uid()); try { await onDisconnect(r).cancel(); await remove(r); } catch (e) {} }
+async function retireSpec(c) { const r = ref(db, (c ? P + "salons/" + c : base()) + "/spectateurs/" + uid()); try { await onDisconnect(r).cancel(); await remove(r); } catch (e) {} }
 async function prendsSiege() {
   const u = uid();
   const t = await runTransaction(ref(db, base() + "/siege"), cur => (cur === null || cur === u) ? u : undefined, { applyLocally: false });
   if (t.committed && t.snapshot.val() === u) { try { await onDisconnect(ref(db, base() + "/siege")).remove(); } catch (e) {} return true; }
   return false;
 }
-async function rendsSiege() { const r = ref(db, base() + "/siege"); try { await onDisconnect(r).cancel(); } catch (e) {} try { await remove(r); } catch (e) {} }
+async function rendsSiege(c) { const r = ref(db, (c ? P + "salons/" + c : base()) + "/siege"); try { await onDisconnect(r).cancel(); } catch (e) {} try { await remove(r); } catch (e) {} }
 
 const SPEC = {
   // Appelé par entre() d'index.html AVANT room.join. Renvoie 'j1', 'adv' ou 'spec'.
@@ -200,14 +200,16 @@ const SPEC = {
     notifie(); return moi;
   },
   // Sortie du salon (bouton Quitter, ou salon perdu).
+  // Écoutes coupées et état remis à zéro AVANT toute écriture : plus aucune peinture de la partie ni chat de spectateur.
   async sortir() {
     if (!code) return;
-    if (moi === "spec") await retireSpec();
-    if (moi === "adv") await rendsSiege();
+    const c = code, m = moi;
     stops.forEach(f => f()); stops = [];
-    code = ""; actif = false; moi = "spec"; joueurs = {}; coups = {}; siege = null; engages = null; specs = {}; cache = { cle: "", val: null };
+    code = ""; actif = false; moi = "spec"; joueurs = {}; coups = {}; siege = null; engages = null; specs = {}; cache = { cle: "", val: null }; paire = null;
     publicVu = false; dernierJ1 = dernierAdv = promotion = null; clearTimeout(promoT); promoT = 0;
     notifie();
+    if (m === "spec") await retireSpec(c);
+    if (m === "adv") await rendsSiege(c);
   },
   etatSalon, etatPartie,
   // État brut du moteur (même objet que partie.etat chez les joueurs), pour comparer.
