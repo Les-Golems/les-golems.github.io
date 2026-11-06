@@ -376,7 +376,7 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .chat-liste li{padding:2px 0}
 .chat-liste b{color:var(--bleu);margin-right:5px}
 /* 0.4 : pseudo selon le role (createur dore, adversaire bleu, spectateur gris clair avec un oeil, parti neutre) ; aussi dans la vue spectateur */
-b.chat-createur{color:var(--or)}b.chat-adversaire{color:var(--bleu)}b.chat-spectateur{color:#d3dbe0}b.chat-parti{color:var(--doux)}
+b.chat-createur{color:var(--or)}b.chat-adversaire{color:var(--bleu)}b.chat-spectateur{color:#c2ccd2}b.chat-parti{color:var(--doux)}
 b[class^="chat-"][title]{cursor:help}
 .chat-oeil{display:inline-block;width:1.05em;height:1.05em;margin-right:.25em;vertical-align:-.15em;opacity:.85}
 .chat-oeil svg{display:block;width:100%;height:100%;fill:currentColor}
@@ -2152,6 +2152,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
+ {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : plateau en grand, mains, dernière carte jouée, dernières actions","En spectateur : cartes et terrains en grand, Deck, Défausse, Forge, récap des manches et MVP","Parties ouvertes et Parties en cours dans l'onglet Jouer","Le créateur part : l'adversaire devient créateur","Infobulles sur les mots-clés des règles","Onglet Règles : sommaire et recherche ; 4 decks conseillés","En partie : la Force de chaque Golem d'un terrain","Nouvelle règle : deck vide = défaite","Corrections : contour doré, avatars du profil, bilan de Jacen et Jaina, images à jour"]},
  {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
  {version:'Version 0.2c',date:'5 novembre 2026',notes:["La Boutique réduit aussi le coût des évolutions","Éditeur de deck : teste tes placements dans un bac à sable","Statistiques repensées : recherche, classement complet, toutes tes parties comptées","Profil des joueurs réorganisé, avec ton rang au classement","Partage de deck par lien cliquable","Résumé de partie prêt à coller sur Discord","Version vérifiée dans le salon, page mise à jour automatiquement","Appli installée : nouvelle icône, lancement bleu ciel","QoL ajoutés"]},
  {version:'Version 0.2b',date:'4 novembre 2026',notes:["Nouveaux Golems : trop nombreux pour les citer","Premier animal de compagnie : Kiwi, le lapin de Titom76","K-Chan devient Magma + Brume","Plateau en miroir : ton camp en bas","Statistiques par patch et par adversaire, profils publics","Cartes et éditeur de deck : nouveaux filtres et tri","Aide en partie avec le cercle des éléments","Historique repensé, decks à 3 par ligne, 7 nouveaux avatars, QoL ajoutés"]},
@@ -2162,6 +2163,31 @@ const NOUVEAUTES=[
    Une ligne = une phrase courte pour les joueurs. Sous-liste : {t:"titre :",l:[...]}. Rubrique vide : [] (message neutre affiché).
    Nouvelle version : ajouter son entree en tete, comme dans NOUVEAUTES. */
 const DETAILS_VERSIONS={
+ 'Version 0.4':{
+  nouveautes:[
+   "Nouvelle vue spectateur : le plateau en grand, les deux mains, la dernière carte jouée avec son effet en clair, les dernières actions et le cercle des éléments. Pensée pour regarder une partie ou la diffuser en direct.",
+   "En spectateur, clique sur une carte ou un terrain pour le voir en grand, consulte le Deck, la Défausse et la Forge de chaque joueur, et retrouve le récapitulatif de chaque manche et le MVP de la partie.",
+   "Parties ouvertes et Parties en cours dans l'onglet Jouer : rejoins une place libre ou observe une partie, même déjà commencée.",
+   "Les parties s'affichent en tuiles teintées : teinte neutre avant la partie (rien du deck n'est révélé), puis teinte des éléments de chaque joueur une fois la partie lancée.",
+   "Si le créateur d'un salon part, l'adversaire devient le créateur et sa place se libère.",
+   "Salon sur 3 colonnes : les deux joueurs, le chat et la colonne Spectateurs.",
+   "Chat : le pseudo du créateur s'affiche en doré, celui de l'adversaire en bleu, celui des spectateurs en gris clair avec un petit œil. Le rôle s'affiche au survol.",
+   "Onglet Jouer : le bandeau « Première partie ? » propose le tutoriel, et le bloc « Apprendre et s'entraîner » réunit le tutoriel et les trois niveaux de Golem.",
+   "Infobulles sur les mots-clés des règles (Forge, Voisin, Cercle…) : survole ou touche un mot souligné.",
+   "Onglet Règles : un sommaire et une recherche.",
+   "Decks conseillés : 4 decks prêts à jouer dans l'onglet Decks.",
+   "En partie, clique sur un terrain pour voir la Force de chaque Golem des deux camps.",
+   "Onglet Cartes : filtres réalignés, le bouton « À venir » est retiré.",
+   "Dans les listes de deck, les animaux ont une ligne aux couleurs de leur carte.",
+   "Nouveautés : la feuille de route épinglée en tête et les anciennes versions repliées."],
+  corrections:[
+   "Le contour doré des cartes évoluées a des coins bien arrondis.",
+   "Le profil d'un joueur affiche l'avatar de ses adversaires.",
+   "Le bilan de fin de partie ne plante plus quand Jacen et Jaina font piocher.",
+   "Les nouvelles illustrations s'affichent tout de suite, sans attendre."],
+  regles:[
+   "Deck vide : si tu dois piocher et que ton deck est vide, tu perds aussitôt la partie."]
+ },
  'Version 0.3':{
   nouveautes:[
    "Mode spectateur : dans un salon, ton adversaire peut céder sa place et devenir spectateur. Un spectateur peut prendre une place libre.",
@@ -4087,7 +4113,7 @@ const DECK_TEST=M.DECK_DEFAUT?{...M.DECK_DEFAUT}:Object.fromEntries(M.TYPES_TEST
 const DECK_ANCIEN_TXT=M.deckTexte(Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])));
 function deckDefautTxt(v){
   v=typeof v==='string'?versionMoteur(v):'';if(!v||v===M0.VERSION)return DECK_TEST_TXT;
-  const A=moteursCharges[v]&&moteursCharges[v].__m;if(A)return A.deckTexte(A.DECK_DEFAUT||Object.fromEntries(A.TYPES_TEST.map(t=>[t,3])));
+  const A=moteursCharges[v]&&moteursCharges[v].__m;if(A)return A.deckTexte(A.DECK_DEFAUT||Object.fromEntries((A.TYPES_TEST||A.TYPES).map(t=>[t,3])));
   return MOTEURS_ARCHIVES.indexOf(v)>=0&&MOTEURS_ARCHIVES.indexOf(v)<MOTEURS_ARCHIVES.indexOf('0.3')?DECK_ANCIEN_TXT:DECK_TEST_TXT;
 }
 const vPartie=x=>x&&(x.moteur||(x.rejeu&&x.rejeu.v));
