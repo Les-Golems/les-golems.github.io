@@ -1,5 +1,5 @@
 /* Vue diffusion (0.3a) : ecran 1920 x 1080 pour un stream, mis a l'echelle proportionnellement.
-   - Vue spectateur (partie en ligne) : bouton « Mode diffusion » a cote de la pastille Spectateur ; « Quitter la diffusion » ramene a la vue spectateur.
+   - Vue spectateur (partie en ligne) : le spectateur est toujours en vue diffusion ; « Quitter la partie » le ramene au site (comme l'ancien bouton Quitter).
    - Site d'essai (/essai/) seulement : bouton « Demonstration » dans l'onglet Jouer, partie Golem contre Golem locale (sans serveur ni compte).
    Lit les fonctions d'index.html par window.GOLEMS_UI et le moteur (GOLEMS_UI.M) ; ne modifie ni index.html ni spectateur-ui.js.
    Ici : window.DIFFUSION. CSS : diffusion.css (tout sous #dif). */
@@ -130,6 +130,9 @@ function bandeau(s,qui){
   const co=(l,n,clic)=>{const c=mk('div','d-cote');c.append(mk('small','',l),mk('b','',String(n)),pts(n,clic));return c};
   const mid=mk('div','d-mid'),sc=mk('div','d-sc');
   sc.append(mk('b','',String(s.j[0].score)),mk('span','','-'),mk('em','',String(s.j[1].score)));
+  /* partie finie : le score rouvre la fenetre de fin de partie (pendant la partie, il ne reagit pas) */
+  if(s.fin){sc.classList.add('d-clic');sc.setAttribute('role','button');sc.tabIndex=0;sc.title='Résultat de la partie';sc.setAttribute('aria-label','Revoir le résultat de la partie');
+    sc.onclick=()=>ouvrePop('partie');sc.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvrePop('partie')}}}
   mid.append(co('Manche',s.manche,true),sc,co('Tour',s.tour));
   ban.append(bloc(0,false),mid,bloc(1,true));
   return ban;
@@ -256,10 +259,9 @@ function actions(s){
 }
 function coin(){
   const z=mk('div','d-z d-coin'),lo=mk('div','d-logo'),li=mk('img'),bas=mk('div','d-bas');li.src='cartes/logo.png';li.alt='Les Golems';lo.append(li);
-  if(E.etat.fin){const r=mk('button','d-res','Résultat');r.type='button';r.onclick=()=>ouvrePop('partie');bas.append(r)}
   if(src==='spec'&&window.SPEC&&SPEC.chat){const b=mk('button','d-chat','Chat');b.type='button';b.setAttribute('aria-label','Ouvrir le chat');b.onclick=()=>chat.ouvre();
     const n=chat.nonLus();if(n>0){b.append(mk('span','d-pastille',n>9?'9+':String(n)));b.setAttribute('aria-label','Ouvrir le chat, '+n+' nouveau'+(n>1?'x':'')+' message'+(n>1?'s':''))}bas.append(b)}
-  const qt=mk('button','d-quit','Quitter la diffusion');qt.type='button';qt.onclick=quitter;bas.append(qt);
+  const qt=mk('button','d-quit',src==='spec'?'Quitter la partie':'Quitter la diffusion');qt.type='button';qt.onclick=quitter;bas.append(qt);
   z.append(lo,bas);return z;
 }
 /* Chat (vue spectateur seulement) : ferme par defaut, pastille des nouveaux messages, fenetre par-dessus la vue ;
@@ -413,15 +415,16 @@ function ouvrir(source,entree){
   src=source;E=entree;suivi=neufSuivi();
   D=mk('div');D.id='dif';D.setAttribute('role','dialog');D.setAttribute('aria-label','Vue diffusion');
   scene=mk('div','d-scene');D.append(scene);
-  /* telephone en portrait : la vue 16:9 se centre ; invitation discrete a tourner l'ecran, et l'ancienne vue a portee de doigt */
+  /* telephone en portrait : la vue 16:9 se centre ; invitation discrete a tourner l'ecran */
   const tp=mk('div','d-tourne');tp.append(mk('span','','Tourne ton téléphone pour agrandir la vue.'));
-  if(source==='spec'){const b=mk('button','','Vue classique');b.type='button';b.onclick=quitter;tp.append(b)}
   D.append(tp);
   if(source==='spec')chat.brancher();chat.vus=chat.liste().length;document.body.append(D);document.documentElement.classList.add('dif-ouvert');
   echelle();peindre();
 }
-/* « Quitter la diffusion » : en vue spectateur, retour a l'ancienne vue (le bouton « Mode diffusion » y ramene) et ce choix est garde pour cette partie */
-function quitter(){if(src==='spec')choixClassique=true;fermer()}
+/* « Quitter la partie » (spectateur) : la diffusion se ferme et le spectateur quitte la partie comme avec l'ancien bouton Quitter ;
+   demonstration : « Quitter la diffusion » arrete la partie locale */
+let sortieSpec=false; /* le spectateur vient de quitter : pas de reouverture tant qu'il est encore inscrit */
+function quitter(){const sp=src==='spec';fermer();if(sp){sortieSpec=true;const u=U();if(u&&typeof u.quitteBouton==='function')u.quitteBouton()}}
 function fermer(){
   if(!D)return;
   if(chat.el){chat.el.remove();chat.el=null}
@@ -430,7 +433,6 @@ function fermer(){
 }
 
 /* ---------- Vue spectateur : bouton « Mode diffusion » et mise a jour en direct ---------- */
-const TV='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 3l4 4 4-4"/><circle cx="12" cy="13" r="2.2" fill="currentColor" stroke="none"/></svg>';
 function lisSpec(x){
   if(!x)return null;
   if(x.etat&&x.etat.j){
@@ -439,24 +441,17 @@ function lisSpec(x){
   if(x.j)return {etat:x,noms:x.noms||[],avatars:x.avatars||[],uids:[]};
   return null;
 }
-let dernierSpec=null,choixClassique=false;
+let dernierSpec=null;
 /* joueurs partis (fin de partie) : on garde leurs noms et avatars deja connus */
 function garde(x){if(!E)return;['noms','avatars','uids'].forEach(k=>{const a=x[k]||(x[k]=[]),o=E[k]||[];[0,1].forEach(p=>{if(!a[p]&&o[p])a[p]=o[p]})})}
-function boutonSpec(){
-  /* dans la barre, juste avant la pastille Spectateur (place de la maquette : 5e case de la barre Score / Manche / Tour / Energie) */
-  const tr=document.querySelector('#partie.sp .p-trois');if(!tr||tr.querySelector('.md-btn'))return;
-  const b=mk('button','btn sec md-btn');b.type='button';b.innerHTML=TV;b.append('Mode diffusion');
-  b.onclick=()=>{const e=lisSpec(dernierSpec);if(e){choixClassique=false;ouvrir('spec',e)}};
-  tr.append(b);
-}
 function brancheSpec(){
   const S=window.SPEC_UI;if(!S||S.__dif)return !!S;
   const o=S.peindrePartieSpectateur;
-  S.peindrePartieSpectateur=function(e){const r=o.apply(this,arguments);dernierSpec=e;try{boutonSpec();if(D&&src==='spec'){const x=lisSpec(e);if(x){garde(x);E=x;peindre()}}
-    /* vue d'observateur par defaut : la diffusion s'ouvre des qu'on regarde une partie (sauf si l'on a choisi l'ancienne vue pour celle-ci) */
-    else if(!D&&!choixClassique&&document.querySelector('#partie.sp')){const x=lisSpec(e);if(x)ouvrir('spec',x)}}catch(z){console.warn(z)}return r};
-  /* sortie de la vue de partie : le choix de l'ancienne vue ne vaut que pour cette partie */
-  const qv=S.quitterVuePartie;if(typeof qv==='function')S.quitterVuePartie=function(){choixClassique=false;return qv.apply(this,arguments)};
+  S.peindrePartieSpectateur=function(e){const r=o.apply(this,arguments);dernierSpec=e;try{if(D&&src==='spec'){const x=lisSpec(e);if(x){garde(x);E=x;peindre()}}
+    /* un spectateur est toujours en vue diffusion : elle s'ouvre des qu'il regarde une partie */
+    else if(!D&&!sortieSpec&&window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur()&&document.querySelector('#partie.sp')){const x=lisSpec(e);if(x)ouvrir('spec',x)}}catch(z){console.warn(z)}return r};
+  /* plus spectateur (sortie du salon) : la diffusion se ferme ; une nouvelle entree comme spectateur la rouvrira */
+  if(window.SPEC&&SPEC.onChange)SPEC.onChange(()=>{if(SPEC.estSpectateur())return;sortieSpec=false;if(D&&src==='spec')fermer()});
   S.__dif=true;return true;
 }
 if(!brancheSpec()){let n=0;const t=setInterval(()=>{if(brancheSpec()||++n>100)clearInterval(t)},100)}

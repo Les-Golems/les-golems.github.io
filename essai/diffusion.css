@@ -26,13 +26,14 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-j.lui .d-nom{color:var(--lui)}
 #dif .d-cpt{display:flex;gap:6px;font-size:22px;font-weight:400;color:#c9d4e2;line-height:1.1;white-space:nowrap}
 #dif .d-j.dr .d-cpt{flex-direction:row-reverse;justify-content:flex-start}
-#dif .d-cpt>span{display:inline-flex;align-items:center;gap:3px} /* ecarts resserres : Main, Deck, Defausse et Energie a 2 chiffres tiennent avec un pseudo de 54 px */
+#dif .d-cpt>span{display:inline-flex;align-items:baseline;gap:3px}
+#dif .d-cpt .ico,#dif .d-ener .ico{align-self:center} /* mot et chiffre sur la meme ligne de base, picto centre */ /* ecarts resserres : Main, Deck, Defausse et Energie a 2 chiffres tiennent avec un pseudo de 54 px */
 #dif .d-cpt .ico{font-size:24px;color:var(--bleu)}
 #dif .d-cpt b{font:400 26px/1 var(--titre);color:#fff}
 #dif .d-j.actif{border:3px solid var(--bleu);background:linear-gradient(90deg,rgba(1,193,240,.30),rgba(1,193,240,.06) 70%),var(--panneau);box-shadow:0 0 0 2px rgba(1,193,240,.35),0 0 34px rgba(1,193,240,.45)}
 #dif .d-j.dr.actif{background:linear-gradient(270deg,rgba(1,193,240,.30),rgba(1,193,240,.06) 70%),var(--panneau)}
 #dif .d-badge{background:var(--bleu);color:var(--encre);font:400 28px/1 Anton,var(--titre);text-transform:uppercase;letter-spacing:.03em;padding:9px 16px;border-radius:12px 8px 13px 7px;white-space:nowrap}
-#dif .d-ener{display:inline-flex;align-items:center;gap:5px;background:var(--or);color:var(--encre);font:800 22px/1 var(--corps);padding:6px 8px;border-radius:10px 7px 11px 6px}
+#dif .d-ener{display:inline-flex;align-items:baseline;gap:5px;background:var(--or);color:var(--encre);font:800 22px/1 var(--corps);padding:6px 8px;border-radius:10px 7px 11px 6px}
 #dif .d-ener b{font:400 30px/1 var(--titre);color:var(--encre)}
 #dif .d-ener .ico{font-size:26px;color:#6d5212}
 /* chiffres des compteurs et de l'Energie : case fixe de 2 chiffres (largeur de « Energie 99 »), chiffres a chasse fixe ; rien ne bouge de 9 a 10 */
@@ -42,7 +43,9 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-ener.d-pile:hover,#dif .d-ener.d-pile:focus-visible{box-shadow:0 0 0 3px rgba(240,190,60,.45);outline:none}
 #dif .d-cpt b,#dif .d-ener b{display:inline-block;min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
 #dif .d-mid{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:24px;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--trait);border-radius:13px 22px 12px 24px/22px 13px 24px 12px}
-#dif .d-sc{display:flex;align-items:center;gap:22px;font:400 92px/1 var(--titre)}
+#dif .d-sc{display:flex;align-items:center;gap:22px;font:400 92px/1 var(--titre);border-radius:14px 9px 15px 8px;padding:0 10px}
+#dif .d-sc.d-clic{cursor:pointer;transition:background .15s,box-shadow .15s}
+#dif .d-sc.d-clic:hover,#dif .d-sc.d-clic:focus-visible{background:rgba(1,193,240,.12);box-shadow:0 0 0 2px rgba(1,193,240,.45),0 0 18px rgba(1,193,240,.35);outline:none}
 #dif .d-sc b{font-weight:400;color:var(--moi)}
 #dif .d-sc em{font-style:normal;color:var(--lui)}
 #dif .d-sc span{font-size:56px;color:var(--doux)}
@@ -157,9 +160,8 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-logo{flex:1;display:flex;align-items:center;justify-content:center}
 #dif .d-logo img{width:150px;height:150px;display:block}
 #dif .d-bas{display:flex;align-items:center;gap:14px}
-#dif .d-quit,#dif .d-res{background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 22px/1 var(--titre);padding:9px 14px;opacity:.75;cursor:pointer}
-#dif .d-res{opacity:.55}
-#dif .d-quit:hover,#dif .d-res:hover{opacity:1}
+#dif .d-quit{background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 22px/1 var(--titre);padding:9px 14px;opacity:.75;cursor:pointer}
+#dif .d-quit:hover{opacity:1}
 
 /* ---------- Fenetres de fin de manche et de fin de partie ---------- */
 #dif .pp-voile{position:absolute;left:0;top:0;width:1920px;height:1080px;background:rgba(4,8,12,.68);display:grid;place-items:center;z-index:50}
@@ -243,11 +245,7 @@ html.dif-ouvert #apercu{z-index:25}
 #dif .pp-mvp-els img{width:26px;height:26px;display:block}
 #dif .pp-mvp-e{background:var(--or);color:var(--encre);font:400 24px/1.3 var(--titre);letter-spacing:.04em;padding:2px 12px;border-radius:8px 5px 9px 4px}
 
-/* ---------- Hors diffusion : bouton « Mode diffusion » (vue spectateur) et bloc Demonstration (site d'essai) ---------- */
-#partie.sp .p-trois:has(>.md-btn){grid-template-columns:repeat(4,minmax(0,1fr)) auto}
-.md-btn{align-self:center;margin:0 10px 0 6px;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 16px 6px 12px;font-size:19px;white-space:nowrap}
-.md-btn svg{width:24px;height:24px;flex:none}
-@media (max-width:899px){.md-btn{font-size:15px;min-height:34px;padding:4px 10px;margin:0 4px}.md-btn svg{width:18px;height:18px}}
+/* ---------- Hors diffusion : bloc Demonstration (site d'essai) : styles du site ---------- */
 
 /* ---------- Terrain en grand (zoom du site, hors de #dif) : panneaux des deux joueurs ---------- */
 html.dif-ouvert .grand.avecDetail:has(.dz-camp){grid-template-columns:minmax(0,462px) 470px;max-width:950px}
@@ -292,5 +290,4 @@ html.dif-ouvert #vueDetail .dz-eg{font:400 18px/1 var(--titre);color:var(--or);m
 #dif .d-tourne{display:none}
 @media (orientation:portrait) and (max-width:899px){
   #dif .d-tourne{display:flex;position:absolute;left:0;right:0;bottom:calc(50% - 56.25vw/2 - 70px);justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;padding:0 12px;font:700 14px/1.3 var(--corps);color:var(--doux);text-align:center}
-  #dif .d-tourne button{background:transparent;border:1px solid var(--trait);border-radius:8px 6px 9px 5px;color:var(--texte);font:400 14px/1 var(--titre);padding:7px 10px}
 }
