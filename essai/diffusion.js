@@ -146,7 +146,7 @@ function plateau(s,qui){
   const t=mk('div','p-terrains d-tr'),cc=Mo.colonnes(s);
   [0,1,2].forEach(k=>{const T=s.terrains[k],a=cc[k][1],m=cc[k][0],d=mk('div','p-terrain'+(m>a?' m-moi':a>m?' m-lui':'')),to=mk('div','p-totaux'),te=mk('div','p-tete');
     te.append(mk('b','',T.nom));to.append(mk('b','m'+(m>a?' tete':''),String(m)),mk('span','','contre'),mk('b','a'+(a>m?' tete':''),String(a)));
-    d.append(te,to,mk('span','p-valeur',T.pts+(T.pts>1?' pts':' pt')));d.onclick=()=>zoomTerrainDif(s,k);t.append(d)});
+    d.append(te,to,ptsEt('p-valeur',T.pts));d.onclick=()=>zoomTerrainDif(s,k);t.append(d)});
   plat.append(r1,t,r2);
   /* halo : case de la derniere carte jouee, 3,6 s a partir de la pose (repeinture : l'animation reprend ou elle en etait) */
   const h=suivi.halo;
@@ -171,6 +171,8 @@ function zoomTerrainDif(s,k){
     a.append(ol,tt);return a};
   u.zoom(u.srcTerrain(T),T.nom+'. '+T.texte,[pan(0),pan(1)]);
 }
+/* Etiquette de points d'un terrain : l'etoile du score (pictogramme des points) avant le nombre, « ★ 2 pts » */
+function ptsEt(cl,n){const e=mk('span',cl+' d-ptse');e.append(U().ico('coupe'),n+(n>1?' pts':' pt'));return e}
 function zoomCarte(c){
   const u=U(),C=M().carte(c);u.cacheApercu();
   let det=null;
@@ -180,12 +182,12 @@ function zoomCarte(c){
 }
 function main(s,p,top,joue){
   const z=mk('div','d-z d-col'+(p===0?' bas':'')),J=s.j[p],h=mk('div','d-tm '+(p===0?'toi':'lui'),'Main '+d_(nom(p))+nom(p));
-  /* meme taille de carte pour les deux mains (calculee sur la plus grande), une seule ligne */
-  const W=769,n=Math.max(s.j[0].main.length,s.j[1].main.length,1),gp=n<=5?12:8,w=Math.min(120,Math.floor((W-(n-1)*gp)/n));
+    /* taille FIXE pour toute la partie (7 cartes sur une ligne : 103 x 144 px) ; au-dela de 7 cartes, elles se chevauchent sans changer de taille */
+  const W=769,w=103,n=J.main.length,gp=n<=7?8:(W-n*w)/(n-1);
   z.style.top=top+'px';
   h.append(mk('span','',J.main.length+(J.main.length>1?' cartes':' carte')));if(joue)h.append(mk('span','d-joue','Joue'));
-  const r=mk('div','d-main');r.style.gap=gp+'px';
-  J.main.forEach(c=>{const C=M().carte(c),b=mk('button'),i=mk('img');b.type='button';b.style.width=w+'px';b.style.height=Math.round(w*1.4)+'px';
+  const r=mk('div','d-main');
+  J.main.forEach((c,k)=>{const C=M().carte(c),b=mk('button'),i=mk('img');b.type='button';b.style.width=w+'px';b.style.height=Math.round(w*1.4)+'px';if(k)b.style.marginLeft=gp+'px';
     i.src=U().srcC(c);i.alt=C.nom;b.setAttribute('aria-label','Agrandir '+M().nomDetail(C));b.onclick=()=>zoomCarte(c);b.append(i);r.append(b)});
   z.append(h,r);return z;
 }
@@ -355,8 +357,7 @@ function score(sm,a,b){
 function popManche(s,m,pp){
   const u=U();pp.append(mk('h2','','Fin de la manche '+m));
   const g=mk('div','pp-ters');
-  s.stats.t.filter(t=>t.manche===m).forEach(t=>{const c=mk('div','pp-ter'),h=mk('div','pp-th');h.append(mk('b','',t.terrain),mk('span','pp-pts',t.points+(t.points>1?' pts':' pt')));c.append(h);
-    const T=s.terrains.find(x=>x.nom===t.terrain);if(T){h.firstChild.textContent=T.nom;h.lastChild.textContent=T.pts+(T.pts>1?' pts':' pt')}
+  s.stats.t.filter(t=>t.manche===m).forEach(t=>{const c=mk('div','pp-ter'),h=mk('div','pp-th');const T=s.terrains.find(x=>x.nom===t.terrain);h.append(mk('b','',T?T.nom:t.terrain),ptsEt('pp-pts',T?T.pts:t.points));c.append(h);
     [0,1].forEach(p=>{const l=mk('div','pp-l'+(t.gagnant===p?' gagne':''));l.style.setProperty('--c',COL[p]);const n=mk('span','',nom(p));n.style.color=COL[p];const f=mk('em','',String(t.forces[p]));f.style.color=COL[p];l.append(avatar(p),n,f);c.append(l)});
     /* une ligne : le pseudo se tronque (« Golem Ro... ») si la phrase ne tient pas ; la suite sur la ligne de base du pseudo */
     const r=mk('div','pp-res'),l1=mk('div','pp-rl');
