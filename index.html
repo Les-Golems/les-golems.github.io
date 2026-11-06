@@ -25,7 +25,7 @@
 <link rel="manifest" href="manifest.webmanifest?v=2">
 <script>/* Version des images (cartes, terrains, verso, avatars) : imgV(u) ajoute ?v=<build>, pour que les joueurs voient aussitot une image remplacee.
    A CHAQUE PUBLICATION : IMG_V = champ build de version.json (meme valeur). Fonction centrale, utilisable par tous les scripts du site. */
-window.IMG_V='2026-11-06 10:06';window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
+window.IMG_V='2026-11-06 14:40';window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
 document.documentElement.style.setProperty('--verso','url("'+imgV('cartes/verso.jpg')+'")');
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[data-src]').forEach(i=>{i.src=imgV(i.dataset.src)}));</script>
 <link rel="stylesheet" href="spectateur.css?v=0.4">
@@ -3738,7 +3738,7 @@ function parManche(s){
 function lignesManche(o,nom){
   const l=o.terrains.map(x=>nom(x.p)+' : '+x.nom+' +'+x.pts);
   [0,1].forEach(p=>{if(o.bonus[p])l.push(nom(p)+' : bonus +'+o.bonus[p])});
-  [0,1].forEach(p=>{if(o.pioche&&o.pioche[p])l.push(nom(p)+' : pioche impossible adverse +'+o.pioche[p])});
+  [0,1].forEach(p=>{if(o.pioche&&o.pioche[p])l.push(nom(p)+' : '+(nom(1-p)==='Toi'?'ton deck vide':'deck vide de '+nom(1-p))+' +'+o.pioche[p])});
   return l.length?l.join(', '):'aucun terrain gagné';
 }
 const pl=(n,m)=>n+' '+m+(n>1?'s':'');
@@ -3823,7 +3823,7 @@ function deHisto(x){
     const o={pts:[0,0],terrains:[],bonus:[0,0],pioche:[0,0]};
     if(t==='aucun terrain gagné')return o;
     String(t).split(', ').forEach(z=>{let r=/^(.+) : bonus \+(\d+)$/.exec(z);if(r){o.bonus[qui(r[1])]+=+r[2];o.pts[qui(r[1])]+=+r[2];return}
-      r=/^(.+) : pioche impossible adverse \+(\d+)$/.exec(z);if(r){o.pioche[qui(r[1])]+=+r[2];o.pts[qui(r[1])]+=+r[2];return} /* deck vide (meule) */
+      r=/^(.+) : (?:ton deck vide|deck vide de .+) \+(\d+)$/.exec(z)||/^(.+) : pioche impossible adverse \+(\d+)$/.exec(z);if(r){o.pioche[qui(r[1])]+=+r[2];o.pts[qui(r[1])]+=+r[2];return} /* deck vide (meule) */
       r=/^(.+) : (.+) \+(\d+)$/.exec(z);if(r){const p=qui(r[1]);o.terrains.push({p,nom:r[2],pts:+r[3],forces:null});o.pts[p]+=+r[3]}});
     return o;
   });
@@ -3854,7 +3854,7 @@ const scoreManche=(D,o)=>C(D,0)+' '+o.pts[0]+', '+C(D,1)+' '+o.pts[1];
 function detailCamp(D,o,p){
   const l=o.terrains.filter(t=>t.p===p).map(t=>esc(t.nom)+' +'+t.pts+(t.forces?' ('+t.forces[0]+' contre '+t.forces[1]+')':''));
   if(o.bonus[p])l.push('bonus +'+o.bonus[p]);
-  if(o.pioche&&o.pioche[p])l.push('pioche impossible adverse +'+o.pioche[p]); /* deck vide (meule) */
+  if(o.pioche&&o.pioche[p])l.push('deck vide de '+C(D,1-p)+' +'+o.pioche[p]); /* deck vide (meule) */
   return l.join(', ');
 }
 function ligneMvpD(m){
@@ -4048,7 +4048,7 @@ function verifieRecap(){
   const ef=effetsManche(s);
   if(ef.length){const u=el('ul','r-effets');ef.forEach(([p,x])=>u.append(el('li','',ligneLog(p,x,me))));d.append(u)}
   {const pi=piocheImpossible(s,n);if(pi[0]+pi[1]){const u=el('ul','r-effets r-pioche'); /* deck vide (meule) : points de la manche hors terrains */
-    [me,lui].forEach(q=>{if(pi[q])u.append(el('li','',q===me?'Pioche impossible de '+nl+' : +'+pi[q]+' pour toi.':'Pioche impossible (ton deck est vide) : +'+pi[q]+' pour '+nl+'.'))});d.append(u)}}
+    [me,lui].forEach(q=>{if(pi[q])u.append(el('li','',q===me?'Deck vide de '+nl+' : +'+pi[q]+' pour toi.':'Ton deck vide : +'+pi[q]+' pour '+nl+'.'))});d.append(u)}}
   const ec=s.dernier.ecran;
   if(ec&&ec.p===me&&ec.main){
     const z=el('div','r-quiz r-ecran'),l=el('div','r-mains');

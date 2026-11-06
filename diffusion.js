@@ -154,7 +154,7 @@ function bonusManche(s,m){
     const q=/:\s\+(\d+)( points?)?\.$/.exec(x);if(!q||/^marque /.test(x)||s.terrains.some(T=>x.startsWith(T.nom+' lance ')))continue;
     const a=/^(.+?) \((.+?)\) : /.exec(x),C=a&&Object.values(M().CARTES).find(c=>c.nom===a[2]),ef=C&&C.texte&&C.texte.indexOf(' : ')>0?C.texte.slice(0,C.texte.indexOf(' : ')):null;
     r[p].push('+'+q[1]+' '+(a?(ef?ef+' ('+a[2]+')':a[1]+' ('+a[2]+')'):x.slice(0,x.indexOf(' : '))))}
-  const d=piocheImp(s,m);[0,1].forEach(p=>{if(d[p])r[p].push('+'+d[p]+' Pioche impossible ('+nom(1-p)+')')}); /* deck vide (meule) */
+  const d=piocheImp(s,m);[0,1].forEach(p=>{if(d[p])r[p].push('+'+d[p]+' Deck vide de '+nom(1-p))}); /* deck vide (meule) */
   return r;
 }
 function deManche(s,m,terrain){
