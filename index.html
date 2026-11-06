@@ -1757,7 +1757,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
   <details><summary><h3>Le tour</h3></summary><div class="corps">
     <ol class="etapes" aria-label="Les 4 étapes du tour"><li><b>Pioche</b>2 cartes (1 au premier tour du second)</li><li><b>Forge</b>0 ou 1 carte</li><li><b>Actions</b>Poser, remplacer, améliorer</li><li><b>Fin du tour</b>Énergie perdue, 7 cartes max</li></ol>
     <ol>
-      <li><b>Pioche :</b> 2 cartes. À chaque manche, le joueur qui joue en second ne pioche qu'une carte à son premier tour de la manche. Deck vide : si tu dois piocher et que ton deck est vide, tu perds aussitôt la partie, quel que soit le score (la pioche se fait carte par carte).</li>
+      <li><b>Pioche :</b> 2 cartes. À chaque manche, le joueur qui joue en second ne pioche qu'une carte à son premier tour de la manche. Deck vide : si ton deck est vide, chaque carte que tu dois piocher donne 1 point à ton adversaire. Toutes les pioches comptent, y compris celles des effets de cartes.</li>
       <li><b>Forge :</b> toujours en premier, après la pioche. Place 0 ou 1 carte de ta main, face cachée, définitivement, avant toute action et avant les effets gratuits de certains terrains. Chaque carte en Forge donne 1 énergie par tour, dès ce tour. La Forge est ta seule source d'énergie.</li>
       <li><b>Actions :</b> paie en énergie, puis passe quand tu ne veux ou ne peux plus agir.
         <figure class="annote" id="lireCarte" aria-label="Lire une carte"></figure>
@@ -1834,7 +1834,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
     <li><b>Son maître :</b> s'il quitte le jeu (détruit, remplacé, La Nuit au Village), l'animal part à la défausse. S'il évolue ou est déplacé, l'animal reste. Un Golem qui copie son effet n'est pas son maître.</li>
     <li><b>Intouchable :</b> aucun Golem ne se pose à sa place, rien ne le déplace ni ne l'échange (La Faille, Le Vaisseau, effets de cartes). Seul moyen de s'en défaire : faire quitter le jeu à son maître.</li>
     <li><b>Kiwi :</b> la Mignonitude se résout avant le décompte, puis Kiwi part à la défausse. Deux Kiwi : celui du premier joueur d'abord, jamais deux fois le même Golem.</li>
-    <li><b>Jacen et Jaina :</b> les chats de KaTarN (ou Slim K). À la pose, pioche 1 carte. Si leur maître est détruit, pioche 1 carte, puis les chats partent à la défausse. Si tu remplaces toi-même leur maître, pas de pioche. Deck vide : tu perds la partie.</li>
+    <li><b>Jacen et Jaina :</b> les chats de KaTarN (ou Slim K). À la pose, pioche 1 carte. Si leur maître est détruit, pioche 1 carte, puis les chats partent à la défausse. Si tu remplaces toi-même leur maître, pas de pioche. Deck vide : chaque carte que tu dois piocher donne 1 point à ton adversaire.</li>
     <li><b>Hors décompte :</b> le Golem tiré par Kiwi reste en jeu avec ses bonus ; seule sa Force sort de sa colonne. Les effets de fin de manche le concernent toujours (La Nuit au Village, KaTarN).</li>
     <li>Un animal n'est jamais MVP.</li>
   </ul></div></details>
@@ -2152,7 +2152,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
- {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","En partie : détail de la Force sur chaque terrain","Nouvelle règle : deck vide = défaite","Bug de Jacen et Jaina corrigé"]},
+ {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","En partie : détail de la Force sur chaque terrain","Nouvelle règle : deck vide = 1 point à l'adversaire par carte","Bug de Jacen et Jaina corrigé"]},
  {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
  {version:'Version 0.2c',date:'5 novembre 2026',notes:["La Boutique réduit aussi le coût des évolutions","Éditeur de deck : teste tes placements dans un bac à sable","Statistiques repensées : recherche, classement complet, toutes tes parties comptées","Profil des joueurs réorganisé, avec ton rang au classement","Partage de deck par lien cliquable","Résumé de partie prêt à coller sur Discord","Version vérifiée dans le salon, page mise à jour automatiquement","Appli installée : nouvelle icône, lancement bleu ciel","QoL ajoutés"]},
  {version:'Version 0.2b',date:'4 novembre 2026',notes:["Nouveaux Golems : trop nombreux pour les citer","Premier animal de compagnie : Kiwi, le lapin de Titom76","K-Chan devient Magma + Brume","Plateau en miroir : ton camp en bas","Statistiques par patch et par adversaire, profils publics","Cartes et éditeur de deck : nouveaux filtres et tri","Aide en partie avec le cercle des éléments","Historique repensé, decks à 3 par ligne, 7 nouveaux avatars, QoL ajoutés"]},
@@ -2186,7 +2186,7 @@ const DETAILS_VERSIONS={
    "Le bilan de fin de partie ne plante plus quand Jacen et Jaina font piocher.",
    "Les nouvelles illustrations s'affichent tout de suite, sans attendre."],
   regles:[
-   "Deck vide : si tu dois piocher et que ton deck est vide, tu perds aussitôt la partie."]
+   "Si ton deck est vide, chaque carte que tu dois piocher donne 1 point à ton adversaire. Toutes les pioches comptent, y compris celles des effets de cartes."]
  },
  'Version 0.3':{
   nouveautes:[
@@ -2222,7 +2222,7 @@ const DETAILS_VERSIONS={
    "K-Chan (Reine du tilt) passe en Magma et Cristal (avant : Magma et Brume). Coût 2, Force 2, Rage inchangée.",
    "K-Chan (L'attachiante), coût 4, Force 4. Love inconditionnel : une fois par manche, à ton tour après la Forge, retire 1 dégât à un Golem allié blessé (K-Chan comprise), sans dépasser sa Force imprimée. Facultatif, une fois par exemplaire, proposé seulement s'il y a un blessé.",
    "Jacen et Jaina, animal de KaTarN (ou Slim K), coût 1, un seul exemplaire, KaTarN obligatoire dans le deck. Ils se posent à côté de leur maître. zqrinohbqzroihg : à la pose, pioche 1 carte. Quand leur maître est détruit, pioche 1 carte, puis les chats partent à la défausse.",
-   "Jacen et Jaina : si leur maître évolue, ils restent. Si tu remplaces toi-même leur maître, ils partent à la défausse sans pioche. Deck vide : tu perds la partie.",
+   "Jacen et Jaina : si leur maître évolue, ils restent. Si tu remplaces toi-même leur maître, ils partent à la défausse sans pioche. Deck vide : pas de pioche.",
    "Deck par défaut (ex « Test ») : 30 cartes. Un exemplaire de moins pour KEKWRevan, Roi du Karaoké et Oracle des Stats."]
  },
  'Version 0.2c':{
