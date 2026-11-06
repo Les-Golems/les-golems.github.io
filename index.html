@@ -463,14 +463,10 @@ b[class^="chat-"][title]{cursor:help}
 #notes.nv-romain .nv-etq{right:44px}
 #notes.nv-romain .note>h3::before{width:92px}
 #notes.nv-romain .nv-fdr>h3{padding-right:32px}
-.nv-pages{display:flex;align-items:center;justify-content:center;gap:14px;margin:4px auto 14px}
-.nv-pages.bas{margin:18px auto 4px}
+.nv-pages{display:flex;align-items:center;gap:6px;margin:0;font:400 15px/1 var(--titre);color:var(--texte);flex:none}
 .nv-pages[hidden]{display:none}
-.nv-pages .btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:6px 14px;font-size:16px}
-.nv-pages .btn svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-.nv-pages .btn i{font-style:normal}
-@media (max-width:520px){.nv-pages .btn i{display:none}.nv-pages .btn{padding:6px 11px}}
-.nv-pages .nv-num{min-width:96px;text-align:center;font-family:var(--titre);font-size:18px;color:var(--texte)}
+.nv-pages .nv-num{padding:0 4px}
+#nouveautes>.intro.va{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:none}
 :is(.note>.btn.nv-det,#f#f#f#f){position:absolute;right:12px;bottom:11px;margin:0;min-height:24px;height:24px;padding:0 8px;font-size:13px;line-height:24px;border-radius:7px;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 0 var(--bord),0 3px 6px rgba(0,0,0,.3)}
 /* Fenetre des details d'une version : en-tete fixe, rubriques qui defilent, Fermer en bas. */
 .dv-boite{max-width:620px;width:calc(100vw - 32px);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);padding:0;overflow:hidden;display:flex;flex-direction:column;text-align:left}
@@ -2463,8 +2459,8 @@ NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t)
    Epingles : 2 au plus, en tete et COMPRIS dans les 6 blocs affiches (1 epingle : 5 recents ; 2 epingles : 4 recents) (ligne 1 colonnes 1 et 2 ; un seul epingle : le bloc le plus recent prend la colonne 2 ;
    telephone : epingles en premier). Etat dans Firebase (nouveautes/epingles), ecrit par le seul compte de Romain ; noeud vide = Feuille de route epinglee.
    Pagination : 6 blocs au total, epingles compris ; un couple version + video n'est jamais coupe (il passe entier a la page suivante) ;
-   page 1 = epingles + recents ; pages suivantes : 6 blocs chacune, sans epingles. Fleches precedent / suivant et « Page x / n »
-   au-dessus et au-dessous de la grille, masquees s'il n'y a qu'une page ; changer de page remonte en haut de la liste. */
+   page 1 = epingles + recents ; pages suivantes : 6 blocs chacune, sans epingles. Fleches < x / n > a droite de la ligne d'intro
+   (alignees sur le bord droit de la grille), masquees s'il n'y a qu'une page ; changer de page remonte en haut de la liste. */
 const FEUILLE_DE_ROUTE=[
  {v:'0.4',nom:'Nouvelle vue spectateur',etat:'actuelle'},
  {v:'0.5',nom:'Parties classées',etat:'proche'},
@@ -2518,21 +2514,20 @@ function peintNotes(){
     if(!b){b=mk('button','nv-epingler');b.type='button';b.innerHTML=SVG_EPINGLE;b.onclick=()=>basculeEpingle(a.dataset.id,b);a.append(b)}
     b.classList.toggle('on',e);b.setAttribute('aria-pressed',String(e));b.title=e?'Désépingler ce bloc':'Épingler ce bloc';b.setAttribute('aria-label',b.title)});
   N.classList.toggle('nv-romain',NV.romain);
-  /* Barres de pagination (haut et bas), creees une fois */
-  const fl=d=>'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+(d<0?'M15 6l-6 6 6 6':'M9 6l6 6-6 6')+'"/></svg>';
-  ['haut','bas'].forEach(k=>{
-    let z=document.querySelector('#nouveautes>.nv-pages.'+k);
-    if(!z){z=mk('div','nv-pages '+k);z.setAttribute('role','navigation');z.setAttribute('aria-label','Pages des nouveautés');
-      const p=mk('button','btn sec nv-prec'),s=mk('button','btn sec nv-suiv');p.type=s.type='button';p.innerHTML=fl(-1)+'<i>Précédente</i>';s.innerHTML='<i>Suivante</i>'+fl(1);
+  /* Fleches de pagination, a droite de la phrase d'intro (style des fleches du Journal), creees une fois */
+  {
+    let z=document.querySelector('#nouveautes .nv-pages');
+    if(!z){z=mk('div','nv-pages haut');z.setAttribute('role','navigation');z.setAttribute('aria-label','Pages des nouveautés');
+      const p=mk('button','j-btn nv-prec','<'),s=mk('button','j-btn nv-suiv','>');p.type=s.type='button';
       p.title='Page précédente';s.title='Page suivante';p.setAttribute('aria-label',p.title);s.setAttribute('aria-label',s.title);
       p.onclick=()=>pageNotes(-1);s.onclick=()=>pageNotes(1);z.append(p,mk('span','nv-num'),s);
-      k==='haut'?N.before(z):N.after(z)}
-    z.hidden=pages.length<2;z.querySelector('.nv-num').textContent='Page '+(NV.page+1)+' / '+pages.length;
-    z.querySelector('.nv-prec').disabled=NV.page===0;z.querySelector('.nv-suiv').disabled=NV.page>=pages.length-1});
+      const i=document.querySelector('#nouveautes>.intro');i.classList.add('va');i.append(z)}
+    z.hidden=pages.length<2;z.querySelector('.nv-num').textContent=(NV.page+1)+' / '+pages.length;
+    z.querySelector('.nv-prec').disabled=NV.page===0;z.querySelector('.nv-suiv').disabled=NV.page>=pages.length-1}
 }
 function pageNotes(d){
   NV.page+=d;peintNotes();
-  const h=document.querySelector('#nouveautes>.nv-pages.haut'),y=(h&&!h.hidden?h:$('notes')).getBoundingClientRect().top+scrollY-(document.querySelector('body>nav,nav.onglets')?.offsetHeight||0)-12;
+  const h=document.querySelector('#nouveautes .nv-pages.haut'),y=(h&&!h.hidden?h:$('notes')).getBoundingClientRect().top+scrollY-(document.querySelector('body>nav,nav.onglets')?.offsetHeight||0)-12;
   if(y<scrollY)scrollTo({top:Math.max(0,y)});
 }
 function basculeEpingle(id,b){
