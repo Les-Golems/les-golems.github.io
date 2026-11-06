@@ -262,7 +262,7 @@ html.dif-ouvert #vueDetail .dz-l .dl-els img{width:22px;height:22px}
 html.dif-ouvert #vueDetail .dz-l .dl-nom{flex-direction:row;align-items:baseline;gap:8px;font-size:16px;line-height:1.15;overflow:hidden}
 html.dif-ouvert #vueDetail .dz-l .dl-pseudo{flex:none;white-space:nowrap}
 html.dif-ouvert #vueDetail .dz-l .dl-titre{flex:1;min-width:0;font-size:13px}
-html.dif-ouvert #vueDetail .dz-v{font:700 15px/1 var(--corps);text-align:right;white-space:nowrap}
+html.dif-ouvert #vueDetail .dz-v{font:700 15px/1 var(--corps);text-align:right;white-space:nowrap;color:#fff}
 html.dif-ouvert #vueDetail .dz-v b{font:400 24px/1 var(--titre)}
 html.dif-ouvert #vueDetail .dz-vide>span:first-child{height:40px;padding:0 10px;border:1px dashed var(--trait);border-radius:7px 5px 8px 4px;color:var(--doux);font-size:14px;line-height:38px;opacity:.7}
 html.dif-ouvert #vueDetail .dz-tot{display:flex;align-items:baseline;justify-content:flex-end;gap:8px;margin:10px 0 0;padding:8px 0 0;border-top:1px solid var(--trait);font:700 17px/1 var(--corps);color:var(--doux)}

@@ -160,11 +160,11 @@ function zoomTerrainDif(s,k){
   const pan=p=>{const a=mk('section','dz-camp'),h=mk('h3','',nom(p)),ol=mk('ol','dz-l');h.style.color=COLZ[p];a.append(h);
     for(let l=0;l<3;l++){const g=s.j[p].grille[l][k],li=mk('li');
       if(!g){li.className='dz-vide';li.append(mk('span','','Case vide'),mk('span'))}
-      else{const v=Mo.valeurDecompte(s,p,l,k),f=mk('span','dz-v','Force ');f.append(mk('b','',String(v)));f.style.color=COLZ[p];
+      else{const v=Mo.valeurDecompte(s,p,l,k),f=mk('span','dz-v','Force '),fb=mk('b','',String(v));fb.style.color=COLZ[p];f.append(fb);
         if(g.hors===s.manche&&!(M().carte(g.c).animal))f.title='Ne compte pas au décompte de cette manche';li.append(lignePile(g.c),f)}
       ol.append(li)}
-    const o=cc[1-p],n=cc[p],tt=mk('div','dz-tot'),b=mk('b','',String(n));tt.append('Total : ',b);
-    if(n>o){tt.classList.add('mene');b.style.color=COLZ[p];tt.style.setProperty('--c',COLZ[p])}else if(n===o)tt.append(mk('span','dz-eg','Égalité'));
+    const o=cc[1-p],n=cc[p],tt=mk('div','dz-tot'),b=mk('b','',String(n));b.style.color=COLZ[p];tt.append('Total : ',b);
+    if(n>o){tt.classList.add('mene');tt.style.setProperty('--c',COLZ[p])}else if(n===o)tt.append(mk('span','dz-eg','Égalité'));
     a.append(ol,tt);return a};
   u.zoom(u.srcTerrain(T),T.nom+'. '+T.texte,[pan(0),pan(1)]);
 }
@@ -293,8 +293,10 @@ const chat={el:null,ul:null,in:null,inf:null,vus:0,branche:false,dernier:0,
 
 /* Nom trop long pour son bandeau : la police se reduit (54 px au plus) */
 function ajusteNoms(){
-  scene.querySelectorAll('.d-j').forEach(j=>{const n=j.querySelector('.d-nom');let f=54;
-    while(f>26&&j.scrollWidth>j.clientWidth+1){f-=2;n.style.fontSize=f+'px'}});
+  scene.querySelectorAll('.d-j').forEach(j=>{const n=j.querySelector('.d-nom'),c=j.querySelector('.d-cpt'),l=j.querySelector('.d-l1');let f=54,z=1;
+    while(f>26&&j.scrollWidth>j.clientWidth+1){f-=2;n.style.fontSize=f+'px'}
+    /* filet de securite : si les compteurs ou le badge ne tiennent toujours pas, ils rapetissent un peu plutot que d'etre coupes */
+    while(z>.7&&j.scrollWidth>j.clientWidth+1){z-=.03;c.style.zoom=z;l.querySelectorAll('.d-badge').forEach(b=>b.style.zoom=z)}});
   scene.querySelectorAll('.d-vt').forEach(v=>{let f=28;while(f>14&&v.scrollHeight>v.clientHeight+1){f-=2;v.style.fontSize=f+'px'}});
 }
 
