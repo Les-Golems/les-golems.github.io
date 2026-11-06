@@ -550,6 +550,22 @@ async function ouvre() {
       const v = (await get(ref(db, P + "classement"))).val() || {};
       return Object.keys(v).map(u => ({ uid: u, ...v[u] })).filter(x => typeof x.p === "string" && Number.isInteger(x.n));
     },
+    // Nouveautés (0.4) : blocs épinglés (nouveautes/epingles, 2 au plus, lus par tous, écrits par le seul compte de Romain).
+    // ecoute(f) : f(liste d'ids ou null si le nœud est vide) ; romain() : vrai si ce compte possède le pseudo KaTarN
+    // (affichage des épingles seulement ; la règle de la base vérifie son uid).
+    epingles: {
+      ecoute(f) {
+        return onValue(ref(db, P + "nouveautes/epingles"), s => { const v = s.val(); f(v && typeof v === "object" ? Object.keys(v).sort().map(k => v[k]).filter(x => typeof x === "string") : null); }, () => f(null));
+      },
+      ecrit(l) {
+        const o = {}; (l || []).slice(0, 2).forEach((x, i) => { o[i] = String(x); });
+        return set(ref(db, P + "nouveautes/epingles"), Object.keys(o).length ? o : { 0: "aucun" });
+      },
+      async romain() {
+        if (!estCompte()) return false;
+        try { return (await get(ref(db, P + "pseudos/katarn"))).val() === moi; } catch (e) { return false; }
+      }
+    },
     // Lecture brute (tests locaux) : soumise aux mêmes règles que le reste.
     lit: p => get(ref(db, P + p)).then(s => s.val()),
     join

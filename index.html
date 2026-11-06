@@ -361,6 +361,41 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .nv-etq{position:absolute;top:15px;right:16px;padding:1px 9px;font-size:12px;line-height:1.25;white-space:nowrap}
 .note.a-det>ul>li:last-child::after{content:'';display:inline-block;width:56px}
 @media (max-width:359px){.note>h3::before{display:none}.nv-etq{position:static;float:right;margin:1px 0 0 8px}}
+/* Nouveautes 0.4 : epingles (epingle doree dans le titre), Feuille de route (lisere dore, frise verticale, pastilles d'etat), tuile de pagination,
+   epingle de Romain (son compte seulement) en haut a droite, l'etiquette de version se decale a sa gauche. */
+.note .nv-pin{display:inline-block;width:.9em;height:.9em;margin-right:6px;vertical-align:-.08em;color:var(--or)}
+.note .nv-pin svg,.nv-epingler svg{display:block;width:100%;height:100%;fill:currentColor}
+.note.nv-fdr{border-left:4px solid var(--or);padding-left:14px}
+.nv-fdr h3{color:var(--or)}.nv-fdr>h3::before{display:none}
+.nv-fdr .fdr-sous{color:var(--doux);font-size:14px;margin:0 0 10px}
+.fdr-l{list-style:none;margin:0;padding:0}
+.fdr-l li{position:relative;display:flex;align-items:center;gap:10px;padding:5px 0 5px 26px;min-height:36px}
+.fdr-l li::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:2px;background:#2a3f50}
+.fdr-l li:first-child::before{top:50%}.fdr-l li:last-child::before{bottom:50%}
+.fdr-pt{position:absolute;left:1px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:#3d4e5d;border:2px solid var(--panneau);box-shadow:0 0 0 2px #3d4e5d}
+.fdr-proche .fdr-pt{background:var(--bleu);box-shadow:0 0 0 2px var(--bleu),0 0 8px rgba(1,193,240,.6)}
+.fdr-prevu .fdr-pt{background:var(--or);box-shadow:0 0 0 2px var(--or)}
+.fdr-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
+.fdr-t small{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--doux)}
+.fdr-t b{font-size:15.5px;color:var(--texte)}
+.fdr-tard .fdr-t b{color:#c9d6de}
+.fdr-etat{flex:none;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:800;line-height:1.35;white-space:nowrap;background:#3a4b59;color:#dfe8ee}
+.fdr-proche .fdr-etat{background:var(--bleu);color:var(--encre)}
+.fdr-prevu .fdr-etat{background:var(--or);color:var(--encre)}
+.nv-epingler{position:absolute;top:12px;right:10px;width:26px;height:26px;padding:4px;border:1px solid var(--trait);border-radius:8px 6px 9px 5px;background:var(--panneau2);color:var(--doux);cursor:pointer;opacity:.75}
+.nv-epingler:hover,.nv-epingler:focus-visible{opacity:1;color:var(--texte)}
+.nv-epingler.on{color:var(--or);border-color:var(--or);opacity:1}
+.nv-epingler.refus{border-color:var(--erreur);color:var(--erreur);opacity:1}
+#notes.nv-romain .nv-etq{right:44px}
+#notes.nv-romain .note>h3::before{width:92px}
+#notes.nv-romain .nv-fdr>h3{padding-right:32px}
+.note.nv-plus{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;min-height:120px;border:1px dashed #3d5566;background:rgba(17,29,40,.55);color:var(--bleu);font:inherit;text-align:center;cursor:pointer}
+.note.nv-plus:hover,.note.nv-plus:focus-visible{background:var(--panneau);border-color:var(--bleu)}
+.nv-plus b{font-family:var(--titre);font-weight:400;font-size:20px;line-height:1.15}
+.nv-plus small{color:var(--doux);font-size:13.5px}
+.nv-chev{display:flex;width:30px;height:30px;border-radius:50%;border:1px solid #3d5566;align-items:center;justify-content:center}
+.nv-chev svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.nv-plus.ouvert .nv-chev svg{transform:rotate(180deg)}
 :is(.note>.btn.nv-det,#f#f#f#f){position:absolute;right:12px;bottom:11px;margin:0;min-height:24px;height:24px;padding:0 8px;font-size:13px;line-height:24px;border-radius:7px;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 0 var(--bord),0 3px 6px rgba(0,0,0,.3)}
 /* Fenetre des details d'une version : en-tete fixe, rubriques qui defilent, Fermer en bas. */
 .dv-boite{max-width:620px;width:calc(100vw - 32px);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);padding:0;overflow:hidden;display:flex;flex-direction:column;text-align:left}
@@ -2288,6 +2323,88 @@ NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t)
   /* Aucune lecture automatique : tu cliques sur lecture (avec le son, volume 0,6). Une seule lecture, pas de boucle. Pause hors de l'onglet. */
   const sec=$('nouveautes');new MutationObserver(()=>{if(sec.hidden)v.pause()}).observe(sec,{attributes:true,attributeFilter:['hidden']});
 });
+/* Nouveautes (0.4) : blocs epingles, Feuille de route, pagination.
+   Epingles : 2 au plus, en tete et hors des 6 blocs recents (ligne 1 colonnes 1 et 2 ; un seul epingle : le bloc le plus recent prend la colonne 2 ;
+   telephone : epingles en premier). Etat dans Firebase (nouveautes/epingles), ecrit par le seul compte de Romain ; noeud vide = Feuille de route epinglee.
+   Pagination : 6 blocs recents ; un couple version + video n'est jamais coupe (il passe entier a la page suivante) ;
+   la tuile « Voir les versions précédentes » prend la case suivante de la grille et sert aussi a replier. */
+const FEUILLE_DE_ROUTE=[
+ {v:'0.4',nom:'Mode diffusion',etat:'proche'},
+ {v:'0.5',nom:'Parties classées',etat:'prevu'},
+ {nom:'Tournois, mode compétitif',etat:'tard'},
+ {nom:'Cartes Événements',etat:'tard'},
+ {nom:'Nouvelle interface',etat:'tard'},
+ {v:'1.0',nom:'Sortie officielle',etat:'tard'}
+];
+const ETATS_FDR={proche:'Prochaine mise à jour',prevu:'Prévu',tard:'Plus tard'};
+const SVG_EPINGLE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.6 2.6l6.8 6.8-1.9.9-3.4 3.4.4 4.6-1.6 1.6-4.2-4.2-5.6 5.6-1.3-1.3 5.6-5.6-4.2-4.2 1.6-1.6 4.6.4 3.4-3.4z"/></svg>';
+const NV={epingles:null,romain:false,ouvert:false,room:null,blocs:[...$('notes').children]}; /* blocs : ordre d'origine, du plus recent au plus ancien */
+{
+  const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+  const N=$('notes');
+  /* Identifiants des blocs : v0.3 (version), video-v0.3 (video de la version), feuille-de-route */
+  [...N.children].forEach(a=>{const v=a.querySelector('.nv-etq')?.textContent||'';a.dataset.id=(a.classList.contains('nv-golem')?'video-':'')+v});
+  const f=mk('article','note nv-fdr'),h=mk('h3'),ol=mk('ol','fdr-l');f.dataset.id='feuille-de-route';
+  h.append('Feuille de route');f.append(h,mk('p','fdr-sous','Les prochaines étapes du jeu, dans l’ordre prévu.'));
+  FEUILLE_DE_ROUTE.forEach(x=>{const li=mk('li','fdr-'+x.etat),t=mk('div','fdr-t');
+    if(x.v)t.append(mk('small','','Version '+x.v));t.append(mk('b','',x.nom));li.append(mk('span','fdr-pt'),t,mk('span','fdr-etat',ETATS_FDR[x.etat]));ol.append(li)});
+  f.append(ol);N.prepend(f);
+}
+/* Unites de pagination, du plus recent au plus ancien : un bloc seul, ou un couple version + video de la meme version (jamais coupe). */
+function unitesNotes(){
+  const L=NV.blocs,U=[];
+  for(let i=0;i<L.length;i++){const a=L[i],b=L[i+1],va=a.querySelector('.nv-etq')?.textContent;
+    if(b&&va&&va===b.querySelector('.nv-etq')?.textContent&&a.classList.contains('nv-golem')!==b.classList.contains('nv-golem')){U.push([a,b]);i++}else U.push([a])}
+  return U;
+}
+function epinglesNotes(){
+  const ids=new Set([...$('notes').querySelectorAll(':scope>article.note')].map(a=>a.dataset.id));
+  const l=NV.epingles===null?['feuille-de-route']:NV.epingles;
+  return [...new Set(l)].filter(x=>ids.has(x)).slice(0,2);
+}
+function peintNotes(){
+  const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+  const N=$('notes'),ep=epinglesNotes(),fdr=N.querySelector('.nv-fdr'),par=id=>N.querySelector(':scope>article[data-id="'+id+'"]');
+  N.querySelector(':scope>.nv-plus')?.remove();
+  /* Feuille de route desepinglee : premier bloc de la liste (Romain peut la reepingler) */
+  const U=[...(ep.includes('feuille-de-route')?[]:[[fdr]]),...unitesNotes()].map(u=>u.filter(a=>!ep.includes(a.dataset.id))).filter(u=>u.length);
+  const recents=[],anciens=[];let n=0;
+  U.forEach(u=>{if(!anciens.length&&n+u.length<=6){recents.push(...u);n+=u.length}else anciens.push(...u)});
+  const ordre=[...ep.map(par),...recents,...anciens];
+  if(ordre.some((a,i)=>N.children[i]!==a))ordre.forEach(a=>N.append(a));
+  N.querySelectorAll(':scope>article.note').forEach(a=>{const e=ep.includes(a.dataset.id);a.classList.toggle('nv-epingle',e);a.hidden=!e&&!NV.ouvert&&anciens.includes(a);
+    a.querySelector('h3>.nv-pin')?.remove();if(e)a.querySelector('h3').prepend(Object.assign(mk('span','nv-pin'),{innerHTML:SVG_EPINGLE}));
+    if(a.hidden)a.querySelector('video')?.pause();
+    let b=a.querySelector(':scope>.nv-epingler');
+    if(!NV.romain){b?.remove();return}
+    if(!b){b=mk('button','nv-epingler');b.type='button';b.innerHTML=SVG_EPINGLE;b.onclick=()=>basculeEpingle(a.dataset.id,b);a.append(b)}
+    b.classList.toggle('on',e);b.setAttribute('aria-pressed',String(e));b.title=e?'Désépingler ce bloc':'Épingler ce bloc';b.setAttribute('aria-label',b.title)});
+  N.classList.toggle('nv-romain',NV.romain);
+  if(anciens.length){
+    const t=mk('button','note nv-plus'),ch=mk('span','nv-chev'),noms=anciens.map(a=>a.querySelector('.nv-etq')?.textContent).filter((x,i,l)=>x&&l.indexOf(x)===i);
+    t.type='button';t.setAttribute('aria-expanded',String(NV.ouvert));
+    ch.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+    t.append(ch,mk('b','',NV.ouvert?'Masquer les versions précédentes':'Voir les versions précédentes'),
+      mk('small','',NV.ouvert?'Revenir aux dernières nouveautés':anciens.length+(anciens.length>1?' blocs plus anciens':' bloc plus ancien')+(noms.length?' : '+noms.join(', '):'')));
+    t.classList.toggle('ouvert',NV.ouvert);
+    t.onclick=()=>{NV.ouvert=!NV.ouvert;peintNotes();const z=N.querySelector(':scope>.nv-plus');if(z){z.focus({preventScroll:true});if(!NV.ouvert)z.scrollIntoView({block:'nearest'})}};
+    N.append(t);
+  }
+}
+function basculeEpingle(id,b){
+  const l=epinglesNotes(),e=l.includes(id);
+  if(!e&&l.length>=2){b.title='Deux blocs épinglés au plus : désépingle d’abord l’un d’eux.';b.classList.add('refus');setTimeout(()=>b.classList.remove('refus'),900);return}
+  const n=e?l.filter(x=>x!==id):[...l,id];
+  NV.epingles=n.length?n:['aucun'];peintNotes();
+  NV.room?.epingles?.ecrit(n).catch(x=>console.warn('épingles',x));
+}
+peintNotes();
+window.golemsSalon.then(r=>{
+  if(!r||!r.epingles)return;NV.room=r;
+  r.epingles.ecoute(l=>{NV.epingles=l;peintNotes()});
+  const qui=()=>r.epingles.romain().then(v=>{if(v!==NV.romain){NV.romain=v;peintNotes()}});
+  qui();r.compte.onChange(qui);
+}).catch(()=>{});
 
 /* Cartes */
 const CARTES=[

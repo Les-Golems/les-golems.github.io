@@ -288,9 +288,33 @@
       }
     },
 
+    // Nouveautés (0.4) : blocs épinglés, nouveautes/epingles = { "0": id, "1": id } (2 au plus ; "aucun" = rien d'épinglé ;
+    // nœud vide = Feuille de route épinglée par défaut). Lus par tous ; écrits par le seul compte de Romain, reconnu par son uid.
+    // À COLLER : remplacer UID_DE_ROMAIN par l'uid de son compte (console Firebase, Authentication).
+    "nouveautes": {
+      "epingles": {
+        ".read": true,
+        ".write": "auth != null && auth.uid === 'UID_DE_ROMAIN'",
+        ".validate": "newData.hasChildren()",
+        "$i": { ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)" }
+      }
+    },
+
     // Site d'essai (les-golems.github.io/essai) : copie conforme de pseudos, joueurs, hall et salons
     // sous le préfixe essai/. Comptes Auth partagés, pseudos et données séparés.
     "essai": {
+      // Nouveautés (0.4) : blocs épinglés, nouveautes/epingles = { "0": id, "1": id } (2 au plus ; "aucun" = rien d'épinglé ;
+      // nœud vide = Feuille de route épinglée par défaut). Lus par tous ; écrits par le seul compte de Romain, reconnu par son uid.
+      // À COLLER : remplacer UID_DE_ROMAIN par l'uid de son compte (console Firebase, Authentication).
+      "nouveautes": {
+        "epingles": {
+          ".read": true,
+          ".write": "auth != null && auth.uid === 'UID_DE_ROMAIN'",
+          ".validate": "newData.hasChildren()",
+          "$i": { ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)" }
+        }
+      },
+
       // Pseudos réservés : pseudos/{pseudo en minuscules} = uid du propriétaire.
       // Lisible par tout connecté (vérifier qu'un pseudo est libre) ; réservé par un compte,
       // seulement s'il est libre ou déjà à lui ; effacé seulement par son propriétaire (ou Romain en console).
