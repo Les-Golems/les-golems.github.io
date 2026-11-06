@@ -28,7 +28,76 @@ const nbCartes=x=>{const N=noms(),f=document.createDocumentFragment();x.split(N.
 /* ---------- Etat de la vue ---------- */
 let D=null,scene=null,src=null,E=null; /* src : 'spec' ou 'demo' ; E : {etat, noms, avatars, uids} */
 let suivi=null; /* memoire entre deux peintures : poses vues, halo, manches et fin deja annoncees */
-function neufSuivi(){return {nev:-1,der:null,lieu:{},halo:null,nt:-1,fin:false,pop:null,vu:null}}
+function neufSuivi(){return {nev:-1,der:null,lieu:{},halo:null,nt:-1,fin:false,pop:null,vu:null,vol:null,morts:[],flash:{},snap:null,arr:{}}}
+/* Animations (0.3a) : pose qui glisse de la main a la case, Golem detruit qui s'efface, Force qui clignote, moments forts du journal.
+   Purement visuelles : la vue est repeinte a chaque action, chaque animation est rejouee ou elle en etait (delai negatif) ;
+   aucune n'attend ni ne retarde la partie. prefers-reduced-motion : ni glissement ni clignotement. */
+const REDUIT=matchMedia('(prefers-reduced-motion: reduce)');
+const VOL=500,EFFACE=600,FLASH=1000,LUEUR=1600;
+let couche=null,finVol=0;
+const delai=t=>((t-performance.now())/1000)+'s';
+/* rectangle d'un element dans le repere de la scene (1920 x 1080, avant mise a l'echelle) */
+function rectScene(e){const r=e.getBoundingClientRect(),R=scene.getBoundingClientRect(),k=R.width/1920||1;return {x:(r.left-R.left)/k,y:(r.top-R.top)/k,w:r.width/k,h:r.height/k}}
+const caseDe=(p,l,k,racine)=>(racine||scene).querySelector('.p-case[data-p="'+p+'"][data-l="'+l+'"][data-k="'+k+'"]');
+/* Golems en jeu : cle joueur:carte -> [l,k,Force affichee] */
+function photo(s){const Mo=M(),r={};for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=s.j[p].grille[l][k];if(g&&!Mo.carte(g.c).animal)r[p+':'+g.c]=[l,k,Mo.forceDe(s,p,l,k)]}return r}
+/* Avant de vider la scene : nouvelles poses (depart dans la main), Golems detruits (copie de leur case), Forces changees */
+function prepareAnims(s,premier,nev0){
+  const t=performance.now(),Mo=M(),ap=photo(s),av=suivi.snap;suivi.snap=ap;
+  if(premier)return;
+  const ev=s.stats.ev;let pose=null;const morts=[];
+  for(let i=Math.max(0,nev0);i<ev.length;i++){const e=ev[i];if(e.t==='p')pose=e;else if(e.t==='m')morts.push(e)}
+  let t0=t; /* debut des effets de cette action : a l'arrivee de la carte posee */
+  if(pose&&scene){const x=chercheCarte(s,pose.cp,pose.cc);
+    if(x&&!REDUIT.matches){
+      const b=scene.querySelector('.d-col[data-p="'+pose.cp+'"] button[data-c="'+pose.cc+'"]'),zm=scene.querySelector('.d-col[data-p="'+pose.cp+'"] .d-main');
+      let de=b?rectScene(b):zm?rectScene(zm):null;
+      if(de&&!b)de={x:de.x+de.w/2-51,y:de.y,w:103,h:144};
+      const ca=caseDe(pose.cp,x[0],x[1]),vi=ca&&ca.querySelector(':scope>.mini');
+      if(de){t0=t+VOL;suivi.vol={p:pose.cp,c:pose.cc,l:x[0],k:x[1],de,fin:t0,vieux:vi?vi.cloneNode(true):null,vevo:!!(ca&&ca.classList.contains('evo')),lance:false}}}
+    if(suivi.halo&&suivi.halo.c===pose.cc)suivi.halo.t=t0;}
+  /* Golems detruits par cette action : ils s'effacent ensemble */
+  if(av&&scene)morts.forEach(e=>{const o=av[e.cp+':'+e.cc];if(!o)return;const ca=caseDe(e.cp,o[0],o[1]),vi=ca&&ca.querySelector(':scope>.mini:not(.d-fantome):not(.d-vieux)');
+    if(vi)suivi.morts.push({p:e.cp,l:o[0],k:o[1],n:vi.cloneNode(true),t:t0})});
+  /* Force affichee changee (meme Golem) : vert si elle monte, rouge si elle baisse */
+  if(av&&!REDUIT.matches)Object.keys(ap).forEach(q=>{const o=av[q];if(o&&o[2]!==ap[q][2])suivi.flash[q]={h:ap[q][2]>o[2],t:t0}});
+}
+/* Apres la peinture du plateau : carte en vol, copies qui s'effacent, chiffres qui clignotent */
+function decore(s,plat){
+  const t=performance.now(),v=suivi.vol;
+  if(v&&t<v.fin){const x=chercheCarte(s,v.p,v.c);
+    if(x&&x[0]===v.l&&x[1]===v.k){const c=caseDe(v.p,v.l,v.k,plat);
+      if(c){c.dataset.evo=c.classList.contains('evo')?'1':'';c.classList.add('d-vol');c.classList.toggle('evo',v.vevo);if(v.vieux){const o=v.vieux.cloneNode(true);o.classList.add('d-vieux');c.append(o)}}}
+    clearTimeout(finVol);finVol=setTimeout(atterrit,v.fin-t+10)}
+  else suivi.vol=null;
+  suivi.morts=suivi.morts.filter(m=>t<m.t+EFFACE+100);
+  suivi.morts.forEach(m=>{const c=caseDe(m.p,m.l,m.k,plat);if(!c)return;const o=m.n.cloneNode(true);o.classList.add('d-fantome');o.style.animationDelay=delai(m.t);c.append(o)});
+  Object.keys(suivi.flash).forEach(q=>{const f=suivi.flash[q];if(t>f.t+FLASH){delete suivi.flash[q];return}
+    const[p,cc]=q.split(':'),x=chercheCarte(s,+p,+cc),c=x&&caseDe(p,x[0],x[1],plat),e=c&&c.querySelector(':scope>.mini:not(.d-vieux) .f');
+    if(e){e.classList.add(f.h?'d-fh':'d-fb');e.querySelector('b').style.animationDelay=delai(f.t)}});
+}
+/* Fin du vol : la case montre la carte posee (sans repeindre) */
+function atterrit(){if(!scene)return;scene.querySelectorAll('.p-case.d-vol').forEach(c=>{c.classList.remove('d-vol');c.classList.toggle('evo',c.dataset.evo==='1');c.querySelectorAll(':scope>.d-vieux').forEach(o=>o.remove())})}
+/* Carte qui glisse de la main a sa case (couche au-dessus de la scene, gardee d'une peinture a l'autre) */
+function lanceVol(){
+  const v=suivi.vol;if(!v||v.lance||!couche)return;v.lance=true;
+  const c=caseDe(v.p,v.l,v.k);if(!c)return;
+  const a=rectScene(c),d=v.de,sc=a.h*1.2/d.h,dx=a.x+a.w/2-d.x-d.w*sc/2,dy=a.y+a.h/2-d.y-d.h*sc/2,im=mk('img','d-vole'),reste=v.fin-performance.now();
+  if(reste<50)return;
+  im.src=U().srcC(v.c);im.alt='';Object.assign(im.style,{left:d.x+'px',top:d.y+'px',width:d.w+'px',height:d.h+'px'});couche.append(im);
+  const an=im.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:'translate('+dx*.3+'px,'+(dy*.3-30)+'px) scale('+(1+(sc-1)*.3+.06)+')',opacity:1,offset:.35},
+    {transform:'translate('+dx+'px,'+dy+'px) scale('+sc+')',opacity:1,offset:.85},{transform:'translate('+dx+'px,'+dy+'px) scale('+sc+')',opacity:0}],{duration:reste,easing:'cubic-bezier(.35,.6,.3,1)',fill:'forwards'});
+  an.onfinish=()=>im.remove();an.oncancel=()=>im.remove();
+}
+/* Moments forts du journal : destruction, evolution, terrain remporte ou egalite, pose d'animal, points hors terrains */
+function fort(p,x){
+  if(p!==0&&p!==1){if(/ meur(t|ent)( ensuite)?[ .:]/.test(x)||/ est détruit\.$/.test(x))return 'defausse';if(/ : égalité \d+ partout\.$/.test(x))return 'coupe';return null}
+  if(/^améliore /.test(x))return 'manche';
+  if(/^marque /.test(x))return 'coupe';
+  const a=/^pose (.+)\.$/.exec(x);if(a&&Object.values(M().CARTES).some(c=>c.animal&&c.nom===a[1]))return 'main';
+  if(/:\s\+\d+( points?)?\.$/.test(x)&&!(E&&E.etat.terrains.some(T=>x.startsWith(T.nom+' lance '))))return 'coupe';
+  return null;
+}
 
 function avatar(p){
   const u=U(),n=E.noms[p]||'Joueur',id=E.uids&&E.uids[p];
@@ -90,14 +159,20 @@ function deManche(s,m,terrain){
 /* ---------- Peinture ---------- */
 function peindre(){
   if(!D||!E)return;
-  const u=U(),s=E.etat,premier=suivi.nev<0;
+  const u=U(),s=E.etat,premier=suivi.nev<0,nev0=suivi.nev;
   suitPoses(s,premier);
-  /* une nouvelle action ramene le journal a la page la plus recente */
-  if(suivi.nlog!==s.log.length){if(suivi.nlog!=null)suivi.page=null;suivi.nlog=s.log.length}
-  [...scene.children].forEach(n=>{if(n!==chat.el)n.remove()}); /* la fenetre de chat reste en place (saisie en cours) */
+  prepareAnims(s,premier,nev0);
+  /* une nouvelle action ramene le journal a la page la plus recente ; ses moments forts brillent a leur arrivee */
+  if(suivi.nlog!==s.log.length){if(suivi.nlog!=null){suivi.page=null;const t=performance.now();
+      if(!premier)for(let i=suivi.nlog;i<s.log.length;i++)if(fort(s.log[i][0],s.log[i][1]))suivi.arr[i]=t}
+    suivi.nlog=s.log.length}
+  [...scene.children].forEach(n=>{if(n!==chat.el&&n!==couche)n.remove()}); /* la fenetre de chat reste en place (saisie en cours), la carte en vol aussi */
   const fin=!!s.fin,qui=fin||s.phase==='mulligan'?null:u.quiJoue(s);
   scene.append(bandeau(s,qui),plateau(s,qui),main(s,1,186,qui===1),cercle(),derniere(s),actions(s),main(s,0,854,qui===0),coin());
+  if(!couche||couche.parentNode!==scene)couche=mk('div','d-couche');
+  if(chat.el)scene.insertBefore(couche,chat.el);else scene.append(couche);
   ajusteNoms();
+  lanceVol();
   /* fenetres de fin : une fin de manche nouvelle, ou la fin de la partie */
   const nt=s.stats.t.length;
   if(suivi.nt<0)suivi.nt=premier&&!fin?nt:suivi.nt; /* arrivee en cours de partie : pas de fenetre pour une manche deja passee */
@@ -146,13 +221,14 @@ function plateau(s,qui){
   const t=mk('div','p-terrains d-tr'),cc=Mo.colonnes(s);
   [0,1,2].forEach(k=>{const T=s.terrains[k],a=cc[k][1],m=cc[k][0],d=mk('div','p-terrain'+(m>a?' m-moi':a>m?' m-lui':'')),to=mk('div','p-totaux'),te=mk('div','p-tete');
     te.append(mk('b','',T.nom));to.append(mk('b','m'+(m>a?' tete':''),String(m)),mk('span','','contre'),mk('b','a'+(a>m?' tete':''),String(a)));
-    d.append(te,to,mk('span','p-valeur',T.pts+(T.pts>1?' pts':' pt')));d.onclick=()=>zoomTerrainDif(s,k);t.append(d)});
+    d.append(te,to,ptsEt('p-valeur',T.pts));d.onclick=()=>zoomTerrainDif(s,k);t.append(d)});
   plat.append(r1,t,r2);
   /* halo : case de la derniere carte jouee, 3,6 s a partir de la pose (repeinture : l'animation reprend ou elle en etait) */
   const h=suivi.halo;
   if(h&&!s.fin){const x=chercheCarte(s,h.p,h.c),dt=performance.now()-h.t;
     if(x&&dt<3600){const c=plat.querySelector('.p-case[data-p="'+h.p+'"][data-l="'+x[0]+'"][data-k="'+x[1]+'"]');
       if(c){c.classList.add('d-halo');c.style.setProperty('--hc',COL[h.p]);c.style.animationDelay=(-dt/1000)+'s'}}}
+  decore(s,plat);
   return plat;
 }
 /* Terrain en grand : a droite, un panneau par joueur (ses Golems sur ce terrain en lignes condensees, valeur au decompte, total) ;
@@ -171,6 +247,8 @@ function zoomTerrainDif(s,k){
     a.append(ol,tt);return a};
   u.zoom(u.srcTerrain(T),T.nom+'. '+T.texte,[pan(0),pan(1)]);
 }
+/* Etiquette de points d'un terrain : l'etoile du score (pictogramme des points) avant le nombre, « ★ 2 pts » */
+function ptsEt(cl,n){const e=mk('span',cl+' d-ptse');e.append(U().ico('coupe'),n+(n>1?' pts':' pt'));return e}
 function zoomCarte(c){
   const u=U(),C=M().carte(c);u.cacheApercu();
   let det=null;
@@ -180,12 +258,12 @@ function zoomCarte(c){
 }
 function main(s,p,top,joue){
   const z=mk('div','d-z d-col'+(p===0?' bas':'')),J=s.j[p],h=mk('div','d-tm '+(p===0?'toi':'lui'),'Main '+d_(nom(p))+nom(p));
-  /* meme taille de carte pour les deux mains (calculee sur la plus grande), une seule ligne */
-  const W=769,n=Math.max(s.j[0].main.length,s.j[1].main.length,1),gp=n<=5?12:8,w=Math.min(120,Math.floor((W-(n-1)*gp)/n));
-  z.style.top=top+'px';
+    /* taille FIXE pour toute la partie (7 cartes sur une ligne : 103 x 144 px) ; au-dela de 7 cartes, elles se chevauchent sans changer de taille */
+  const W=769,w=103,n=J.main.length,gp=n<=7?8:(W-n*w)/(n-1);
+  z.style.top=top+'px';z.dataset.p=p;
   h.append(mk('span','',J.main.length+(J.main.length>1?' cartes':' carte')));if(joue)h.append(mk('span','d-joue','Joue'));
-  const r=mk('div','d-main');r.style.gap=gp+'px';
-  J.main.forEach(c=>{const C=M().carte(c),b=mk('button'),i=mk('img');b.type='button';b.style.width=w+'px';b.style.height=Math.round(w*1.4)+'px';
+  const r=mk('div','d-main');
+  J.main.forEach((c,k)=>{const C=M().carte(c),b=mk('button'),i=mk('img');b.type='button';b.dataset.c=c;b.style.width=w+'px';b.style.height=Math.round(w*1.4)+'px';if(k)b.style.marginLeft=gp+'px';
     i.src=U().srcC(c);i.alt=C.nom;b.setAttribute('aria-label','Agrandir '+M().nomDetail(C));b.onclick=()=>zoomCarte(c);b.append(i);r.append(b)});
   z.append(h,r);return z;
 }
@@ -245,13 +323,21 @@ function phrase(p,x){
 function actions(s){
   const u=U(),z=mk('div','d-z d-bloc d-act'),ol=mk('ol'),pg=typeof u.pagesLog==='function'?u.pagesLog(s):[s.log];
   const n=Math.max(1,pg.length);if(suivi.page==null||suivi.page>=n)suivi.page=n-1;const i=suivi.page,der=i===n-1;
-  const L=(pg[i]||[]).filter(e=>e[0]===0||e[0]===1);
+  /* indice de chaque ligne dans le journal complet (les pages se suivent depuis le debut) ; lignes sans joueur : seulement les moments forts (destructions, egalites) */
+  let o0=0;for(let j=0;j<i;j++)o0+=(pg[j]||[]).length;
+  const L=(pg[i]||[]).map((e,j)=>[e[0],e[1],o0+j,fort(e[0],e[1])]).filter(e=>e[0]===0||e[0]===1||e[3]),t=performance.now();
   const h=mk('div','d-h d-ah'),ti=mk('span','','Dernières actions'),nav=mk('span','d-nav');
   const fl=(t,lib,v,off)=>{const b=mk('button','',t);b.type='button';b.setAttribute('aria-label',lib);b.disabled=off;b.onclick=()=>{suivi.page=v;suivi.pageMain=true;peindre()};return b};
   nav.append(fl('‹','Manche précédente',i-1,i<=0),mk('span','d-mn','Manche '+(i+1)),fl('›','Manche suivante',i+1,der));
   h.append(ti,nav);z.append(h);
   if(!L.length)ol.append(mk('li','d-rien','Aucune action pour le moment.'));
-  L.forEach((e,k)=>{const li=mk('li',der&&k===L.length-1?'dern':''),g=u.genreLog(e[1]);li.append(u.ico(g[1]),phrase(e[0],e[1]));ol.append(li)});
+  L.forEach((e,k)=>{const li=mk('li',der&&k===L.length-1?'dern':''),g=u.genreLog(e[1]);
+    if(!e[3]){li.append(u.ico(g[1]),phrase(e[0],e[1]));ol.append(li);return}
+    /* moment fort : liseré dore, fond teinte, pictogramme sur pastille doree, courte lueur a l'arrivee */
+    li.classList.add('d-fort');const a=suivi.arr[e[2]];
+    if(a!=null){if(t<a+LUEUR){li.classList.add('d-neuf');li.style.animationDelay=delai(a)}else delete suivi.arr[e[2]]}
+    let ph;if(e[0]===0||e[0]===1)ph=phrase(e[0],e[1]);else{ph=mk('span');ph.append(nbCartes(e[1].replace(/\.$/,'')))}
+    li.append(u.ico(e[3]),ph);ol.append(li)});
   z.append(ol);
   /* page la plus recente : en bas ; manche passee : en haut (apres la peinture, quand les hauteurs sont connues) */
   requestAnimationFrame(()=>{ol.scrollTop=der?ol.scrollHeight:0});
@@ -355,8 +441,7 @@ function score(sm,a,b){
 function popManche(s,m,pp){
   const u=U();pp.append(mk('h2','','Fin de la manche '+m));
   const g=mk('div','pp-ters');
-  s.stats.t.filter(t=>t.manche===m).forEach(t=>{const c=mk('div','pp-ter'),h=mk('div','pp-th');h.append(mk('b','',t.terrain),mk('span','pp-pts',t.points+(t.points>1?' pts':' pt')));c.append(h);
-    const T=s.terrains.find(x=>x.nom===t.terrain);if(T){h.firstChild.textContent=T.nom;h.lastChild.textContent=T.pts+(T.pts>1?' pts':' pt')}
+  s.stats.t.filter(t=>t.manche===m).forEach(t=>{const c=mk('div','pp-ter'),h=mk('div','pp-th');const T=s.terrains.find(x=>x.nom===t.terrain);h.append(mk('b','',T?T.nom:t.terrain),ptsEt('pp-pts',T?T.pts:t.points));c.append(h);
     [0,1].forEach(p=>{const l=mk('div','pp-l'+(t.gagnant===p?' gagne':''));l.style.setProperty('--c',COL[p]);const n=mk('span','',nom(p));n.style.color=COL[p];const f=mk('em','',String(t.forces[p]));f.style.color=COL[p];l.append(avatar(p),n,f);c.append(l)});
     /* une ligne : le pseudo se tronque (« Golem Ro... ») si la phrase ne tient pas ; la suite sur la ligne de base du pseudo */
     const r=mk('div','pp-res'),l1=mk('div','pp-rl');

@@ -72,6 +72,8 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-tr{margin-left:48px}
 #dif .p-case{height:var(--h);border-color:#34516a}
 #dif .p-case:disabled{border-color:#2a3f50}
+/* curseur : la main partout ou l'on peut cliquer, jamais le « + » du site */
+#dif .p-case:not(:disabled),#dif .p-terrain,#dif button:not(:disabled),html.dif-ouvert #vueDetail .dl-ligne{cursor:pointer}
 #dif .mini{--f:72px}
 #dif .mini .nom{font-size:28px;inset:6px 9px auto;line-height:1.05}
 #dif .mini .els{top:4px;right:8px;gap:4px}
@@ -88,8 +90,21 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 @keyframes dHalo{
   0%,100%{box-shadow:0 0 0 3px var(--encre),0 0 0 7px var(--hc),0 0 28px 10px color-mix(in srgb,var(--hc) 70%,transparent)}
   50%{box-shadow:0 0 0 3px var(--encre),0 0 0 6px color-mix(in srgb,var(--hc) 60%,transparent),0 0 10px 2px color-mix(in srgb,var(--hc) 35%,transparent)}}
+/* ---------- Animations (0.3a) : purement visuelles, aucune ne retarde la partie ---------- */
+/* Pose : la carte glisse de la main a sa case (couche au-dessus de la scene) ; la case montre l'ancien contenu jusqu'a l'arrivee */
+#dif .d-couche{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none;z-index:40}
+#dif .d-vole{position:absolute;display:block;border-radius:6px;box-shadow:0 12px 32px rgba(0,0,0,.6);transform-origin:0 0;will-change:transform,opacity}
+#dif .p-case.d-vol>.mini:not(.d-vieux){visibility:hidden}
+/* Golem detruit : copie de sa case, fondu et legere reduction (0,6 s) ; ceux d'une meme vague ensemble */
+#dif .p-case>.mini.d-fantome{z-index:3;pointer-events:none;animation:dEfface .6s ease-in both}
+@keyframes dEfface{from{opacity:1;transform:scale(1);filter:none}to{opacity:0;transform:scale(.84);filter:grayscale(.6) brightness(.7)}}
+/* Force qui change : le chiffre clignote 1 s, vert s'il monte, rouge s'il baisse, puis reprend son style */
+#dif .p-case .f.d-fh b{animation:dForceH 1s ease-out}
+#dif .p-case .f.d-fb b{animation:dForceB 1s ease-out}
+@keyframes dForceH{0%,50%{color:#3ee86a;text-shadow:0 0 22px #3ee86a,0 0 9px #3ee86a;transform:scale(1.42)}25%,75%{color:#3ee86a;text-shadow:none;transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes dForceB{0%,50%{color:#ff3b30;text-shadow:0 0 22px #ff3b30,0 0 9px #ff3b30;transform:scale(1.42)}25%,75%{color:#ff3b30;text-shadow:none;transform:scale(1.04)}100%{transform:scale(1)}}
 #dif .p-terrains{gap:8px}
-#dif .p-terrain{min-height:138px;height:138px;padding:8px 8px 9px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:4px;cursor:zoom-in;border:3px solid var(--trait)}
+#dif .p-terrain{min-height:138px;height:138px;padding:8px 8px 9px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:4px;cursor:pointer;border:3px solid var(--trait)}
 #dif .p-terrain.m-moi{border-color:var(--moi)}
 #dif .p-terrain.m-lui{border-color:var(--lui)}
 #dif .p-tete>b{font-size:24px;white-space:nowrap}
@@ -108,7 +123,8 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 /* « Joue » et « A lui de jouer » dans la couleur du joueur dont c'est le tour : bleu a gauche, orange a droite */
 #dif .d-tm.lui .d-joue,#dif .d-j.lui .d-badge{background:var(--lui)}
 #dif .d-main{display:flex}
-#dif .d-main button{display:block;flex:none;padding:0;border:0;background:none;cursor:zoom-in}
+#dif .d-main button{position:relative;display:block;flex:none;padding:0;border:0;background:none;cursor:pointer}
+#dif .d-main button:hover{z-index:2} /* main de plus de 7 cartes (chevauchement) : la carte survolee passe devant */
 #dif .d-main img{display:block;width:100%;height:100%;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.5)}
 #dif .d-bloc{background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--trait);border-radius:18px 11px 20px 10px/11px 19px 10px 18px}
 #dif .d-h{font:400 26px/1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--or);margin:0 0 14px}
@@ -121,7 +137,7 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 
 /* ---------- Derniere carte jouee ---------- */
 #dif .d-der{overflow:hidden;left:727px;top:414px;width:769px;height:422px;padding:0;display:grid;grid-template-columns:298px minmax(0,1fr);gap:0}
-#dif .d-der>button{display:block;padding:0;border:0;background:none;cursor:zoom-in}
+#dif .d-der>button{display:block;padding:0;border:0;background:none;cursor:pointer}
 #dif .d-der>button img{display:block;width:298px;height:418px;border-radius:5.07%/3.62%} /* arrondis de la carte, comme le zoom : rien ne depasse dans les coins */
 #dif .d-der.vide{grid-template-columns:minmax(0,1fr)}
 #dif .d-txt{padding:22px 26px;display:flex;flex-direction:column;gap:18px;min-width:0}
@@ -154,6 +170,17 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-act li b.d-ca.d-evo{color:var(--or)}
 #dif .d-act li.dern{color:#fff}
 #dif .d-act li:not(.dern){color:var(--doux)}
+/* Moments forts (destruction, evolution, terrain remporte ou egalite, pose d'animal, points hors terrains) : liseré dore, fond teinte, pastille doree, lueur a l'arrivee */
+#dif .d-act li.d-fort{padding:6px 8px 6px 8px;border-left:4px solid var(--or);border-radius:3px 10px 11px 3px;background:color-mix(in srgb,var(--or) 12%,transparent);color:var(--texte)}
+#dif .d-act li.d-fort.dern{color:#fff}
+#dif .d-act li.d-fort>.ico{width:30px;height:30px;padding:4px;margin-top:-1px;border-radius:50%;background:var(--or);color:var(--encre)}
+#dif .d-act li.d-fort.d-neuf{animation:dLueur 1.6s ease-out}
+@keyframes dLueur{0%{background:color-mix(in srgb,var(--or) 42%,transparent);box-shadow:0 0 22px 3px color-mix(in srgb,var(--or) 60%,transparent)}100%{background:color-mix(in srgb,var(--or) 12%,transparent);box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){
+  #dif .p-case .f.d-fh b,#dif .p-case .f.d-fb b,#dif .d-act li.d-fort.d-neuf{animation:none}
+  #dif .p-case>.mini.d-fantome{animation-name:dEffaceR}
+}
+@keyframes dEffaceR{from{opacity:1}to{opacity:0}}
 
 /* ---------- Coin : logo, Resultat (fin de partie), sortie ---------- */
 #dif .d-coin{left:1516px;top:854px;width:380px;height:210px;display:flex;flex-direction:column;align-items:center}
@@ -237,7 +264,7 @@ html.dif-ouvert #apercu{z-index:25}
 #dif .pp-tab .nm .avatar img{width:100%;height:100%}
 #dif .pp-tab td.mg{text-shadow:0 0 12px currentColor}
 #dif .pp-mvp{display:flex;align-items:center;justify-content:center;gap:16px;white-space:nowrap;margin:18px 0 0;padding:16px 0 0;border-top:2px solid var(--trait)}
-#dif .pp-mvp-n{font:400 30px/1.1 var(--titre);background:none;border:0;padding:0;color:inherit;cursor:zoom-in}
+#dif .pp-mvp-n{font:400 30px/1.1 var(--titre);background:none;border:0;padding:0;color:inherit;cursor:pointer}
 #dif .pp-mvp-c{display:flex;flex-direction:column;gap:6px;min-width:0}
 #dif .pp-mvp-l1{display:flex;align-items:center;gap:12px}
 #dif .pp-mvp-pq{font:700 22px/1.2 var(--corps);color:var(--doux);white-space:normal;max-width:900px}
@@ -291,3 +318,7 @@ html.dif-ouvert #vueDetail .dz-eg{font:400 18px/1 var(--titre);color:var(--or);m
 @media (orientation:portrait) and (max-width:899px){
   #dif .d-tourne{display:flex;position:absolute;left:0;right:0;bottom:calc(50% - 56.25vw/2 - 70px);justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;padding:0 12px;font:700 14px/1.3 var(--corps);color:var(--doux);text-align:center}
 }
+
+/* Etoile des points dans les etiquettes de terrain (tuiles et recapitulatif) : meme pictogramme que le score, couleur du texte de l'etiquette */
+#dif .d-ptse{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+#dif .d-ptse .ico{font-size:.85em;color:currentColor;flex:none}
