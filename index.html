@@ -375,7 +375,11 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .chat-liste{list-style:none;margin:0;padding:6px 10px;overflow-y:auto;height:150px;font-size:14.5px;overflow-wrap:anywhere}
 .chat-liste li{padding:2px 0}
 .chat-liste b{color:var(--bleu);margin-right:5px}
-.chat-liste b.chat-moi{color:var(--or)}
+/* 0.4 : pseudo selon le role (createur dore, adversaire bleu, spectateur gris clair avec un oeil, parti neutre) ; aussi dans la vue spectateur */
+b.chat-createur{color:var(--or)}b.chat-adversaire{color:var(--bleu)}b.chat-spectateur{color:#d3dbe0}b.chat-parti{color:var(--doux)}
+b[class^="chat-"][title]{cursor:help}
+.chat-oeil{display:inline-block;width:1.05em;height:1.05em;margin-right:.25em;vertical-align:-.15em;opacity:.85}
+.chat-oeil svg{display:block;width:100%;height:100%;fill:currentColor}
 .chat-liste time{color:var(--doux);font-size:12px;margin-right:5px}
 .chat-vide{color:var(--doux);font-style:italic}
 .chat form{display:flex;gap:6px;padding:6px;border-top:1px solid var(--trait)}
@@ -3038,11 +3042,30 @@ function peintChat(l){
   const moi=room&&room.compte&&room.compte.uid?room.compte.uid():'';
   l.slice(-100).forEach(x=>{const li=el('li');const d=new Date(+x.t||Date.now());
     const h=el('time','',String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'));
-    li.append(h,el('b',x.a===moi?'chat-moi':'',(typeof x.p==='string'?x.p:'Joueur')+' :'),document.createTextNode(x.m));ul.append(li)});
+    li.append(h,nomChat(x),document.createTextNode(x.m));ul.append(li)});
   const fl=chatBox.c.classList.contains('flottant'),rep=chatBox.c.classList.contains('replie');
   if(fl&&rep){const n=l.slice(chatVu).filter(x=>x.a!==moi).length;nb.textContent=n>0?String(n):''}else{chatVu=l.length;nb.textContent=''}
   if(bas||!rep)ul.scrollTop=ul.scrollHeight;
 }
+/* 0.4 : couleur du pseudo selon le role dans le salon (places de spectateur.js) : createur dore, adversaire bleu, spectateur gris clair avec un oeil.
+   Role au survol. Auteur parti du salon : couleur neutre, sans role. Sert aussi au chat de la vue spectateur (diffusion.js). */
+const ROLES_CHAT={createur:'Créateur',adversaire:'Adversaire',spectateur:'Spectateur'};
+function roleChat(u){
+  if(!u)return '';
+  const E=window.SPEC&&SPEC.etatSalon?SPEC.etatSalon():null;
+  if(E&&E.actif){if(E.j1&&E.j1.uid===u)return 'createur';if(E.adv&&E.adv.uid===u)return 'adversaire';return (E.spectateurs||[]).some(x=>x.uid===u)?'spectateur':''}
+  const moi=room&&room.compte&&room.compte.uid?room.compte.uid():'';
+  if(!r||!moi)return '';
+  if(u===moi)return createur?'createur':'adversaire';
+  return r.peers&&r.peers().some(p=>p.peer===u)?(createur?'adversaire':'createur'):'';
+}
+const SVG_OEIL='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5C6.5 5 2.6 9.2 1.5 12c1.1 2.8 5 7 10.5 7s9.4-4.2 10.5-7C21.4 9.2 17.5 5 12 5zm0 11.2a4.2 4.2 0 1 1 0-8.4 4.2 4.2 0 0 1 0 8.4zm0-2.2a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>';
+function nomChat(x){
+  const ro=roleChat(x.a),b=el('b',ro?'chat-'+ro:'chat-parti');
+  if(ro==='spectateur'){const o=el('span','chat-oeil');o.innerHTML=SVG_OEIL;b.append(o)}
+  b.append((typeof x.p==='string'?x.p:'Joueur')+' :');if(ro)b.title=ROLES_CHAT[ro];return b;
+}
+window.golemsNomChat=nomChat;
 function placeChat(){
   const c=chatBox.c,enLigne=!!r&&!!partie&&!partie.local,salon=!!r&&!partie,spec=!r&&!!(window.SPEC&&SPEC.estSpectateur());
   if(salon){c.classList.remove('flottant','replie');$('chatPlace').append(c)}

@@ -306,6 +306,7 @@ html.dif-ouvert #vueDetail .dz-eg{font:400 18px/1 var(--titre);color:var(--or);m
 #dif .d-cl{list-style:none;margin:0;padding:0 4px 0 0;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;font:700 22px/1.25 var(--corps);color:var(--texte);overflow-wrap:anywhere}
 #dif .d-cl time{color:var(--doux);margin-right:6px;font-weight:400}
 #dif .d-cl b{font-family:var(--titre);font-weight:400;color:var(--bleu)}
+#dif .d-cl b.chat-createur{color:var(--or)}#dif .d-cl b.chat-spectateur{color:#d3dbe0}#dif .d-cl b.chat-parti{color:var(--doux)}
 #dif .d-cl .d-rien{color:var(--doux)}
 #dif .d-cf{display:flex;gap:8px}
 #dif .d-cf input{flex:1;min-width:0;background:var(--encre);border:1px solid var(--trait);border-radius:8px 6px 9px 5px;color:var(--texte);font:700 22px/1 var(--corps);padding:8px 10px}
