@@ -2153,7 +2153,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
- {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","En partie : détail de la Force sur chaque terrain","Nouvelle règle : deck vide, 1 point à l'adversaire par carte à piocher","Bug de Jacen et Jaina corrigé"]},
+ {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","Rework de Le Q : Brume et Magma, nouveaux effets","Nouvelle règle : deck vide, 1 point à l'adversaire par carte à piocher","Bug de Jacen et Jaina corrigé"]},
  {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
  {version:'Version 0.2c',date:'5 novembre 2026',notes:["La Boutique réduit aussi le coût des évolutions","Éditeur de deck : teste tes placements dans un bac à sable","Statistiques repensées : recherche, classement complet, toutes tes parties comptées","Profil des joueurs réorganisé, avec ton rang au classement","Partage de deck par lien cliquable","Résumé de partie prêt à coller sur Discord","Version vérifiée dans le salon, page mise à jour automatiquement","Appli installée : nouvelle icône, lancement bleu ciel","QoL ajoutés"]},
  {version:'Version 0.2b',date:'4 novembre 2026',notes:["Nouveaux Golems : trop nombreux pour les citer","Premier animal de compagnie : Kiwi, le lapin de Titom76","K-Chan devient Magma + Brume","Plateau en miroir : ton camp en bas","Statistiques par patch et par adversaire, profils publics","Cartes et éditeur de deck : nouveaux filtres et tri","Aide en partie avec le cercle des éléments","Historique repensé, decks à 3 par ligne, 7 nouveaux avatars, QoL ajoutés"]},
@@ -2180,6 +2180,8 @@ const DETAILS_VERSIONS={
    "En partie, clique sur un terrain pour voir la Force de chaque Golem des deux camps.",
    "Onglet Cartes : filtres réalignés, le bouton « À venir » est retiré.",
    "Dans les listes de deck, les animaux ont une ligne aux couleurs de leur carte.",
+   "Rework de Le Q : Brume et Magma, nouveaux effets (détail dans Équilibrage et règles).",
+   "Nouvelles illustrations de Le Q (Ragebaiter et Seul contre tous) par @LeQ.",
    "Nouveautés : la feuille de route épinglée en tête et les anciennes versions repliées."],
   corrections:[
    "Le contour doré des cartes évoluées a des coins bien arrondis.",
@@ -2187,7 +2189,11 @@ const DETAILS_VERSIONS={
    "Le bilan de fin de partie ne plante plus quand Jacen et Jaina font piocher.",
    "Les nouvelles illustrations s'affichent tout de suite, sans attendre."],
   regles:[
-   "Si ton deck est vide, chaque carte que tu dois piocher donne 1 point à ton adversaire. Toutes les pioches comptent, y compris celles des effets de cartes."]
+   "Si ton deck est vide, chaque carte que tu dois piocher donne 1 point à ton adversaire. Toutes les pioches comptent, y compris celles des effets de cartes.",
+   "Le Q passe en Brume et Magma (avant : Brume et Cristal).",
+   "Le Q (Ragebaiter), coût 2, Force 1. Jour de pêche : à la pose, regarde les 2 premières cartes du deck adverse. Défausses-en 1 et replace l'autre dessus.",
+   "Le Q (Seul contre tous), coût 7, Force 1. Il suffit : à la pose, détruis toutes tes cartes et toutes les cartes adverses posées en plusieurs exemplaires, toi compris. Une base et son évolution comptent comme deux cartes différentes. Seul Mode Avion protège.",
+   "Deck par défaut et decks conseillés Tempête, Forge rapide et Gros Golems mis à jour."]
  },
  'Version 0.3':{
   nouveautes:[
