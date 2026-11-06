@@ -298,6 +298,28 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .sl-carte .btn{margin-top:auto!important;width:100%;font-size:18px!important;min-height:46px!important}
 .sl-att{margin-top:auto;font-size:13px;color:var(--doux);font-style:italic;min-height:46px;display:flex;align-items:center}
 .sl-badge{position:absolute;top:8px;right:8px;padding:2px 8px;border-radius:6px;background:var(--or);color:var(--encre);font-weight:800;font-size:12px}
+/* Parties ouvertes (0.4) : titres de groupe, Rejoindre + Observer, lignes des salons complets */
+.po-gt{margin:4px 0 8px;font-size:12.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--doux)}
+.po-gt b{color:var(--texte);margin-left:4px}
+.sl-liste+.po-gt{margin-top:16px}
+.po-inf{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 12px}
+.po-spec{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--doux)}
+.po-spec svg{width:15px;height:15px;flex:none}
+.po-spec b{color:var(--texte)}
+.po-btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;margin-top:auto}
+.sl-carte .po-btns .btn{margin-top:0!important;font-size:16px!important;padding-left:6px;padding-right:6px}
+.po-obs{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.po-obs svg{width:17px;height:17px;flex:none}
+.sl-liste li.po-ligne{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;position:relative}
+.po-duo{display:flex;align-items:center;gap:10px;flex:1 1 280px;min-width:0}
+.po-j{display:flex;align-items:center;gap:8px;min-width:0}
+.po-j b{font:400 18px/1.15 var(--titre);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-liste .po-j .avatar{width:36px;height:36px;font-size:17px;flex:none}
+.po-vs{font:400 15px var(--titre);color:var(--doux);flex:none}
+.po-ligne .po-inf{justify-content:flex-end}
+.po-ligne .po-obs{flex:none}
+.po-ligne .po-badge{position:static}
+@media (max-width:600px){.sl-liste li.po-ligne{flex-direction:column;align-items:stretch;text-align:center}.po-duo{flex:none;justify-content:center}.po-ligne .po-inf{justify-content:center}.po-ligne .po-obs{width:100%}}
 @media (max-width:1100px){.sl-liste.sl-grille{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:600px){.sl-liste.sl-grille{grid-template-columns:minmax(0,1fr)}.sl-liste li.sl-carte{min-height:0;gap:6px;padding:14px 12px 12px}.sl-liste .sl-carte .avatar{width:68px;height:68px;font-size:32px}}
 @media (max-width:520px){#salon{padding:12px}.sl-duo{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.sl-vs{display:none}.sl-j{padding:10px 6px}#joueurs .sl-j .avatar{width:48px;height:48px;font-size:22px}.sl-nom{font-size:18px}#salon .sl-j .btn{font-size:14px;padding:5px 8px;white-space:nowrap}.sl-haut .code{font-size:32px}.sl-compte b{font-size:90px}}
@@ -1720,8 +1742,8 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
         <div class="p-btns"><div class="niveaux" role="group" aria-label="Niveau du Golem"><button class="btn niv-f" data-niveau="facile" type="button">Facile</button><button class="btn niv-n" data-niveau="normal" type="button">Normal</button><button class="btn niv-d" data-niveau="difficile" type="button">Difficile</button></div><button class="btn sec" id="repriseRobot" type="button" hidden>Reprendre l'entraînement</button></div>
       </div>
       <div class="bloc" id="blocListe">
-        <h3>Parties publiques en attente</h3>
-        <ul class="sl-liste" id="listeSalons" aria-live="polite"></ul>
+        <h3>Parties ouvertes</h3>
+        <div id="listeSalons" aria-live="polite"></div>
       </div>
       <div class="bloc" id="reprise" hidden>
         <h3>Partie en cours</h3>
@@ -2572,45 +2594,76 @@ function majFace(nom){
   const v=h.filter(x=>x.res==='Victoire').length,d=h.filter(x=>x.res==='Défaite').length;
   z.hidden=!(v+d);if(v+d)z.textContent='Face-à-face : '+(pseudo||'Toi')+' '+v+' - '+d+' '+nom;
 }
-/* Annonce publique : le createur seul dans un salon public, partie non commencee. */
-let salonPublic=false,createur=false,annonceVue='';
+/* Annonce publique (0.4) : tenue par le createur d'un salon public tant que la partie n'a pas commence ;
+   adversaire assis (w, q) et nombre de spectateurs (n) compris. Les autres joueurs n'y touchent plus. */
+let salonPublic=false,createur=false,annonceVue='',specAnn=false;
 function majAnnonce(l){
-  if(!r||!r.annonce)return;
-  const seul=createur&&salonPublic&&!partie&&l.length===1&&l[0].sameTab&&!l.some(p=>Number.isInteger(p.presence.jg));
-  const d=deckChoisi(),cle=seul?d.nom+'|'+elsTexte(d.texte).join(',')+'|'+maV:'';
+  if(!r||!r.annonce||!createur)return;
+  const ouvert=salonPublic&&!partie&&!l.some(p=>Number.isInteger(p.presence.jg));
+  let o=null;
+  if(ouvert){const d=deckChoisi(),adv=l.slice(0,MAX).find(p=>!p.sameTab),E=window.SPEC&&SPEC.etatSalon?SPEC.etatSalon():null;
+    o={d:d.nom,e:elsTexte(d.texte).join(','),v:maV,n:E&&E.actif&&Array.isArray(E.spectateurs)?E.spectateurs.length:0};
+    if(adv){o.w=adv.peer;o.q=nomDe(adv)}}
+  const cle=o?JSON.stringify(o):'';
   if(cle===annonceVue)return;annonceVue=cle;
-  r.annonce(seul?{d:d.nom,e:elsTexte(d.texte).join(','),v:maV}:null).catch(e=>console.warn(e));
+  r.annonce(o).catch(e=>{console.warn(e);annonceVue=''});
 }
 function depuis(t){const m=Math.max(0,Math.round((Date.now()-(+t||Date.now()))/60000));return m<1?'à l\'instant':m<60?'il y a '+m+' min':'il y a '+Math.floor(m/60)+' h'}
 let annoncesL=[];
+const OEIL_PO='<svg viewBox="0 0 66 66" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round" d="M4 33C14 17 23 12 33 12S52 17 62 33C52 49 43 54 33 54S14 49 4 33Z"/><circle cx="33" cy="33" r="10" fill="currentColor"/></svg>';
+function nbSpec(x){const n=Number.isInteger(x.n)&&x.n>0?x.n:0,z=el('span','po-spec');z.innerHTML=OEIL_PO;z.append(el('b','',String(n)),' spectateur'+(n>1?'s':''));return z}
+/* Observer : entrer dans le salon en spectateur (vue diffusion des que la partie commence). */
+function observer(x){if(!compteCo()){msgInvite();return}createur=false;salonPublic=false;annonceVue='';entre(x.code,{observer:true})}
+function boutonObserver(x,off){const b=el('button','btn sec po-obs');b.type='button';b.innerHTML=OEIL_PO;b.append('Observer');b.disabled=!!r||occupe||off;b.onclick=()=>observer(x);return b}
+/* Parties ouvertes (variante C) : places libres en cartes (Rejoindre / Observer), puis salons complets en lignes (Observer). */
 function peintListe(){
   const u=$('listeSalons');if(!u)return;u.textContent='';
   const moi=room&&room.compte?room.compte.uid():'';
   const l=[...annoncesL.filter(x=>moi&&x.u===moi),...annoncesL.filter(x=>x.u!==moi)];
-  u.classList.toggle('sl-grille',l.length>0);
-  if(!l.length){u.append(el('li','sl-vide','Aucune partie en attente. Crée la tienne !'));return}
-  l.forEach(x=>{
-    const mien=!!moi&&x.u===moi,li=el('li','sl-carte'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur';
-    const els=(x.e||'').split(',').filter(e=>NOMS_EL[e]);
-    const tx=el('span','sl-tx',x.u in statsCache?tauxCourt(statsCache[x.u]):'…');
+  if(!l.length){const v=el('ul','sl-liste');v.append(el('li','sl-vide','Aucune partie ouverte. Crée la tienne !'));u.append(v);return}
+  const libres=l.filter(x=>typeof x.w!=='string'),pleins=l.filter(x=>typeof x.w==='string');
+  const titre=(t,n)=>{const h=el('p','po-gt',t+' ');h.append(el('b','',String(n)));u.append(h)};
+  const stats=x=>{const tx=el('span','sl-tx',x.u in statsCache?tauxCourt(statsCache[x.u]):'…');
     if(x.u&&!(x.u in statsCache)&&room&&room.compte.statsDe){statsCache[x.u]=false;room.compte.statsDe(x.u).then(s=>{statsCache[x.u]=s;if(!r)peintListe()})}
-    else if(x.u in statsCache)colTaux(tx,statsCache[x.u]);
-    /* Deck du createur masque chez les autres (bandeau neutre « Deck choisi » et pastille « ? ») ; le mien reste visible sur ma propre annonce. */
-    const dk=mien?bandeauDeck({nom:typeof x.d==='string'&&x.d?x.d:'Deck',els}):el('span','h-deck dk-neutre');dk.classList.add('sl-dk');
-    if(mien){const pi=el('span','sl-pi');els.forEach(e=>{const i=picto(e);i.width=i.height=22;pi.append(i)});dk.append(pi)}
-    else dk.append('Deck choisi',pastilleInconnue());
-    if(mien)li.append(el('span','sl-badge','Ta partie'));
-    /* Version de l'annonce : differente de la mienne = Rejoindre bloque, etiquette rouge si c'est elle la plus ancienne. */
-    const xv=mien?maV:vOk(x.v),vd=!mien&&!!maV&&xv!==maV,vr=vd&&vAncienne(xv);if(vd&&!vr)vJeSuisAncien();
-    li.append(x.u?avatarUid(nom,x.u,x.a):x.a?avatarDe(nom,x.a):avatarDe(nom),el('b','sl-nm',nom),tx,dk,el('span','sl-dep','En attente '+depuis(x.t)),etiquetteV(xv,vr));
-    if(mien)li.append(el('span','sl-att','Partage le lien ou attends un adversaire'));
-    else{
-      const b=el('button','btn',vd?'Version différente':'Rejoindre');b.type='button';b.disabled=!!r||occupe||vd;
-      b.onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(()=>{salonPublic=false;createur=false;annonceVue='?';entre(x.code)})}; /* '?' : le nouvel arrivant retire l'annonce */
-      li.append(b);
-    }
-    u.append(li);
-  });
+    else if(x.u in statsCache)colTaux(tx,statsCache[x.u]);return tx};
+  /* Version de l'annonce : differente de la mienne = Rejoindre et Observer bloques, etiquette rouge si c'est elle la plus ancienne. */
+  const version=(x,mien)=>{const xv=mien?maV:vOk(x.v),vd=!mien&&!!maV&&xv!==maV,vr=vd&&vAncienne(xv);if(vd&&!vr)vJeSuisAncien();return {xv,vd,vr}};
+  if(libres.length){
+    titre('Place libre',libres.length);
+    const g=el('ul','sl-liste sl-grille');
+    libres.forEach(x=>{
+      const mien=!!moi&&x.u===moi,li=el('li','sl-carte'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur';
+      const els=(x.e||'').split(',').filter(e=>NOMS_EL[e]);
+      /* Deck du createur masque chez les autres (bandeau neutre « Deck choisi » et pastille « ? ») ; le mien reste visible sur ma propre annonce. */
+      const dk=mien?bandeauDeck({nom:typeof x.d==='string'&&x.d?x.d:'Deck',els}):el('span','h-deck dk-neutre');dk.classList.add('sl-dk');
+      if(mien){const pi=el('span','sl-pi');els.forEach(e=>{const i=picto(e);i.width=i.height=22;pi.append(i)});dk.append(pi)}
+      else dk.append('Deck choisi',pastilleInconnue());
+      if(mien)li.append(el('span','sl-badge','Ta partie'));
+      const V=version(x,mien),inf=el('span','po-inf');inf.append(el('span','sl-dep','Créée '+depuis(x.t)),nbSpec(x));
+      li.append(x.u?avatarUid(nom,x.u,x.a):x.a?avatarDe(nom,x.a):avatarDe(nom),el('b','sl-nm',nom),stats(x),dk,inf,etiquetteV(V.xv,V.vr));
+      if(mien)li.append(el('span','sl-att','Partage le lien ou attends un adversaire'));
+      else{
+        const z=el('div','po-btns'),b=el('button','btn',V.vd?'Version différente':'Rejoindre');b.type='button';b.disabled=!!r||occupe||V.vd;
+        b.onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(()=>{salonPublic=false;createur=false;annonceVue='';entre(x.code)})};
+        z.append(b,boutonObserver(x,V.vd));li.append(z);
+      }
+      g.append(li);
+    });
+    u.append(g);
+  }
+  if(pleins.length){
+    titre('Salon complet, à observer',pleins.length);
+    const g=el('ul','sl-liste po-lignes');
+    pleins.forEach(x=>{
+      const mien=!!moi&&x.u===moi,li=el('li','po-ligne'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur',nq=nettoie(typeof x.q==='string'?x.q:'')||'Joueur';
+      const V=version(x,mien),duo=el('div','po-duo'),j=(n,a)=>{const s=el('span','po-j');s.append(a,el('b','',n));return s};
+      duo.append(j(nom,x.u?avatarUid(nom,x.u,x.a):avatarDe(nom,x.a)),el('span','po-vs','VS'),j(nq,avatarUid(nq,x.w)));
+      const inf=el('span','po-inf');inf.append(nbSpec(x),el('span','sl-dep','Créée '+depuis(x.t)));
+      li.append(duo,inf);if(mien)li.append(el('span','sl-badge po-badge','Ta partie'));else li.append(boutonObserver(x,V.vd));
+      g.append(li);
+    });
+    u.append(g);
+  }
 }
 function tauxCourt(s){return s&&s.n?Math.round(100*s.v/s.n)+' % de victoires · '+s.n+' partie'+(s.n>1?'s':''):s===false?'…':'Aucune partie jouée'}
 function colTaux(z,s){if(!s||!s.n)return;const p=100*s.v/s.n;z.style.color=p>=55?'#6fd08c':p>=45?'var(--or)':'#ef7a6c'}
@@ -2668,7 +2721,7 @@ async function suitInvit(){
   if(!n){$('erreurJeu').textContent='Salon '+C+" introuvable : la partie est terminée ou son créateur est parti.";return}
   if(!(j&&j[moi])&&(eng&&!eng[moi]||n>=MAX)){$('erreurJeu').textContent='Le salon '+C+' est complet.';return}
   $('erreurJeu').textContent='';
-  choisirDeck(()=>{createur=false;salonPublic=false;annonceVue='?';entre(c)});
+  choisirDeck(()=>{createur=false;salonPublic=false;annonceVue='';entre(c)});
 }
 $('pret').onclick=()=>{
   jePret=!jePret;
@@ -2748,12 +2801,13 @@ window.__golemsSpecPromu=o=>{createur=true;salonPublic=!!(o&&o.public);annonceVu
 window.__golemsSpecRejoint=c=>{if(window.SPEC_UI&&SPEC_UI.quitterVuePartie)try{SPEC_UI.quitterVuePartie()}catch(e){}$('partie').hidden=true;$('jouer').classList.remove('enJeu');return entre(c)};
 /* Spectateur : la vue de partie s'ouvre comme au lancement d'une partie des qu'une partie tourne dans le salon. */
 let specVue=false;function specBranche(){if(specVue||!window.SPEC)return;specVue=true;SPEC.onChange(()=>{if(!SPEC.estSpectateur()||!SPEC.etatPartie())return;if($('partie').hidden||!$('jouer').classList.contains('enJeu')){$('salon').hidden=true;$('accueil').hidden=true;$('partie').hidden=false;$('jouer').classList.add('enJeu')}})}
-async function entre(c){
+async function entre(c,opt){
   if(!compteCo()){occupe=false;majEtat();msgInvite();return}
   occupe=true;majEtat();$('erreurJeu').textContent='';jePret=false;nbSalon=0;
   const sv=chargeSalon(c);
   try{
-    if(window.SPEC){const rl=await SPEC.entrer(c,{createur});if(rl==='spec'){specBranche();r=null;code=c;$('codeSalon').textContent=c.toUpperCase();$('accueil').hidden=true;$('salon').hidden=false;occupe=false;majEtat();return}}
+    if(window.SPEC&&!specAnn){specAnn=true;SPEC.onChange(()=>{if(r&&createur)majAnnonce(ordre(r.peers()))})} /* spectateurs comptes dans l'annonce */
+    if(window.SPEC){const rl=await SPEC.entrer(c,{createur,observer:!!(opt&&opt.observer)});if(rl==='spec'){specBranche();r=null;code=c;$('codeSalon').textContent=c.toUpperCase();$('accueil').hidden=true;$('salon').hidden=false;occupe=false;majEtat();return}}
     const s=await room.join(c);
     r=s;code=c;entree=Date.now();
     sid=sv?sv.sid:nouveauSid();arrivee=sv?sv.arrivee:entree;
