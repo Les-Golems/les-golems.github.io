@@ -205,14 +205,14 @@ function regles(){
   let ouvertes=null;
   const passages=d=>[...d.querySelectorAll(':scope>.corps>ul>li,:scope>.corps>ol>li,:scope>.corps>p,:scope>.corps>figure,:scope>.corps>div,:scope>.corps>table')];
   const norm=s=>[...s].map(c=>c.normalize('NFD').replace(/\p{M}/gu,'').toLowerCase()[0]||c).join('');
-  const champ=h('label','rg-cherche');champ.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5l5 5"/></svg>';
-  const inp=h('input');inp.type='search';inp.placeholder='Chercher dans les règles';inp.setAttribute('aria-label','Chercher dans les règles');inp.autocomplete='off';inp.spellcheck=false;
-  const eff=h('button','rg-eff','Effacer');eff.type='button';eff.hidden=true;eff.onclick=()=>{inp.value='';filtre();inp.focus()};champ.append(inp,eff);
-  const compte=h('span','rg-compte');compte.setAttribute('role','status');compte.hidden=true;
+  /* Meme champ que les onglets Cartes et Decks : ligne de filtre (filtres f-ligne), libelle « Rechercher » (f-lib), champ f-rech */
+  const champ=h('div','filtres f-ligne rg-ligne'),lib=h('label','f-lib','Rechercher'),inp=h('input','f-rech');
+  inp.id='rechRegles';lib.htmlFor='rechRegles';inp.type='search';inp.placeholder='Mot ou expression';inp.autocomplete='off';
+  const compte=h('span','rg-compte');compte.setAttribute('role','status');compte.hidden=true;champ.append(lib,inp,compte);
   const vide=h('p','rg-vide','Aucune règle ne contient ce mot.');vide.hidden=true;cols.before(vide);
   const barre=h('div','rg-barre'),gauche=h('div','rg-gauche'),pas=h('div','rg-pastilles');pas.setAttribute('role','navigation');pas.setAttribute('aria-label','Sections des règles');
   const boutons=dets.map(d=>{const b=h('button','rg-pas');b.type='button';b.append(d.querySelector('h3').textContent);b.onclick=()=>va(d);pas.append(b);return b});
-  gauche.append(champ,compte);barre.append(gauche,pas);intro.after(barre);
+  gauche.append(champ);barre.append(gauche,pas);intro.after(barre);
   function hauteurs(){const nav=document.querySelector('nav'),nh=nav&&getComputedStyle(nav).position==='sticky'?nav.offsetHeight:0;
     document.documentElement.style.setProperty('--rgNav',nh+'px');document.documentElement.style.setProperty('--rgHaut',(nh+barre.offsetHeight)+'px')}
   function va(d){if(d.hidden)return;hauteurs();d.open=true;d.scrollIntoView({block:'start'})}
@@ -225,7 +225,7 @@ function regles(){
   }
   function filtre(){
     if(!ib.hidden)ferme();
-    nettoie();const n=norm(inp.value.trim().replace(/\s+/g,' '));eff.hidden=!inp.value;let tot=0,sec=0;
+    nettoie();const n=norm(inp.value.trim().replace(/\s+/g,' '));let tot=0,sec=0;
     if(n&&!ouvertes)ouvertes=dets.map(d=>d.open);
     dets.forEach((d,k)=>{
       let c=0;

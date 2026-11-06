@@ -32,15 +32,9 @@
 #regles [hidden]{display:none!important}
 #regles details{scroll-margin-top:calc(var(--rgHaut,120px) + 8px)}
 .rg-barre{position:sticky;top:var(--rgNav,49px);z-index:4;background:var(--encre);border-bottom:1px solid var(--trait);margin:0 0 16px;padding:10px 0;display:flex;align-items:center;gap:14px}
-.rg-gauche{flex:0 0 300px;display:flex;flex-direction:column;gap:4px;min-width:0}
-.rg-cherche{position:relative;display:flex;align-items:center;margin:0}
-.rg-cherche svg{position:absolute;left:11px;width:18px;height:18px;fill:none;stroke:var(--doux);stroke-width:2.2;pointer-events:none}
-.rg-cherche input{width:100%;box-sizing:border-box;min-height:42px;padding:8px 66px 8px 38px;background:var(--panneau2);border:1px solid var(--trait);border-radius:10px;font:400 16px var(--corps);color:var(--texte);margin:0}
-.rg-cherche input::-webkit-search-cancel-button{display:none}
-.rg-cherche input::placeholder{color:#7f93a0}
-.rg-cherche input:focus{outline:2px solid var(--bleu);outline-offset:0;border-color:transparent}
-.rg-cherche .rg-eff{position:absolute;right:6px;background:none;border:0;min-height:0;margin:0;color:var(--doux);font:700 13px var(--corps);text-decoration:underline;padding:4px;cursor:pointer}
-.rg-compte{color:var(--doux);font-size:14px;white-space:nowrap}
+.rg-gauche{flex:none;min-width:0;width:calc(86px + 18px + 459px);max-width:100%} /* largeur du champ de Cartes : libelle 86 + 18, champ 459 */
+.rg-barre .rg-ligne{margin:0;flex-wrap:wrap}
+.rg-compte{flex-basis:100%;color:var(--doux);font-size:14px;white-space:nowrap;margin-top:-4px}
 .rg-pastilles{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
 .rg-pas{flex:none;background:var(--panneau2);border:1px solid var(--trait);border-radius:999px;padding:5px 13px;min-height:0;margin:0;font:400 15px/1.2 var(--titre);color:var(--doux);white-space:nowrap;cursor:pointer}
 .rg-pas:hover,.rg-pas:focus-visible{color:var(--bleu);border-color:var(--bleu)}
@@ -50,7 +44,7 @@
 mark.rg-sur{background:rgba(241,195,90,.38);color:var(--texte);border-radius:3px;padding:0 1px;box-shadow:0 0 0 1px rgba(241,195,90,.55)}
 @media (max-width:760px){
   .rg-barre{flex-direction:column;align-items:stretch;gap:8px;padding:8px 0}
-  .rg-gauche{flex:none}
+  .rg-gauche{width:auto}
   .rg-pastilles{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-mask:linear-gradient(90deg,#000 88%,transparent);mask:linear-gradient(90deg,#000 88%,transparent);padding-right:30px}
   .rg-pastilles::-webkit-scrollbar{display:none}
 }
