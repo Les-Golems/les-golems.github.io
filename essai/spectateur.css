@@ -1,0 +1,38 @@
+/* Mode spectateur (0.3) : salon et partie en lecture seule. Complete le CSS d'index.html sans le modifier. */
+/* Salon : boutons de role dans les sieges, tribune des spectateurs sous le duo */
+.sp-btns{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.sp-btns .btn{margin:0}
+.sl-j .btn.sp-pris,.sl-j .btn:disabled{opacity:.55;cursor:not-allowed}
+.sp-tribune{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--panneau2);border:1px solid var(--trait);border-radius:10px;padding:10px 14px;margin:0 0 14px;text-align:left}
+.sp-ttl{display:flex;align-items:center;gap:8px;color:var(--doux);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.sp-ttl svg{width:18px;height:18px;flex:none}
+.sp-nb{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;box-sizing:border-box;border-radius:11px;background:var(--panneau);color:var(--texte);font-size:13px}
+.sp-aucun{color:var(--doux);font-size:14px}
+.sp-puces{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.sp-puce{display:flex;align-items:center;gap:8px;min-width:0;padding:4px 12px 4px 4px;border-radius:999px;background:var(--panneau);border:1px solid var(--trait)}
+.sp-puce .avatar{width:28px;height:28px;font-size:14px;flex:none}
+.sp-puce b{font-size:15px;white-space:nowrap}
+.sp-puce em{font:800 12px var(--corps);font-style:normal;background:var(--bleu);color:var(--encre);border-radius:5px;padding:1px 6px;margin-left:6px}
+.sp-puce.sp-moi{border-color:var(--bleu)}
+
+/* Partie : lecture seule */
+#partie.sp .p-carte{cursor:zoom-in}
+#partie.sp .p-poste{justify-content:flex-start}
+.sp-tmain{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--panneau);border:1px solid var(--trait);border-radius:12px 8px 13px 7px/8px 12px 7px 13px;padding:4px 10px;min-height:34px;box-sizing:border-box}
+.sp-tmain>b{font:400 19px/1.15 var(--titre)}
+.sp-tmain.lui>b{color:var(--lui)}
+.sp-tmain.toi>b{color:var(--moi)}
+.sp-tmain .p-compteur{font-size:14px;color:var(--doux)}
+.sp-tmain .p-compteur b{color:var(--texte);margin-right:3px}
+#partie.sp .sp-main{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:0 2px}
+#partie.sp .sp-main .p-carte img{display:block;width:100%;border-radius:5.07%/3.62%}
+/* Pastille Spectateur a la place de « Partie en cours » */
+.sp-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 14px 4px 10px;border-radius:999px;background:var(--or);color:var(--encre);font:400 19px/1.15 var(--titre)}
+.sp-pill svg{width:18px;height:18px;flex:none}
+/* Derniere carte jouee entre les deux mains */
+#partie.sp-A .p-poste>.p-apercu{order:0;min-height:0;flex:1 1 0}
+/* Telephone : les mains encadrent le plateau */
+@media (max-width:899px){
+  #partie.sp .p-plateau>.sp-tmain{margin-top:4px}
+  #partie.sp .sp-main{gap:4px}
+}

@@ -1,0 +1,206 @@
+/* Vue diffusion (0.3a) : ecran 1920 x 1080 pour un stream, mis a l'echelle proportionnellement (diffusion.js).
+   Maquette validee : variante g15 (grilles reduites de 15 %), cercle c1 (gros pictos, sans titre).
+   Tout est sous #dif : rien ne touche au reste du site. */
+html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
+#dif{position:fixed;inset:0;z-index:19;background:radial-gradient(ellipse at 50% 0%,#132332 0%,var(--encre) 60%);color:var(--texte);font-family:var(--corps);overflow:hidden;
+  --moi:var(--bleu);--lui:var(--magma);--h:114px}
+#dif *{box-sizing:border-box}
+#dif .d-scene{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+#dif .d-z{position:absolute}
+#dif .d-nw{white-space:nowrap}
+#dif .d-evo{color:var(--or)}
+
+/* ---------- Bandeaux ---------- */
+#dif .d-ban{left:24px;top:16px;width:1872px;height:150px;display:grid;grid-template-columns:680px minmax(0,1fr) 680px;gap:16px}
+#dif .d-j{display:flex;align-items:center;gap:16px;padding:0 18px;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--trait);border-radius:22px 13px 24px 12px/13px 22px 12px 24px;min-width:0;overflow:hidden}
+#dif .d-j.dr{flex-direction:row-reverse;text-align:right}
+#dif .d-j .avatar{width:84px;height:84px;font-size:42px;flex:none}
+#dif .d-j .avatar img{width:100%;height:100%}
+#dif .d-id{display:flex;flex-direction:column;gap:14px;min-width:0;flex:none}
+#dif .d-l1{display:flex;align-items:center;gap:18px}
+#dif .d-j.dr .d-l1{flex-direction:row-reverse}
+#dif .d-l1 .d-badge,#dif .d-cpt>.d-ener{margin-left:auto}
+#dif .d-j.dr .d-l1 .d-badge,#dif .d-j.dr .d-cpt>.d-ener{margin-left:0;margin-right:auto}
+#dif .d-nom{font:400 54px/1 var(--titre);white-space:nowrap}
+#dif .d-j.toi .d-nom{color:var(--moi)}
+#dif .d-j.lui .d-nom{color:var(--lui)}
+#dif .d-cpt{display:flex;gap:10px;font-size:22px;font-weight:400;color:#c9d4e2;line-height:1.1;white-space:nowrap}
+#dif .d-j.dr .d-cpt{flex-direction:row-reverse;justify-content:flex-start}
+#dif .d-cpt>span{display:inline-flex;align-items:center;gap:5px}
+#dif .d-cpt .ico{font-size:24px;color:var(--bleu)}
+#dif .d-cpt b{font:400 26px/1 var(--titre);color:#fff}
+#dif .d-j.actif{border:3px solid var(--bleu);background:linear-gradient(90deg,rgba(1,193,240,.30),rgba(1,193,240,.06) 70%),var(--panneau);box-shadow:0 0 0 2px rgba(1,193,240,.35),0 0 34px rgba(1,193,240,.45)}
+#dif .d-j.dr.actif{background:linear-gradient(270deg,rgba(1,193,240,.30),rgba(1,193,240,.06) 70%),var(--panneau)}
+#dif .d-badge{background:var(--bleu);color:var(--encre);font:400 28px/1 Anton,var(--titre);text-transform:uppercase;letter-spacing:.03em;padding:9px 16px;border-radius:12px 8px 13px 7px;white-space:nowrap}
+#dif .d-ener{display:inline-flex;align-items:center;gap:8px;background:var(--or);color:var(--encre);font:800 22px/1 var(--corps);padding:6px 10px;border-radius:10px 7px 11px 6px}
+#dif .d-ener b{font:400 30px/1 var(--titre);color:var(--encre)}
+#dif .d-ener .ico{font-size:26px;color:#6d5212}
+#dif .d-mid{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:24px;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--trait);border-radius:13px 22px 12px 24px/22px 13px 24px 12px}
+#dif .d-sc{display:flex;align-items:center;gap:22px;font:400 92px/1 var(--titre)}
+#dif .d-sc b{font-weight:400;color:var(--moi)}
+#dif .d-sc em{font-style:normal;color:var(--lui)}
+#dif .d-sc span{font-size:56px;color:var(--doux)}
+#dif .d-cote{display:flex;flex-direction:column;align-items:center;gap:8px;width:110px}
+#dif .d-cote small{font:800 22px/1 var(--corps);letter-spacing:.05em;text-transform:uppercase;color:var(--doux)}
+#dif .d-cote b{font:400 48px/1 var(--titre);color:var(--texte)}
+#dif .d-pts{display:inline-flex;gap:6px}
+#dif .d-pts i{width:20px;height:20px;background:var(--trait);border-radius:7px 4px 8px 3px/4px 8px 3px 7px;transform:rotate(45deg) scale(.8)}
+#dif .d-pts i.fait{background:#0d6f88}
+#dif .d-pts i.on{background:var(--bleu);box-shadow:0 0 10px var(--bleu)}
+
+/* ---------- Plateau : grilles du site reduites de 15 % ---------- */
+#dif .d-plat{left:24px;top:186px;width:673px;height:878px;display:flex;flex-direction:column;gap:12px}
+#dif .p-grille{gap:8px;padding:0;border-radius:14px}
+#dif .d-rg{display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px}
+#dif .d-vt{writing-mode:vertical-rl;transform:rotate(180deg);display:flex;align-items:center;justify-content:center;font:400 28px/1 var(--titre);letter-spacing:.04em;border-radius:10px;background:var(--panneau);white-space:nowrap;overflow:hidden}
+#dif .d-vt.lui{color:var(--lui);border:2px solid color-mix(in srgb,var(--lui) 55%,transparent)}
+#dif .d-vt.toi{color:var(--moi);border:2px solid color-mix(in srgb,var(--moi) 55%,transparent)}
+#dif .d-vt.actif{border-color:var(--bleu);box-shadow:0 0 16px rgba(1,193,240,.35)}
+#dif .d-vt.lui.actif{border-color:var(--lui);box-shadow:0 0 16px color-mix(in srgb,var(--lui) 45%,transparent)}
+#dif .d-tr{margin-left:48px}
+#dif .p-case{height:var(--h);border-color:#34516a}
+#dif .p-case:disabled{border-color:#2a3f50}
+#dif .mini{--f:72px}
+#dif .mini .nom{font-size:28px;inset:6px 9px auto;line-height:1.05}
+#dif .mini .els{top:4px;right:8px;gap:4px}
+#dif .mini .els img{width:32px;height:32px}
+#dif .mini .bas{left:8px}
+#dif .mini .cout{font:400 26px/34px var(--titre);padding:0 9px 0 5px;gap:5px;-webkit-text-stroke:4px #0a121a}
+#dif .mini .cout .ico{font-size:26px}
+#dif .p-case .f{right:5px;bottom:3px}
+/* Contour dore des evolutions : vrai contour de 3 px (comme les terrains), coins arrondis de la case dedans et dehors ; remplace l'ombre interieure du site */
+#dif .p-case.evo{border:3px solid var(--or)}
+#dif .p-case.evo .mini{box-shadow:none}
+/* Halo de la derniere carte jouee : couleur du joueur, 3 pulsations (3,6 s) puis plus rien */
+#dif .p-case.d-halo{z-index:2;animation:dHalo 1.2s ease-in-out 3}
+@keyframes dHalo{
+  0%,100%{box-shadow:0 0 0 3px var(--encre),0 0 0 7px var(--hc),0 0 28px 10px color-mix(in srgb,var(--hc) 70%,transparent)}
+  50%{box-shadow:0 0 0 3px var(--encre),0 0 0 6px color-mix(in srgb,var(--hc) 60%,transparent),0 0 10px 2px color-mix(in srgb,var(--hc) 35%,transparent)}}
+#dif .p-terrains{gap:8px}
+#dif .p-terrain{min-height:138px;height:138px;padding:8px 8px 9px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:4px;cursor:zoom-in;border:3px solid var(--trait)}
+#dif .p-terrain.m-moi{border-color:var(--moi)}
+#dif .p-terrain.m-lui{border-color:var(--lui)}
+#dif .p-tete>b{font-size:24px;white-space:nowrap}
+#dif .p-totaux{font-size:40px;gap:10px;margin:0;white-space:nowrap}
+#dif .p-totaux span:not(.p-valeur){font-size:22px}
+#dif .p-terrain .p-valeur{position:static;font-size:22px;line-height:28px;padding:0 10px}
+
+/* ---------- Mains ---------- */
+#dif .d-col{left:727px;width:769px;height:210px;display:flex;flex-direction:column}
+#dif .d-col.bas{justify-content:flex-end}
+#dif .d-tm{display:flex;align-items:baseline;gap:14px;height:33px;margin:0 0 9px;font:400 30px/1.1 var(--titre);white-space:nowrap}
+#dif .d-tm.lui{color:var(--lui)}
+#dif .d-tm.toi{color:var(--moi)}
+#dif .d-tm>span{font:700 22px/1 var(--corps);color:var(--doux)}
+#dif .d-tm .d-joue{font:400 22px/1 Anton,var(--titre);letter-spacing:.03em;text-transform:uppercase;background:var(--bleu);color:var(--encre);padding:5px 10px;border-radius:8px 6px 9px 5px}
+#dif .d-main{display:flex}
+#dif .d-main button{display:block;flex:none;padding:0;border:0;background:none;cursor:zoom-in}
+#dif .d-main img{display:block;width:100%;height:100%;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+#dif .d-bloc{background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--trait);border-radius:18px 11px 20px 10px/11px 19px 10px 18px}
+#dif .d-h{font:400 26px/1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--or);margin:0 0 14px}
+
+/* ---------- Cercle des elements (sans titre, gros pictos) ---------- */
+#dif .d-cer{left:1516px;top:186px;width:380px;height:210px;padding:0 10px;display:flex;flex-direction:column}
+#dif .d-cer .d-cw{flex:1;display:grid;place-items:center}
+#dif .d-cer svg{display:block;overflow:visible}
+#dif .d-cer svg .arc{fill:none;stroke:var(--bleu);stroke-width:3;stroke-linecap:round}
+
+/* ---------- Derniere carte jouee ---------- */
+#dif .d-der{overflow:hidden;left:727px;top:414px;width:769px;height:422px;padding:0;display:grid;grid-template-columns:298px minmax(0,1fr);gap:0}
+#dif .d-der>button{display:block;padding:0;border:0;background:none;cursor:zoom-in}
+#dif .d-der>button img{display:block;width:298px;height:418px;border-radius:16px 0 0 16px}
+#dif .d-der.vide{grid-template-columns:minmax(0,1fr)}
+#dif .d-txt{padding:22px 26px;display:flex;flex-direction:column;gap:18px;min-width:0}
+#dif .d-phr{margin:0;font-size:28px;line-height:1.3;font-weight:700}
+#dif .d-phr b{font:400 34px/1.15 var(--titre)}
+#dif .d-phr strong{font-family:var(--titre);font-weight:400;color:#fff}
+#dif .d-phr.d-rien{color:var(--doux)}
+#dif .d-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:auto}
+#dif .d-chips>span{display:inline-flex;align-items:center;gap:7px;background:var(--encre);border:1px solid var(--trait);border-radius:10px 7px 11px 6px;padding:6px 10px;white-space:nowrap;font:700 22px/1 var(--corps);color:var(--doux)}
+#dif .d-chips b{font:400 26px/1 var(--titre);color:var(--texte)}
+#dif .d-chips img{width:28px;height:28px}
+#dif .d-chips .ico{font-size:24px;color:var(--bleu)}
+
+/* ---------- Dernieres actions ---------- */
+#dif .d-act{display:block;left:1516px;top:414px;width:380px;height:422px;padding:14px 16px 16px;overflow:hidden}
+#dif .d-act .d-h{margin-bottom:12px}
+#dif .d-act ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+#dif .d-act li{display:flex;align-items:flex-start;gap:10px;font-size:22px;line-height:1.25;font-weight:700}
+#dif .d-act li>span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+#dif .d-act li .ico{font-size:24px;color:var(--bleu);flex:none;margin-top:2px}
+#dif .d-act li b{font-family:var(--titre);font-weight:400}
+#dif .d-act li b.d-ca{color:#fff}
+#dif .d-act li b.d-ca.d-evo{color:var(--or)}
+#dif .d-act li.dern{color:#fff}
+#dif .d-act li:not(.dern){color:var(--doux)}
+
+/* ---------- Coin : logo, vitesse (demonstration), sortie ---------- */
+#dif .d-coin{left:1516px;top:854px;width:380px;height:210px;display:flex;flex-direction:column;align-items:center}
+#dif .d-logo{flex:1;display:flex;align-items:center;justify-content:center}
+#dif .d-logo img{width:150px;height:150px;display:block}
+#dif .d-bas{display:flex;align-items:center;gap:14px}
+#dif .d-quit,#dif .d-vit button{background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 22px/1 var(--titre);padding:9px 14px;opacity:.75;cursor:pointer}
+#dif .d-quit:hover,#dif .d-vit button:hover{opacity:1}
+#dif .d-vit{display:flex;gap:4px}
+#dif .d-vit button{font-size:22px;padding:9px 7px;opacity:.55}
+#dif .d-vit button.on{opacity:1;color:var(--texte);border-color:var(--doux)}
+
+/* ---------- Fenetres de fin de manche et de fin de partie ---------- */
+#dif .pp-voile{position:absolute;left:0;top:0;width:1920px;height:1080px;background:rgba(4,8,12,.68);display:grid;place-items:center;z-index:50}
+#dif .pp{position:relative;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--trait);border-radius:22px 13px 24px 12px/13px 22px 12px 24px;box-shadow:0 18px 60px rgba(0,0,0,.6);padding:30px 36px 28px;color:var(--texte)}
+#dif .pp h2{margin:0 150px;text-align:center;font:400 52px/1.1 var(--titre)}
+#dif .pp-sous{text-align:center;font:700 24px/1.2 var(--corps);color:var(--doux);margin:8px 0 0}
+#dif .pp-ters{display:grid;grid-template-columns:repeat(3,330px);gap:22px;margin:28px 0 0}
+#dif .pp-ter{background:var(--encre);border:2px solid var(--trait);border-radius:14px 9px 15px 8px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:10px}
+#dif .pp-th{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#dif .pp-th b{font:400 30px/1.1 var(--titre);white-space:nowrap}
+#dif .pp-pts{background:var(--or);color:var(--encre);font:400 22px/30px var(--titre);padding:0 10px;border-radius:10px 7px 11px 6px;white-space:nowrap}
+#dif .pp-l{display:flex;align-items:center;gap:12px;padding:8px 12px;border:3px solid transparent;border-radius:12px 8px 13px 7px}
+#dif .pp-l .avatar{width:46px;height:46px;font-size:22px;flex:none}
+#dif .pp-l .avatar img{width:100%;height:100%}
+#dif .pp-l span{font:400 28px/1 var(--titre);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dif .pp-l em{font:400 44px/1 var(--titre);font-style:normal}
+#dif .pp-l.gagne{background:color-mix(in srgb,var(--c) 20%,transparent);border-color:var(--c)}
+#dif .pp-l:not(.gagne){opacity:.8}
+#dif .pp-res{font:700 22px/1.25 var(--corps);color:var(--doux);text-align:center;min-height:28px}
+#dif .pp-res b{font-family:var(--titre);font-weight:400}
+#dif .pp-bas{display:flex;align-items:center;justify-content:center;gap:100px;margin:28px 0 0;padding:20px 0 0;border-top:2px solid var(--trait)}
+#dif .pp-gain{display:flex;align-items:center;gap:12px;font:400 30px/1 var(--titre);white-space:nowrap}
+#dif .pp-gain .avatar{width:52px;height:52px;font-size:24px}
+#dif .pp-gain .avatar img{width:100%;height:100%}
+#dif .pp-gain .ico{font-size:34px;color:var(--or)}
+#dif .pp-gain i{font-style:normal;font:400 40px/1 var(--titre)}
+#dif .pp-tot{display:flex;flex-direction:column;align-items:center;gap:6px}
+#dif .pp-tot small{font:800 22px/1 var(--corps);letter-spacing:.05em;text-transform:uppercase;color:var(--doux)}
+#dif .pp-tot div{position:relative;display:flex;align-items:center;gap:16px;font:400 60px/1 var(--titre)}
+#dif .pp-tot b{font-weight:400}
+#dif .pp-tot .ico{position:absolute;right:100%;margin-right:14px;font-size:44px;color:var(--or)}
+#dif .pp-tot span{font-size:40px;color:var(--doux)}
+#dif .pp-fermer{position:absolute;right:18px;top:16px;background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 22px/1 var(--titre);padding:8px 14px;opacity:.8;cursor:pointer}
+#dif .pp-vic{display:flex;flex-direction:column;align-items:center;gap:14px}
+#dif .pp-vic .avatar{width:150px;height:150px;font-size:70px;box-shadow:0 0 0 5px var(--c),0 0 40px color-mix(in srgb,var(--c) 60%,transparent)}
+#dif .pp-vic .avatar img{width:100%;height:100%}
+#dif .pp-tab{border-collapse:separate;border-spacing:0 8px;margin:22px auto 0;font:400 30px/1 var(--titre)}
+#dif .pp-tab th{font:800 22px/1 var(--corps);letter-spacing:.05em;text-transform:uppercase;color:var(--doux);padding:0 26px 4px;text-align:center}
+#dif .pp-tab td{padding:12px 26px;text-align:center;background:var(--encre);border-top:3px solid transparent;border-bottom:3px solid transparent}
+#dif .pp-tab td:first-child{text-align:left;border-left:3px solid transparent;border-radius:12px 0 0 12px}
+#dif .pp-tab td:last-child{border-right:3px solid transparent;border-radius:0 12px 12px 0;font-size:40px}
+#dif .pp-tab tr.gagne td{background:color-mix(in srgb,var(--c) 20%,var(--encre));border-color:var(--c)}
+#dif .pp-tab .nm{display:flex;align-items:center;gap:12px;white-space:nowrap}
+#dif .pp-tab .nm .avatar{width:44px;height:44px;font-size:20px}
+#dif .pp-tab .nm .avatar img{width:100%;height:100%}
+#dif .pp-tab td.mg{text-shadow:0 0 12px currentColor}
+#dif .pp-mvp{display:flex;align-items:center;justify-content:center;gap:16px;white-space:nowrap;margin:18px 0 0;padding:16px 0 0;border-top:2px solid var(--trait)}
+#dif .pp-mvp-n{font:400 30px/1.1 var(--titre);background:none;border:0;padding:0;color:inherit;cursor:zoom-in}
+#dif .pp-mvp-c{display:flex;flex-direction:column;gap:6px;min-width:0}
+#dif .pp-mvp-l1{display:flex;align-items:center;gap:12px}
+#dif .pp-mvp-pq{font:700 22px/1.2 var(--corps);color:var(--doux);white-space:normal;max-width:900px}
+#dif .pp-mvp-els{display:inline-flex;gap:4px}
+#dif .pp-mvp-els img{width:26px;height:26px;display:block}
+#dif .pp-mvp-e{background:var(--or);color:var(--encre);font:400 24px/1.3 var(--titre);letter-spacing:.04em;padding:2px 12px;border-radius:8px 5px 9px 4px}
+
+/* ---------- Hors diffusion : bouton « Mode diffusion » (vue spectateur) et bloc Demonstration (site d'essai) ---------- */
+#partie.sp .p-trois:has(>.md-btn){grid-template-columns:repeat(4,minmax(0,1fr)) auto}
+.md-btn{align-self:center;margin:0 10px 0 6px;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 16px 6px 12px;font-size:19px;white-space:nowrap}
+.md-btn svg{width:24px;height:24px;flex:none}
+@media (max-width:899px){.md-btn{font-size:15px;min-height:34px;padding:4px 10px;margin:0 4px}.md-btn svg{width:18px;height:18px}}
