@@ -527,6 +527,7 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 #finTour{flex:2 1 170px;font-size:23px}
 .niveaux{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
 .niveaux .btn{min-width:0;padding-left:4px;padding-right:4px;color:#0a121a}
+.niveaux #lanceGuide{color:var(--encre)}
 .niv-f{--bord:#2f7d49;background:linear-gradient(#6fd08c,#46a866)}
 .niv-n{--bord:#9c7a1e;background:linear-gradient(#f3d163,#d9ae35)}
 .niv-d{--bord:#8f2f25;background:linear-gradient(#ea7a6c,#c9493c)}
@@ -813,23 +814,26 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#des){display:none}
   #accueil>.bloc>.btn,#accueil>.bloc>form,#accueil>.bloc>.p-btns{margin-top:auto}
   #accueil>.bloc>form{margin-bottom:0}
   #accueil{grid-template-columns:repeat(4,minmax(0,1fr));column-gap:16px}
-  #blocCreer{grid-area:1/1}
-  #blocRejoindre{grid-area:1/2}
-  #blocGuide{grid-area:1/3}
-  #blocRobot{grid-area:1/4}
+  #premierePartie{grid-area:1/1/auto/-1}
+  #blocCreer{grid-area:2/1}
+  #blocRejoindre{grid-area:2/2}
+  #blocRobot{grid-area:2/3/auto/span 2}
   #accueil>.bloc{padding:16px}
-  #reprise{grid-area:2/1/auto/-1}
-  #blocListe{grid-area:3/1/auto/-1}
-  #accueil>.erreur{grid-area:4/1/auto/-1}
+  #reprise{grid-area:3/1/auto/-1}
+  #blocListe{grid-area:4/1/auto/-1}
+  #accueil>.erreur{grid-area:5/1/auto/-1}
+  #blocRobot .niveaux{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
-/* Onglet Jouer : 4 blocs (Creer, Rejoindre, Apprendre, S'entrainer), 2 x 2 sur tablette, colonne sur telephone. */
+/* Onglet Jouer : bandeau Premiere partie, 3 blocs (Creer, Rejoindre, Apprendre et s'entrainer en pleine largeur) sur tablette, colonne sur telephone. */
 @media (min-width:700px) and (max-width:1199px){
   #accueil{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px}
   #accueil>.bloc{display:flex;flex-direction:column}
   #accueil>.bloc>.btn,#accueil>.bloc>form,#accueil>.bloc>.p-btns{margin-top:auto}
-  #reprise,#blocListe,#accueil>.erreur{grid-column:1/-1}
+  #reprise,#blocListe,#accueil>.erreur,#premierePartie,#blocRobot{grid-column:1/-1}
+  #blocRobot .niveaux{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
-#blocGuide p{margin:0 0 12px;color:var(--doux)}
+/* Telephone : Tutoriel sur toute la largeur, les 3 niveaux dessous */
+@media (max-width:699px){#blocRobot .niveaux #lanceGuide{grid-column:1/-1}}
 #formCode #champCode{width:8.5ch;text-transform:uppercase}
 #formCode{flex-wrap:nowrap}#formCode>div{flex:0 1 auto}
 :is(#rejoindre,.niveaux .btn,#accueil #creer,#lanceGuide){height:46px;min-height:46px;padding-top:0;padding-bottom:0;font-size:16px}
@@ -1318,7 +1322,14 @@ html.essai header{box-shadow:inset 0 5px 0 #ff7a1a}
 .g-fleche.bas{border-top-color:#fdf6e3}.g-fleche.haut{border-bottom-color:#fdf6e3}
 #gPasser{position:fixed;z-index:71;bottom:12px;left:12px;padding:7px 12px;font-size:14px;min-height:0}
 body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
-#propGuide .boite p{margin:0 0 16px}#propGuide .boite .btn{width:100%;margin-top:8px}
+/* Premiere partie ? (0.4) : bandeau discret en haut de l'onglet Jouer, une seule fois par navigateur */
+#accueil>#premierePartie{display:flex;flex-direction:row;align-items:center;flex-wrap:wrap;gap:10px 16px;border-color:var(--or);border-left:4px solid var(--or);padding:12px 16px}
+#accueil>#premierePartie[hidden]{display:none}
+.pp-tx{flex:1 1 260px;min-width:0}
+.pp-tx b{display:block;font:400 19px/1.2 var(--titre);color:var(--or)}
+.pp-tx span{color:var(--doux);font-size:14.5px}
+.pp-btns{display:flex;gap:8px;flex:0 1 auto}
+.pp-btns .btn{min-height:42px;padding:4px 16px;font-size:15px;margin:0;white-space:nowrap}
 /* Reprises du 3 nov. */
 .btn.danger{--bord:#7a1d1d;background:linear-gradient(#e2574c,#b9342b);color:#fff}
 #popAbandon .boite p{margin:0 0 16px}#popAbandon .p-btns .btn{flex:1 1 0}
@@ -1720,6 +1731,10 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
   <div class="jeu"><div>
     <p class="erreur" id="erreurJeu" role="alert"></p>
     <div id="accueil">
+      <div class="bloc" id="premierePartie" role="region" aria-labelledby="propTitre" hidden>
+        <div class="pp-tx"><b id="propTitre">Première partie ?</b><span>Joue une partie guidée contre un Golem Facile pour apprendre les bases.</span></div>
+        <div class="pp-btns"><button class="btn plein" id="propOui" type="button">Lancer le tutoriel</button><button class="btn sec" id="propNon" type="button">Plus tard</button></div>
+      </div>
       <div class="bloc" id="blocCreer">
         <h3>Créer une partie</h3>
         <label class="pf-inter caseSalon" title="Privé : la partie n'apparaît pas dans les parties publiques, seul son code permet de la rejoindre."><span class="pf-itx" id="salonPublicTxt">Salon public</span><input type="checkbox" id="salonPublicCase" role="switch" checked><span class="pf-glis"></span></label>
@@ -1732,14 +1747,10 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
           <button class="btn" id="rejoindre" disabled>Rejoindre</button>
         </form>
       </div>
-      <div class="bloc" id="blocGuide">
-        <h3>Apprendre à jouer</h3>
-        <button class="btn plein" id="lanceGuide" type="button">Partie guidée</button>
-      </div>
       <div class="bloc" id="blocRobot">
-        <h3>S'entraîner contre un Golem</h3>
+        <h3>Apprendre et s'entraîner</h3>
         <div class="choixDeck"><label for="deckRobot">Ton deck</label><select id="deckRobot" class="selDeck"></select></div>
-        <div class="p-btns"><div class="niveaux" role="group" aria-label="Niveau du Golem"><button class="btn niv-f" data-niveau="facile" type="button">Facile</button><button class="btn niv-n" data-niveau="normal" type="button">Normal</button><button class="btn niv-d" data-niveau="difficile" type="button">Difficile</button></div><button class="btn sec" id="repriseRobot" type="button" hidden>Reprendre l'entraînement</button></div>
+        <div class="p-btns"><div class="niveaux" role="group" aria-label="Tutoriel ou niveau du Golem"><button class="btn plein" id="lanceGuide" type="button">Tutoriel</button><button class="btn niv-f" data-niveau="facile" type="button">Facile</button><button class="btn niv-n" data-niveau="normal" type="button">Normal</button><button class="btn niv-d" data-niveau="difficile" type="button">Difficile</button></div><button class="btn sec" id="repriseRobot" type="button" hidden>Reprendre l'entraînement</button></div>
       </div>
       <div class="bloc" id="blocListe">
         <h3>Parties ouvertes</h3>
@@ -1822,10 +1833,6 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
     <h3>Score</h3><p><b>Fin de manche</b> : dans chaque colonne, on additionne la Force actuelle de ses Golems. Le plus fort conquiert le terrain et marque ses points, personne en cas d'égalité. Puis les effets de fin de manche.</p><p><b>Fin de partie</b> : 3 manches. Tu gagnes si tu as le plus de points après la manche 3, effets compris.</p>
     <h3>À retenir</h3><p>Les cartes et les dégâts restent d'une manche à l'autre.</p>
     <button class="btn plein fermer" id="aideFermer" type="button">Fermer</button></div>
-</div>
-<div class="voile" id="propGuide" role="dialog" aria-modal="true" aria-labelledby="propTitre" hidden>
-  <div class="boite"><h2 id="propTitre">Première partie ?</h2><p>Une partie guidée contre un Golem Facile t'apprend les bases pas à pas.</p>
-    <button class="btn plein" id="propOui" type="button">Partie guidée</button><button class="btn sec" id="propNon" type="button">Plus tard</button></div>
 </div>
 <button class="btn sec" id="gPasser" type="button" hidden>Passer le tutoriel</button>
 <script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
@@ -5839,7 +5846,7 @@ const G_LIBRES='.p-outils button,.p-pied button,.oeil';
 function lanceGuide(){
   if(r){$('erreurJeu').textContent='Quitte le salon avant de lancer la partie guidée.';onglet('jouer');return}
   if(partie)finPartie();
-  $('propGuide').hidden=true;
+  $('premierePartie').hidden=true;
   $('erreurJeu').textContent='';onglet('jouer');
   lancer(GUIDE.graine,0,'',{mien:[],sien:[],advNom:'Golem',niveau:'facile',local:true,tuto:true,decks:[GUIDE.deck,M.DECK_TUTO||''],deckNom:'Deck de la partie guidée'});
   tuto={i:0,vu:-1,T:setInterval(tickGuide,150)};
@@ -5918,17 +5925,13 @@ document.addEventListener('click',e=>{
 },true);
 $('gPasser').onclick=()=>arreteGuide();
 $('lanceGuide').onclick=lanceGuide;
-$('propOui').onclick=()=>{$('propGuide').hidden=true;lanceGuide()};
-$('propNon').onclick=()=>{$('propGuide').hidden=true;$('lanceGuide').focus()};
-/* Proposee une seule fois, a la premiere visite de l'onglet Jouer, apres la fenetre de connexion. */
+$('propOui').onclick=()=>{$('premierePartie').hidden=true;lanceGuide()};
+$('propNon').onclick=()=>{$('premierePartie').hidden=true};
+/* Premiere partie ? (0.4) : bandeau discret en haut de l'onglet Jouer, montre une seule fois par navigateur (cle golems.guide) ;
+   il reste visible jusqu'a Lancer le tutoriel, Plus tard ou le prochain chargement. Tutoriel permanent dans Apprendre et s'entrainer. */
 function proposeGuide(){
-  if(lire('golems.guide'))return;
-  const essai=()=>{
-    if(!$('popPseudo').hidden){setTimeout(essai,500);return}
-    if($('jouer').hidden||partie||r||lire('golems.guide'))return;
-    ecrire('golems.guide','1');$('propGuide').hidden=false;$('propOui').focus();
-  };
-  setTimeout(essai,0);
+  if(lire('golems.guide')||partie||r)return;
+  ecrire('golems.guide','1');$('premierePartie').hidden=false;
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname))window.__golemsGuide=()=>tuto&&{i:tuto.i,n:ETAPES.length,c:ETAPES[tuto.i].c||null,suiv:!!ETAPES[tuto.i].suiv};
 /* Tests automatiques, en local seulement */
