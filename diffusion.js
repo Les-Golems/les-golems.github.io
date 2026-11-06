@@ -285,7 +285,7 @@ function cercle(){
     let g='<defs><marker id="dFl" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" style="fill:var(--bleu)"/></marker></defs>';
     for(let i=0;i<5;i++){const a0=-90+72*i;let best=[0,0],cur=null;for(let a=a0;a<=a0+72;a+=.25){if(libre(a)){if(cur===null)cur=a;if(a-cur>best[1]-best[0])best=[cur,a]}else cur=null}
       const p=P(best[0]+1),q=P(best[1]-1);g+='<path class="arc" d="M'+p+'A'+ex+' '+ey+' 0 0 1 '+q+'" marker-end="url(#dFl)"/>'}
-    pos.forEach(([x,y],i)=>{g+='<image href="cartes/'+E5[i]+'.png" x="'+(x-IM/2)+'" y="'+(y-IM/2)+'" width="'+IM+'" height="'+IM+'"/>'});
+    pos.forEach(([x,y],i)=>{g+='<image href="'+imgV('cartes/'+E5[i]+'.png')+'" x="'+(x-IM/2)+'" y="'+(y-IM/2)+'" width="'+IM+'" height="'+IM+'"/>'});
     const x0=Math.min(...pos.map(p=>p[0]))-IM/2-3,x1=Math.max(...pos.map(p=>p[0]))+IM/2+3,y0=Math.min(...pos.map(p=>p[1]))-IM/2-3,y1=Math.max(...pos.map(p=>p[1]))+IM/2+3;
     SVG='<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cercle des éléments : Magma, Cristal, Foudre, Brume, Roche" viewBox="'+[x0,y0,x1-x0,y1-y0].join(' ')+'" width="'+(x1-x0)+'" height="'+(y1-y0)+'">'+g+'</svg>';
   }
@@ -309,7 +309,7 @@ function derniere(s){
   const ch=mk('div','d-chips'),cc=mk('span'),cf=mk('span'),ce=mk('span');
   cc.append(u.ico('enclume'),'Coût ');cc.append(mk('b','',String(C.cout)));
   cf.append(u.ico('force'),'Force ');cf.append(mk('b','',C.force==null?'au dé':String(C.force)));
-  (C.el||[]).forEach(e=>{const im2=mk('img');im2.src='cartes/'+e+'.png';im2.alt=e;ce.append(im2)});
+  (C.el||[]).forEach(e=>{const im2=mk('img');im2.src=imgV('cartes/'+e+'.png');im2.alt=e;ce.append(im2)});
   ch.append(cc,cf);if(C.el&&C.el.length)ch.append(ce);
   tx.append(ph);if(t)tx.append(pe);
   /* Le Q : Jour de peche en cours (attente 'q' sur le deck adverse) : les 2 cartes regardees, a la place des pastilles */
@@ -359,7 +359,7 @@ function actions(s){
   return z;
 }
 function coin(){
-  const z=mk('div','d-z d-coin'),lo=mk('div','d-logo'),li=mk('img'),bas=mk('div','d-bas');li.src='cartes/logo.png';li.alt='Les Golems';lo.append(li);
+  const z=mk('div','d-z d-coin'),lo=mk('div','d-logo'),li=mk('img'),bas=mk('div','d-bas');li.src=imgV('cartes/logo.png');li.alt='Les Golems';lo.append(li);
   if(src==='spec'&&window.SPEC&&SPEC.chat){const b=mk('button','d-chat','Chat');b.type='button';b.setAttribute('aria-label','Ouvrir le chat');b.onclick=()=>chat.ouvre();
     const n=chat.nonLus();if(n>0){b.append(mk('span','d-pastille',n>9?'9+':String(n)));b.setAttribute('aria-label','Ouvrir le chat, '+n+' nouveau'+(n>1?'x':'')+' message'+(n>1?'s':''))}bas.append(b)}
   const qt=mk('button','d-quit',src==='spec'?'Quitter la partie':'Quitter la diffusion');qt.type='button';qt.onclick=quitter;bas.append(qt);
@@ -423,7 +423,7 @@ function lignePile(c){
   const u=U(),Mo=M(),C=Mo.carte(c),q=mk('button','dl-ligne'),co=mk('span','dl-cout'),fo=mk('span','dl-force'),e=mk('span','dl-els'),els=C.el||[];q.type='button';
   if(els.length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+els[0]+')');q.style.setProperty('--b','var(--fm-'+els[1]+')')}else if(C.animal)q.classList.add('dl-animal');
   co.append(u.ico('enclume'),String(C.cout));if(C.force!=null)fo.append(u.ico('force'),String(C.force));
-  els.forEach(x=>{const im=mk('img');im.src='cartes/'+x+'.png';im.alt=x;e.append(im)});
+  els.forEach(x=>{const im=mk('img');im.src=imgV('cartes/'+x+'.png');im.alt=x;e.append(im)});
   const pl=typeof u.nomComplet==='function'?u.nomComplet(Mo.nomDetail(C)):C.nom,v=pl.indexOf(', '),nm=mk('span','dl-nom');
   nm.append(mk('span','dl-pseudo',v<0?pl:pl.slice(0,v)));
   if(v>=0){const ti=mk('span','dl-titre',pl.slice(v+2));ti.style.color=C.base?'var(--or)':els[0]?'var(--'+els[0]+')':C.animal?'var(--animal-titre)':'var(--or)';nm.append(ti)}
@@ -495,7 +495,7 @@ function popPartie(s,pp){
   if(x){const C=Object.values(Mo.CARTES).find(c=>Mo.nomDetail(c)===x.carte||c.nom===x.carte),mv=mk('div','pp-mvp'),n=mk('button','pp-mvp-n',typeof u.nomComplet==='function'?u.nomComplet(x.carte):x.carte);
     n.type='button';n.style.color=COL[x.joueur];if(C)n.onclick=()=>{u.cacheApercu();u.zoom(imgV('cartes/'+C.id+'.jpg'),C.nom)};
     const col=mk('div','pp-mvp-c'),l1=mk('div','pp-mvp-l1');l1.append(n);
-    if(C&&C.el&&C.el.length){const e=mk('span','pp-mvp-els');C.el.forEach(y=>{const im=mk('img');im.src='cartes/'+y+'.png';im.alt=y;e.append(im)});l1.append(e)}
+    if(C&&C.el&&C.el.length){const e=mk('span','pp-mvp-els');C.el.forEach(y=>{const im=mk('img');im.src=imgV('cartes/'+y+'.png');im.alt=y;e.append(im)});l1.append(e)}
     col.append(l1);const pq=pourquoiMvp(x);if(pq)col.append(mk('div','pp-mvp-pq',pq));
     mv.append(mk('span','pp-mvp-e','MVP'),col);
     pp.append(mv)}

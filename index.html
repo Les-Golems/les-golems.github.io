@@ -1714,10 +1714,10 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 }
 </style>
 
-<div id="ecranCharge" aria-hidden="true"><img src="cartes/logo.png" alt="" width="144" height="144" fetchpriority="high"><span class="ec-txt"><b class="ec-titre">Les Golems</b><span class="ec-sous">Jeu de cartes communautaire</span></span></div>
+<div id="ecranCharge" aria-hidden="true"><img alt="" width="144" height="144" fetchpriority="high"><script>document.currentScript.previousElementSibling.src=imgV("cartes/logo.png")</script><span class="ec-txt"><b class="ec-titre">Les Golems</b><span class="ec-sous">Jeu de cartes communautaire</span></span></div>
 <script>(function(){var e=document.getElementById('ecranCharge'),f=0;function pret(){if(f)return;f=1;e.className='part';setTimeout(function(){e.remove()},600)}window.__golemsPret=pret;setTimeout(pret,5000);addEventListener('pageshow',function(v){if(v.persisted)pret()})})();</script>
 <header><div class="large haut">
-  <img src="cartes/logo.png" alt="">
+  <img data-src="cartes/logo.png" alt="">
   <h1>Les Golems<span class="st-ligne"><small class="sous-titre">Jeu de cartes communautaire</small> <button class="etq-v ver-etq ve-charge" id="verEtq" type="button" tabindex="-1" aria-busy="true" title="Version en cours de chargement">v…</button></span></h1>
   <div class="majDispo" id="majDispo" role="status" hidden><span title="La page se recharge seule dès que tu as fini (partie, salon, saisie)">Nouvelle version disponible</span><button class="btn" id="majRecharger" type="button">Recharger la page</button></div>
   <div class="moi"><span class="qui"><button class="avatarBtn" id="choixAvatar" type="button" aria-label="Choisir mon avatar" title="Choisir mon avatar"><span class="avatar" id="avatarMoi" aria-hidden="true"></span></button><b id="pseudoAffiche"></b></span><button class="modif" id="modifierPseudo" type="button"><span class="txt">Modifier</span><svg class="pic" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></svg></button></div>
@@ -1930,7 +1930,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 
 <div class="voile" id="popPseudo" hidden role="dialog" aria-modal="true" aria-labelledby="titrePop">
   <form class="boite" id="formPseudo">
-    <img src="cartes/logo.png" alt="">
+    <img data-src="cartes/logo.png" alt="">
     <h2 id="titrePop">Les Golems</h2>
     <p class="intro co-aide" id="aideCompte"></p>
     <label for="pseudo">Ton pseudo</label>
@@ -2403,7 +2403,7 @@ const DETAILS_VERSIONS={
    parens=true (Details) : liste entre parentheses faite seulement d'elements, « (Magma, Roche) » -> pictos seuls, nom en infobulle. */
 const EL_TXT={Magma:'magma',Cristal:'cristal',Foudre:'foudre',Brume:'brume',Roche:'roche'};
 function textePictos(s,parens){
-  const f=document.createDocumentFragment(),pic=n=>{const i=document.createElement('img');i.className='el-pic';i.src='cartes/'+EL_TXT[n]+'.png';i.alt=n;i.title=n;return i},
+  const f=document.createDocumentFragment(),pic=n=>{const i=document.createElement('img');i.className='el-pic';i.src=imgV('cartes/'+EL_TXT[n]+'.png');i.alt=n;i.title=n;return i},
     N='(?:Magma|Cristal|Foudre|Brume|Roche)',
     re=new RegExp((parens?'\\(('+N+'(?:, '+N+')*)\\)|':'')+'(?<![\\p{L}\\p{N}-])('+N+')(?![\\p{L}\\p{N}-])','gu');
   let k=0,m;
@@ -2609,7 +2609,7 @@ const cleRech=c=>sansAccent(c[1]+' '+numeroAffiche(c[0]));
 const passeRech=(cle,q)=>{q=sansAccent(q.trim());return !q||cle.includes(q)};
 /* Pastille ronde a picto d'un element : meme composant pour l'onglet Cartes et l'editeur de deck. */
 function pastilleEl(v,clic){const b=document.createElement('button');b.type='button';b.className='f-el';b.dataset.el=v;b.style.setProperty('--c','var(--'+v+')');
-  const t=EL.find(x=>x[0]===v)[1];b.title=t;b.setAttribute('aria-label',t);const i=document.createElement('img');i.src='cartes/'+v+'.png';i.alt='';b.append(i);
+  const t=EL.find(x=>x[0]===v)[1];b.title=t;b.setAttribute('aria-label',t);const i=document.createElement('img');i.src=imgV('cartes/'+v+'.png');i.alt='';b.append(i);
   b.onclick=clic;return b}
 function ligneEls(f,change,off){
   const r=el('div','filtres f-ligne'),box=el('div','f-els'),m=el('div','f-btns f-mode');
@@ -4877,7 +4877,7 @@ function enteteDeck(nom,els,nb,injouable){
 }
 /* Pastille « ? » du deck adverse masque (a la place des pictos d'elements). */
 function pastilleInconnue(){const s=el('span','dk-inc','?');s.setAttribute('aria-hidden','true');return s}
-function picto(e){const i=el('img');i.src='cartes/'+e+'.png';i.alt=e;i.width=26;i.height=26;return i}
+function picto(e){const i=el('img');i.src=imgV('cartes/'+e+'.png');i.alt=e;i.width=26;i.height=26;return i}
 function peintDecks(){
   const b=$('listeDecks'),l=lesDecks();b.textContent='';
   if(deckOuvert){const d=l.find(x=>x.id===deckOuvert);if(d){
@@ -5591,7 +5591,7 @@ function miniVue(s,p,l,k){
   }
   const m=el('span','mini'),co=el('span','cout'),ba=el('span','bas'),f=el('span','f'),e=el('span','els');
   m.style.setProperty('--a','var(--fm-'+C.el[0]+')');m.style.setProperty('--b','var(--fm-'+C.el[1]+')');
-  C.el.forEach(x=>{const i=el('img');i.src='cartes/'+x+'.png';i.alt='';i.width=22;i.height=22;e.append(i)});
+  C.el.forEach(x=>{const i=el('img');i.src=imgV('cartes/'+x+'.png');i.alt='';i.width=22;i.height=22;e.append(i)});
   co.append(ico('enclume'),String(C.cout));ba.append(co); /* degats, Rage, bonus : plus de pastille, la couleur du chiffre de Force et le zoom suffisent */
   const fv=M.favori?M.favori(s,p,v.c):0; /* 0.2a.1 : favori d'Indra, coeur seul a gauche de l'hexagone (le bonus est dans le chiffre et au zoom) */
   let hf=null;if(fv){hf=el('span','fav');hf.innerHTML=COEUR;hf.title="Favori d'Indra";hf.setAttribute('role','img');hf.setAttribute('aria-label',"Favori d'Indra, +"+fv+' de Force')}
@@ -5701,7 +5701,7 @@ function pile(cls,lib,n,tas){
   const d=el('div','pile '+cls+(n?'':' vide')),o=el('span','dos'),v=el('span','v-ico');
   o.append(el('span','fond'));
   if(cls==='forge')v.insertAdjacentHTML('beforeend',enclumeB());
-  else{const i=el('img');i.src='cartes/logo.png';i.alt='';v.append(i)}
+  else{const i=el('img');i.src=imgV('cartes/logo.png');i.alt='';v.append(i)}
   o.append(v,el('span','v-mot',lib.toUpperCase()),el('span','v-nb',String(n)));d.append(o);d.setAttribute('aria-label',lib+' : '+n);
   if(tas&&n){const e=el('button','oeil');e.type='button';e.append(ico('oeil'));e.setAttribute('aria-label','Voir '+lib);e.onclick=()=>ouvreTas(lib,tas);d.append(e)}
   return d;
@@ -6406,7 +6406,7 @@ function annote(box,visuel,items){
   let a='',b='';E.forEach((e,i)=>{
     const t=-Math.PI/2+i*2*Math.PI/5,[x,y]=pt(t,R),m=.36,p=pt(t+m,R),q=pt(t+2*Math.PI/5-m,R);
     a+='<path d="M'+p+'A'+R+' '+R+' 0 0 1 '+q+'" marker-end="url(#fl)"/>';
-    b+='<image href="cartes/'+e+'.png" x="'+(x-29)+'" y="'+(y-29)+'" width="58" height="58"/><text x="'+x+'" y="'+(+y+45)+'">'+N[i]+'</text>';
+    b+='<image href="'+imgV('cartes/'+e+'.png')+'" x="'+(x-29)+'" y="'+(y-29)+'" width="58" height="58"/><text x="'+x+'" y="'+(+y+45)+'">'+N[i]+'</text>';
   });
   const svgC=(id,k)=>'<svg class="cercle-el" viewBox="0 0 360 350" role="img" aria-label="Cercle des éléments : Magma domine Cristal, Cristal domine Foudre, Foudre domine Brume, Brume domine Roche, Roche domine Magma"><defs><marker id="'+id+'" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" style="fill:var(--bleu);stroke:none"/></marker></defs>'+a.replace(/#fl/g,'#'+id)+k+b+'</svg>';
   let k='';E.forEach((e,i)=>{const [x,y]=pt(-Math.PI/2+i*2*Math.PI/5,R);k+='<circle cx="'+x+'" cy="'+y+'" r="33" style="fill:var(--panneau);stroke:var(--'+e+');stroke-width:3"/>'});
@@ -6441,7 +6441,7 @@ function annote(box,visuel,items){
   if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){window.__golemsVersion=verifie;window.__golemsCalme=calme}
 })();
 const aReprendre=salonRepris();
-['brume','cristal','foudre','magma','roche'].forEach(x=>{new Image().src='cartes/'+x+'.png'});
+['brume','cristal','foudre','magma','roche'].forEach(x=>{new Image().src=imgV('cartes/'+x+'.png')});
 majChoixDeck();
 if(deckLien!==null){onglet('decks');ouvreDeckLien(deckLien)}
 (async()=>{
