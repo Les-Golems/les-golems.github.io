@@ -1,0 +1,492 @@
+/* Vue diffusion (0.3a) : ecran 1920 x 1080 pour un stream, mis a l'echelle proportionnellement.
+   - Vue spectateur (partie en ligne) : le spectateur est toujours en vue diffusion ; « Quitter la partie » le ramene au site (comme l'ancien bouton Quitter).
+   - Site d'essai (/essai/) seulement : bouton « Demonstration » dans l'onglet Jouer, partie Golem contre Golem locale (sans serveur ni compte).
+   Lit les fonctions d'index.html par window.GOLEMS_UI et le moteur (GOLEMS_UI.M) ; ne modifie ni index.html ni spectateur-ui.js.
+   Ici : window.DIFFUSION. CSS : diffusion.css (tout sous #dif). */
+(function(){
+'use strict';
+const ESSAI=location.pathname.split('/')[1]==='essai';
+const COL=['var(--moi)','var(--lui)'];
+const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const U=()=>window.GOLEMS_UI,M=()=>U().M;
+const d_=n=>/^[aeiouyhàâäéèêëîïôöùûü]/i.test(n)?"d'":'de '; /* Main d'Alrevan, Victoire de KaTarN */
+const re_=x=>x.replace(/[-\/\\^$*+?.()|[\]{}]/g,'\\$&');
+
+/* ---------- Noms de cartes : evolutions en dore, mots a trait d'union jamais coupes ---------- */
+let NOMS=null;
+function noms(){
+  if(NOMS&&NOMS.M===M())return NOMS;
+  const C=Object.values(M().CARTES),evo=C.filter(c=>c.base).map(c=>c.nom),tous=[...new Set(C.map(c=>c.nom).concat(M().TERRAINS.map(T=>T.nom)))].sort((a,b)=>b.length-a.length);
+  NOMS={M:M(),evo:new Set(evo),re:new RegExp('('+tous.map(re_).join('|')+')'),reEvo:new RegExp('('+evo.sort((a,b)=>b.length-a.length).map(re_).join('|')+')')};
+  return NOMS;
+}
+const nb=x=>{const f=document.createDocumentFragment();x.split(/(\S+-\S+)/).forEach((m,i)=>{if(!m)return;f.append(i%2?mk('span','d-nw',m):m)});return f};
+const nbEvo=x=>{const f=document.createDocumentFragment();x.split(noms().reEvo).forEach((m,i)=>{if(!m)return;f.append(i%2?mk('span','d-evo d-nw',m):nb(m))});return f};
+/* noms de cartes et de terrains en gras (blanc), evolutions en dore */
+const nbCartes=x=>{const N=noms(),f=document.createDocumentFragment();x.split(N.re).forEach((m,i)=>{if(!m)return;if(i%2)f.append(mk('b',N.evo.has(m)?'d-ca d-evo d-nw':'d-ca d-nw',m));else f.append(m)});return f};
+
+/* ---------- Etat de la vue ---------- */
+let D=null,scene=null,src=null,E=null; /* src : 'spec' ou 'demo' ; E : {etat, noms, avatars, uids} */
+let suivi=null; /* memoire entre deux peintures : poses vues, halo, manches et fin deja annoncees */
+function neufSuivi(){return {nev:-1,der:null,lieu:{},halo:null,nt:-1,fin:false,pop:null,vu:null}}
+
+function avatar(p){
+  const u=U(),n=E.noms[p]||'Joueur',id=E.uids&&E.uids[p];
+  return id&&typeof u.avatarUid==='function'?u.avatarUid(n,id,E.avatars&&E.avatars[p]||''):u.avatarDe(n,E.avatars&&E.avatars[p]||'');
+}
+const nom=p=>E.noms[p]||'Joueur '+(p+1);
+const pseudo=p=>{const b=mk('b','d-pj',nom(p));b.style.color=COL[p];return b};
+
+/* ---------- Mise a l'echelle ---------- */
+function echelle(){
+  if(!D)return;
+  const W=innerWidth,H=innerHeight,k=Math.min(W/1920,H/1080);
+  scene.style.transform='translate('+((W-1920*k)/2)+'px,'+((H-1080*k)/2)+'px) scale('+k+')';
+}
+addEventListener('resize',echelle);
+
+/* ---------- Analyse de l'etat ---------- */
+function chercheCarte(s,p,cc){const G=s.j[p].grille;for(let l=0;l<3;l++)for(let k=0;k<3;k++){const v=G[l][k];if(v&&v.c===cc)return [l,k]}return null}
+/* Derniere pose (pose, remplacement, amelioration) : evenement 'p' du moteur ; lieu memorise a la premiere vue (une carte peut bouger ou mourir ensuite) */
+function suitPoses(s,premier){
+  const ev=s.stats.ev,n=ev.length;
+  if(n===suivi.nev)return;
+  for(let i=Math.max(0,suivi.nev);i<n;i++){const e=ev[i];if(e.t!=='p')continue;
+    const x=chercheCarte(s,e.cp,e.cc);if(x&&!suivi.lieu[e.cc])suivi.lieu[e.cc]=x;
+    suivi.der={p:e.cp,c:e.cc,i};
+    if(!premier&&x)suivi.halo={p:e.cp,c:e.cc,t:performance.now()};}
+  suivi.nev=n;
+}
+/* Phrase de la derniere pose : ligne du journal du meme joueur */
+function ligneDerniere(s){
+  const d=suivi.der;if(!d)return null;
+  for(let i=s.log.length-1;i>=0;i--){const[p,x]=s.log[i];if(p===d.p&&/^(pose|remplace|améliore) /.test(x))return x}
+  return null;
+}
+/* Points de chaque joueur a la manche m, lus dans le journal du decompte (terrains, de du Plateau, bonus de cartes) */
+function ptsManche(s,m){
+  const R=s.reperes[m-1];if(!R)return null;
+  const r=[0,0];
+  for(let i=R[0];i<s.log.length&&(m<s.reperes.length?i<s.reperes[m][0]:true);i++){const[p,x]=s.log[i];if(p!==0&&p!==1)continue;
+    const q=/:\s\+(\d+)( points?)?\.$/.exec(x);if(q)r[p]+=+q[1]}
+  return r;
+}
+/* Points de la manche gagnes hors terrains : lignes « Carte (Evolution) : +n points. » du journal (ni « marque T », ni « T lance ») */
+function bonusManche(s,m){
+  const R=s.reperes[m-1],r=[[],[]];if(!R)return r;
+  for(let i=R[0];i<s.log.length&&(m<s.reperes.length?i<s.reperes[m][0]:true);i++){const[p,x]=s.log[i];if(p!==0&&p!==1)continue;
+    const q=/:\s\+(\d+)( points?)?\.$/.exec(x);if(!q||/^marque /.test(x)||s.terrains.some(T=>x.startsWith(T.nom+' lance ')))continue;
+    const a=/^(.+?) \((.+?)\) : /.exec(x),C=a&&Object.values(M().CARTES).find(c=>c.nom===a[2]),ef=C&&C.texte&&C.texte.indexOf(' : ')>0?C.texte.slice(0,C.texte.indexOf(' : ')):null;
+    r[p].push('+'+q[1]+' '+(a?(ef?ef+' ('+a[2]+')':a[1]+' ('+a[2]+')'):x.slice(0,x.indexOf(' : '))))}
+  return r;
+}
+function deManche(s,m,terrain){
+  const R=s.reperes[m-1];if(!R)return null;
+  for(let i=R[0];i<s.log.length&&(m<s.reperes.length?i<s.reperes[m][0]:true);i++){const x=s.log[i][1];
+    if(x.startsWith(terrain+' lance ')){const q=/ lance (\d+) : (.*)\.$/.exec(x);if(q)return 'Dé : '+q[1]+', '+q[2]}}
+  return null;
+}
+
+/* ---------- Peinture ---------- */
+function peindre(){
+  if(!D||!E)return;
+  const u=U(),s=E.etat,premier=suivi.nev<0;
+  suitPoses(s,premier);
+  /* une nouvelle action ramene le journal a la page la plus recente */
+  if(suivi.nlog!==s.log.length){if(suivi.nlog!=null)suivi.page=null;suivi.nlog=s.log.length}
+  [...scene.children].forEach(n=>{if(n!==chat.el)n.remove()}); /* la fenetre de chat reste en place (saisie en cours) */
+  const fin=!!s.fin,qui=fin||s.phase==='mulligan'?null:u.quiJoue(s);
+  scene.append(bandeau(s,qui),plateau(s,qui),main(s,1,186,qui===1),cercle(),derniere(s),actions(s),main(s,0,854,qui===0),coin());
+  ajusteNoms();
+  /* fenetres de fin : une fin de manche nouvelle, ou la fin de la partie */
+  const nt=s.stats.t.length;
+  if(suivi.nt<0)suivi.nt=premier&&!fin?nt:suivi.nt; /* arrivee en cours de partie : pas de fenetre pour une manche deja passee */
+  /* les fenetres restent ouvertes jusqu'a « Fermer » ; la partie continue derriere */
+  if(fin&&!suivi.fin){suivi.fin=true;suivi.nt=nt;ouvrePop('partie')}
+  else if(!fin&&nt>suivi.nt&&nt%3===0){suivi.nt=nt;ouvrePop('manche',nt/3)}
+  else if(suivi.pile&&sigPile(suivi.pile)!==suivi.pile.sig)ouvrePop('pile',suivi.pile); /* pile ouverte : mise a jour en direct */
+  /* recapitulatif ouvert pendant un decompte qui continue (bonus de fin de manche, de) : refait avec le journal a jour */
+  else if(suivi.vu&&suivi.vu.log!==s.log.length)ouvrePop(suivi.vu.type,suivi.vu.m);
+  else if(suivi.pop)scene.append(suivi.pop);
+}
+function bandeau(s,qui){
+  const u=U(),ban=mk('div','d-z d-ban');
+  const cpt=(n,lib,v)=>{const x=mk('span');x.append(u.ico(n),lib+' ');x.append(mk('b','',String(v)));return x};
+  /* Deck, Defausse, Forge (et Energie, qui prend la place de la Forge chez le joueur actif) : ouvrent la pile en grand */
+  const pile=(x,p,k,lib)=>{x.classList.add('d-pile');x.setAttribute('role','button');x.tabIndex=0;x.setAttribute('aria-label','Voir '+lib+' '+d_(nom(p))+nom(p));
+    x.onclick=()=>ouvrePop('pile',{p,k});x.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvrePop('pile',{p,k})}};return x};
+  const bloc=(p,dr)=>{
+    const J=s.j[p],b=mk('div','d-j '+(p===0?'toi':'lui')+(dr?' dr':'')+(qui===p?' actif':'')),id=mk('div','d-id'),c=mk('div','d-cpt'),l1=mk('div','d-l1');
+    c.append(cpt('main','Main',J.main.length),pile(cpt('deck','Deck',J.deck.length),p,'deck','le deck'),pile(cpt('defausse','Défausse',J.defausse.length),p,'defausse','la défausse'),pile(cpt('enclume','Forge',J.forge.length),p,'forge','la Forge'));
+    l1.append(mk('div','d-nom',nom(p)));
+    if(qui===p){l1.append(mk('span','d-badge','À lui de jouer'));const e=mk('span','d-ener');e.append(u.ico('enclume'),'Énergie ');e.append(mk('b','',String(J.energie)));c.lastChild.replaceWith(pile(e,p,'forge','la Forge'))}
+    id.append(l1,c);b.append(avatar(p),id);return b;
+  };
+  const pts=(n,clic)=>{const w=mk('span','d-pts');for(let i=1;i<=3;i++){const x=mk('i',i<n?'fait':i===n?'on':'');
+    /* manche terminee : le losange rouvre son recapitulatif */
+    if(clic&&(i<n||s.fin)){x.classList.add('d-clic');x.setAttribute('role','button');x.tabIndex=0;x.title='Manche '+i;x.setAttribute('aria-label','Revoir la fin de la manche '+i);
+      x.onclick=()=>ouvrePop('manche',i);x.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvrePop('manche',i)}}}
+    w.append(x)}return w};
+  const co=(l,n,clic)=>{const c=mk('div','d-cote');c.append(mk('small','',l),mk('b','',String(n)),pts(n,clic));return c};
+  const mid=mk('div','d-mid'),sc=mk('div','d-sc');
+  sc.append(mk('b','',String(s.j[0].score)),mk('span','','-'),mk('em','',String(s.j[1].score)));
+  /* partie finie : le score rouvre la fenetre de fin de partie (pendant la partie, il ne reagit pas) */
+  if(s.fin){sc.classList.add('d-clic');sc.setAttribute('role','button');sc.tabIndex=0;sc.title='Résultat de la partie';sc.setAttribute('aria-label','Revoir le résultat de la partie');
+    sc.onclick=()=>ouvrePop('partie');sc.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvrePop('partie')}}}
+  mid.append(co('Manche',s.manche,true),sc,co('Tour',s.tour));
+  ban.append(bloc(0,false),mid,bloc(1,true));
+  return ban;
+}
+function plateau(s,qui){
+  const u=U(),Mo=M(),plat=mk('div','d-z d-plat');
+  const gh=u.grilleVue(s,1,[0,1,2],[2,1,0],null),gb=u.grilleVue(s,0,[0,1,2],[0,1,2],null);gh.classList.add('lui');gb.classList.add('mienne');
+  const r1=mk('div','d-rg'),r2=mk('div','d-rg');
+  r1.append(mk('div','d-vt lui'+(qui===1?' actif':''),nom(1)),gh);r2.append(mk('div','d-vt toi'+(qui===0?' actif':''),nom(0)),gb);
+  /* terrains : Force de chaque camp, contour du joueur qui mene (neutre a egalite), valeur dessous */
+  const t=mk('div','p-terrains d-tr'),cc=Mo.colonnes(s);
+  [0,1,2].forEach(k=>{const T=s.terrains[k],a=cc[k][1],m=cc[k][0],d=mk('div','p-terrain'+(m>a?' m-moi':a>m?' m-lui':'')),to=mk('div','p-totaux'),te=mk('div','p-tete');
+    te.append(mk('b','',T.nom));to.append(mk('b','m'+(m>a?' tete':''),String(m)),mk('span','','contre'),mk('b','a'+(a>m?' tete':''),String(a)));
+    d.append(te,to,ptsEt('p-valeur',T.pts));d.onclick=()=>zoomTerrainDif(s,k);t.append(d)});
+  plat.append(r1,t,r2);
+  /* halo : case de la derniere carte jouee, 3,6 s a partir de la pose (repeinture : l'animation reprend ou elle en etait) */
+  const h=suivi.halo;
+  if(h&&!s.fin){const x=chercheCarte(s,h.p,h.c),dt=performance.now()-h.t;
+    if(x&&dt<3600){const c=plat.querySelector('.p-case[data-p="'+h.p+'"][data-l="'+x[0]+'"][data-k="'+x[1]+'"]');
+      if(c){c.classList.add('d-halo');c.style.setProperty('--hc',COL[h.p]);c.style.animationDelay=(-dt/1000)+'s'}}}
+  return plat;
+}
+/* Terrain en grand : a droite, un panneau par joueur (ses Golems sur ce terrain en lignes condensees, valeur au decompte, total) ;
+   valeurs = M.valeurDecompte, comme les « n contre m » de la tuile (M.colonnes) */
+const COLZ=['var(--bleu)','var(--magma)'];
+function zoomTerrainDif(s,k){
+  const u=U(),Mo=M(),T=s.terrains[k],cc=Mo.colonnes(s)[k];u.cacheApercu();
+  const pan=p=>{const a=mk('section','dz-camp'),h=mk('h3','',nom(p)),ol=mk('ol','dz-l');h.style.color=COLZ[p];a.append(h);
+    for(let l=0;l<3;l++){const g=s.j[p].grille[l][k],li=mk('li');
+      if(!g){li.className='dz-vide';li.append(mk('span','','Case vide'),mk('span'))}
+      else{const v=Mo.valeurDecompte(s,p,l,k),f=mk('span','dz-v','Force '),fb=mk('b','',String(v));fb.style.color=COLZ[p];f.append(fb);
+        if(g.hors===s.manche&&!(M().carte(g.c).animal))f.title='Ne compte pas au décompte de cette manche';li.append(lignePile(g.c),f)}
+      ol.append(li)}
+    const o=cc[1-p],n=cc[p],tt=mk('div','dz-tot'),b=mk('b','',String(n));b.style.color=COLZ[p];tt.append('Total : ',b);
+    if(n>o){tt.classList.add('mene');tt.style.setProperty('--c',COLZ[p])}else if(n===o)tt.append(mk('span','dz-eg','Égalité'));
+    a.append(ol,tt);return a};
+  u.zoom(u.srcTerrain(T),T.nom+'. '+T.texte,[pan(0),pan(1)]);
+}
+/* Etiquette de points d'un terrain : l'etoile du score (pictogramme des points) avant le nombre, « ★ 2 pts » */
+function ptsEt(cl,n){const e=mk('span',cl+' d-ptse');e.append(U().ico('coupe'),n+(n>1?' pts':' pt'));return e}
+function zoomCarte(c){
+  const u=U(),C=M().carte(c);u.cacheApercu();
+  let det=null;
+  if(C.animal&&typeof u.detailAnimal==='function')det=u.detailAnimal(C);
+  else if(typeof u.lg==='function'){const a=mk('section');a.append(mk('h3','','Force'),u.lg('Force de base',C.force!=null?String(C.force):'aucune'),u.lg('Coût',String(C.cout)));if(C.texte)a.append(mk('p','',C.texte));det=[a]}
+  u.zoom(u.srcC(c),C.nom,det);
+}
+function main(s,p,top,joue){
+  const z=mk('div','d-z d-col'+(p===0?' bas':'')),J=s.j[p],h=mk('div','d-tm '+(p===0?'toi':'lui'),'Main '+d_(nom(p))+nom(p));
+    /* taille FIXE pour toute la partie (7 cartes sur une ligne : 103 x 144 px) ; au-dela de 7 cartes, elles se chevauchent sans changer de taille */
+  const W=769,w=103,n=J.main.length,gp=n<=7?8:(W-n*w)/(n-1);
+  z.style.top=top+'px';
+  h.append(mk('span','',J.main.length+(J.main.length>1?' cartes':' carte')));if(joue)h.append(mk('span','d-joue','Joue'));
+  const r=mk('div','d-main');
+  J.main.forEach((c,k)=>{const C=M().carte(c),b=mk('button'),i=mk('img');b.type='button';b.style.width=w+'px';b.style.height=Math.round(w*1.4)+'px';if(k)b.style.marginLeft=gp+'px';
+    i.src=U().srcC(c);i.alt=C.nom;b.setAttribute('aria-label','Agrandir '+M().nomDetail(C));b.onclick=()=>zoomCarte(c);b.append(i);r.append(b)});
+  z.append(h,r);return z;
+}
+/* Cercle des elements : gros pictos sans anneau, fleches dans les espaces libres (maquette c1 : 68 px, cadre 350 x 188) */
+let SVG=null;
+function cercle(){
+  const z=mk('div','d-z d-bloc d-cer'),cw=mk('div','d-cw');
+  if(!SVG){
+    const E5=['magma','cristal','foudre','brume','roche'],IM=68,ey=(188-IM)/1.809,ex=(350-IM)/1.902,DEG=Math.PI/180,P=a=>[ex*Math.cos(a*DEG),ey*Math.sin(a*DEG)];
+    const pos=E5.map((e,i)=>P(-90+72*i)),libre=a=>{const[x,y]=P(a);return !pos.some(([X,Y])=>Math.hypot(x-X,y-Y)<IM/2+5)};
+    let g='<defs><marker id="dFl" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" style="fill:var(--bleu)"/></marker></defs>';
+    for(let i=0;i<5;i++){const a0=-90+72*i;let best=[0,0],cur=null;for(let a=a0;a<=a0+72;a+=.25){if(libre(a)){if(cur===null)cur=a;if(a-cur>best[1]-best[0])best=[cur,a]}else cur=null}
+      const p=P(best[0]+1),q=P(best[1]-1);g+='<path class="arc" d="M'+p+'A'+ex+' '+ey+' 0 0 1 '+q+'" marker-end="url(#dFl)"/>'}
+    pos.forEach(([x,y],i)=>{g+='<image href="cartes/'+E5[i]+'.png" x="'+(x-IM/2)+'" y="'+(y-IM/2)+'" width="'+IM+'" height="'+IM+'"/>'});
+    const x0=Math.min(...pos.map(p=>p[0]))-IM/2-3,x1=Math.max(...pos.map(p=>p[0]))+IM/2+3,y0=Math.min(...pos.map(p=>p[1]))-IM/2-3,y1=Math.max(...pos.map(p=>p[1]))+IM/2+3;
+    SVG='<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cercle des éléments : Magma, Cristal, Foudre, Brume, Roche" viewBox="'+[x0,y0,x1-x0,y1-y0].join(' ')+'" width="'+(x1-x0)+'" height="'+(y1-y0)+'">'+g+'</svg>';
+  }
+  cw.innerHTML=SVG;z.append(cw);return z;
+}
+function derniere(s){
+  const u=U(),Mo=M(),z=mk('div','d-z d-bloc d-der'),tx=mk('div','d-txt'),d=suivi.der;
+  tx.append(mk('div','d-h','Dernière carte jouée'));
+  if(!d){z.classList.add('vide');tx.append(mk('p','d-phr d-rien','Aucune carte jouée pour le moment.'));z.append(tx);return z}
+  const C=Mo.carte(d.c),bt=mk('button'),im=mk('img');bt.type='button';im.src='cartes/'+C.id+'.jpg';im.alt=C.nom;bt.setAttribute('aria-label','Agrandir '+Mo.nomDetail(C));bt.append(im);
+  const x=chercheCarte(s,d.p,d.c);bt.onclick=()=>{if(x){const c=document.querySelector('#dif .p-case[data-p="'+d.p+'"][data-l="'+x[0]+'"][data-k="'+x[1]+'"]');if(c&&c.onclick){c.onclick();return}}zoomCarte(d.c)};
+  /* 1re ligne : « X pose Y sur Z. » / « X ameliore A en B. » / « X remplace A par B sur Z. » */
+  const ph=mk('p','d-phr'),L=ligneDerniere(s)||'pose '+Mo.nomDetail(C)+'.',lieu=suivi.lieu[d.c],ter=lieu?s.terrains[lieu[1]].nom:null;
+  const bl=t=>{const b=mk('b');b.style.color=COL[d.p];b.append(nbEvo(t));return b};
+  let q;
+  if((q=/^améliore (.+) en (.+)\.$/.exec(L))){ph.append(bl(nom(d.p)+' améliore '+q[1]+' en '));const e=mk('b','d-evo',q[2]);ph.append(e,'.')}
+  else{ph.append(bl(nom(d.p)+' '+L.replace(/\.$/,'')),ter?' sur '+ter+'.':'.')}
+  /* 2e ligne : l'effet, son nom en gras */
+  const pe=mk('p','d-phr'),t=C.texte||'',i=t.indexOf(' : ');
+  if(i>0){pe.append(mk('strong','',t.slice(0,i)),nb(t.slice(i)))}else if(t)pe.append(nb(t));
+  const ch=mk('div','d-chips'),cc=mk('span'),cf=mk('span'),ce=mk('span');
+  cc.append(u.ico('enclume'),'Coût ');cc.append(mk('b','',String(C.cout)));
+  cf.append(u.ico('force'),'Force ');cf.append(mk('b','',C.force==null?'au dé':String(C.force)));
+  (C.el||[]).forEach(e=>{const im2=mk('img');im2.src='cartes/'+e+'.png';im2.alt=e;ce.append(im2)});
+  ch.append(cc,cf);if(C.el&&C.el.length)ch.append(ce);
+  tx.append(ph);if(t)tx.append(pe);tx.append(ch);
+  z.append(bt,tx);return z;
+}
+/* Phrase courte d'une ligne du journal */
+function phrase(p,x){
+  const t=mk('span'),N=noms();x=x.replace(/\.$/,'');
+  if(x==='garde une carte du dessus du deck'){t.append(mk('b','d-ca','Le Q'),' : ',pseudo(p),' garde 1 carte parmi 3');return t}
+  /* « marque T (a contre b) : +n » : sans le detail des Forces */
+  const mq=/^marque (.+) \(\d+ contre \d+\) : (\+\d+)$/.exec(x);
+  if(mq){t.append(pseudo(p),' marque ');t.append(nbCartes(mq[1]),' : '+mq[2]);return t}
+  /* « Carte : effet », « Carte (Evolution) lance ... », « Carte perd ... » : la carte en gras, le joueur entre parenthèses */
+  const nm=N.re.source.slice(1,-1),m=new RegExp('^((?:'+nm+')(?: \\((?:'+nm+')\\))?)( : | )').exec(x);
+  if(m){t.append(nbCartes(m[1]),' (',pseudo(p),')');t.append(nbCartes(x.slice(m[1].length)));return t}
+  t.append(pseudo(p),nbCartes(' '+x));return t;
+}
+/* Journal pagine par manche (decoupage de pagesLog, comme le journal du jeu) : manche en cours par defaut, fleches pour remonter ;
+   une nouvelle action ramene a la page la plus recente */
+function actions(s){
+  const u=U(),z=mk('div','d-z d-bloc d-act'),ol=mk('ol'),pg=typeof u.pagesLog==='function'?u.pagesLog(s):[s.log];
+  const n=Math.max(1,pg.length);if(suivi.page==null||suivi.page>=n)suivi.page=n-1;const i=suivi.page,der=i===n-1;
+  const L=(pg[i]||[]).filter(e=>e[0]===0||e[0]===1);
+  const h=mk('div','d-h d-ah'),ti=mk('span','','Dernières actions'),nav=mk('span','d-nav');
+  const fl=(t,lib,v,off)=>{const b=mk('button','',t);b.type='button';b.setAttribute('aria-label',lib);b.disabled=off;b.onclick=()=>{suivi.page=v;suivi.pageMain=true;peindre()};return b};
+  nav.append(fl('‹','Manche précédente',i-1,i<=0),mk('span','d-mn','Manche '+(i+1)),fl('›','Manche suivante',i+1,der));
+  h.append(ti,nav);z.append(h);
+  if(!L.length)ol.append(mk('li','d-rien','Aucune action pour le moment.'));
+  L.forEach((e,k)=>{const li=mk('li',der&&k===L.length-1?'dern':''),g=u.genreLog(e[1]);li.append(u.ico(g[1]),phrase(e[0],e[1]));ol.append(li)});
+  z.append(ol);
+  /* page la plus recente : en bas ; manche passee : en haut (apres la peinture, quand les hauteurs sont connues) */
+  requestAnimationFrame(()=>{ol.scrollTop=der?ol.scrollHeight:0});
+  return z;
+}
+function coin(){
+  const z=mk('div','d-z d-coin'),lo=mk('div','d-logo'),li=mk('img'),bas=mk('div','d-bas');li.src='cartes/logo.png';li.alt='Les Golems';lo.append(li);
+  if(src==='spec'&&window.SPEC&&SPEC.chat){const b=mk('button','d-chat','Chat');b.type='button';b.setAttribute('aria-label','Ouvrir le chat');b.onclick=()=>chat.ouvre();
+    const n=chat.nonLus();if(n>0){b.append(mk('span','d-pastille',n>9?'9+':String(n)));b.setAttribute('aria-label','Ouvrir le chat, '+n+' nouveau'+(n>1?'x':'')+' message'+(n>1?'s':''))}bas.append(b)}
+  const qt=mk('button','d-quit',src==='spec'?'Quitter la partie':'Quitter la diffusion');qt.type='button';qt.onclick=quitter;bas.append(qt);
+  z.append(lo,bas);return z;
+}
+/* Chat (vue spectateur seulement) : ferme par defaut, pastille des nouveaux messages, fenetre par-dessus la vue ;
+   lecture par SPEC.chat / SPEC.onChat, ecriture par SPEC.dit (memes regles que le salon) */
+const chat={el:null,ul:null,in:null,inf:null,vus:0,branche:false,dernier:0,
+  liste(){return window.SPEC&&SPEC.chat?SPEC.chat()||[]:[]},
+  nonLus(){return this.el?0:Math.max(0,this.liste().length-this.vus)},
+  brancher(){if(this.branche||!window.SPEC||!SPEC.onChat)return;this.branche=true;
+    SPEC.onChat(()=>{if(!D||src!=='spec')return;if(this.el)this.peint();else{const b=scene&&scene.querySelector('.d-coin');if(b)b.replaceWith(coin())}})},
+  ouvre(){
+    if(this.el){this.in.focus();return}
+    const w=mk('div','d-chatw'),h=mk('div','d-ch'),fe=mk('button','pp-fermer','Fermer'),ul=mk('ul','d-cl'),f=mk('form','d-cf'),i=mk('input'),ok=mk('button','d-cenv','Envoyer'),inf=mk('div','d-cinf');
+    w.setAttribute('role','dialog');w.setAttribute('aria-label','Chat');fe.type='button';fe.onclick=()=>this.ferme();ok.type='submit';
+    i.type='text';i.maxLength=200;i.placeholder='Écrire un message';i.setAttribute('aria-label','Message');i.autocomplete='off';
+    h.append(mk('span','d-h','Chat'),fe);f.append(i,ok);w.append(h,ul,f,inf);
+    f.onsubmit=e=>{e.preventDefault();const m=i.value.replace(/\s+/g,' ').trim().slice(0,200);if(!m||!window.SPEC||!SPEC.dit)return;
+      const t=Date.now();if(t-this.dernier<1000){inf.textContent='Un message par seconde au plus.';return}
+      this.dernier=t;inf.textContent='';i.value='';Promise.resolve(SPEC.dit(m)).catch(()=>{inf.textContent='Message non envoyé.';i.value=m})};
+    this.el=w;this.ul=ul;this.in=i;this.inf=inf;scene.append(w);this.peint();
+    const b=scene.querySelector('.d-coin');if(b)b.replaceWith(coin());i.focus();
+  },
+  peint(){
+    const l=this.liste(),ul=this.ul,bas=ul.scrollHeight-ul.scrollTop-ul.clientHeight<30;ul.textContent='';this.vus=l.length;
+    if(!l.length)ul.append(mk('li','d-rien','Aucun message pour le moment.'));
+    l.slice(-100).forEach(x=>{const li=mk('li'),d=new Date(+x.t||Date.now());
+      li.append(mk('time','',String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')),mk('b','',(typeof x.p==='string'?x.p:'Joueur')+' :'),' '+String(x.m));ul.append(li)});
+    if(bas||!ul.dataset.vu){ul.scrollTop=ul.scrollHeight;ul.dataset.vu='1'}
+  },
+  ferme(){if(!this.el)return;this.vus=this.liste().length;this.el.remove();this.el=null;const b=scene&&scene.querySelector('.d-coin');if(b)b.replaceWith(coin())}
+};
+
+/* Nom trop long pour son bandeau : la police se reduit (54 px au plus) */
+function ajusteNoms(){
+  scene.querySelectorAll('.d-j').forEach(j=>{const n=j.querySelector('.d-nom'),c=j.querySelector('.d-cpt'),l=j.querySelector('.d-l1');let f=54,z=1;
+    while(f>26&&j.scrollWidth>j.clientWidth+1){f-=2;n.style.fontSize=f+'px'}
+    /* filet de securite : si les compteurs ou le badge ne tiennent toujours pas, ils rapetissent un peu plutot que d'etre coupes */
+    while(z>.7&&j.scrollWidth>j.clientWidth+1){z-=.03;c.style.zoom=z;l.querySelectorAll('.d-badge').forEach(b=>b.style.zoom=z)}});
+  scene.querySelectorAll('.d-vt').forEach(v=>{let f=28;while(f>14&&v.scrollHeight>v.clientHeight+1){f-=2;v.style.fontSize=f+'px'}});
+}
+
+/* ---------- Fenetres de fin ---------- */
+function fermePop(){if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi.pop=null;suivi.pile=null;suivi.vu=null}
+/* Piles (Deck, Defausse, Forge) : ordre de pioche (1 = prochaine carte), defausse de la plus recente a la plus ancienne, forge dans l'ordre */
+const PILES={deck:'Deck',defausse:'Défausse',forge:'Forge'};
+function cartesPile(o){const L=(E.etat.j[o.p][o.k]||[]).slice();return o.k==='defausse'?L.reverse():L}
+function sigPile(o){return o.p+o.k+':'+cartesPile(o).join()}
+function popPile(o,pp){
+  const L=cartesPile(o),n=L.length,h=mk('h2'),b=mk('span','',nom(o.p));b.style.color=COL[o.p];
+  h.append(PILES[o.k]+' '+d_(nom(o.p)),b,' ('+n+(n>1?' cartes':' carte')+')');pp.append(h);
+  if(!n){pp.append(mk('p','pp-sous pp-vide','Aucune carte.'));return}
+  /* lignes condensees comme le panneau de l'onglet Decks ; 1 colonne jusqu'a 12 cartes, 2 jusqu'a 36, 3 au-dela ; lecture colonne par colonne */
+  const nc=n<=12?1:n<=36?2:3,g=mk('ol','pp-pile');g.style.setProperty('--nc',nc);g.style.gridTemplateRows='repeat('+Math.ceil(n/nc)+',auto)';
+  L.forEach((c,i)=>{const li=mk('li');li.append(mk('span','pp-num',String(i+1)),lignePile(c));g.append(li)});
+  pp.append(g);
+}
+/* Ligne de carte condensee (cout, Force, elements, nom et titre) : couleurs des deux elements, animaux en vert, titre des evolutions en dore */
+function lignePile(c){
+  const u=U(),Mo=M(),C=Mo.carte(c),q=mk('button','dl-ligne'),co=mk('span','dl-cout'),fo=mk('span','dl-force'),e=mk('span','dl-els'),els=C.el||[];q.type='button';
+  if(els.length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+els[0]+')');q.style.setProperty('--b','var(--fm-'+els[1]+')')}else if(C.animal)q.classList.add('dl-animal');
+  co.append(u.ico('enclume'),String(C.cout));if(C.force!=null)fo.append(u.ico('force'),String(C.force));
+  els.forEach(x=>{const im=mk('img');im.src='cartes/'+x+'.png';im.alt=x;e.append(im)});
+  const pl=typeof u.nomComplet==='function'?u.nomComplet(Mo.nomDetail(C)):C.nom,v=pl.indexOf(', '),nm=mk('span','dl-nom');
+  nm.append(mk('span','dl-pseudo',v<0?pl:pl.slice(0,v)));
+  if(v>=0){const ti=mk('span','dl-titre',pl.slice(v+2));ti.style.color=C.base?'var(--or)':els[0]?'var(--'+els[0]+')':C.animal?'var(--animal-titre)':'var(--or)';nm.append(ti)}
+  q.append(co,fo,e,nm);q.setAttribute('aria-label','Agrandir '+pl);
+  q.onclick=()=>zoomCarte(c);q.onmouseenter=()=>u.montreApercu(q,u.srcC(c));q.onmouseleave=()=>u.cacheApercu();
+  return q;
+}
+/* Fenetre de fin de manche (copie gardee de cette manche, sinon l'etat courant) ou de fin de partie ; seul « Fermer » la ferme */
+function ouvrePop(type,m){
+  if(!D)return;
+  const g0=suivi.pop&&suivi.pile&&suivi.pop.querySelector('.pp-pile'),haut=g0?g0.scrollTop:0;
+  if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi.pile=null;
+  const v=mk('div','pp-voile'),pp=mk('div','pp');
+  suivi.vu=null;
+  /* tout recapitulatif se lit dans l'etat courant : journal et reperes de manche ne font que grandir */
+  if(type==='manche'){popManche(E.etat,m,pp);suivi.vu={type,m,log:E.etat.log.length}}
+  else if(type==='pile'){pp.classList.add('pp-p');popPile(m,pp);suivi.pile={p:m.p,k:m.k,sig:sigPile(m)};v.onclick=e=>{if(e.target===v)fermePop()}}
+  else{popPartie(E.etat,pp);suivi.vu={type,m,log:E.etat.log.length}}
+  const fe=mk('button','pp-fermer','Fermer');fe.type='button';fe.onclick=fermePop;pp.append(fe);
+  v.append(pp);scene.append(v);suivi.pop=v;
+  if(type==='pile'&&haut){const g=pp.querySelector('.pp-pile');if(g)g.scrollTop=haut}
+}
+/* Echap ferme la fenetre d'une pile (apres le zoom d'une carte s'il est ouvert) */
+document.addEventListener('keydown',e=>{if(e.key!=='Escape'||!D||!suivi)return;const z=document.getElementById('vue');if(z&&!z.hidden)return;
+  if(suivi.pile)fermePop();else if(chat.el)chat.ferme()},true);
+function score(sm,a,b){
+  const t=mk('div','pp-tot'),d=mk('div'),x=mk('b','',String(a)),y=mk('b','',String(b));x.style.color=COL[0];y.style.color=COL[1];
+  d.append(U().ico('coupe'),x,mk('span','','-'),y);t.append(mk('small','',sm),d);return t;
+}
+function popManche(s,m,pp){
+  const u=U();pp.append(mk('h2','','Fin de la manche '+m));
+  const g=mk('div','pp-ters');
+  s.stats.t.filter(t=>t.manche===m).forEach(t=>{const c=mk('div','pp-ter'),h=mk('div','pp-th');const T=s.terrains.find(x=>x.nom===t.terrain);h.append(mk('b','',T?T.nom:t.terrain),ptsEt('pp-pts',T?T.pts:t.points));c.append(h);
+    [0,1].forEach(p=>{const l=mk('div','pp-l'+(t.gagnant===p?' gagne':''));l.style.setProperty('--c',COL[p]);const n=mk('span','',nom(p));n.style.color=COL[p];const f=mk('em','',String(t.forces[p]));f.style.color=COL[p];l.append(avatar(p),n,f);c.append(l)});
+    /* une ligne : le pseudo se tronque (« Golem Ro... ») si la phrase ne tient pas ; la suite sur la ligne de base du pseudo */
+    const r=mk('div','pp-res'),l1=mk('div','pp-rl');
+    if(t.gagnant===0||t.gagnant===1){const b=mk('b','',nom(t.gagnant));b.style.color=COL[t.gagnant];l1.append(b,mk('span','',' marque '+t.points+(t.points>1?' points':' point')))}
+    else if(t.forces[0]===t.forces[1])l1.append(mk('span','','Égalité, personne ne marque'));
+    else l1.append(mk('span','','Marque à la manche 3'));
+    r.append(l1);
+    const de=deManche(s,m,t.terrain);if(de)r.append(mk('div','pp-rde',de));
+    c.append(r);g.append(c)});
+  pp.append(g);
+  const pm=ptsManche(s,m)||[0,0],tot=[0,0];for(let k=1;k<=m;k++){const x=ptsManche(s,k);if(x){tot[0]+=x[0];tot[1]+=x[1]}}
+  const bas=mk('div','pp-bas');
+  const bo=bonusManche(s,m);
+  [0,1].forEach(p=>{const w=mk('div','pp-gc'),x=mk('div','pp-gain'),n=mk('span','',nom(p)),i=mk('i','','+'+pm[p]);n.style.color=i.style.color=COL[p];x.append(avatar(p),n,i,u.ico('coupe'));w.append(x);
+    /* points hors terrains (Roi du Karaoke...) : petite ligne sous le gain, deja compris dans le +n */
+    if(bo[p].length)w.append(mk('div','pp-bonus',bo[p].join(' · ')));bas.append(w);
+    if(p===0)bas.append(score('Score',tot[0],tot[1]))});
+  pp.append(bas);
+}
+function popPartie(s,pp){
+  const u=U(),Mo=M(),F=s.fin,w=F.gagnant,vic=mk('div','pp-vic');
+  if(w===0||w===1){vic.style.setProperty('--c',COL[w]);const h=mk('h2','','Victoire '+d_(nom(w))+nom(w));h.style.color=COL[w];vic.append(avatar(w),h)}
+  else vic.append(mk('h2','','Match nul'));
+  if(F.abandon!==undefined)vic.append(mk('p','pp-sous',nom(F.abandon)+' a abandonné'));
+  else if(F.departage&&F.scores[0]===F.scores[1])vic.append(mk('p','pp-sous','Égalité de points : départage à la Force'));
+  vic.append(score('Score final',F.scores[0],F.scores[1]));pp.append(vic);
+  const tb=mk('table','pp-tab'),hr=mk('tr');['','Manche 1','Manche 2','Manche 3','Total'].forEach(x=>hr.append(mk('th','',x)));tb.append(hr);
+  const P=[1,2,3].map(m=>ptsManche(s,m));
+  [0,1].forEach(p=>{const tr=mk('tr',w===p?'gagne':''),n=mk('td'),nm=mk('div','nm'),sp=mk('span','',nom(p));tr.style.setProperty('--c',COL[p]);sp.style.color=COL[p];nm.append(avatar(p),sp);n.append(nm);tr.append(n);
+    P.forEach(x=>{const g=x&&x[p]>x[1-p],td=mk('td',g?'mg':'',x?String(x[p]):'-');td.style.color=g?COL[p]:'var(--texte)';tr.append(td)});
+    const tt=mk('td','',String(F.scores[p]));tt.style.color=COL[p];tr.append(tt);tb.append(tr)});
+  pp.append(tb);
+  /* MVP calcule comme le site (M.bilan, comme l'Historique et la fin de partie) : « Nom, Titre » dans la couleur du joueur, pictos des elements */
+  const B=Mo.bilan(s),x=B&&B.mvp;
+  if(x){const C=Object.values(Mo.CARTES).find(c=>Mo.nomDetail(c)===x.carte||c.nom===x.carte),mv=mk('div','pp-mvp'),n=mk('button','pp-mvp-n',typeof u.nomComplet==='function'?u.nomComplet(x.carte):x.carte);
+    n.type='button';n.style.color=COL[x.joueur];if(C)n.onclick=()=>{u.cacheApercu();u.zoom('cartes/'+C.id+'.jpg',C.nom)};
+    const col=mk('div','pp-mvp-c'),l1=mk('div','pp-mvp-l1');l1.append(n);
+    if(C&&C.el&&C.el.length){const e=mk('span','pp-mvp-els');C.el.forEach(y=>{const im=mk('img');im.src='cartes/'+y+'.png';im.alt=y;e.append(im)});l1.append(e)}
+    col.append(l1);const pq=pourquoiMvp(x);if(pq)col.append(mk('div','pp-mvp-pq',pq));
+    mv.append(mk('span','pp-mvp-e','MVP'),col);
+    pp.append(mv)}
+}
+/* Pourquoi MVP : meme formulation que ligneMvpD d'index.html (export Discord de l'Historique), valeurs nulles omises */
+function pourquoiMvp(m){
+  if(m.score==null)return '';
+  const pl=(n,w)=>n+' '+w+(n>1?'s':''),l=[];
+  if(m.force)l.push('Force '+m.force+' sur terrains gagnés');if(m.bonus)l.push(pl(m.bonus,'bonus donné'));
+  if(m.degats)l.push(pl(m.degats,'dégât'));if(m.morts)l.push(pl(m.morts,'Golem')+' détruit'+(m.morts>1?'s':''));
+  return 'Score '+m.score+(l.length?' · '+l.join(', '):'');
+}
+
+/* ---------- Ouverture et fermeture ---------- */
+function ouvrir(source,entree){
+  if(!window.GOLEMS_UI)return;
+  if(D)fermer();
+  src=source;E=entree;suivi=neufSuivi();
+  D=mk('div');D.id='dif';D.setAttribute('role','dialog');D.setAttribute('aria-label','Vue diffusion');
+  scene=mk('div','d-scene');D.append(scene);
+  /* telephone en portrait : la vue 16:9 se centre ; invitation discrete a tourner l'ecran */
+  const tp=mk('div','d-tourne');tp.append(mk('span','','Tourne ton téléphone pour agrandir la vue.'));
+  D.append(tp);
+  if(source==='spec')chat.brancher();chat.vus=chat.liste().length;document.body.append(D);document.documentElement.classList.add('dif-ouvert');
+  echelle();peindre();
+}
+/* « Quitter la partie » (spectateur) : la diffusion se ferme et le spectateur quitte la partie comme avec l'ancien bouton Quitter ;
+   demonstration : « Quitter la diffusion » arrete la partie locale */
+let sortieSpec=false; /* le spectateur vient de quitter : pas de reouverture tant qu'il est encore inscrit */
+function quitter(){const sp=src==='spec';fermer();if(sp){sortieSpec=true;const u=U();if(u&&typeof u.quitteBouton==='function')u.quitteBouton()}}
+function fermer(){
+  if(!D)return;
+  if(chat.el){chat.el.remove();chat.el=null}
+  if(src==='demo')demo.stop();
+  D.remove();D=null;scene=null;E=null;src=null;suivi=null;document.documentElement.classList.remove('dif-ouvert');
+}
+
+/* ---------- Vue spectateur : bouton « Mode diffusion » et mise a jour en direct ---------- */
+function lisSpec(x){
+  if(!x)return null;
+  if(x.etat&&x.etat.j){
+    if(Array.isArray(x.joueurs)&&!x.noms){const f=x.joueurs;return {etat:x.etat,noms:f.map(o=>o&&o.pseudo||''),avatars:f.map(o=>o&&o.avatar||''),uids:f.map(o=>o&&o.uid||'')}}
+    return {etat:x.etat,noms:x.noms||[],avatars:x.avatars||[],uids:x.uids||[]}}
+  if(x.j)return {etat:x,noms:x.noms||[],avatars:x.avatars||[],uids:[]};
+  return null;
+}
+let dernierSpec=null;
+/* joueurs partis (fin de partie) : on garde leurs noms et avatars deja connus */
+function garde(x){if(!E)return;['noms','avatars','uids'].forEach(k=>{const a=x[k]||(x[k]=[]),o=E[k]||[];[0,1].forEach(p=>{if(!a[p]&&o[p])a[p]=o[p]})})}
+function brancheSpec(){
+  const S=window.SPEC_UI;if(!S||S.__dif)return !!S;
+  const o=S.peindrePartieSpectateur;
+  S.peindrePartieSpectateur=function(e){const r=o.apply(this,arguments);dernierSpec=e;try{if(D&&src==='spec'){const x=lisSpec(e);if(x){garde(x);E=x;peindre()}}
+    /* un spectateur est toujours en vue diffusion : elle s'ouvre des qu'il regarde une partie */
+    else if(!D&&!sortieSpec&&window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur()&&document.querySelector('#partie.sp')){const x=lisSpec(e);if(x)ouvrir('spec',x)}}catch(z){console.warn(z)}return r};
+  /* plus spectateur (sortie du salon) : la diffusion se ferme ; une nouvelle entree comme spectateur la rouvrira */
+  if(window.SPEC&&SPEC.onChange)SPEC.onChange(()=>{if(SPEC.estSpectateur())return;sortieSpec=false;if(D&&src==='spec')fermer()});
+  S.__dif=true;return true;
+}
+if(!brancheSpec()){let n=0;const t=setInterval(()=>{if(brancheSpec()||++n>100)clearInterval(t)},100)}
+
+/* ---------- Demonstration (site d'essai seulement) : Golem Bleu contre Golem Rouge, robots Normal, deck par defaut ---------- */
+const demo={t:0,s:null,arret:true,enPause:false,
+  lance(){
+    if(D)fermer(); /* relance : l'ancienne partie s'arrete avant que la nouvelle commence */
+    const Mo=M(),dk=Mo.deckTexte(Mo.DECK_DEFAUT);
+    this.s=Mo.nouvelle((Math.random()*2147483647)|0,[dk,dk]);this.arret=false;this.enPause=false;
+    ouvrir('demo',{etat:this.s,noms:['Golem Bleu','Golem Rouge'],avatars:['golem67v2','golemheart'],uids:[]});
+    this.suite();
+  },
+  /* temps reel : environ 1,5 a 2 s par action (mulligan plus court) ; ne s'arrete pas pour les fenetres de fin de manche */
+  suite(){
+    clearTimeout(this.t);if(this.arret||this.enPause||!this.s||this.s.fin)return;
+    const s=this.s,Mo=M(),p=Mo.attendus(s)[0];if(p===undefined)return;
+    const a=Mo.robot(s,p,'normal');if(!a)return;
+    const ms=a.t==='m'?900:a.t==='p'?2000:a.t==='x'?1500:1700;
+    this.t=setTimeout(()=>{if(this.arret||this.enPause)return;
+      try{Mo.applique(s,p,a)}catch(e){console.warn('Démonstration',e);return}
+      if(D&&src==='demo')peindre();this.suite()},ms);
+  },
+  pause(){this.enPause=true;clearTimeout(this.t)},
+  reprend(){if(!this.enPause)return;this.enPause=false;this.suite()},
+  stop(){this.arret=true;clearTimeout(this.t);this.s=null}
+};
+function blocDemo(){
+  if(!ESSAI||document.getElementById('blocDemo'))return;
+  const r=document.getElementById('blocRobot');if(!r)return;
+  const b=mk('div','bloc'),bt=mk('button','btn plein','Démonstration');b.id='blocDemo';bt.type='button';bt.id='lanceDemo';
+  b.append(mk('h3','','Démonstration en vue diffusion'),bt);bt.onclick=()=>demo.lance();r.after(b);
+}
+blocDemo();
+
+window.DIFFUSION={ouvrir,fermer,demo,peindre,chat,etat:()=>({ouvert:!!D,src,pause:demo.enPause,pop:!!(suivi&&suivi.pop),fin:!!(E&&E.etat&&E.etat.fin)})};
+})();
