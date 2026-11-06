@@ -93,6 +93,7 @@ function lanceVol(){
 function fort(p,x){
   if(p!==0&&p!==1){if(/ meur(t|ent)( ensuite)?[ .:]/.test(x)||/ est détruit\.$/.test(x))return 'defausse';if(/ : égalité \d+ partout\.$/.test(x))return 'coupe';return null}
   if(/^améliore /.test(x))return 'manche';
+  if(/: Il suffit, détruit /.test(x))return 'defausse'; /* Le Q (Seul contre tous) : destruction */
   if(/^marque /.test(x))return 'coupe';
   const a=/^pose (.+)\.$/.exec(x);if(a&&Object.values(M().CARTES).some(c=>c.animal&&c.nom===a[1]))return 'main';
   if(/:\s\+\d+( points?)?\.$/.test(x)&&!(E&&E.etat.terrains.some(T=>x.startsWith(T.nom+' lance '))))return 'coupe';
@@ -303,7 +304,12 @@ function derniere(s){
   cf.append(u.ico('force'),'Force ');cf.append(mk('b','',C.force==null?'au dé':String(C.force)));
   (C.el||[]).forEach(e=>{const im2=mk('img');im2.src='cartes/'+e+'.png';im2.alt=e;ce.append(im2)});
   ch.append(cc,cf);if(C.el&&C.el.length)ch.append(ce);
-  tx.append(ph);if(t)tx.append(pe);tx.append(ch);
+  tx.append(ph);if(t)tx.append(pe);
+  /* Le Q : Jour de peche en cours (attente 'q' sur le deck adverse) : les 2 cartes regardees, a la place des pastilles */
+  const A=s.attente;
+  if(A&&A.t==='q'&&A.adv&&A.options){const pq=mk('p','d-phr d-peche');pq.append(mk('strong','','Jour de pêche'),' : défausser ');
+    A.options.forEach((c,i)=>{if(i)pq.append(' ou ');pq.append(nbCartes(Mo.nomDetail(Mo.carte(c))))});pq.append(' ?');tx.append(pq)}
+  else tx.append(ch);
   z.append(bt,tx);return z;
 }
 /* Phrase courte d'une ligne du journal */

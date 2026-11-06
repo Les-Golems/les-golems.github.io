@@ -87,7 +87,7 @@ const gol=(c,f,d=0)=>({c,f,d});
 }
 { // Cyrdan + Trait + cercle comptent pour la survie
   const s=vide();s.j[0].grille[0][0]=gol(12,1);s.j[0].grille[1][0]=gol(18,1,1);
-  assert.strictEqual(M.forceDe(s,0,1,0),1+1+1-1,'aura + Trait cristal');
+  assert.strictEqual(M.forceDe(s,0,1,0),1+1-1,'aura, sans Trait (Le Q Brume + Magma depuis la refonte)');
 }
 { // Boutique, KaTarN apres manche 1
   const s=vide();s.terrains=[TA(2),TA(3),TA(0)];s.j[0].grille[0][0]=gol(6,3);
@@ -119,12 +119,11 @@ const gol=(c,f,d=0)=>({c,f,d});
   assert.strictEqual(s.j[0].score,0,'Salle verrouillee');assert.strictEqual(s.j[0].grille[0][2].d,4);
   assert.strictEqual(s.j[1].score,2+2,'terrain + Karaoke');assert.strictEqual(s.manche,2);assert.strictEqual(s.joueur,1,'premier change');
 }
-{ // Le Q et Oracle
-  const s=vide();s.j[0].deck=[1,3,4,6];s.j[0].main=[18,21];s.j[0].energie=9;s.j[0].grille[1][1]=gol(0,8);
-  M.applique(s,0,{t:'p',c:18,l:0,k:0});assert.strictEqual(s.attente.t,'q');
-  M.applique(s,0,{t:'c',c:3});assert.deepStrictEqual(s.j[0].deck,[1,4,6]);
-  M.applique(s,0,{t:'p',c:21,l:0,k:0});assert.strictEqual(s.attente.t,'o');
-  M.applique(s,0,{t:'e',a:[0,0],b:[1,1]});assert.strictEqual(s.j[0].grille[0][0].c,0);assert.strictEqual(s.j[0].grille[1][1].c,21);
+{ // Le Q (refonte) : Jour de peche sur le deck adverse, puis Seul contre tous sans doublon (rien)
+  const s=vide();s.j[1].deck=[1,3,4,6];s.j[0].main=[18,21];s.j[0].energie=9;s.j[0].grille[1][1]=gol(0,8);
+  M.applique(s,0,{t:'p',c:18,l:0,k:0});assert.strictEqual(s.attente.t,'q');assert.deepStrictEqual(s.attente.options,[1,3]);
+  M.applique(s,0,{t:'c',c:3});assert.deepStrictEqual(s.j[1].deck,[1,4,6]);assert.deepStrictEqual(s.j[1].defausse,[3]);
+  M.applique(s,0,{t:'p',c:21,l:0,k:0});assert.strictEqual(s.attente,null);assert.strictEqual(s.j[0].grille[0][0].c,21);assert.strictEqual(s.j[0].grille[1][1].c,0);
 }
 { // Defausse a 7, journal trafique refuse
   const s=vide();s.j[0].main=[0,1,3,4,6,7,9,10,12];M.applique(s,0,{t:'x'});assert.strictEqual(s.attente.t,'d');
@@ -254,7 +253,7 @@ function finDeManche(s){s.joueur=1;s.premier=0;s.tour=3;M.applique(s,1,{t:'x'})}
   assert.strictEqual(B.mvp.score,B.mvp.force*M.POIDS_MVP.force+B.mvp.bonus*M.POIDS_MVP.bonus);
   assert.deepStrictEqual(B.tours[0],{manche:3,tour:3,joueur:1,energieGaspillee:0,pose:false});
   assert(B.joueurs[0].vuesNonPosees.length===1);
-  assert.strictEqual(M.CARTES['002e'].cout,3);assert.strictEqual(M.CARTES['004e'].cout,3);assert.strictEqual(M.CARTES['001'].cout,1);assert.strictEqual(T('La Faille').pts,2);
+  assert.strictEqual(M.CARTES['002e'].cout,3);assert.strictEqual(M.CARTES['004e'].cout,7);assert.strictEqual(M.CARTES['001'].cout,1);assert.strictEqual(T('La Faille').pts,2);
   {let dbl=0;for(let g=1;g<200;g++){const u=vide();u.rng=[g,g*7];u.j[0].main=[9];u.j[0].energie=9;u.j[0].grille[0][0]=gol(6,3);M.applique(u,0,{t:'p',c:9,l:0,k:0});const m=/lance (\d) et (\d) : Force (\d+)/.exec(u.log.map(x=>x[1]).join(' '));assert(m);const[a,b,f]=[+m[1],+m[2],+m[3]];if(a===b)dbl++;assert.strictEqual(f,a===b?a:a+b,'KEKWRevan')}assert(dbl)}
   assert.strictEqual(M.TAILLE_DECK,30);
   { /* 0.3 : 'tuto33', paquet de 33 cartes du Golem de la partie guidee, refuse comme deck de joueur */
@@ -305,7 +304,7 @@ for(let i=0;i<R;i++){
     M.applique(s,p,a);j[p].push(M.code(a));verifie(s);
   }
   const r=M.rejoue(gr,j);assert(!r.erreur,r.erreur);assert.strictEqual(JSON.stringify(r.etat),JSON.stringify(s));
-  const bl=M.bilan(s);assert(s.fin.gagnant===null?!bl.mvp:bl.mvp||!bl.joueurs[s.fin.gagnant].cartes.length,'mvp');assert(bl.tours.length>=18);pts[0]+=s.j[rb].score;pts[1]+=s.j[1-rb].score;
+  const bl=M.bilan(s);assert(s.fin.gagnant===null?!bl.mvp:bl.mvp||!bl.joueurs[s.fin.gagnant].cartes.length,'mvp');assert(bl.tours.length>=18||s.fin.deckVide!==undefined); /* deck par defaut avec Velnen et Titom76 (refonte de Le Q) : une fin par deck vide peut arriver avant le 18e tour */pts[0]+=s.j[rb].score;pts[1]+=s.j[1-rb].score;
   const g=s.fin.gagnant;vr[g===null?'nul':g===rb?'robot':'hum']++;
 }
 console.log(R+' parties robot sans blocage. Robot/humain/nul : '+vr.robot+'/'+vr.hum+'/'+vr.nul+', points moyens '+(pts[0]/R).toFixed(1)+' contre '+(pts[1]/R).toFixed(1));
@@ -515,7 +514,7 @@ duel('facile','normal');duel('normal','difficile');
   s=prep([48]);moi(s,45,2,1,1);moi(s,27,4,0,1);pose(s,48,1,1);assert(!M.ciblable(s,0,1,1,1),'Mode Avion copie');
   s=prep([48]);moi(s,45,2,1,1);moi(s,42,3,0,1);pose(s,48,1,1);assert.strictEqual(s.j[0].grille[1][1].cp,'009e');
   // copie de Le Q : attente 'q' ; copie de Bretagne : pioche ; copie d'une copie : l'effet copie
-  s=prep([48]);s.j[0].deck=[1,2,4];moi(s,45,2,1,1);moi(s,18,1,0,1);pose(s,48,1,1);assert(s.attente&&s.attente.t==='q','Le Q copie');
+  s=prep([48]);s.j[1].deck=[1,2,4];moi(s,45,2,1,1);moi(s,18,1,0,1);pose(s,48,1,1);assert(s.attente&&s.attente.t==='q'&&s.attente.adv,'Le Q copie : Jour de peche sur le deck adverse');
   s=prep([48]);s.j[0].deck=[1,2,4];s.j[1].deck=[5,7];moi(s,45,2,1,1);moi(s,57,1,0,1);adv(s,24,1,2,2);pose(s,48,1,1);
   assert.strictEqual(s.j[0].main.length,1,'Bretagne copiee : Titom76 seul compte (Apo Magma + Roche)');assert.strictEqual(s.j[1].main.length,1);
   s=prep([48]);moi(s,45,2,1,1);moi(s,48,3,0,1,{cp:'003'});pose(s,48,1,1);assert.strictEqual(s.j[0].grille[1][1].cp,'003','copie d un deguise = son effet copie');
@@ -532,7 +531,7 @@ duel('facile','normal');duel('normal','difficile');
   // --- Full synergie 0, 1, 2 (+2 maximum), en plus du Trait, cercle +2
   s=prep([]);moi(s,54,2,1,1);assert.strictEqual(M.forceDe(s,0,1,1),2,'0 voisin');
   moi(s,39,1,0,1);assert.strictEqual(M.forceDe(s,0,1,1),2+1+1,'1 element (Roche) : Trait +1, synergie +1');
-  moi(s,18,1,1,0);assert.strictEqual(M.forceDe(s,0,1,1),2+2+2,'2 elements : Trait +2, synergie +2');
+  moi(s,30,1,1,0);assert.strictEqual(M.forceDe(s,0,1,1),2+2+2,'2 elements : Trait +2, synergie +2');
   moi(s,6,3,2,1);assert.strictEqual(M.forceDe(s,0,1,1),2+3+2,'3e voisin Roche : Trait +1, synergie plafonnee a +2');
   adv(s,24,1,1,1);assert.strictEqual(M.forceDe(s,0,1,1),2+3+2+2,'Trigas en face : Cristal domine Foudre, +2');
   s=prep([]);moi(s,54,2,1,1);moi(s,12,1,1,2);assert.strictEqual(M.forceDe(s,0,1,1),2+1+2+2,'Cyrdan seul : aura +1, Trait +2, synergie +2');
@@ -834,7 +833,7 @@ duel('facile','normal');duel('normal','difficile');
   s=prep([]);s.terrains=[TA(1),TA(5),TA(4)];moi(s,57,1,1,1);kiwi(s,0,0,1,57);ok(!M.legales(s,0).some(a=>a.t==='w'),'Vaisseau : Kiwi ne s echange pas');
   moi(s,12,1,2,1);deq(M.legales(s,0).filter(a=>a.t==='w').map(M.code),['w112'],'Vaisseau : les 2 Golems seulement');
   s=prep([]);s.terrains=[TA(0),TA(8),TA(4)];moi(s,57,1,1,1);kiwi(s,0,1,2,57);ok(M.legales(s,0).filter(a=>a.t==='y').every(a=>a.l===1&&a.k===1),'Faille : Kiwi ne se deplace pas');
-  s=prep([21]);moi(s,57,1,0,0);kiwi(s,0,0,1,57);moi(s,18,1,2,2);M.applique(s,0,{t:'p',c:21,l:2,k:2});ok(s.attente&&s.attente.t==='o');deq(M.legales(s,0).map(M.code),['e0022'],'Oracle : Kiwi ne s echange pas');
+  s=prep([21]);moi(s,57,1,0,0);kiwi(s,0,0,1,57);moi(s,18,1,2,2);M.applique(s,0,{t:'p',c:21,l:2,k:2});ok(!s.attente);ok(s.j[0].grille[0][0]&&s.j[0].grille[0][1]&&s.j[0].grille[2][2],'Il suffit : Kiwi, Titom76 et Le Q restent (aucun doublon)');
   // --- Mignonitude : fin de manche, 1 Golem au hasard par grille ne compte pas (il reste), puis Kiwi part a la defausse
   const scene=rg=>{const u=prep([],rg);moi(u,57,1,1,1);kiwi(u,0,1,2,57);moi(u,12,1,0,0);moi(u,45,2,2,2);adv(u,13,1,0,1);adv(u,46,2,2,1);adv(u,6,4,1,0);return u};
   const forces=u=>u.j.map((J,p)=>J.grille.map((L,l)=>L.map((g,k)=>g&&!M.estAnimal(g.c)?M.forceDe(u,p,l,k):0)));
@@ -1082,7 +1081,7 @@ duel('facile','normal');duel('normal','difficile');
   s=prep([CH]);adv(s,63,1,1,1);chanson(s,1,1);M.applique(s,0,{t:'i',o:1});eq(M.spoms(s.j[0].grille),1);eq(M.spoms(s.j[1].grille),1);
   s=prep([CH]);adv(s,33,2,1,1);moi(s,12,1,0,1);moi(s,6,3,2,2);g=chanson(s,1,1);M.applique(s,0,{t:'i',o:1});ok(s.attente&&s.attente.t==='g','Indra copiee : favori');
   ok(!M.legales(s,0).some(a=>a.l===1&&a.k===1),'pas lui-meme');M.applique(s,0,{t:'g',l:0,k:1});eq(g.fav,12);eq(M.favori(s,0,12),1);
-  s=prep([CH]);s.j[0].deck=[1,2,4];s.j[1].deck=[5,7,8];adv(s,18,1,1,1);chanson(s,1,1);M.applique(s,0,{t:'i',o:1});ok(s.attente&&s.attente.t==='q'&&s.attente.p===0);deq(s.attente.options,[1,2,4],'son propre deck');
+  s=prep([CH]);s.j[0].deck=[1,2,4];s.j[1].deck=[5,7,8];adv(s,18,1,1,1);chanson(s,1,1);M.applique(s,0,{t:'i',o:1});ok(s.attente&&s.attente.t==='q'&&s.attente.p===0);deq(s.attente.options,[5,7],'Jour de peche imite : le deck adverse du chansonnier');ok(s.attente.adv);
   s=prep([CH],9);adv(s,6,4,1,1);g=chanson(s,1,1);M.applique(s,0,{t:'i',o:1});ok(g.f>=1&&g.f<=6,'Force = de');ok(L(s).some(x=>/^Alrevan lance le dé : Force \d\./.test(x)));
   // KaTarN : inconvenient compris (-4 en fin de manche)
   s=prep([CH]);adv(s,0,8,1,1);g=chanson(s,1,1);M.applique(s,0,{t:'i',o:1});eq(g.cp,'001');s.j[0].main=[];s.joueur=1;s.tour=3;s.j[1].etapeForge=false;M.applique(s,1,{t:'x'});

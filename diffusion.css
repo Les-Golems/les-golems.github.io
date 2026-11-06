@@ -145,6 +145,9 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-phr b{font:400 34px/1.15 var(--titre)}
 #dif .d-phr strong{font-family:var(--titre);font-weight:400;color:#fff}
 #dif .d-phr.d-rien{color:var(--doux)}
+#dif .d-phr.d-peche{margin-top:auto;font-size:22px;line-height:1.25;color:var(--doux)} /* Le Q : Jour de peche en cours, a la place des pastilles */
+#dif .d-phr.d-peche b{font-size:25px}
+#dif .d-txt:has(.d-peche){gap:12px}
 #dif .d-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:auto}
 #dif .d-chips>span{display:inline-flex;align-items:baseline;gap:7px;background:var(--encre);border:1px solid var(--trait);border-radius:10px 7px 11px 6px;padding:6px 10px;white-space:nowrap;font:700 22px/1 var(--corps);color:var(--doux)}
 #dif .d-chips b{font:400 26px/1 var(--titre);color:var(--texte)}

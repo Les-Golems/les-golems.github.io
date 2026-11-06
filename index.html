@@ -2539,7 +2539,7 @@ const CARTES=[
  ['001','KaTarN, Romain 18 ans',['magma','foudre'],0],['001e','KaTarN, Slim K',['magma','foudre'],1],
  ['002','Alrevan, Le High Roller Originel',['brume','roche'],0],['002e','Alrevan, KEKWRevan',['brume','roche'],1],
  ['003','Cyrdan, Le Champion des Tournois Annexes',['cristal','roche'],0],['003e','Cyrdan, Le Roi du Karaoké',['cristal','roche'],1],
- ['004',"Le Q, Maître de l'Excel",['brume','cristal'],0],['004e',"Le Q, L'Oracle des Stats",['brume','cristal'],1],
+ ['004','Le Q, Ragebaiter',['brume','magma'],0],['004e','Le Q, Seul contre tous',['brume','magma'],1],
  ['007','Trigas, Accro au Gacha',['foudre','brume'],0],['007e','Trigas, Le Roi du Mobile',['foudre','brume'],1],
  ['008','K-Chan, Reine du tilt',['magma','cristal'],0],['008e',"K-Chan, L'attachiante",['magma','cristal'],1],
  ['013','Indra, La Groupie',['cristal','magma'],0],['013e','Indra, La Fan enflammée',['cristal','magma'],1],
@@ -3473,25 +3473,35 @@ function lienSteps(L,av,s){
     return 0;
   });
 }
+/* Le Q (Seul contre tous) : « X : Il suffit, détruit A, B (adverse) ; C est protégé (Mode Avion). » -> [{nom,adv}] des cartes detruites, null sinon. */
+function ilSuffitNoms(x){
+  const m=/: Il suffit, détruit (.+?)(?: ; .*)?\.$/.exec(x);if(!m)return null;
+  return m[1].split(', ').map(n=>{const a=/ \(adverse\)$/.test(n);return {nom:a?n.slice(0,-10):n,adv:a}});
+}
 /* Noms du journal vers cases : les morts du moteur, vague par vague. */
-function vaguesDe(av,s,lignes){
-  const pris={},cherche=nom=>{
+function vaguesDe(av,s,lignes,act){ /* act : action jouee (Il suffit : Seul contre tous qui se detruit a sa pose) */
+  const pris={},cherche=(nom,pq)=>{ /* pq : joueur impose (Il suffit), sinon les deux */
     for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){
       const a=av.j[p].grille[l][k],b=s.j[p].grille[l][k],c=p+''+l+k;
-      if(a&&!b&&!pris[c]&&M.nomDetail(M.carte(a.c))===nom){pris[c]=1;return {p,l,k,c:a.c}}
+      if((pq===undefined||p===pq)&&a&&!b&&!pris[c]&&M.nomDetail(M.carte(a.c))===nom){pris[c]=1;return {p,l,k,c:a.c}}
     }
     return null};
-  return lignes.map(([,x])=>{
-    let m=/^(.+) (?:meurent|meurt)\.$/.exec(x),v=null;
+  return lignes.map(([q,x])=>{
+    let m=/^(.+) (?:meurent|meurt)\.$/.exec(x),v=null;const is=ilSuffitNoms(x);
+    if(is){v={noms:is.map(o=>o.nom),perte:false,secoue:true};v.cases=is.map(o=>cherche(o.nom,o.adv?1-q:q)).filter(Boolean); /* Le Q : destruction simultanee, une seule vague */
+      /* la carte posee se detruit elle-meme : absente de av (case vide ou base remplacee), sa vue vient d'un etat ou elle est posee */
+      if(act&&act.t==='p'&&!s.j[q].grille[act.l][act.k]&&!v.cases.some(c=>c.p===q&&c.l===act.l&&c.k===act.k)&&is.some(o=>!o.adv&&o.nom===M.nomDetail(M.carte(act.c)))){
+        const st=JSON.parse(JSON.stringify(av));st.j[q].grille[act.l][act.k]={c:act.c,f:M.carte(act.c).force,d:0};v.cases.push({p:q,l:act.l,k:act.k,c:act.c,st})}
+      return v}
     if(m)v={noms:m[1].split(' et '),perte:false};
     else if((m=/^La Nuit au Village : (.+) est détruit\.$/.exec(x)))v={noms:[m[1]],perte:false,secoue:true};
     else{const e=[...x.matchAll(/(?:^|\. )([^.:]+?) meurt ensuite/g)];if(e.length)v={noms:e.map(q=>q[1].trim()),perte:true}}
-    if(v)v.cases=v.noms.map(cherche).filter(Boolean);
+    if(v)v.cases=v.noms.map(n=>cherche(n)).filter(Boolean);
     return v;
   });
 }
 function etapesLignes(L,av,s,lignes,a){
-  const vagues=vaguesDe(av,s,lignes),touche=(cs,n)=>{
+  const vagues=vaguesDe(av,s,lignes,a),touche=(cs,n)=>{
     cs.forEach(([p,l,k])=>{const q=caseDe(p,l,k);ajoutFx({q,classe:'fx-deg',texte:'-'+n},1500);ajoutFx({q,classe:'fx-frappe'},500)});
     if(cs.length*n>=3&&!REDUIT.matches)ajoutFx({q:'.p-plateau',classe:'fx-secoue'},500);
     return T(cs.length?700:0);
@@ -3511,6 +3521,9 @@ function etapesLignes(L,av,s,lignes,a){
       des(p,m[1]==='Apo'?'Apo (Gamba)':m[1],[v],m[3].charAt(0).toUpperCase()+m[3].slice(1));
       if(o&&/perd 2 de Force$/.test(m[3]))L.push(()=>touche([[v<=2?p:1-p,o[0],o[1]]],2))}
     if(/^Glad : Slam, .* perd 1 de Force\.$/.test(x)&&a&&a.t==='h')L.push(()=>touche([[1-p,a.m,a.n]],1));
+    /* Le Q : Jour de peche, la carte defaussee vole du deck adverse a sa defausse (face visible : elle y est publique) */
+    if(/: Jour de pêche, (défausse |regarde la dernière carte du deck adverse et la défausse)/.test(x))L.push(()=>{const q=1-p,nv=s.j[q].defausse.filter(c=>!av.j[q].defausse.includes(c));
+      nv.forEach((c,i)=>vol(rectDe(piles(q,'deck')),rectDe(piles(q,'defausse')),srcC(c),500,i*120));return T(nv.length?500:0)});
     if(/^Slim K : 1 dégât/.test(x)&&a&&a.t==='p'){const c=[];[0,1,2].forEach(k=>{if(M.ciblable(av,1-p,a.l,k,p))c.push([1-p,a.l,k])});L.push(()=>touche(c,1))}
     if(/^(Kiwi|Jacen et Jaina) part à la défausse : son maître/.test(x))L.push(()=>{for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=av.j[p].grille[l][k];if(g&&M.carte(g.c).animal&&!s.j[p].grille[l][k])vol(rectDe(caseDe(p,l,k)),rectDe(piles(p,'defausse')),srcC(g.c),450,0)}return T(300)});
     if(x==='KaTarN perd 4 de Force.'){const c=[];for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=av.j[p].grille[l][k];if(g&&M.carte(g.c).id==='001')c.push([p,l,k])}L.push(()=>touche(c,4))}
@@ -3522,7 +3535,7 @@ function etapesLignes(L,av,s,lignes,a){
         const q=caseDe(c.p,c.l,c.k);
         tenus=tenus.filter(t=>t.q!==q);$('partie').querySelectorAll(q+' .fx-tenu').forEach(z=>z.remove());
         if(v.perte)ajoutFx({q,classe:'fx-deg',texte:'-1'},1100);
-        ajoutFx({q,fantome:()=>miniVue(av,c.p,c.l,c.k)},1100);
+        ajoutFx({q,fantome:()=>miniVue(c.st||av,c.p,c.l,c.k)},1100);
         vol(rectDe(q),rectDe(piles(c.p,'defausse')),srcC(c.c),450,650);
       });
       if(v.secoue&&!REDUIT.matches)ajoutFx({q:'.p-plateau',classe:'fx-secoue'},500);
@@ -3537,8 +3550,8 @@ function etapesLignes(L,av,s,lignes,a){
     return T(500);
   });
 }
-function tenusDe(av,s,lignes){
-  return vaguesDe(av,s,lignes).filter(Boolean).flatMap(v=>v.cases).map(c=>({q:caseDe(c.p,c.l,c.k),vue:()=>{const m=miniVue(av,c.p,c.l,c.k);m.classList.add('fx-tenu');return m}}));
+function tenusDe(av,s,lignes,act){
+  return vaguesDe(av,s,lignes,act).filter(Boolean).flatMap(v=>v.cases).map(c=>({q:caseDe(c.p,c.l,c.k),vue:()=>{const m=miniVue(c.st||av,c.p,c.l,c.k);m.classList.add('fx-tenu');return m}}));
 }
 function etapesDecompte(L,av,s,lignes){
   const me=partie.moi,cols=me===0?[0,1,2]:[2,1,0],D=s.dernier,S=[av.j[0].score,av.j[1].score];
@@ -3574,7 +3587,7 @@ function etapes(av,s,a,p){
     L.push(()=>{
       if(p!==me){derniereAdv=a.c;zoneMaj()}
       if(old)vol(rectDe(q),rectDe(piles(p,'defausse')),srcC(old.c),500);
-      fixe(s,tenusDe(av,s,avant));
+      fixe(s,tenusDe(av,s,avant,a));
       ajoutFx({q,classe:'arrive',mini:true},480);
       if(M.carte(a.c).base)ajoutFx({q,classe:'fx-evo',eclat:true},1950);
       return T(M.carte(a.c).base?900:300);
@@ -3950,6 +3963,8 @@ function pagesLog(s){
   return r;
 }
 function genreLog(x){
+  if(/: Il suffit, /.test(x))return / détruit /.test(x)?['j-mort','defausse']:['','tour']; /* Le Q (Seul contre tous) : destruction, ou rien (aucun doublon, Mode Avion) */
+  if(/: Jour de pêche, /.test(x))return /défausse/.test(x)?['j-degat','defausse']:['','tour']; /* Le Q : carte du deck adverse defaussee */
   if(/: (Comeback|Winstreak), pioche /.test(x))return ['j-pose','main']; /* Bellock et Loxim : partenaire pioché dans le deck, comme Graine de Golem */
   if(/: (Comeback|Winstreak), aucun /.test(x))return ['','tour']; /* aucun partenaire dans le deck : neutre */
   if(/: meandyou, /.test(x))return ['','tour']; /* Shifukuro (Le modérateur) : échange, refus ou rien à échanger, neutre comme l'échange du Q ; en tête, les noms échangés ne doivent rien déclencher */
@@ -3975,7 +3990,7 @@ function genreLog(x){
 }
 function causesLog(s){
   const m=new Map(),ev=s.stats.ev.filter(e=>e.t==='m');let i=0;
-  s.log.forEach(e=>{const x=e[1],a=/^(.+) (?:meurent|meurt)\.$/.exec(x),n=a?a[1].split(' et ').length:/est détruit\.$/.test(x)?1:(x.match(/meurt ensuite/g)||[]).length;
+  s.log.forEach(e=>{const x=e[1],a=/^(.+) (?:meurent|meurt)\.$/.exec(x),is=ilSuffitNoms(x),n=a?a[1].split(' et ').length:/est détruit\.$/.test(x)?1:is?is.length:(x.match(/meurt ensuite/g)||[]).length; /* Il suffit : 1 evenement de mort par carte detruite */
     if(a){const t=[...new Set(ev.slice(i,i+n).map(c=>(c.sc!=null?M.nomDetail(M.carte(c.sc))+', ':'')+String(c.lib).toLowerCase()))];if(t.length)m.set(e,' Cause : '+t.join(' ; ')+'.')}
     i+=n});
   return m;
@@ -5014,11 +5029,11 @@ function ouvreDeckLien(c){
 }
 /* Decks de depart conseilles (0.4) : 4 decks valides de 30 cartes, copies dans les decks du joueur (invite compris). */
 const DECKS_CONSEILLES=[
- {nom:"Tempête",cartes:{"007":3,"007e":3,"026":3,"026e":3,"901":1,"004":3,"004e":3,"018":2,"018e":2,"036":2,"036e":2,"035":2,"035e":1},
-  txt:"Forge tôt, pioche beaucoup avec Trigas et Titom76, puis améliore tes Golems en Roi du Mobile et Maître du bilig pour finir fort."},
- {nom:"Forge rapide",cartes:{"007":3,"007e":2,"029":3,"036":3,"035":3,"009":3,"018":3,"015":3,"004":2,"008":3,"001":1,"902":1},
+ {nom:"Tempête",cartes:{"007":3,"007e":3,"026":3,"026e":3,"901":1,"041":2,"041e":2,"018":3,"018e":2,"036":2,"036e":2,"035":3,"035e":1}, /* Le Q (refonte) : Le Q 3 et Seul contre tous 3 remplaces par Velnen 2, Le chansonnier 2, Elessar +1, JackJoy +1 */
+  txt:"Forge tôt, pioche beaucoup avec Trigas, Titom76 et Velnen, puis améliore tes Golems en Roi du Mobile et Maître du bilig pour finir fort."},
+ {nom:"Forge rapide",cartes:{"007":3,"007e":2,"029":3,"036":3,"035":3,"009":3,"018":3,"015":3,"026":2,"008":3,"001":1,"902":1}, /* Le Q (refonte) : Le Q 2 remplace par Titom76 2 */
   txt:"Pose 2 Golems pas chers par tour, remplis la grille avant l'adversaire et serre tes Golems pour profiter du Trait."},
- {nom:"Gros Golems",cartes:{"016":3,"015":3,"015e":2,"002":3,"002e":3,"041":3,"041e":3,"004":3,"004e":2,"007e":3,"007":2},
+ {nom:"Gros Golems",cartes:{"016":3,"016e":3,"015":3,"015e":3,"002":3,"002e":3,"041":3,"041e":3,"007e":3,"007":3}, /* Le Q (refonte) : Le Q 3 et Seul contre tous 2 remplaces par Le Ace de Aiges 3, Aiges Captain +1, Trigas +1 */
   txt:"Ne te presse pas : garde ton énergie pour Loxim, Le chansonnier et Roi du Mobile, et forge Bellock pour aller chercher Loxim."},
  {nom:"Roche et Magma",cartes:{"009":3,"009e":3,"029":3,"029e":2,"001":3,"001e":3,"018":3,"018e":3,"036":2,"036e":2,"002":2,"902":1},
   txt:"Fais baisser la Force des Golems d'en face avec Apo, Glad et Slim K, et pose KaTarN dès la manche 1."}
@@ -5203,8 +5218,8 @@ const BAC_NOTE={
  '002e':'High Roll : choisis les 2 dés (un double vaut un seul dé), ou relance-les.',
  '003':'Tournoi annexe compté : +1 à chaque voisin.',
  '003e':'Palmarès : +1 aux voisins compté ; les +2 points de fin de manche ne le sont pas.',
- '004':'Analyse (pioche) : sans effet sur la Force.',
- '004e':'Optimisation : l\'échange de 2 Golems se teste avec Déplacer ; la main adverse, non.',
+ '004':'Jour de pêche vise le deck adverse : sans effet sur la Force.',
+ '004e':'Il suffit : la destruction des cartes en plusieurs exemplaires n\'est pas comptée.',
  '007':'Spam (pioche et Forge) : sans effet sur la Force.',
  '007e':'Mode Avion (protection) : sans effet ici.',
  '008':'Rage : il faut subir des dégâts, non comptée.',
@@ -5988,7 +6003,11 @@ function affiche(){
       z.append(bouton(selMull.length?'Remplacer '+selMull.length+(selMull.length>1?' cartes':' carte'):'Garder ma main',()=>joue({t:'m',c:selMull.slice()})));
       pl.append(z);
     }
-  }else if(att&&att.t==='q'){
+  }else if(att&&att.t==='q'&&att.adv){
+    /* Le Q (refonte) : Jour de peche, les 2 premieres cartes du deck adverse ; la carte touchee va a sa defausse, l'autre reste dessus. Source : Le Q ou son copieur. */
+    con((att.src||'Le Q : Jour de pêche').replace(/ : Jour de pêche$/,'')+' (Jour de pêche) : choisis la carte à défausser parmi les 2 premières du deck adverse. L\'autre reste dessus.');
+    pl.append(mainVue(att.options,{p:lui,clic:c=>joue({t:'c',c})}),mainVue(J.main,{}));
+  }else if(att&&att.t==='q'){ /* ancien Le Q (Analyse, son propre deck) : replays des versions archivees */
     con('Le Q : choisis 1 carte, les autres restent sur le deck.');
     pl.append(mainVue(att.options,{clic:c=>joue({t:'c',c})}),mainVue(J.main,{}));
   }else if(att&&att.t==='b'){
@@ -5997,7 +6016,7 @@ function affiche(){
     pl.append(mainVue(att.options,{presse:c=>selMull.includes(c),clic:c=>{
       if(selMull.includes(c))selMull=selMull.filter(x=>x!==c);else selMull.push(c);
       if(selMull.length===n)joue({t:'b',o:selMull.slice()});else affiche()}}),mainVue(J.main,{}));
-  }else if(att&&att.t==='o'){
+  }else if(att&&att.t==='o'){ /* ancien Oracle des Stats (Optimisation) : replays des versions archivees seulement, plus rien ne cree l'attente 'o' */
     con(leg[0].t==='e'?'Oracle des Stats : main adverse ci-dessous. Touche 2 de tes Golems à échanger.':'Oracle des Stats : main adverse ci-dessous. Pas assez de Golems pour échanger.');
     pl.append(mainVue(s.j[lui].main,{p:lui}));
     if(leg[0].t==='v'){const z=el('div','p-btns');z.append(bouton('Continuer',()=>joue({t:'v'})));pl.append(z)}
@@ -6108,7 +6127,8 @@ function affiche(){
     }
   }else{
     /* « X joue. » : deja dit par la bande de tour adverse, seule la fin de manche garde sa consigne. */
-    if(s.fil||aMoi)con(nomJ(qui)+(s.fil?' choisit, fin de manche.':' joue.'));
+    if(s.attente&&s.attente.t==='q'&&s.attente.adv&&s.attente.p!==me)con(nomJ(s.attente.p)+' : Jour de pêche, regarde les 2 premières cartes de ton deck et choisit celle à défausser.'); /* Le Q adverse */
+    else if(s.fil||aMoi)con(nomJ(qui)+(s.fil?' choisit, fin de manche.':' joue.'));
     pl.append(mainVue(J.main,{}));
   }
   const piles=el('div','p-piles');
