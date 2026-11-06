@@ -57,7 +57,7 @@ const TYPES=['001','001e','002','002e','003','003e','004','004e','007','007e','0
    et Oracle des Stats (004e) ; jusqu'a 0.2c, 33 cartes (identifiants 0 a 32, rejeux par moteurs/moteur-0.2c.js et avant).
    Le Q (refonte) : Le Q 3 et Seul contre tous 2 remplaces par Velnen 3 et Titom76 2 (cartes qui aident a trouver ses cartes), toujours 30 cartes. */
 const TYPES_TEST=TYPES.slice(0,11);
-const DECK_DEFAUT={'001':3,'001e':3,'002':3,'002e':2,'003':3,'003e':2,'007':3,'007e':3,'008':3,'041':3,'026':2};
+const DECK_DEFAUT={'001':3,'001e':3,'002':3,'002e':2,'007':3,'007e':3,'041':3,'026':2,'018':3,'018e':2,'009':3}; /* 0.4a, 4 elements au plus : Cyrdan 3, Roi du Karaoke 2, K-Chan 3 remplaces par Elessar 3, Le pomplard 2, Glad 3 */
 /* Partie guidee : le Golem garde l'ancien paquet de 33 cartes (identifiants 0 a 32, comme jusqu'a 0.2c) pour retrouver la meme partie avec la graine 19445.
    Texte reserve, refuse par lisDeck (jamais un deck de joueur), lu seulement par nouvelle. */
 const DECK_TUTO='tuto33';
