@@ -477,9 +477,11 @@ async function ouvre() {
           if (typeof o.v === "string" && VERSION_OK.test(o.v)) v.v = o.v;
           if (typeof o.w === "string" && o.w) { v.w = o.w; v.q = String(o.q || "").slice(0, 24); }
           if (Number.isInteger(o.n) && o.n > 0) v.n = Math.min(o.n, 999);
+          // Partie en cours : g, manche m, score k ("a-b").
+          if (o.g === true) { v.g = true; if (Number.isInteger(o.m)) v.m = Math.min(Math.max(o.m, 1), 9); if (typeof o.k === "string" && /^\d{1,2}-\d{1,2}$/.test(o.k)) v.k = o.k; }
           if (annonceOn) {
             const { t, ...maj } = v;
-            for (const k of ["a", "d", "e", "v", "w", "q", "n"]) if (!(k in maj)) maj[k] = null;
+            for (const k of ["a", "d", "e", "v", "w", "q", "n", "g", "m", "k"]) if (!(k in maj)) maj[k] = null;
             try { await update(annRef, maj); return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
           }
           if (!annonceOn) await onDisconnect(annRef).remove();
@@ -518,7 +520,8 @@ async function ouvre() {
     },
     compte,
     // Salons publics pas encore lancés : f(liste de { code, u, p, a, d, e, t, v, w, q, n }) à chaque changement
-    // (v absent = ancienne version ; w, q = adversaire assis, absent = place libre ; n = spectateurs).
+    // (v absent = ancienne version ; w, q = adversaire assis, absent = place libre ; n = spectateurs ;
+    //  g = partie en cours, m = manche, k = score "a-b").
     annonces(f) {
       return onValue(ref(db, P + "annonces"), s => {
         const v = s.val() || {};

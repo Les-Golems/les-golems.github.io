@@ -109,6 +109,10 @@
         "w": { ".validate": "newData.isString() && root.child('salons').child($code).child('joueurs').hasChild(newData.val())" },
         "q": { ".validate": "newData.isString() && newData.val().length <= 24" },
         "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
+        // Partie en cours : g = true, manche m (1 a 9), score k "a-b" (place 0 - place 1), mis a jour en fin de manche.
+        "g": { ".validate": "newData.val() === true" },
+        "m": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9" },
+        "k": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,2}-[0-9]{1,2}$/)" },
         "t": { ".validate": "newData.val() === now" },
         "$autre": { ".validate": false }
       }
@@ -482,6 +486,10 @@
           "w": { ".validate": "newData.isString() && root.child('essai').child('salons').child($code).child('joueurs').hasChild(newData.val())" },
           "q": { ".validate": "newData.isString() && newData.val().length <= 24" },
           "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
+          // Partie en cours : g = true, manche m (1 a 9), score k "a-b" (place 0 - place 1), mis a jour en fin de manche.
+          "g": { ".validate": "newData.val() === true" },
+          "m": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9" },
+          "k": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,2}-[0-9]{1,2}$/)" },
           "t": { ".validate": "newData.val() === now" },
           "$autre": { ".validate": false }
         }

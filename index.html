@@ -319,6 +319,9 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 .po-ligne .po-inf{justify-content:flex-end}
 .po-ligne .po-obs{flex:none}
 .po-ligne .po-badge{position:static}
+/* Parties en cours (0.4) : manche et score */
+.po-score{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;background:var(--panneau);border:1px solid var(--trait);font-size:13px;color:var(--doux);white-space:nowrap}
+.po-score b{color:var(--texte);font-size:14px}
 @media (max-width:600px){.sl-liste li.po-ligne{flex-direction:column;align-items:stretch;text-align:center}.po-duo{flex:none;justify-content:center}.po-ligne .po-inf{justify-content:center}.po-ligne .po-obs{width:100%}}
 @media (max-width:1100px){.sl-liste.sl-grille{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:600px){.sl-liste.sl-grille{grid-template-columns:minmax(0,1fr)}.sl-liste li.sl-carte{min-height:0;gap:6px;padding:14px 12px 12px}.sl-liste .sl-carte .avatar{width:68px;height:68px;font-size:32px}}
@@ -821,7 +824,8 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#des){display:none}
   #accueil>.bloc{padding:16px}
   #reprise{grid-area:3/1/auto/-1}
   #blocListe{grid-area:4/1/auto/-1}
-  #accueil>.erreur{grid-area:5/1/auto/-1}
+  #blocEnCours{grid-area:5/1/auto/-1}
+  #accueil>.erreur{grid-area:6/1/auto/-1}
   #blocRobot .niveaux{grid-template-columns:repeat(4,minmax(0,1fr))}
   #accueil>#blocRobot>.p-btns{margin-top:0} /* selecteur Ton deck masque : boutons juste sous le titre */
 }
@@ -830,7 +834,7 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#des){display:none}
   #accueil{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px}
   #accueil>.bloc{display:flex;flex-direction:column}
   #accueil>.bloc>.btn,#accueil>.bloc>form,#accueil>.bloc>.p-btns{margin-top:auto}
-  #reprise,#blocListe,#accueil>.erreur,#premierePartie,#blocRobot{grid-column:1/-1}
+  #reprise,#blocListe,#blocEnCours,#accueil>.erreur,#premierePartie,#blocRobot{grid-column:1/-1}
   #blocRobot .niveaux{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
 /* Telephone : Tutoriel sur toute la largeur, les 3 niveaux dessous */
@@ -1768,6 +1772,10 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
         <h3>Parties ouvertes</h3>
         <div id="listeSalons" aria-live="polite"></div>
       </div>
+      <div class="bloc" id="blocEnCours">
+        <h3>Parties en cours</h3>
+        <div id="listeEnCours" aria-live="polite"></div>
+      </div>
       <div class="bloc" id="reprise" hidden>
         <h3>Partie en cours</h3>
         <div class="code" id="repriseCode"></div>
@@ -2613,16 +2621,27 @@ function majFace(nom){
   const v=h.filter(x=>x.res==='Victoire').length,d=h.filter(x=>x.res==='Défaite').length;
   z.hidden=!(v+d);if(v+d)z.textContent='Face-à-face : '+(pseudo||'Toi')+' '+v+' - '+d+' '+nom;
 }
-/* Annonce publique (0.4) : tenue par le createur d'un salon public tant que la partie n'a pas commence ;
-   adversaire assis (w, q) et nombre de spectateurs (n) compris. Les autres joueurs n'y touchent plus. */
+/* Annonce publique (0.4) : tenue par le createur d'un salon public tant que la partie n'a pas commence
+   (adversaire assis w, q et spectateurs n), puis pendant la partie par le joueur de la place 0 (en cours g, manche m,
+   score k), retiree a la fin. Les autres joueurs n'y touchent pas. Salon public note sur l'appareil (rechargement en partie). */
 let salonPublic=false,createur=false,annonceVue='',specAnn=false;
+const estPublic=c=>!!c&&lire('golems.pub.'+c)==='1';
+function notePublic(c,v){try{if(v)ecrire('golems.pub.'+c,'1');else localStorage.removeItem(LS('golems.pub.'+c))}catch(e){}}
 function majAnnonce(l){
-  if(!r||!r.annonce||!createur)return;
-  const ouvert=salonPublic&&!partie&&!l.some(p=>Number.isInteger(p.presence.jg));
+  if(!r||!r.annonce)return;
+  const E=window.SPEC&&SPEC.etatSalon?SPEC.etatSalon():null,ns=E&&E.actif&&Array.isArray(E.spectateurs)?E.spectateurs.length:0;
+  const adv=l.slice(0,MAX).find(p=>!p.sameTab),d=deckChoisi();
   let o=null;
-  if(ouvert){const d=deckChoisi(),adv=l.slice(0,MAX).find(p=>!p.sameTab),E=window.SPEC&&SPEC.etatSalon?SPEC.etatSalon():null;
-    o={d:d.nom,e:elsTexte(d.texte).join(','),v:maV,n:E&&E.actif&&Array.isArray(E.spectateurs)?E.spectateurs.length:0};
-    if(adv){o.w=adv.peer;o.q=nomDe(adv)}}
+  if(partie&&!partie.local){
+    if(partie.moi!==0||!(salonPublic||estPublic(code)))return;
+    const st=partie.etat;
+    if(st&&!st.fin)o={d:d.nom,e:elsTexte(d.texte).join(','),v:maV,n:ns,g:true,m:st.manche,k:st.j[0].score+'-'+st.j[1].score};
+    else if(!st)return;
+  }else{
+    if(!createur||l.some(p=>Number.isInteger(p.presence.jg)))return; /* lancement en cours : rien a changer */
+    if(salonPublic)o={d:d.nom,e:elsTexte(d.texte).join(','),v:maV,n:ns};
+  }
+  if(o&&adv){o.w=adv.peer;o.q=nomDe(adv)}
   const cle=o?JSON.stringify(o):'';
   if(cle===annonceVue)return;annonceVue=cle;
   r.annonce(o).catch(e=>{console.warn(e);annonceVue=''});
@@ -2634,11 +2653,30 @@ function nbSpec(x){const n=Number.isInteger(x.n)&&x.n>0?x.n:0,z=el('span','po-sp
 /* Observer : entrer dans le salon en spectateur (vue diffusion des que la partie commence). */
 function observer(x){if(!compteCo()){msgInvite();return}createur=false;salonPublic=false;annonceVue='';entre(x.code,{observer:true})}
 function boutonObserver(x,off){const b=el('button','btn sec po-obs');b.type='button';b.innerHTML=OEIL_PO;b.append('Observer');b.disabled=!!r||occupe||off;b.onclick=()=>observer(x);return b}
+/* Parties en cours (0.4) : parties publiques lancees et pas finies, une ligne chacune (joueurs, manche, score, spectateurs, Observer). */
+function peintEnCours(moi){
+  const u=$('listeEnCours');if(!u)return;u.textContent='';
+  const l=annoncesL.filter(x=>x.g===true&&typeof x.w==='string');
+  const g=el('ul','sl-liste po-lignes');
+  if(!l.length){g.append(el('li','sl-vide','Aucune partie en cours.'));u.append(g);return}
+  l.forEach(x=>{
+    const mien=!!moi&&(x.u===moi||x.w===moi),li=el('li','po-ligne'+(mien?' sl-mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur',nq=nettoie(typeof x.q==='string'?x.q:'')||'Joueur';
+    const xv=vOk(x.v),vd=!mien&&!!maV&&xv!==maV,duo=el('div','po-duo'),j=(n,a)=>{const s=el('span','po-j');s.append(a,el('b','',n));return s};
+    duo.append(j(nom,x.u?avatarUid(nom,x.u,x.a):avatarDe(nom,x.a)),el('span','po-vs','VS'),j(nq,avatarUid(nq,x.w)));
+    const k=typeof x.k==='string'&&/^\d{1,2}-\d{1,2}$/.test(x.k)?x.k.split('-'):['0','0'],sc=el('span','po-score');
+    sc.append('Manche ',el('b','',String(Number.isInteger(x.m)?x.m:1)),' · Score ',el('b','',k[0]+' - '+k[1]));
+    const inf=el('span','po-inf');inf.append(sc,nbSpec(x));
+    li.append(duo,inf);if(mien)li.append(el('span','sl-badge po-badge','Ta partie'));else li.append(boutonObserver(x,vd));
+    g.append(li);
+  });
+  u.append(g);
+}
 /* Parties ouvertes (variante C) : places libres en cartes (Rejoindre / Observer), puis salons complets en lignes (Observer). */
 function peintListe(){
   const u=$('listeSalons');if(!u)return;u.textContent='';
   const moi=room&&room.compte?room.compte.uid():'';
-  const l=[...annoncesL.filter(x=>moi&&x.u===moi),...annoncesL.filter(x=>x.u!==moi)];
+  peintEnCours(moi);
+  const l=[...annoncesL.filter(x=>moi&&x.u===moi),...annoncesL.filter(x=>x.u!==moi)].filter(x=>x.g!==true);
   if(!l.length){const v=el('ul','sl-liste');v.append(el('li','sl-vide','Aucune partie ouverte. Crée la tienne !'));u.append(v);return}
   const libres=l.filter(x=>typeof x.w!=='string'),pleins=l.filter(x=>typeof x.w==='string');
   const titre=(t,n)=>{const h=el('p','po-gt',t+' ');h.append(el('b','',String(n)));u.append(h)};
@@ -2816,7 +2854,7 @@ function msgInvite(){
 /* Mode spectateur (spectateur.js) : quitter joueurs sans revenir a l'accueil, ou y entrer comme adversaire. */
 window.__golemsSpecQuitte=async()=>{const a=r;r=null;finPartie();if(a)try{await a.leave()}catch(e){}};
 /* 0.4 : le createur est parti avant la partie, je deviens createur (spectateur.js) ; salon public = annonce republiee par majAnnonce. */
-window.__golemsSpecPromu=o=>{createur=true;salonPublic=!!(o&&o.public);annonceVue='';nbSalon=1;if(r)majSalon()};
+window.__golemsSpecPromu=o=>{createur=true;salonPublic=!!(o&&o.public);notePublic(code,salonPublic);annonceVue='';nbSalon=1;if(r)majSalon()};
 window.__golemsSpecRejoint=c=>{if(window.SPEC_UI&&SPEC_UI.quitterVuePartie)try{SPEC_UI.quitterVuePartie()}catch(e){}$('partie').hidden=true;$('jouer').classList.remove('enJeu');return entre(c)};
 /* Spectateur : la vue de partie s'ouvre comme au lancement d'une partie des qu'une partie tourne dans le salon. */
 let specVue=false;function specBranche(){if(specVue||!window.SPEC)return;specVue=true;SPEC.onChange(()=>{if(!SPEC.estSpectateur()||!SPEC.etatPartie())return;if($('partie').hidden||!$('jouer').classList.contains('enJeu')){$('salon').hidden=true;$('accueil').hidden=true;$('partie').hidden=false;$('jouer').classList.add('enJeu')}})}
@@ -2825,7 +2863,7 @@ async function entre(c,opt){
   occupe=true;majEtat();$('erreurJeu').textContent='';jePret=false;nbSalon=0;
   const sv=chargeSalon(c);
   try{
-    if(window.SPEC&&!specAnn){specAnn=true;SPEC.onChange(()=>{if(r&&createur)majAnnonce(ordre(r.peers()))})} /* spectateurs comptes dans l'annonce */
+    if(window.SPEC&&!specAnn){specAnn=true;SPEC.onChange(()=>{if(r)majAnnonce(ordre(r.peers()))})} /* spectateurs comptes dans l'annonce */
     if(window.SPEC){const rl=await SPEC.entrer(c,{createur,observer:!!(opt&&opt.observer)});if(rl==='spec'){specBranche();r=null;code=c;$('codeSalon').textContent=c.toUpperCase();$('accueil').hidden=true;$('salon').hidden=false;occupe=false;majEtat();return}}
     const s=await room.join(c);
     r=s;code=c;entree=Date.now();
@@ -2910,7 +2948,7 @@ function finPartie(){arreteGuide();M=M0;clearTimeout(rejeuT);rejeuT=0;{const b=$
 function nouveauSid(){return Math.random().toString(36).slice(2,12)}
 /* Sauvegarde locale par code de salon */
 function cleSalon(c){return 'golems.partie.'+c}
-function oublie(c){try{localStorage.removeItem(LS(cleSalon(c)));if(lire('golems.derniere')===c)localStorage.removeItem(LS('golems.derniere'))}catch(e){}}
+function oublie(c){notePublic(c,false);try{localStorage.removeItem(LS(cleSalon(c)));if(lire('golems.derniere')===c)localStorage.removeItem(LS('golems.derniere'))}catch(e){}}
 function sauve(){
   if(partie&&(partie.rejeu||partie.tuto))return; /* partie guidee : ni reprise ni sauvegarde */
   if(partie&&partie.local){ecrire('golems.local',JSON.stringify({version:M.VERSION,niveau:partie.niveau,debut:partie.debut,graine:partie.graine,mien:partie.mien,sien:partie.sien,decks:partie.decks,deckNom:partie.deckNom,recapVu:partie.recapVu,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));return}
@@ -5993,9 +6031,9 @@ $('creer').onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(creerSalo
 const creerSalon=async()=>{
   occupe=true;majEtat();
   const reste=attenteLobby-Date.now();if(reste>0)await pause(reste);
-  createur=true;salonPublic=$('salonPublicCase').checked;
+  createur=true;salonPublic=$('salonPublicCase').checked;const c0=nouveauCode();notePublic(c0,salonPublic);
   if(room&&room.nettoie)room.nettoie().catch(()=>{}); /* salons inactifs depuis plus de 7 jours */
-  await entre(nouveauCode());
+  await entre(c0);
 };
 $('formCode').onsubmit=e=>{
   e.preventDefault();
