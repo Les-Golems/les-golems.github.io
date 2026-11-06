@@ -920,6 +920,7 @@ function bilan(s){
   const ligne=(p,c)=>{const n=nomDetail(carte(c));return J[p].cartes[n]||(J[p].cartes[n]={carte:n,poses:0,coutPaye:0,manches:[],degats:0,subis:0,morts:0,mortsSubies:0,auto:0,recuperes:0,soinsDonnes:0,forceTerrains:0,
     bonusRecus:{voisins:0,trait:0,cercle:0,favori:0},bonusDonnes:{voisins:0,trait:0,cercle:0,favori:0},sources:{}})};
   s.stats.ev.forEach(e=>{
+    if(e.t==='jj')return; /* pioche de Jacen et Jaina : ni carte ni source, rien au bilan (bilan plantait des que les chats avaient pioche) */
     if(e.t==='p'){const r=ligne(e.cp,e.cc);r.poses++;r.coutPaye+=e.n;r.manches.push(e.m);if(estAnimal(e.cc))r.animal=true;return}
     if(e.t==='a'){ligne(e.cp,e.cc).forceTerrains+=e.n;return}
     if(e.t==='r'){ligne(e.cp,e.cc).recuperes+=e.n;if(e.y==='love'){ligne(e.sp,e.sc).soinsDonnes+=e.n;J[e.sp].soins+=e.n}return} /* K-Chan : soins donnes */
