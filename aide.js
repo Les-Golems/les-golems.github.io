@@ -30,7 +30,7 @@ const MC={
 const FORMES={
   animal:'animaux de compagnie|animal de compagnie|animaux|animal|maîtres?',
   enface:'en face',
-  taligne:'(?:ta|sa) ligne|(?:ton|son) terrain',
+  taligne:'(?:ta|sa) ligne(?! d[\'’])|(?:ton|son) terrain',
   forge:'forg(?:e|es|er|ez|ent|eons|eant|é|ée|és|ées|era|eras|erai)',
   energie:'énergies?',
   voisin:'voisin(?:e|es|s)?',
@@ -88,29 +88,38 @@ let mot=null,pile=[];
 function cercleHtml(){const p=h('p','ib-cercle');[['Magma','m'],['Cristal','c'],['Foudre','f'],['Brume','b'],['Roche','r'],['Magma','m']].forEach(([n,k],i)=>{if(i)p.append(' > ');p.append(h('span','el-'+k,n))});return p}
 function remplit(){
   const k=pile[pile.length-1],m=MC[k],prec=pile.length>1?MC[pile[pile.length-2]]:null;ib.textContent='';
-  if(prec){const r=h('button','ib-ret','< Retour : '+prec.t);r.type='button';r.onclick=()=>{pile.pop();remplit();place()};ib.append(r)}
+  if(prec){const r=h('button','ib-ret','< Retour : '+prec.t);r.type='button';r.onclick=()=>{pile.pop();remplit();place(true)};ib.append(r)}
   const t=h('h4','',m.t);t.id='ibTitre';ib.setAttribute('aria-labelledby','ibTitre');ib.append(t,h('p','ib-def',m.d));
   if(m.cercle)ib.append(cercleHtml());
-  const va=h('p','ib-va','Voir aussi : ');m.va.forEach((x,i)=>{if(i)va.append(', ');const b=h('button','ib-lien',MC[x].t);b.type='button';b.onclick=()=>{pile.push(x);remplit();place()};va.append(b)});
+  const va=h('p','ib-va','Voir aussi : ');m.va.forEach((x,i)=>{if(i)va.append(', ');const b=h('button','ib-lien',MC[x].t);b.type='button';b.onclick=()=>{pile.push(x);remplit();place(true)};va.append(b)});
   ib.append(va);
 }
 function parentDefile(e){
-  for(let p=e.parentElement;p&&p!==document.body;p=p.parentElement){const o=getComputedStyle(p).overflowY;if((o==='auto'||o==='scroll')&&p.scrollHeight>p.clientHeight+1)return p}
-  return null;
+  for(let p=e.parentElement;p&&p!==document.body;p=p.parentElement){const o=getComputedStyle(p).overflowY;if(o==='auto'||o==='scroll')return p}
+  return document.scrollingElement||document.documentElement;
 }
-/* Jamais sur le texte : sous le paragraphe entier (fleche vers le mot), sinon au-dessus ; si rien ne tient, on fait defiler. */
+/* Marge temporaire en bas du bloc qui defile, pour pouvoir remonter un paragraphe place tout en bas (rendue a la fermeture). */
+let marge=null;
+function rendMarge(){if(marge){marge.el.style.paddingBottom=marge.avant;marge=null}}
+/* Sous le paragraphe entier, fleche vers le mot, jamais sur le texte ; si la bulle ne tient pas dessous, on fait defiler
+   (avec une marge si besoin) ; au-dessus seulement en dernier recours. */
 function place(defile){
   if(!mot||ib.hidden)return;
   if(!mot.isConnected){ferme();return}
   const bloc=mot.closest('p,li,.lg,.p-lignes>div,div')||mot,M=12,w=ib.offsetWidth,hh=ib.offsetHeight;
-  let r=mot.getBoundingClientRect(),p=bloc.getBoundingClientRect();
-  const sous=p.bottom+10+hh<=innerHeight-M,sur=p.top-10-hh>=M;
-  if(defile&&!sous&&!sur){
-    const besoin=p.bottom+10+hh-(innerHeight-M),max=Math.max(0,p.top-M-60),d=Math.min(besoin,max);
-    if(d>0){const sp=parentDefile(bloc);if(sp)sp.scrollTop+=d;else scrollBy(0,d);r=mot.getBoundingClientRect();p=bloc.getBoundingClientRect()}
+  /* Paragraphe du mot : le bloc sans ses sous-listes (une puce qui contient une liste imbriquee) */
+  const sousBloc=[...bloc.children].find(c=>/^(UL|OL|DIV|P|TABLE)$/.test(c.tagName)&&!c.contains(mot)&&c.compareDocumentPosition(mot)&Node.DOCUMENT_POSITION_PRECEDING);
+  const rect=()=>{if(!sousBloc)return bloc.getBoundingClientRect();const g=document.createRange();g.setStartBefore(bloc.firstChild);g.setEndBefore(sousBloc);return g.getBoundingClientRect()};
+  let r=mot.getBoundingClientRect(),p=rect();
+  const manque=()=>p.bottom+10+hh-(innerHeight-M);
+  if(defile&&manque()>0){
+    const sp=parentDefile(bloc),cible=sp===document.scrollingElement||sp===document.documentElement?document.body:sp;
+    const lim=()=>Math.max(0,p.top-M-60),fais=()=>{const d=Math.min(manque(),lim());if(d>0){sp.scrollTop+=d;r=mot.getBoundingClientRect();p=bloc.getBoundingClientRect()}};
+    fais();
+    if(manque()>0&&lim()>0&&!marge){marge={el:cible,avant:cible.style.paddingBottom};cible.style.paddingBottom=(hh+40)+'px';r=mot.getBoundingClientRect();p=rect();fais()}
   }
   let x=Math.min(Math.max(M,r.left+r.width/2-w/2),innerWidth-w-M),y,dessous=true;
-  if(p.bottom+10+hh<=innerHeight-M||p.top-10-hh<M)y=p.bottom+10;else{y=p.top-10-hh;dessous=false}
+  if(manque()<=0||p.top-10-hh<M)y=p.bottom+10;else{y=p.top-10-hh;dessous=false}
   ib.style.left=x+'px';ib.style.top=y+'px';ib.style.setProperty('--fl',Math.min(Math.max(14,r.left+r.width/2-x),w-14)+'px');
   ib.classList.toggle('dessous',dessous);ib.classList.toggle('dessus',!dessous);
 }
@@ -118,23 +127,43 @@ function ouvre(m){
   document.querySelectorAll('.mc.actif').forEach(x=>x.classList.remove('actif'));
   mot=m;m.classList.add('actif');m.setAttribute('aria-expanded','true');pile=[m.dataset.mc];
   if(!ib.isConnected)document.body.append(ib);
-  ib.hidden=false;remplit();place(true);
+  rendMarge();ib.hidden=false;remplit();place(true);
 }
-function ferme(){ib.hidden=true;if(mot){mot.classList.remove('actif');mot.removeAttribute('aria-expanded')}mot=null}
+function ferme(){clearTimeout(tOuvre);clearTimeout(tFerme);epingle=false;ib.hidden=true;rendMarge();if(mot){mot.classList.remove('actif');mot.removeAttribute('aria-expanded')}mot=null}
 window.golemsAide={ouvre,ferme,decore,MC};
 
-/* Clic ou toucher : ouvre ou ferme ; ailleurs : ferme. Survol (souris) : ouvre si aucune bulle n'est ouverte. */
+/* Ordinateur : survol du mot 300 ms -> bulle ; elle se ferme quand la souris quitte le mot et la bulle (le passage du mot a la bulle
+   ne la ferme pas, « Voir aussi » reste cliquable). Clic sur le mot (ou dans la bulle) : bulle epinglee, fermee par un clic ailleurs ou Echap.
+   Telephone : toucher le mot ouvre, toucher ailleurs ferme. */
+let epingle=false,tOuvre=0,tFerme=0;
+const basculeClic=m=>{if(mot===m&&!ib.hidden){if(epingle||tactile.matches)ferme();else epingle=true}else{ouvre(m);epingle=true}};
 document.addEventListener('click',e=>{
   const m=e.target.closest&&e.target.closest('.mc');
-  if(m){e.preventDefault();e.stopPropagation();if(mot===m&&!ib.hidden)ferme();else ouvre(m);return}
-  if(!ib.hidden&&!ib.contains(e.target))ferme();
+  if(m){e.preventDefault();e.stopPropagation();clearTimeout(tOuvre);clearTimeout(tFerme);basculeClic(m);return}
+  if(ib.hidden)return;
+  if(ib.contains(e.target)){epingle=true;clearTimeout(tFerme);return}
+  ferme();
 },true);
 document.addEventListener('keydown',e=>{
   const m=e.target.closest&&e.target.closest('.mc');
-  if(m&&(e.key==='Enter'||e.key===' ')){e.preventDefault();e.stopPropagation();if(mot===m&&!ib.hidden)ferme();else ouvre(m)}
+  if(m&&(e.key==='Enter'||e.key===' ')){e.preventDefault();e.stopPropagation();basculeClic(m)}
 },true);
 addEventListener('keydown',e=>{if(e.key==='Escape'&&!ib.hidden){e.stopPropagation();const m=mot;ferme();m&&m.focus&&m.focus({preventScroll:true})}},true);
-document.addEventListener('mouseover',e=>{if(tactile.matches)return;const m=e.target.closest&&e.target.closest('.mc');if(m&&ib.hidden)ouvre(m)});
+const dansZone=n=>n&&n.nodeType===1&&(ib.contains(n)||(mot&&mot.contains(n)));
+document.addEventListener('mouseover',e=>{
+  if(tactile.matches)return;
+  if(dansZone(e.target)){clearTimeout(tFerme);return}
+  const m=e.target.closest&&e.target.closest('.mc');
+  clearTimeout(tOuvre);
+  if(m&&!epingle)tOuvre=setTimeout(()=>{if(m.isConnected&&m.matches(':hover'))ouvre(m)},300);
+});
+document.addEventListener('mouseout',e=>{
+  if(tactile.matches||epingle||ib.hidden)return;
+  const m=e.target.closest&&e.target.closest('.mc');
+  if(m&&!mot)clearTimeout(tOuvre);
+  if(!dansZone(e.target)||dansZone(e.relatedTarget))return;
+  clearTimeout(tFerme);tFerme=setTimeout(()=>{if(!epingle&&!ib.matches(':hover')&&!(mot&&mot.matches(':hover')))ferme()},200);
+});
 addEventListener('scroll',()=>{if(!ib.hidden)place()},true);
 addEventListener('resize',()=>{if(!ib.hidden)place()});
 
@@ -144,9 +173,11 @@ function texteCarte(){
   const d=$('vueDetail'),img=$('vueImg'),G=window.GolemsMoteur;
   if(!d||!img||!G||d.querySelector('.aide-carte')||!$('vue')||$('vue').hidden)return;
   if($('vueTerrain')&&!$('vueTerrain').hidden)return;
-  const C=Object.values(G.CARTES).find(c=>c.nom===img.alt);
+  /* alt = nom, ou « nom, sous-titre » dans l'onglet Cartes */
+  const alt=img.alt||'',C=Object.values(G.CARTES).filter(c=>c.nom&&(alt===c.nom||alt.startsWith(c.nom+', '))).sort((a,b)=>b.nom.length-a.nom.length)[0];
   if(!C||C.animal||!C.texte)return;
-  const s=h('section','aide-carte'),sous=[];
+  const s=h('section','aide-carte'),sous=[],st=alt.slice(C.nom.length+2).trim();
+  if(st)sous.push(st);
   if(C.base&&G.CARTES[C.base])sous.push('Évolution de '+G.CARTES[C.base].nom);
   if(C.el&&C.el.length)sous.push(C.el.map(e=>NOMS_EL[e]||e).join(', '));
   sous.push('coût '+C.cout);sous.push(C.force==null?'Force au dé':'Force '+C.force);

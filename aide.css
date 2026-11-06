@@ -2,7 +2,7 @@
    Tout le code est dans aide.js ; ce fichier ne touche que ses propres classes (mc, ib, rg-) et le texte de carte du panneau de detail. */
 
 /* --- Mot-cle : pointille bleu discret --- */
-.mc{cursor:help;-webkit-tap-highlight-color:transparent;border-radius:3px;text-decoration:underline dotted rgba(1,193,240,.75);text-decoration-thickness:1.5px;text-underline-offset:3px}
+.mc{white-space:nowrap;cursor:help;-webkit-tap-highlight-color:transparent;border-radius:3px;text-decoration:underline dotted rgba(1,193,240,.75);text-decoration-thickness:1.5px;text-underline-offset:3px}
 .mc:hover,.mc.actif{text-decoration-style:solid;text-decoration-color:var(--bleu)}
 .mc:focus-visible{outline:2px solid var(--bleu);outline-offset:1px}
 
