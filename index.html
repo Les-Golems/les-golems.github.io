@@ -706,6 +706,15 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 /* Force en jeu : chiffre vert au-dessus de la Force de base, rouge en dessous (memes teintes au zoom, FORCE_VERT / FORCE_ROUGE). */
 .p-case .f.plus b,#vueDetail .tot b.plus{color:#3ee86a}
 .p-case .f.moins b,#vueDetail .tot b.moins{color:#ff3b30}
+/* Signes pour daltoniens (proposition C) : fleche sur la Force modifiee, pastille sur la carte fautive, mot Animal. Couleurs inchangees. */
+.p-case .f.plus b::after,.p-case .f.moins b::after{position:absolute;top:-2px;left:-4px;font:900 13px/1 sans-serif;color:#fff;-webkit-text-stroke:2px #0a121a;paint-order:stroke fill}
+.p-case .f.plus b::after{content:'\25B2'}.p-case .f.moins b::after{content:'\25BC'}
+#vueDetail .tot b.plus,#vueDetail .tot b.moins{position:relative;padding-left:.7em}
+#vueDetail .tot b.plus::before,#vueDetail .tot b.moins::before{position:absolute;left:0;top:-.15em;font:900 .7em/1 sans-serif}
+#vueDetail .tot b.plus::before{content:'\25B2'}#vueDetail .tot b.moins::before{content:'\25BC'}
+.dl-ligne.dl-fautive{position:relative}
+.dl-ligne.dl-fautive::after{content:'!';position:absolute;right:46px;top:50%;margin-top:-10px;width:20px;height:20px;border-radius:50%;background:#fff;color:#0a121a;font:900 15px/20px sans-serif;text-align:center;pointer-events:none}
+.dl-force.dl-mot{grid-column:span 2;font:800 11px/1 var(--corps);letter-spacing:.04em;text-transform:uppercase;opacity:.9;color:#fff}
 /* Paquets du joueur */
 .p-piles{display:flex;justify-content:center;gap:18px}
 .pile{position:relative;width:72px;text-align:center;font:400 17px/20px var(--titre);color:var(--texte)}
@@ -4342,7 +4351,7 @@ function dessineStats(RT){
     const co=el('span','dl-cout');co.append(ico('enclume'),String(C.cout));{const f=forceAff(C);if(f!=null){fo.append(ico('force'),f);if(f.includes(','))fo.classList.add('dl-dec')}}c[2].forEach(y=>e.append(picto(y)));
     const v=c[1].indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',v<0?c[1]:c[1].slice(0,v)));
     if(v>=0){const ti=el('span','dl-titre',c[1].slice(v+2));ti.style.color=coulT(c);nm.append(ti)}
-    q.append(co,fo,e,nm);q.setAttribute('aria-label',c[1]+', '+pl2(n,'partie')+(p===null?'':', '+p+' % de victoires'));
+    if(estAnimal(c)){fo.className='dl-force dl-mot';fo.textContent='Animal';q.append(co,fo,nm)}else q.append(co,fo,e,nm);q.setAttribute('aria-label',c[1]+', '+pl2(n,'partie')+(p===null?'':', '+p+' % de victoires'));
     q.onclick=()=>{cacheApercu();dernier=q;zoom(src,c[1])};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
     const s=el('div','pf-dst'),t=el('b','pf-dt',txt(p));t.style.color=coul(p);
     if(x.rang)s.append(el('span','pf-dk st-rg',rangTx(x.rang)+' · '));s.append(t,el('span','pf-dk',' de victoires · '+pl2(n,'partie')));if(x.peu)s.append(el('span','pf-peu','moins de 5 parties'));
@@ -4738,7 +4747,7 @@ async function ouvreProfil(autre){
     const co=el('span','dl-cout');co.append(ico('enclume'),String(C.cout));{const f=forceAff(C);if(f!=null){fo.append(ico('force'),f);if(f.includes(','))fo.classList.add('dl-dec')}}c[2].forEach(y=>e.append(picto(y)));
     const vi=c[1].indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',vi<0?c[1]:c[1].slice(0,vi)));
     if(vi>=0){const ti=el('span','dl-titre',c[1].slice(vi+2));ti.style.color=coulT(c);nm.append(ti)}
-    q.append(co,fo,e,nm);q.onclick=()=>{cacheApercu();dernier=q;zoom(src,c[1],toi?statZoomCarte(c[0]):undefined)};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
+    if(estAnimal(c)){fo.className='dl-force dl-mot';fo.textContent='Animal';q.append(co,fo,nm)}else q.append(co,fo,e,nm);q.onclick=()=>{cacheApercu();dernier=q;zoom(src,c[1],toi?statZoomCarte(c[0]):undefined)};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
     li.append(q,stat(x));return li};
   /* Ligne commune ordinateur / joueurs : pastille ou avatar, nom, jauge, taux ; dessous : parties et victoires. */
   const ligne=(avt,nm,o)=>{const p=pc(o),s=el('div','pf-slot'),r=el('div','pf-bl'),j=el('span','pf-jauge'),f=el('i'),b=el('b','',p===null?'-':p+' %');
@@ -5172,7 +5181,7 @@ function decklist(b,d,l){
     const v=c[1].indexOf(', '),nm=el('span','dl-nom');
     nm.append(el('span','dl-pseudo',v<0?c[1]:c[1].slice(0,v)));
     if(v>=0){const ti=el('span','dl-titre',c[1].slice(v+2));ti.style.color=coulT(c);ti.title=c[1].slice(v+2);nm.append(ti)}
-    q.append(co,fo,e,nm,el('span','dl-nb','×'+n));
+    if(estAnimal(c)){fo.className='dl-force dl-mot';fo.textContent='Animal';q.append(co,fo,nm,el('span','dl-nb','×'+n))}else q.append(co,fo,e,nm,el('span','dl-nb','×'+n));
     q.onclick=()=>{ap.hidden=true;zoom(src,c[1])};
     if(matchMedia('(hover:hover)').matches){
       q.onmouseenter=ev=>{ap.src=src;ap.hidden=false;place(ev)};q.onmousemove=place;q.onmouseleave=()=>{ap.hidden=true};
@@ -5819,7 +5828,7 @@ function ligneZt(c){
   co.append(ico('enclume'),String(C.cout));if(C.force!=null)fo.append(ico('force'),String(C.force));els.forEach(x=>e.append(picto(x)));
   const pl=cc?cc[1]:C.nom,v=pl.indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',v<0?pl:pl.slice(0,v)));
   if(v>=0){const ti=el('span','dl-titre',pl.slice(v+2));ti.style.color=C.base?'var(--or)':els[0]?'var(--'+els[0]+')':C.animal?'var(--animal-titre)':'var(--or)';ti.title=pl.slice(v+2);nm.append(ti)}
-  q.append(co,fo,e,nm);q.setAttribute('aria-label','Agrandir '+pl);
+  if(C.animal){fo.className='dl-force dl-mot';fo.textContent='Animal';q.append(co,fo,nm)}else q.append(co,fo,e,nm);q.setAttribute('aria-label','Agrandir '+pl);
   q.onclick=()=>{cacheApercu();zoom(src,C.nom)};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
   return q;
 }
