@@ -1414,10 +1414,10 @@ header .haut .moi{min-width:0;flex:0 1 auto}
 .ver-etq:focus-visible{outline:2px solid var(--encre);outline-offset:2px}
 .ver-etq[hidden]{display:none}
 .ver-etq.ve-charge{opacity:.55;cursor:default}.ver-etq.ve-inerte{cursor:default}
-@container titre-site (max-width:275px){.haut .st-ligne{margin-top:2px;line-height:1.05}.ver-etq{display:block;width:fit-content;margin:-2px 0 0;padding:0 6px;font-size:10.5px;line-height:11px}}
-@container titre-site (max-width:212px){.haut .st-ligne{margin-top:1px;line-height:1}.ver-etq{margin-top:-3px}}
-@media (max-width:440px){.haut .st-ligne{margin-top:2px;font-size:13.5px;line-height:1.1}.ver-etq{margin-top:-2px;font-size:10px}}
-@media (max-width:359px){.haut .st-ligne{font-size:12px;line-height:1.05}.ver-etq{margin-top:-1px;padding:0 5px;font-size:9.5px;line-height:10px}}
+@container titre-site (max-width:275px){.haut .st-ligne{margin-top:2px;line-height:1.05}.ver-etq{display:block;width:fit-content;margin:2px 0 0;padding:0 6px;font-size:10.5px;line-height:11px}}
+@container titre-site (max-width:212px){.haut .st-ligne{margin-top:1px;line-height:1}.ver-etq{margin-top:1px}}
+@media (max-width:440px){.haut .st-ligne{margin-top:2px;font-size:13.5px;line-height:1.1}.ver-etq{margin-top:2px;font-size:10px}}
+@media (max-width:359px){.haut .st-ligne{font-size:12px;line-height:1.05}.ver-etq{margin-top:3px;padding:0 5px;font-size:9.5px;line-height:10px}}
 /* Site d'essai (/essai/) seulement : classe html.essai posee par le script (absente du site public). Liseré orange en haut de l'en-tete
    (ombre interne, sans changer la hauteur) et pastille « SITE D'ESSAI » a cote du titre. */
 html.essai header{box-shadow:inset 0 5px 0 #ff7a1a}
@@ -2434,11 +2434,11 @@ NOUVEAUTES.forEach(n=>{
 /* Une seule liste du plus récent au plus ancien (grille 2 colonnes, gauche puis droite) : tout nouveau bloc s'insère en tête.
    Blocs vidéo : présentation seule, cadrée à la hauteur du bloc voisin, juste avant le bloc de sa version. Un bloc par entrée, le plus récent en tête. */
 const NOUVEAUX_GOLEMS=[
- {titre:'Nouveaux Golems disponibles : GénéralBrioche, JackJoy, K-Chan, Vic222.\nEt plus encore…',date:'5 novembre 2026',version:'Version 0.3',apres:true,
+ {titre:'Nouveaux Golems disponibles : GénéralBrioche, JackJoy, K-Chan, Vic222.\nEt plus encore…',date:'5 novembre 2026',version:'Version 0.3',apres:true,
   video:'videos/nouvelles_cartes_05nov.mp4',affiche:'videos/nouvelles_cartes_05nov.jpg',aria:'Présentation des nouvelles cartes de la version 0.3'},
- {titre:'Nouveaux Golems disponibles : trop nombreux pour les citer',date:'4 novembre 2026',version:'Version 0.2b',
+ {titre:'Nouveaux Golems disponibles : trop nombreux pour les citer',date:'4 novembre 2026',version:'Version 0.2b',
   video:'videos/nouvelles_cartes_04nov.mp4',affiche:'videos/nouvelles_cartes_04nov.jpg',aria:'Présentation des nouvelles cartes'},
- {titre:'Nouveaux Golems disponibles : Indra et Glad',date:'3 novembre 2026',version:'Version 0.2a',
+ {titre:'Nouveaux Golems disponibles : Indra et Glad',date:'3 novembre 2026',version:'Version 0.2a',
   video:'videos/nouveaux_golems.mp4',affiche:'videos/nouveaux_golems.jpg',aria:'Présentation des nouveaux Golems'}
 ];
 NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
@@ -2703,7 +2703,7 @@ function zoom(src,alt,detail,calque){
   $('vueImg').hidden=$('vueBoite').hidden=false;$('vueTerrain').hidden=true;$('vueImg').src=src;$('vueImg').alt=alt;
   const q=$('vueCalque');q.textContent='';if(calque)q.append(...calque);
   const d=$('vueDetail'),vu=!!detail&&detail.some(x=>!x.hidden);d.textContent='';d.hidden=!vu;$('vueGrand').classList.toggle('avecDetail',vu);if(detail)d.append(...detail);
-  $('vue').hidden=false;$('fermer').focus();
+  $('vue').hidden=false;$('fermer').focus({preventScroll:true});$('vue').scrollTop=0;
 }
 $('tasFermer').onclick=()=>{$('vueTas').hidden=true};
 $('vueTas').onclick=e=>{if(e.target===$('vueTas'))$('vueTas').hidden=true};
@@ -4360,7 +4360,7 @@ function deckJoue(){
 }
 function bandeauDeck(d){
   if(!d||typeof d.nom!=='string')return el('span','h-deck h-sans','Deck non noté');
-  const b=el('span','h-deck',d.nom),e=(Array.isArray(d.els)?d.els:[]).filter(x=>/^(magma|cristal|foudre|brume|roche)$/.test(x));
+  const b=el('span','h-deck',d.nom==='Test'&&!d.cartes?'Deck par défaut':d.nom),e=(Array.isArray(d.els)?d.els:[]).filter(x=>/^(magma|cristal|foudre|brume|roche)$/.test(x));
   b.style.background=e.length>1?'linear-gradient(90deg,'+e.map((x,i)=>'var(--fm-'+x+') '+Math.round(100*i/(e.length-1))+'%').join(',')+')':e.length?'var(--fm-'+e[0]+')':'var(--panneau2)';
   return b;
 }

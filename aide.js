@@ -114,7 +114,7 @@ function place(defile){
   const manque=()=>p.bottom+10+hh-(innerHeight-M);
   if(defile&&manque()>0){
     const sp=parentDefile(bloc),cible=sp===document.scrollingElement||sp===document.documentElement?document.body:sp;
-    const lim=()=>Math.max(0,p.top-M-60),fais=()=>{const d=Math.min(manque(),lim());if(d>0){sp.scrollTop+=d;r=mot.getBoundingClientRect();p=bloc.getBoundingClientRect()}};
+    const doc=sp===document.scrollingElement||sp===document.documentElement,lim=()=>Math.max(0,doc?p.top-M-60:p.top-sp.getBoundingClientRect().top-M),fais=()=>{const d=Math.min(manque(),lim());if(d>0){sp.scrollTop+=d;r=mot.getBoundingClientRect();p=bloc.getBoundingClientRect()}};
     fais();
     if(manque()>0&&lim()>0&&!marge){marge={el:cible,avant:cible.style.paddingBottom};cible.style.paddingBottom=(hh+40)+'px';r=mot.getBoundingClientRect();p=rect();fais()}
   }
