@@ -24,17 +24,23 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-nom{font:400 54px/1 var(--titre);white-space:nowrap}
 #dif .d-j.toi .d-nom{color:var(--moi)}
 #dif .d-j.lui .d-nom{color:var(--lui)}
-#dif .d-cpt{display:flex;gap:10px;font-size:22px;font-weight:400;color:#c9d4e2;line-height:1.1;white-space:nowrap}
+#dif .d-cpt{display:flex;gap:6px;font-size:22px;font-weight:400;color:#c9d4e2;line-height:1.1;white-space:nowrap}
 #dif .d-j.dr .d-cpt{flex-direction:row-reverse;justify-content:flex-start}
-#dif .d-cpt>span{display:inline-flex;align-items:center;gap:5px}
+#dif .d-cpt>span{display:inline-flex;align-items:center;gap:3px} /* ecarts resserres : Main, Deck, Defausse et Energie a 2 chiffres tiennent avec un pseudo de 54 px */
 #dif .d-cpt .ico{font-size:24px;color:var(--bleu)}
 #dif .d-cpt b{font:400 26px/1 var(--titre);color:#fff}
 #dif .d-j.actif{border:3px solid var(--bleu);background:linear-gradient(90deg,rgba(1,193,240,.30),rgba(1,193,240,.06) 70%),var(--panneau);box-shadow:0 0 0 2px rgba(1,193,240,.35),0 0 34px rgba(1,193,240,.45)}
 #dif .d-j.dr.actif{background:linear-gradient(270deg,rgba(1,193,240,.30),rgba(1,193,240,.06) 70%),var(--panneau)}
 #dif .d-badge{background:var(--bleu);color:var(--encre);font:400 28px/1 Anton,var(--titre);text-transform:uppercase;letter-spacing:.03em;padding:9px 16px;border-radius:12px 8px 13px 7px;white-space:nowrap}
-#dif .d-ener{display:inline-flex;align-items:center;gap:8px;background:var(--or);color:var(--encre);font:800 22px/1 var(--corps);padding:6px 10px;border-radius:10px 7px 11px 6px}
+#dif .d-ener{display:inline-flex;align-items:center;gap:5px;background:var(--or);color:var(--encre);font:800 22px/1 var(--corps);padding:6px 8px;border-radius:10px 7px 11px 6px}
 #dif .d-ener b{font:400 30px/1 var(--titre);color:var(--encre)}
 #dif .d-ener .ico{font-size:26px;color:#6d5212}
+/* chiffres des compteurs et de l'Energie : case fixe de 2 chiffres (largeur de « Energie 99 »), chiffres a chasse fixe ; rien ne bouge de 9 a 10 */
+/* Deck, Defausse, Forge, Energie : cliquables (la taille ne change pas au survol) */
+#dif .d-pile{cursor:pointer;border-radius:8px 6px 9px 5px;transition:background .15s,box-shadow .15s}
+#dif .d-cpt>.d-pile:hover,#dif .d-cpt>.d-pile:focus-visible{background:rgba(1,193,240,.16);box-shadow:0 0 0 5px rgba(1,193,240,.16);outline:none}
+#dif .d-ener.d-pile:hover,#dif .d-ener.d-pile:focus-visible{box-shadow:0 0 0 3px rgba(240,190,60,.45);outline:none}
+#dif .d-cpt b,#dif .d-ener b{display:inline-block;min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
 #dif .d-mid{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:24px;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--trait);border-radius:13px 22px 12px 24px/22px 13px 24px 12px}
 #dif .d-sc{display:flex;align-items:center;gap:22px;font:400 92px/1 var(--titre)}
 #dif .d-sc b{font-weight:400;color:var(--moi)}
@@ -47,6 +53,9 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-pts i{width:20px;height:20px;background:var(--trait);border-radius:7px 4px 8px 3px/4px 8px 3px 7px;transform:rotate(45deg) scale(.8)}
 #dif .d-pts i.fait{background:#0d6f88}
 #dif .d-pts i.on{background:var(--bleu);box-shadow:0 0 10px var(--bleu)}
+/* losanges des manches terminees : rouvrent le recapitulatif de la manche */
+#dif .d-pts i.d-clic{cursor:pointer;transition:transform .15s,box-shadow .15s,background .15s}
+#dif .d-pts i.d-clic:hover,#dif .d-pts i.d-clic:focus-visible{transform:rotate(45deg) scale(1);background:var(--bleu);box-shadow:0 0 12px var(--bleu);outline:none}
 
 /* ---------- Plateau : grilles du site reduites de 15 % ---------- */
 #dif .d-plat{left:24px;top:186px;width:673px;height:878px;display:flex;flex-direction:column;gap:12px}
@@ -93,6 +102,8 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-tm.toi{color:var(--moi)}
 #dif .d-tm>span{font:700 22px/1 var(--corps);color:var(--doux)}
 #dif .d-tm .d-joue{font:400 22px/1 Anton,var(--titre);letter-spacing:.03em;text-transform:uppercase;background:var(--bleu);color:var(--encre);padding:5px 10px;border-radius:8px 6px 9px 5px}
+/* « Joue » et « A lui de jouer » dans la couleur du joueur dont c'est le tour : bleu a gauche, orange a droite */
+#dif .d-tm.lui .d-joue,#dif .d-j.lui .d-badge{background:var(--lui)}
 #dif .d-main{display:flex}
 #dif .d-main button{display:block;flex:none;padding:0;border:0;background:none;cursor:zoom-in}
 #dif .d-main img{display:block;width:100%;height:100%;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.5)}
@@ -108,7 +119,7 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 /* ---------- Derniere carte jouee ---------- */
 #dif .d-der{overflow:hidden;left:727px;top:414px;width:769px;height:422px;padding:0;display:grid;grid-template-columns:298px minmax(0,1fr);gap:0}
 #dif .d-der>button{display:block;padding:0;border:0;background:none;cursor:zoom-in}
-#dif .d-der>button img{display:block;width:298px;height:418px;border-radius:16px 0 0 16px}
+#dif .d-der>button img{display:block;width:298px;height:418px;border-radius:5.07%/3.62%} /* arrondis de la carte, comme le zoom : rien ne depasse dans les coins */
 #dif .d-der.vide{grid-template-columns:minmax(0,1fr)}
 #dif .d-txt{padding:22px 26px;display:flex;flex-direction:column;gap:18px;min-width:0}
 #dif .d-phr{margin:0;font-size:28px;line-height:1.3;font-weight:700}
@@ -116,17 +127,24 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-phr strong{font-family:var(--titre);font-weight:400;color:#fff}
 #dif .d-phr.d-rien{color:var(--doux)}
 #dif .d-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:auto}
-#dif .d-chips>span{display:inline-flex;align-items:center;gap:7px;background:var(--encre);border:1px solid var(--trait);border-radius:10px 7px 11px 6px;padding:6px 10px;white-space:nowrap;font:700 22px/1 var(--corps);color:var(--doux)}
+#dif .d-chips>span{display:inline-flex;align-items:baseline;gap:7px;background:var(--encre);border:1px solid var(--trait);border-radius:10px 7px 11px 6px;padding:6px 10px;white-space:nowrap;font:700 22px/1 var(--corps);color:var(--doux)}
 #dif .d-chips b{font:400 26px/1 var(--titre);color:var(--texte)}
-#dif .d-chips img{width:28px;height:28px}
+#dif .d-chips img{width:28px;height:28px;align-self:center}
+#dif .d-chips .ico{align-self:center}
 #dif .d-chips .ico{font-size:24px;color:var(--bleu)}
 
 /* ---------- Dernieres actions ---------- */
 #dif .d-act{display:block;left:1516px;top:414px;width:380px;height:422px;padding:14px 16px 16px;overflow:hidden}
 #dif .d-act .d-h{margin-bottom:12px}
-#dif .d-act ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+#dif .d-act{display:flex!important;flex-direction:column}
+#dif .d-ah{display:flex;flex-direction:column;align-items:stretch;gap:10px;white-space:nowrap}
+#dif .d-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;font:400 24px/1 var(--titre);letter-spacing:.02em;text-transform:none;color:var(--texte)}
+#dif .d-nav button{background:transparent;border:1px solid var(--trait);border-radius:8px 6px 9px 5px;color:var(--texte);font:800 30px/1 var(--corps);width:44px;height:34px;padding:0 0 4px;cursor:pointer}
+#dif .d-nav button:hover:not(:disabled){border-color:var(--bleu);color:var(--bleu)}
+#dif .d-nav button:disabled{opacity:.3;cursor:default}
+#dif .d-act ol{list-style:none;margin:0;padding:0 4px 0 0;display:flex;flex-direction:column;gap:12px;overflow-y:auto;min-height:0;flex:1;scrollbar-width:thin}
 #dif .d-act li{display:flex;align-items:flex-start;gap:10px;font-size:22px;line-height:1.25;font-weight:700}
-#dif .d-act li>span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+#dif .d-act li{flex:none}
 #dif .d-act li .ico{font-size:24px;color:var(--bleu);flex:none;margin-top:2px}
 #dif .d-act li b{font-family:var(--titre);font-weight:400}
 #dif .d-act li b.d-ca{color:#fff}
@@ -134,27 +152,25 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-act li.dern{color:#fff}
 #dif .d-act li:not(.dern){color:var(--doux)}
 
-/* ---------- Coin : logo, vitesse (demonstration), sortie ---------- */
+/* ---------- Coin : logo, Resultat (fin de partie), sortie ---------- */
 #dif .d-coin{left:1516px;top:854px;width:380px;height:210px;display:flex;flex-direction:column;align-items:center}
 #dif .d-logo{flex:1;display:flex;align-items:center;justify-content:center}
 #dif .d-logo img{width:150px;height:150px;display:block}
 #dif .d-bas{display:flex;align-items:center;gap:14px}
-#dif .d-quit,#dif .d-vit button{background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 22px/1 var(--titre);padding:9px 14px;opacity:.75;cursor:pointer}
-#dif .d-quit:hover,#dif .d-vit button:hover{opacity:1}
-#dif .d-vit{display:flex;gap:4px}
-#dif .d-vit button{font-size:22px;padding:9px 7px;opacity:.55}
-#dif .d-vit button.on{opacity:1;color:var(--texte);border-color:var(--doux)}
+#dif .d-quit,#dif .d-res{background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 22px/1 var(--titre);padding:9px 14px;opacity:.75;cursor:pointer}
+#dif .d-res{opacity:.55}
+#dif .d-quit:hover,#dif .d-res:hover{opacity:1}
 
 /* ---------- Fenetres de fin de manche et de fin de partie ---------- */
 #dif .pp-voile{position:absolute;left:0;top:0;width:1920px;height:1080px;background:rgba(4,8,12,.68);display:grid;place-items:center;z-index:50}
 #dif .pp{position:relative;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--trait);border-radius:22px 13px 24px 12px/13px 22px 12px 24px;box-shadow:0 18px 60px rgba(0,0,0,.6);padding:30px 36px 28px;color:var(--texte)}
 #dif .pp h2{margin:0 150px;text-align:center;font:400 52px/1.1 var(--titre)}
 #dif .pp-sous{text-align:center;font:700 24px/1.2 var(--corps);color:var(--doux);margin:8px 0 0}
-#dif .pp-ters{display:grid;grid-template-columns:repeat(3,330px);gap:22px;margin:28px 0 0}
-#dif .pp-ter{background:var(--encre);border:2px solid var(--trait);border-radius:14px 9px 15px 8px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:10px}
+#dif .pp-ters{display:grid;grid-template-columns:repeat(3,330px);grid-auto-rows:322px;gap:22px;margin:28px 0 0} /* 3 sections de taille fixe, a chaque manche */
+#dif .pp-ter{background:var(--encre);border:2px solid var(--trait);border-radius:14px 9px 15px 8px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;overflow:hidden}
 #dif .pp-th{display:flex;align-items:center;justify-content:space-between;gap:10px}
-#dif .pp-th b{font:400 30px/1.1 var(--titre);white-space:nowrap}
-#dif .pp-pts{background:var(--or);color:var(--encre);font:400 22px/30px var(--titre);padding:0 10px;border-radius:10px 7px 11px 6px;white-space:nowrap}
+#dif .pp-th b{font:400 30px/1.1 var(--titre);white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+#dif .pp-pts{flex:none;background:var(--or);color:var(--encre);font:400 22px/30px var(--titre);padding:0 10px;border-radius:10px 7px 11px 6px;white-space:nowrap}
 #dif .pp-l{display:flex;align-items:center;gap:12px;padding:8px 12px;border:3px solid transparent;border-radius:12px 8px 13px 7px}
 #dif .pp-l .avatar{width:46px;height:46px;font-size:22px;flex:none}
 #dif .pp-l .avatar img{width:100%;height:100%}
@@ -162,9 +178,21 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .pp-l em{font:400 44px/1 var(--titre);font-style:normal}
 #dif .pp-l.gagne{background:color-mix(in srgb,var(--c) 20%,transparent);border-color:var(--c)}
 #dif .pp-l:not(.gagne){opacity:.8}
-#dif .pp-res{font:700 22px/1.25 var(--corps);color:var(--doux);text-align:center;min-height:28px}
+#dif .pp-res{font:700 22px/1.25 var(--corps);color:var(--doux);text-align:center;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:0 4px}
+#dif .pp-rl{display:flex;align-items:baseline;justify-content:center;gap:0;white-space:nowrap;min-width:0}
+#dif .pp-rl b{min-width:0;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+#dif .pp-rl span{flex:none;white-space:pre}
+#dif .pp-rl span:only-child{flex:0 1 auto;white-space:normal} /* « Egalite, personne ne marque » : peut passer sur 2 lignes */
+#dif .pp-rde{overflow-wrap:anywhere}
 #dif .pp-res b{font-family:var(--titre);font-weight:400}
-#dif .pp-bas{display:flex;align-items:center;justify-content:center;gap:100px;margin:28px 0 0;padding:20px 0 0;border-top:2px solid var(--trait)}
+#dif .pp-bas{display:flex;align-items:center;justify-content:center;gap:100px;margin:28px 0 0;padding:50px 0 34px;border-top:2px solid var(--trait)}
+/* gains centres sur les grands chiffres du score : « Score » au-dessus et lignes de bonus dessous sont hors du flux */
+#dif .pp-bas .pp-tot{position:relative}
+#dif .pp-bas .pp-tot small{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:6px}
+#dif .pp-gc{position:relative}
+#dif .pp-bas .pp-bonus{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:6px}
+#dif .pp-gc{display:flex;flex-direction:column;align-items:center;gap:6px}
+#dif .pp-bonus{font:700 22px/1.2 var(--corps);color:var(--doux);white-space:nowrap}
 #dif .pp-gain{display:flex;align-items:center;gap:12px;font:400 30px/1 var(--titre);white-space:nowrap}
 #dif .pp-gain .avatar{width:52px;height:52px;font-size:24px}
 #dif .pp-gain .avatar img{width:100%;height:100%}
@@ -177,6 +205,21 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .pp-tot .ico{position:absolute;right:100%;margin-right:14px;font-size:44px;color:var(--or)}
 #dif .pp-tot span{font-size:40px;color:var(--doux)}
 #dif .pp-fermer{position:absolute;right:18px;top:16px;background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 22px/1 var(--titre);padding:8px 14px;opacity:.8;cursor:pointer}
+/* Fenetre d'une pile : lignes condensees du panneau Decks agrandies (textes de 22 px au moins), numero a gauche, 1 a 3 colonnes */
+html.dif-ouvert #apercu{z-index:25}
+#dif .pp.pp-p{max-width:1840px;max-height:1040px;display:flex;flex-direction:column}
+#dif .pp-pile{list-style:none;margin:26px 0 0;padding:0;display:grid;grid-auto-flow:column;grid-template-columns:repeat(var(--nc),560px);column-gap:28px;row-gap:5px;overflow-y:auto;min-height:0}
+#dif .pp-pile li{display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;gap:8px}
+#dif .pp-pile .pp-num{font:400 24px/1 var(--titre);color:var(--doux);text-align:right;font-variant-numeric:tabular-nums}
+#dif .pp-pile .dl-ligne{grid-template-columns:58px 58px 66px minmax(0,1fr);gap:6px;min-height:44px;padding:4px 10px}
+#dif .pp-pile .dl-cout,#dif .pp-pile .dl-force{font-size:24px;gap:4px}
+#dif .pp-pile .dl-cout .ico,#dif .pp-pile .dl-force .ico{font-size:22px}
+#dif .pp-pile .dl-els{gap:3px}
+#dif .pp-pile .dl-els img{width:30px;height:30px}
+#dif .pp-pile .dl-nom{flex-direction:row;align-items:baseline;gap:10px;font-size:24px;line-height:1.15;overflow:hidden}
+#dif .pp-pile .dl-pseudo{flex:none;white-space:nowrap}
+#dif .pp-pile .dl-titre{flex:1;min-width:0;font-size:22px}
+#dif .pp-vide{margin:22px 0 4px}
 #dif .pp-vic{display:flex;flex-direction:column;align-items:center;gap:14px}
 #dif .pp-vic .avatar{width:150px;height:150px;font-size:70px;box-shadow:0 0 0 5px var(--c),0 0 40px color-mix(in srgb,var(--c) 60%,transparent)}
 #dif .pp-vic .avatar img{width:100%;height:100%}
@@ -187,6 +230,7 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .pp-tab td:last-child{border-right:3px solid transparent;border-radius:0 12px 12px 0;font-size:40px}
 #dif .pp-tab tr.gagne td{background:color-mix(in srgb,var(--c) 20%,var(--encre));border-color:var(--c)}
 #dif .pp-tab .nm{display:flex;align-items:center;gap:12px;white-space:nowrap}
+#dif .pp-tab .nm span{max-width:320px;overflow:hidden;text-overflow:ellipsis}
 #dif .pp-tab .nm .avatar{width:44px;height:44px;font-size:20px}
 #dif .pp-tab .nm .avatar img{width:100%;height:100%}
 #dif .pp-tab td.mg{text-shadow:0 0 12px currentColor}
@@ -204,3 +248,49 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 .md-btn{align-self:center;margin:0 10px 0 6px;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 16px 6px 12px;font-size:19px;white-space:nowrap}
 .md-btn svg{width:24px;height:24px;flex:none}
 @media (max-width:899px){.md-btn{font-size:15px;min-height:34px;padding:4px 10px;margin:0 4px}.md-btn svg{width:18px;height:18px}}
+
+/* ---------- Terrain en grand (zoom du site, hors de #dif) : panneaux des deux joueurs ---------- */
+html.dif-ouvert .grand.avecDetail:has(.dz-camp){grid-template-columns:minmax(0,462px) 470px;max-width:950px}
+html.dif-ouvert #vueDetail:has(.dz-camp){background:none;border:0;padding:0;display:flex;flex-direction:column;gap:12px}
+html.dif-ouvert #vueDetail .dz-camp{margin:0;background:var(--panneau);border:1px solid var(--trait);border-radius:12px 9px 14px 8px;padding:12px 14px}
+html.dif-ouvert #vueDetail .dz-camp h3{font:400 24px/1.1 var(--titre);margin:0 0 8px}
+html.dif-ouvert #vueDetail .dz-l{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+html.dif-ouvert #vueDetail .dz-l li{display:grid;grid-template-columns:minmax(0,1fr) 88px;align-items:center;gap:8px;height:40px}
+html.dif-ouvert #vueDetail .dz-l .dl-ligne{grid-template-columns:40px 40px 50px minmax(0,1fr);gap:4px;height:40px;min-height:0;padding:2px 8px}
+html.dif-ouvert #vueDetail .dz-l .dl-cout,html.dif-ouvert #vueDetail .dz-l .dl-force{font-size:17px}
+html.dif-ouvert #vueDetail .dz-l .dl-els img{width:22px;height:22px}
+html.dif-ouvert #vueDetail .dz-l .dl-nom{flex-direction:row;align-items:baseline;gap:8px;font-size:16px;line-height:1.15;overflow:hidden}
+html.dif-ouvert #vueDetail .dz-l .dl-pseudo{flex:none;white-space:nowrap}
+html.dif-ouvert #vueDetail .dz-l .dl-titre{flex:1;min-width:0;font-size:13px}
+html.dif-ouvert #vueDetail .dz-v{font:700 15px/1 var(--corps);text-align:right;white-space:nowrap}
+html.dif-ouvert #vueDetail .dz-v b{font:400 24px/1 var(--titre)}
+html.dif-ouvert #vueDetail .dz-vide>span:first-child{height:40px;padding:0 10px;border:1px dashed var(--trait);border-radius:7px 5px 8px 4px;color:var(--doux);font-size:14px;line-height:38px;opacity:.7}
+html.dif-ouvert #vueDetail .dz-tot{display:flex;align-items:baseline;justify-content:flex-end;gap:8px;margin:10px 0 0;padding:8px 0 0;border-top:1px solid var(--trait);font:700 17px/1 var(--corps);color:var(--doux)}
+html.dif-ouvert #vueDetail .dz-tot b{font:400 30px/1 var(--titre);color:var(--texte)}
+html.dif-ouvert #vueDetail .dz-tot.mene b{text-shadow:0 0 12px currentColor}
+html.dif-ouvert #vueDetail .dz-eg{font:400 18px/1 var(--titre);color:var(--or);margin-left:6px}
+
+/* ---------- Chat (vue spectateur) ---------- */
+#dif .d-chat{position:relative;background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 22px/1 var(--titre);padding:9px 14px;opacity:.75;cursor:pointer}
+#dif .d-chat:hover{opacity:1}
+#dif .d-pastille{position:absolute;right:-9px;top:-9px;min-width:24px;height:24px;padding:0 6px;border-radius:12px;background:var(--magma);color:#fff;font:400 16px/24px var(--titre);text-align:center}
+#dif .d-chatw{position:absolute;left:1516px;top:186px;width:380px;height:650px;z-index:60;display:flex;flex-direction:column;gap:10px;padding:14px 16px 16px;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--bleu);border-radius:18px 11px 20px 10px/11px 19px 10px 18px;box-shadow:0 18px 60px rgba(0,0,0,.6)}
+#dif .d-ch{display:flex;align-items:center;justify-content:space-between}
+#dif .d-ch .d-h{margin:0}
+#dif .d-ch .pp-fermer{position:static}
+#dif .d-cl{list-style:none;margin:0;padding:0 4px 0 0;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;font:700 22px/1.25 var(--corps);color:var(--texte);overflow-wrap:anywhere}
+#dif .d-cl time{color:var(--doux);margin-right:6px;font-weight:400}
+#dif .d-cl b{font-family:var(--titre);font-weight:400;color:var(--bleu)}
+#dif .d-cl .d-rien{color:var(--doux)}
+#dif .d-cf{display:flex;gap:8px}
+#dif .d-cf input{flex:1;min-width:0;background:var(--encre);border:1px solid var(--trait);border-radius:8px 6px 9px 5px;color:var(--texte);font:700 22px/1 var(--corps);padding:8px 10px}
+#dif .d-cenv{background:var(--bleu);border:0;border-radius:8px 6px 9px 5px;color:var(--encre);font:400 22px/1 var(--titre);padding:8px 12px;cursor:pointer}
+#dif .d-cinf{min-height:0;font:700 22px/1.2 var(--corps);color:var(--magma)}
+#dif .d-cinf:empty{display:none}
+
+/* ---------- Telephone en portrait : vue centree, invitation a tourner l'ecran ---------- */
+#dif .d-tourne{display:none}
+@media (orientation:portrait) and (max-width:899px){
+  #dif .d-tourne{display:flex;position:absolute;left:0;right:0;bottom:calc(50% - 56.25vw/2 - 70px);justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;padding:0 12px;font:700 14px/1.3 var(--corps);color:var(--doux);text-align:center}
+  #dif .d-tourne button{background:transparent;border:1px solid var(--trait);border-radius:8px 6px 9px 5px;color:var(--texte);font:400 14px/1 var(--titre);padding:7px 10px}
+}
