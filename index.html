@@ -25,7 +25,7 @@
 <link rel="manifest" href="manifest.webmanifest?v=2">
 <script>/* Version des images (cartes, terrains, verso, avatars) : imgV(u) ajoute ?v=<build>, pour que les joueurs voient aussitot une image remplacee.
    A CHAQUE PUBLICATION : IMG_V = champ build de version.json (meme valeur). Fonction centrale, utilisable par tous les scripts du site. */
-window.IMG_V='2026-11-07 14:30';window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
+window.IMG_V='2026-11-07 14:46';window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
 document.documentElement.style.setProperty('--verso','url("'+imgV('cartes/verso.jpg')+'")');
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[data-src]').forEach(i=>{i.src=imgV(i.dataset.src)}));</script>
 <link rel="stylesheet" href="spectateur.css?v=0.5">
@@ -2419,7 +2419,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 /* Date de publication de la 0.5 : A REMPLACER LE JOUR J (ex. '8 novembre 2026'), sert au bloc de version et au bloc video. */
-const DATE_V05='<DATE>';
+const DATE_V05='7 novembre 2026';
 const NOUVEAUTES=[
  {version:'Version 0.5',date:DATE_V05,notes:["Nouvel écran de partie","6 nouveaux terrains","Animaux de compagnie retravaillés","Nouvelle règle : 4 éléments différents au plus par deck","Decks conseillés retravaillés","État de la connexion et reprise de la partie","Mode daltonien","Nouvel onglet Guides","Diverses améliorations de confort"]},
  {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","Rework de Le Q : Brume et Magma, nouveaux effets","Nouvelle règle : deck vide, 1 point à l'adversaire par carte à piocher","Bug de Jacen et Jaina corrigé"]},
