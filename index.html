@@ -309,40 +309,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 <button class="btn sec" id="gPasser" type="button" hidden>Passer le tutoriel</button>
 <script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
 <script>golemsCharge([['js','salon-firebase.js','type="module"'],['js','spectateur.js','type="module"'],['js','spectateur-ui.js','defer'],['js','diffusion.js','defer'],['js','aide.js','defer'],['js','moteur.js'],['js','presence.js','defer']])</script><!-- 0.5 déconnexion (window.DECO) : presence.js -->
-<script>golemsCharge([['js','commun/outils.js'],['js','commun/compte.js'],['js','onglets/guides.js'],['js','commun/navigation.js'],['js','onglets/nouveautes.js'],['js','onglets/cartes.js'],['js','onglets/jouer.js'],['js','vue/partie.js'],['js','onglets/statistiques.js'],['js','onglets/historique.js'],['js','commun/profil.js'],['js','onglets/decks.js'],['js','vue/joueur.js'],['js','onglets/tutoriel.js'],['js','commun/raccords.js'],['js','onglets/regles.js'],['js','commun/version.js']])</script>
-<script>
-const aReprendre=salonRepris();
-['brume','cristal','foudre','magma','roche'].forEach(x=>{new Image().src=imgV('cartes/'+x+'.png')});
-majChoixDeck();
-if(deckLien!==null){onglet('decks');ouvreDeckLien(deckLien)}
-else{const v=new URLSearchParams(location.search).get('carte');if(v!==null){onglet('cartes');const o=carteDeLien(v),b=o&&o.id&&$('grille').querySelector('[data-id="'+o.id+'"]');if(b)b.click();else if(o&&o.T)ouvreTerrainGalerie(o.T);else retireCarteLien()}}
-(async()=>{
-  try{room=await window.golemsSalon}catch(e){room=null}
-  compteCharge=true;majVueDeck();
-  if(!room){indisponible();majReprise();$('modifierPseudo').disabled=true;return}
-  attenteLobby=Date.now()+1500; /* la liste des présents arrive en une à deux secondes */
-  const fin=()=>{if(partie&&partie.local){return}r=null;code='';finPartie();$('salon').hidden=true;$('accueil').hidden=false;indisponible()};
-  room.onPeers(()=>{majEtat();if(partie)majPartie()},fin);
-  room.onConnection(majEtat,fin);
-  if(room.annonces)room.annonces(l=>{annoncesL=l;peintListe()});
-  if(room.compte.resumeur){if(room.compte.cumuleur)room.compte.cumuleur(cumulAjoute);room.compte.resumeur(resumeProfil);if(compteCo())profilPublie=room.compte.publieProfil()}
-  room.compte.onChange(()=>{surCompte();majVueDeck();if(compteCo()&&room.compte.publieProfil)profilPublie=room.compte.publieProfil();if(compteCo()){room.presence({pseudo:pseudo}).catch(()=>{});if(invit)suitInvit();reessaie()}});
-  surCompte();
-  reessaie(); /* parties restees en attente d'ecriture */
-  if(compteCo())room.presence({pseudo:pseudo}).catch(()=>{});
-  else if(!lire('golems.invite')&&!invit&&deckLien===null)ouvrePseudo();
-  majEtat();
-  if(aReprendre&&compteCo()){invit='';onglet('jouer');entre(aReprendre)}else{majReprise();suitInvit()}
-  if(window.DECO)DECO.init(room);else window.__decoRoom=room; /* 0.5 deconnexion : presence, minuteur, salon retenu par le compte (presence.js) */
-})();
-  /* 0.5 deconnexion : pont vers presence.js (window.DECO), lecture de l'etat et quelques actions. */
-  window.GOLEMS_PONT={get partie(){return partie},get r(){return r},get code(){return code},get occupe(){return occupe},
-    nomJ,lire,ecrire,cleSalon,litSien,joue:a=>joue(a),compteCo:()=>compteCo(),entre:c=>{invit='';onglet('jouer');return entre(c)},quitter:()=>quittePartie(),
-    jouerA(){if(!partie||partie.etat&&partie.etat.fin)return;partie.mien.push(M.code({t:'a'}));sel=null;sauve();pub({j:M.ecritJournal(partie.mien)});calcule()}, /* ma defaite par abandon (hors ligne trop longtemps) */
-    forfaitAdv(){if(!partie||partie.etat&&partie.etat.fin)return;partie.sien=[...partie.sien,M.code({t:'a'})];sel=null;calcule();sauve()}, /* abandon de l'adversaire hors ligne */
-    lache(msg){const a=r;r=null;code='';finPartie();$('salon').hidden=true;$('accueil').hidden=false;$('erreurJeu').textContent=msg||'';if(a&&a.lache)a.lache();majEtat();majReprise()}}; /* autre appareil du meme compte */
-  window.GOLEMS_UI={el,effetCouleur,partageFin,texteResume,donneesPartie,copie,nomJ,uidJ,monAvatar,quitteAvecConfirmation,get partie(){return partie},avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,ligneDeckVide,piocheImpossible,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
-</script>
+<script>golemsCharge([['js','commun/outils.js'],['js','commun/compte.js'],['js','onglets/guides.js'],['js','commun/navigation.js'],['js','onglets/nouveautes.js'],['js','onglets/cartes.js'],['js','onglets/jouer.js'],['js','vue/partie.js'],['js','onglets/statistiques.js'],['js','onglets/historique.js'],['js','commun/profil.js'],['js','onglets/decks.js'],['js','vue/joueur.js'],['js','onglets/tutoriel.js'],['js','commun/raccords.js'],['js','onglets/regles.js'],['js','commun/version.js'],['js','commun/demarrage.js']])</script>
 <script>(function(){ /* Crochet des outils de test (cdp.py, captures.py inserent __g juste avant la fin) ; le code du site est dans commun/, onglets/ et vue/. */
 })();
 </script>
