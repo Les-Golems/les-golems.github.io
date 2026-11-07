@@ -96,11 +96,268 @@ function bretagne(r,s,p){
     M.pioche(s,q,n); /* carte par carte, deck vide : 1 point a l'adversaire du joueur qui pioche (le joueur de Titom76 pioche le premier ; journal : l'effet, puis les points) */
   });
 }
+const aEffet=(id,type,f)=>M.effs(id).find(e=>e.r.type===type&&(!f||f(e.r))); /* effet d'un type (et d'un reglage) dans la fiche id */
+/* ---- Bellock/Loxim : « Si tu forges cette carte ». La carte c vient de passer de la main a la Forge (Forge 'f', Forge eclair 'j', Spam 's'). Le joueur pioche AU HASARD
+   un exemplaire du partenaire parmi tous ceux de son deck, bases et evolutions confondues (chaque exemplaire a la meme chance : tirage pondere par
+   le nombre d'exemplaires), par le generateur du joueur (rejeu identique), dans l'ordre des numeros de carte (l'ordre du deck ne compte pas).
+   Aucun : rien, pas de melange. Puis il melange son deck. etape : pendant l'etape de Forge (on la recalcule).
+   Jamais pour une copie (Apo, chansonnier) : on ne forge pas une carte en jeu. */
+function partenaires(J,c){
+  const e=aEffet(carte(c).id,'duo');if(!e)return [];const P=e.r.partenaire;
+  return J.deck.filter(x=>{const id=carte(x).id;return id===P||CARTES[id].base===P}).sort((a,b)=>a-b);
+}
+function forgeDuo(r,s,p,c,etape){
+  const C=carte(c),J=s.j[p],o=partenaires(J,c),n=nomDetail(C)+' : '+r.nom,P=CARTES[r.partenaire].nom;
+  M.declenche(s,r.nom,o.length?'Cherche '+P:'Aucun '+P);
+  if(!o.length){dire(s,p,n+', aucun '+P+' dans le deck.');return}
+  prendDuo(s,p,o[Math.floor(M.alea(s.rng,p)*o.length)],n);if(etape)J.etapeForge=(!J.aForge||J.eclair>0)&&J.main.length>0;
+}
+function prendDuo(s,p,x,n){
+  const J=s.j[p];J.deck.splice(J.deck.indexOf(x),1);J.main.push(x);M.melange(s.rng,p,J.deck);
+  dire(s,p,n+', pioche '+nomDetail(carte(x))+' dans son deck, puis le mélange.');
+}
+/* Robot : carte du duo a forger, ou null. Seulement si une version du partenaire reste dans le deck (le contenu du deck se deduit
+   de la liste du deck et des cartes vues ; l'ordre n'est jamais regarde). Garde une evolution dont la base est en jeu (elle se joue),
+   et une base qui est la seule voie vers son evolution en main. Parmi les autres : la moins utile. */
+function forgeUtile(s,p,l){
+  const J=s.j[p],G=J.grille,enJeu=id=>G.some(L=>L.some(g=>golem(g)&&carte(g.c).id===id)),enMain=id=>J.main.filter(q=>carte(q).id===id).length;
+  const cs=l.filter(c=>{const C=carte(c);if(!aEffet(C.id,'duo')||!partenaires(J,c).length)return false;
+    if(C.base)return !enJeu(C.base);
+    return !(J.main.some(q=>carte(q).base===C.id)&&!enJeu(C.id)&&enMain(C.id)<2)});
+  return cs.length?M.parUtilite(s,p,cs).pop():null;
+}
+/* ---- JackJoy. Sub offert (bonusForge, mode sub) : si la carte est forgee (Forge, Forge eclair, Spam), un Golem allie en jeu au choix gagne +1 pour la partie (g.sub).
+   Draft diff (mode draft, ou Apo / chansonnier qui l'a copie) : chaque fois que son joueur forge, un Golem allie en jeu non voisin (haut, bas, gauche,
+   droite ; diagonales permises), jamais lui-meme, gagne +1 jusqu'a la fin de la partie (V2 ; g.dr). Copier Sub offert ne sert a rien (on ne forge pas une copie).
+   Bonus portes par l'objet du Golem : listes des cartes donneuses. Perdus s'il meurt ou est remplace ; a l'evolution, Sub offert et Draft diff gardes (V2) ; gardes s'il est deplace
+   ou echange. g.dr est vide apres le decompte et les effets de fin de manche (finDraft). Animaux jamais cibles.
+   Declenchements d'une Forge : Sub offert d'abord, puis chaque Draft diff dans l'ordre de lecture de la grille. Aucune cible : rien ;
+   une seule : d'office ; sinon attente 'l' (cases, file des declenchements restants), coup 'l' + ligne + colonne.
+   REGLAGE_JJ : regle V2 decidee par Romain et JackJoy le 5 nov. (par defaut) : garde = Sub offert et Draft diff gardes quand le Golem booste evolue ;
+   partie = Draft diff dure toute la partie (g.dr n'expire plus). false/false = premiere version (manche, perdu a l'evolution), simulations seulement. */
+const REGLAGE_JJ={garde:true,partie:true};
+const estSub=id=>!!aEffet(id,'bonusForge',r=>r.mode==='sub'),estDraft=id=>!!aEffet(id,'bonusForge',r=>r.mode==='draft');
+function jjBonus(g){return (g.sub?g.sub.length:0)+(g.dr?g.dr.length:0)}
+function ciblesJJ(G,y,i){const r=[];G.forEach((L,a)=>L.forEach((g,b)=>{if(golem(g)&&(y==='sub'||Math.abs(a-i[0])+Math.abs(b-i[1])>1))r.push([a,b])}));return r}
+function forgeJJ(s,p,c){
+  const f=[];if(estSub(carte(c).id))f.push({y:'sub',src:c});
+  s.j[p].grille.forEach(L=>L.forEach(g=>{if(golem(g)&&estDraft(M.idEff(g)))f.push({y:'draft',src:g.c})}));
+  if(f.length)suiteJJ(s,p,f);
+}
+function suiteJJ(s,p,f){
+  const J=s.j[p];
+  while(f.length){
+    const e=f.shift();let i=null;
+    if(e.y==='draft'){i=M.caseDeCarte(s,p,e.src);if(!i||!estDraft(M.idEff(J.grille[i[0]][i[1]])))continue}
+    const cs=ciblesJJ(J.grille,e.y,i);
+    if(!cs.length){dire(s,p,nomDetail(carte(e.src))+' : '+(e.y==='sub'?'Sub offert':'Draft diff')+', aucun Golem allié à cibler.');continue}
+    if(cs.length===1){donneJJ(s,p,e,cs[0][0],cs[0][1]);continue}
+    s.attente={t:'l',p,y:e.y,src:e.src,i,cases:cs,file:f};return;
+  }
+}
+function donneJJ(s,p,e,l,k){
+  const g=s.j[p].grille[l][k],sub=e.y==='sub',x=sub?'sub':'dr',fin=sub||REGLAGE_JJ.partie?'partie':'manche';(g[x]||(g[x]=[])).push(e.src);
+  M.declenche(s,sub?'Sub offert':'Draft diff','+1 pour '+nomDetail(carte(g.c)));
+  dire(s,p,nomDetail(carte(e.src))+' : '+(sub?'Sub offert':'Draft diff')+', '+nomDetail(carte(g.c))+' gagne +1 de Force jusqu\'à la fin de la '+fin+'.');
+}
+function finDraft(s){
+  if(REGLAGE_JJ.partie)return false;let n=0;s.j.forEach(J=>J.grille.forEach(L=>L.forEach(g=>{if(g&&g.dr){n+=g.dr.length;delete g.dr}})));
+  if(n)dire(s,null,'Fin de manche : les bonus de Draft diff disparaissent.');
+  return n>0;
+}
+/* Robot. Forge une carte Sub offert de base si un Golem allie est en jeu, sauf si c'est la seule voie vers un Draft diff en main.
+   draftActif : un Draft diff en jeu a une cible, chaque Forge rapporte (on forge meme au-dela de la cible de Forge).
+   Cible : celle qui donne la meilleure valeur du plateau (gagner ou garder un terrain serre) ; Sub offert : petite preference pour une evolution
+   (elle ne sera pas remplacee), Golem qui perd de la Force a chaque fin de manche (KaTarN) evite. Egalite : premiere case. */
+function jjForgeRobot(s,p){
+  const J=s.j[p],G=J.grille;if(!G.some(L=>L.some(golem)))return null;
+  const b=J.main.filter(c=>estSub(carte(c).id));if(!b.length)return null;
+  if(J.main.some(c=>estDraft(carte(c).id))&&!G.some(L=>L.some(g=>golem(g)&&estSub(carte(g.c).id)))&&b.length<2)return null;
+  return b[0];
+}
+function draftActif(s,p){const G=s.j[p].grille;return G.some((L,a)=>L.some((g,b)=>golem(g)&&estDraft(M.idEff(g))&&ciblesJJ(G,'draft',[a,b]).length>0))}
+function choixJJ(s,p,l){
+  const A=s.attente,x=A.y==='sub'?'sub':'dr';let m=l[0],v=-Infinity;
+  l.forEach(a=>{const C=carte(s.j[p].grille[a.l][a.k].c);
+    const w=M.valeur(M.simule(s,d=>{const g=d.j[p].grille[a.l][a.k];g[x]=(g[x]||[]).concat(A.src)}),p)+(A.y==='sub'?(C.base?.02:0)-(aEffet(C.id,'pertesFinManche')?.1:0):0);
+    if(w>v){v=w;m=a}});
+  return m;
+}
+/* ---- Indra : favori. choisitFavori : le Golem (l,k) devient le favori de I ; ragebait (La Fan enflammee) : le Golem adverse en face perd r.ragebait. */
+function choisitFavori(s,p,I,l,k){
+  const f=s.j[p].grille[l][k],e=aEffet(M.idEff(I),'favori');I.fav=f.c;
+  dire(s,p,nomDetail(carte(I.c))+' : '+nomDetail(carte(f.c))+' devient son favori (+'+M.favBonus(M.idEff(I))+' de Force).');
+  if(e&&e.r.ragebait)ragebait(e.r,s,p,I,l,k);
+}
+/* Ragebait : degats au Golem adverse en face du favori, effet de carte cible (Mode Avion le protege). */
+function ragebait(r,s,p,I,l,k){
+  const h=s.j[1-p].grille[l][k];
+  if(!golem(h)){dire(s,p,'Ragebait : aucun Golem en face du favori.');return}
+  if(!M.ciblable(s,1-p,l,k,p)){dire(s,p,'Ragebait : '+nomDetail(carte(h.c))+' est protégé (Mode Avion).');return}
+  dire(s,p,'Ragebait : '+nomDetail(carte(h.c))+' perd '+r.ragebait+' de Force.');
+  M.blesse(s,1-p,l,k,r.ragebait,{p,c:I.c,lib:'À la pose'});
+}
+/* Robot, favori d'Indra : le plus fort, +2 s'il partage un element avec Indra, +1 si un Golem adverse ciblable est en face (Ragebait). Egalite : premier de la liste. */
+function choixFavori(s,p,l){
+  const [il,ik]=s.attente.i,I=s.j[p].grille[il][ik],el=carte(I.c).el,e=aEffet(M.idEff(I),'favori'),evo=!!(e&&e.r.ragebait);let m=l[0],v=-Infinity;
+  l.forEach(a=>{const g=s.j[p].grille[a.l][a.k],x=M.forceDe(s,p,a.l,a.k)+(carte(g.c).el.some(e=>el.includes(e))?2:0)+(evo&&M.ciblable(s,1-p,a.l,a.k,p)?1:0);if(x>v){v=x;m=a}});
+  return m;
+}
+/* ---- Glad : Slam. Seuls les Golems adverses ciblables (Mode Avion exclu) ayant une case libre adjacente (haut, bas, gauche, droite, jamais en diagonale)
+   sont proposes, vers chacune de ces cases. Si aucun n'en a : tout Golem adverse ciblable, [l,k,l,k], il reste en place et perd quand meme 1. */
+function slams(s,p){
+  const G=s.j[1-p].grille,r=[],place=[];
+  for(let l=0;l<3;l++)for(let k=0;k<3;k++)if(G[l][k]&&M.ciblable(s,1-p,l,k,p)){
+    place.push([l,k,l,k]);
+    [[l-1,k],[l+1,k],[l,k-1],[l,k+1]].filter(([a,b])=>G[a]&&b>=0&&b<3&&!G[a][b]&&!(b!==k&&M.estVersus(s,b)&&M.golemsIci(s,1-p,b))).forEach(([a,b])=>r.push([l,k,a,b])); /* Le Versus : jamais un 2e Golem ici */
+  }
+  return r.length?r:place;
+}
+function slam(s,p,c,l,k,m,n){
+  const G=s.j[1-p].grille,h=G[l][k],bouge=m!==l||n!==k;if(bouge){G[m][n]=h;G[l][k]=null}
+  dire(s,p,'Glad : Slam, '+nomDetail(carte(h.c))+(bouge?' est déplacé':' reste en place (aucune case libre)')+' et perd 1 de Force.');
+  M.blesse(s,1-p,m,n,1,{p,c,lib:'À la pose'});
+}
+/* ---- Copies. Deguisement (Apo, 029e, cible:'voisin') : voisins allies (haut, bas, gauche, droite). 0 : rien. 1 : d'office. Sinon : attente 'k'.
+   Un copieur ne porte jamais l'identifiant d'un copieur (idEff) : copier un copieur donne son effet copie, sans boucle possible. */
+function deguisement(s,p,l,k,g){
+  const J=s.j[p];
+  M.nettoie(s);
+  if(J.grille[l][k]!==g)return;
+  const cs=M.voisinsCases(J.grille,l,k);
+  if(!cs.length){g.cp=null;dire(s,p,nomDetail(carte(g.c))+' : aucun voisin, rien à copier.');return}
+  if(cs.length===1)return copie(s,p,l,k,g,cs[0][0],cs[0][1]);
+  s.attente={t:'k',p,i:[l,k],cases:cs};
+}
+function copie(s,p,l,k,g,a,b,q){ /* q : camp du Golem copie (le sien par defaut ; l'adverse pour Imitation, Velnen) */
+  const n=s.j[q===undefined?p:q].grille[a][b];g.cp=M.idEff(n);
+  dire(s,p,nomDetail(carte(g.c))+' copie '+nomDetail(carte(n.c))+(g.cp?'.':' : rien à copier.'));
+  M.effetPose(s,p,l,k,g);
+}
+/* Velnen : Imitation (Le chansonnier, 041e, cible:'face'), a la pose. Cible : le Golem adverse en face (meme terrain, meme ligne). Case vide ou animal : rien.
+   Mode Avion : rien (ciblable). Apo ou chansonnier en face qui n'a rien copie : rien. Sinon, choix 'i' : copier (1) ou refuser (0), toujours propose.
+   La copie est figee a la pose (g.cp) et se lit du point de vue du chansonnier (« adverse » = l'autre camp). */
+function imitation(s,p,l,k,g){
+  const J=s.j[p],n=nomDetail(carte(g.c))+' : Imitation';
+  M.nettoie(s);
+  if(J.grille[l][k]!==g)return;
+  const h=s.j[1-p].grille[l][k];
+  if(!golem(h)){g.cp=null;dire(s,p,n+', aucun Golem en face.');return}
+  if(!M.ciblable(s,1-p,l,k,p)){g.cp=null;dire(s,p,n+', '+nomDetail(carte(h.c))+' est protégé (Mode Avion).');return}
+  if(!M.idEff(h)){g.cp=null;dire(s,p,n+', '+nomDetail(carte(h.c))+' n\'a rien à copier.');return}
+  s.attente={t:'i',p,i:[l,k]};
+}
+/* ---- Shifukuro : meandyou (Le moderateur, 025e), a la pose, facultatif. Choix 1 : un Golem allie au-dessus de (l,k) sur le meme terrain ;
+   choix 2 : un de ses voisins (Golem allie adjacent, sans diagonale ; le moderateur lui-meme compte comme voisin du Golem juste au-dessus).
+   Paires sans doublon, chaque paire dans l'ordre de lecture (ligne puis colonne) : [a,b,x,y]. Un animal n'est jamais echange. */
+function echangesMeandyou(G,l,k){
+  const r=[],vu={};
+  for(let a=0;a<l;a++)if(golem(G[a][k]))M.voisinsCases(G,a,k).forEach(([x,y])=>{
+    const P=[[a,k],[x,y]].sort((A,B)=>A[0]*3+A[1]-B[0]*3-B[1]),c=P.join();if(!vu[c]){vu[c]=1;r.push([P[0][0],P[0][1],P[1][0],P[1][1]])}});
+  return r;
+}
+/* Aucun echange possible : une ligne de journal. Sinon attente 'u' : coup 'e' (la paire, dans n'importe quel ordre) ou 'v' (passer).
+   haut : les Golems au-dessus qui ont au moins un echange (premier choix de l'interface). */
+function meandyou(s,p,l,k,g){
+  const J=s.j[p],n=nomDetail(carte(g.c))+' : meandyou';
+  M.nettoie(s);
+  if(J.grille[l][k]!==g)return;
+  const coups=echangesMeandyou(J.grille,l,k);
+  if(!coups.length){dire(s,p,n+', aucun échange possible.');return}
+  const haut=[];for(let a=0;a<l;a++)if(coups.some(([x,y,u,v])=>(x===a&&y===k)||(u===a&&v===k)))haut.push([a,k]);
+  s.attente={t:'u',p,i:[l,k],coups,haut};
+}
+/* ---- K-Chan : Love inconditionnel (008e, ou copieur), une fois par manche et par exemplaire (g.love), a son tour apres la Forge :
+   un Golem allie blesse (g.d > 0, K-Chan comprise) perd 1 degat, jamais au-dela de sa Force imprimee. Coup 'r' + l k (K-Chan) + m n (cible). Sans blesse : rien. */
+const estType=(g,type)=>!!aEffet(M.idEff(g),type);
+function loves(s,p){const r=[],G=s.j[p].grille,bl=[];for(let l=0;l<3;l++)for(let k=0;k<3;k++)if(golem(G[l][k])&&G[l][k].d>0)bl.push([l,k]);if(!bl.length)return r;
+  for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=G[l][k];if(golem(g)&&estType(g,'soinAllie')&&g.love!==s.manche)bl.forEach(([m,n])=>r.push({t:'r',l,k,m,n}))}return r}
+/* Robot : soigne en fin de tour (apres ses poses) des qu'il y a une cible. Cible : la meilleure valeur du plateau apres le soin
+   (colonne qui bascule), plus REGLAGE_KC.risque si la cible est a 1 de Force (moitie a 2 : elle risque de mourir). Egalite : premiere option. */
+const REGLAGE_KC={risque:.3};
+function choixLove(s,p,l){
+  const r=l.filter(a=>a.t==='r');if(!r.length)return null;let m=null,v=-Infinity;
+  r.forEach(a=>{const f=M.forceDe(s,p,a.m,a.n),w=M.valeur(M.simule(s,d=>{d.j[p].grille[a.m][a.n].d--}),p)+REGLAGE_KC.risque*(f<=1?1:f<=2?.5:0);if(w>v){v=w;m=a}});
+  return m;
+}
+/* ---- Caramel a volonte (Titom76, 026e) : une fois par manche et par carte, a son tour apres la Forge, +1 energie. */
+function caramels(s,p){const r=[],G=s.j[p].grille;for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=G[l][k];if(g&&estType(g,'energieTour')&&g.car!==s.manche)r.push({t:'z',l,k})}return r}
+/* Robot : seulement si le +1 permet de payer une carte impayable sinon, et que ce coup vaut mieux que le meilleur coup sans lui. */
+function caramelUtile(s,p,l,seuil){
+  const z=l.find(a=>a.t==='z');if(!z)return null;
+  const J=s.j[p],b0=M.meilleur(s,p,l.filter(a=>a.t!=='z'&&a.t!=='x'&&a.t!=='r'));
+  const H={...s,j:s.j.map((K,i)=>i===p?{...K,energie:K.energie+1}:K)};
+  const neuf=M.legales(H,p).filter(a=>a.t==='p'&&M.coutPose(s,p,a.c,a.l,a.k)>J.energie);
+  if(!neuf.length)return null;
+  const b1=M.meilleur(H,p,neuf);
+  return b1.a&&b1.g>seuil&&b1.g>(b0.a?b0.g:-Infinity)?z:null;
+}
+/* ---- Le Q, robot : Jour de peche, defausse la carte la plus utile a l'adversaire (utilite vue de son camp, sa main cachee : vide). */
+function choixPeche(s,p,l){const H={...s,j:s.j.map((K,i)=>i===1-p?{...K,main:[]}:K)};return M.parUtilite(H,1-p,l.map(a=>a.c))[0]}
+/* Attentes (s.attente.t) des Golems : coups proposes, application, choix du robot (X : etat vu par le robot, {fort:true} en Difficile). */
+const attentes={
+  q:{legales:(s,p,a,J,r)=>a.options.forEach(c=>r.push({t:'c',c})), /* Le Q : Jour de peche, coup 'c' */
+     applique:(s,p,a)=>{ /* la carte choisie va a la defausse adverse, l'autre reste sur le deck adverse */
+       const K=s.j[1-p],src=s.attente.src||'Le Q : Jour de pêche';K.deck.splice(K.deck.indexOf(a.c),1);s.attente=null;
+       K.defausse.push(a.c);dire(s,p,src+', défausse '+nomDetail(carte(a.c))+' du deck adverse et replace l\'autre carte dessus.');
+     },
+     robot:(s,p,l)=>({t:'c',c:choixPeche(s,p,l)})},
+  s:{legales:(s,p,a,J,r)=>J.main.forEach(c=>r.push({t:'s',c})), /* Trigas : Spam, coup 's' */
+     applique:(s,p,a,J)=>{ /* Pas de +1 d'energie ce tour : ce n'est pas l'etape de Forge */
+       J.main.splice(J.main.indexOf(a.c),1);J.forge.push(a.c);s.attente=null;dire(s,p,'Trigas : place 1 carte dans sa Forge.');
+       M.forgee(s,p,a.c,false); /* le Spam compte comme forger */
+     },
+     robot:(s,p,l,X,fort)=>{const du=M.forgePreferee(s,p);return {t:'s',c:du!==null?du:fort?M.forgeForte(s,p):M.parUtilite(s,p,l.map(a=>a.c)).pop()}}},
+  g:{legales:(s,p,a,J,r)=>a.cases.forEach(([l,k])=>r.push({t:'g',l,k})), /* Indra : favori */
+     applique:(s,p,a,J)=>{const [il,ik]=s.attente.i,I=J.grille[il][ik];s.attente=null;
+       if(I&&J.grille[a.l][a.k]){s.stats.cause={p,c:I.c,lib:'À la pose'};choisitFavori(s,p,I,a.l,a.k);M.nettoie(s)}},
+     robot:(s,p,l)=>choixFavori(s,p,l)},
+  h:{legales:(s,p,a,J,r)=>a.coups.forEach(([l,k,m,n])=>r.push({t:'h',l,k,m,n})), /* Glad : Slam */
+     applique:(s,p,a,J)=>{const [il,ik]=s.attente.i,I=J.grille[il][ik];s.attente=null;
+       s.stats.cause={p,c:I?I.c:null,lib:'À la pose'};slam(s,p,I?I.c:null,a.l,a.k,a.m,a.n);M.nettoie(s)},
+     robot:(s,p,l,X)=>M.meilleur(X,p,l).a}, /* le deplacement qui ameliore le plus la valeur du plateau (perte de 1 comprise, mort eventuelle, bonus perdus) */
+  k:{legales:(s,p,a,J,r)=>a.cases.forEach(([l,k])=>r.push({t:'k',l,k})), /* Deguisement : copie du voisin choisi, puis son effet de pose s'il en a un */
+     applique:(s,p,a,J)=>{const [il,ik]=s.attente.i,I=J.grille[il][ik];s.attente=null;
+       if(I){s.stats.cause={p,c:I.c,lib:'À la pose'};copie(s,p,il,ik,I,a.l,a.k)}},
+     robot:(s,p,l,X)=>M.choixCopie(X,p,l)},
+  i:{legales:(s,p,a,J,r)=>r.push({t:'i',o:1},{t:'i',o:0}), /* Velnen : Imitation, copier (1) ou refuser (0) */
+     applique:(s,p,a,J)=>{const [il,ik]=s.attente.i,I=J.grille[il][ik],h=s.j[1-p].grille[il][ik];s.attente=null;
+       if(I){s.stats.cause={p,c:I.c,lib:'À la pose'};
+         if(a.o&&golem(h))copie(s,p,il,ik,I,il,ik,1-p);
+         else{I.cp=null;M.declenche(s,'Imitation','Refusée');dire(s,p,nomDetail(carte(I.c))+' : Imitation refusée, ne copie rien.')}}},
+     robot:(s,p,l,X)=>M.choixImitation(X,p)},
+  u:{normalise:a=>a&&a.t==='e'&&a.a&&a.b&&a.a[0]*3+a.a[1]>a.b[0]*3+a.b[1]?{t:'e',a:a.b,b:a.a}:a, /* Shifukuro : meandyou, paire remise dans l'ordre de lecture */
+     legales:(s,p,a,J,r)=>{a.coups.forEach(([x,y,u,v])=>r.push({t:'e',a:[x,y],b:[u,v]}));r.push({t:'v'})}, /* echanger ou passer */
+     applique:(s,p,a,J)=>{const [il,ik]=s.attente.i,I=J.grille[il][ik];
+       if(a.t==='v'){M.declenche(s,'meandyou','Refusé');dire(s,p,(I?nomDetail(carte(I.c)):'meandyou')+' : meandyou, pas d\'échange.');s.attente=null;return}
+       const G=J.grille,[x,y]=a.a,[u,v]=a.b,A=G[x][y],B=G[u][v];s.attente=null; /* echange de cases. Pas une pose : degats gardes, aucun effet a la pose */
+       s.stats.cause={p,c:I?I.c:null,lib:'À la pose'};G[x][y]=B;G[u][v]=A;M.declenche(s,'meandyou','Échange 2 Golems');
+       dire(s,p,(I?nomDetail(carte(I.c)):'meandyou')+' : meandyou, échange '+nomDetail(carte(A.c))+' et '+nomDetail(carte(B.c))+'.');M.nettoie(s)},
+     robot:(s,p,l,X)=>M.choixMeandyou(X,p,l)},
+  l:{legales:(s,p,a,J,r)=>a.cases.forEach(([l,k])=>r.push({t:'l',l,k})), /* JackJoy : cible de Sub offert ou Draft diff */
+     applique:(s,p,a)=>{const A=s.attente;s.attente=null;donneJJ(s,p,A,a.l,a.k);suiteJJ(s,p,A.file)}, /* cible choisie, puis la suite */
+     robot:(s,p,l,X)=>choixJJ(X,p,l)}
+};
 const types={
   /* Cyrdan (003, 003e) : tes voisins gagnent +bonus de Force */
   bonusVoisins:{voisinBonus:r=>r.bonus},
   /* Indra (013 +1, 013e +2) : le favori gagne +bonus tant que la carte est en jeu (le choix du favori : passe des choix) */
-  favori:{favoriBonus:r=>r.bonus},
+  favori:{favoriBonus:r=>r.bonus,
+    /* a la pose : La Fan enflammee (ragebait) qui garde son favori le frappe ; sinon choix du favori (attente 'g' s'il y a plusieurs candidats) */
+    pose:(r,s,p,l,k,g)=>{
+      const J=s.j[p];let choix=null;
+      if(r.ragebait&&g.fav!==undefined){const x=M.caseDeCarte(s,p,g.fav);if(x){dire(s,p,'Indra (La Fan enflammée) : '+nomDetail(carte(g.fav))+' reste son favori (+2 de Force).');ragebait(r,s,p,g,x[0],x[1])}else delete g.fav}
+      if(g.fav===undefined){
+        const cs=[];J.grille.forEach((L,a)=>L.forEach((h,b)=>{if(golem(h)&&!(a===l&&b===k))cs.push([a,b])}));
+        if(!cs.length)dire(s,p,nomDetail(carte(g.c))+' : aucun autre Golem, pas de favori.');
+        else if(cs.length===1)choisitFavori(s,p,g,cs[0][0],cs[0][1]);
+        else choix={t:'g',p,i:[l,k],cases:cs};
+      }
+      return choix;
+    },
+    /* 0.2a.2 : la pose a pu tuer un candidat (bonus perdus) : on ne garde que les cases encore occupees */
+    reprendChoix:(r,s,p,l,k,g,choix)=>{const J=s.j[p];choix.cases=choix.cases.filter(([a,b])=>J.grille[a][b]);if(!choix.cases.length)return null;
+      if(choix.cases.length===1){const[a,b]=choix.cases[0];if(J.grille[l][k])choisitFavori(s,p,g,a,b);M.nettoie(s);return null}return choix}},
   /* +1 de Force par Golem compte (compte : 'element' de la grille, lui compris ; 'dessus' : allies au-dessus sur son terrain ; 'voisins' : voisins allies).
      apres:true : ajoute apres les auras de colonne (ordre historique). note : nom du bonus dans les statistiques. */
   forceParGolem:{
@@ -126,6 +383,8 @@ const types={
   /* Bellock/Loxim : duo avec la carte de base partenaire (partenaire). nom : nom de l'effet de Forge (« si tu forges cette carte »).
      doubleUp:true (evolutions) : Double up ?, +REGLAGE_DUO.doubleUp si le partenaire et lui sont seuls sur leur ligne ou leur terrain. */
   duo:{
+    forgee:(r,s,p,c,etape)=>forgeDuo(r,s,p,c,etape), /* « si tu forges cette carte » : cherche le partenaire dans le deck */
+    robotForge:(s,p,l)=>forgeUtile(s,p,l),
     force:(r,s,p,l,k,g,G)=>r.doubleUp&&duoVoisin(G,l,k,r.partenaire)?REGLAGE_DUO.doubleUp:0,
     note:(r,s,p,l,k,g,G,vs,el,b)=>{const n=r.doubleUp?duoVoisin(G,l,k,r.partenaire):null;if(n)for(let i=0;i<REGLAGE_DUO.doubleUp;i++)b('doubleup',p,g.c,p,n.c)}},
   /* KaTarN (001) : Jeunesse ephemere, pose uniquement a la manche r.manche (pas sur un remplacement ni une evolution). */
@@ -189,11 +448,50 @@ const types={
     debutTour:(s,p,J)=>{const nv=graines(J.grille);
       if(nv){M.declenche(s,'Graine de Golem','Pioche +'+nv);dire(s,p,'Graine de Golem : pioche '+nv+' carte'+(nv>1?'s':'')+' de plus.');M.pioche(s,p,nv)}}}, /* journal : l'effet, puis les points si le deck est vide */
 
+  /* Glad (009) : Slam, a la pose, deplace un Golem adverse ciblable sur une case libre adjacente (attente 'h' s'il y a plusieurs coups) ; il perd 1 de Force. */
+  deplaceAdverse:{
+    pose:(r,s,p,l,k,g)=>{ /* coups possibles [ligne, case de depart, case d'arrivee] chez l'adversaire */
+      const cs=slams(s,p);
+      if(!cs.length){dire(s,p,'Glad : Slam, aucun Golem adverse à déplacer.');return null}
+      if(cs.length===1){slam(s,p,g.c,...cs[0]);return null}
+      return {t:'h',p,i:[l,k],coups:cs};
+    },
+    reprendChoix:(r,s,p,l,k,g,choix)=>{choix.coups=slams(s,p);if(!choix.coups.length)return null;if(choix.coups.length===1){slam(s,p,g.c,...choix.coups[0]);M.nettoie(s);return null}return choix}},
+  /* Copieurs : Maitre du deguisement (029e, cible:'voisin') et Le chansonnier (041e, cible:'face'). Ils portent l'effet copie (g.cp, null = rien). */
+  copie:{copieur:true,poseCopieur:(r,s,p,l,k,g)=>r.cible==='face'?imitation(s,p,l,k,g):deguisement(s,p,l,k,g)},
+  /* Le moderateur (025e) : meandyou, a la pose, echange facultatif (attente 'u'). */
+  echangeAllies:{poseSeule:(r,s,p,l,k,g)=>meandyou(s,p,l,k,g)},
+  /* JackJoy (035, mode:'sub') : Sub offert ; Drafteur experimente (035e, mode:'draft') : Draft diff. Crochets de type (une fois, toutes cartes confondues). */
+  bonusForge:{
+    apresForge:(s,p,c)=>forgeJJ(s,p,c),
+    forceRecue:g=>jjBonus(g),
+    noteRecue:(g,p,b)=>{(g.sub||[]).forEach(()=>b('sub',p,g.c,p,g.c));(g.dr||[]).forEach(x=>b('draft',p,g.c,p,x))}, /* la carte de Sub offert est dans la Forge, rien a lui attribuer */
+    evolution:(s,occ,g)=>{if(REGLAGE_JJ.garde){if(occ.sub)g.sub=occ.sub.slice();if(occ.dr)g.dr=occ.dr.slice()}}, /* V2 : gardes a l'evolution */
+    expire:s=>finDraft(s),
+    robotForge:(s,p)=>jjForgeRobot(s,p),
+    robotForgeEncore:(s,p)=>draftActif(s,p)},
+  /* Maitre du bilig (026e) : Caramel a volonte, +r.energie une fois par manche, a son tour (action 'z'). Avant soinAllie : ordre des actions proposees. */
+  energieTour:{actionsTour:(s,p)=>caramels(s,p),robotAvant:(X,p,l,seuil)=>caramelUtile(X,p,l,seuil)},
+  /* L'attachiante (008e) : Love inconditionnel, une fois par manche, un Golem allie blesse recupere 1 de Force (action 'r'). */
+  soinAllie:{actionsTour:(s,p)=>loves(s,p),robotFinTour:(X,p,l)=>choixLove(X,p,l)},
 };
 /* Realisation de l'age : surtaxe annoncee a la pose d'une evolution (sur : total de la surtaxe adverse) */
 function annonceSurtaxe(s,p,C,sur){M.declenche(s,'Réalisation de l\'âge','Coût +'+sur+' pour '+nomDetail(C));dire(s,p,'Réalisation de l\'âge : '+nomDetail(C)+' coûte '+sur+' de plus.')}
 /* Actions jouees a son tour, par lettre (format du journal inchange) */
 const actions={
+  /* 'r' : Love inconditionnel, 1 degat retire, une fois par manche et par exemplaire */
+  r:{applique:(s,p,a,J)=>{
+    const g=J.grille[a.l][a.k],h=J.grille[a.m][a.n];g.love=s.manche;h.d--;
+    s.stats.ev.push({t:'r',cp:p,cc:h.c,n:1,y:'love',sp:p,sc:g.c,m:s.manche});M.declenche(s,'Love inconditionnel','Soigne '+nomDetail(carte(h.c)));
+    dire(s,p,nomDetail(carte(g.c))+' : Love inconditionnel, '+nomDetail(carte(h.c))+' récupère 1 de Force.');
+  }},
+  /* 'z' : Caramel a volonte, +1 energie, une fois par manche */
+  z:{applique:(s,p,a,J)=>{
+    const g=J.grille[a.l][a.k];g.car=s.manche;J.energie++;M.declenche(s,'Caramel à volonté','+1 énergie');
+    dire(s,p,nomDetail(carte(g.c))+' : Caramel à volonté, +1 énergie.');
+  }},
+  /* 'h' (attente de Slam) : estimation du robot, le Golem deplace perd 1 (GymRat : rien) */
+  h:{estime:(c,p,a)=>{const H=c.j[1-p].grille,h=H[a.l][a.k];if(a.m!==a.l||a.n!==a.k){H[a.m][a.n]=h;H[a.l][a.k]=null}if(!M.insensible(h))h.d++}},
   /* 'j' : Forge eclair (Spom), +1 energie des ce tour, reprise due en fin de tour ; compte comme forger */
   j:{applique:(s,p,a,J)=>{
     J.main.splice(J.main.indexOf(a.c),1);J.forge.push(a.c);J.energie++;J.eclair--;J.eclairUtil++;J.etapeForge=(!J.aForge||J.eclair>0)&&J.main.length>0;
@@ -207,7 +505,7 @@ function noteCompte(r,p,l,k,g,G,vs,b){
   else if(r.compte==='dessus'){for(let a=0;a<l;a++){const n=G[a][k];if(golem(n))b(r.note,p,g.c,p,n.c)}}
   else vs.forEach(n=>b(r.note,p,g.c,p,n.c));
 }
-return {types,actions,fonctions:{annonceSurtaxe,foudres,kekwait,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,elessars,graines,spoms,jourDePeche,doublons,ilSuffit}};
+return {types,actions,attentes,fonctions:{partenaires,forgeUtile,REGLAGE_JJ,jjBonus,ciblesJJ,choisitFavori,slams,echangesMeandyou,loves,choixLove,REGLAGE_KC,caramels,choixPeche,choixJJ,choixFavori,annonceSurtaxe,foudres,kekwait,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,elessars,graines,spoms,jourDePeche,doublons,ilSuffit}};
 }
 if(typeof module!=='undefined'&&module.exports)module.exports=fabrique;else (racine.GolemsEffets=racine.GolemsEffets||{}).golems=fabrique;
 })(typeof window!=='undefined'?window:globalThis);
