@@ -309,19 +309,8 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 <button class="btn sec" id="gPasser" type="button" hidden>Passer le tutoriel</button>
 <script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
 <script>golemsCharge([['js','salon-firebase.js','type="module"'],['js','spectateur.js','type="module"'],['js','spectateur-ui.js','defer'],['js','diffusion.js','defer'],['js','aide.js','defer'],['js','moteur.js'],['js','presence.js','defer']])</script><!-- 0.5 déconnexion (window.DECO) : presence.js -->
+<script>golemsCharge([['js','commun/outils.js']])</script>
 <script>
-const ETOILE_G='<path d="M150.0 162.0 L103.0 97.3 L150.0 20.0 Z" fill="#ffe48a" stroke="#ffe48a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 20.0 L197.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L197.0 97.3 L288.9 116.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L288.9 116.9 L222.3 185.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L222.3 185.5 L231.1 273.6 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L231.1 273.6 L150.0 244.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 244.0 L65.4 278.5 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L65.4 278.5 L75.8 186.1 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L75.8 186.1 L16.9 118.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L16.9 118.7 L103.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 20.0 L197.0 97.3 L190.4 106.3 L150.0 39.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M197.0 97.3 L288.9 116.9 L269.4 123.2 L190.4 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M288.9 116.9 L222.3 185.5 L212.2 182.2 L269.4 123.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M222.3 185.5 L231.1 273.6 L219.8 258.0 L212.2 182.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M231.1 273.6 L150.0 244.0 L150.0 232.5 L219.8 258.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M150.0 244.0 L65.4 278.5 L77.2 262.2 L150.0 232.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M65.4 278.5 L75.8 186.1 L86.2 182.7 L77.2 262.2 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M75.8 186.1 L16.9 118.7 L35.5 124.8 L86.2 182.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M16.9 118.7 L103.0 97.3 L109.6 106.3 L35.5 124.8 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M103.0 97.3 L150.0 20.0 L150.0 39.9 L109.6 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M150.0 20.0 L197.0 97.3 L288.9 116.9 L222.3 185.5 L231.1 273.6 L150.0 244.0 L65.4 278.5 L75.8 186.1 L16.9 118.7 L103.0 97.3 Z" fill="none" stroke="#0b0b10" stroke-width="13" stroke-linejoin="round"/>';
-const $=id=>document.getElementById(id);
-/* Site d'essai (/essai/) : cles locales prefixees pour ne pas se meler au site public (meme origine), titre marque. */
-const ESSAI=location.pathname.split('/')[1]==='essai';
-const LS=k=>(ESSAI?'essai.':'')+k;
-if(ESSAI){document.title='Les Golems (Essai)';document.documentElement.classList.add('essai');const h=document.querySelector('.haut h1'),st=h&&h.querySelector('.st-ligne');if(st){const p=document.createElement('span');p.className='essai-pastille';p.textContent="SITE D'ESSAI";h.insertBefore(p,st)}}
-function lire(k){try{return localStorage.getItem(LS(k))}catch(e){return null}}
-function ecrire(k,v){try{localStorage.setItem(LS(k),v)}catch(e){}}
-/* Le moteur est revenu de 0.2a a 0.2 sans changement de regles : les sauvegardes et rejeux 0.2a restent valides. */
-/* 0.2c = 0.2b.2 renomme, memes regles : une partie 0.2b.2 sauvegardee se reprend. */
-function memeVersion(v){return v===M.VERSION||(M.VERSION==='0.2'&&v==='0.2a')||(M.VERSION==='0.2c'&&v==='0.2b.2')}
-
 /* Avatar : rond avec initiale sur une couleur tiree du pseudo. avatarId (futur choix en galerie, a stocker plus tard dans la presence ou Firebase) : si fourni, image avatars/<id>.png a la place. */
 const AVATAR_COULEURS=["--fm-magma","--fm-cristal","--fm-foudre","--fm-brume","--fm-roche"];
 function avatarDe(nom,avatarId){
@@ -1698,9 +1687,6 @@ function points(n,lib){const d=el('span','p-pts');d.setAttribute('role','img');d
   for(let i=1;i<=3;i++)d.append(el('i',i===n?'on':i<n?'fait':''));return d}
 function info(cls,n,lib,suite){const d=el('div','p-info '+cls);d.append(el('small','',lib),ico(n),suite);return d}
 function compteur(n,lib,v,cls){const d=el('span','p-compteur c-'+n+(cls?' '+cls:''));d.append(ico(n),lib+' ');d.append(el('b','',String(v)));return d}
-function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
-/* Oeil des champs de code (type password) : affiche ou masque le code tape, meme icone que le zoom des cartes.
-   Focus et curseur gardes ; autocomplete intact ; remasque a l'envoi (gestionnaire de mots de passe) et a la fermeture de la fenetre. */
 function oeilCode(i){
   const w=el('span','champ-code'),b=el('button','oeil oeil-code');b.type='button';b.append(ico('oeil'));i.before(w);w.append(i,b);
   if(i.id)b.setAttribute('aria-controls',i.id);i.setAttribute('autocapitalize','off');i.setAttribute('autocorrect','off');i.spellcheck=false;
