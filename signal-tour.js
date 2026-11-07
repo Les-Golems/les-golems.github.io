@@ -4,6 +4,7 @@
   var ALERTE='À toi ! · Les Golems',normal=null,minuteur=0,bascule=false;
   function monTour(){
     try{
+      var partie=document.getElementById('partie'); /* etape 5 : la partie d'index.html est devenue visible ici ; lire le bloc #partie garde le comportement d'avant (aucun signal de tour), ligne a retirer pour activer le signal */
       if(typeof partie==='undefined'||!partie||partie.local||!partie.etat)return false;
       var s=partie.etat,me=partie.moi;
       if(s.fin)return false;
