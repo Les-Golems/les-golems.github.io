@@ -23,14 +23,18 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="manifest" href="manifest.webmanifest?v=2">
-<script>/* Version des images (cartes, terrains, verso, avatars) : imgV(u) ajoute ?v=<build>, pour que les joueurs voient aussitot une image remplacee.
-   A CHAQUE PUBLICATION : IMG_V = champ build de version.json (meme valeur). Fonction centrale, utilisable par tous les scripts du site. */
-window.IMG_V='2026-11-07 14:46';window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
+<script>/* Chargeur unique : version.json lu une fois, sans cache et de facon bloquante (avant tout CSS/JS), puis ?v=<build> ajoute
+   a tous les CSS/JS (window.golemsCharge, appele aux emplacements d'origine pour garder l'ordre) et aux images (imgV).
+   Plus aucun numero a recopier : seul version.json change (node outils/publier.js). Injoignable : build = instant present (pas de cache, pas d'ecran blanc). */
+(()=>{let x=null;try{const q=new XMLHttpRequest();q.open('GET','version.json?t='+Date.now(),false);q.setRequestHeader('Cache-Control','no-cache');q.send();if(q.status===200)x=JSON.parse(q.responseText)}catch(e){}
+window.GOLEMS_VERSION=x&&x.build?{v:String(x.v||''),build:String(x.build),type:String(x.type||'version')}:null;
+window.IMG_V=window.GOLEMS_VERSION?window.GOLEMS_VERSION.build:String(Date.now());
+const a=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
+window.golemsCharge=l=>document.write(l.map(([t,u,m])=>t==='css'?'<link rel="stylesheet" href="'+a(u)+'">':'<script'+(m?' '+m:'')+' src="'+a(u)+'"><\/script>').join(''));})();
+window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
 document.documentElement.style.setProperty('--verso','url("'+imgV('cartes/verso.jpg')+'")');
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[data-src]').forEach(i=>{i.src=imgV(i.dataset.src)}));</script>
-<link rel="stylesheet" href="spectateur.css?v=0.5">
-<link rel="stylesheet" href="diffusion.css?v=0.5">
-<link rel="stylesheet" href="aide.css?v=0.5">
+<script>golemsCharge([['css','spectateur.css'],['css','diffusion.css'],['css','aide.css']])</script>
 <meta name="apple-mobile-web-app-title" content="Golems">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <style>
@@ -44,7 +48,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 @media (display-mode:browser){#ecranCharge{transition-duration:.2s}}
 @media (prefers-reduced-motion:reduce){#ecranCharge{transition:none}}
 </style>
-<script defer src="signal-tour.js?v=0.5"></script>
+<script>golemsCharge([['js','signal-tour.js','defer']])</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Fredoka:wght@700&family=Lilita+One&family=Nunito+Sans:wght@400;700;800&display=swap');
 :root{
@@ -2154,13 +2158,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 </div>
 <button class="btn sec" id="gPasser" type="button" hidden>Passer le tutoriel</button>
 <script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
-<script type="module" src="salon-firebase.js?v=0.5"></script>
-<script type="module" src="spectateur.js?v=0.5"></script>
-<script src="spectateur-ui.js?v=0.5" defer></script>
-<script src="diffusion.js?v=0.5" defer></script>
-<script src="aide.js?v=0.5" defer></script>
-<script src="moteur.js?v=0.5"></script>
-<script src="presence.js?v=0.5" defer></script><!-- 0.5 déconnexion (window.DECO) -->
+<script>golemsCharge([['js','salon-firebase.js','type="module"'],['js','spectateur.js','type="module"'],['js','spectateur-ui.js','defer'],['js','diffusion.js','defer'],['js','aide.js','defer'],['js','moteur.js'],['js','presence.js','defer']])</script><!-- 0.5 déconnexion (window.DECO) : presence.js -->
 <script>
 const ETOILE_G='<path d="M150.0 162.0 L103.0 97.3 L150.0 20.0 Z" fill="#ffe48a" stroke="#ffe48a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 20.0 L197.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L197.0 97.3 L288.9 116.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L288.9 116.9 L222.3 185.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L222.3 185.5 L231.1 273.6 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L231.1 273.6 L150.0 244.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L150.0 244.0 L65.4 278.5 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L65.4 278.5 L75.8 186.1 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L75.8 186.1 L16.9 118.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 162.0 L16.9 118.7 L103.0 97.3 Z" fill="#f09a1a" stroke="#f09a1a" stroke-width="1" stroke-linejoin="round"/><path d="M150.0 20.0 L197.0 97.3 L190.4 106.3 L150.0 39.9 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M197.0 97.3 L288.9 116.9 L269.4 123.2 L190.4 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M288.9 116.9 L222.3 185.5 L212.2 182.2 L269.4 123.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M222.3 185.5 L231.1 273.6 L219.8 258.0 L212.2 182.2 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M231.1 273.6 L150.0 244.0 L150.0 232.5 L219.8 258.0 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M150.0 244.0 L65.4 278.5 L77.2 262.2 L150.0 232.5 Z" fill="#b8650f" stroke="#b8650f" stroke-width="1"/><path d="M65.4 278.5 L75.8 186.1 L86.2 182.7 L77.2 262.2 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M75.8 186.1 L16.9 118.7 L35.5 124.8 L86.2 182.7 Z" fill="#ffc02e" stroke="#ffc02e" stroke-width="1"/><path d="M16.9 118.7 L103.0 97.3 L109.6 106.3 L35.5 124.8 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M103.0 97.3 L150.0 20.0 L150.0 39.9 L109.6 106.3 Z" fill="#fff0b0" stroke="#fff0b0" stroke-width="1"/><path d="M150.0 20.0 L197.0 97.3 L288.9 116.9 L222.3 185.5 L231.1 273.6 L150.0 244.0 L65.4 278.5 L75.8 186.1 L16.9 118.7 L103.0 97.3 Z" fill="none" stroke="#0b0b10" stroke-width="13" stroke-linejoin="round"/>';
 (function(){
@@ -3083,7 +3081,9 @@ function nomDe(p){const n=p.presence&&p.presence.pseudo;return nettoie(typeof n=
    Champ v absent chez l'autre = ancienne version. Versions differentes : Pret bloque ; le plus ancien (build le plus petit) doit recharger. */
 const vOk=v=>typeof v==='string'&&/^[0-9a-z.|: -]{1,40}$/.test(v)?v:'';
 let maV='',vxEcart=false,vxRouge='';
-const maVersion=fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(x=>x.json()).then(x=>{maV=vOk(String(x.v||'')+'|'+String(x.build||''));return maV}).catch(()=>'');
+/* Etape 3 : seul le numero v compte (builds differents d'une meme version = correctifs, compatibles). maV garde v|build pour les pages deja en ligne. */
+const vEg=(a,b)=>vNom(a)===vNom(b);
+const maVersion=window.GOLEMS_VERSION?Promise.resolve(maV=vOk(GOLEMS_VERSION.v+'|'+GOLEMS_VERSION.build)):fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(x=>x.json()).then(x=>{maV=vOk(String(x.v||'')+'|'+String(x.build||''));return maV}).catch(()=>'');
 const vDe=p=>p.sameTab?maV:vOk(p.presence&&p.presence.v);
 const vNom=v=>v?v.split('|')[0]:'';
 /* Vrai si la version v (autre joueur) est plus ancienne que la mienne ou de meme build : c'est elle qui doit recharger. */
@@ -3138,7 +3138,7 @@ function majSalon(){
   {const n=Math.min(l.length,MAX);if(createur&&!partie&&nbSalon===1&&n===2){joueSons(['arrivee']);if(window.golemsAdversaireArrive)window.golemsAdversaireArrive()}nbSalon=n}
   if(l.findIndex(p=>p.sameTab)>=MAX&&Date.now()-entree>1500){sortie('Ce salon est complet.');return}
   /* Versions differentes avant la partie : Pret retire et bloque, etiquette rouge sur le siege le plus ancien. */
-  {const d=l.slice(0,MAX),o=d.find(p=>!p.sameTab);vxEcart=!partie&&!!maV&&d.length>=MAX&&!!o&&vDe(o)!==maV;vxRouge=vxEcart?(vAncienne(vDe(o))?o.peer:'moi'):'';
+  {const d=l.slice(0,MAX),o=d.find(p=>!p.sameTab);vxEcart=!partie&&!!maV&&d.length>=MAX&&!!o&&!vEg(vDe(o),maV);vxRouge=vxEcart?(vAncienne(vDe(o))?o.peer:'moi'):'';
    if(vxEcart&&jePret){jePret=false;pub({pret:null,deck:null});majChoixDeck()}
    if(vxRouge==='moi')vJeSuisAncien()}
   const u=$('joueurs'),specUI=!!(window.SPEC&&window.SPEC_UI&&SPEC.etatSalon().actif); /* mode spectateur : sieges peints par spectateur-ui.js */
@@ -3256,7 +3256,7 @@ function peintEnCours(moi){
     /* Partie lancee : les elements sont visibles des spectateurs, la teinte suit chaque joueur (gauche, droite) */
     const ca=ea[0]?'color-mix(in srgb,var(--'+ea[0]+') 70%,#0a121a)':'#3a4955',cb=eb[0]?'color-mix(in srgb,var(--'+eb[0]+') 70%,#0a121a)':'#3a4955';
     li.style.setProperty('--tinte','linear-gradient(90deg,'+ca+','+cb+')');
-    const xv=vOk(x.v),vd=!mien&&!!maV&&xv!==maV,duo=el('div','po-duo');
+    const xv=vOk(x.v),vd=!mien&&!!maV&&!vEg(xv,maV),duo=el('div','po-duo');
     /* Joueur : avatar, pseudo, pictos discrets des elements principaux de son deck (2 ou 3) */
     const j=(n,a,e)=>{const s=el('span','po-j'),pi=el('span','po-els');e.forEach(z=>{const i=picto(z);i.width=i.height=16;i.title=nomEl(z);pi.append(i)});
       s.append(a,el('b','',n));if(pi.childNodes.length)s.append(pi);return s};
@@ -3282,7 +3282,7 @@ function peintListe(){
     if(x.u&&!(x.u in statsCache)&&room&&room.compte.statsDe){statsCache[x.u]=false;room.compte.statsDe(x.u).then(s=>{statsCache[x.u]=s;if(!r)peintListe()})}
     else if(x.u in statsCache)colTaux(tx,statsCache[x.u]);return tx};
   /* Version de l'annonce : differente de la mienne = Rejoindre et Observer bloques, etiquette rouge si c'est elle la plus ancienne. */
-  const version=(x,mien)=>{const xv=mien?maV:vOk(x.v),vd=!mien&&!!maV&&xv!==maV,vr=vd&&vAncienne(xv);if(vd&&!vr)vJeSuisAncien();return {xv,vd,vr}};
+  const version=(x,mien)=>{const xv=mien?maV:vOk(x.v),vd=!mien&&!!maV&&!vEg(xv,maV),vr=vd&&vAncienne(xv);if(vd&&!vr)vJeSuisAncien();return {xv,vd,vr}};
   if(libres.length){
     titre('Place libre',libres.length);
     const g=el('ul','sl-liste sl-grille');
@@ -5948,7 +5948,7 @@ function majPartie(){
     if(!$('absence').hidden){$('absence').hidden=true;if(partie.etat)affiche()}
   }
   if(!prets)return;
-  if(!partie&&maV&&l.some(p=>vDe(p)!==maV))return; /* versions differentes : aucune partie neuve (moteurs differents) */
+  if(!partie&&maV&&l.some(p=>!vEg(vDe(p),maV)))return; /* versions differentes : aucune partie neuve (moteurs differents) */
   const moi=partie?partie.moi:l.findIndex(p=>p.sameTab);if(moi<0||moi>1)return;
   const g=l[0].presence.graine,lui=l[1-moi];
   const rejouer=partie&&g===partie.graine&&partie.etat&&partie.etat.fin&&partie.veut&&lui.presence.veut===g;
@@ -6925,7 +6925,11 @@ function annote(box,visuel,items){
    meme effet. Evenement 'golems:nouvelle-version' emis sur window a l'apparition de l'encadre. */
 (()=>{
   let ref='',dispo=false,geste=Date.now(),envois=0,parti=false;
+  /* Etape 3 : v change = version (encadre, comme avant) ; seul build change = correctif : aucun message, rechargement silencieux
+     au premier moment calme (jamais en partie ni dans un salon : calme() ; fin de partie = retour a l'accueil, vu par l'essai chaque seconde). */
+  let silencieux=false;
   const lit=async()=>{try{const x=await (await fetch('version.json?t='+Date.now(),{cache:'no-store'})).json();return String(x.v||'')+'|'+String(x.build||'')}catch(e){return ''}};
+  if(window.GOLEMS_VERSION)ref=GOLEMS_VERSION.v+'|'+GOLEMS_VERSION.build;
   const vu=e=>e.getClientRects().length>0;
   const CHAMPS='input:not([type]),input[type=text],input[type=search],input[type=password],input[type=email],input[type=number],input[type=url],input[type=tel],textarea,[contenteditable]:not([contenteditable=false])';
   const saisie=()=>{const a=document.activeElement;if(a&&a!==document.body&&a.matches(CHAMPS))return true;
@@ -6936,9 +6940,10 @@ function annote(box,visuel,items){
   /* Envois de parties (compte) : deja gardes sur l'appareil, mais on laisse finir l'envoi en cours. */
   envoieAttente=(f=>function(){envois++;let p;try{p=f.apply(this,arguments)}catch(e){envois--;throw e}Promise.resolve(p).then(()=>envois--,()=>envois--);return p})(envoieAttente);
   ['pointerdown','keydown','wheel','touchstart','input'].forEach(t=>addEventListener(t,()=>{geste=Date.now()},{capture:true,passive:true}));
-  const tente=()=>{if(dispo&&!parti&&calme()&&Date.now()-geste>=3000){parti=true;location.reload()}};
+  const tente=()=>{if((dispo||silencieux)&&!parti&&calme()&&Date.now()-geste>=3000){parti=true;location.reload()}};
+  const correctif=()=>{if(dispo||silencieux)return;silencieux=true;setInterval(tente,1000);tente()};
   const signale=()=>{if(dispo)return;dispo=true;$('majDispo').hidden=false;setInterval(tente,1000);dispatchEvent(new Event('golems:nouvelle-version'));tente()};
-  const verifie=async()=>{const v=await lit();if(!v)return;if(!ref){ref=v;return}if(v!==ref)signale()};
+  const verifie=async()=>{const v=await lit();if(!v)return;if(!ref){ref=v;return}if(v===ref)return;if(v.split('|')[0]!==ref.split('|')[0])signale();else correctif()};
   $('majRecharger').onclick=()=>location.reload();
   window.nouvelleVersion=signale;document.addEventListener('golems:versionAncienne',signale);
   verifie();setInterval(verifie,5*60*1000);
