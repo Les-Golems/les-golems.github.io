@@ -17,7 +17,7 @@ let publicVu = false, dernierJ1 = null, dernierAdv = null, promotion = null, pro
 const profils = {}; // uid -> { pseudo, avatar } (lus une fois)
 const ecoutes = [], ecoutesChat = [];
 let chat = [];
-let presJ = {}, decalage = 0;
+let presJ = {}, decalage = 0, forfaitsJ = {};
 
 function base() { return P + "salons/" + code; }
 function uid() { return auth && auth.currentUser ? auth.currentUser.uid : ""; }
@@ -157,6 +157,7 @@ function ecoute() {
   on("coups", v => { coups = v || {}; });
   // 0.5 : connexion des joueurs (salons/{code}/pres/{uid} = { c, t }) et decalage de l'horloge du serveur, pour la vue spectateur
   stops.push(onValue(ref(db, base() + "/pres"), s => { presJ = s.val() || {}; }, () => {}));
+  stops.push(onValue(ref(db, base() + "/forfait"), s => { forfaitsJ = s.val() || {}; }, () => {}));
   stops.push(onValue(ref(db, ".info/serverTimeOffset"), s => { decalage = +s.val() || 0; }, () => {}));
   on("siege", v => { siege = typeof v === "string" ? v : null; });
   on("engages", v => { engages = v || null; });
@@ -241,6 +242,7 @@ const SPEC = {
   },
   chat: () => chat,
   pres: () => presJ,
+  forfaits: () => forfaitsJ,
   heure: () => Date.now() + decalage,
   onChat(f) { ecoutesChat.push(f); f(chat); },
   // Chat d'un spectateur (les joueurs gardent r.dit de salon-firebase.js).

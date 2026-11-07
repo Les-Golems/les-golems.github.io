@@ -574,3 +574,8 @@ html.tel-joueur #partie .p-barre .p-info small{line-height:10px!important;margin
 }
 #dif:not(.jr) .d-l1 .dk-pt{position:static;flex:none;align-self:center;margin:0 4px}
 #dif:not(.jr) .d-coin .d-quit{white-space:nowrap;font-size:18px}
+#dif .pp-dsc{font:400 40px/1 Anton,var(--titre);color:var(--texte)}
+/* bilan de fin : de l'air entre la ligne MVP et les boutons */
+#dif .pp-fbtns{margin-top:18px}
+@media (max-width:899px){html.tel-joueur #partie .mqb-r>button .evs{position:absolute;z-index:2;top:9.8%;left:31%;transform:translateY(-50%);font:400 8px/1 sans-serif;color:var(--or);-webkit-text-stroke:1.5px #0a121a;paint-order:stroke fill;pointer-events:none}}
+#dif.jr .d-ban>.d-j .d-badge{flex:none!important;width:171px!important;min-width:171px!important;max-width:171px!important;box-sizing:border-box!important;padding-left:0!important;padding-right:0!important}

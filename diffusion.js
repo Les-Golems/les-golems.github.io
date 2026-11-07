@@ -420,7 +420,7 @@ function ajusteNoms(){
   scene.querySelectorAll('.d-j').forEach(j=>{const n=j.querySelector('.d-nom'),c=j.querySelector('.d-cpt'),l=j.querySelector('.d-l1');let f=54,z=1;
     while(f>26&&j.scrollWidth>j.clientWidth+1){f-=2;n.style.fontSize=f+'px'}
     /* filet de securite : si les compteurs ou le badge ne tiennent toujours pas, ils rapetissent un peu plutot que d'etre coupes */
-    while(z>.7&&j.scrollWidth>j.clientWidth+1){z-=.03;c.style.zoom=z;l.querySelectorAll('.d-badge').forEach(b=>b.style.zoom=z)}});
+    while(z>.7&&j.scrollWidth>j.clientWidth+1){z-=.03;c.style.zoom=z;if(src!=='joueur')l.querySelectorAll('.d-badge').forEach(b=>b.style.zoom=z)}}); /* vue joueur : etiquettes toujours 171 x 38 */
   scene.querySelectorAll('.d-vt').forEach(v=>{let f=28;while(f>14&&v.scrollHeight>v.clientHeight+1){f-=2;v.style.fontSize=f+'px'}});
 }
 
@@ -463,10 +463,18 @@ function ouvrePop(type,m){
   /* tout recapitulatif se lit dans l'etat courant : journal et reperes de manche ne font que grandir */
   if(type==='manche'){popManche(E.etat,m,pp);suivi.vu={type,m,log:E.etat.log.length}}
   else if(type==='pile'){pp.classList.add('pp-p');popPile(m,pp);suivi.pile={p:m.p,k:m.k,sig:sigPile(m)};v.onclick=e=>{if(e.target===v)fermePop()}}
+  else if(type==='abandon')popAbandon(E.etat,m,pp);
   else{popPartie(E.etat,pp);suivi.vu={type,m,log:E.etat.log.length};if(src==='joueur')boutonsFin(pp)}
   const fe=mk('button','pp-fermer','Fermer');fe.type='button';fe.onclick=fermePop;pp.append(fe);
   v.append(pp);scene.append(v);suivi.pop=v;
   if(type==='pile'&&haut){const g=pp.querySelector('.pp-pile');if(g)g.scrollTop=haut}
+}
+/* vue spectateur : fin par abandon (deconnexion), ecran neutre : Vainqueur / Abandon, score */
+function popAbandon(s,perdant,pp){
+  const w=1-perdant,vic=mk('div','pp-vic'),duo=mk('div','pp-duo');vic.append(mk('h2','pp-neutre','Fin par abandon'));
+  [w,perdant].forEach(p=>{const j=mk('div','pp-dj'+(p===w?' g':'')),n=mk('span','pp-dn',nom(p)),a=avatar(p);if(p!==w)a.classList.add('dk-gris');n.style.color=COL[p];
+    j.append(a,n,mk('span','pp-dsc',String(s.j[p].score)),mk('span','dk-tag '+(p===w?'v':'d'),p===w?'Vainqueur':'Abandon'));duo.append(j)});
+  vic.append(duo,mk('p','pp-sous',nom(perdant)+" ne s'est pas reconnecté à temps."));pp.append(vic);
 }
 /* vue joueur : boutons du bilan de fin (Rejouer, Partager le resume, Copier les donnees, Retour a l'accueil) */
 function boutonsFin(pp){
@@ -649,6 +657,11 @@ function decoSpec(){
     const pt=mk('i','dk-pt '+st),l1=b.querySelector('.d-l1'),nm=l1&&l1.querySelector('.d-nom');pt.title=st==='ok'?'En ligne':DK_LIB[st];if(nm)nm.after(pt);else b.append(pt); /* vue spectateur : pastille juste apres le nom */
     if(st!=='ok'){const bg=l1&&l1.querySelector('.d-badge');if(bg){bg.hidden=true;bg.classList.add('dk-cache')}if(l1)l1.append(mk('span','d-badge dk-lab '+st,DK_LIB[st]))}
     if(st==='off'&&!minu)minu={p,reste}});
+  /* defaite declaree (salons/{code}/forfait, depuis le debut de cette partie) : ecran neutre « Fin par abandon » */
+  if(!fin&&typeof S.forfaits==='function'&&!suivi.abandon){const FF=S.forfaits()||{};if(!suivi.ffVus)suivi.ffVus=new Set(Object.keys(FF)); /* forfaits deja la a l'arrivee : parties precedentes du salon */
+    const F=Object.keys(FF).filter(k=>!suivi.ffVus.has(k)).map(k=>FF[k]).filter(x=>x&&E.uids.includes(x.u)).pop();
+    if(F){suivi.abandon=1;scene.querySelectorAll('.dk-et').forEach(x=>x.remove());ouvrePop('abandon',E.uids.indexOf(F.u));return}}
+  if(suivi.abandon)return;
   if(minu){const m=mk('div','dk-et dk-spec'),tx=mk('div','t'),br=mk('div','barre'),i=mk('i');m.setAttribute('role','status');
     tx.append(mk('b','',nom(minu.p)+" s'est déconnecté"),mk('span','',"Sans retour à temps, défaite par abandon."));
     i.style.width=(100*minu.reste/60000)+'%';br.append(i);m.append(tx,mk('div','n',mnS(minu.reste)),br);scene.append(m)}
@@ -696,7 +709,9 @@ function telephone(P){
     const sl=x.parentNode,oe=sl&&sl.querySelector('.oeil');if(oe){const z2=mk('button','mqb-b','Détails');z2.type='button';z2.onclick=()=>{o.remove();oe.click()};b.prepend(z2)}
     const ra=x.querySelector('.raison');o.append(im,mk('p','','Carte '+(i+1)+' sur '+cartes.length+(x.classList.contains('surtaxe')?' · surcoût':'')+(ra?' · '+ra.textContent:'')),b);
     o.onclick=ev=>{if(ev.target===o)o.remove()};document.body.append(o);r.querySelectorAll('button').forEach(y=>y.classList.remove('choisi'));if(r.children[i])r.children[i].classList.add('choisi')};
-  cartes.forEach((x,i)=>{const b=mk('button');b.type='button';if(x.classList.contains('surtaxe'))b.className='surtaxe';if(x.classList.contains('grisee'))b.classList.add('grisee');const im=mk('img');im.src=x.querySelector('img').src;im.alt=x.querySelector('img').alt||'';b.append(im);b.onclick=()=>ouvre(x,i);r.append(b)});
+  cartes.forEach((x,i)=>{const b=mk('button');b.type='button';if(x.classList.contains('surtaxe'))b.className='surtaxe';if(x.classList.contains('grisee'))b.classList.add('grisee');const im=mk('img');im.src=x.querySelector('img').src;im.alt=x.querySelector('img').alt||'';b.append(im);
+    {const sl=x.parentNode,cc=sl&&sl.dataset.c,C=cc!=null&&M().carte(+cc);if(C&&C.base){const st=mk('span','evs','★');st.setAttribute('aria-hidden','true');b.append(st)}} /* evolution : etoile a cote du cout */
+    b.onclick=()=>ouvre(x,i);r.append(b)});
   const g=mk('div','mqb-g','›');Mm.append(r,g);const majG=()=>{g.style.display=r.scrollLeft+r.clientWidth>=r.scrollWidth-2?'none':'flex'};r.addEventListener('scroll',majG);
   po.append(L,Mm);requestAnimationFrame(majG);
   window.__telOuvre=i=>ouvre(cartes[i||0],i||0);
