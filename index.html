@@ -712,6 +712,18 @@ body:has(#jouer.enJeu:not([hidden])) .onglets button{padding:6px 8px;font-size:1
 .dl-ligne.dl-fautive{position:relative}
 .dl-ligne.dl-fautive::after{content:'!';position:absolute;right:46px;top:50%;margin-top:-10px;width:20px;height:20px;border-radius:50%;background:#fff;color:#0a121a;font:900 15px/20px sans-serif;text-align:center;pointer-events:none}
 .dl-force.dl-mot{grid-column:span 2;font:800 11px/1 var(--corps);letter-spacing:.04em;text-transform:uppercase;opacity:.9;color:#fff}
+/* Mode daltonien (0.5) : sans body.daltonien, les reperes ci-dessus sont masques (couleurs inchangees). Le mot Animal garde sa place, invisible. */
+body:not(.daltonien) .p-case .f.plus b::after,body:not(.daltonien) .p-case .f.moins b::after,body:not(.daltonien) #vueDetail .tot b.plus::before,body:not(.daltonien) #vueDetail .tot b.moins::before,body:not(.daltonien) .dl-ligne.dl-fautive::after{content:none}
+body:not(.daltonien) #vueDetail .tot b.plus,body:not(.daltonien) #vueDetail .tot b.moins{padding-left:0}
+body:not(.daltonien) .dl-force.dl-mot{visibility:hidden}
+/* Interrupteur Mode daltonien : MEME composant partout (bandeau, barre d'outils de la partie, diffusion) = pf-inter / pf-glis du Profil public et du Salon public, dans un encart au fond du bloc Creer une partie (.bloc). Eteint : texte et glissiere gris ; allume : texte bleu, glissiere remplie de bleu (#01C1F0). */
+.pf-inter.dal-inter{margin:0;align-self:center;width:auto;order:0;height:36px;box-sizing:border-box;padding:0 10px 0 12px;gap:9px;background:var(--panneau);border:1px solid var(--trait);border-radius:10px;font:700 14.5px/1 var(--corps);color:var(--doux);white-space:nowrap}
+.p-outils .dal-inter{margin-right:4px}
+.p-outils .dal-inter .pf-itx{display:none}.p-outils .dal-inter{padding:0 8px}
+#partie .p-tourde:has(.dal-inter){padding-right:204px}
+#dif .d-bas:has(.dal-inter){flex-wrap:wrap;justify-content:center;row-gap:10px}#dif .dal-inter{flex:none}#dif .d-coin:has(.dal-inter) .d-logo img{width:110px;height:110px}
+@media (max-width:899px){#partie .p-tourde:has(.dal-inter){padding-right:172px}}
+@media (max-width:440px){header .haut .moi .dal-inter{grid-row:3;grid-column:1/3;justify-self:end}}
 /* Paquets du joueur */
 .p-piles{display:flex;justify-content:center;gap:18px}
 .pile{position:relative;width:72px;text-align:center;font:400 17px/20px var(--titre);color:var(--texte)}
@@ -1726,7 +1738,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
   <img data-src="cartes/logo.png" alt="">
   <h1>Les Golems<span class="st-ligne"><small class="sous-titre">Jeu de cartes communautaire</small> <button class="etq-v ver-etq ve-charge" id="verEtq" type="button" tabindex="-1" aria-busy="true" title="Version en cours de chargement">v…</button></span></h1>
   <div class="majDispo" id="majDispo" role="status" hidden><span title="La page se recharge seule dès que tu as fini (partie, salon, saisie)">Nouvelle version disponible</span><button class="btn" id="majRecharger" type="button">Recharger la page</button></div>
-  <div class="moi"><span class="qui"><button class="avatarBtn" id="choixAvatar" type="button" aria-label="Choisir mon avatar" title="Choisir mon avatar"><span class="avatar" id="avatarMoi" aria-hidden="true"></span></button><b id="pseudoAffiche"></b></span><button class="modif" id="modifierPseudo" type="button"><span class="txt">Modifier</span><svg class="pic" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></svg></button></div>
+  <div class="moi"><label class="pf-inter dal-inter" title="Ajoute des repères en plus des couleurs : flèches sur la Force modifiée, « ! » sur une carte fautive, mot « Animal » dans les listes."><span class="pf-itx">Mode daltonien</span><input type="checkbox" id="daltonienCase" class="dal-case" role="switch"><span class="pf-glis"></span></label><span class="qui"><button class="avatarBtn" id="choixAvatar" type="button" aria-label="Choisir mon avatar" title="Choisir mon avatar"><span class="avatar" id="avatarMoi" aria-hidden="true"></span></button><b id="pseudoAffiche"></b></span><button class="modif" id="modifierPseudo" type="button"><span class="txt">Modifier</span><svg class="pic" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></svg></button></div>
 <div id="galerieAvatar" class="galAv" hidden><div class="galBoite" role="dialog" aria-modal="true" aria-labelledby="galTitre"><h2 id="galTitre">Choisis ton avatar</h2><div class="galGrille" id="galGrille"></div><p class="galMsg" id="galMsg" role="alert"></p><input type="file" id="avFichier" accept="image/*" hidden><button class="btn plein fermer" id="galFermer" type="button">Fermer</button></div></div>
 <div id="cadre" class="galAv cadAv" hidden><div class="galBoite cadBoite" role="dialog" aria-modal="true" aria-labelledby="cadTitre"><h2 id="cadTitre">Cadre ton avatar</h2><div class="cadVue" id="cadVue"><img id="cadImg" alt="" draggable="false"></div><label class="cadZ"><span>Zoom</span><input type="range" id="cadZoom" min="0" max="100" value="0" aria-label="Zoom"></label><p class="galMsg" id="cadMsg" role="alert"></p><div class="cadBtns"><button class="modif" id="cadAnnuler" type="button">Annuler</button><button class="btn plein" id="cadOk" type="button">Valider</button></div></div></div>
 </div></header>
@@ -3719,6 +3731,14 @@ function deSuivant(){
 function fermeAide(){if($('aide').hidden)return;$('aide').hidden=true;const b=$('btnAide');if(b)b.focus()}
 $('aideFermer').onclick=fermeAide;
 $('aide').onclick=e=>{if(e.target===$('aide'))fermeAide()};
+/* Mode daltonien (0.5) : body.daltonien affiche les reperes (fleches, !, Animal). Desactive par defaut, memorise sur l'appareil seulement (aucune preference de compte).
+   Interrupteurs synchronises (input.dal-case) : bandeau du site, barre d'outils de la partie, diffusion / vue spectateur (window.interDal). */
+{const K='golems.daltonien';let on=false;try{on=localStorage.getItem(K)==='1'}catch(e){}
+ const app=v=>{on=v;document.body.classList.toggle('daltonien',v);document.querySelectorAll('input.dal-case').forEach(c=>{c.checked=v})};
+ const lie=c=>{c.checked=on;c.onchange=()=>{app(c.checked);try{localStorage.setItem(K,c.checked?'1':'0')}catch(e){}}};
+ window.interDal=(texte='Mode daltonien')=>{const lb=el('label','pf-inter dal-inter'),cb=el('input','dal-case'),tx=el('span','pf-itx',texte);cb.type='checkbox';cb.setAttribute('role','switch');cb.setAttribute('aria-label','Mode daltonien');
+   lb.title='Mode daltonien : flèches sur la Force modifiée, « ! » sur une carte fautive, mot « Animal » dans les listes.';lie(cb);lb.append(tx,cb,el('span','pf-glis'));return lb};
+ lie($('daltonienCase'));app(on);addEventListener('storage',e=>{if(e.key===K)app(e.newValue==='1')})}
 /* Son : aucun AudioContext avant un clic, rien ne passe par la presence ni le journal. */
 let sonOn=lire('golems.son')==='1',actx=null;
 function armeSon(){
@@ -3773,7 +3793,7 @@ function outils(){
     m.setAttribute('aria-pressed',sonOn);m.setAttribute('aria-label',sonOn?'Couper le son':'Activer le son');m.title=m.getAttribute('aria-label');
   };
   m.onclick=()=>{sonOn=!sonOn;ecrire('golems.son',sonOn?'1':'0');if(sonOn){armeSon();setTimeout(()=>joueSons(['tour']),60)}peint()};
-  peint();d.append(v,q,m);return d;
+  peint();d.append(window.interDal?interDal():'',v,q,m);return d;
 }
 /* Copie : d'abord execCommand dans le clic meme (iOS, WebView de Discord et appli installee refusent une copie faite plus tard),
    champ cache en lecture seule et selection complete ; sinon presse-papiers asynchrone ; sinon repli : selectionne (texte montre

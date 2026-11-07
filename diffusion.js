@@ -360,6 +360,7 @@ function actions(s){
 }
 function coin(){
   const z=mk('div','d-z d-coin'),lo=mk('div','d-logo'),li=mk('img'),bas=mk('div','d-bas');li.src=imgV('cartes/logo.png');li.alt='Les Golems';lo.append(li);
+  if(window.interDal)bas.append(interDal()); /* 0.5 : mode daltonien, a gauche de Chat */
   if(src==='spec'&&window.SPEC&&SPEC.chat){const b=mk('button','d-chat','Chat');b.type='button';b.setAttribute('aria-label','Ouvrir le chat');b.onclick=()=>chat.ouvre();
     const n=chat.nonLus();if(n>0){b.append(mk('span','d-pastille',n>9?'9+':String(n)));b.setAttribute('aria-label','Ouvrir le chat, '+n+' nouveau'+(n>1?'x':'')+' message'+(n>1?'s':''))}bas.append(b)}
   const qt=mk('button','d-quit',src==='spec'?'Quitter la partie':'Quitter la diffusion');qt.type='button';qt.onclick=quitter;bas.append(qt);
