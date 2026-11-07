@@ -18,4 +18,8 @@ const SEPT_JOURS = '604800000';
 // Le texte écrit est le pseudo du compte uid (expression ou variable de règle, ex. '$uid' ou 'auth.uid').
 const pseudoReel = (r, uid) => `newData.val() === ${r}.child('joueurs').child(${uid}).child('pseudo').val()`;
 
-module.exports = { COMPTE, UID_ROMAIN, MAINTENANT, CODE, SEPT_JOURS, pseudoReel };
+// Racine des données APRÈS l'écriture, en remontant de n crans depuis newData (même préfixe que le nœud écrit).
+// Seul moyen de voir une autre partie d'une écriture multiple (ex. pseudos/ et joueurs/ posés ensemble à la création).
+const racineApres = n => 'newData' + '.parent()'.repeat(n);
+
+module.exports = { COMPTE, UID_ROMAIN, MAINTENANT, CODE, SEPT_JOURS, pseudoReel, racineApres };

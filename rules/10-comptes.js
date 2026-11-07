@@ -1,6 +1,6 @@
 // Comptes : pseudos réservés et données de chaque compte.
 // r = racine des données ("root" ou "root.child('essai')"), voir 00-communs.js.
-const { COMPTE, MAINTENANT, CODE } = require('./00-communs');
+const { racineApres, COMPTE, MAINTENANT, CODE } = require('./00-communs');
 
 module.exports = r => ({
   // Pseudos réservés : pseudos/{pseudo en minuscules} = uid du propriétaire.
@@ -19,7 +19,8 @@ module.exports = r => ({
     "$uid": {
       ".read": "auth != null && auth.uid === $uid",
       ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-      "pseudo":   { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20" },
+      // Pseudo du compte : doit être réservé à ce compte dans pseudos/ (clé = pseudo en minuscules), dans la même écriture ou avant.
+      "pseudo":   { ".read": "auth != null", ".validate": `newData.isString() && newData.val().length >= 3 && newData.val().length <= 20 && ${racineApres(3)}.child('pseudos').child(newData.val().toLowerCase()).val() === $uid` },
       "avatarId": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)" },
       // Avatar importé par le joueur : petite image JPEG ou WebP en texte (data URL), 140 000 caractères au plus (environ 100 Ko).
       "avatarImg": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length <= 140000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)" },

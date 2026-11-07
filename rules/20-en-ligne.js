@@ -153,7 +153,8 @@ module.exports = r => ({
 
       // Mode spectateur (0.3). siege = uid de l'adversaire, pris par transaction s'il est libre, rendu par son seul détenteur.
       "siege": {
-        ".write": `${COMPTE} && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))`,
+        // Prise seulement dans un salon ouvert (un joueur y est présent) et, partie commencée, par un engagé.
+        ".write": `${COMPTE} && ((!data.exists() && newData.val() === auth.uid && ${r}.child('salons').child($code).child('joueurs').exists() && (!${r}.child('salons').child($code).child('engages').exists() || ${r}.child('salons').child($code).child('engages').hasChild(auth.uid))) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))`,
         ".validate": "newData.isString() && newData.val().length <= 128"
       },
       // Spectateurs présents : chacun n'écrit que sous son uid, pseudo de son compte et heure serveur.

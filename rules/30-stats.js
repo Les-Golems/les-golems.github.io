@@ -10,7 +10,8 @@ module.exports = r => ({
     "$uid": {
       ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
       ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val()",
-      "p": { ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20" },
+      // p = pseudo du compte.
+      "p": { ".validate": `newData.isString() && ${pseudoReel(r, '$uid')}` },
       "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0" },
       "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0" },
       "$autre": { ".validate": false }

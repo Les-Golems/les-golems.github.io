@@ -57,7 +57,7 @@ function verifier() {
     if (/[^.\w]root\./.test(t) || /["`]root\./.test(t)) fautes.push(`${b} : root. en dur (passer par r)`);
   }
   const genere = texte();
-  if (!fs.existsSync(CIBLE) || fs.readFileSync(CIBLE, 'utf8') !== genere) fautes.push('database.rules.json pas à jour : lancer node rules/generer.js');
+  if (!fs.existsSync(CIBLE) || fs.readFileSync(CIBLE, 'utf8').replace(/\r\n/g, '\n') !== genere) fautes.push('database.rules.json pas à jour : lancer node rules/generer.js');
   const r = lireRegles(CIBLE).rules;
   for (const s of chaines(r.essai)) {
     const sans = s.split(RACINE_ESSAI).join('');

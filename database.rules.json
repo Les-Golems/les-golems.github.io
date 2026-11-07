@@ -19,7 +19,7 @@
         ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
         "pseudo": {
           ".read": "auth != null",
-          ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20"
+          ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20 && newData.parent().parent().parent().child('pseudos').child(newData.val().toLowerCase()).val() === $uid"
         },
         "avatarId": {
           ".read": "auth != null",
@@ -333,7 +333,7 @@
           }
         },
         "siege": {
-          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.val() === auth.uid && root.child('salons').child($code).child('joueurs').exists() && (!root.child('salons').child($code).child('engages').exists() || root.child('salons').child($code).child('engages').hasChild(auth.uid))) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))",
           ".validate": "newData.isString() && newData.val().length <= 128"
         },
         "spectateurs": {
@@ -362,7 +362,7 @@
         ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
         ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val()",
         "p": {
-          ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20"
+          ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()"
         },
         "v": {
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0"
@@ -660,7 +660,7 @@
           ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
           "pseudo": {
             ".read": "auth != null",
-            ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20"
+            ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20 && newData.parent().parent().parent().child('pseudos').child(newData.val().toLowerCase()).val() === $uid"
           },
           "avatarId": {
             ".read": "auth != null",
@@ -974,7 +974,7 @@
             }
           },
           "siege": {
-            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.val() === auth.uid && root.child('essai').child('salons').child($code).child('joueurs').exists() && (!root.child('essai').child('salons').child($code).child('engages').exists() || root.child('essai').child('salons').child($code).child('engages').hasChild(auth.uid))) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))",
             ".validate": "newData.isString() && newData.val().length <= 128"
           },
           "spectateurs": {
@@ -1003,7 +1003,7 @@
           ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
           ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val()",
           "p": {
-            ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20"
+            ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()"
           },
           "v": {
             ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0"
