@@ -1513,13 +1513,14 @@ html.essai header{box-shadow:inset 0 5px 0 #ff7a1a}
 #gPasser{position:fixed;z-index:71;bottom:12px;left:12px;padding:7px 12px;font-size:14px;min-height:0}
 body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 /* Premiere partie ? (0.4) : bandeau discret en haut de l'onglet Jouer, une seule fois par navigateur */
-#accueil>#premierePartie{display:flex;flex-direction:row;align-items:center;flex-wrap:wrap;gap:10px 16px;border-color:var(--or);border-left:4px solid var(--or);padding:12px 16px}
-#accueil>#premierePartie[hidden]{display:none}
+#premierePartie{margin:0 0 12px;max-width:none;width:auto;display:flex;flex-direction:row;align-items:center;flex-wrap:wrap;gap:10px 16px;border-color:var(--or);border-left:4px solid var(--or);padding:12px 16px}
+#premierePartie[hidden]{display:none}
 .pp-tx{flex:1 1 260px;min-width:0}
 .pp-tx b{display:block;font:400 19px/1.2 var(--titre);color:var(--or)}
 .pp-tx span{color:var(--doux);font-size:14.5px}
 .pp-btns{display:flex;gap:8px;flex:0 1 auto}
 .pp-btns .btn{min-height:42px;padding:4px 16px;font-size:15px;margin:0;white-space:nowrap}
+@media (max-width:600px){#premierePartie .pp-btns{flex:1 1 100%}:is(#premierePartie .pp-btns .btn,#fam#fam){flex:1 1 auto;width:auto;padding-left:10px;padding-right:10px}}
 /* Reprises du 3 nov. */
 .btn.danger{--bord:#7a1d1d;background:linear-gradient(#e2574c,#b9342b);color:#fff}
 #popAbandon .boite p{margin:0 0 16px}#popAbandon .p-btns .btn{flex:1 1 0}
@@ -2045,10 +2046,6 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
   <div class="jeu"><div>
     <p class="erreur" id="erreurJeu" role="alert"></p>
     <div id="accueil">
-      <div class="bloc" id="premierePartie" role="region" aria-labelledby="propTitre" hidden>
-        <div class="pp-tx"><b id="propTitre">Première partie ?</b><span>Joue une partie guidée contre un Golem Facile pour apprendre les bases.</span></div>
-        <div class="pp-btns"><button class="btn plein" id="propOui" type="button">Lancer le tutoriel</button><button class="btn sec" id="propNon" type="button">Plus tard</button></div>
-      </div>
       <div class="bloc" id="blocCreer">
         <h3>Créer une partie</h3>
         <label class="pf-inter caseSalon" title="Privé : la partie n'apparaît pas dans les parties publiques, seul son code permet de la rejoindre."><span class="pf-itx" id="salonPublicTxt">Salon public</span><input type="checkbox" id="salonPublicCase" role="switch" checked><span class="pf-glis"></span></label>
@@ -2110,6 +2107,10 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 
 <section id="nouveautes" role="tabpanel" aria-labelledby="t-nouveautes" hidden>
   <p class="intro">Les dernières nouvelles du jeu : annonces, mises à jour et notes de patch.</p>
+      <div class="bloc" id="premierePartie" role="region" aria-labelledby="propTitre" hidden>
+        <div class="pp-tx"><b id="propTitre">Première partie ?</b><span>Joue une partie guidée contre un Golem Facile pour apprendre les bases.</span></div>
+        <div class="pp-btns"><button class="btn plein" id="propOui" type="button">Lancer la partie guidée</button><button class="btn sec" id="propNon" type="button">Plus tard</button></div>
+      </div>
   <div id="notes"></div>
 </section>
 <section id="guides" role="tabpanel" aria-labelledby="t-guides" hidden>
@@ -2409,10 +2410,9 @@ if(GUIDES.length)$('t-guides').hidden=false;else $('t-guides').remove();
 const noms=['nouveautes','jouer','decks','historique','stats','cartes','regles'].concat(GUIDES.length?['guides']:[]);
 function onglet(n){
   noms.forEach(x=>{$(x).hidden=x!==n;$('t-'+x).setAttribute('aria-selected',x===n)});
-  if(n==='decks')peintDecks();if(n==='historique')ajusteHisto();if(n==='stats')peintStats();if(n==='guides')ajusteGuides();if(n==='nouveautes')ajusteNotes();
+  if(n==='decks')peintDecks();if(n==='historique')ajusteHisto();if(n==='stats')peintStats();if(n==='guides')ajusteGuides();if(n==='nouveautes'){proposeGuide();ajusteNotes()}
   ecrire('golems.onglet',n);
   if(n==='nouveautes'&&!versionVue())ecrire('golems.versionVue',M.VERSION);majPointNv();
-  if(n==='jouer')proposeGuide();
 }
 noms.forEach(n=>$('t-'+n).onclick=()=>onglet(n));
 /* 0.5.1 : version vue (golems.versionVue). Version pas encore vue : point sur l'onglet Nouveautes et arrivee sur Nouveautes une fois. */
@@ -2421,19 +2421,23 @@ function majPointNv(){const t=$('t-nouveautes');let p=t.querySelector('.o-nvpt')
   if(versionVue()&&$('nouveautes').hidden){p?.remove();return} /* le point reste pendant la premiere visite des Nouveautes */
   if(versionVue())return;
   if(!p){p=document.createElement('span');p.className='o-nvpt';p.setAttribute('aria-hidden','true');t.append(p);t.setAttribute('aria-label','Nouveautés (nouvelle version)')}}
-/* 0.5.1 : Guides, Historique et Nouveautes : autant de lignes qu'il en tient sans defilement dans la fenetre (au moins 2), colonnes lues dans la grille.
-   Une seule colonne (telephone) : nombres d'origine. Pas de recalcul en plein ecran (video). */
+/* 0.5.2 : Guides, Historique et Nouveautes : le maximum de lignes qui tient sans defilement (au moins 1), colonnes lues dans la grille.
+   Critere : la page ne defile pas (hauteur du document <= hauteur de fenetre), plus de marge forfaitaire.
+   Une seule colonne sur telephone (< 700 px) : nombres d'origine, la page defile. Pas de recalcul en plein ecran (video).
+   Recalcul au redimensionnement et quand une image de la section finit de charger. */
 function ajustePage(sec,grille,set,peint,defaut){
   if($(sec).hidden||document.fullscreenElement)return;const g=grille();if(!g){peint();return}
   const cs=getComputedStyle(g),cols=cs.display==='grid'?cs.gridTemplateColumns.split(' ').filter(Boolean).length:1;
-  if(cols<2){set(defaut);peint();return}
+  if(cols<2&&innerWidth<700){set(defaut);peint();return}
+  const deborde=()=>document.documentElement.scrollHeight>innerHeight;
   let r=12;set(r*cols);peint();
-  while(r>2&&grille().getBoundingClientRect().bottom+scrollY>innerHeight-12){r--;set(r*cols);peint()}
+  while(r>1&&deborde()){r--;set(r*cols);peint()}
 }
 function ajusteGuides(){ajustePage('guides',()=>$('gdBlocs'),v=>GD.par=v,peintGuides,6)}
 function ajusteNotes(){ajustePage('nouveautes',()=>$('notes'),v=>NV.par=v,peintNotes,6)}
 function ajusteHisto(){ajustePage('historique',()=>document.querySelector('#histo .h-grille')||(peintHisto(),document.querySelector('#histo .h-grille')),v=>lignesPage=v,peintHisto,14)}
-{let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{ajusteGuides();ajusteNotes();ajusteHisto()},120)})}
+{let t=0;const tout=()=>{clearTimeout(t);t=setTimeout(()=>{ajusteGuides();ajusteNotes();ajusteHisto()},120)};addEventListener('resize',tout);
+  ['guides','nouveautes','historique'].forEach(x=>$(x).addEventListener('load',e=>{if(e.target.tagName==='IMG'&&!document.querySelector('#gdBlocs [data-joue="1"]'))tout()},true));document.fonts?.ready.then(tout);addEventListener('load',tout)}
 
 /* Deux colonnes : une section ouverte de chaque côté pour les équilibrer. */
 if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
@@ -2834,7 +2838,7 @@ function peintNotes(){
   const U=[...(ep.includes('feuille-de-route')?[]:[[fdr]]),...unitesNotes()].map(u=>u.filter(a=>!ep.includes(a.dataset.id))).filter(u=>u.length);
   const pages=[[]];let n=ep.length;
   U.forEach(u=>{if(n+u.length>NV.par&&n>0){pages.push([]);n=0}pages[pages.length-1].push(...u);n+=u.length});
-  if(pages.length>1&&!pages[0].length)pages.shift();
+  if(pages.length>1&&!pages[0].length&&!ep.length)pages.shift(); /* 0.5.2 : epingles seuls en page 1 s il ne reste pas de place */
   NV.page=Math.max(0,Math.min(NV.page,pages.length-1));
   const ordre=[...ep.map(par),...pages.flat()],vus=new Set([...(NV.page===0?ep.map(par):[]),...pages[NV.page]]);
   if(ordre.some((a,i)=>N.children[i]!==a))ordre.forEach(a=>N.append(a));
@@ -6850,13 +6854,13 @@ document.addEventListener('click',e=>{
 },true);
 $('gPasser').onclick=()=>arreteGuide();
 $('lanceGuide').onclick=lanceGuide;
-$('propOui').onclick=()=>{$('premierePartie').hidden=true;lanceGuide()};
-$('propNon').onclick=()=>{$('premierePartie').hidden=true};
-/* Premiere partie ? (0.4) : bandeau discret en haut de l'onglet Jouer, montre une seule fois par navigateur (cle golems.guide) ;
-   il reste visible jusqu'a Lancer le tutoriel, Plus tard ou le prochain chargement. Tutoriel permanent dans Apprendre et s'entrainer. */
+$('propOui').onclick=()=>{ecrire('golems.guide','1');$('premierePartie').hidden=true;lanceGuide()};
+$('propNon').onclick=()=>{ecrire('golems.guide','1');$('premierePartie').hidden=true;ajusteNotes()};
+/* Premiere partie ? (0.4) : bandeau en haut des Nouveautes (0.5.3), montre tant que la cle golems.guide est absente ;
+   la cle n'est posee qu'au clic sur Lancer la partie guidee ou Plus tard. Tutoriel permanent dans Apprendre et s'entrainer. */
 function proposeGuide(){
   if(lire('golems.guide')||partie||r)return;
-  ecrire('golems.guide','1');$('premierePartie').hidden=false;
+  $('premierePartie').hidden=false;
 }
 if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname))window.__golemsGuide=()=>tuto&&{i:tuto.i,n:ETAPES.length,c:ETAPES[tuto.i].c||null,suiv:!!ETAPES[tuto.i].suiv};
 /* Tests automatiques, en local seulement */
