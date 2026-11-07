@@ -475,6 +475,76 @@ const types={
   /* L'attachiante (008e) : Love inconditionnel, une fois par manche, un Golem allie blesse recupere 1 de Force (action 'r'). */
   soinAllie:{actionsTour:(s,p)=>loves(s,p),robotFinTour:(X,p,l)=>choixLove(X,p,l)},
 };
+/* ---- Robot : estimations par type d'effet (le robot ne voit que ce qu'un joueur voit).
+   forceEstimee(r) : Force moyenne d'une pose a Force aleatoire ; tirages(r) : toutes les Forces possibles (Imitation, moyenne exacte) ;
+   estime(r,c,p,l,k,copie) : effet de pose simule sur la copie c du plateau (copie : estimation d'une copie, Deguisement ou Imitation) ;
+   robotPose(r,s,p,a,apres,g,v0) : gain d'une pose, renvoie le nouveau gain (apres : plateau simule) ; robotPerte(r,s,p) : gain perdu quand la carte evolue ;
+   robotPoseFin(r,s,p,a,g) : ajustements apres le cout ; robotCopie(r,c,p,l,k) : gain en plus d'une copie de cet effet ;
+   compteRisque(r,etat,q) et risque(r,s,p,gr,D) : pioches de la pose [pour p, pour l'adversaire] (regle de la meule).
+   Reglage valeurCopie (fiche) : bonus fixe d'une copie de cet effet pour le Deguisement et l'Imitation. */
+const toursRestants=s=>9-((s.manche-1)*3+s.tour);
+/* esperances, sans regarder les des ni le deck. Gamba : 1 chance sur 3 de -2 pour soi, 1 sur 3 de -2 en face. */
+function gambaEstime(c,p,l,k){
+  const G=c.j[p].grille[l][k];G.d+=2/3;
+  const h=c.j[1-p].grille[l][k];if(h&&M.ciblable(c,1-p,l,k,p)&&!M.insensible(h))h.d+=2/3;
+}
+/* Extinction du feu estimee (Golems de l'element adverses ciblables -1, Menfou palu exclu ; simule retire les morts). */
+function extinctionEstime(r,c,p){const G=c.j[1-p].grille;for(let a=0;a<3;a++)for(let b=0;b<3;b++){const h=G[a][b];if(golem(h)&&carte(h.c).el.includes(r.el)&&M.ciblable(c,1-p,a,b,p)&&!M.insensible(h))h.d+=r.degats}}
+/* Il suffit estime (copie du plateau) : les Golems detruits quittent les grilles, Mode Avion adverse garde. */
+function ilSuffitEstime(c,p){doublons(c,p).T.forEach(x=>{c.j[x.q].grille[x.l][x.k]=null})}
+/* Realisation de l'age : petit bonus si l'adversaire jouera encore, selon ses Golems de base en jeu qui ont une evolution (seule information visible :
+   le robot ne regarde ni la main ni le deck adverses). */
+function elessarEstime(s,p){
+  if(s.manche===3&&s.tour===3&&s.joueur!==s.premier)return 0; /* dernier tour de la partie : l'adversaire ne posera plus rien */
+  let n=0;s.j[1-p].grille.forEach(L=>L.forEach(g=>{if(golem(g)&&!carte(g.c).base&&M.TYPES.some(t=>CARTES[t].base===carte(g.c).id))n++}));
+  return .1+.1*Math.min(3,n);
+}
+const elementsDe=(r,etat,q)=>etat.j[q].grille.flat().filter(h=>h&&elDe(r,h.c)).length; /* La Bretagne : Golems de ses elements dans la grille q */
+const robot={
+  pertesFinManche:{estime:(r,c,p,l,k,copie)=>{if(copie&&c.manche<3)c.j[p].grille[l][k].d+=r.degats}}, /* KaTarN copie : -4 a chaque fin de manche */
+  degatsLigne:{estime:(r,c,p,l)=>c.j[1-p].grille[l].forEach((h,q)=>{if(M.ciblable(c,1-p,l,q,p)&&!M.insensible(h))h.d+=r.degats})},
+  forceAuDe:{forceEstimee:r=>r.estime,
+    tirages:r=>{const fs=[];for(let a=1;a<=6;a++){if(r.des===1)fs.push(a);else for(let b=1;b<=6;b++)fs.push(a===b?a:a+b)}return fs}},
+  gamba:{estime:(r,c,p,l,k)=>gambaEstime(c,p,l,k)},
+  perteElement:{estime:(r,c,p)=>extinctionEstime(r,c,p)},
+  ilSuffit:{estime:(r,c,p)=>ilSuffitEstime(c,p)}, /* simule retire ensuite les morts en chaine */
+  /* copieurs : la meilleure copie possible depuis cette case (Deguisement) ; la meilleure option, copier ou refuser (Imitation) */
+  copie:{robotPose:(r,s,p,a,apres,g,v0)=>{
+    if(r.cible==='face'){
+      const h=apres.j[1-p].grille[a.l][a.k];
+      if(apres.j[p].grille[a.l][a.k]&&golem(h)&&M.ciblable(apres,1-p,a.l,a.k,p)&&M.idEff(h))g=Math.max(M.valeurImitation(apres,p,a.l,a.k,M.idEff(h)),M.gainCopie(apres,p,a.l,a.k,null))-v0;
+      return g;
+    }
+    const cs=apres.j[p].grille[a.l][a.k]?M.voisinsCases(apres.j[p].grille,a.l,a.k):[];
+    if(cs.length)g=Math.max(...cs.map(([x,y])=>M.gainCopie(apres,p,a.l,a.k,M.idEff(apres.j[p].grille[x][y]))))-v0;
+    return g;
+  }},
+  /* meandyou : le meilleur echange s'il est utile (copie : joue depuis la case du copieur) */
+  echangeAllies:{robotPose:(r,s,p,a,apres,g)=>apres.j[p].grille[a.l][a.k]?g+Math.max(0,M.gainEchange(apres,p,a.l,a.k)):g,
+    robotCopie:(r,c,p,l,k)=>Math.max(0,M.gainEchange(c,p,l,k))},
+  /* Bellock/Loxim : vise Double up ? (deja compte dans la Force si une evolution en profite) */
+  duo:{robotPose:(r,s,p,a,apres,g)=>apres.j[p].grille[a.l][a.k]&&duoVoisin(apres.j[p].grille,a.l,a.k,r.partenaire)?g+.25:g},
+  piocheParElement:{
+    robotPose:(r,s,p,a,apres,g)=>{const n=[p,1-p].map(q=>Math.min(r.max,elementsDe(r,s,q)+(q===p?1:0)));return g+(.25*Math.min(n[0],s.j[p].deck.length)-.15*Math.min(n[1],s.j[1-p].deck.length))},
+    robotCopie:(r,c,p)=>{const n=[p,1-p].map(q=>Math.min(r.max,elementsDe(r,c,q)));return .25*Math.min(n[0],c.j[p].deck.length)-.15*Math.min(n[1],c.j[1-p].deck.length)},
+    compteRisque:(r,etat,q)=>elementsDe(r,etat,q),
+    risque:(r,s,p,gr)=>[Math.min(r.max,gr[p]),Math.min(r.max,gr[1-p])]},
+  energieTour:{robotPose:(r,s,p,a,apres,g)=>g+.4},
+  /* Realisation de l'age gagnee (pose), perdue en evoluant (robotPerte de la base) */
+  surtaxeEvolution:{robotPose:(r,s,p,a,apres,g)=>g+elessarEstime(s,p),robotPerte:(r,s,p)=>elessarEstime(s,p),robotCopie:(r,c,p)=>elessarEstime(c,p)},
+  /* Graine de Golem : cartes en plus aux tours suivants (perdue en evoluant) */
+  piocheTour:{robotPose:(r,s,p,a,apres,g)=>g+.08*Math.min(4,toursRestants(s)),robotPerte:(r,s)=>.08*Math.min(4,toursRestants(s))},
+  /* Draft diff aux Forges suivantes */
+  bonusForge:{robotPose:(r,s,p,a,apres,g)=>r.mode==='draft'?g+.1*Math.min(4,toursRestants(s)):g},
+  /* Forge eclair aux tours suivants (rien apres le dernier tour) */
+  forgeEclair:{robotPose:(r,s,p,a,apres,g)=>s.manche*3+s.tour<12?g+.3:g},
+  /* Jour de peche : 1 carte adverse en moins (risque en points) */
+  jourDePeche:{robotPoseFin:(r,s,p,a,g)=>s.j[1-p].deck.length?g+.25:g,risque:(r,s,p,gr,D)=>[0,D[1-p]>0?1:0]},
+  spam:{robotPoseFin:(r,s,p,a,g)=>g+.3,risque:()=>[1,0]},
+  favori:{robotPoseFin:(r,s,p,a,g)=>s.j[p].grille.some(L=>L.some(Boolean))?g+.3:g},
+  deplaceAdverse:{robotPoseFin:(r,s,p,a,g)=>slams(s,p).length?g+.3:g,robotCopie:(r,c,p)=>slams(c,p).length?.4:0}
+};
+for(const t in robot){if(!types[t])throw new Error('robot : type inconnu '+t);Object.assign(types[t],robot[t])}
 /* Realisation de l'age : surtaxe annoncee a la pose d'une evolution (sur : total de la surtaxe adverse) */
 function annonceSurtaxe(s,p,C,sur){M.declenche(s,'Réalisation de l\'âge','Coût +'+sur+' pour '+nomDetail(C));dire(s,p,'Réalisation de l\'âge : '+nomDetail(C)+' coûte '+sur+' de plus.')}
 /* Actions jouees a son tour, par lettre (format du journal inchange) */

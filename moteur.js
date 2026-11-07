@@ -69,7 +69,7 @@ function idEff(g){const id=carte(g.c).id;return COPIEURS[id]?(g.cp||null):id}
    Jamais plus de +2 (plusieurs Vic222, SuperFishman : pas de cumul). */
 function cercle2(G,k,id){return aProp(id,'cercle2')||[0,1,2].some(a=>golem(G[a][k])&&aProp(idEff(G[a][k]),'cercle2Terrain'))}
 /* Animaux de compagnie (Kiwi). Ce ne sont pas des Golems : aucun effet de Golem ne les concerne, Force 0 dans les colonnes.
-   estAnimal accepte un code ('901'), une fiche de CARTES ou une carte de partie (69). Sur la grille : g.maitre = carte de partie du maitre. */
+   estAnimal accepte un code de carte, une fiche de CARTES ou une carte de partie (69). Sur la grille : g.maitre = carte de partie du maitre. */
 const estAnimal=x=>{const C=typeof x==='number'?carte(x):typeof x==='string'?CARTES[x]:x;return !!(C&&C.animal)};
 /* Animaux jouables (7 nov.) : cout (1 = ancien, 0 = nouveau) ; element : l'animal porte le 1er element de son maitre et compte comme voisin pour le Trait. */
 const REGLAGE_ANIMAUX=D.reglageAnimaux; /* cartes/donnees/animaux.js (reglage) ; kiwiApres : Kiwi part apres le decompte ; attache : animal sous son maitre (g.ani), +1 de Force */
@@ -412,7 +412,6 @@ function effetPose(s,p,l,k,g){
   if(choix)s.attente=choix;
   for(const e of E)if(e.T.poseApres)e.T.poseApres(e.r,s,p,l,k,g); /* effets apres les morts de la pose (Jour de peche, Spam) */
 }
-const BRETON=c=>carte(c).el.some(e=>e==='brume'||e==='foudre');
 /* Cases des Golems allies voisins de (l,k) (haut, bas, gauche, droite) */
 function voisinsCases(G,l,k){return [[l-1,k],[l+1,k],[l,k-1],[l,k+1]].filter(([a,b])=>G[a]&&b>=0&&b<3&&golem(G[a][b]))}
 function agit(s,p,a){
@@ -698,55 +697,38 @@ function piochesAVenir(s,p,g){
     for(let t=m===s.manche?s.tour:1;t<=3;t++){if(m===s.manche&&t===s.tour&&(p===s.joueur||p===pr))continue;n+=(t===1&&p!==pr?1:2)+g}}
   return n;
 }
-/* Effet de pose id (Spam, Jacen et Jaina, La Bretagne, Graine de Golem) joue par p : valeur en points de deck vide. Pioches manquees en plus pour p
-   (tout de suite, puis aux debuts de tour a venir), comptees en moins ; pioches manquees en plus pour l'adversaire (La Bretagne), comptees en plus.
-   gr : Golems Brume ou Foudre de chaque grille apres la pose (La Bretagne) ; g : Graines de Golem de p apres la pose. Le robot ne voit que la taille des decks. */
-const PIOCHE_POSE={'007':1};
+/* Effet de pose id (Spam, Jacen et Jaina, La Bretagne, Jour de peche ; crochet risque) joue par p : valeur en points de deck vide. Pioches manquees en plus pour p
+   (tout de suite, puis aux debuts de tour a venir), comptees en moins ; pioches manquees en plus pour l'adversaire (La Bretagne, Jour de peche), comptees en plus.
+   gr : compte de chaque grille apres la pose pour l'effet (La Bretagne : Golems Brume ou Foudre, grRisque) ; g : Graines de Golem de p apres la pose. Le robot ne voit que la taille des decks. */
+const grRisque=(id,etat)=>[0,1].map(q=>somme(effs(id),'compteRisque',etat,q));
 function risqueDeck(s,p,id,gr,g){
-  const D=[s.j[0].deck.length,s.j[1].deck.length],moi=PIOCHE_POSE[id]||effs(id).reduce((n,e)=>n+(e.T.risque?e.T.risque(e.r,s,p,gr,D)[0]:0),0)||(id==='026'?Math.min(3,gr[p]):0),lui=id==='026'?Math.min(3,gr[1-p]):id==='004'&&D[1-p]>0?1:0; /* Le Q : Jour de peche, 1 carte adverse en moins (risque en points) */
+  const D=[s.j[0].deck.length,s.j[1].deck.length];let moi=0,lui=0;for(const e of effs(id))if(e.T.risque){const x=e.T.risque(e.r,s,p,gr,D);moi+=x[0];lui+=x[1]}
   const g0=graines(s.j[p].grille),ga=graines(s.j[1-p].grille);
   const manque=(q,n,gq,gq0)=>Math.max(0,n-D[q])+Math.max(0,piochesAVenir(s,q,gq)-Math.max(0,D[q]-n))-Math.max(0,piochesAVenir(s,q,gq0)-D[q]);
   return POINT_DECK_VIDE*(manque(1-p,lui,ga,ga)-manque(p,moi,g,g0));
 }
-const bretons=(c,q)=>c.j[q].grille.flat().filter(h=>h&&BRETON(h.c)).length;
+const forceEstimee=id=>{const e=effs(id).find(e=>e.T.forceEstimee);return e?e.T.forceEstimee(e.r):undefined}; /* robot : Force moyenne d'une Force aleatoire (Alrevan) */
 function gainCoup(s,p,a,v0){
   const f=c=>{const G=c.j[p].grille;
     if(a.t==='p'){
       const C=carte(a.c);
       if(C.animal&&REGLAGE_ANIMAUX.attache){G[a.l][a.k].ani={c:a.c};return} /* animal attache : +1 a son maitre */
-      const old=G[a.l][a.k];G[a.l][a.k]={c:a.c,f:C.id==='002'?3.5:C.id==='002e'?6.4:C.force,d:0};
-      if(C.id==='013e'&&old&&old.fav!==undefined)G[a.l][a.k].fav=old.fav;
+      const old=G[a.l][a.k],fe=forceEstimee(C.id);G[a.l][a.k]={c:a.c,f:fe!==undefined?fe:C.force,d:0};
+      if(C.base&&aProp(C.id,'favoriBonus')&&old&&old.fav!==undefined)G[a.l][a.k].fav=old.fav; /* le favori survit a l'evolution d'Indra */
       if(C.base&&old)G.forEach(L=>L.forEach(h=>{if(h&&h.fav===old.c)h.fav=a.c}));
       if(!C.animal)for(const e of effsT(s,a.k))if(e.T.estimePose)e.T.estimePose(e.r,c,p,a); /* terrain (Le Versus) */
-      if(C.id==='001e')c.j[1-p].grille[a.l].forEach((g,q)=>{if(ciblable(c,1-p,a.l,q,p)&&idEff(g)!=='009e')g.d++});
-      if(C.id==='029')gambaEstime(c,p,a.l,a.k);
-      if(C.id==='018e')extinctionEstime(c,p); /* Elessar */
-      if(C.id==='004e')ilSuffitEstime(c,p); /* Le Q : Il suffit, simule retire ensuite les morts en chaine */
+      for(const e of effs(C.id))if(e.T.estime)e.T.estime(e.r,c,p,a.l,a.k,false); /* effet de pose estime (Rap God, Gamba, Extinction du feu, Il suffit) */
     }else if(ACT[a.t]&&ACT[a.t].estime)ACT[a.t].estime(c,p,a,G,s); /* actions des fichiers d'effets (Vaisseau, Faille, tarte du Cirque) */
     else if(a.t==='e'){const[x,y]=a.a,[u,w]=a.b,q=G[x][y];G[x][y]=G[u][w];G[u][w]=q}
   };
   const apres=simule(s,f);let g=valeur(apres,p)-v0;
-  if(a.t==='p'&&carte(a.c).id==='029e'){ /* la meilleure copie possible depuis cette case */
-    const cs=apres.j[p].grille[a.l][a.k]?voisinsCases(apres.j[p].grille,a.l,a.k):[];
-    if(cs.length)g=Math.max(...cs.map(([x,y])=>gainCopie(apres,p,a.l,a.k,idEff(apres.j[p].grille[x][y]))))-v0;
+  if(a.t==='p'){const C=carte(a.c);
+    for(const e of effs(C.id))if(e.T.robotPose)g=e.T.robotPose(e.r,s,p,a,apres,g,v0); /* gain propre a l'effet de la carte posee */
+    if(C.base)for(const e of effs(C.base))if(e.T.robotPerte)g-=e.T.robotPerte(e.r,s,p); /* effet de la base perdu en evoluant */
+    if(apres.j[p].grille[a.l][a.k]&&!COPIEURS[C.id])g+=risqueDeck(s,p,C.id,grRisque(C.id,apres),graines(apres.j[p].grille)); /* 0.4 : deck vide (copieurs : dans gainCopie) */
   }
-  if(a.t==='p'&&carte(a.c).id==='041e'){ /* Velnen : Imitation, la meilleure option (copier ou refuser) */
-    const h=apres.j[1-p].grille[a.l][a.k];
-    if(apres.j[p].grille[a.l][a.k]&&golem(h)&&ciblable(apres,1-p,a.l,a.k,p)&&idEff(h))g=Math.max(valeurImitation(apres,p,a.l,a.k,idEff(h)),gainCopie(apres,p,a.l,a.k,null))-v0;
-  }
-  if(a.t==='p'&&carte(a.c).id==='025e'&&apres.j[p].grille[a.l][a.k])g+=Math.max(0,gainEchange(apres,p,a.l,a.k)); /* Shifukuro : meandyou, le meilleur echange s'il est utile */
-  if(a.t==='p'&&DUO[carte(a.c).id]&&apres.j[p].grille[a.l][a.k]&&duoVoisin(apres.j[p].grille,a.l,a.k,DUO[carte(a.c).id]))g+=.25; /* Bellock/Loxim : vise Double up ? (deja compte dans la Force si une evolution en profite) */
-  if(a.t==='p'&&carte(a.c).id==='026'){const n=[p,1-p].map(q=>Math.min(3,s.j[q].grille.flat().filter(h=>h&&BRETON(h.c)).length+(q===p?1:0)));g+=.25*Math.min(n[0],s.j[p].deck.length)-.15*Math.min(n[1],s.j[1-p].deck.length)}
-  if(a.t==='p'&&carte(a.c).id==='026e')g+=.4;
-  if(a.t==='p'&&carte(a.c).animal)for(const e of effs(carte(a.c).id))if(e.T.robotPose)g=e.T.robotPose(e.r,s,p,a,apres,g); /* Jacen et Jaina : 1 carte piochee */ /* Kiwi : Mignonitude estimee sur le plateau actuel, moins la case occupee */
-  if(a.t==='p'&&carte(a.c).id==='018')g+=elessarEstime(s,p); /* Elessar : Realisation de l'age gagnee */
-  if(a.t==='p'&&carte(a.c).id==='018e')g-=elessarEstime(s,p); /* Elessar : Realisation de l'age perdue en evoluant */
-  if(a.t==='p'&&(carte(a.c).id==='041'||carte(a.c).id==='041e')){const r=9-((s.manche-1)*3+s.tour);g+=(carte(a.c).id==='041'?1:-1)*.08*Math.min(4,r)} /* Velnen : Graine de Golem, cartes en plus aux tours suivants (perdue en evoluant) */
-  if(a.t==='p'&&carte(a.c).id==='035e'){const r=9-((s.manche-1)*3+s.tour);g+=.1*Math.min(4,r)} /* JackJoy : Draft diff aux Forges suivantes */
-  if(a.t==='p'&&carte(a.c).id==='036'&&s.manche*3+s.tour<12)g+=.3;
-  if(a.t==='p'&&apres.j[p].grille[a.l][a.k]&&!COPIEURS[carte(a.c).id])g+=risqueDeck(s,p,carte(a.c).id,[0,1].map(q=>bretons(apres,q)),graines(apres.j[p].grille)); /* 0.4 : deck vide (copieurs : dans gainCopie) */ /* Forge eclair aux tours suivants (rien apres le dernier tour) */
   if(ACT[a.t]&&ACT[a.t].gainRobot)g+=ACT[a.t].gainRobot(s,p,a,apres); /* tarte du Cirque qui tue */
-  if(a.t==='p'){g-=.03*coutPose(s,p,a.c,a.l,a.k);if(carte(a.c).id==='004'&&s.j[1-p].deck.length)g+=.25;if(carte(a.c).id==='007')g+=.3;if(FAV_BONUS[carte(a.c).id]&&s.j[p].grille.some(L=>L.some(Boolean)))g+=.3;if(carte(a.c).id==='009'&&slams(s,p).length)g+=.3}
+  if(a.t==='p'){g-=.03*coutPose(s,p,a.c,a.l,a.k);for(const e of effs(carte(a.c).id))if(e.T.robotPoseFin)g=e.T.robotPoseFin(e.r,s,p,a,g)}
   return g;
 }
 /* Kiwi : esperance de la valeur du plateau sur tous les tirages de Mignonitude (1 Golem par grille), moins la valeur sans tirage.
@@ -760,41 +742,17 @@ function mignonEstime(c,p){
     t+=valeur(d,p);n++}));
   return t/n-v0;
 }
-/* esperances, sans regarder les des ni le deck.
- Gamba : 1 chance sur 3 de -2 pour soi, 1 sur 3 de -2 en face. */
-function gambaEstime(c,p,l,k){
-  const G=c.j[p].grille[l][k];G.d+=2/3;
-  const h=c.j[1-p].grille[l][k];if(h&&ciblable(c,1-p,l,k,p)&&idEff(h)!=='009e')h.d+=2/3;
-}
-/* Valeur d'une copie pour le Maitre du deguisement en (l,k) dans l'etat c (deja simule) : effets passifs par la Force, effets de pose estimes. */
-/* Elessar : Extinction du feu estimee (Golems Magma adverses ciblables -1, Menfou palu exclu ; simule retire les morts).
-   Realisation de l'age : petit bonus si l'adversaire jouera encore, selon ses Golems de base en jeu qui ont une evolution (seule information visible :
-   le robot ne regarde ni la main ni le deck adverses). */
-/* Le Q : Il suffit estime (copie du plateau) : les Golems detruits quittent les grilles, Mode Avion adverse garde. */
-function ilSuffitEstime(c,p){doublons(c,p).T.forEach(x=>{c.j[x.q].grille[x.l][x.k]=null})}
-function extinctionEstime(c,p){const G=c.j[1-p].grille;for(let a=0;a<3;a++)for(let b=0;b<3;b++){const h=G[a][b];if(golem(h)&&carte(h.c).el.includes('magma')&&ciblable(c,1-p,a,b,p)&&idEff(h)!=='009e')h.d++}}
-function elessarEstime(s,p){
-  if(s.manche===3&&s.tour===3&&s.joueur!==s.premier)return 0; /* dernier tour de la partie : l'adversaire ne posera plus rien */
-  let n=0;s.j[1-p].grille.forEach(L=>L.forEach(g=>{if(golem(g)&&!carte(g.c).base&&TYPES.some(t=>CARTES[t].base===carte(g.c).id))n++}));
-  return .1+.1*Math.min(3,n);
-}
-const BONUS_COPIE={'041':.3,'036':.3,'004':.25,'007':.3,'007e':.3,'008':.3,'009e':.3,'013':.4,'013e':.9,'026e':.4,'003e':.4,'035e':.3,'008e':.3};
+/* Valeur d'une copie de l'effet id pour le copieur en (l,k) dans l'etat c (deja simule) : effets passifs par la Force, effets de pose estimes
+   (crochets estime, robotCopie, reglage valeurCopie de la fiche), deck vide (risque). */
 function gainCopie(c,p,l,k,id){
+  const E=effs(id);
   const f=d=>{const G=d.j[p].grille[l][k];if(!G)return;G.cp=id;
-    if(id==='001'&&d.manche<3)G.d+=4; /* KaTarN : -4 a chaque fin de manche */
-    if(id==='001e')d.j[1-p].grille[l].forEach((h,q)=>{if(h&&ciblable(d,1-p,l,q,p)&&idEff(h)!=='009e')h.d++});
-    if(id==='002')G.f=3.5;
-    if(id==='002e')G.f=6.4;
-    if(id==='029')gambaEstime(d,p,l,k);
-    if(id==='018e')extinctionEstime(d,p); /* Elessar */
-    if(id==='004e')ilSuffitEstime(d,p); /* Le Q : Il suffit copie */
+    const fe=forceEstimee(id);if(fe!==undefined)G.f=fe;
+    for(const e of E)if(e.T.estime)e.T.estime(e.r,d,p,l,k,true);
   };
-  let v=valeur(simule(c,f),p)+(BONUS_COPIE[id]||0);
-  if(id==='009'&&slams(c,p).length)v+=.4;
-  if(id==='018')v+=elessarEstime(c,p); /* Elessar */
-  if(id==='025e')v+=Math.max(0,gainEchange(c,p,l,k)); /* Shifukuro : meandyou copie, joue depuis la case du copieur */
-  if(id==='026'){const n=[p,1-p].map(q=>Math.min(3,c.j[q].grille.flat().filter(h=>h&&BRETON(h.c)).length));v+=.25*Math.min(n[0],c.j[p].deck.length)-.15*Math.min(n[1],c.j[1-p].deck.length)}
-  if(c.j[p].grille[l][k])v+=risqueDeck(c,p,id,[0,1].map(q=>bretons(c,q)),graines(c.j[p].grille)+(id==='041'?1:0)); /* 0.4 : deck vide (copie de Spam, La Bretagne, Graine de Golem) */
+  let v=valeur(simule(c,f),p)+E.reduce((t,e)=>t+(e.r.valeurCopie||0),0);
+  for(const e of E)if(e.T.robotCopie)v+=e.T.robotCopie(e.r,c,p,l,k);
+  if(c.j[p].grille[l][k])v+=risqueDeck(c,p,id,grRisque(id,c),graines(c.j[p].grille)+somme(E,'piocheEnPlus')); /* 0.4 : deck vide (copie de Spam, La Bretagne, Graine de Golem) */
   return v;
 }
 /* Choix du Deguisement : la copie de plus grande valeur. Egalite : premier de la liste. */
@@ -806,8 +764,8 @@ function choixCopie(s,p,l){
 /* Velnen : valeur d'une Imitation (copie de id) pour le chansonnier en (l,k). Des d'Alrevan : moyenne sur tous les tirages
    (le risque d'un mauvais de compte), le reste comme le Deguisement (gainCopie). */
 function valeurImitation(c,p,l,k,id){
-  if(id!=='002'&&id!=='002e')return gainCopie(c,p,l,k,id);
-  const fs=[];for(let a=1;a<=6;a++){if(id==='002')fs.push(a);else for(let b=1;b<=6;b++)fs.push(a===b?a:a+b)}
+  const e=effs(id).find(e=>e.T.tirages);if(!e)return gainCopie(c,p,l,k,id);
+  const fs=e.T.tirages(e.r); /* Forces possibles (Alrevan, KEKWRevan) */
   return fs.reduce((t,x)=>t+valeur(simule(c,d=>{const G=d.j[p].grille[l][k];if(G){G.cp=id;G.f=x}}),p),0)/fs.length;
 }
 /* Imitation du robot : copie seulement si elle vaut mieux que de refuser (KaTarN avant la manche 3, de d'Alrevan trop risque... : refus). */
@@ -896,7 +854,7 @@ function robotFort(s,p,l,t){
 /* Registre des effets : outils internes donnes aux fichiers d'effets (M), puis effets de chaque fiche. */
 const insensible=h=>effs(idEff(h)).some(e=>e.T.protege&&!e.r.unique); /* robot : Menfou palu (toute perte adverse annulee) */
 const protegeRobot=h=>effs(idEff(h)).some(e=>e.T.protege&&(!e.r.unique||!h.cdb)); /* robot : perte adverse annulee (Menfou palu, Chance du debutant pas encore utilisee) */
-const M={carte,golem,animal,CARTES,TYPES,effs,idEff,caseDeCarte,favBonus,effetPose,voisinsCases,estVersus,choixCopie,choixImitation,choixMeandyou,meilleur,valeur,simule,parUtilite,forgeForte,forgePreferee,legales,coutPose,insensible,alea,REGLAGE_ANIMAUX,mignonEstime,REGLAGE_TERRAINS,golemsIci,kAvec,statsSansTerrain,gagnantColonne,ecart,colonnes,forceDe,retire,protegeRobot,dire,declenche,note,nomDetail,blesse,ciblable,de,pioche,melange,orphelins,nettoie,forgee,estCopieur:id=>!!COPIEURS[id]};
+const M={carte,golem,animal,CARTES,TYPES,effs,idEff,gainCopie,valeurImitation,gainEchange,caseDeCarte,favBonus,effetPose,voisinsCases,estVersus,choixCopie,choixImitation,choixMeandyou,meilleur,valeur,simule,parUtilite,forgeForte,forgePreferee,legales,coutPose,insensible,alea,REGLAGE_ANIMAUX,mignonEstime,REGLAGE_TERRAINS,golemsIci,kAvec,statsSansTerrain,gagnantColonne,ecart,colonnes,forceDe,retire,protegeRobot,dire,declenche,note,nomDetail,blesse,ciblable,de,pioche,melange,orphelins,nettoie,forgee,estCopieur:id=>!!COPIEURS[id]};
 R=FX.construit(M);F=R.fonctions;const ACT={},ATT={};for(const x in R.actions)ACT[x]=R.actions[x];for(const x in R.attentes)ATT[x]=R.attentes[x];
 for(const T of TERRAINS)EFFT[T.nom]=[].concat(T.effet||[]).map(r=>{const X=R.types[r.type];if(!X)throw new Error('type d\'effet inconnu '+r.type+' ('+T.nom+')');return {T:X,r}});
 const {cirqueInv,tarteX,miseTotale,stT,stV,cfTarte,versusPose,chatsPioche}=F;
