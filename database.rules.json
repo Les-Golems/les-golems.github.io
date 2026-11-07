@@ -34,7 +34,7 @@
         },
         "stats": {
           ".read": "auth != null",
-          ".validate": "newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val()",
+          ".validate": "newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val() && (data.exists() ? (data.exists() ? (newData.child('n').val() >= data.child('n').val() && newData.child('n').val() <= data.child('n').val() + 50 && newData.child('v').val() >= data.child('v').val() && newData.child('v').val() - data.child('v').val() <= newData.child('n').val() - data.child('n').val()) : newData.child('n').val() <= 50) : (root.child('classement').child($uid).exists() ? (newData.child('n').val() >= root.child('classement').child($uid).child('n').val() && newData.child('n').val() <= root.child('classement').child($uid).child('n').val() + 50 && newData.child('v').val() >= root.child('classement').child($uid).child('v').val() && newData.child('v').val() - root.child('classement').child($uid).child('v').val() <= newData.child('n').val() - root.child('classement').child($uid).child('n').val()) : newData.child('n').val() <= 50))",
           "v": {
             ".validate": "newData.isNumber()"
           },
@@ -359,8 +359,8 @@
     "classement": {
       ".read": "auth != null",
       "$uid": {
-        ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-        ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val()",
+        ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
+        ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val() && newData.child('n').val() === root.child('joueurs').child($uid).child('stats').child('n').val() && newData.child('v').val() === root.child('joueurs').child($uid).child('stats').child('v').val()",
         "p": {
           ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()"
         },
@@ -378,8 +378,8 @@
     "profils": {
       ".read": "auth != null",
       "$uid": {
-        ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-        ".validate": "newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))",
+        ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
+        ".validate": "(root.child('classement').child($uid).exists() ? newData.child('n').val() === root.child('classement').child($uid).child('n').val() && newData.child('v').val() === root.child('classement').child($uid).child('v').val() : newData.child('n').val() === 0) && newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))",
         "p": {
           ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()"
         },
@@ -675,7 +675,7 @@
           },
           "stats": {
             ".read": "auth != null",
-            ".validate": "newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val()",
+            ".validate": "newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val() && (data.exists() ? (data.exists() ? (newData.child('n').val() >= data.child('n').val() && newData.child('n').val() <= data.child('n').val() + 50 && newData.child('v').val() >= data.child('v').val() && newData.child('v').val() - data.child('v').val() <= newData.child('n').val() - data.child('n').val()) : newData.child('n').val() <= 50) : (root.child('essai').child('classement').child($uid).exists() ? (newData.child('n').val() >= root.child('essai').child('classement').child($uid).child('n').val() && newData.child('n').val() <= root.child('essai').child('classement').child($uid).child('n').val() + 50 && newData.child('v').val() >= root.child('essai').child('classement').child($uid).child('v').val() && newData.child('v').val() - root.child('essai').child('classement').child($uid).child('v').val() <= newData.child('n').val() - root.child('essai').child('classement').child($uid).child('n').val()) : newData.child('n').val() <= 50))",
             "v": {
               ".validate": "newData.isNumber()"
             },
@@ -1000,8 +1000,8 @@
       "classement": {
         ".read": "auth != null",
         "$uid": {
-          ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-          ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val()",
+          ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
+          ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val() && newData.child('n').val() === root.child('essai').child('joueurs').child($uid).child('stats').child('n').val() && newData.child('v').val() === root.child('essai').child('joueurs').child($uid).child('stats').child('v').val()",
           "p": {
             ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()"
           },
@@ -1019,8 +1019,8 @@
       "profils": {
         ".read": "auth != null",
         "$uid": {
-          ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-          ".validate": "newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))",
+          ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
+          ".validate": "(root.child('essai').child('classement').child($uid).exists() ? newData.child('n').val() === root.child('essai').child('classement').child($uid).child('n').val() && newData.child('v').val() === root.child('essai').child('classement').child($uid).child('v').val() : newData.child('n').val() === 0) && newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))",
           "p": {
             ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()"
           },

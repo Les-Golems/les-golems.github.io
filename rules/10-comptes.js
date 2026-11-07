@@ -1,6 +1,6 @@
 // Comptes : pseudos réservés et données de chaque compte.
 // r = racine des données ("root" ou "root.child('essai')"), voir 00-communs.js.
-const { racineApres, COMPTE, MAINTENANT, CODE } = require('./00-communs');
+const { gardeStats, racineApres, COMPTE, MAINTENANT, CODE } = require('./00-communs');
 
 module.exports = r => ({
   // Pseudos réservés : pseudos/{pseudo en minuscules} = uid du propriétaire.
@@ -26,7 +26,8 @@ module.exports = r => ({
       "avatarImg": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length <= 140000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)" },
       "cree":     { ".validate": "newData.isNumber()" },
       // Résumé public des parties (victoires v sur n parties), lisible par tout connecté.
-      "stats":    { ".read": "auth != null", ".validate": "newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val()", "v": { ".validate": "newData.isNumber()" }, "n": { ".validate": "newData.isNumber()" }, "$autre": { ".validate": false } },
+      // Garde-fou : une écriture suit la précédente (ou, si le nœud a été effacé, le classement) : voir gardeStats.
+      "stats":    { ".read": "auth != null", ".validate": `newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val() && (data.exists() ? ${gardeStats('data')} : ${gardeStats(r + ".child('classement').child($uid)")})`, "v": { ".validate": "newData.isNumber()" }, "n": { ".validate": "newData.isNumber()" }, "$autre": { ".validate": false } },
       // 12 decks au plus : emplacements 0 à 11. Le total 24 à 30 est vérifié par le site
       // (un deck en cours de construction peut être plus petit).
       "decks": {

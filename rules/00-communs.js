@@ -22,4 +22,15 @@ const pseudoReel = (r, uid) => `newData.val() === ${r}.child('joueurs').child(${
 // Seul moyen de voir une autre partie d'une écriture multiple (ex. pseudos/ et joueurs/ posés ensemble à la création).
 const racineApres = n => 'newData' + '.parent()'.repeat(n);
 
-module.exports = { COMPTE, UID_ROMAIN, MAINTENANT, CODE, SEPT_JOURS, pseudoReel, racineApres };
+// Garde-fou des statistiques publiques : par rapport à la valeur précédente (expression a, nœud avec n et v),
+// les parties n et victoires v ne baissent jamais, n monte de PAS_MAX (50) au plus par écriture
+// et v ne monte pas plus que n. Sans valeur précédente (a absent) : n de PAS_MAX (50) au plus.
+// PAS_MAX = 50 et pas 1 : l'import des parties de l'appareil (50 au plus) et les parties en attente
+// renvoyées d'un coup font monter n de plusieurs parties en une seule écriture.
+const PAS_MAX = 50;
+const gardeStats = a => {
+  const N = "newData.child('n').val()", V = "newData.child('v').val()", n0 = a + ".child('n').val()", v0 = a + ".child('v').val()";
+  return '(' + a + '.exists() ? (' + N + ' >= ' + n0 + ' && ' + N + ' <= ' + n0 + ' + ' + PAS_MAX + ' && ' + V + ' >= ' + v0 + ' && ' + V + ' - ' + v0 + ' <= ' + N + ' - ' + n0 + ') : ' + N + ' <= ' + PAS_MAX + ')';
+};
+
+module.exports = { COMPTE, UID_ROMAIN, MAINTENANT, CODE, SEPT_JOURS, pseudoReel, racineApres, gardeStats };

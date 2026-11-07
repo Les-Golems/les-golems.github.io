@@ -8,8 +8,9 @@ module.exports = r => ({
   "classement": {
     ".read": "auth != null",
     "$uid": {
-      ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-      ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val()",
+      // Jamais effacé par le joueur. n et v = ceux de joueurs/{uid}/stats, écrits juste avant par le site (garde-fou là-bas).
+      ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
+      ".validate": `newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val() && newData.child('n').val() === ${r}.child('joueurs').child($uid).child('stats').child('n').val() && newData.child('v').val() === ${r}.child('joueurs').child($uid).child('stats').child('v').val()`,
       // p = pseudo du compte.
       "p": { ".validate": `newData.isString() && ${pseudoReel(r, '$uid')}` },
       "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0" },
@@ -23,8 +24,9 @@ module.exports = r => ({
   "profils": {
     ".read": "auth != null",
     "$uid": {
-      ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-      ".validate": "newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))",
+      // Jamais effacé par le joueur. n et v = ceux du classement (écrit juste avant) ; sans classement, 0 partie.
+      ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
+      ".validate": `(${r}.child('classement').child($uid).exists() ? newData.child('n').val() === ${r}.child('classement').child($uid).child('n').val() && newData.child('v').val() === ${r}.child('classement').child($uid).child('v').val() : newData.child('n').val() === 0) && newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))`,
       "p":  { ".validate": `newData.isString() && ${pseudoReel(r, '$uid')}` },
       "m":  { ".validate": "newData.isBoolean()" },
       "t":  { ".validate": `${MAINTENANT}` },
