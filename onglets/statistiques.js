@@ -1,8 +1,5 @@
 /* Onglet Statistiques : archive commune, filtres, agregats, encart du zoom. */
 /* Statistiques : archive commune resume/, calculs en direct, aucune donnee de joueur. */
-let statsTri='taux',statsData=null,statsPatchs=null,statsJoueurs=[],statsProfils={};
-/* Republication du profil du joueur connecte (au chargement, a la connexion) : les Statistiques l'attendent 3 s au plus avant de lire les profils. */
-let profilPublie=null;
 /* Filtre Adversaires : niveaux de l'ordinateur et parties entre joueurs, tous allumes par defaut, jamais tous eteints. */
 const ADV_ST=[['facile','Facile','#6fd08c'],['normal','Normal','#f3d163'],['difficile','Difficile','#ea7a6c'],['ligne','Entre joueurs','#7fd8f5']];let statsAdv=new Set(ADV_ST.map(x=>x[0]));
 const modeSt=r=>r.m==='ligne'?'ligne':String(r.m||'').replace(/^golem-/,'');

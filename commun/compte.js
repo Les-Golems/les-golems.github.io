@@ -102,7 +102,6 @@ $('cadOk').onclick=async()=>{
 /* Avatar change en salon : mon siege redessine, presence reecrite pour que l'adversaire redessine (et relise l'avatar). */
 function avatarChange(){if(!r)return;try{majSalon()}catch(e){}r.presence({pseudo:pseudo}).catch(()=>{})}
 /* Compte : pseudo reserve + code secret (Firebase). Sans compte : invite, robot seulement, donnees sur l'appareil. */
-let pseudo='',modeCreer=false;
 const compteCo=()=>{try{return !!(room&&room.compte&&room.compte.connecte())}catch(e){return false}}; /* room est declare plus bas */
 function nettoie(s,n=20){return String(s||'').replace(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu,'').trim().slice(0,n)}
 function modeCompte(c){

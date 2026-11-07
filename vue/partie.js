@@ -19,11 +19,9 @@ function chargeMoteur(v){
   });
 }
 const REDUIT=matchMedia('(prefers-reduced-motion:reduce)');
-let robotT=0,sid='',arrivee=0,recapAff=0,fx=[],fileDes=[],desActif=false,desT=0,desF=0;
 /* Graines terminees ou quittees : jamais relancees par majPartie. */
 const grainesFinies=new Set();
-let partie=null,notice='',sel=null,selMull=[],selCases=[],modeVaisseau=false,modeFaille=false,modeCaramel=false,modeLove=false,modeTarte=false;
-const ZONE=matchMedia('(min-width:1200px)');let derniereAdv=null,zoneSurvol=null; /* zone d'apercu de la partie (ordinateur) */
+const ZONE=matchMedia('(min-width:1200px)');
 const ICONES={
  force:'<svg width="66" height="66" viewBox="71 35 458 529"><path d="M300 98 L285 98 Q210 152 144 164 L144 370 L281 490 Z" fill="#bf6049" stroke="#bf6049" stroke-width="1.5" stroke-linejoin="round"/><path d="M300 98 L315 98 Q390 152 456 164 L456 367 L281 490 Z" fill="#8a3524" stroke="#8a3524" stroke-width="1.5" stroke-linejoin="round"/><path d="M281.2 52 L300 52 L300 98 L285 98Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M300 52 L318.8 52 L315 98 L300 98Z" fill="#a4452f" stroke="#a4452f" stroke-width="1.5" stroke-linejoin="round"/><path d="M318.8 52 Q398.7 112 499.75 126 L456 164 Q390 152 315 98Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M499.75 126 L499.75 390 L456 367 L456 164Z" fill="#70291b" stroke="#70291b" stroke-width="1.5" stroke-linejoin="round"/><path d="M499.75 390 L325.85 512 L295.3 534 L280 547 L281 490 L456 367Z" fill="#551d13" stroke="#551d13" stroke-width="1.5" stroke-linejoin="round"/><path d="M280 547 L100.25 390 L144 370 L281 490Z" fill="#a4452f" stroke="#a4452f" stroke-width="1.5" stroke-linejoin="round"/><path d="M100.25 390 L100.25 126 L144 164 L144 370Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M100.25 126 Q201.3 112 281.2 52 L285 98 Q210 152 144 164Z" fill="#efb096" stroke="#efb096" stroke-width="1.5" stroke-linejoin="round"/><path d="M160 180 Q222 166 288 116" fill="none" stroke="#ffe3d6" stroke-opacity=".55" stroke-width="7" stroke-linecap="round"/><path d="M281.2 52 L318.8 52 Q398.7 112 499.75 126 L499.75 390 L325.85 512 L295.3 534 L280 547 L100.25 390 L100.25 126 Q201.3 112 281.2 52Z" fill="none" stroke="#0b0a10" stroke-width="34" stroke-linejoin="round"/></svg>',
  bouclier:'<path fill="currentColor" stroke="#0a121a" stroke-width="5" stroke-linejoin="round" d="M33 3L59 14V40L33 63L7 40V14Z"/>',
@@ -51,8 +49,6 @@ function oeilCode(i){
   const v=i.closest('.voile');if(v)new MutationObserver(()=>{if(v.hidden)montre(false)}).observe(v,{attributes:true,attributeFilter:['hidden']});
 }
 document.querySelectorAll('input[type=password]').forEach(oeilCode);
-/* envoiPub : dernier envoi de presence (et du journal), attendu avant d'annoncer un depart. */
-let envoiPub=null;
 function pub(p){if(r)envoiPub=r.presence(p).catch(()=>{})}
 function finPartie(){arreteGuide();M=M0;clearTimeout(rejeuT);rejeuT=0;{const b=$('barreRejeu');if(b)b.remove()}arreteAnim();clearTimeout(robotT);robotT=0;fermeAide();stopCompte();jePret=false;$('vueTas').hidden=true;$('absence').hidden=true;partie=null;fx=[];derniereAdv=null;zoneSurvol=null;fermeRecap();arreteDes();$('partie').hidden=true;$('jouer').classList.remove('enJeu');if(window.DIFFUSION&&DIFFUSION.joueur)DIFFUSION.joueur()}
 function nouveauSid(){return Math.random().toString(36).slice(2,12)}
@@ -111,7 +107,6 @@ function suiteRobot(){
     partie.sien.push(M.code(a0));calcule();
   },a0.t==='p'?1000:a0.t==='x'?700:450);
 }
-let niveauChoisi='normal';
 document.querySelectorAll('[data-niveau]').forEach(b=>{b.onclick=()=>choisirDeck(()=>{niveauChoisi=b.dataset.niveau;oublieLocal();lanceLocal(null)})});
 $('repriseRobot').onclick=()=>{const v=chargeLocal();if(v)lanceLocal(v)};
 function lancer(g,moi,adv,sv){
@@ -173,7 +168,6 @@ function texteTour(s,me){
 /* Effets visuels : liste datee, reposee apres chaque rendu avec un delai negatif, donc jamais rejouee. */
 const VITESSES={normal:1,rapide:.5};
 let vitesse=lire('golems.vitesse')==='rapide'?'rapide':'normal';
-let fileA=[],animT=0,animCours=false,sauter=false,verrou=false,ecranFin=null,tenus=[],masques=[],repeint=null;
 const vite=()=>sauter||document.hidden||$('jouer').hidden;
 const T=ms=>ms*VITESSES[vitesse]*(fileA.length>30?.3:fileA.length>12?.6:1);
 function ajoutFx(o,ms){if(vite())return;const n=Date.now();ms=T(ms);o.debut=n;o.fin=n+ms;o.ms=ms;fx.push(o);poseUn(o,n)}
@@ -950,7 +944,7 @@ function enregistrePartie(s){
 }
 /* Ecriture d'une partie (compte) : mise en attente sur l'appareil avant l'envoi, retiree une fois ecrite.
    Echec ou pas de reponse en 15 s : message visible ; nouvel essai automatique au chargement suivant. */
-const ATTENTE='golems.enAttente';let reessai=false;
+const ATTENTE='golems.enAttente';
 function majAttente(id,f){const l=litListe(ATTENTE).filter(x=>x&&typeof x.id==='string');let x=l.find(y=>y.id===id);if(!x){x={id};l.unshift(x)}f(x);ecrire(ATTENTE,JSON.stringify(l.filter(y=>y.h||y.r).slice(0,20)))}
 function nonEnregistre(on){$('nonEnr').hidden=!on}
 $('nonEnrOk').onclick=()=>nonEnregistre(false);

@@ -1,6 +1,5 @@
 /* Onglet Jouer : salon en ligne, versions des joueurs (etape 3), parties ouvertes et en cours, invitations, chat, spectateur. */
 /* Salon en ligne : tout repose sur la présence */
-let room=null,r=null,code='',entree=0,nbSalon=0,occupe=false,attenteLobby=0,jePret=false,compteFin=0,compteT=0;
 const MAX=2,ALPHA='abcdefghjkmnpqrstuvwxyz23456789';
 const personnes=l=>l.filter(p=>p.kind==='viewer');
 const pause=ms=>new Promise(f=>setTimeout(f,ms));
@@ -9,7 +8,6 @@ function nomDe(p){const n=p.presence&&p.presence.pseudo;return nettoie(typeof n=
 /* Version du site de chaque joueur (salon et parties publiques) : v = "<v de version.json>|<build>", lue une fois au chargement.
    Champ v absent chez l'autre = ancienne version. Versions differentes : Pret bloque ; le plus ancien (build le plus petit) doit recharger. */
 const vOk=v=>typeof v==='string'&&/^[0-9a-z.|: -]{1,40}$/.test(v)?v:'';
-let maV='',vxEcart=false,vxRouge='';
 /* Etape 3 : seul le numero v compte (builds differents d'une meme version = correctifs, compatibles). maV garde v|build pour les pages deja en ligne. */
 const vEg=(a,b)=>vNom(a)===vNom(b);
 const maVersion=window.GOLEMS_VERSION?Promise.resolve(maV=vOk(GOLEMS_VERSION.v+'|'+GOLEMS_VERSION.build)):fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(x=>x.json()).then(x=>{maV=vOk(String(x.v||'')+'|'+String(x.build||''));return maV}).catch(()=>'');
@@ -133,7 +131,6 @@ function majFace(nom){
 /* Annonce publique (0.4) : tenue par le createur d'un salon public tant que la partie n'a pas commence
    (adversaire assis w, q et spectateurs n), puis pendant la partie par le joueur de la place 0 (en cours g, manche m,
    score k), retiree a la fin. Les autres joueurs n'y touchent pas. Salon public note sur l'appareil (rechargement en partie). */
-let salonPublic=false,createur=false,annonceVue='',specAnn=false;
 const estPublic=c=>!!c&&lire('golems.pub.'+c)==='1';
 function notePublic(c,v){try{if(v)ecrire('golems.pub.'+c,'1');else localStorage.removeItem(LS('golems.pub.'+c))}catch(e){}}
 function majAnnonce(l){
@@ -167,7 +164,6 @@ function elsPrincipaux(t){
   const l=Object.keys(n).sort((a,b)=>n[b]-n[a]);return l.filter((e,i)=>i<2||(i<3&&n[e]>=0.3*tot));
 }
 function depuis(t){const m=Math.max(0,Math.round((Date.now()-(+t||Date.now()))/60000));return m<1?'à l\'instant':m<60?'il y a '+m+' min':'il y a '+Math.floor(m/60)+' h'}
-let annoncesL=[];
 const OEIL_PO='<svg viewBox="0 0 66 66" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round" d="M4 33C14 17 23 12 33 12S52 17 62 33C52 49 43 54 33 54S14 49 4 33Z"/><circle cx="33" cy="33" r="10" fill="currentColor"/></svg>';
 function nbSpec(x){const n=Number.isInteger(x.n)&&x.n>0?x.n:0,z=el('span','po-spec');z.innerHTML=OEIL_PO;z.append(el('b','',String(n)),el('span','','spectateur'+(n>1?'s':'')));return z}
 /* Observer : entrer dans le salon en spectateur (vue diffusion des que la partie commence). */
@@ -286,7 +282,6 @@ const deckLien=(()=>{try{const u=new URL(location.href);if(!u.searchParams.has('
   const c=u.searchParams.get('deck')||'';u.searchParams.delete('deck');
   history.replaceState(history.state,'',u.pathname+u.search+u.hash);return c}catch(e){return null}})();
 /* Compte connu (salon pret ou indisponible) : avant, Importer et Jouer de la vue du deck restent grises. */
-let compteCharge=false;
 async function suitInvit(){
   if(!invit||!room)return;
   onglet('jouer');
@@ -322,7 +317,6 @@ async function sortie(msg,avant){
   majEtat();majReprise();placeChat();
 }
 /* Chat du salon et de la partie en ligne : 200 caracteres, 1 message par seconde au plus. */
-let chatVu=0,chatDernier=0,chatOuvert=false;
 const chatBox=(()=>{
   const c=el('div','chat'),h=el('div','chat-tete'),tt=el('span','','Chat'),nb=el('span','chat-nb'),x=el('button','','×');
   x.type='button';x.setAttribute('aria-label','Replier le chat');tt.append(nb);h.append(tt,x);

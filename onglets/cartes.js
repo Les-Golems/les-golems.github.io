@@ -45,7 +45,6 @@ const A_VENIR=[
  ['023','Kun_Mamba'],['024','MrTitou'],['027','Merser'],['028','Nadzu'],
  ['030','Cyd'],['031','Obsess'],['032','Marech'],['033','Greeny'],['034','Harentros'],
  ['038','TortueGourmande'],['039','TortueVéloce'],['040','PoulpeHome']];
-let fEl='',fTy='',dernier=null;
 function pastilles(box,liste,get,set,point){
   liste.forEach(([v,t])=>{
     const b=document.createElement('button');b.className='pastille';b.dataset.v=v;

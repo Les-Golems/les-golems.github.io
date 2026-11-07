@@ -799,7 +799,7 @@ function affiche(){
   scrollTo(0,hautPage);
   if(window.DIFFUSION&&DIFFUSION.joueur)DIFFUSION.joueur(); /* 0.5 : vue joueur sur ordinateur (diffusion.js) */
 }
-const LARGE=matchMedia('(min-width:900px)');let journalOuvert=false,journalPage=null,journalReperes=0;
+const LARGE=matchMedia('(min-width:900px)');
 /* Zone d'apercu (ordinateur, 1200 px et plus) : carte survolee ou choisie de la main, sinon derniere carte posee par l'adversaire. */
 /* 0.4a : cercle des elements permanent en partie (style diffusion : pictos sans anneau, fleches dans les espaces libres). Noms dans l'aide « ? ».
    Ordinateur : toujours visible ; telephone : repliable, ferme par defaut. */

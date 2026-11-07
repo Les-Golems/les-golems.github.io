@@ -83,7 +83,6 @@ function detailHisto(x){
   pile.append(sh,cd);z.append(pile,f);d.append(z,msg,rp);v.append(d);document.body.append(v);f.focus();
 }
 /* Rejeu : la partie est recalculee coup par coup depuis la graine, les decks et les deux journaux, sans reseau. */
-let rejeuT=0;
 function ordreRejeu(R,j){
   const s=M.nouvelle(R.graine,R.decks),i=[0,0],seq=[];let avance=true;
   while(avance){avance=false;for(const p of M.attendus(s))if(i[p]<j[p].length){M.applique(s,p,M.decode(j[p][i[p]]));seq.push(p);i[p]++;avance=true}
@@ -146,7 +145,6 @@ function confirmePage(box,msg,oui){
   const z=el('div','p-btns');z.append(n,a);box.append(el('p','o-conf',msg),z);
 }
 /* 14 parties par page (2 colonnes x 7 sur grand ecran). Pagination des Nouveautes (< 1 / N >) a droite de la phrase d'intro. */
-let pageHisto=0,lignesPage=14;
 const PAS_HISTO=50;
 function peintHisto(){
   const b=$('histo'),l=lesParties();b.textContent='';

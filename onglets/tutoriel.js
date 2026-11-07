@@ -4,7 +4,6 @@
    Cartes de la graine 19445 : KaTarN 0 et 2, Roi du Mobile 28 et 27, Trigas 26, Elessar 74, Le Q 18, Slim K 5 (0.4a : deck a 4 elements, memes places que l'ancien). Le Golem pose Trigas en (0,2) au tour 3 (Le Q refondu, 6 nov.).
    Hors historique, profil et sauvegarde (voir calcule et sauve). */
 const GUIDE={graine:19445,deck:'0013001e30023002e300430073007e30183'};
-let tuto=null;
 const gJ=()=>partie.etat.j[partie.moi],gG=(l,k)=>gJ().grille[l][k],gId=(l,k)=>gG(l,k)&&M.carte(gG(l,k).c).id;
 const gSlot=c=>'.p-slot[data-c="'+c+'"]';
 const gMull=s=>s.phase==='mulligan'&&!s.mull[partie.moi];

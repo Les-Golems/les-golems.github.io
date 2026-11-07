@@ -35,18 +35,16 @@ function blocErreurs(R,d,l){
 }
 /* Raison courte sur une tuile de deck : visible sans survol (telephone), texte complet en title pour la souris. */
 function raisonTuile(R){const p=el('span','d-raison','Invalide : '+R.map(r=>r.c).join(' · '));p.title=R.map(r=>r.t).join('\n');return p}
-let deckOuvert=null,deckVu=null,triDeck='',triDeckDesc=false;const fDeck={ty:'',sel:new Set(),mode:'ou',q:''};
+const fDeck={ty:'',sel:new Set(),mode:'ou',q:''};
 /* Compte connecte : decks dans Firebase (ecriture groupee apres 600 ms). Invite : sur l'appareil. */
 const decksLocaux=()=>litListe('golems.decks').filter(d=>d&&typeof d.nom==='string'&&d.cartes);
 const lesDecks=()=>compteCo()?room.compte.donnees().decks.map(d=>({...d,cartes:{...d.cartes}})):decksLocaux();
-let decksT=0,decksVol=0;
 function gardeDecks(l){
   if(!compteCo()){ecrire('golems.decks',JSON.stringify(l));majChoixDeck();return}
   room.compte.donnees().decks=l.map(d=>({...d,cartes:{...d.cartes}}));majChoixDeck();
   clearTimeout(decksT);decksT=setTimeout(()=>{decksT=0;decksVol++;room.compte.ecritDecks(room.compte.donnees().decks).catch(e=>console.warn(e)).finally(()=>decksVol--)},600);
 }
 /* Choix du deck avant Pret et contre le robot : paquet de test ou deck complet (24 a 30 cartes). */
-let deckPret={id:'',nom:'Test',texte:''};
 function decksJouables(){return lesDecks().filter(d=>{const o=Object.fromEntries(Object.entries(d.cartes).filter(([,n])=>+n>0).map(([k,n])=>[k,+n]));return !M.erreurDeck(o)&&!(M.erreurElements&&M.erreurElements(o))&&!(M.erreurEvolutions&&M.erreurEvolutions(o))})}
 function deckChoisi(){
   const id=lire('golems.deckChoisi')||'',d=id&&decksJouables().find(x=>x.id===id);
