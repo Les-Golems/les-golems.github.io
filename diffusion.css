@@ -407,3 +407,49 @@ html.dif-joueur .chat.flottant.replie{display:none}
 #dif.jr .mq-outils.p-outils{position:absolute;left:1516px;right:auto;top:16px;transform:none;width:380px;height:36px;display:flex;align-items:center;gap:6px}
 #dif.jr .mq-outils .dal-inter{margin-right:auto}
 #dif.jr .mq-outils .dal-inter .pf-itx{display:inline}#dif.jr .mq-outils .dal-inter{padding:0 10px 0 12px}
+/* main de la vue joueur : surcout et raison poses sur la carte, oeil en bas a droite ; la partie cachee hors de l'ecran ; aucun defilement de la vue */
+#dif.jr .d-main button .surcout{position:absolute;inset:0;line-height:0;pointer-events:none}
+#dif.jr .d-main button .surcout svg{position:absolute;inset:0;width:100%;height:100%}
+#dif.jr .d-main button.grisee .surcout .fond{filter:grayscale(.85) brightness(.55)}
+#dif.jr .d-main button .oeil{position:absolute;right:4px;bottom:4px;width:24px;height:24px;cursor:zoom-in}
+html.dif-joueur #partie{position:fixed;left:-10000px;top:0;width:1400px}
+#dif{overflow:clip}
+
+/* Vue joueur, deconnexion (maquettes 5 - Deconnexion : etiquettes, Minuteur final, Fin C) */
+#dif.jr{--dk-ok:#5fd38d;--dk-att:var(--or);--dk-off:#7d8c98}
+#dif.jr .d-ban>.d-j .d-badge{box-sizing:border-box;min-width:171px;height:38px;display:inline-flex;align-items:center;justify-content:center}
+#dif.jr.dk-on .d-ban>.d-j{padding-right:52px}
+#dif.jr .dk-pt{position:absolute;right:22px;top:50%;margin-top:-8px;width:16px;height:16px;border-radius:50%;display:block}
+#dif.jr .d-ban>.d-j.lui .dk-pt{top:62px;margin-top:-8px}
+#dif.jr .d-ban>.d-j.toi .dk-pt{top:34px}
+#dif.jr .dk-pt.ok{background:var(--dk-ok);box-shadow:0 0 0 3px rgba(95,211,141,.22)}
+#dif.jr .dk-pt.att{background:var(--dk-att);box-shadow:0 0 0 3px rgba(241,195,90,.3)}
+#dif.jr .dk-pt.off{background:var(--dk-off)}
+#dif.jr .d-badge.dk-lab{background:rgba(241,195,90,.14);color:var(--dk-att);border:2px solid var(--dk-att);box-shadow:none}
+#dif.jr .d-badge.dk-lab.off{background:rgba(125,140,152,.12);color:var(--doux);border-color:var(--dk-off)}
+#dif.jr .d-ban>.d-j.lui .d-l1 .d-badge.dk-lab{margin-left:auto}
+#dif.jr .dk-et{position:absolute;left:711px;top:304px;width:791px;height:72px;box-sizing:border-box;display:flex;align-items:center;gap:16px;padding:0 18px 6px;border:2px solid var(--or);border-radius:14px 9px 15px 8px/9px 14px 8px 15px;background:linear-gradient(180deg,#2a2512,#1a1a12)}
+#dif.jr .dk-et .t{flex:1;min-width:0}
+#dif.jr .dk-et .t b{display:block;font:400 22px/1.1 var(--titre);color:var(--or)}
+#dif.jr .dk-et .t span{display:block;margin-top:4px;font:400 16px/1.2 var(--corps);color:var(--texte)}
+#dif.jr .dk-et .n{font:400 44px/1 Anton,var(--titre);color:var(--or);letter-spacing:.02em}
+#dif.jr .dk-et .barre{position:absolute;left:18px;right:242px;bottom:8px;height:5px;border-radius:3px;background:rgba(241,195,90,.2)}
+#dif.jr .dk-et .barre i{display:block;height:100%;background:var(--or);border-radius:3px;transition:width .25s linear}
+html.dif-joueur .dk-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+html.dif-joueur .dk-btns .btn{width:100%}
+/* choix de cartes : jusqu'a 3 cartes de front dans la section, sans debordement */
+#dif.jr .mq-choix .p-main{width:100%;gap:16px}
+#dif.jr .mq-choix .p-slot{flex:0 1 240px;height:auto;max-height:100%;min-width:0;position:relative}
+#dif.jr .mq-choix .p-carte{width:100%;height:auto}#dif.jr .mq-choix .p-carte img{width:100%;height:auto}
+#dif.jr .mq-etape .p-consigne{line-height:1.2}
+#dif.jr .d-ban>.d-j .d-badge{min-width:171px!important;height:38px!important;padding-top:0!important;padding-bottom:0!important}
+#dif.jr .dk-pt{right:20px}
+#dif.jr .d-ban>.d-j.lui .dk-pt{top:39px;margin-top:0}
+#dif.jr .d-ban>.d-j.toi .dk-pt{top:26px;margin-top:0}
+/* 0.5 evolutions visibles : etoile des cartes d'evolution de la main, centree en haut sur la ligne cout / Force */
+#dif .d-main button{position:relative}
+#dif .d-main button .evs{position:absolute;z-index:4;top:8.2%;left:50%;transform:translate(-50%,-50%);font:400 13px/1 sans-serif;color:var(--or);-webkit-text-stroke:2px #0a121a;paint-order:stroke fill;pointer-events:none}
+/* noms des tuiles a 1920 : une ligne, sans passer sous les pictos d'elements */
+#dif .mini:not(.animal) .nom{right:80px}
+/* vue spectateur : ligne de la largeur de « Dernieres actions » : interrupteur a gauche, Quitter a droite */
+#dif:not(.jr) .d-coin:has(.dal-inter) .d-bas{flex-wrap:nowrap;justify-content:space-between;align-items:center;width:380px;row-gap:0}
