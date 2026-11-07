@@ -1758,7 +1758,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 
   <div class="colonnes"><div>
   <details open><summary><h3>La partie</h3></summary><div class="corps"><ul>
-    <li>3 terrains sont tirés au hasard parmi 15 et placés aléatoirement. Chacun rapporte les points imprimés dessus.</li>
+    <li>3 terrains sont tirés au hasard parmi 16 et placés aléatoirement. Chacun rapporte les points imprimés dessus.</li>
     <li>Les joueurs sont face à face. Chacun a une grille 3 x 3, en miroir de l'autre et une colonne correspond à un terrain.</li>
     <li>Les cartes ne citent jamais de numéro de ligne ou de colonne : elles désignent les cases par le terrain, la case en face ou la ligne adverse.</li>
     <li><b>En face :</b> même terrain, même ligne.</li>
@@ -1811,6 +1811,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
     <li><b>Valeur variable :</b> un terrain marqué « ? » change de valeur selon la manche. Le Tournoi vaut 1 point à la manche 1, 2 points à la manche 2 et 3 points à la manche 3.</li>
     <li><b>Mise :</b> Les Pronos. Une fois par manche, pendant tes actions, tu peux miser 1 énergie ici (bouton « Miser »). En fin de manche, celui qui conquiert le terrain marque 1 point de plus par mise des deux joueurs. Les mises de la manche sont perdues si personne ne le conquiert.</li>
     <li><b>Tarte :</b> Le Cirque. Une fois par manche, pendant tes actions, tu peux infliger 1 dégât gratuit à un Golem adverse de cette colonne. Mode Avion en protège.</li>
+    <li><b>Un seul Golem :</b> Le Versus. Tu ne peux pas y poser un 2e Golem, seulement remplacer le tien ou le faire évoluer. À chaque pose ici, le Golem adverse ici perd 1 de Force (dégât). Mode Avion en protège. Un animal n'est pas un Golem : il ne compte pas et ne déclenche rien.</li>
     <li><b>Pioche de fin de manche :</b> L'École. Le joueur qui perd ce terrain pioche 1 carte, personne en cas d'égalité. Deck vide : 1 point pour l'adversaire, comme pour toute pioche.</li>
     <li><b>Exactement 2 :</b> Le Karaoké donne +2 de Force à chacun de tes Golems ici seulement si tu en as exactement 2.</li>
   </ul></div></details>
@@ -2176,7 +2177,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
- {version:'Version 0.4a',date:'7 novembre 2026',notes:["5 nouveaux terrains : L'École, Le Karaoké, Les Pronos, Le Cirque et Le Tournoi","Nouvelle règle : 4 éléments différents au plus par deck","Deck conseillé Marée bretonne, autour du nouveau Le Q","Decks conseillés et deck par défaut à 4 éléments","Lien direct vers une carte, à partager","Lisibilité améliorée pour les daltoniens","Nouveautés : pagination des versions"]},
+ {version:'Version 0.4a',date:'7 novembre 2026',notes:["6 nouveaux terrains : L'École, Le Karaoké, Les Pronos, Le Cirque, Le Tournoi et Le Versus","Nouvelle règle : 4 éléments différents au plus par deck","Deck conseillé Marée bretonne, autour du nouveau Le Q","Decks conseillés et deck par défaut à 4 éléments","Lien direct vers une carte, à partager","Lisibilité améliorée pour les daltoniens","Nouveautés : pagination des versions"]},
  {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","Rework de Le Q : Brume et Magma, nouveaux effets","Nouvelle règle : deck vide, 1 point à l'adversaire par carte à piocher","Bug de Jacen et Jaina corrigé"]},
  {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
  {version:'Version 0.2c',date:'5 novembre 2026',notes:["La Boutique réduit aussi le coût des évolutions","Éditeur de deck : teste tes placements dans un bac à sable","Statistiques repensées : recherche, classement complet, toutes tes parties comptées","Profil des joueurs réorganisé, avec ton rang au classement","Partage de deck par lien cliquable","Résumé de partie prêt à coller sur Discord","Version vérifiée dans le salon, page mise à jour automatiquement","Appli installée : nouvelle icône, lancement bleu ciel","QoL ajoutés"]},
@@ -2190,12 +2191,13 @@ const NOUVEAUTES=[
 const DETAILS_VERSIONS={
  'Version 0.4a':{
   nouveautes:[
-   {t:"5 nouveaux terrains, 15 en tout :",l:[
+   {t:"6 nouveaux terrains, 16 en tout :",l:[
     "L'École (2 points) : fin de manche, le perdant pioche 1 carte.",
     "Le Karaoké (2 points) : si tu as exactement 2 Golems ici, ils gagnent +2 de Force chacun.",
     "Les Pronos (1 point) : une fois par manche, mise 1 énergie ici avec le bouton « Miser ». Fin de manche : le gagnant marque 1 point de plus par mise des deux joueurs.",
     "Le Cirque (2 points) : une fois par manche, inflige 1 dégât à un Golem adverse ici.",
-    "Le Tournoi (« ? ») : vaut 1 point à la manche 1, 2 points à la manche 2 et 3 points à la manche 3."]},
+    "Le Tournoi (« ? ») : vaut 1 point à la manche 1, 2 points à la manche 2 et 3 points à la manche 3.",
+    "Le Versus (3 points) : un seul Golem par joueur ici. Quand tu en poses un, le Golem adverse ici perd 1 de Force."]},
    "La partie guidée garde les 10 terrains d'origine.",
    "Deck conseillé Marée bretonne : un deck Brume et Magma qui vide le deck adverse, autour du nouveau Le Q.",
    "Lien direct vers une carte, un Golem, son évolution, un animal ou un terrain : il ouvre la carte en grand.",
@@ -3671,6 +3673,10 @@ function etapes(av,s,a,p){
       if(M.carte(a.c).base)ajoutFx({q,classe:'fx-evo',eclat:true},1950);
       return T(M.carte(a.c).base?900:300);
     });
+    if(neuf.some(x=>/^Le Versus : .* perd 1 de Force/.test(x[1]))){ /* 0.4a : Le Versus, frappe et -1 sur le Golem adverse ici (comme la tarte) */
+      const lv=[0,1,2].find(l=>{const g=av.j[1-p].grille[l][a.k];return g&&!M.carte(g.c).animal});
+      if(lv!==undefined){const qv=caseDe(1-p,lv,a.k);L.push(()=>{ajoutFx({q:qv,classe:'fx-frappe'},500);ajoutFx({q:qv,classe:'fx-deg',texte:'-1'},1100);return T(550)})}
+    }
   }else if(a.t==='z'){ /* Caramel a volonte : +1 energie */
     L.push(()=>{ajoutFx({q:caseDe(p,a.l,a.k),classe:'fx-bonus',texte:'+1'},1300);if(p===me)ajoutFx({q:'.p-info.energie',classe:'bascule'},750);return T(450)});
   }else if(a.t==='o'){ /* 0.4a : tarte du Cirque, frappe et -1 sur le Golem adverse vise */
@@ -4069,6 +4075,7 @@ function genreLog(x){
   if(RE_DV.test(x))return ['j-point','coupe']; /* deck vide (meule) : point pour l'adversaire */
   if(/meur|est détruit/.test(x))return ['j-mort','defausse'];
   if(/^Le Cirque : tarte /.test(x))return ['j-degat','degat']; /* 0.4a : tarte du Cirque */
+  if(/^Le Versus : .* perd 1 de Force/.test(x))return ['j-degat','degat']; /* 0.4a : Le Versus, -1 au Golem adverse ici */
   if(/^Les Pronos : mise /.test(x))return ['j-bonus','coupe']; /* 0.4a : mise des Pronos */
   if(/^L'École : pioche /.test(x))return ['j-pose','main']; /* 0.4a : pioche du perdant */
   if(/^marque |\+\d points?\.$/.test(x))return ['j-point','coupe'];
@@ -4092,7 +4099,7 @@ function genreLog(x){
 function causesLog(s){
   const m=new Map(),ev=s.stats.ev.filter(e=>e.t==='m');let i=0;
   s.log.forEach(e=>{const x=e[1],a=/^(.+) (?:meurent|meurt)\.$/.exec(x),is=ilSuffitNoms(x),n=a?a[1].split(' et ').length:/est détruit\.$/.test(x)?1:is?is.length:(x.match(/meurt ensuite/g)||[]).length; /* Il suffit : 1 evenement de mort par carte detruite */
-    if(a){const t=[...new Set(ev.slice(i,i+n).map(c=>(c.sc!=null?M.nomDetail(M.carte(c.sc))+', ':'')+String(c.lib).toLowerCase()))];if(t.length)m.set(e,' Cause : '+t.join(' ; ')+'.')}
+    if(a){const t=[...new Set(ev.slice(i,i+n).map(c=>(c.sc!=null?M.nomDetail(M.carte(c.sc))+', ':'')+(M.TERRAINS.some(t=>t.nom===c.lib)?c.lib:String(c.lib).toLowerCase())))];if(t.length)m.set(e,' Cause : '+t.join(' ; ')+'.')}
     i+=n});
   return m;
 }
@@ -6240,7 +6247,8 @@ function affiche(){
     const C=sel!==null?M.carte(sel):null;
     const rs=c=>raisonPose(s,me,c,leg),rz=sel!==null?rs(sel):null;
     const pc=el('div','p-consigne');
-    if(C){pc.append(M.nomDetail(C)+(C.animal?', animal de compagnie de '+M.CARTES[C.maitre].nom:'')+', coût '+(C.cout+surcout(s,me,sel))+(surcout(s,me,sel)>0?" (Réalisation de l'âge : +"+surcout(s,me,sel)+')':'')+(C.force!=null?', Force '+C.force:'')+'. '+C.texte+(C.animal&&!rz?' Pose-le sur une case dorée, voisine de '+M.CARTES[C.maitre].nom+'.':''));if(rz)pc.append(el('em','',rz.long))}
+    if(C){pc.append(M.nomDetail(C)+(C.animal?', animal de compagnie de '+M.CARTES[C.maitre].nom:'')+', coût '+(C.cout+surcout(s,me,sel))+(surcout(s,me,sel)>0?" (Réalisation de l'âge : +"+surcout(s,me,sel)+')':'')+(C.force!=null?', Force '+C.force:'')+'. '+C.texte+(C.animal&&!rz?' Pose-le sur une case dorée, voisine de '+M.CARTES[C.maitre].nom+'.':''));if(rz)pc.append(el('em','',rz.long));
+      {const kv=s.terrains.findIndex(T=>T.nom==='Le Versus');if(!C.animal&&!C.base&&kv>=0&&M.golemsIci(s,me,kv))pc.prepend(el('em','versus-non','Le Versus : un seul Golem par joueur, tu peux seulement remplacer le tien. '))}}
     else if(J.main.some(c=>!rs(c)))pc.append('Touche une carte, puis une case dorée.');
     else pc.append('Aucune pose possible ce tour. Termine ton tour.');
     pl.append(pc);
