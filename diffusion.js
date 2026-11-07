@@ -189,8 +189,9 @@ function peindre(){
   const nt=s.stats.t.length;
   if(suivi.nt<0)suivi.nt=premier&&!fin?nt:suivi.nt; /* arrivee en cours de partie : pas de fenetre pour une manche deja passee */
   /* les fenetres restent ouvertes jusqu'a « Fermer » ; la partie continue derriere */
-  if(src==='joueur'){} /* vue joueur : les recapitulatifs de manche et de fin restent ceux de la partie (etape suivante) */
-  else if(fin&&!suivi.fin){suivi.fin=true;suivi.nt=nt;ouvrePop('partie')}
+  /* vue joueur : fin par abandon sur deconnexion = ecran de presence.js, pas de 2e fenetre */
+  if(src==='joueur'&&fin&&!suivi.fin&&window.DECO&&DECO.etat&&DECO.etat().fin){suivi.fin=true;suivi.nt=nt}
+  if(fin&&!suivi.fin){suivi.fin=true;suivi.nt=nt;ouvrePop('partie')}
   else if(!fin&&nt>suivi.nt&&nt%3===0){suivi.nt=nt;ouvrePop('manche',nt/3)}
   else if(suivi.pile&&sigPile(suivi.pile)!==suivi.pile.sig)ouvrePop('pile',suivi.pile); /* pile ouverte : mise a jour en direct */
   /* recapitulatif ouvert pendant un decompte qui continue (bonus de fin de manche, de) : refait avec le journal a jour */
@@ -424,7 +425,8 @@ function ajusteNoms(){
 }
 
 /* ---------- Fenetres de fin ---------- */
-function fermePop(){if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi.pop=null;suivi.pile=null;suivi.vu=null}
+function fermePop(){if(src==='joueur'&&suivi&&suivi.vu&&suivi.vu.type==='manche'){const c=document.getElementById('continuer'),r=document.getElementById('recap');if(c&&r&&!r.hidden)setTimeout(()=>c.click(),0)} /* vue joueur : fermer le bilan de manche = Continuer */
+if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi.pop=null;suivi.pile=null;suivi.vu=null}
 /* Piles (Deck, Defausse, Forge) : ordre de pioche (1 = prochaine carte), defausse de la plus recente a la plus ancienne, forge dans l'ordre */
 const PILES={deck:'Deck',defausse:'Défausse',forge:'Forge'};
 function cartesPile(o){const L=(E.etat.j[o.p][o.k]||[]).slice();return o.k==='defausse'?L.reverse():L}
@@ -461,10 +463,20 @@ function ouvrePop(type,m){
   /* tout recapitulatif se lit dans l'etat courant : journal et reperes de manche ne font que grandir */
   if(type==='manche'){popManche(E.etat,m,pp);suivi.vu={type,m,log:E.etat.log.length}}
   else if(type==='pile'){pp.classList.add('pp-p');popPile(m,pp);suivi.pile={p:m.p,k:m.k,sig:sigPile(m)};v.onclick=e=>{if(e.target===v)fermePop()}}
-  else{popPartie(E.etat,pp);suivi.vu={type,m,log:E.etat.log.length}}
+  else{popPartie(E.etat,pp);suivi.vu={type,m,log:E.etat.log.length};if(src==='joueur')boutonsFin(pp)}
   const fe=mk('button','pp-fermer','Fermer');fe.type='button';fe.onclick=fermePop;pp.append(fe);
   v.append(pp);scene.append(v);suivi.pop=v;
   if(type==='pile'&&haut){const g=pp.querySelector('.pp-pile');if(g)g.scrollTop=haut}
+}
+/* vue joueur : boutons du bilan de fin (Rejouer, Partager le resume, Copier les donnees, Retour a l'accueil) */
+function boutonsFin(pp){
+  const u=U(),s=E.etat,z=mk('div','pp-fbtns'),b=(t,cl,f)=>{const x=mk('button','btn'+(cl?' '+cl:''),t);x.type='button';x.onclick=()=>f(x);z.append(x);return x};
+  const rj=document.getElementById('rejouer');
+  if(rj){const x=b(rj.textContent,'plein',()=>{fermePop();rj.click()});x.disabled=rj.disabled}
+  b('Partager le résumé','sec',x=>u.partageFin(x,u.texteResume(s)));
+  b('Copier les données','sec',x=>u.copie(u.donneesPartie(s),x,'Copier les données'));
+  b("Retour à l'accueil",'sec',()=>{fermePop();u.quitteBouton()});
+  pp.append(z);
 }
 /* Echap ferme la fenetre d'une pile (apres le zoom d'une carte s'il est ouvert) */
 document.addEventListener('keydown',e=>{if(e.key!=='Escape'||!D||!suivi)return;const z=document.getElementById('vue');if(z&&!z.hidden)return;
@@ -498,7 +510,11 @@ function popManche(s,m,pp){
 }
 function popPartie(s,pp){
   const u=U(),Mo=M(),F=s.fin,w=F.gagnant,vic=mk('div','pp-vic');
-  if(w===0||w===1){vic.style.setProperty('--c',COL[w]);const h=mk('h2','','Victoire '+d_(nom(w))+nom(w));h.style.color=COL[w];vic.append(avatar(w),h)}
+  /* vue spectateur, fin par abandon : ecran neutre (« Fin par abandon », Vainqueur / Abandon) */
+  if(src==='spec'&&F.abandon!==undefined&&(w===0||w===1)){vic.append(mk('h2','pp-neutre','Fin par abandon'));const duo=mk('div','pp-duo');
+    [w,1-w].forEach(p=>{const j=mk('div','pp-dj'+(p===w?' g':'')),n=mk('span','pp-dn',nom(p)),a=avatar(p);if(p!==w)a.classList.add('dk-gris');n.style.color=COL[p];
+      j.append(a,n,mk('span','dk-tag '+(p===w?'v':'d'),p===w?'Vainqueur':'Abandon'));duo.append(j)});vic.append(duo)}
+  else if(w===0||w===1){vic.style.setProperty('--c',COL[w]);const h=mk('h2','','Victoire '+d_(nom(w))+nom(w));h.style.color=COL[w];vic.append(avatar(w),h)}
   else vic.append(mk('h2','','Match nul'));
   if(F.abandon!==undefined)vic.append(mk('p','pp-sous',nom(F.abandon)+(F.quitte?' a quitté la partie':' a abandonné')));
   else if(F.deckVide!==undefined)vic.append(mk('p','pp-sous','Victoire par deck vide : '+nom(F.deckVide)+' n\'avait plus de carte à piocher')); /* 0.4 */
@@ -539,7 +555,7 @@ function ouvrir(source,entree){
   /* telephone en portrait : la vue 16:9 se centre ; invitation discrete a tourner l'ecran */
   const tp=mk('div','d-tourne');tp.append(mk('span','','Tourne ton téléphone pour agrandir la vue.'));
   D.append(tp);
-  if(source==='spec')chat.brancher();chat.vus=chat.liste().length;document.body.append(D);document.documentElement.classList.add('dif-ouvert');
+  if(source==='spec'){chat.brancher();setTimeout(decoSpec,0)}chat.vus=chat.liste().length;document.body.append(D);document.documentElement.classList.add('dif-ouvert');
   echelle();peindre();
 }
 /* ---------- Vue joueur (0.5) : l'ecran de partie sur ordinateur, a la mise en page de la vue spectateur (maquette mq2) ----------
@@ -567,7 +583,10 @@ function peindreJoueur(s,qui){
   scene.append(et);
   /* cartes a choisir (main de choix de la partie, differente de ta main) : a la place de la derniere carte jouee */
   const mains=po?[...po.querySelectorAll(':scope>.p-main')]:[],mainJ=s.j[E.moi].main.join(),ch=mains.find(m=>[...m.querySelectorAll('.p-slot')].map(x=>x.dataset.c).join()!==mainJ);
-  if(ch){const z=mk('div','d-z mq-choix');z.append(mk('div','mq-ch-t','Choisis une carte'),ch);scene.append(z)}else scene.append(derniere(s));
+  if(ch){const z=mk('div','d-z mq-choix');z.append(mk('div','mq-ch-t','Choisis une carte'),ch);scene.append(z);
+    /* cartes entierement dans la section (791 x 472) : taille commune, ecarts egaux, de 1 a 6 cartes */
+    const sl=[...ch.querySelectorAll(':scope>.p-slot')],n=Math.max(1,sl.length),G=16,W=791-28,H=472-28-26-10,w=Math.floor(Math.min((W-G*(n-1))/n,H*5/7));
+    sl.forEach(x=>{x.style.width=w+'px';x.style.height=Math.round(w*7/5)+'px';x.style.flex='none'})}else scene.append(derniere(s));
   const bt=po&&po.querySelector(':scope>.p-btns:not(.p-cale)');if(bt){const b=mk('div','mq-btns');b.append(bt);scene.append(b)}
   const pl=mk('div','mq-piles');if(po)po.querySelectorAll('.p-piles>.pile').forEach(x=>pl.append(x));scene.append(pl);
   /* outils : Chat (parties en ligne), Daltonien, ?, son, Quitter (confirmation) */
@@ -583,6 +602,12 @@ function peindreJoueur(s,qui){
    « Reconnexion » / « Hors ligne » a la place de « A toi / A lui de jouer » ; ma coupure : mon etiquette Reconnexion doree ;
    minuteur : bandeau dore a la place de l'encadre d'etape, barre detachee. L'ecran de fin par abandon reste celui de presence.js. */
 const DK_LIB={att:'Reconnexion',off:'Hors ligne'};
+/* pastille : centre vertical = centre de l'etiquette visible du bandeau (sinon de la ligne du nom), mesure dans le repere 1920 */
+function centrePastilles(){if(!scene)return;const k=scene.getBoundingClientRect().height/1080||1;
+  scene.querySelectorAll('.d-ban>.d-j').forEach(b=>{const pt=b.querySelector(':scope>.dk-pt');if(!pt)return;
+    const ref=[...b.querySelectorAll('.d-badge')].find(x=>!x.hidden&&x.offsetWidth)||b.querySelector('.d-l1');if(!ref)return;
+    const rb=b.getBoundingClientRect(),rr=ref.getBoundingClientRect(),bt=parseFloat(getComputedStyle(b).borderTopWidth)||0;
+    pt.style.marginTop='0';pt.style.top=((rr.top+rr.height/2-rb.top)/k-bt-8)+'px'})}
 const mnS=ms=>{const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 function decoJoueur(){
   if(!D||src!=='joueur'||!window.DECO)return;
@@ -599,6 +624,7 @@ function decoJoueur(){
     if(st!=='ok'){const l1=b.querySelector('.d-l1'),bg=l1&&l1.querySelector('.d-badge');if(bg){bg.hidden=true;bg.classList.add('dk-cache')}
       if(l1)l1.append(mk('span','d-badge dk-lab '+st,DK_LIB[st]))}
   });
+  centrePastilles();
   if(e.lui==='off'&&e.reste!=null&&et){
     const m=mk('div','dk-et'),tx=mk('div','t'),br=mk('div','barre'),i=mk('i');m.setAttribute('role','status');
     tx.append(mk('b','',(e.nomLui||nom(1-E.moi))+" s'est déconnecté"),mk('span','',"S'il ne revient pas à temps, tu gagnes la partie par abandon."));
@@ -607,11 +633,86 @@ function decoJoueur(){
   }
 }
 if(window.DECO&&DECO.onChange)DECO.onChange(decoJoueur);else addEventListener('load',()=>{if(window.DECO&&DECO.onChange)DECO.onChange(decoJoueur)});
+/* Vue spectateur : connexion des deux joueurs lue dans la presence du salon (salons/{code}/pres/{uid}), memes seuils que presence.js
+   (10 s de reconnexion, puis 60 s) ; minuteur au texte neutre. */
+function decoSpec(){
+  if(!D||src!=='spec'||!E||!E.uids)return;
+  const B=window.GOLEMS_PONT,r=B&&B.r;if(!r||typeof r.etats!=='function')return;
+  const et=r.etats()||{},now=typeof r.heure==='function'?r.heure():Date.now(),fin=E.etat&&E.etat.fin;
+  scene.querySelectorAll('.dk-pt,.dk-et,.d-badge.dk-lab').forEach(x=>x.remove());
+  scene.querySelectorAll('.d-badge.dk-cache').forEach(x=>{x.hidden=false;x.classList.remove('dk-cache')});
+  if(!Object.keys(et).length)return;
+  D.classList.add('dk-on');let minu=null;
+  [0,1].forEach(p=>{const u=E.uids[p],e=u&&et[u];let st='ok',reste=null;
+    if(e&&e.c===false&&!fin){const t0=+e.t||now;if(now<t0+10000)st='att';else{st='off';reste=Math.max(0,t0+70000-now)}}
+    const b=scene.querySelector('.d-ban>.d-j.'+(p===BAS()?'toi':'lui'));if(!b)return;
+    const pt=mk('i','dk-pt '+st);pt.title=st==='ok'?'En ligne':DK_LIB[st];b.append(pt);
+    if(st!=='ok'){const l1=b.querySelector('.d-l1'),bg=l1&&l1.querySelector('.d-badge');if(bg){bg.hidden=true;bg.classList.add('dk-cache')}if(l1)l1.append(mk('span','d-badge dk-lab '+st,DK_LIB[st]))}
+    if(st==='off'&&!minu)minu={p,reste}});
+  centrePastilles();
+  if(minu){const m=mk('div','dk-et dk-spec'),tx=mk('div','t'),br=mk('div','barre'),i=mk('i');m.setAttribute('role','status');
+    tx.append(mk('b','',nom(minu.p)+" s'est déconnecté"),mk('span','',"Sans retour à temps, défaite par abandon."));
+    i.style.width=(100*minu.reste/60000)+'%';br.append(i);m.append(tx,mk('div','n',mnS(minu.reste)),br);scene.append(m)}
+}
+setInterval(decoSpec,1000);
 /* chat de la partie en ligne : panneau de la maquette (colonne de droite, jusqu'au bas de « Dernieres actions ») quand il est ouvert */
 function placeChat(){const cf=document.querySelector('.chat.flottant');if(!cf||!scene)return;const o=!cf.classList.contains('replie');cf.classList.toggle('mq-chatw',o);
   if(o&&cf.parentNode!==scene)scene.append(cf);else if(!o&&cf.parentNode===scene)document.body.append(cf)}
+/* ---------- Vue joueur, telephone (0.5, maquette mqt2 v10) : #partie reste l'ecran, re-agence par html.tel-joueur ----------
+   barre d'action collee en bas (etape + vrais boutons), main defilante avec fleche, apercu au toucher (Jouer / Fermer),
+   barre du haut sur une ligne, eventail adverse dans le bandeau Golem, ligne « Daltonien » sous le Journal. */
+const TEL=matchMedia('(max-width:899px)');
+function telephone(P){
+  const H=document.documentElement,box=document.getElementById('partie');
+  const ok=P&&P.etat&&!P.rejeu&&TEL.matches&&box&&!box.hidden&&!(window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur());
+  H.classList.toggle('tel-joueur',!!ok);document.querySelectorAll('#mqAp').forEach(x=>x.remove());if(!ok)return;
+  const u=U(),s=P.etat,moi=P.moi,lui=1-moi,att=s.fin?[]:M().attendus(s),aMoi=att.includes(moi),nomJ=u.nomJ;
+  const camps={[moi]:box.querySelector('.p-camp.toi'),[lui]:box.querySelector('.p-camp.lui')};
+  const e=window.DECO&&DECO.etat?DECO.etat():{},on=!!e.actif,etat={[moi]:on?e.moi||'ok':null,[lui]:on?e.lui||'ok':null};
+  [moi,lui].forEach(p=>{const c=camps[p];if(!c)return;let l1=c.querySelector('.p-l1');
+    if(!l1){l1=mk('div','p-l1');const b=c.querySelector(':scope>b');if(b){b.before(l1);l1.append(b)}else c.prepend(l1)}
+    const st=etat[p];
+    if(st&&st!=='ok')l1.append(mk('span','mq-lab dk-'+st,DK_LIB[st]));
+    else if(att.includes(p))l1.append(mk('span','mq-lab',p===moi?'À toi de jouer':'À lui de jouer'));
+    if(st){const d=mk('span','mq-pt dk-'+st);d.title=st==='ok'?'En ligne':DK_LIB[st];l1.append(d)}});
+  /* main adverse : eventail 34 px dans le bandeau Golem */
+  const n=s.j[lui].main.length,z=mk('div','mqt'),sm=mk('small'),f=mk('div','mqt-fan'),w=24,sp=Math.min(9,70/Math.max(1,n));
+  if(att.includes(lui)){sm.append(mk('b','',String(n)),'cartes')}else{sm.append(mk('b','','Main de '+nomJ(lui)),n+' cartes')}
+  f.style.setProperty('--fw',Math.round(w+(n-1)*sp+8)+'px');
+  for(let k=0;k<n;k++){const i=mk('img');i.src=imgV('cartes/verso.jpg');i.alt='';i.style.width=w+'px';i.style.height=Math.round(w*1.4)+'px';i.style.left=(4+k*sp)+'px';i.style.transform='rotate('+(n>1?(k-(n-1)/2)*(20/(n-1)):0)+'deg)';f.append(i)}
+  z.append(sm,f);if(camps[lui])camps[lui].append(z);
+  box.querySelectorAll('.p-tete').forEach(x=>x.classList.toggle('long',x.textContent.trim().length>13));
+  /* barre d'action collee en bas : etape + vrais boutons, puis la main (ou les cartes a choisir) */
+  const po=box.querySelector('.p-poste');if(!po)return;
+  const cs=po.querySelector('.p-consigne:not(.p-cale)'),L=mk('div','mqb-l'),c=mk('div','mqb-c'),forge=aMoi&&s.j[moi].etapeForge;
+  const t1=s.fin?'Partie terminée':aMoi?(cs&&cs.querySelector('b')?cs.querySelector('b').textContent:forge?'Étape 1 : Forge':'Étape 2 : actions'):'Tour de '+nomJ(att[0]!=null?att[0]:lui);
+  c.append(t1,mk('small','',aMoi?'Touche une carte':'Touche une carte pour la lire'));L.append(c);
+  const bt=po.querySelector(':scope>.p-btns:not(.p-cale)');if(bt)bt.querySelectorAll('.btn').forEach(b=>{b.classList.add('mqb-b');if(!b.classList.contains('sec'))b.classList.add('plein');L.append(b)});
+  const Mm=mk('div','mqb-m'),r=mk('div','mqb-r'),mains=[...po.querySelectorAll(':scope>.p-main')];
+  const mj=s.j[moi].main.join(),src=mains.find(m=>[...m.querySelectorAll('.p-slot')].map(x=>x.dataset.c).join()!==mj)||mains[0];
+  const cartes=src?[...src.querySelectorAll('.p-carte')]:[];
+  const ouvre=(x,i)=>{document.querySelectorAll('#mqAp').forEach(y=>y.remove());const o=mk('div');o.id='mqAp';const im=mk('img');im.src=x.querySelector('img').src;im.alt='';
+    const b=mk('div','mqa-b'),fe=mk('button','mqb-b','Fermer');fe.type='button';fe.onclick=()=>o.remove();
+    if(x.dataset.act&&!x.classList.contains('grisee')){const okb=mk('button','mqb-b plein',forge?'Forger':'Jouer');okb.type='button';okb.onclick=()=>{o.remove();x.click()};b.append(fe,okb)}else b.append(fe);
+    const sl=x.parentNode,oe=sl&&sl.querySelector('.oeil');if(oe){const z2=mk('button','mqb-b','Détails');z2.type='button';z2.onclick=()=>{o.remove();oe.click()};b.prepend(z2)}
+    const ra=x.querySelector('.raison');o.append(im,mk('p','','Carte '+(i+1)+' sur '+cartes.length+(x.classList.contains('surtaxe')?' · surcoût':'')+(ra?' · '+ra.textContent:'')),b);
+    o.onclick=ev=>{if(ev.target===o)o.remove()};document.body.append(o);r.querySelectorAll('button').forEach(y=>y.classList.remove('choisi'));if(r.children[i])r.children[i].classList.add('choisi')};
+  cartes.forEach((x,i)=>{const b=mk('button');b.type='button';if(x.classList.contains('surtaxe'))b.className='surtaxe';if(x.classList.contains('grisee'))b.classList.add('grisee');const im=mk('img');im.src=x.querySelector('img').src;im.alt=x.querySelector('img').alt||'';b.append(im);b.onclick=()=>ouvre(x,i);r.append(b)});
+  const g=mk('div','mqb-g','›');Mm.append(r,g);const majG=()=>{g.style.display=r.scrollLeft+r.clientWidth>=r.scrollWidth-2?'none':'flex'};r.addEventListener('scroll',majG);
+  po.append(L,Mm);requestAnimationFrame(majG);
+  window.__telOuvre=i=>ouvre(cartes[i||0],i||0);
+  /* barre du haut : Chat (en ligne), ?, son, Quitter ; « Daltonien » sur sa ligne sous le Journal */
+  const ou=box.querySelector('.p-outils');
+  if(ou){const v=ou.querySelector('#btnVitesse');if(v)v.remove();const di=ou.querySelector('.dal-inter');if(di)di.remove();
+    const cf=document.querySelector('.chat.flottant');
+    if(cf){const ch=mk('button','mq-chat','Chat'),nb=cf.querySelector('.chat-nb'),k=nb?+nb.textContent||0:0;ch.type='button';if(k)ch.append(mk('i','',k>9?'9+':String(k)));ch.onclick=()=>{cf.classList.toggle('replie')};ou.prepend(ch)}
+    const q=mk('button','mq-q','Quitter');q.type='button';q.onclick=()=>u.quitteAvecConfirmation();ou.append(q)}
+  const cote=box.querySelector('.p-cote');
+  if(cote&&window.interDal){const l=mk('div','mq-dal');l.append(interDal('Daltonien'));cote.append(l)}
+}
 function joueur(){
   const u=U();if(!u)return;const P=u.partie,box=document.getElementById('partie');
+  try{telephone(P)}catch(e){console.warn(e)}
   const ok=P&&P.etat&&!P.rejeu&&ECRAN_JOUEUR.matches&&box&&!box.hidden&&!(window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur());
   if(!ok){if(D&&src==='joueur')fermer();return}
   const x={etat:P.etat,moi:P.moi,noms:[0,1].map(p=>u.nomJ(p)),avatars:[0,1].map(p=>p===P.moi?u.monAvatar():''),uids:[0,1].map(p=>p===P.moi||P.local?'':u.uidJ(p))};
@@ -620,6 +721,9 @@ function joueur(){
   /* plein ecran au demarrage de la partie (geste de l'utilisateur : clic sur Jouer) ; refuse = rien */
   try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}
 }
+/* vue joueur : un bilan de manche de la partie ouvert (cache) sans fenetre de la vue = on ouvre celle de la vue (sinon la partie attendrait « Continuer ») */
+setInterval(()=>{if(!D||src!=='joueur'||!suivi||suivi.pop)return;const r=document.getElementById('recap');if(!r||r.hidden||!E.etat.stats)return;
+  const n=Math.max(1,Math.floor(E.etat.stats.t.length/3));ouvrePop('manche',n)},400);
 /* « Quitter la partie » (spectateur) : la diffusion se ferme et le spectateur quitte la partie comme avec l'ancien bouton Quitter ;
    demonstration : « Quitter la diffusion » arrete la partie locale */
 let sortieSpec=false; /* le spectateur vient de quitter : pas de reouverture tant qu'il est encore inscrit */

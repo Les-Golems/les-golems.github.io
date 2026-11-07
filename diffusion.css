@@ -453,3 +453,115 @@ html.dif-joueur .dk-btns .btn{width:100%}
 #dif .mini:not(.animal) .nom{right:80px}
 /* vue spectateur : ligne de la largeur de « Dernieres actions » : interrupteur a gauche, Quitter a droite */
 #dif:not(.jr) .d-coin:has(.dal-inter) .d-bas{flex-wrap:nowrap;justify-content:space-between;align-items:center;width:380px;row-gap:0}
+#dif.jr .mq-choix{overflow:hidden}
+#dif.jr .mq-choix .p-main{flex:1;min-height:0;align-items:center;justify-content:center;gap:16px}
+#dif.jr .mq-choix .p-slot{max-height:none}
+#dif.jr .mq-choix .p-carte,#dif.jr .mq-choix .p-carte img{width:100%;height:100%;object-fit:contain}
+/* consigne d'etape : 3 lignes au plus dans 72 px, texte reduit, coupe propre */
+#dif.jr .mq-etape .p-consigne{font-size:14.5px;line-height:1.2;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;padding-top:6px;padding-bottom:6px}
+#dif.jr .mq-etape .p-consigne b{font-size:19px}
+.dk-voile{--moi:var(--bleu);--lui:var(--magma)} /* noms bleu / orange de la fin par abandon (maquette C) */
+/* vue joueur : le bilan de manche de la partie est remplace par celui de la vue spectateur (Fermer = Continuer) */
+html.dif-joueur #recap{display:none!important}
+#dif .pp-fbtns{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;width:100%;margin-top:6px}
+#dif .pp-fbtns .btn{font-size:17px;height:44px;min-height:44px;padding:0 8px;white-space:nowrap}
+
+/* Vue spectateur : connexion des joueurs (pastille, etiquette), minuteur neutre au-dessus de « Derniere carte jouee », fin par abandon neutre */
+#dif:not(.jr){--dk-ok:#5fd38d;--dk-att:var(--or);--dk-off:#7d8c98}
+#dif:not(.jr) .dk-pt{position:absolute;top:18px;right:20px;width:16px;height:16px;border-radius:50%;display:block}
+#dif:not(.jr) .d-j.dr .dk-pt{right:auto;left:20px}
+#dif:not(.jr) .dk-pt.ok{background:var(--dk-ok);box-shadow:0 0 0 3px rgba(95,211,141,.22)}
+#dif:not(.jr) .dk-pt.att{background:var(--dk-att);box-shadow:0 0 0 3px rgba(241,195,90,.3)}
+#dif:not(.jr) .dk-pt.off{background:var(--dk-off)}
+#dif:not(.jr) .d-badge.dk-lab{box-sizing:border-box;min-width:171px;height:38px;display:inline-flex;align-items:center;justify-content:center;background:rgba(241,195,90,.14);color:var(--dk-att);border:2px solid var(--dk-att)}
+#dif:not(.jr) .d-badge.dk-lab.off{background:rgba(125,140,152,.12);color:var(--doux);border-color:var(--dk-off)}
+#dif .dk-et.dk-spec{position:absolute;left:727px;top:416px;width:769px;height:72px;z-index:6;box-sizing:border-box;display:flex;align-items:center;gap:16px;padding:0 18px 6px;border:2px solid var(--or);border-radius:14px 9px 15px 8px/9px 14px 8px 15px;background:linear-gradient(180deg,#2a2512,#1a1a12)}
+#dif .dk-et.dk-spec .t{flex:1;min-width:0}#dif .dk-et.dk-spec .t b{display:block;font:400 22px/1.1 var(--titre);color:var(--or)}
+#dif .dk-et.dk-spec .t span{display:block;margin-top:4px;font:400 16px/1.2 var(--corps);color:var(--texte)}
+#dif .dk-et.dk-spec .n{font:400 44px/1 Anton,var(--titre);color:var(--or)}
+#dif .dk-et.dk-spec .barre{position:absolute;left:18px;right:242px;bottom:8px;height:5px;border-radius:3px;background:rgba(241,195,90,.2)}#dif .dk-et.dk-spec .barre i{display:block;height:100%;background:var(--or);border-radius:3px}
+#dif .pp-neutre{color:var(--or)}
+#dif .pp-duo{display:flex;gap:28px;justify-content:center;margin:8px 0}
+#dif .pp-dj{width:220px;padding:14px;box-sizing:border-box;border:2px solid var(--trait);border-radius:14px 9px 15px 8px;display:flex;flex-direction:column;align-items:center;gap:8px}
+#dif .pp-dj.g{border-color:var(--or)}#dif .pp-dn{font:400 28px/1 var(--titre)}
+#dif .dk-gris{filter:grayscale(1) brightness(.6)}
+#dif .dk-tag{display:inline-block;padding:7px 14px;border-radius:9px 7px 10px 6px;font:400 20px/1 var(--titre);letter-spacing:.05em;text-transform:uppercase}
+#dif .dk-tag.v{background:var(--or);color:var(--encre)}#dif .dk-tag.d{background:var(--trait);color:var(--texte)}
+
+/* ===== Vue joueur, telephone (0.5) : maquette mqt2 v10 (barre d action collee en bas, main defilante, apercu au toucher), sous html.tel-joueur ===== */
+@media (max-width:899px){
+html.tel-joueur body:has(#jouer.enJeu:not([hidden])) nav{display:none}
+html.tel-joueur #partie{--h:63px;padding-bottom:0!important;padding-top:4px!important}
+html.tel-joueur #partie .mini{--f:38px}
+html.tel-joueur #partie .p-terrains{height:74px}html.tel-joueur #partie .p-terrain{min-height:0;height:74px;padding:3px 3px 4px;gap:0;display:flex!important;flex-direction:column;align-items:center;justify-content:space-between}html.tel-joueur #partie .p-tmil{gap:2px}html.tel-joueur #partie .p-tete b{white-space:nowrap}html.tel-joueur #partie .p-tete b{font-size:14px;line-height:1.1}html.tel-joueur #partie .p-tete.long b{font-size:12px}html.tel-joueur #partie .p-terrain .p-valeur{transform:scale(.82);margin:-2px 0}html.tel-joueur #partie .p-barre .p-info:not(.score)>*:not(small){transform:scale(.72)}html.tel-joueur #partie .p-tot{font-size:16px;line-height:1}
+html.tel-joueur #partie .p-table{gap:14px}
+html.tel-joueur #partie .p-plateau{gap:5px}
+html.tel-joueur #partie .p-grille{gap:5px}
+html.tel-joueur #partie .p-grille>.p-case{height:63px;min-height:0}
+html.tel-joueur #partie .p-barre{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:auto!important;grid-auto-flow:column!important;align-items:center;gap:2px;padding:2px 206px 2px 2px;position:relative}
+html.tel-joueur #partie .p-barre>*{grid-row:1!important;grid-column:auto!important;min-width:0}
+html.tel-joueur #partie .p-barre .p-info b{font-size:22px}html.tel-joueur #partie .p-barre .p-info{padding:0 1px}html.tel-joueur #partie .p-barre .p-info+.p-info{border-left:1px solid var(--trait)}
+html.tel-joueur #partie .p-barre .p-info{height:44px}html.tel-joueur #partie .p-barre .p-info small{font-size:9.5px;letter-spacing:0}
+html.tel-joueur #partie .p-barre>.p-tourde{position:absolute;right:3px;top:50%;transform:translateY(-50%);width:auto!important}html.tel-joueur #partie .p-tourde{flex:none;height:44px;padding:0;background:none!important;border:0!important}
+html.tel-joueur #partie .p-tourde>span{display:none}
+html.tel-joueur #partie .p-outils{gap:4px}
+html.tel-joueur #partie .p-camp{position:relative}
+html.tel-joueur #partie .p-camp .p-l1{display:flex;align-items:center;gap:6px}html.tel-joueur #partie .p-camp.lui .p-l1{min-height:34px}
+html.tel-joueur #partie .p-joue{display:none}
+html.tel-joueur #partie .mq-lab{flex:none;font:400 12px/1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--encre);padding:4px 6px;border-radius:8px 6px 9px 5px;white-space:nowrap}
+html.tel-joueur #partie .p-camp.toi .mq-lab{background:var(--moi)}html.tel-joueur #partie .p-camp.lui .mq-lab{background:var(--lui)}
+html.tel-joueur #partie .mq-pt{flex:none;width:10px;height:10px;border-radius:50%;background:#3ccf6e;box-shadow:0 0 6px rgba(60,207,110,.7)}
+html.tel-joueur #partie .mqt{position:absolute;right:8px;top:4px;display:flex;align-items:center;gap:6px;height:34px}
+html.tel-joueur #partie .mqt small{font:700 11px/1.1 var(--corps);color:var(--doux);text-align:right}
+html.tel-joueur #partie .mqt small b{display:block;font:400 12px/1 var(--titre);color:var(--lui)}
+html.tel-joueur #partie .mqt-fan{position:relative;height:34px;width:var(--fw)}
+html.tel-joueur #partie .mqt-fan img{position:absolute;bottom:0;transform-origin:50% 120%;display:block;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+html.tel-joueur #partie .p-comptes{grid-template-columns:60px 64px 84px 82px!important}
+html.tel-joueur #partie .p-poste{position:sticky;bottom:0;z-index:40;display:flex;flex-direction:column;gap:4px;margin:0 -16px;padding:4px 16px calc(4px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(10,16,24,.94),var(--fond,#0b1118));border-top:1px solid var(--trait);box-shadow:0 -8px 20px rgba(0,0,0,.55)}
+html.tel-joueur #partie .p-poste>*{display:none!important}
+html.tel-joueur #partie .p-poste>.mqb-l{display:flex!important;align-items:center;gap:8px;min-height:44px}
+html.tel-joueur #partie .mqb-c{flex:1;min-width:0;font:400 15px/1.15 var(--titre);color:var(--or);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.tel-joueur #partie .mqb-c small{display:block;font:600 11px/1.2 var(--corps);color:var(--doux);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.tel-joueur #partie .mqb-b{flex:none;height:44px;min-width:44px;padding:0 12px;font:400 15px/1 var(--titre);border-radius:10px 7px 11px 6px;border:1px solid var(--trait);background:var(--panneau2);color:var(--texte)}
+html.tel-joueur #partie .mqb-b.plein{background:var(--or);color:var(--encre);border-color:var(--or)}
+html.tel-joueur #partie .mqb-b[disabled]{opacity:.45}
+html.tel-joueur #partie .p-poste>.mqb-m{display:block!important;position:relative}
+html.tel-joueur #partie .mqb-r{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:2px 28px 2px 0;scroll-snap-type:x proximity}
+html.tel-joueur #partie .mqb-r::-webkit-scrollbar{display:none}
+html.tel-joueur #partie .mqb-r>button{flex:0 0 44px;height:62px;padding:0;border:0;background:none;scroll-snap-align:start;position:relative}
+html.tel-joueur #partie .mqb-r>button img{width:44px;height:62px;object-fit:cover;border-radius:4px;display:block;box-shadow:0 2px 5px rgba(0,0,0,.6)}
+html.tel-joueur #partie .mqb-r>button.choisi img{outline:3px solid var(--or);outline-offset:-1px}
+html.tel-joueur #partie .mqb-r>button.surtaxe::after{content:'+1';position:absolute;right:2px;top:2px;font:400 11px/1 var(--titre);background:var(--magma);color:#fff;border-radius:4px;padding:2px 3px}
+html.tel-joueur #partie .mqb-g{position:absolute;right:0;top:0;bottom:0;width:40px;pointer-events:none;background:linear-gradient(90deg,rgba(11,17,24,0),rgba(11,17,24,.95));display:flex;align-items:center;justify-content:flex-end;font:400 22px/1 var(--titre);color:var(--or);padding-right:2px}
+html.tel-joueur #partie .mqb-n{position:absolute;left:0;top:-2px;font:700 10px/1 var(--corps);color:var(--doux)}
+html.tel-joueur #mqAp{position:fixed;inset:0;z-index:200;background:rgba(3,6,10,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+html.tel-joueur #mqAp img{width:min(78vw,300px);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.7)}
+html.tel-joueur #mqAp .mqa-b{display:flex;gap:10px;width:min(90vw,340px)}
+html.tel-joueur #mqAp .mqb-b{flex:1;height:48px;font:400 18px/1 var(--titre);border-radius:10px 7px 11px 6px;border:1px solid var(--trait);background:var(--panneau2);color:var(--texte)}
+html.tel-joueur #mqAp .mqb-b.plein{background:var(--or);color:var(--encre);border-color:var(--or)}
+html.tel-joueur #mqAp p{margin:0;font:600 13px/1.3 var(--corps);color:var(--doux);text-align:center}
+html.tel-joueur #partie .p-pied{display:none}
+html.tel-joueur #partie .p-cote .p-journal summary,html.tel-joueur #partie .p-cote .p-cercle summary{min-height:44px;display:flex;align-items:center;padding-top:4px;padding-bottom:4px}
+html.tel-joueur #partie .mq-chat,html.tel-joueur #partie .mq-q{position:relative;background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 14px/1 var(--titre);padding:0 7px;height:44px;min-width:44px}
+html.tel-joueur #partie .mq-chat i{position:absolute;right:-6px;top:-6px;min-width:18px;height:18px;border-radius:9px;background:var(--magma);color:#fff;font:400 12px/18px var(--titre);font-style:normal}
+html.tel-joueur #partie .p-outils .p-outil{width:44px!important;height:44px!important;min-width:44px!important}html.tel-joueur #partie .mq-q{white-space:nowrap}
+}
+
+/* Telephone, complements : connexion, ligne Daltonien, barre du haut dans son cadre (retours de Romain du 7 nov.) */
+@media (max-width:899px){
+html.tel-joueur #partie .mq-lab.dk-att{background:rgba(241,195,90,.14);color:var(--or);border:1px solid var(--or)}
+html.tel-joueur #partie .mq-lab.dk-off{background:rgba(125,140,152,.12);color:var(--doux);border:1px solid #7d8c98}
+html.tel-joueur #partie .mq-pt.dk-att{background:var(--or);box-shadow:0 0 6px rgba(241,195,90,.7)}
+html.tel-joueur #partie .mq-pt.dk-off{background:#7d8c98;box-shadow:none}
+html.tel-joueur #partie .mq-dal{display:flex;align-items:center;justify-content:space-between;min-height:44px;padding:0 12px;background:var(--panneau);border:1px solid var(--trait);border-radius:12px 9px 14px 8px/9px 13px 8px 14px}
+html.tel-joueur #partie .mq-dal .dal-inter{width:100%;justify-content:space-between;border:0;background:none;padding:0}
+html.tel-joueur #partie .mq-dal .dal-inter .pf-itx{display:inline;font:400 18px/1 var(--titre);color:var(--bleu)}
+html.tel-joueur .chat.flottant.replie{display:none}
+html.tel-joueur #partie .mqb-l .mqb-b{width:auto;flex:none}
+html.tel-joueur #partie .mqb-r>button.grisee img{filter:grayscale(.85) brightness(.55)}
+html.tel-joueur #partie .p-barre{overflow:hidden}
+html.tel-joueur #partie .p-barre>.p-tourde{right:4px}
+html.tel-joueur #partie .p-outils{gap:3px}
+html.tel-joueur #partie .p-outils .p-outil,html.tel-joueur #partie .mq-chat,html.tel-joueur #partie .mq-q{height:38px!important;min-width:38px!important;width:auto}
+html.tel-joueur #partie .p-outils .p-outil{width:38px!important}
+}

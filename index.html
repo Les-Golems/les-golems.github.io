@@ -544,6 +544,7 @@ body.daltonien .mini .evs{display:inline}
 .mini .cout{display:inline-flex;align-items:center;gap:3px;padding:0 6px 0 3px;border-radius:8px 5px 9px 4px;background:rgba(10,18,26,.72);font:400 16px/23px var(--titre);color:#fff;-webkit-text-stroke:3px #0a121a;paint-order:stroke fill}
 .mini .cout .ico{font-size:17px;color:#d3dbe0}
 .p-case.cible{border:2px solid var(--or);background:var(--panneau2);color:var(--or);font-weight:800}
+.p-case.cible:has(.mini):not(:has(.act)){box-shadow:0 0 0 3px var(--or),0 0 20px 4px rgba(241,195,90,.75);z-index:2} /* Golem a viser (Tarte) : contour lumineux, sans etiquette */
 .p-case.choisie{border:3px solid var(--bleu)}
 .p-case .f{position:absolute;right:3px;bottom:2px;width:calc(var(--f)*.9);height:var(--f);color:#dfe5e9}
 .p-case .f .ico{position:absolute;inset:0;width:100%;height:100%}
@@ -3559,6 +3560,7 @@ const tf=c=>'translate('+c.x+'px,'+c.y+'px) scale('+c.w/200+')';
 function carteVol(src){const d=el('div','v-carte'),i=el('img');i.src=src;i.alt='';d.append(i);$('scene').append(d);return d}
 function vol(de,vers,src,ms,delai){
   if(vite()||REDUIT.matches||!de||!vers)return;
+  if(document.documentElement.classList.contains('dif-joueur'))return; /* vue joueur : le vol est celui de diffusion.js (pas de double) */
   const d=carteVol(src),a=d.animate([{transform:tf(cadre(de,56))},{transform:tf(cadre(vers,56))}],{duration:T(ms),delay:T(delai||0),easing:'cubic-bezier(.3,.7,.3,1)',fill:'both'});
   a.finished.finally(()=>d.remove()).catch(()=>{});
 }
@@ -3570,7 +3572,7 @@ function valTerrain(Mx,s,k){const T=s.terrains[k],v=Mx.ptsTerrain?Mx.ptsTerrain(
 const srcTerrain=T=>imgV('cartes/t'+String(window.GolemsMoteur.TERRAINS.findIndex(x=>x.nom===T.nom)+1).padStart(3,'0')+'.jpg');
 /* Carte jouee : grande au centre environ 1,5 s, puis glissade vers sa case. */
 function montreGrand(c,de,vers){
-  if(vite())return 0;
+  if(vite()||document.documentElement.classList.contains('dif-joueur'))return 0; /* vue joueur : « Derniere carte jouee » et le vol de diffusion.js suffisent */
   /* Ordinateur : la carte s'affiche dans la zone d'apercu sous les piles, puis glisse vers sa case. */
   const zo=zoneEl(),zb=zo&&zo.getBoundingClientRect(),zr=zb&&{left:zb.left+8,top:zb.top+31,width:zb.width-16,height:zb.height-39,bottom:zb.bottom-8};
   if(zo&&zr.height>120&&zr.bottom>0&&zr.top<innerHeight){
@@ -6158,7 +6160,7 @@ function affiche(){
     };
   }else if(modeTarte){ /* Le Cirque : touche un Golem adverse de la colonne du Cirque (cases dorees de la grille adverse) */
     const kc=s.terrains.findIndex(x=>x.nom==='Le Cirque');
-    cibleAdv=(l,k)=>{const a=k===kc&&coupsO.find(c=>c.l===l);return a?{texte:'Tarte',fait:()=>{modeTarte=false;joue(a)}}:null};
+    cibleAdv=(l,k)=>{const a=k===kc&&coupsO.find(c=>c.l===l);return a?{texte:'',fait:()=>{modeTarte=false;joue(a)}}:null};
   }else if(modeFaille){
     const kf=s.terrains.findIndex(x=>x.nom==='La Faille');
     cible=(l,k)=>{
@@ -6361,7 +6363,8 @@ function affiche(){
     }else if(modeTarte){
       con('Le Cirque : touche un Golem adverse de ce terrain, il subit 1 dégât. Une fois par manche, gratuit.');
       pl.append(mainVue(J.main,{}));
-      const z=el('div','p-btns'),ba=bouton('Annuler',()=>{modeTarte=false;affiche()},true);ba.id='annulerTarte';z.append(ba);pl.append(z);
+      /* deux boutons cote a cote (comme Forger / Ne pas forger) : Tarte enfonce (Golems vises mis en evidence) et Annuler */
+      const z=el('div','p-btns'),bt=bouton('Tarte',()=>{},false),ba=bouton('Annuler',()=>{modeTarte=false;affiche()},true);bt.id='tarteActive';bt.setAttribute('aria-pressed','true');bt.title='Touche un Golem adverse doré du Cirque';ba.id='annulerTarte';z.append(bt,ba);pl.append(z);
     }else if(modeFaille){
       con(selCases.length?'La Faille : touche une case libre de ce terrain.':'La Faille : touche un de tes Golems sur un autre terrain. Une fois par manche, gratuit.');
       pl.append(mainVue(J.main,{}));
@@ -6729,7 +6732,7 @@ else{const v=new URLSearchParams(location.search).get('carte');if(v!==null){ongl
     jouerA(){if(!partie||partie.etat&&partie.etat.fin)return;partie.mien.push(M.code({t:'a'}));sel=null;sauve();pub({j:M.ecritJournal(partie.mien)});calcule()}, /* ma defaite par abandon (hors ligne trop longtemps) */
     forfaitAdv(){if(!partie||partie.etat&&partie.etat.fin)return;partie.sien=[...partie.sien,M.code({t:'a'})];sel=null;calcule();sauve()}, /* abandon de l'adversaire hors ligne */
     lache(msg){const a=r;r=null;code='';finPartie();$('salon').hidden=true;$('accueil').hidden=false;$('erreurJeu').textContent=msg||'';if(a&&a.lache)a.lache();majEtat();majReprise()}}; /* autre appareil du meme compte */
-  window.GOLEMS_UI={el,nomJ,uidJ,monAvatar,quitteAvecConfirmation,get partie(){return partie},avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,ligneDeckVide,piocheImpossible,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
+  window.GOLEMS_UI={el,partageFin,texteResume,donneesPartie,copie,nomJ,uidJ,monAvatar,quitteAvecConfirmation,get partie(){return partie},avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,ligneDeckVide,piocheImpossible,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
 })();
 </script>
 <script>window.__golemsPret&&window.__golemsPret()</script>
