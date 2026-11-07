@@ -115,7 +115,23 @@ async function scenario(P) {
   await attendu(ici('A quitte le salon'), true, req(A, 'DELETE', S + '/joueurs/' + A.uid));
 
   // Invité (connexion anonyme).
-  await attendu(ici('invité lit le classement'), true, req(G, 'GET', P + 'classement'));
+  // Lectures réservées aux comptes : invité refusé, compte autorisé.
+  const lectures = [
+    ['hall', P + 'hall'], ['annonces', P + 'annonces'], ['salon', S], ['classement', P + 'classement'],
+    ['profils', P + 'profils'], ['profil d\'un joueur', P + 'profils/' + A.uid], ['resume', P + 'resume'],
+    ['pseudo d\'un joueur', P + 'joueurs/' + A.uid + '/pseudo'], ['avatarId', P + 'joueurs/' + A.uid + '/avatarId'],
+    ['avatarImg', P + 'joueurs/' + A.uid + '/avatarImg'], ['stats d\'un joueur', P + 'joueurs/' + A.uid + '/stats']
+  ];
+  for (const [n, c] of lectures) {
+    await attendu(ici('invité lit ' + n), false, req(G, 'GET', c));
+    await attendu(ici('compte lit ' + n), true, req(X, 'GET', c));
+  }
+  const reqActivite = (u) => fetch(`${DB}/${P}activite.json?${NS}&auth=${u.jeton}&orderBy="$value"&limitToFirst=20`).then(r => r.text().then(() => r.status === 200));
+  await attendu(ici('invité lit activite (requête du nettoyage)'), false, reqActivite(G));
+  await attendu(ici('compte lit activite (requête du nettoyage)'), true, reqActivite(X));
+  // Restent ouverts aux invités.
+  await attendu(ici('invité lit pseudos/<clé>'), true, req(G, 'GET', P + 'pseudos/' + pA.toLowerCase()));
+  await attendu(ici('invité lit nouveautes/epingles'), true, req(G, 'GET', P + 'nouveautes/epingles'));
   await attendu(ici('invité entre dans un salon'), false, req(G, 'PUT', S + '/joueurs/' + G.uid, { pseudo: 'Invite', t: HEURE }));
   await attendu(ici('invité écrit un resume'), false, req(G, 'PUT', P + 'resume/7-' + t, resume));
 

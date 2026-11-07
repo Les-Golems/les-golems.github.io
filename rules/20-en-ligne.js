@@ -5,7 +5,7 @@ const { COMPTE, MAINTENANT, CODE, SEPT_JOURS, pseudoReel } = require('./00-commu
 module.exports = r => ({
   // Accueil : qui est connecté, et départs volontaires (quitte). Comptes seulement.
   "hall": {
-    ".read": "auth != null",
+    ".read": `${COMPTE}`,
     "$uid": {
       // Chacun n'écrit que sa propre présence, avec son vrai pseudo.
       ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
@@ -22,7 +22,7 @@ module.exports = r => ({
   // Dernière activité d'un salon : activite/{code} = heure serveur, posée par un joueur présent.
   // Lecture seulement par la requête du nettoyage (tri par valeur, 50 au plus) ; effacement seulement si plus de 7 jours.
   "activite": {
-    ".read": "auth != null && query.orderByValue == true && query.limitToFirst <= 50",
+    ".read": `${COMPTE} && query.orderByValue == true && query.limitToFirst <= 50`,
     ".indexOn": ".value",
     "$code": {
       ".write": `${COMPTE} && ((newData.exists() && ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && data.val() < now - ${SEPT_JOURS}))`,
@@ -33,7 +33,7 @@ module.exports = r => ({
   // Salons publics en attente d'un adversaire : annonce posée par le créateur présent dans son salon (u = son uid),
   // retirée par lui ou par un joueur présent dans le salon ; effacée à sa déconnexion.
   "annonces": {
-    ".read": "auth != null",
+    ".read": `${COMPTE}`,
     "$code": {
       ".write": `${COMPTE} && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid || !${r}.child('salons').child($code).child('joueurs').hasChild(data.child('u').val())) && ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && (data.child('u').val() === auth.uid || ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid))))`,
       ".validate": `$code.matches(${CODE}) && newData.hasChildren(['u', 'p', 't'])`,
@@ -64,7 +64,7 @@ module.exports = r => ({
       // Effacement du salon entier (joueurs, coups, chat) seulement si sa dernière activité date de plus de 7 jours.
       ".write": `${COMPTE} && !newData.exists() && ${r}.child('activite').child($code).val() < now - ${SEPT_JOURS}`,
       // Lecture d'un salon (joueurs et coups) pour tout joueur connecté.
-      ".read": "auth != null",
+      ".read": `${COMPTE}`,
 
       // Verrou de partie : les deux uid engagés, posé au démarrage par un joueur présent.
       // Ensuite seuls ces deux comptes peuvent écrire dans le salon (un tiers voit « salon complet »).

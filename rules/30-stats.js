@@ -6,7 +6,7 @@ module.exports = r => ({
   // Classement public (onglet Statistiques, colonne Joueurs) : classement/{uid} = pseudo p, victoires v, parties n (toutes ses parties).
   // Lisible par tout connecté ; écrit par le seul compte propriétaire.
   "classement": {
-    ".read": "auth != null",
+    ".read": `${COMPTE}`,
     "$uid": {
       // Jamais effacé par le joueur. n et v = ceux de joueurs/{uid}/stats, écrits juste avant par le site (garde-fou là-bas).
       ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
@@ -22,7 +22,7 @@ module.exports = r => ({
   // Résumé public du profil (mêmes chiffres que la fenêtre de compte, sur toutes les parties), publié par son propriétaire à la connexion et à chaque fin de partie.
   // m = profil privé : seuls p, m, n, v, d, t, cr sont alors acceptés. L'historique complet reste privé (joueurs/{uid}/historique).
   "profils": {
-    ".read": "auth != null",
+    ".read": `${COMPTE}`,
     "$uid": {
       // Jamais effacé par le joueur. n et v = ceux du classement (écrit juste avant) ; sans classement, 0 partie.
       ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
@@ -57,7 +57,7 @@ module.exports = r => ({
   // Archive commune des parties (onglet Statistiques) : resume/{graine-debut}, anonyme (ni pseudo ni uid).
   // Lecture par tout connecté ; écriture par un compte seulement, ajout seulement (jamais modifié ni effacé).
   "resume": {
-    ".read": "auth != null",
+    ".read": `${COMPTE}`,
     ".indexOn": ["d"],
     "$id": {
       ".write": `${COMPTE} && !data.exists() && newData.exists()`,

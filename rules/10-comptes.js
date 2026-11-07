@@ -20,14 +20,14 @@ module.exports = r => ({
       ".read": "auth != null && auth.uid === $uid",
       ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
       // Pseudo du compte : doit être réservé à ce compte dans pseudos/ (clé = pseudo en minuscules), dans la même écriture ou avant.
-      "pseudo":   { ".read": "auth != null", ".validate": `newData.isString() && newData.val().length >= 3 && newData.val().length <= 20 && ${racineApres(3)}.child('pseudos').child(newData.val().toLowerCase()).val() === $uid` },
-      "avatarId": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)" },
+      "pseudo":   { ".read": `${COMPTE}`, ".validate": `newData.isString() && newData.val().length >= 3 && newData.val().length <= 20 && ${racineApres(3)}.child('pseudos').child(newData.val().toLowerCase()).val() === $uid` },
+      "avatarId": { ".read": `${COMPTE}`, ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)" },
       // Avatar importé par le joueur : petite image JPEG ou WebP en texte (data URL), 140 000 caractères au plus (environ 100 Ko).
-      "avatarImg": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length <= 140000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)" },
+      "avatarImg": { ".read": `${COMPTE}`, ".validate": "newData.isString() && newData.val().length <= 140000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)" },
       "cree":     { ".validate": "newData.isNumber()" },
       // Résumé public des parties (victoires v sur n parties), lisible par tout connecté.
       // Garde-fou : une écriture suit la précédente (ou, si le nœud a été effacé, le classement) : voir gardeStats.
-      "stats":    { ".read": "auth != null", ".validate": `newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val() && (data.exists() ? ${gardeStats('data')} : ${gardeStats(r + ".child('classement').child($uid)")})`, "v": { ".validate": "newData.isNumber()" }, "n": { ".validate": "newData.isNumber()" }, "$autre": { ".validate": false } },
+      "stats":    { ".read": `${COMPTE}`, ".validate": `newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val() && (data.exists() ? ${gardeStats('data')} : ${gardeStats(r + ".child('classement').child($uid)")})`, "v": { ".validate": "newData.isNumber()" }, "n": { ".validate": "newData.isNumber()" }, "$autre": { ".validate": false } },
       // 12 decks au plus : emplacements 0 à 11. Le total 24 à 30 est vérifié par le site
       // (un deck en cours de construction peut être plus petit).
       "decks": {
