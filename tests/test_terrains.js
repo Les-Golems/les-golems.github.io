@@ -1,8 +1,8 @@
-// 0.4a (sans Cyd), textes definitifs. Terrains T-011 a T-015 (L'Ecole, Le Karaoke, Les Pronos, Le Cirque, Le Tournoi). Node : node tests/test_terrains.js ; Chrome : harnais_terrains.html
+// 0.4a (sans Cyd), textes definitifs. Terrains T-011 a T-016 (L'Ecole, Le Karaoke, Les Pronos, Le Cirque, Le Tournoi, Le Versus). Node : node tests/test_terrains.js ; Chrome : harnais_terrains.html
 const M=require('../moteur.js'),assert=require('assert');
 let nv=0;const ok=(c,m)=>{assert(c,m);nv++},eq=(a,b,m)=>{assert.strictEqual(a,b,m||'eq');nv++},deq=(a,b,m)=>{assert.deepStrictEqual(a,b,m||'deq');nv++};
 const ANC=['Le Buzzer','Le Camp','L\'Écran du MJ','La Boutique','La Faille','La Nuit au Village','Le Plateau de Jeu','Le Vaisseau','Le Carrousel','La Salle Verrouillée'];
-const NOUV=['L\'École','Le Karaoké','Les Pronos','Le Cirque','Le Tournoi'];
+const NOUV=['L\'École','Le Karaoké','Les Pronos','Le Cirque','Le Tournoi','Le Versus'];
 const T=n=>({...M.TERRAINS.find(x=>x.nom===n)});
 /* ids : KaTarN 0 (magma foudre), Alrevan 6 (brume roche), Cyrdan 12 (cristal roche, voisins +1), Roi du Karaoke 15, Trigas 24 (foudre brume),
    K-Chan 30 (magma cristal), SuperFishman 51 (roche cristal), Titom76 57 (brume foudre), Kiwi 69 (animal de Titom76), Vic222 108 (cristal roche) */
@@ -16,9 +16,9 @@ const fm=s=>{s.joueur=1;s.premier=0;s.tour=3;s.j[1].etapeForge=false;s.j[1].main
 const log=(s,re)=>s.log.some(x=>re.test(x[1]));
 const R0={liste:null,force:null,cirque:'tarte'},regle=o=>Object.assign(M.REGLAGE_TERRAINS,R0,o||{});
 { // 0. table des terrains
-  eq(M.TERRAINS.length,15);eq(M.ANCIENS_TERRAINS,10);deq(M.TERRAINS.slice(0,10).map(x=>x.nom),['Le Buzzer','Le Camp','L\'Écran du MJ','La Boutique','La Faille','La Nuit au Village','Le Plateau de Jeu','Le Vaisseau','Le Carrousel','La Salle Verrouillée'],'10 anciens, meme ordre');
+  eq(M.TERRAINS.length,16);eq(M.ANCIENS_TERRAINS,10);deq(M.TERRAINS.slice(0,10).map(x=>x.nom),['Le Buzzer','Le Camp','L\'Écran du MJ','La Boutique','La Faille','La Nuit au Village','Le Plateau de Jeu','Le Vaisseau','Le Carrousel','La Salle Verrouillée'],'10 anciens, meme ordre');
   M.TERRAINS.slice(0,10).forEach(x=>deq(Object.keys(x),['nom','pts','texte','cit'],'anciens : memes champs'));
-  deq(M.TERRAINS.slice(10).map(x=>[x.nom,x.pts]),[['L\'École',2],['Le Karaoké',2],['Les Pronos',1],['Le Cirque',2],['Le Tournoi',1]]);
+  deq(M.TERRAINS.slice(10).map(x=>[x.nom,x.pts]),[['L\'École',2],['Le Karaoké',2],['Les Pronos',1],['Le Cirque',2],['Le Tournoi',1],['Le Versus',3]]);
   eq(T('L\'École').texte,'Fin de manche : le perdant pioche 1 carte.');eq(T('L\'École').cit,'C\'est en perdant qu\'on apprend.');
   eq(T('Le Karaoké').texte,'Si tu as exactement 2 Golems ici, ils gagnent +2 de Force chacun.');eq(T('Le Karaoké').cit,'À toi le micro !');
   eq(T('Les Pronos').texte,'Une fois par manche : mise 1 énergie ici.\nFin de manche : le gagnant marque 1 point de plus par mise des deux joueurs.');eq(T('Les Pronos').cit,'Celle-là, elle est safe.');
@@ -31,7 +31,7 @@ const R0={liste:null,force:null,cirque:'tarte'},regle=o=>Object.assign(M.REGLAGE
 { // 1. tirage : 15 terrains, liste restreinte, terrain force, partie guidee
   regle();const vus={};let pr=[0,0];
   for(let g=1;g<=3000;g++){const s=M.nouvelle(g,['','']);eq(new Set(s.terrains.map(x=>x.nom)).size,3);s.terrains.forEach(x=>vus[x.nom]=(vus[x.nom]||0)+1);pr[s.premier]++}
-  eq(Object.keys(vus).length,15,'les 15 sortent');Object.values(vus).forEach(n=>ok(n>450&&n<750,'tirage uniforme ('+n+' sur 600 attendus)'));ok(pr[0]>1350&&pr[1]>1350,'premier joueur au hasard');
+  eq(Object.keys(vus).length,16,'les 16 sortent');Object.values(vus).forEach(n=>ok(n>440&&n<690,'tirage uniforme ('+n+' sur 562 attendus)'));ok(pr[0]>1350&&pr[1]>1350,'premier joueur au hasard');
   regle({liste:ANC});for(let g=1;g<=500;g++){const s=M.nouvelle(g,['','']);ok(s.terrains.every(x=>ANC.includes(x.nom)),'liste des 10 anciens')}
   regle({liste:['Le Cirque','Le Tournoi','L\'École']});{const s=M.nouvelle(7,['','']);deq(s.terrains.map(x=>x.nom).sort(),['L\'École','Le Cirque','Le Tournoi'])}
   regle({liste:[10,11,12]});{const s=M.nouvelle(7,['','']);deq(s.terrains.map(x=>x.nom).sort(),['L\'École','Le Karaoké','Les Pronos'],'liste par rangs')}
@@ -229,5 +229,45 @@ const R0={liste:null,force:null,cirque:'tarte'},regle=o=>Object.assign(M.REGLAGE
     nt+=j.flat().filter(x=>/^o/.test(x)).length;nm+=a.stats.terr?a.stats.terr.tartes.filter(x=>x.mort).length:0}}
   ok(nt>100&&nm>0,'tartes jouees '+nt+', morts '+nm);regle();
   res.push('Cirque refait ('+nt+' tartes, '+nm+' morts en parties robot)');
+}
+{ // 10. T-016 Le Versus : un seul Golem par joueur ici ; a chaque pose ici, le Golem adverse ici perd 1 de Force
+  const RM=27,GY=42,BG=111,GL=39,SL=24,SK=3,AE=90,AEE=93,EVK=24;
+  eq(T('Le Versus').pts,3);eq(T('Le Versus').texte,'Un seul Golem par joueur ici. Quand tu en poses un, le Golem adverse ici perd 1 de Force.');eq(T('Le Versus').cit,'Un nouveau challenger arrive !');
+  const P=(s,p,c)=>M.legales(s,p).filter(a=>a.t==='p'&&a.c===c).map(a=>a.l*3+a.k);
+  let s=nouv(['Le Versus','La Faille','La Boutique']);s.j[0].energie=20;s.j[0].main=[AL,CY,KA,TR+1];
+  ok(P(s,0,AL).includes(0)&&P(s,0,AL).includes(3)&&P(s,0,AL).includes(6),'colonne vide : 3 cases');
+  pose(s,0,TR,1,1,0);deq(P(s,0,AL).filter(x=>x%3===0),[3],'deja un Golem ici : seulement le remplacer');
+  s.j[0].main.push(27);ok(P(s,0,27).includes(3),'evolution sur place (Roi du Mobile sur Trigas)');
+  pose(s,0,TI,1,0,1);s.j[0].main.push(KI);deq(P(s,0,KI).filter(x=>x%3===0),[0],'animal : pas un Golem, se pose ici a cote de son maitre malgre le Golem');
+  // pose : le Golem adverse ici perd 1 ; pas de Golem adverse : rien
+  s=nouv(['Le Versus','La Faille','La Boutique']);s.j[0].energie=20;s.j[0].main=[AL,CY];pose(s,1,AL,5,2,0);
+  M.applique(s,0,{t:'p',c:CY,l:0,k:0});eq(s.j[1].grille[2][0].d,1,'pose : -1 au Golem adverse ici');ok(log(s,/Le Versus : Alrevan \(adverse\) perd 1 de Force\./));
+  deq(s.stats.terr.versus,[{m:1,p:0,y:'poser',eff:1,mort:0}]);
+  M.applique(s,0,{t:'p',c:AL,l:0,k:0});eq(s.j[1].grille[2][0].d,2,'remplacement : -1 encore');eq(s.stats.terr.versus[1].y,'remplacer');ok(s.j[0].defausse.includes(CY),'Cyrdan remplace');
+  s=nouv(['Le Versus','La Faille','La Boutique']);s.j[0].energie=20;s.j[0].main=[CY];M.applique(s,0,{t:'p',c:CY,l:1,k:0});eq(s.stats.terr.versus[0].vide,1,'pas de Golem adverse : rien');
+  // evolution sur place, mort, ordre (avant l'effet de pose)
+  s=nouv(['Le Versus','La Faille','La Boutique']);s.j[0].energie=20;pose(s,0,TR,1,0,0);s.j[0].main=[27];pose(s,1,TR,1,1,0);
+  M.applique(s,0,{t:'p',c:27,l:0,k:0});ok(!s.j[1].grille[1][0],'evolution : Trigas adverse (1) meurt');eq(s.stats.terr.versus[0].y,'evoluer');eq(s.stats.terr.versus[0].mort,1);ok(s.j[1].defausse.includes(TR));
+  // protections
+  for(const [c,m,d] of [[RM,'Mode Avion',0],[GY,'GymRat',0],[BG,'Chance du debutant',0]]){const u=nouv(['Le Versus','La Faille','La Boutique']);u.j[0].energie=9;u.j[0].main=[CY];pose(u,1,c,4,0,0);
+    M.applique(u,0,{t:'p',c:CY,l:2,k:0});eq(u.j[1].grille[0][0].d,d,m+' protege');eq(u.stats.terr.versus[0].eff,0)}
+  {const u=nouv(['Le Versus','La Faille','La Boutique']);u.j[0].energie=9;u.j[0].main=[CY,AL];pose(u,1,BG,4,0,0);M.applique(u,0,{t:'p',c:CY,l:2,k:0});M.applique(u,0,{t:'p',c:AL,l:2,k:0});eq(u.j[1].grille[0][0].d,1,'Chance du debutant deja utilisee')}
+  // Slam (Glad, 39) : pas de 2e Golem adverse ici ; La Faille ne vient jamais ici
+  s=nouv(['La Boutique','Le Versus','La Faille']);s.j[0].energie=9;pose(s,1,AL,5,0,1);pose(s,1,AL,5,1,0);
+  ok(!M.slams(s,0).some(([l,k,m,n])=>n===1&&k!==1),'Slam : jamais un 2e Golem adverse dans le Versus');ok(M.slams(s,0).some(([l,k,m,n])=>l===1&&k===0&&m===2&&n===0),'Slam ailleurs : permis');
+  s.j[1].grille[0][1]=null;ok(M.slams(s,0).some(([l,k,m,n])=>l===1&&k===0&&m===1&&n===1),'Versus vide cote adverse : Slam peut y amener un Golem');
+  // gagnant : la plus grande Force ; robot
+  s=nouv(['Le Versus','La Faille','La Boutique'],3);pose(s,0,AL,4,0,0);pose(s,1,AL,3,1,0);fm(s);eq(s.j[0].score,3,'plus grande Force : 3 points');deq(s.stats.terr.vs,[{m:3,w:0,d:null,c:[4,3]}],'gagnant, dernier poseur, Forces');
+  s=nouv(['Le Versus','La Faille','La Boutique'],3);s.j[0].energie=9;s.j[0].main=[CY];pose(s,1,AL,5,1,0);M.applique(s,0,{t:'p',c:CY,l:0,k:0});fm(s);eq(s.stats.terr.vs[0].d,0,'dernier poseur ici');eq(s.stats.terr.vs[0].w,1);
+  s=nouv(['Le Versus','La Faille','La Boutique']);s.j[0].energie=9;s.j[0].main=[CY];pose(s,1,TR,1,0,0);pose(s,1,AL,9,0,1);pose(s,1,AL,9,0,2);
+  const a=M.robot(s,0,'difficile');ok(a.t==='p'&&a.k===0,'robot : pose au Versus, Trigas adverse meurt, '+JSON.stringify(a));
+  // parties completes Versus force (4 niveaux) et tirage parmi 16 : rejeux identiques, jamais 2 Golems d'un joueur ici
+  let n2=0,np=0;for(const f of ['Le Versus',null]){regle({force:f});for(let g=1;g<=60;g++){const u=M.nouvelle(g,['','']),j=[[],[]];let pas=0,h=g|1;const hz=n=>{h=(Math.imul(h,1103515245)+12345)|0;return (h>>>8)%n};
+    const kv=u.terrains.findIndex(x=>x.nom==='Le Versus');
+    while(!u.fin){assert(++pas<3000);const p=M.attendus(u)[0];let x;if(g%4===0){const l=M.legales(u,p);x=l[hz(l.length)]}else x=M.robot(u,p,['facile','normal','difficile'][g%3]);M.applique(u,p,x);j[p].push(M.code(x));
+      if(kv>=0)for(let q=0;q<2;q++)if(M.golemsIci(u,q,kv)>1)n2++}
+    const r=M.rejoue(g,j,['','']);eq(r.erreur,null);eq(JSON.stringify(r.etat),JSON.stringify(u),'rejeu Versus');M.bilan(u);if(u.stats.terr)np+=(u.stats.terr.versus||[]).length}}
+  eq(n2,0,'jamais 2 Golems d un joueur au Versus');ok(np>100,'poses au Versus : '+np);regle();
+  res.push('Versus ('+np+' poses en parties)');
 }
 console.log('Terrains OK : '+nv+' verifications ('+res.join(', ')+')');

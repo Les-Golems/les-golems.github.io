@@ -77,7 +77,8 @@ const TERRAINS=[ /* copie de terrains.json, via generer_terrains.py */
  {"nom": "Le Karaoké", "pts": 2, "texte": "Si tu as exactement 2 Golems ici, ils gagnent +2 de Force chacun.", "cit": "À toi le micro !"},
  {"nom": "Les Pronos", "pts": 1, "texte": "Une fois par manche : mise 1 énergie ici.\nFin de manche : le gagnant marque 1 point de plus par mise des deux joueurs.", "cit": "Celle-là, elle est safe."},
  {"nom": "Le Cirque", "pts": 2, "texte": "Une fois par manche : inflige 1 dégât à un Golem adverse ici.", "cit": "Honk honk."},
- {"nom": "Le Tournoi", "pts": 1, "texte": "Vaut 1 point à la manche 1, 2 points à la manche 2 et 3 points à la manche 3.", "cit": "On garde le meilleur pour la fin."}
+ {"nom": "Le Tournoi", "pts": 1, "texte": "Vaut 1 point à la manche 1, 2 points à la manche 2 et 3 points à la manche 3.", "cit": "On garde le meilleur pour la fin."},
+ {"nom": "Le Versus", "pts": 3, "texte": "Un seul Golem par joueur ici. Quand tu en poses un, le Golem adverse ici perd 1 de Force.", "cit": "Un nouveau challenger arrive !"}
 ];
 /* Terrains T-011 a T-015 (6 nov. 2026) : L'Ecole, Le Karaoke, Les Pronos (coup 't'), Le Cirque, Le Tournoi (pts = numero de la manche, ptsTerrain ; pts:1 garde pour l'affichage minimal).
    Tirage parmi les 15 ; REGLAGE_TERRAINS : liste (tirage restreint, noms ou rangs) et force (un terrain present a coup sur). */
@@ -114,8 +115,20 @@ function cfTarte(s,k,c,w){
   E.tartes.forEach(x=>{if(x.m===s.manche&&x.mort)c0[1-x.p]+=x.f});
   E.cf.push({m:s.manche,k,nom:'Le Cirque',w,w0:c0[0]!==c0[1]?(c0[0]>c0[1]?0:1):null,c:c.slice(),c0,n:[0,1].map(p=>golemsIci(s,p,k,true)),duo:[0,0],t:E.tartes.filter(x=>x.m===s.manche).length});
 }
+/* Le Versus : le Golem adverse ici (un seul au plus) perd 1 de Force ; Mode Avion : rien ; GymRat, Chance du debutant : blesse. */
+function versusPose(s,p,k,y,g){
+  const K=s.j[1-p].grille,l=[0,1,2].find(x=>golem(K[x][k])),E=stV(s);
+  if(l===undefined){E.versus.push({m:s.manche,p,y,eff:0,mort:0,vide:1});return}
+  const h=K[l][k],n=nomDetail(carte(h.c));
+  if(!ciblable(s,1-p,l,k,p)){dire(s,p,'Le Versus : '+n+' est protégé (Mode Avion).');E.versus.push({m:s.manche,p,y,eff:0,mort:0});return}
+  const d0=h.d;declenche(s,'Le Versus',n+' perd 1');dire(s,p,'Le Versus : '+n+' (adverse) perd 1 de Force.');
+  blesse(s,1-p,l,k,1,{p,c:g.c,lib:'Le Versus'});const eff=h.d-d0;if(eff)nettoie(s);
+  E.versus.push({m:s.manche,p,y,eff,mort:K[l][k]!==h?1:0});
+}
 const miseTotale=s=>s.pronos&&s.pronos.m===s.manche?s.pronos.mises[0]+s.pronos.mises[1]:0;
 function stT(s){return s.stats.terr||(s.stats.terr={ecole:[],mises:[],cf:[],tartes:[]})}
+const stV=s=>{const E=stT(s);if(!E.versus){E.versus=[];E.vs=[]}return E}; /* Le Versus : cles creees a la premiere pose ou au premier decompte (etat des parties sans Versus inchange) */
+const estVersus=(s,k)=>s.terrains[k].nom==='Le Versus';
 const DOMINE={magma:'cristal',cristal:'foudre',foudre:'brume',brume:'roche',roche:'magma'};
 const carte=i=>CARTES[TYPES[Math.floor(i/EXEMPLAIRES)]];
 const nomDetail=C=>C.base?CARTES[C.base].nom+' ('+C.nom+')':C.nom;
@@ -444,6 +457,7 @@ function peutPoser(s,p,c,l,k){
   if(C.animal){if(occ||!maitreVoisin(J.grille,C,l,k))return false} /* case libre, voisine de son maitre en jeu */
   else if(C.base){if(!occ||carte(occ.c).id!==C.base)return false}
   else if(animal(occ)||(C.id==='001'&&s.manche!==1))return false; /* un Golem ne remplace jamais un animal */
+  else if(!occ&&estVersus(s,k)&&golemsIci(s,p,k))return false; /* Le Versus : un seul Golem par joueur ici (remplacement et evolution sur place permis) */
   return coutPose(s,p,c,l,k)<=J.energie;
 }
 function legales(s,p){
@@ -710,7 +724,7 @@ function slams(s,p){
   const G=s.j[1-p].grille,r=[],place=[];
   for(let l=0;l<3;l++)for(let k=0;k<3;k++)if(G[l][k]&&ciblable(s,1-p,l,k,p)){
     place.push([l,k,l,k]);
-    [[l-1,k],[l+1,k],[l,k-1],[l,k+1]].filter(([a,b])=>G[a]&&b>=0&&b<3&&!G[a][b]).forEach(([a,b])=>r.push([l,k,a,b]));
+    [[l-1,k],[l+1,k],[l,k-1],[l,k+1]].filter(([a,b])=>G[a]&&b>=0&&b<3&&!G[a][b]&&!(b!==k&&estVersus(s,b)&&golemsIci(s,1-p,b))).forEach(([a,b])=>r.push([l,k,a,b])); /* Le Versus : jamais un 2e Golem ici */
   }
   return r.length?r:place;
 }
@@ -744,6 +758,7 @@ function agit(s,p,a){
   J.grille[a.l][a.k]=g;
   if(REGLAGE_TERRAINS.cirque==='premier'&&!C.animal&&s.terrains[a.k].nom==='Le Cirque'&&!(s.cirqueP&&s.cirqueP.m===s.manche))s.cirqueP={m:s.manche,p}; /* Cirque V2 : premier Golem pose ici dans la manche (pose, remplacement, evolution) */
   if(C.id==='902')chatsPioche(s,p,'à la pose'); /* Jacen et Jaina : pioche a la pose, une fois sur la grille (deck vide : 1 point a l'adversaire) */
+  if(!C.animal&&estVersus(s,a.k))versusPose(s,p,a.k,C.base?'evoluer':occ?'remplacer':'poser',g); /* Le Versus : avant l'effet de pose de la carte */
   effetPose(s,p,a.l,a.k,g);
 }
 /* Mignonitude (Kiwi), avant le decompte : pour chaque Kiwi en jeu (premier joueur de la manche d'abord), un Golem au hasard de chaque grille,
@@ -775,6 +790,7 @@ function decompte(s){
   cols.forEach((c,k)=>{
     const T=s.terrains[k],w=gagnantColonne(s,k,c),pts=ptsTerrain(s,k); /* Le Cirque : la plus petite Force ; Le Tournoi : 1, 2, 3 */
     if(T.nom==='Le Cirque'&&tarteX(s))cfTarte(s,k,c,w);
+    if(T.nom==='Le Versus'){const E=stV(s),v=E.versus.filter(x=>x.m===s.manche);E.vs.push({m:s.manche,w,d:v.length?v[v.length-1].p:null,c:c.slice()})}
     if(T.nom==='Le Karaoké'||T.nom==='Le Cirque'&&cirqueInv()){ /* statistiques : gagnant sans l'effet du terrain (Force recalculee sans Karaoke ni Cirque, plus grande Force) */
       NEUTRE=true;const c0=[0,1].map(p=>[0,1,2].reduce((x,l)=>x+valeurDecompte(s,p,l,k),0)),w0=gagnantColonne(s,k,c0);NEUTRE=false;
       stT(s).cf.push({m:s.manche,k,nom:T.nom,w,w0,c:c.slice(),c0,n:[0,1].map(p=>golemsIci(s,p,k,true)),duo:[0,1].map(p=>golemsIci(s,p,k)===2?1:0)});
@@ -1156,6 +1172,7 @@ function gainCoup(s,p,a,v0){
       const old=G[a.l][a.k];G[a.l][a.k]={c:a.c,f:C.id==='002'?3.5:C.id==='002e'?6.4:C.force,d:0};
       if(C.id==='013e'&&old&&old.fav!==undefined)G[a.l][a.k].fav=old.fav;
       if(C.base&&old)G.forEach(L=>L.forEach(h=>{if(h&&h.fav===old.c)h.fav=a.c}));
+      if(!C.animal&&estVersus(s,a.k)){const K=c.j[1-p].grille,l=[0,1,2].find(x=>golem(K[x][a.k]));if(l!==undefined){const h=K[l][a.k];if(ciblable(c,1-p,l,a.k,p)&&idEff(h)!=='009e'&&!(idEff(h)==='042e'&&!h.cdb))h.d++}} /* Le Versus */
       if(C.id==='001e')c.j[1-p].grille[a.l].forEach((g,q)=>{if(ciblable(c,1-p,a.l,q,p)&&idEff(g)!=='009e')g.d++});
       if(C.id==='029')gambaEstime(c,p,a.l,a.k);
       if(C.id==='018e')extinctionEstime(c,p); /* Elessar */
@@ -1400,7 +1417,7 @@ function robotFort(s,p,l,t){
 const api={VERSION,TRAIT_CUMULE,TAILLE_DECK,DECK_MIN,DECK_MAX,MAX_EX,erreurDeck,ELEM_MAX,elementsDeck,erreurElements,deckTexte,lisDeck,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
   nomDetail,forceDe,ciblable,colonnes,valeurDecompte,coutPose,genre,TYPES_TEST,DECK_DEFAUT,DECK_TUTO,FAV_BONUS,favori,indrasDe,idEff,foudres,spoms,
   estAnimal,ANIMAL_MAX,maxEx,maitreDe,peutPoser,elessars,graines,COPIEURS,EL_VELNEN,kekwait,echangesMeandyou,DUO,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,partenaires,forgeUtile,jjBonus,ciblesJJ,REGLAGE_JJ,cercle2,blesse,loves,choixLove,REGLAGE_KC,generaux,nettoie,noteBonus,retire,chatsPioche,effetsGolems,agit,piochesAVenir,risqueDeck,doublons,ilSuffit,jourDePeche,POINT_DECK_VIDE,
-  ANCIENS_TERRAINS,REGLAGE_TERRAINS,tarteX,cirqueInv,tirageTerrains,indexTerrain,ptsTerrain,gagnantColonne,golemsIci,ecart,ptsRobot,pronoRobot,miseTotale,decompte,effetTerrain,valeur,valeurForte};
+  ANCIENS_TERRAINS,REGLAGE_TERRAINS,estVersus,versusPose,slams,tarteX,cirqueInv,tirageTerrains,indexTerrain,ptsTerrain,gagnantColonne,golemsIci,ecart,ptsRobot,pronoRobot,miseTotale,decompte,effetTerrain,valeur,valeurForte};
 
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else racine.GolemsMoteur=api;
 })(typeof window!=='undefined'?window:globalThis);

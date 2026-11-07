@@ -145,7 +145,7 @@ const gol=(c,f,d=0)=>({c,f,d});
 }
 // Les 10 terrains
 const T=n=>M.TERRAINS.find(t=>t.nom===n);
-assert.strictEqual(M.TERRAINS.length,15); /* Terrains : 10 -> 15 (T-011 a T-015) */assert.strictEqual(M.TERRAINS[0].nom,'Le Buzzer');assert.strictEqual(M.TERRAINS[9].nom,'La Salle Verrouillée');
+assert.strictEqual(M.TERRAINS.length,16); /* Terrains : 10 -> 16 (T-011 a T-016) */assert.strictEqual(M.TERRAINS[0].nom,'Le Buzzer');assert.strictEqual(M.TERRAINS[9].nom,'La Salle Verrouillée');
 function sur(n){const s=vide();s.terrains=[T(n),TA(3),TA(2)];return s}
 function finDeManche(s){s.joueur=1;s.premier=0;s.tour=3;M.applique(s,1,{t:'x'})}
 { // Faille : gratuite, une fois par manche et par joueur, degats gardes
