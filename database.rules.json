@@ -1,15 +1,11 @@
+// FICHIER GÉNÉRÉ par rules/generer.js : ne pas modifier à la main, modifier rules/*.js puis relancer
+//   node rules/generer.js   (contrôle : node rules/generer.js --verifier)
+// Règles de la Realtime Database « les-golems » (à coller dans la console, onglet Règles).
+// essai/ = site d'essai (les-golems.github.io/essai) : mêmes règles, données séparées (comptes Auth partagés).
 {
-  // Règles de la Realtime Database « les-golems » (à coller dans la console, onglet Règles).
-  // Les commentaires // sont acceptés par la console Firebase.
-  // « compte » = connecté par pseudo et code (fournisseur password), pas en invité anonyme.
   "rules": {
-    // Rien en lecture ni en écriture à la racine : seuls hall, salons, pseudos et joueurs sont ouverts.
     ".read": false,
     ".write": false,
-
-    // Pseudos réservés : pseudos/{pseudo en minuscules} = uid du propriétaire.
-    // Lisible par tout connecté (vérifier qu'un pseudo est libre) ; réservé par un compte,
-    // seulement s'il est libre ou déjà à lui ; effacé seulement par son propriétaire (ou Romain en console).
     "pseudos": {
       "$cle": {
         ".read": "auth != null",
@@ -17,434 +13,640 @@
         ".validate": "$cle.length >= 3 && $cle.length <= 20 && $cle === $cle.toLowerCase() && newData.isString() && newData.val() === auth.uid"
       }
     },
-
-    // Données d'un compte : lecture et écriture par son seul uid ; pseudo et avatar lisibles par tout connecté.
     "joueurs": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-        "pseudo":   { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20" },
-        "avatarId": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)" },
-        // Avatar importé par le joueur : petite image JPEG ou WebP en texte (data URL), 140 000 caractères au plus (environ 100 Ko).
-        "avatarImg": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length <= 140000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)" },
-        "cree":     { ".validate": "newData.isNumber()" },
-        // Résumé public des parties (victoires v sur n parties), lisible par tout connecté.
-        "stats":    { ".read": "auth != null", ".validate": "newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val()", "v": { ".validate": "newData.isNumber()" }, "n": { ".validate": "newData.isNumber()" }, "$autre": { ".validate": false } },
-        // 12 decks au plus : emplacements 0 à 11. Le total 24 à 30 est vérifié par le site
-        // (un deck en cours de construction peut être plus petit).
+        "pseudo": {
+          ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
+          ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20 && newData.parent().parent().parent().child('pseudos').child(newData.val().toLowerCase()).val() === $uid"
+        },
+        "avatarId": {
+          ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
+          ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)"
+        },
+        "avatarImg": {
+          ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
+          ".validate": "newData.isString() && newData.val().length <= 140000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)"
+        },
+        "cree": {
+          ".validate": "newData.isNumber()"
+        },
+        "stats": {
+          ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
+          ".validate": "newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val() && (data.exists() ? (data.exists() ? (newData.child('n').val() >= data.child('n').val() && newData.child('n').val() <= data.child('n').val() + 50 && newData.child('v').val() >= data.child('v').val() && newData.child('v').val() - data.child('v').val() <= newData.child('n').val() - data.child('n').val()) : newData.child('n').val() <= 50) : (root.child('classement').child($uid).exists() ? (newData.child('n').val() >= root.child('classement').child($uid).child('n').val() && newData.child('n').val() <= root.child('classement').child($uid).child('n').val() + 50 && newData.child('v').val() >= root.child('classement').child($uid).child('v').val() && newData.child('v').val() - root.child('classement').child($uid).child('v').val() <= newData.child('n').val() - root.child('classement').child($uid).child('n').val()) : newData.child('n').val() <= 50))",
+          "v": {
+            ".validate": "newData.isNumber()"
+          },
+          "n": {
+            ".validate": "newData.isNumber()"
+          },
+          "$autre": {
+            ".validate": false
+          }
+        },
         "decks": {
           "$i": {
             ".validate": "$i.matches(/^([0-9]|1[01])$/) && newData.hasChildren(['id', 'nom'])",
-            "id":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}$/)" },
-            "nom": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24" },
-            "t":   { ".validate": "newData.isNumber()" },
-            // Carte (001, 001e...) : 1 à 3 exemplaires, base et évolution à part.
-            "cartes": {
-              "$c": { ".validate": "$c.matches(/^[0-9]{3}e?$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 3" }
+            "id": {
+              ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}$/)"
             },
-            "$autre": { ".validate": false }
+            "nom": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24"
+            },
+            "t": {
+              ".validate": "newData.isNumber()"
+            },
+            "cartes": {
+              "$c": {
+                ".validate": "$c.matches(/^[0-9]{3}e?$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 3"
+              }
+            },
+            "$autre": {
+              ".validate": false
+            }
           }
         },
-        // Historique : une entrée par partie (clé graine-début), d = date, x = détail en JSON.
-        // Le site garde les 50 dernières (liste et replays) et efface les plus anciennes ; le profil compte toutes les parties (cumul).
         "historique": {
-          ".indexOn": ["d"],
+          ".indexOn": [
+            "d"
+          ],
           "$h": {
             ".validate": "$h.matches(/^-?[0-9]{1,12}-[0-9]{10,14}$/) && newData.hasChildren(['d', 'x'])",
-            "d": { ".validate": "newData.isNumber()" },
-            "x": { ".validate": "newData.isString() && newData.val().length <= 12000" },
-            "$autre": { ".validate": false }
+            "d": {
+              ".validate": "newData.isNumber()"
+            },
+            "x": {
+              ".validate": "newData.isString() && newData.val().length <= 12000"
+            },
+            "$autre": {
+              ".validate": false
+            }
           }
         },
-        // Cumuls de toutes les parties (profil et classement), texte JSON écrit par le site à chaque partie, 100 000 caractères au plus.
-        "cumul": { ".validate": "newData.isString() && newData.val().length <= 100000" },
-        // Témoin d'import des données locales (proposé une seule fois).
-        "importe": { ".validate": "newData.isNumber()" },
-        // 0.5 : partie en ligne en cours, retenue par le compte (reprise sur un autre appareil ; dev = dernier appareil qui a la main).
+        "cumul": {
+          ".validate": "newData.isString() && newData.val().length <= 100000"
+        },
+        "importe": {
+          ".validate": "newData.isNumber()"
+        },
         "salon": {
           ".validate": "newData.hasChildren(['c', 'g', 't'])",
-          "c": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{3,8}$/)" },
-          "g": { ".validate": "newData.isNumber()" },
-          "dev": { ".validate": "newData.isString() && newData.val().length <= 16" },
-          "x": { ".validate": "newData.isString() && newData.val().length <= 4000" },
-          "t": { ".validate": "newData.val() === now" },
-          "$autre": { ".validate": false }
+          "c": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{3,8}$/)"
+          },
+          "g": {
+            ".validate": "newData.isNumber()"
+          },
+          "dev": {
+            ".validate": "newData.isString() && newData.val().length <= 16"
+          },
+          "x": {
+            ".validate": "newData.isString() && newData.val().length <= 4000"
+          },
+          "t": {
+            ".validate": "newData.val() === now"
+          },
+          "$autre": {
+            ".validate": false
+          }
         },
-        "$autre": { ".validate": false }
+        "$autre": {
+          ".validate": false
+        }
       }
     },
-
-    // Accueil : qui est connecté, et départs volontaires (quitte). Comptes seulement.
     "hall": {
-      ".read": "auth != null",
+      ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
       "$uid": {
-        // Chacun n'écrit que sa propre présence, avec son vrai pseudo.
         ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
         ".validate": "newData.hasChild('t')",
-        "pseudo": { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()" },
-        "salon":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{3,8}$/)" },
-        "quitte": { ".validate": "newData.isNumber()" },
-        "t":      { ".validate": "newData.val() === now" },
-        // Aucun autre champ.
-        "$autre": { ".validate": false }
+        "pseudo": {
+          ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()"
+        },
+        "salon": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{3,8}$/)"
+        },
+        "quitte": {
+          ".validate": "newData.isNumber()"
+        },
+        "t": {
+          ".validate": "newData.val() === now"
+        },
+        "$autre": {
+          ".validate": false
+        }
       }
     },
-
-    // Dernière activité d'un salon : activite/{code} = heure serveur, posée par un joueur présent.
-    // Lecture seulement par la requête du nettoyage (tri par valeur, 50 au plus) ; effacement seulement si plus de 7 jours.
     "activite": {
-      ".read": "auth != null && query.orderByValue == true && query.limitToFirst <= 50",
+      ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password' && query.orderByValue == true && query.limitToFirst <= 50",
       ".indexOn": ".value",
       "$code": {
-        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.parent().parent().child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && data.val() < now - 604800000))",
+        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && root.child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && data.val() < now - 604800000))",
         ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.val() === now"
       }
     },
-
-    // Salons publics en attente d'un adversaire : annonce posée par le créateur présent dans son salon (u = son uid),
-    // retirée par lui ou par un joueur présent dans le salon ; effacée à sa déconnexion.
     "annonces": {
-      ".read": "auth != null",
+      ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
       "$code": {
         ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid || !root.child('salons').child($code).child('joueurs').hasChild(data.child('u').val())) && root.child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && (data.child('u').val() === auth.uid || root.child('salons').child($code).child('joueurs').hasChild(auth.uid))))",
         ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.hasChildren(['u', 'p', 't'])",
-        "u": { ".validate": "newData.val() === auth.uid" },
-        "p": { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child(auth.uid).child('pseudo').val()" },
-        "a": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)" },
-        "d": { ".validate": "newData.isString() && newData.val().length <= 24" },
-        "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
-        // Version du site du créateur ("0.2b|<build>" de version.json) ; absente = ancienne version.
-        "v": { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.|: -]{1,40}$/)" },
-        // 0.4 : adversaire assis (uid w présent dans le salon, pseudo q) et nombre de spectateurs n.
-        "w": { ".validate": "newData.isString() && root.child('salons').child($code).child('joueurs').hasChild(newData.val())" },
-        "q": { ".validate": "newData.isString() && newData.val().length <= 24" },
-        "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
-        // Partie en cours : g = true, manche m (1 a 9), score k "a-b" (place 0 - place 1), mis a jour en fin de manche.
-        "g": { ".validate": "newData.val() === true" },
-        "m": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9" },
-        "k": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,2}-[0-9]{1,2}$/)" },
-        "f": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
-        "t": { ".validate": "newData.val() === now" },
-        "$autre": { ".validate": false }
+        "u": {
+          ".validate": "newData.val() === auth.uid"
+        },
+        "p": {
+          ".validate": "newData.isString() && newData.val() === root.child('joueurs').child(auth.uid).child('pseudo').val()"
+        },
+        "a": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)"
+        },
+        "d": {
+          ".validate": "newData.isString() && newData.val().length <= 24"
+        },
+        "e": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)"
+        },
+        "v": {
+          ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.|: -]{1,40}$/)"
+        },
+        "w": {
+          ".validate": "newData.isString() && root.child('salons').child($code).child('joueurs').hasChild(newData.val())"
+        },
+        "q": {
+          ".validate": "newData.isString() && newData.val().length <= 24"
+        },
+        "n": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+        },
+        "g": {
+          ".validate": "newData.val() === true"
+        },
+        "m": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9"
+        },
+        "k": {
+          ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,2}-[0-9]{1,2}$/)"
+        },
+        "f": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)"
+        },
+        "t": {
+          ".validate": "newData.val() === now"
+        },
+        "$autre": {
+          ".validate": false
+        }
       }
     },
     "salons": {
-      // Identifiant de salon court : 3 à 8 lettres minuscules ou chiffres.
       "$code": {
         ".validate": "$code.matches(/^[a-z0-9]{3,8}$/)",
-        // Effacement du salon entier (joueurs, coups, chat) seulement si sa dernière activité date de plus de 7 jours.
         ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !newData.exists() && root.child('activite').child($code).val() < now - 604800000",
-        // Lecture d'un salon (joueurs et coups) pour tout joueur connecté.
-        ".read": "auth != null",
-
-        // Verrou de partie : les deux uid engagés, posé au démarrage par un joueur présent.
-        // Ensuite seuls ces deux comptes peuvent écrire dans le salon (un tiers voit « salon complet »).
-        // Un engagé peut l'effacer (adversaire parti), ce qui rouvre le salon.
+        ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
         "engages": {
           ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.hasChild(auth.uid)) || (data.hasChild(auth.uid) && !newData.exists()))",
-          "$u": { ".validate": "newData.val() === true && root.child('salons').child($code).child('joueurs').child($u).exists()" }
-        },
-
-        "joueurs": {
-          "$uid": {
-            // Chaque compte n'écrit que sous son propre uid (le jeu en ligne exige un compte),
-            // et seulement s'il est engagé quand une partie a commencé.
-            ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && (!newData.exists() || !root.child('salons').child($code).child('engages').exists() || root.child('salons').child($code).child('engages').hasChild($uid)) && (!newData.exists() || !root.child('salons').child($code).child('spectateurs').hasChild($uid))",
-            ".validate": "newData.hasChild('t')",
-            "pseudo":  { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()" },
-            "sid":     { ".validate": "newData.isString() && newData.val().length <= 16" },
-            "adv":     { ".validate": "newData.isString() && newData.val().length <= 16" },
-            "arrivee": { ".validate": "newData.isNumber()" },
-            "graine":  { ".validate": "newData.isNumber()" },
-            "jg":      { ".validate": "newData.isNumber()" },
-            "veut":    { ".validate": "newData.isNumber()" },
-            "quitte":  { ".validate": "newData.isNumber()" },
-            "pret":    { ".validate": "newData.isBoolean()" },
-            // Version du site du joueur ("0.2b|<build>" de version.json) ; absente = ancienne version.
-            "v":       { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.|: -]{1,40}$/)" },
-            // Deck joué, texte compact (carte puis nombre : 0013002e2...) ; absent = paquet de test.
-            "deck":    { ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])+$/)" },
-            "t":       { ".validate": "newData.val() === now" },
-            "$autre":  { ".validate": false }
+          "$u": {
+            ".validate": "newData.val() === true && root.child('salons').child($code).child('joueurs').child($u).exists()"
           }
         },
-
-        // 0.5 : connexion de chaque joueur (c = connecté, t = heure serveur), écrite par lui seul, aussi par le serveur à sa coupure.
+        "joueurs": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && (!newData.exists() || !root.child('salons').child($code).child('engages').exists() || root.child('salons').child($code).child('engages').hasChild($uid)) && (!newData.exists() || !root.child('salons').child($code).child('spectateurs').hasChild($uid))",
+            ".validate": "newData.hasChild('t')",
+            "pseudo": {
+              ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()"
+            },
+            "sid": {
+              ".validate": "newData.isString() && newData.val().length <= 16"
+            },
+            "adv": {
+              ".validate": "newData.isString() && newData.val().length <= 16"
+            },
+            "arrivee": {
+              ".validate": "newData.isNumber()"
+            },
+            "graine": {
+              ".validate": "newData.isNumber()"
+            },
+            "jg": {
+              ".validate": "newData.isNumber()"
+            },
+            "veut": {
+              ".validate": "newData.isNumber()"
+            },
+            "quitte": {
+              ".validate": "newData.isNumber()"
+            },
+            "pret": {
+              ".validate": "newData.isBoolean()"
+            },
+            "v": {
+              ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.|: -]{1,40}$/)"
+            },
+            "deck": {
+              ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])+$/)"
+            },
+            "t": {
+              ".validate": "newData.val() === now"
+            },
+            "$autre": {
+              ".validate": false
+            }
+          }
+        },
         "pres": {
           "$uid": {
             ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && (!newData.exists() || !root.child('salons').child($code).child('engages').exists() || root.child('salons').child($code).child('engages').hasChild($uid))",
             ".validate": "newData.hasChildren(['c', 't'])",
-            "c": { ".validate": "newData.isBoolean()" },
-            "t": { ".validate": "newData.val() === now" },
-            "$autre": { ".validate": false }
+            "c": {
+              ".validate": "newData.isBoolean()"
+            },
+            "t": {
+              ".validate": "newData.val() === now"
+            },
+            "$autre": {
+              ".validate": false
+            }
           }
         },
-        // 0.5 : défaite par abandon d'un joueur hors ligne depuis plus de 70 s (10 s de reconnexion + 60 s de minuteur),
-        // déclarée une seule fois par graine, par l'autre joueur engagé ; vérifiée sur la présence du déconnecté (marge de 5 s).
         "forfait": {
           "$g": {
             ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && root.child('salons').child($code).child('engages').hasChild(auth.uid) && newData.child('u').val() !== auth.uid && root.child('salons').child($code).child('engages').hasChild(newData.child('u').val()) && root.child('salons').child($code).child('pres').child(newData.child('u').val()).child('c').val() === false && root.child('salons').child($code).child('pres').child(newData.child('u').val()).child('t').val() < now - 65000",
             ".validate": "$g.matches(/^-?[0-9]{1,12}$/) && newData.hasChildren(['u', 't'])",
-            "u": { ".validate": "newData.isString() && newData.val().length <= 128" },
-            "t": { ".validate": "newData.val() === now" },
-            "$autre": { ".validate": false }
+            "u": {
+              ".validate": "newData.isString() && newData.val().length <= 128"
+            },
+            "t": {
+              ".validate": "newData.val() === now"
+            },
+            "$autre": {
+              ".validate": false
+            }
           }
         },
-
         "coups": {
-          // Permet la recherche des coups d'un joueur à la reprise.
-          ".indexOn": ["a"],
+          ".indexOn": [
+            "a"
+          ],
           "$coup": {
-            // Ajout seulement (jamais de modification ni d'effacement),
-            // et uniquement ses propres coups : le champ a doit être son uid.
             ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && !root.child('salons').child($code).child('spectateurs').hasChild(auth.uid) && (!root.child('salons').child($code).child('engages').exists() || root.child('salons').child($code).child('engages').hasChild(auth.uid))",
             ".validate": "newData.hasChildren(['a', 's', 'g', 'n', 'c'])",
-            "a": { ".validate": "newData.isString() && newData.val().length <= 128" },
-            "s": { ".validate": "newData.isString() && newData.val().length <= 16" },
-            "g": { ".validate": "newData.isNumber()" },
-            "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 2000" },
-            "c": { ".validate": "newData.isString() && newData.val().length <= 40" },
-            "$autre": { ".validate": false }
+            "a": {
+              ".validate": "newData.isString() && newData.val().length <= 128"
+            },
+            "s": {
+              ".validate": "newData.isString() && newData.val().length <= 16"
+            },
+            "g": {
+              ".validate": "newData.isNumber()"
+            },
+            "n": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 2000"
+            },
+            "c": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "$autre": {
+              ".validate": false
+            }
           }
         },
-
-        // Chat du salon : ajout seulement (jamais modifié ni effacé), par un joueur présent ou engagé,
-        // sous son propre uid et son pseudo. Effacé avec le salon.
         "chat": {
           "$m": {
             ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && (root.child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('salons').child($code).child('engages').hasChild(auth.uid) || root.child('salons').child($code).child('spectateurs').hasChild(auth.uid))",
             ".validate": "newData.hasChildren(['a', 'p', 't', 'm'])",
-            "a": { ".validate": "newData.isString() && newData.val().length <= 128" },
-            "p": { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child(auth.uid).child('pseudo').val()" },
-            "t": { ".validate": "newData.val() === now" },
-            "m": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200" },
-            "$autre": { ".validate": false }
+            "a": {
+              ".validate": "newData.isString() && newData.val().length <= 128"
+            },
+            "p": {
+              ".validate": "newData.isString() && newData.val() === root.child('joueurs').child(auth.uid).child('pseudo').val()"
+            },
+            "t": {
+              ".validate": "newData.val() === now"
+            },
+            "m": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200"
+            },
+            "$autre": {
+              ".validate": false
+            }
           }
         },
-
-        // Mode spectateur (0.3). siege = uid de l'adversaire, pris par transaction s'il est libre, rendu par son seul détenteur.
         "siege": {
-          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.val() === auth.uid && root.child('salons').child($code).child('joueurs').exists() && (!root.child('salons').child($code).child('engages').exists() || root.child('salons').child($code).child('engages').hasChild(auth.uid))) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))",
           ".validate": "newData.isString() && newData.val().length <= 128"
         },
-        // Spectateurs présents : chacun n'écrit que sous son uid, pseudo de son compte et heure serveur.
         "spectateurs": {
           "$uid": {
             ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
             ".validate": "newData.hasChildren(['p', 't'])",
-            "p": { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()" },
-            "t": { ".validate": "newData.val() === now" },
-            "$autre": { ".validate": false }
+            "p": {
+              ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()"
+            },
+            "t": {
+              ".validate": "newData.val() === now"
+            },
+            "$autre": {
+              ".validate": false
+            }
           }
         },
-
-        // Rien d'autre dans un salon.
-        "$autre": { ".validate": false }
+        "$autre": {
+          ".validate": false
+        }
       }
     },
-
-    // Classement public (onglet Statistiques, colonne Joueurs) : classement/{uid} = pseudo p, victoires v, parties n (toutes ses parties).
-    // Lisible par tout connecté ; écrit par le seul compte propriétaire.
     "classement": {
-      ".read": "auth != null",
+      ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
       "$uid": {
-        ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-        ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val()",
-        "p": { ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20" },
-        "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0" },
-        "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0" },
-        "$autre": { ".validate": false }
-      }
-    },
-
-    // Résumé public du profil (mêmes chiffres que la fenêtre de compte, sur toutes les parties), publié par son propriétaire à la connexion et à chaque fin de partie.
-    // m = profil privé : seuls p, m, n, v, d, t, cr sont alors acceptés. L'historique complet reste privé (joueurs/{uid}/historique).
-    "profils": {
-      ".read": "auth != null",
-      "$uid": {
-        ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-        ".validate": "newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))",
-        "p":  { ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()" },
-        "m":  { ".validate": "newData.isBoolean()" },
-        "t":  { ".validate": "newData.val() === now" },
-        "cr": { ".validate": "newData.isNumber() && newData.val() >= 0" },
-        "n":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0" },
-        "v":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0" },
-        "d":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0" },
-        "s":  { ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val() && newData.val() + newData.parent().child('n').val() >= 0" },
-        // Meilleurs decks (3 au plus) : nom, éléments, parties, victoires, peu de parties.
-        "dk": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['nom', 'e', 'n', 'v'])", "nom": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24" }, "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)" }, "peu": { ".validate": "newData.isBoolean()" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
-        // Meilleures cartes, cartes les moins bonnes, cartes MVP : code de carte, parties, victoires.
-        "cb": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "peu": { ".validate": "newData.isBoolean()" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
-        "cm": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
-        "mv": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
-        // Contre l'ordinateur, par niveau.
-        "o": {
-          "$niv": { ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])", "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } }
+        ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
+        ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val() && newData.child('n').val() === root.child('joueurs').child($uid).child('stats').child('n').val() && newData.child('v').val() === root.child('joueurs').child($uid).child('stats').child('v').val()",
+        "p": {
+          ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()"
         },
-        // Joueurs les plus affrontés (3 au plus) : pseudo, parties, victoires.
-        "jo": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['p', 'n', 'v'])", "p": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
-        // Détail par version du site (0.2a, 0.2b...) pour le filtre Patch du panneau Joueurs : 10 versions au plus (emplacements 0 à 9),
-        // chacune avec son nom p, ses parties n, ses victoires v et le detail contre l'ordinateur o (comme ci-dessus).
-        "pv": { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^[0-9]$/) && newData.hasChildren(['p', 'n', 'v'])", "p": { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "o": { "$niv": { ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])", "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } }, "$autre": { ".validate": false } } },
-        "$autre": { ".validate": false }
+        "v": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0"
+        },
+        "n": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0"
+        },
+        "$autre": {
+          ".validate": false
+        }
       }
     },
-
-    // Archive commune des parties (onglet Statistiques) : resume/{graine-debut}, anonyme (ni pseudo ni uid).
-    // Lecture par tout connecté ; écriture par un compte seulement, ajout seulement (jamais modifié ni effacé).
+    "profils": {
+      ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
+        ".validate": "(root.child('classement').child($uid).exists() ? newData.child('n').val() === root.child('classement').child($uid).child('n').val() && newData.child('v').val() === root.child('classement').child($uid).child('v').val() : newData.child('n').val() === 0) && newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))",
+        "p": {
+          ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()"
+        },
+        "m": {
+          ".validate": "newData.isBoolean()"
+        },
+        "t": {
+          ".validate": "newData.val() === now"
+        },
+        "cr": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "n": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0"
+        },
+        "v": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0"
+        },
+        "d": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0"
+        },
+        "s": {
+          ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val() && newData.val() + newData.parent().child('n').val() >= 0"
+        },
+        "dk": {
+          "$i": {
+            ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['nom', 'e', 'n', 'v'])",
+            "nom": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24"
+            },
+            "e": {
+              ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)"
+            },
+            "peu": {
+              ".validate": "newData.isBoolean()"
+            },
+            "n": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+            },
+            "v": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+            },
+            "$autre": {
+              ".validate": false
+            }
+          }
+        },
+        "cb": {
+          "$i": {
+            ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])",
+            "c": {
+              ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
+            },
+            "peu": {
+              ".validate": "newData.isBoolean()"
+            },
+            "n": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+            },
+            "v": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+            },
+            "$autre": {
+              ".validate": false
+            }
+          }
+        },
+        "cm": {
+          "$i": {
+            ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])",
+            "c": {
+              ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
+            },
+            "n": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+            },
+            "v": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+            },
+            "$autre": {
+              ".validate": false
+            }
+          }
+        },
+        "mv": {
+          "$i": {
+            ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])",
+            "c": {
+              ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
+            },
+            "n": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+            },
+            "v": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+            },
+            "$autre": {
+              ".validate": false
+            }
+          }
+        },
+        "o": {
+          "$niv": {
+            ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])",
+            "n": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+            },
+            "v": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+            },
+            "$autre": {
+              ".validate": false
+            }
+          }
+        },
+        "jo": {
+          "$i": {
+            ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['p', 'n', 'v'])",
+            "p": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20"
+            },
+            "n": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+            },
+            "v": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+            },
+            "$autre": {
+              ".validate": false
+            }
+          }
+        },
+        "pv": {
+          ".validate": "newData.hasChildren()",
+          "$i": {
+            ".validate": "$i.matches(/^[0-9]$/) && newData.hasChildren(['p', 'n', 'v'])",
+            "p": {
+              ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)"
+            },
+            "n": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+            },
+            "v": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+            },
+            "o": {
+              "$niv": {
+                ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])",
+                "n": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+                },
+                "v": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+                },
+                "$autre": {
+                  ".validate": false
+                }
+              }
+            },
+            "$autre": {
+              ".validate": false
+            }
+          }
+        },
+        "$autre": {
+          ".validate": false
+        }
+      }
+    },
     "resume": {
-      ".read": "auth != null",
-      ".indexOn": ["d"],
+      ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
+      ".indexOn": [
+        "d"
+      ],
       "$id": {
         ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.exists()",
         ".validate": "$id.matches(/^-?[0-9]{1,12}-[0-9]{13}$/) && newData.hasChildren(['d', 'v', 'm', 'g', 'pg', 'a', 'k0', 'k1', 'e0', 'e1', 's0', 's1', 'mvp', 't'])",
-        "d":   { ".validate": "newData.val() === now" },
-        "v":   { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)" },
-        "m":   { ".validate": "newData.isString() && newData.val().matches(/^(golem-[a-z]{1,12}|ligne)$/)" },
-        "g":   { ".validate": "newData.isNumber() && (newData.val() === 0 || newData.val() === 1 || newData.val() === -1)" },
-        "pg":  { ".validate": "newData.isBoolean()" },
-        "a":   { ".validate": "newData.isBoolean()" },
-        "k0":  { ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])*$/)" },
-        "k1":  { ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])*$/)" },
-        "e0":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
-        "e1":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
-        "s0":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
-        "s1":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
-        "mvp": { ".validate": "newData.isString() && newData.val().length <= 40" },
-        "dr":  { ".validate": "newData.hasChildren()",
-          "002":  { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0" } },
-          "002e": { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0" } },
-          "$autre": { ".validate": false } },
+        "d": {
+          ".validate": "newData.val() === now"
+        },
+        "v": {
+          ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)"
+        },
+        "m": {
+          ".validate": "newData.isString() && newData.val().matches(/^(golem-[a-z]{1,12}|ligne)$/)"
+        },
+        "g": {
+          ".validate": "newData.isNumber() && (newData.val() === 0 || newData.val() === 1 || newData.val() === -1)"
+        },
+        "pg": {
+          ".validate": "newData.isBoolean()"
+        },
+        "a": {
+          ".validate": "newData.isBoolean()"
+        },
+        "k0": {
+          ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])*$/)"
+        },
+        "k1": {
+          ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])*$/)"
+        },
+        "e0": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)"
+        },
+        "e1": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)"
+        },
+        "s0": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30"
+        },
+        "s1": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30"
+        },
+        "mvp": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "dr": {
+          ".validate": "newData.hasChildren()",
+          "002": {
+            ".validate": "newData.hasChildren()",
+            "$i": {
+              ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0"
+            }
+          },
+          "002e": {
+            ".validate": "newData.hasChildren()",
+            "$i": {
+              ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0"
+            }
+          },
+          "$autre": {
+            ".validate": false
+          }
+        },
         "t": {
           "$k": {
             ".validate": "$k.matches(/^[0-2]$/) && newData.hasChildren(['n', 'r', 'q'])",
-            "n": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
-            "r": { ".validate": "newData.isString() && newData.val().matches(/^[01=-]{1,3}$/)" },
-            "q": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20" },
-            "$autre": { ".validate": false }
+            "n": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+            },
+            "r": {
+              ".validate": "newData.isString() && newData.val().matches(/^[01=-]{1,3}$/)"
+            },
+            "q": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20"
+            },
+            "$autre": {
+              ".validate": false
+            }
           }
         },
-        "$autre": { ".validate": false }
+        "$autre": {
+          ".validate": false
+        }
       }
     },
-
-    // Nouveautés (0.4) : blocs épinglés, nouveautes/epingles = { "0": id, "1": id } (2 au plus ; "aucun" = rien d'épinglé ;
-    // nœud vide = Feuille de route épinglée par défaut). Lus par tous ; écrits par le seul compte de Romain, reconnu par son uid.
-    // Épinglage des Nouveautés : réservé au compte de Romain (KaTarN).
     "nouveautes": {
       "epingles": {
         ".read": true,
         ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
         ".validate": "newData.hasChildren()",
-        "$i": { ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)" }
+        "$i": {
+          ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)"
+        }
       }
     },
-
-    // Site d'essai (les-golems.github.io/essai) : copie conforme de pseudos, joueurs, hall et salons
-    // sous le préfixe essai/. Comptes Auth partagés, pseudos et données séparés.
     "essai": {
-      // Nouveautés (0.4) : blocs épinglés, nouveautes/epingles = { "0": id, "1": id } (2 au plus ; "aucun" = rien d'épinglé ;
-      // nœud vide = Feuille de route épinglée par défaut). Lus par tous ; écrits par le seul compte de Romain, reconnu par son uid.
-      // Épinglage des Nouveautés : réservé au compte de Romain (KaTarN).
-      "nouveautes": {
-        "epingles": {
-          ".read": true,
-          ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
-          ".validate": "newData.hasChildren()",
-          "$i": { ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)" }
-        }
-      },
-
-      // Pseudos réservés : pseudos/{pseudo en minuscules} = uid du propriétaire.
-      // Lisible par tout connecté (vérifier qu'un pseudo est libre) ; réservé par un compte,
-      // seulement s'il est libre ou déjà à lui ; effacé seulement par son propriétaire (ou Romain en console).
-      // Classement public (onglet Statistiques, colonne Joueurs) : classement/{uid} = pseudo p, victoires v, parties n (toutes ses parties).
-      // Lisible par tout connecté ; écrit par le seul compte propriétaire.
-      "classement": {
-        ".read": "auth != null",
-        "$uid": {
-          ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-          ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val()",
-          "p": { ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20" },
-          "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0" },
-          "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0" },
-          "$autre": { ".validate": false }
-        }
-      },
-
-      // Résumé public du profil (mêmes chiffres que la fenêtre de compte, sur toutes les parties), publié par son propriétaire à la connexion et à chaque fin de partie.
-      // m = profil privé : seuls p, m, n, v, d, t, cr sont alors acceptés. L'historique complet reste privé (joueurs/{uid}/historique).
-      "profils": {
-        ".read": "auth != null",
-        "$uid": {
-          ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-          ".validate": "newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))",
-          "p":  { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()" },
-          "m":  { ".validate": "newData.isBoolean()" },
-          "t":  { ".validate": "newData.val() === now" },
-          "cr": { ".validate": "newData.isNumber() && newData.val() >= 0" },
-          "n":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0" },
-          "v":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0" },
-          "d":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0" },
-          "s":  { ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val() && newData.val() + newData.parent().child('n').val() >= 0" },
-          // Meilleurs decks (3 au plus) : nom, éléments, parties, victoires, peu de parties.
-          "dk": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['nom', 'e', 'n', 'v'])", "nom": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24" }, "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)" }, "peu": { ".validate": "newData.isBoolean()" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
-          // Meilleures cartes, cartes les moins bonnes, cartes MVP : code de carte, parties, victoires.
-          "cb": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "peu": { ".validate": "newData.isBoolean()" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
-          "cm": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
-          "mv": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
-          // Contre l'ordinateur, par niveau.
-          "o": {
-            "$niv": { ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])", "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } }
-          },
-          // Joueurs les plus affrontés (3 au plus) : pseudo, parties, victoires.
-          "jo": { "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['p', 'n', 'v'])", "p": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } },
-          // Détail par version du site (0.2a, 0.2b...) pour le filtre Patch du panneau Joueurs : 10 versions au plus (emplacements 0 à 9),
-          // chacune avec son nom p, ses parties n, ses victoires v et le detail contre l'ordinateur o (comme ci-dessus).
-          "pv": { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^[0-9]$/) && newData.hasChildren(['p', 'n', 'v'])", "p": { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "o": { "$niv": { ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])", "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } }, "$autre": { ".validate": false } } },
-          "$autre": { ".validate": false }
-        }
-      },
-
-      // Archive commune des parties (onglet Statistiques) : resume/{graine-debut}, anonyme (ni pseudo ni uid).
-      // Lecture par tout connecté ; écriture par un compte seulement, ajout seulement (jamais modifié ni effacé).
-      "resume": {
-        ".read": "auth != null",
-        ".indexOn": ["d"],
-        "$id": {
-          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.exists()",
-          ".validate": "$id.matches(/^-?[0-9]{1,12}-[0-9]{13}$/) && newData.hasChildren(['d', 'v', 'm', 'g', 'pg', 'a', 'k0', 'k1', 'e0', 'e1', 's0', 's1', 'mvp', 't'])",
-          "d":   { ".validate": "newData.val() === now" },
-          "v":   { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)" },
-          "m":   { ".validate": "newData.isString() && newData.val().matches(/^(golem-[a-z]{1,12}|ligne)$/)" },
-          "g":   { ".validate": "newData.isNumber() && (newData.val() === 0 || newData.val() === 1 || newData.val() === -1)" },
-          "pg":  { ".validate": "newData.isBoolean()" },
-          "a":   { ".validate": "newData.isBoolean()" },
-          "k0":  { ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])*$/)" },
-          "k1":  { ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])*$/)" },
-          "e0":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
-          "e1":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
-          "s0":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
-          "s1":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
-          "mvp": { ".validate": "newData.isString() && newData.val().length <= 40" },
-          "dr":  { ".validate": "newData.hasChildren()",
-            "002":  { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0" } },
-            "002e": { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0" } },
-            "$autre": { ".validate": false } },
-          "t": {
-            "$k": {
-              ".validate": "$k.matches(/^[0-2]$/) && newData.hasChildren(['n', 'r', 'q'])",
-              "n": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
-              "r": { ".validate": "newData.isString() && newData.val().matches(/^[01=-]{1,3}$/)" },
-              "q": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20" },
-              "$autre": { ".validate": false }
-            }
-          },
-          "$autre": { ".validate": false }
-        }
-      },
-
       "pseudos": {
         "$cle": {
           ".read": "auth != null",
@@ -452,227 +654,637 @@
           ".validate": "$cle.length >= 3 && $cle.length <= 20 && $cle === $cle.toLowerCase() && newData.isString() && newData.val() === auth.uid"
         }
       },
-  
-      // Données d'un compte : lecture et écriture par son seul uid ; pseudo et avatar lisibles par tout connecté.
       "joueurs": {
         "$uid": {
           ".read": "auth != null && auth.uid === $uid",
           ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
-          "pseudo":   { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20" },
-          "avatarId": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)" },
-          "avatarImg": { ".read": "auth != null", ".validate": "newData.isString() && newData.val().length <= 140000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)" },
-          "cree":     { ".validate": "newData.isNumber()" },
-          // Résumé public des parties (victoires v sur n parties), lisible par tout connecté.
-          "stats":    { ".read": "auth != null", ".validate": "newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val()", "v": { ".validate": "newData.isNumber()" }, "n": { ".validate": "newData.isNumber()" }, "$autre": { ".validate": false } },
-          // 12 decks au plus : emplacements 0 à 11. Le total 24 à 30 est vérifié par le site
-          // (un deck en cours de construction peut être plus petit).
+          "pseudo": {
+            ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
+            ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 20 && newData.parent().parent().parent().child('pseudos').child(newData.val().toLowerCase()).val() === $uid"
+          },
+          "avatarId": {
+            ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)"
+          },
+          "avatarImg": {
+            ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
+            ".validate": "newData.isString() && newData.val().length <= 140000 && newData.val().matches(/^data:image\\/(jpeg|webp);base64,[A-Za-z0-9+\\/=]+$/)"
+          },
+          "cree": {
+            ".validate": "newData.isNumber()"
+          },
+          "stats": {
+            ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
+            ".validate": "newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val() && (data.exists() ? (data.exists() ? (newData.child('n').val() >= data.child('n').val() && newData.child('n').val() <= data.child('n').val() + 50 && newData.child('v').val() >= data.child('v').val() && newData.child('v').val() - data.child('v').val() <= newData.child('n').val() - data.child('n').val()) : newData.child('n').val() <= 50) : (root.child('essai').child('classement').child($uid).exists() ? (newData.child('n').val() >= root.child('essai').child('classement').child($uid).child('n').val() && newData.child('n').val() <= root.child('essai').child('classement').child($uid).child('n').val() + 50 && newData.child('v').val() >= root.child('essai').child('classement').child($uid).child('v').val() && newData.child('v').val() - root.child('essai').child('classement').child($uid).child('v').val() <= newData.child('n').val() - root.child('essai').child('classement').child($uid).child('n').val()) : newData.child('n').val() <= 50))",
+            "v": {
+              ".validate": "newData.isNumber()"
+            },
+            "n": {
+              ".validate": "newData.isNumber()"
+            },
+            "$autre": {
+              ".validate": false
+            }
+          },
           "decks": {
             "$i": {
               ".validate": "$i.matches(/^([0-9]|1[01])$/) && newData.hasChildren(['id', 'nom'])",
-              "id":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}$/)" },
-              "nom": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24" },
-              "t":   { ".validate": "newData.isNumber()" },
-              // Carte (001, 001e...) : 1 à 3 exemplaires, base et évolution à part.
-              "cartes": {
-                "$c": { ".validate": "$c.matches(/^[0-9]{3}e?$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 3" }
+              "id": {
+                ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}$/)"
               },
-              "$autre": { ".validate": false }
+              "nom": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24"
+              },
+              "t": {
+                ".validate": "newData.isNumber()"
+              },
+              "cartes": {
+                "$c": {
+                  ".validate": "$c.matches(/^[0-9]{3}e?$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 3"
+                }
+              },
+              "$autre": {
+                ".validate": false
+              }
             }
           },
-          // Historique : une entrée par partie (clé graine-début), d = date, x = détail en JSON.
-          // Le site garde les 50 dernières (liste et replays) et efface les plus anciennes ; le profil compte toutes les parties (cumul).
           "historique": {
-            ".indexOn": ["d"],
+            ".indexOn": [
+              "d"
+            ],
             "$h": {
               ".validate": "$h.matches(/^-?[0-9]{1,12}-[0-9]{10,14}$/) && newData.hasChildren(['d', 'x'])",
-              "d": { ".validate": "newData.isNumber()" },
-              "x": { ".validate": "newData.isString() && newData.val().length <= 12000" },
-              "$autre": { ".validate": false }
+              "d": {
+                ".validate": "newData.isNumber()"
+              },
+              "x": {
+                ".validate": "newData.isString() && newData.val().length <= 12000"
+              },
+              "$autre": {
+                ".validate": false
+              }
             }
           },
-          // Cumuls de toutes les parties (profil et classement), texte JSON écrit par le site à chaque partie, 100 000 caractères au plus.
-          "cumul": { ".validate": "newData.isString() && newData.val().length <= 100000" },
-          // Témoin d'import des données locales (proposé une seule fois).
-          "importe": { ".validate": "newData.isNumber()" },
-          // 0.5 : partie en ligne en cours, retenue par le compte (reprise sur un autre appareil ; dev = dernier appareil qui a la main).
+          "cumul": {
+            ".validate": "newData.isString() && newData.val().length <= 100000"
+          },
+          "importe": {
+            ".validate": "newData.isNumber()"
+          },
           "salon": {
             ".validate": "newData.hasChildren(['c', 'g', 't'])",
-            "c": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{3,8}$/)" },
-            "g": { ".validate": "newData.isNumber()" },
-            "dev": { ".validate": "newData.isString() && newData.val().length <= 16" },
-            "x": { ".validate": "newData.isString() && newData.val().length <= 4000" },
-            "t": { ".validate": "newData.val() === now" },
-            "$autre": { ".validate": false }
+            "c": {
+              ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{3,8}$/)"
+            },
+            "g": {
+              ".validate": "newData.isNumber()"
+            },
+            "dev": {
+              ".validate": "newData.isString() && newData.val().length <= 16"
+            },
+            "x": {
+              ".validate": "newData.isString() && newData.val().length <= 4000"
+            },
+            "t": {
+              ".validate": "newData.val() === now"
+            },
+            "$autre": {
+              ".validate": false
+            }
           },
-          "$autre": { ".validate": false }
+          "$autre": {
+            ".validate": false
+          }
         }
       },
-  
-      // Accueil : qui est connecté, et départs volontaires (quitte). Comptes seulement.
       "hall": {
-        ".read": "auth != null",
+        ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
         "$uid": {
-          // Chacun n'écrit que sa propre présence, avec son vrai pseudo.
           ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
           ".validate": "newData.hasChild('t')",
-          "pseudo": { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()" },
-          "salon":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{3,8}$/)" },
-          "quitte": { ".validate": "newData.isNumber()" },
-          "t":      { ".validate": "newData.val() === now" },
-          // Aucun autre champ.
-          "$autre": { ".validate": false }
+          "pseudo": {
+            ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()"
+          },
+          "salon": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{3,8}$/)"
+          },
+          "quitte": {
+            ".validate": "newData.isNumber()"
+          },
+          "t": {
+            ".validate": "newData.val() === now"
+          },
+          "$autre": {
+            ".validate": false
+          }
         }
       },
-  
-      // Dernière activité d'un salon : activite/{code} = heure serveur, posée par un joueur présent.
-      // Lecture seulement par la requête du nettoyage (tri par valeur, 50 au plus) ; effacement seulement si plus de 7 jours.
       "activite": {
-        ".read": "auth != null && query.orderByValue == true && query.limitToFirst <= 50",
+        ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password' && query.orderByValue == true && query.limitToFirst <= 50",
         ".indexOn": ".value",
         "$code": {
-          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.parent().parent().child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && data.val() < now - 604800000))",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && data.val() < now - 604800000))",
           ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.val() === now"
         }
       },
-
-      // Salons publics en attente d'un adversaire : annonce posée par le créateur présent dans son salon (u = son uid),
-      // retirée par lui ou par un joueur présent dans le salon ; effacée à sa déconnexion.
       "annonces": {
-        ".read": "auth != null",
+        ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
         "$code": {
           ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid || !root.child('essai').child('salons').child($code).child('joueurs').hasChild(data.child('u').val())) && root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && (data.child('u').val() === auth.uid || root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid))))",
           ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.hasChildren(['u', 'p', 't'])",
-          "u": { ".validate": "newData.val() === auth.uid" },
-          "p": { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child(auth.uid).child('pseudo').val()" },
-          "a": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)" },
-          "d": { ".validate": "newData.isString() && newData.val().length <= 24" },
-          "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
-          // Version du site du créateur ("0.2b|<build>" de version.json) ; absente = ancienne version.
-          "v": { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.|: -]{1,40}$/)" },
-          // 0.4 : adversaire assis (uid w présent dans le salon, pseudo q) et nombre de spectateurs n.
-          "w": { ".validate": "newData.isString() && root.child('essai').child('salons').child($code).child('joueurs').hasChild(newData.val())" },
-          "q": { ".validate": "newData.isString() && newData.val().length <= 24" },
-          "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
-          // Partie en cours : g = true, manche m (1 a 9), score k "a-b" (place 0 - place 1), mis a jour en fin de manche.
-          "g": { ".validate": "newData.val() === true" },
-          "m": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9" },
-          "k": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,2}-[0-9]{1,2}$/)" },
-          "f": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
-          "t": { ".validate": "newData.val() === now" },
-          "$autre": { ".validate": false }
+          "u": {
+            ".validate": "newData.val() === auth.uid"
+          },
+          "p": {
+            ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child(auth.uid).child('pseudo').val()"
+          },
+          "a": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_-]{1,40}$/)"
+          },
+          "d": {
+            ".validate": "newData.isString() && newData.val().length <= 24"
+          },
+          "e": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)"
+          },
+          "v": {
+            ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.|: -]{1,40}$/)"
+          },
+          "w": {
+            ".validate": "newData.isString() && root.child('essai').child('salons').child($code).child('joueurs').hasChild(newData.val())"
+          },
+          "q": {
+            ".validate": "newData.isString() && newData.val().length <= 24"
+          },
+          "n": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+          },
+          "g": {
+            ".validate": "newData.val() === true"
+          },
+          "m": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9"
+          },
+          "k": {
+            ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,2}-[0-9]{1,2}$/)"
+          },
+          "f": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)"
+          },
+          "t": {
+            ".validate": "newData.val() === now"
+          },
+          "$autre": {
+            ".validate": false
+          }
         }
       },
       "salons": {
-        // Identifiant de salon court : 3 à 8 lettres minuscules ou chiffres.
         "$code": {
           ".validate": "$code.matches(/^[a-z0-9]{3,8}$/)",
-          // Effacement du salon entier (joueurs, coups, chat) seulement si sa dernière activité date de plus de 7 jours.
           ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !newData.exists() && root.child('essai').child('activite').child($code).val() < now - 604800000",
-          // Lecture d'un salon (joueurs et coups) pour tout joueur connecté.
-          ".read": "auth != null",
-  
-          // Verrou de partie : les deux uid engagés, posé au démarrage par un joueur présent.
-          // Ensuite seuls ces deux comptes peuvent écrire dans le salon (un tiers voit « salon complet »).
-          // Un engagé peut l'effacer (adversaire parti), ce qui rouvre le salon.
+          ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
           "engages": {
             ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.hasChild(auth.uid)) || (data.hasChild(auth.uid) && !newData.exists()))",
-            "$u": { ".validate": "newData.val() === true && root.child('essai').child('salons').child($code).child('joueurs').child($u).exists()" }
-          },
-  
-          "joueurs": {
-            "$uid": {
-              // Chaque compte n'écrit que sous son propre uid (le jeu en ligne exige un compte),
-              // et seulement s'il est engagé quand une partie a commencé.
-              ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && (!newData.exists() || !root.child('essai').child('salons').child($code).child('engages').exists() || root.child('essai').child('salons').child($code).child('engages').hasChild($uid)) && (!newData.exists() || !root.child('essai').child('salons').child($code).child('spectateurs').hasChild($uid))",
-              ".validate": "newData.hasChild('t')",
-              "pseudo":  { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()" },
-              "sid":     { ".validate": "newData.isString() && newData.val().length <= 16" },
-              "adv":     { ".validate": "newData.isString() && newData.val().length <= 16" },
-              "arrivee": { ".validate": "newData.isNumber()" },
-              "graine":  { ".validate": "newData.isNumber()" },
-              "jg":      { ".validate": "newData.isNumber()" },
-              "veut":    { ".validate": "newData.isNumber()" },
-              "quitte":  { ".validate": "newData.isNumber()" },
-              "pret":    { ".validate": "newData.isBoolean()" },
-              // Version du site du joueur ("0.2b|<build>" de version.json) ; absente = ancienne version.
-              "v":       { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.|: -]{1,40}$/)" },
-              // Deck joué, texte compact (carte puis nombre : 0013002e2...) ; absent = paquet de test.
-              "deck":    { ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])+$/)" },
-              "t":       { ".validate": "newData.val() === now" },
-              "$autre":  { ".validate": false }
+            "$u": {
+              ".validate": "newData.val() === true && root.child('essai').child('salons').child($code).child('joueurs').child($u).exists()"
             }
           },
-  
-          // 0.5 : connexion de chaque joueur (c = connecté, t = heure serveur), écrite par lui seul, aussi par le serveur à sa coupure.
+          "joueurs": {
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && (!newData.exists() || !root.child('essai').child('salons').child($code).child('engages').exists() || root.child('essai').child('salons').child($code).child('engages').hasChild($uid)) && (!newData.exists() || !root.child('essai').child('salons').child($code).child('spectateurs').hasChild($uid))",
+              ".validate": "newData.hasChild('t')",
+              "pseudo": {
+                ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()"
+              },
+              "sid": {
+                ".validate": "newData.isString() && newData.val().length <= 16"
+              },
+              "adv": {
+                ".validate": "newData.isString() && newData.val().length <= 16"
+              },
+              "arrivee": {
+                ".validate": "newData.isNumber()"
+              },
+              "graine": {
+                ".validate": "newData.isNumber()"
+              },
+              "jg": {
+                ".validate": "newData.isNumber()"
+              },
+              "veut": {
+                ".validate": "newData.isNumber()"
+              },
+              "quitte": {
+                ".validate": "newData.isNumber()"
+              },
+              "pret": {
+                ".validate": "newData.isBoolean()"
+              },
+              "v": {
+                ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.|: -]{1,40}$/)"
+              },
+              "deck": {
+                ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])+$/)"
+              },
+              "t": {
+                ".validate": "newData.val() === now"
+              },
+              "$autre": {
+                ".validate": false
+              }
+            }
+          },
           "pres": {
             "$uid": {
               ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && (!newData.exists() || !root.child('essai').child('salons').child($code).child('engages').exists() || root.child('essai').child('salons').child($code).child('engages').hasChild($uid))",
               ".validate": "newData.hasChildren(['c', 't'])",
-              "c": { ".validate": "newData.isBoolean()" },
-              "t": { ".validate": "newData.val() === now" },
-              "$autre": { ".validate": false }
+              "c": {
+                ".validate": "newData.isBoolean()"
+              },
+              "t": {
+                ".validate": "newData.val() === now"
+              },
+              "$autre": {
+                ".validate": false
+              }
             }
           },
-          // 0.5 : défaite par abandon d'un joueur hors ligne depuis plus de 70 s (10 s de reconnexion + 60 s de minuteur),
-          // déclarée une seule fois par graine, par l'autre joueur engagé ; vérifiée sur la présence du déconnecté (marge de 5 s).
           "forfait": {
             "$g": {
               ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && root.child('essai').child('salons').child($code).child('engages').hasChild(auth.uid) && newData.child('u').val() !== auth.uid && root.child('essai').child('salons').child($code).child('engages').hasChild(newData.child('u').val()) && root.child('essai').child('salons').child($code).child('pres').child(newData.child('u').val()).child('c').val() === false && root.child('essai').child('salons').child($code).child('pres').child(newData.child('u').val()).child('t').val() < now - 65000",
               ".validate": "$g.matches(/^-?[0-9]{1,12}$/) && newData.hasChildren(['u', 't'])",
-              "u": { ".validate": "newData.isString() && newData.val().length <= 128" },
-              "t": { ".validate": "newData.val() === now" },
-              "$autre": { ".validate": false }
+              "u": {
+                ".validate": "newData.isString() && newData.val().length <= 128"
+              },
+              "t": {
+                ".validate": "newData.val() === now"
+              },
+              "$autre": {
+                ".validate": false
+              }
             }
           },
-
           "coups": {
-            // Permet la recherche des coups d'un joueur à la reprise.
-            ".indexOn": ["a"],
+            ".indexOn": [
+              "a"
+            ],
             "$coup": {
-              // Ajout seulement (jamais de modification ni d'effacement),
-              // et uniquement ses propres coups : le champ a doit être son uid.
               ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && !root.child('essai').child('salons').child($code).child('spectateurs').hasChild(auth.uid) && (!root.child('essai').child('salons').child($code).child('engages').exists() || root.child('essai').child('salons').child($code).child('engages').hasChild(auth.uid))",
               ".validate": "newData.hasChildren(['a', 's', 'g', 'n', 'c'])",
-              "a": { ".validate": "newData.isString() && newData.val().length <= 128" },
-              "s": { ".validate": "newData.isString() && newData.val().length <= 16" },
-              "g": { ".validate": "newData.isNumber()" },
-              "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 2000" },
-              "c": { ".validate": "newData.isString() && newData.val().length <= 40" },
-              "$autre": { ".validate": false }
+              "a": {
+                ".validate": "newData.isString() && newData.val().length <= 128"
+              },
+              "s": {
+                ".validate": "newData.isString() && newData.val().length <= 16"
+              },
+              "g": {
+                ".validate": "newData.isNumber()"
+              },
+              "n": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 2000"
+              },
+              "c": {
+                ".validate": "newData.isString() && newData.val().length <= 40"
+              },
+              "$autre": {
+                ".validate": false
+              }
             }
           },
-
-          // Chat du salon : comme en haut, sous essai/.
           "chat": {
             "$m": {
               ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && (root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('essai').child('salons').child($code).child('engages').hasChild(auth.uid) || root.child('essai').child('salons').child($code).child('spectateurs').hasChild(auth.uid))",
               ".validate": "newData.hasChildren(['a', 'p', 't', 'm'])",
-              "a": { ".validate": "newData.isString() && newData.val().length <= 128" },
-              "p": { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child(auth.uid).child('pseudo').val()" },
-              "t": { ".validate": "newData.val() === now" },
-              "m": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200" },
-              "$autre": { ".validate": false }
+              "a": {
+                ".validate": "newData.isString() && newData.val().length <= 128"
+              },
+              "p": {
+                ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child(auth.uid).child('pseudo').val()"
+              },
+              "t": {
+                ".validate": "newData.val() === now"
+              },
+              "m": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200"
+              },
+              "$autre": {
+                ".validate": false
+              }
             }
           },
-
-          // Mode spectateur (0.3). siege = uid de l'adversaire, pris par transaction s'il est libre, rendu par son seul détenteur.
           "siege": {
-            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.val() === auth.uid && root.child('essai').child('salons').child($code).child('joueurs').exists() && (!root.child('essai').child('salons').child($code).child('engages').exists() || root.child('essai').child('salons').child($code).child('engages').hasChild(auth.uid))) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))",
             ".validate": "newData.isString() && newData.val().length <= 128"
           },
-          // Spectateurs présents : chacun n'écrit que sous son uid, pseudo de son compte et heure serveur.
           "spectateurs": {
             "$uid": {
               ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password'",
               ".validate": "newData.hasChildren(['p', 't'])",
-              "p": { ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()" },
-              "t": { ".validate": "newData.val() === now" },
-              "$autre": { ".validate": false }
+              "p": {
+                ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()"
+              },
+              "t": {
+                ".validate": "newData.val() === now"
+              },
+              "$autre": {
+                ".validate": false
+              }
             }
           },
-
-          // Rien d'autre dans un salon.
-          "$autre": { ".validate": false }
+          "$autre": {
+            ".validate": false
+          }
+        }
+      },
+      "classement": {
+        ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
+          ".validate": "newData.hasChildren(['p', 'v', 'n']) && newData.child('v').val() <= newData.child('n').val() && newData.child('n').val() === root.child('essai').child('joueurs').child($uid).child('stats').child('n').val() && newData.child('v').val() === root.child('essai').child('joueurs').child($uid).child('stats').child('v').val()",
+          "p": {
+            ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()"
+          },
+          "v": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0"
+          },
+          "n": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0"
+          },
+          "$autre": {
+            ".validate": false
+          }
+        }
+      },
+      "profils": {
+        ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
+          ".validate": "(root.child('essai').child('classement').child($uid).exists() ? newData.child('n').val() === root.child('essai').child('classement').child($uid).child('n').val() && newData.child('v').val() === root.child('essai').child('classement').child($uid).child('v').val() : newData.child('n').val() === 0) && newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))",
+          "p": {
+            ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()"
+          },
+          "m": {
+            ".validate": "newData.isBoolean()"
+          },
+          "t": {
+            ".validate": "newData.val() === now"
+          },
+          "cr": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "n": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0"
+          },
+          "v": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0"
+          },
+          "d": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0"
+          },
+          "s": {
+            ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val() && newData.val() + newData.parent().child('n').val() >= 0"
+          },
+          "dk": {
+            "$i": {
+              ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['nom', 'e', 'n', 'v'])",
+              "nom": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24"
+              },
+              "e": {
+                ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)"
+              },
+              "peu": {
+                ".validate": "newData.isBoolean()"
+              },
+              "n": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+              },
+              "v": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+              },
+              "$autre": {
+                ".validate": false
+              }
+            }
+          },
+          "cb": {
+            "$i": {
+              ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])",
+              "c": {
+                ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
+              },
+              "peu": {
+                ".validate": "newData.isBoolean()"
+              },
+              "n": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+              },
+              "v": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+              },
+              "$autre": {
+                ".validate": false
+              }
+            }
+          },
+          "cm": {
+            "$i": {
+              ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])",
+              "c": {
+                ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
+              },
+              "n": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+              },
+              "v": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+              },
+              "$autre": {
+                ".validate": false
+              }
+            }
+          },
+          "mv": {
+            "$i": {
+              ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['c', 'n', 'v'])",
+              "c": {
+                ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
+              },
+              "n": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+              },
+              "v": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+              },
+              "$autre": {
+                ".validate": false
+              }
+            }
+          },
+          "o": {
+            "$niv": {
+              ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])",
+              "n": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+              },
+              "v": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+              },
+              "$autre": {
+                ".validate": false
+              }
+            }
+          },
+          "jo": {
+            "$i": {
+              ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['p', 'n', 'v'])",
+              "p": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20"
+              },
+              "n": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+              },
+              "v": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+              },
+              "$autre": {
+                ".validate": false
+              }
+            }
+          },
+          "pv": {
+            ".validate": "newData.hasChildren()",
+            "$i": {
+              ".validate": "$i.matches(/^[0-9]$/) && newData.hasChildren(['p', 'n', 'v'])",
+              "p": {
+                ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)"
+              },
+              "n": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+              },
+              "v": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+              },
+              "o": {
+                "$niv": {
+                  ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])",
+                  "n": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()"
+                  },
+                  "v": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()"
+                  },
+                  "$autre": {
+                    ".validate": false
+                  }
+                }
+              },
+              "$autre": {
+                ".validate": false
+              }
+            }
+          },
+          "$autre": {
+            ".validate": false
+          }
+        }
+      },
+      "resume": {
+        ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
+        ".indexOn": [
+          "d"
+        ],
+        "$id": {
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.exists()",
+          ".validate": "$id.matches(/^-?[0-9]{1,12}-[0-9]{13}$/) && newData.hasChildren(['d', 'v', 'm', 'g', 'pg', 'a', 'k0', 'k1', 'e0', 'e1', 's0', 's1', 'mvp', 't'])",
+          "d": {
+            ".validate": "newData.val() === now"
+          },
+          "v": {
+            ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)"
+          },
+          "m": {
+            ".validate": "newData.isString() && newData.val().matches(/^(golem-[a-z]{1,12}|ligne)$/)"
+          },
+          "g": {
+            ".validate": "newData.isNumber() && (newData.val() === 0 || newData.val() === 1 || newData.val() === -1)"
+          },
+          "pg": {
+            ".validate": "newData.isBoolean()"
+          },
+          "a": {
+            ".validate": "newData.isBoolean()"
+          },
+          "k0": {
+            ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])*$/)"
+          },
+          "k1": {
+            ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])*$/)"
+          },
+          "e0": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)"
+          },
+          "e1": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)"
+          },
+          "s0": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30"
+          },
+          "s1": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30"
+          },
+          "mvp": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "dr": {
+            ".validate": "newData.hasChildren()",
+            "002": {
+              ".validate": "newData.hasChildren()",
+              "$i": {
+                ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0"
+              }
+            },
+            "002e": {
+              ".validate": "newData.hasChildren()",
+              "$i": {
+                ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0"
+              }
+            },
+            "$autre": {
+              ".validate": false
+            }
+          },
+          "t": {
+            "$k": {
+              ".validate": "$k.matches(/^[0-2]$/) && newData.hasChildren(['n', 'r', 'q'])",
+              "n": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+              },
+              "r": {
+                ".validate": "newData.isString() && newData.val().matches(/^[01=-]{1,3}$/)"
+              },
+              "q": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20"
+              },
+              "$autre": {
+                ".validate": false
+              }
+            }
+          },
+          "$autre": {
+            ".validate": false
+          }
+        }
+      },
+      "nouveautes": {
+        "epingles": {
+          ".read": true,
+          ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
+          ".validate": "newData.hasChildren()",
+          "$i": {
+            ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)"
+          }
         }
       }
     }
