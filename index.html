@@ -1885,12 +1885,11 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
   </ul></div></details>
 
   <details><summary><h3>Animaux de compagnie</h3></summary><div class="corps"><ul>
-    <li><b>Pas un Golem :</b> un coût, ni élément ni Force, jamais d'évolution. Il occupe une case et compte 0 au décompte. Aucun effet de Golem ne le concerne : ni cible, ni bonus, ni copie, ni voisin, ni Golem en face.</li>
+    <li><b>Pose :</b> coût 0. L'animal se glisse sous son maître, qui doit déjà être en jeu, et lui donne +1 de Force. Il ne prend pas de case. Un seul animal par maître.</li>
+    <li><b>Pas un Golem :</b> ni élément ni Force à lui, jamais d'évolution. Aucun effet ne le concerne : ni cible, ni bonus, ni favori, ni copie ; il ne compte pas pour le Trait, ni pour le cercle, ni pour un terrain.</li>
     <li><b>Deck :</b> 1 exemplaire par animal, et seulement avec une carte de son maître (base ou évolution). Plusieurs animaux différents sont permis.</li>
-    <li><b>Pose :</b> sur une case libre voisine de son maître, qui doit être en jeu. La Boutique ne réduit pas son coût. Plusieurs maîtres voisins : il suit le premier trouvé, en haut (côté terrains), en bas, à gauche, puis à droite.</li>
-    <li><b>Son maître :</b> s'il quitte le jeu (détruit, remplacé, La Nuit au Village), l'animal part à la défausse. S'il évolue ou est déplacé, l'animal reste. Un Golem qui copie son effet n'est pas son maître.</li>
-    <li><b>Intouchable :</b> aucun Golem ne se pose à sa place, rien ne le déplace ni ne l'échange (La Faille, Le Vaisseau, effets de cartes). Seul moyen de s'en défaire : faire quitter le jeu à son maître.</li>
-    <li><b>Kiwi :</b> la Mignonitude se résout avant le décompte, puis Kiwi part à la défausse. Deux Kiwi : celui du premier joueur d'abord, jamais deux fois le même Golem.</li>
+    <li><b>Son maître :</b> s'il quitte le jeu (détruit, remplacé, La Nuit au Village), l'animal part à la défausse. S'il évolue, l'animal reste. S'il est déplacé (La Faille, Le Vaisseau, Slam), l'animal le suit. Un Golem qui copie son effet n'est pas son maître.</li>
+    <li><b>Kiwi :</b> la Mignonitude se résout en fin de manche, puis vient le décompte, et juste après Kiwi part à la défausse. Deux Kiwi : celui du premier joueur d'abord, jamais deux fois le même Golem.</li>
     <li><b>Jacen et Jaina :</b> les chats de KaTarN (ou Slim K). À la pose, pioche 1 carte. Si leur maître est détruit, pioche 1 carte, puis les chats partent à la défausse. Si tu remplaces toi-même leur maître, pas de pioche. Deck vide : chaque carte que tu dois piocher donne 1 point à ton adversaire.</li>
     <li><b>Hors décompte :</b> le Golem tiré par Kiwi reste en jeu avec ses bonus ; seule sa Force sort de sa colonne. Les effets de fin de manche le concernent toujours (La Nuit au Village, KaTarN).</li>
     <li>Un animal n'est jamais MVP.</li>
@@ -2277,7 +2276,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
- {version:'Version 0.4a',date:'7 novembre 2026',notes:["6 nouveaux terrains : L'École, Le Karaoké, Les Pronos, Le Cirque, Le Tournoi et Le Versus","Nouvelle règle : 4 éléments différents au plus par deck","Nouvelle règle : pas d'évolution sans au moins un exemplaire de sa base dans le deck","Deck conseillé Marée bretonne, autour du nouveau Le Q","Decks conseillés et deck par défaut à 4 éléments","Lien direct vers une carte, à partager","Lisibilité améliorée pour les daltoniens","Nouveautés : pagination des versions","Déconnexion : la partie t'attend 60 secondes, puis abandon","Statistiques : meilleures cartes à partir de 10 parties"]},
+ {version:'Version 0.4a',date:'7 novembre 2026',notes:["6 nouveaux terrains : L'École, Le Karaoké, Les Pronos, Le Cirque, Le Tournoi et Le Versus","Nouvelle règle : 4 éléments différents au plus par deck","Nouvelle règle : pas d'évolution sans au moins un exemplaire de sa base dans le deck","Deck conseillé Marée bretonne, autour du nouveau Le Q","Decks conseillés et deck par défaut à 4 éléments","Lien direct vers une carte, à partager","Lisibilité améliorée pour les daltoniens","Nouveautés : pagination des versions","Déconnexion : la partie t'attend 60 secondes, puis abandon","Statistiques : meilleures cartes à partir de 10 parties","Animaux de compagnie : coût 0, sous leur maître, +1 de Force"]},
  {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","Rework de Le Q : Brume et Magma, nouveaux effets","Nouvelle règle : deck vide, 1 point à l'adversaire par carte à piocher","Bug de Jacen et Jaina corrigé"]},
  {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
  {version:'Version 0.2c',date:'5 novembre 2026',notes:["La Boutique réduit aussi le coût des évolutions","Éditeur de deck : teste tes placements dans un bac à sable","Statistiques repensées : recherche, classement complet, toutes tes parties comptées","Profil des joueurs réorganisé, avec ton rang au classement","Partage de deck par lien cliquable","Résumé de partie prêt à coller sur Discord","Version vérifiée dans le salon, page mise à jour automatiquement","Appli installée : nouvelle icône, lancement bleu ciel","QoL ajoutés"]},
@@ -2304,7 +2303,8 @@ const DETAILS_VERSIONS={
    "Daltoniens : une flèche ▲ ou ▼ sur la Force modifiée, un « ! » sur la carte fautive d'un deck, et le mot « Animal » dans les listes. Aucune couleur ne change.",
    "Nouveautés : les versions sont rangées par pages, avec les flèches en haut à droite.",
    "Déconnexion en ligne : « Reconnexion » pendant 10 secondes, puis « Hors ligne » avec un minuteur de 60 secondes ; sans retour à temps, défaite par abandon. Connecté à ton compte, tu retrouves ta partie sur n'importe quel appareil. Contre les Golems, pas de minuteur.",
-   "Statistiques : le classement des meilleures cartes commence à 10 parties (5 pour les joueurs)."],
+   "Statistiques : le classement des meilleures cartes commence à 10 parties (5 pour les joueurs).",
+   "Animaux de compagnie refaits : ils coûtent 0, se glissent sous leur maître déjà en jeu et lui donnent +1 de Force. Pour poser un animal, choisis son maître (sa case est dorée)."],
   corrections:[
    "Le panneau d'une évolution affiche le bon texte."],
   regles:[
@@ -2313,7 +2313,10 @@ const DETAILS_VERSIONS={
    "Deck par défaut et decks conseillés Tempête et Forge rapide refaits pour respecter les 4 éléments.",
    "Les Pronos : les mises sont perdues si personne ne conquiert le terrain.",
    "L'École : en cas d'égalité, personne ne pioche. Deck vide : 1 point pour l'adversaire, comme pour toute pioche.",
-   "Le Cirque : Mode Avion protège du dégât."]
+   "Le Cirque : Mode Avion protège du dégât.",
+   "Animaux : coût 0, plus de case. L'animal se pose sous son maître déjà en jeu (un seul par maître) et lui donne +1 de Force. Il suit son maître (La Faille, Le Vaisseau, Slam), reste s'il évolue et part à la défausse si son maître est détruit ou remplacé. Jacen et Jaina piochent toujours quand leur maître est détruit.",
+   "Un animal n'est toujours pas un Golem : ni ciblé, ni bonus, ni favori, et il ne compte ni pour le Trait, ni pour le cercle, ni pour un terrain.",
+   "Kiwi : la Mignonitude en fin de manche, puis le décompte (avec le +1 de Kiwi), et juste après Kiwi part à la défausse."]
  },
  'Version 0.4':{
   nouveautes:[
@@ -5549,12 +5552,10 @@ function bacPlace(B,d,t,l,k){
   const s=bacEtat(B),c=bacLibre(B,d,t);if(c===null||!M.peutPoser(s,0,c,l,k))return false;
   const C=M.carte(c),occ=B.G[l][k],g={c,f:C.force||0,d:0};
   if(C.base){ /* evolution sur sa base : la base revient dans le deck du bac a sable */
-    if(C.id==='013e'&&occ.fav!==undefined)g.fav=occ.fav;
+    if(C.id==='013e'&&occ.fav!==undefined)g.fav=occ.fav;if(occ.ani)g.ani=occ.ani; /* 0.5 : l'animal reste si son maitre evolue */
     B.G.forEach(L=>L.forEach(h=>{if(h&&h.fav===occ.c)h.fav=c;if(h&&M.carte(h.c).animal&&h.maitre===occ.c)h.maitre=c}));
-  }else if(C.animal){
-    const m=bacVois(l,k).find(([a,b])=>{const h=B.G[a][b];return bacGolem(h)&&(M.carte(h.c).id===C.maitre||M.carte(h.c).base===C.maitre)});
-    g.maitre=B.G[m[0]][m[1]].c;
-  }else if(occ)bacRetire(B,l,k);
+  }else if(C.animal){occ.ani={c};B.sel=null;return true} /* 0.5 : animal sous son maitre, aucune case */
+  else if(occ)bacRetire(B,l,k);
   B.G[l][k]=g;B.selC=null;B.mode=null;
   bacPose(B,l,k);
   if(B.mode||!(+d.cartes[t]>bacUtilises(B,t)))B.sel=null; /* choix en attente (favori, copie) ou plus d'exemplaire : carte deselectionnee */
@@ -5845,6 +5846,7 @@ function detailForce(s,p,l,k){
   const vs=[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([x,y])=>G[x]&&G[x][y]).filter(Boolean);
   vs.forEach(v=>{const c=M.carte(v.c),e=effId(v);if(e==='003'||e==='003e')ajoute((capa(e)||'Bonus')+' : voisin '+M.nomDetail(c)+(c.id!==e?' (copie de Cyrdan)':''),1)});
   if(g.ra)ajoute('Rage',g.ra);
+  if(g.ani)ajoute('Animal : '+M.carte(g.ani.c).nom,1); /* 0.5 : animal attache */
   if(M.indrasDe)M.indrasDe(s,p,g.c).forEach(n=>ajoute('Favori de '+M.nomDetail(M.carte(n.c)),M.FAV_BONUS[effId(n)]));
   if(g.fav!==undefined&&M.FAV_BONUS&&M.FAV_BONUS[id]){const x=G.flat().find(h=>h&&h.c===g.fav);if(x)a.append(lg('Son favori : '+M.nomDetail(M.carte(x.c)),'♥'))}
   let d=g.d;
@@ -5908,6 +5910,14 @@ function badgeForce(fa,f){
     +'<text x="'+(300+d[0])+'" y="'+(396+d[1])+'" text-anchor="middle" textLength="'+L.toFixed(1)+'" lengthAdjust="spacingAndGlyphs" fill="'+FORCE_COUL[sf]+'" stroke="#0b0a10" stroke-width="44.08" stroke-linejoin="round" paint-order="stroke" style="font:400 301px Anton,Impact,\'Lilita One\',sans-serif">'+t+'</text></svg></svg>';
   attendAnton(k);return k;
 }
+/* 0.5 : AFFICHAGE PROVISOIRE de l'animal attache sous son maitre (maquettes en cours : Ressources - Maquettes et audits
+ - Animaux attachés).
+   Seul endroit qui dessine l'animal sur la tuile : remplacer cette fonction pour changer l'affichage. b = bouton de la case, g = Golem en jeu (g.ani = {c}). */
+function vueAnimalAttache(b,g){
+  if(!g||!g.ani)return;const A=M.carte(g.ani.c),t=el('span','ani-att','+ '+A.nom);
+  t.style.cssText='position:absolute;left:0;right:0;bottom:0;font-size:10px;line-height:13px;text-align:center;background:#0d3012cc;color:var(--animal-titre);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+  b.append(t);b.title=(b.title?b.title+' ; ':'')+A.nom+' (animal) : +1 de Force';
+}
 function detailAnimal(C){const a=el('section');a.append(el('h3','','Animal de compagnie'),lg('Maître',M.CARTES[C.maitre].nom),lg('Force','aucune'),el('p','',C.texte));return [a]}
 function ouvreTas(titre,ids){
   const b=$('tasCartes');b.textContent='';$('tasTitre').textContent=titre;$('tasVide').hidden=ids.length>0;
@@ -5945,7 +5955,7 @@ function grilleVue(s,p,cols,lignes,cible){
     const lib=cible&&cible(l,k);
     if(v){
       const C=M.carte(v.c);if(C.base)b.classList.add('evo');
-      b.append(miniVue(s,p,l,k));
+      b.append(miniVue(s,p,l,k));vueAnimalAttache(b,v);
       if(C.animal){b.classList.add('animal');b.setAttribute('aria-label',C.nom+', animal de compagnie de '+M.CARTES[C.maitre].nom+', coût '+C.cout);b.onclick=()=>{dernier=null;zoom(imgV('cartes/'+C.id+'.jpg'),C.nom,detailAnimal(C))}}
       else{
       const fa=M.forceDe(s,p,l,k);
@@ -6082,9 +6092,9 @@ function mainVue(ids,opts){
 function raisonPose(s,me,c,leg){
   if(leg.some(a=>a.t==='p'&&a.c===c))return null;
   const C=M.carte(c),G=s.j[me].grille,e=s.j[me].energie;
-  if(C.animal){ /* animal : case libre voisine (haut, bas, gauche, droite) de son maitre, base ou evolution */
-    const m=C.maitre,lib=[];G.forEach((L,l)=>L.forEach((g,k)=>{const x=g&&M.carte(g.c);if(x&&(x.id===m||x.base===m))[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].forEach(([a,b])=>{if(a>=0&&a<3&&b>=0&&b<3&&!G[a][b])lib.push(M.coutPose(s,me,c,a,b))})}));
-    if(!lib.length)return {court:M.CARTES[m].nom+' requis',long:'Il faut '+M.CARTES[m].nom+' en jeu, avec une case libre voisine.'};
+  if(C.animal){ /* 0.5 : animal attache sous son maitre en jeu (base ou evolution), un seul animal par maitre */
+    const m=C.maitre,lib=[],pris=[];G.forEach((L,l)=>L.forEach((g,k)=>{const x=g&&M.carte(g.c);if(x&&(x.id===m||x.base===m))(g.ani?pris:lib).push(M.coutPose(s,me,c,l,k))}));
+    if(!lib.length)return pris.length?{court:'Maître déjà pris',long:M.CARTES[m].nom+' a déjà un animal.'}:{court:M.CARTES[m].nom+' requis',long:'Il faut '+M.CARTES[m].nom+' en jeu.'};
     return {court:'Trop chère',long:'Coûte '+Math.min(...lib)+' énergie, il te reste '+e+'.'};
   }
   if(C.id==='001'&&s.manche!==1)return {court:'Manche 1 seulement',long:'Se pose uniquement en manche 1.'};
@@ -6200,7 +6210,7 @@ function affiche(){
   }else if(sel!==null&&!att&&s.phase==='jeu'){
     const ps=leg.filter(a=>a.t==='p'&&a.c===sel);
     cible=(l,k)=>{const a=ps.find(x=>x.l===l&&x.k===k);if(!a)return null;
-      const mot=!J.grille[l][k]?'Poser':M.carte(sel).base?'Améliorer':'Remplacer';
+      const mot=!J.grille[l][k]||M.carte(sel).animal?'Poser':M.carte(sel).base?'Améliorer':'Remplacer'; /* animal : pose sous son maitre */
       return {texte:mot+' '+M.coutPose(s,me,sel,l,k),bonus:M.carte(sel).animal?null:bonusPrevu(s,me,sel,l,k),fait:()=>joue(a)}};
   } /* Caramel a volonte (026e) : seulement par son bouton ; toucher la carte ouvre le detail de sa Force comme pour tout Golem */
   if(partie.rejeu){cible=null;cibleAdv=null}

@@ -100,7 +100,7 @@ function fort(p,x){
   if(/: Il suffit, détruit /.test(x))return 'defausse'; /* Le Q (Seul contre tous) : destruction */
   if(/^marque /.test(x))return 'coupe';
   if(RE_DV.test(x))return 'coupe';
-  const a=/^pose (.+)\.$/.exec(x);if(a&&Object.values(M().CARTES).some(c=>c.animal&&c.nom===a[1]))return 'main';
+  const a=/^pose (.+?)(?: sous .+)?\.$/.exec(x); /* 0.5 : « pose Kiwi sous Titom76. » */if(a&&Object.values(M().CARTES).some(c=>c.animal&&c.nom===a[1]))return 'main';
   if(/:\s\+\d+( points?)?\.$/.test(x)&&!(E&&E.etat.terrains.some(T=>x.startsWith(T.nom+' lance '))))return 'coupe';
   return null;
 }

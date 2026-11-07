@@ -1,5 +1,7 @@
 // Node : parties aleatoires + cas de regles. Usage : node test_moteur.js [nombre]
 const M=require('../moteur.js'),assert=require('assert');
+/* 0.5 : animaux attaches (REGLAGE_ANIMAUX) ; ces tests verifient les autres regles avec l'ancien modele d'animaux (case voisine, cout 1). Le nouveau modele : tests/test_animaux.js */
+Object.assign(M.REGLAGE_ANIMAUX,{cout:1,element:false,kiwiApres:false,attache:false});
 const N=+process.argv[2]||200;
 const ANC=["La Faille", "Le Carrousel", "La Boutique", "Le Plateau de Jeu", "La Salle Verrouillée", "Le Vaisseau", "La Nuit au Village", "Le Buzzer", "L'Écran du MJ", "Le Camp"],TA=i=>M.TERRAINS.find(t=>t.nom===ANC[i]);
 let graineTest=12345;
@@ -745,7 +747,7 @@ duel('facile','normal');duel('normal','difficile');
   // Autres : KaTarN 0, Slim K 3, Alrevan 6, Cyrdan 12, Le Q 18, Oracle 21, Trigas 24, Indra 33, Fan 36, Glad 39, Apo 45, Maitre du deguisement 48, M. Poisson 54, A encore menti 66.
   let nv=0;const ok=(c,m)=>{assert(c,m);nv++},eq=(a,b,m)=>{assert.strictEqual(a,b,m);nv++},deq=(a,b,m)=>{assert.deepStrictEqual(a,b,m);nv++};
   const K=69;
-  eq(M.carte(K).id,'901');eq(M.CARTES['901'].nom,'Kiwi');eq(M.CARTES['901'].cout,1);eq(M.CARTES['901'].force,null);deq(M.CARTES['901'].el,[]);ok(!M.CARTES['901'].base,'jamais d evolution');
+  eq(M.carte(K).id,'901');eq(M.CARTES['901'].nom,'Kiwi');eq(M.CARTES['901'].cout,0); /* 0.5 : cout imprime 0 */eq(M.CARTES['901'].force,null);deq(M.CARTES['901'].el,[]);ok(!M.CARTES['901'].base,'jamais d evolution');
   ok(M.estAnimal('901')&&M.estAnimal(K)&&M.estAnimal(M.CARTES['901']),'estAnimal');ok(!M.estAnimal('026')&&!M.estAnimal(57)&&!M.estAnimal('999'),'Titom76 n est pas un animal');
   eq(M.maitreDe('901'),'026');eq(M.maitreDe('026'),null);eq(M.maxEx('901'),1);eq(M.maxEx('026'),3);eq(M.ANIMAL_MAX,1);eq(M.TYPES.indexOf('901'),23);eq(M.TYPES_TEST.length,11,'paquet de test inchange');
   // --- encodage

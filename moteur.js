@@ -32,7 +32,7 @@ const CARTES={
  '036e':{id:'036e',nom:'A encore menti',el:['foudre','magma'],cout:6,force:0,base:'036',texte:'Survolté : gagne +1 de Force par Golem Foudre que tu as en jeu, toi compris.'},
  /* Animaux de compagnie : animal:true, maitre = code du Golem de base (son evolution compte aussi). Ni Force ni element, jamais d'evolution.
     Codes 9xx, hors des numeros de membres ; 1 exemplaire par deck (ANIMAL_MAX). */
- '901':{id:'901',nom:'Kiwi',el:[],cout:1,force:null,animal:true,maitre:'026',texte:'Mignonitude : à la fin de la manche, un Golem au hasard de chaque joueur ne compte pas au décompte (il reste en jeu). Puis tu pars à la défausse.'},
+ '901':{id:'901',nom:'Kiwi',el:[],cout:0,force:null,animal:true,maitre:'026',texte:'Mignonitude : à la fin de la manche, un Golem au hasard de chaque joueur ne compte pas au décompte (il reste en jeu). Puis tu pars à la défausse.'},
  '018':{id:'018',nom:'Elessar',el:['roche','foudre'],cout:2,force:2,texte:'Réalisation de l\'âge : tant que tu es en jeu, les évolutions adverses coûtent 1 énergie de plus.'}, /* Elessar */
  '018e':{id:'018e',nom:'Le pomplard',el:['roche','foudre'],cout:4,force:3,base:'018',texte:'Extinction du feu : à la pose, les Golems Magma adverses perdent 1 de Force.'}, /* Elessar */
  '041':{id:'041',nom:'Velnen',el:EL_VELNEN,cout:3,force:1,texte:'Graine de Golem : tant que tu es en jeu, tu pioches 1 carte de plus à chaque tour.'}, /* Velnen */
@@ -50,7 +50,7 @@ const CARTES={
  '008e':{id:'008e',nom:'L\'attachiante',el:['magma','cristal'],cout:4,force:4,base:'008',texte:'Love inconditionnel : une fois par manche, à ton tour, un Golem allié récupère 1 de Force.'}, /* K-Chan : evolution */
  '020':{id:'020',nom:'GénéralBrioche',el:['cristal','roche'],cout:2,force:1,texte:'Grand Général : les autres Golems alliés ici gagnent +1 de Force.'}, /* GeneralBrioche */
  '020e':{id:'020e',nom:'Le civ player',el:['cristal','roche'],cout:4,force:2,base:'020',texte:'Bonus d\'adjacence : gagne +1 de Force par voisin.'}, /* GeneralBrioche : evolution */
- '902':{id:'902',nom:'Jacen et Jaina',el:[],cout:1,force:null,animal:true,maitre:'001',texte:'zqrinohbqzroihg : à la pose, pioche 1 carte. Quand ton maître est détruit, pioche 1 carte.'} /* Jacen et Jaina : animal de KaTarN */
+ '902':{id:'902',nom:'Jacen et Jaina',el:[],cout:0,force:null,animal:true,maitre:'001',texte:'zqrinohbqzroihg : à la pose, pioche 1 carte. Quand ton maître est détruit, pioche 1 carte.'} /* Jacen et Jaina : animal de KaTarN */
 };
 const TYPES=['001','001e','002','002e','003','003e','004','004e','007','007e','008','013','013e','009','009e','029','029e','037','037e','026','026e','036','036e','901','018','018e','041','041e','025','025e','015','015e','016','016e','035','035e','042','042e','008e','020','020e','902']; /* toujours ajouter en fin : l'identifiant de carte depend du rang. Kiwi (901) : rang 23, carte de partie 69, codee '~6'. Elessar : 018 rang 24 (72-74, '~9' a '~b'), 018e rang 25 (75-77, '~c' a '~e'). Velnen : 041 rang 26 (78-80, '~f' a '~h'), 041e rang 27 (81-83, '~i' a '~k'). Shifukuro : 025 rang 28 (84-86, '~l' a '~n'), 025e rang 29 (87-89, '~o' a '~q'). Bellock/Loxim : 015 rang 30 (90-92, '~r' a '~t'), 015e rang 31 (93-95, '~u' a '~w'), 016 rang 32 (96-98, '~x' a '~z'), 016e rang 33 (99-101, '~A' a '~C'). JackJoy : 035 rang 34 (102-104, '~D' a '~F'), 035e rang 35 (105-107, '~G' a '~I'). Vic222 : 042 rang 36 (108-110, '~J' a '~L'), 042e rang 37 (111-113, '~M' a '~O') */
 /* Deck par defaut (ancien paquet de test) : les 11 premiers types. 0.3 : 30 cartes, 3 exemplaires sauf 2 de KEKWRevan (002e), Roi du Karaoke (003e)
@@ -146,6 +146,12 @@ function cercle2(G,k,id){return !!CERCLE2[id]||[0,1,2].some(a=>golem(G[a][k])&&i
 /* Animaux de compagnie (Kiwi). Ce ne sont pas des Golems : aucun effet de Golem ne les concerne, Force 0 dans les colonnes.
    estAnimal accepte un code ('901'), une fiche de CARTES ou une carte de partie (69). Sur la grille : g.maitre = carte de partie du maitre. */
 const estAnimal=x=>{const C=typeof x==='number'?carte(x):typeof x==='string'?CARTES[x]:x;return !!(C&&C.animal)};
+/* Animaux jouables (7 nov.) : cout (1 = ancien, 0 = nouveau) ; element : l'animal porte le 1er element de son maitre et compte comme voisin pour le Trait. */
+const REGLAGE_ANIMAUX={cout:0,element:false,kiwiApres:true,attache:true}; /* kiwiApres : Kiwi part apres le decompte ; attache : animal sous son maitre (g.ani), +1 de Force */
+const coutCarte=C=>C.animal?REGLAGE_ANIMAUX.cout:C.cout; /* cout de base, avant Elessar et La Boutique */
+const elAnimal=A=>REGLAGE_ANIMAUX.element&&!REGLAGE_ANIMAUX.attache&&A.animal&&CARTES[A.maitre]?CARTES[A.maitre].el[0]:null;
+/* animaux allies voisins de (l,k) qui portent un element (nouveau reglage seulement) */
+function animauxVoisins(G,l,k){if(!REGLAGE_ANIMAUX.element)return [];return [[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([a,c])=>G[a]&&G[a][c]).filter(g=>animal(g)&&elAnimal(carte(g.c)))}
 const ANIMAL_MAX=1,maxEx=id=>estAnimal(id)?ANIMAL_MAX:MAX_EX;
 const animal=g=>!!g&&!!carte(g.c).animal,golem=g=>!!g&&!carte(g.c).animal;
 /* Maitre : la carte de base ou son evolution, par la carte et non par l'effet (Apo deguise en Titom76 n'est pas Titom76). */
@@ -240,6 +246,7 @@ function forceDe(s,p,l,k){
   const J=s.j[p].grille,g=J[l][k];if(!g||animal(g))return 0;
   const el=carte(g.c).el,vs=voisins(J,l,k),Tn=!NEUTRE&&s.terrains[k]&&s.terrains[k].nom,ci=Tn==='Le Cirque'&&cirqueInv();let v=g.f+(g.ra||0)+bonus(s,p,l,k)+favori(s,p,g.c)-g.d;
   if(!ci)el.forEach(e=>{v+=vs.filter(n=>carte(n.c).el.includes(e)).length}); /* 0.2.1 : +1 par voisin partageant l'element ; Le Cirque : pas de Trait */
+  if(!ci&&REGLAGE_ANIMAUX.element)animauxVoisins(J,l,k).forEach(A=>{if(el.includes(elAnimal(carte(A.c))))v++}); /* animal voisin : +1 s'il partage son element */
   if(Tn==='Le Karaoké'&&golemsIci(s,p,k)===2)v+=2; /* Le Karaoke : exactement 2 Golems ici, +2 chacun */
   const id=idEff(g);
   if(id==='037e')el.forEach(e=>{if(vs.some(n=>carte(n.c).el.includes(e)))v++}); /* Full synergie : +1 par element partage par au moins un voisin, en plus du Trait (+2 maximum) */
@@ -250,6 +257,7 @@ function forceDe(s,p,l,k){
   v+=generaux(J,l,k); /* GeneralBrioche : Grand General */
   if(id==='020e')v+=vs.length; /* GeneralBrioche : Bonus d'adjacence, +1 par voisin allie (Golem), sans plafond */
   v+=jjBonus(g); /* JackJoy : Sub offert (partie) et Draft diff (manche) recus */
+  if(g.ani)v+=1; /* animal attache : +1 a son maitre */
   const f=s.j[1-p].grille[l][k];
   if(!ci&&f&&el.some(e=>carte(f.c).el.includes(DOMINE[e])))v+=cercle2(J,k,id)?2:1; /* Vic222 : Info tchat ; Le Cirque : pas de cercle */
   return v;
@@ -349,6 +357,7 @@ function retire(s,p,l,k,rem){
   J.defausse.push(g.c);
   J.grille[l][k]=null;
   if(golem(g))orphelins(s,p,g.c,rem);
+  if(g.ani){const A=carte(g.ani.c);J.defausse.push(g.ani.c);if(!rem&&A.id==='902')chatsPioche(s,p,'son maître est détruit');dire(s,p,A.nom+' part à la défausse : son maître a quitté le jeu.')} /* animal attache */
 }
 /* Un animal part a la defausse quand son maitre quitte le jeu (mort, remplace, detruit). Deplace ou evolue, le maitre le garde (agit suit l'evolution). */
 function orphelins(s,p,c,rem){ /* rem : remplacement par son joueur, pas une destruction (Jacen et Jaina) */
@@ -415,6 +424,7 @@ function noteBonus(s){
     vs.forEach(n=>{const t=idEff(n);if(t==='003'||t==='003e')b('voisins',p,g.c,p,n.c)});
     indrasDe(s,p,g.c).forEach(n=>b('favori',p,g.c,p,n.c));
     if(!ci)el.forEach(e=>vs.forEach(n=>{if(carte(n.c).el.includes(e))b('trait',p,g.c,p,n.c)}));
+    if(!ci&&REGLAGE_ANIMAUX.element)animauxVoisins(G,l,k).forEach(A=>{if(el.includes(elAnimal(carte(A.c))))b('trait',p,g.c,p,A.c)}); /* animal voisin */
     const f=s.j[1-p].grille[l][k];
     if(!ci&&f&&el.some(e=>carte(f.c).el.includes(DOMINE[e]))){b('cercle',p,g.c,1-p,f.c);if(cercle2(G,k,idEff(g)))b('cercle',p,g.c,1-p,f.c)} /* Vic222 : Info tchat */
     if(idEff(g)==='037e')el.forEach(e=>{const n=vs.find(n=>carte(n.c).el.includes(e));if(n)b('trait',p,g.c,p,n.c)});
@@ -450,7 +460,7 @@ function debutTour(s){
 }
 function coutPose(s,p,c,l,k){
   const evo=!!carte(c).base;
-  let v=carte(c).cout;
+  let v=coutCarte(carte(c)); /* animaux : REGLAGE_ANIMAUX.cout */
   if(evo)v+=elessars(s.j[1-p].grille); /* Elessar : +1 par Realisation de l'age adverse en jeu, cumulatif ; pas un ciblage (Mode Avion n'y change rien) */
   if(!carte(c).animal&&s.terrains[k].nom==='La Boutique')v--; /* 0.2b.2 : « Jouer un Golem ici » = poser, remplacer et faire evoluer ; pas un animal */
   return Math.max(0,v); /* minimum 0, sur le cout total (surtaxe comprise) */
@@ -458,7 +468,7 @@ function coutPose(s,p,c,l,k){
 function genre(s,p,l,k){return s.j[p].grille[l][k]?'remplacer':'poser'}
 function peutPoser(s,p,c,l,k){
   const J=s.j[p],occ=J.grille[l][k],C=carte(c);
-  if(C.animal){if(occ||!maitreVoisin(J.grille,C,l,k))return false} /* case libre, voisine de son maitre en jeu */
+  if(C.animal){if(REGLAGE_ANIMAUX.attache){if(!estMaitreDe(occ,C)||occ.ani)return false}else if(occ||!maitreVoisin(J.grille,C,l,k))return false} /* case libre, voisine de son maitre en jeu ; attache : sur la case de son maitre, sans autre animal */
   else if(C.base){if(!occ||carte(occ.c).id!==C.base)return false}
   else if(animal(occ)||(C.id==='001'&&s.manche!==1))return false; /* un Golem ne remplace jamais un animal */
   else if(!occ&&estVersus(s,k)&&golemsIci(s,p,k))return false; /* Le Versus : un seul Golem par joueur ici (remplacement et evolution sur place permis) */
@@ -748,17 +758,19 @@ function ragebait(s,p,I,l,k){
 function agit(s,p,a){
   const J=s.j[p],C=carte(a.c),occ=J.grille[a.l][a.k],cout=coutPose(s,p,a.c,a.l,a.k);
   s.stats.ev.push({t:'p',cp:p,cc:a.c,n:cout,m:s.manche});
-  const sur=C.base?elessars(s.j[1-p].grille):0,red=C.cout+sur-cout; /* 0.2b.2 : surtaxe d'Elessar et reduction de La Boutique annoncees chacune (une evolution peut avoir les deux) */
+  const sur=C.base?elessars(s.j[1-p].grille):0,red=coutCarte(C)+sur-cout; /* 0.2b.2 : surtaxe d'Elessar et reduction de La Boutique annoncees chacune (une evolution peut avoir les deux) */
   if(red>0)declenche(s,s.terrains[a.k].nom,'Coût réduit de '+red+' pour '+nomDetail(C));
   if(sur>0){declenche(s,'Réalisation de l\'âge','Coût +'+sur+' pour '+nomDetail(C));dire(s,p,'Réalisation de l\'âge : '+nomDetail(C)+' coûte '+sur+' de plus.')} /* Elessar */
   if(C.base&&occ.d>0)s.stats.ev.push({t:'r',cp:p,cc:a.c,n:occ.d,y:'evolution'});
   J.energie-=cout;J.aAgi=true;J.main.splice(J.main.indexOf(a.c),1);
+  if(C.animal&&REGLAGE_ANIMAUX.attache){occ.ani={c:a.c};dire(s,p,'pose '+C.nom+' sous '+nomDetail(carte(occ.c))+'.');if(C.id==='902')chatsPioche(s,p,'à la pose');return} /* animal attache : sous son maitre, aucune case */
   const g={c:a.c,f:C.force||0,d:0};
   if(C.base){J.defausse.push(occ.c);dire(s,p,'améliore '+nomDetail(carte(occ.c))+' en '+C.nom+'.');if(C.id==='013e'&&occ.fav!==undefined)g.fav=occ.fav;J.grille.forEach(L=>L.forEach(h=>{if(h&&h.fav===occ.c)h.fav=a.c;if(animal(h)&&h.maitre===occ.c)h.maitre=a.c}))} /* 0.2a.1 : le favori survit a l'evolution d'Indra et a la sienne ; l'animal suit son maitre qui evolue */
   else if(C.animal){const[x,y]=maitreVoisin(J.grille,C,a.l,a.k);g.maitre=J.grille[x][y].c;dire(s,p,'pose '+C.nom+'.')} /* lie au maitre voisin (haut, bas, gauche, droite) ; Jacen et Jaina piochent une fois poses (0.4) */
   else if(occ){dire(s,p,'remplace '+nomDetail(carte(occ.c))+' par '+nomDetail(C)+'.');retire(s,p,a.l,a.k,true)} /* remplacement : pas une destruction */
   else dire(s,p,'pose '+nomDetail(C)+'.');
-  if(C.base&&REGLAGE_JJ.garde){if(occ.sub)g.sub=occ.sub.slice();if(occ.dr)g.dr=occ.dr.slice()} /* JackJoy, V2 : Sub offert et Draft diff gardes a l'evolution */
+  if(C.base&&REGLAGE_JJ.garde){if(occ.sub)g.sub=occ.sub.slice();if(occ.dr)g.dr=occ.dr.slice()}
+  if(C.base&&occ.ani)g.ani=occ.ani; /* animal attache : reste si son maitre evolue */ /* JackJoy, V2 : Sub offert et Draft diff gardes a l'evolution */
   J.grille[a.l][a.k]=g;
   if(REGLAGE_TERRAINS.cirque==='premier'&&!C.animal&&s.terrains[a.k].nom==='Le Cirque'&&!(s.cirqueP&&s.cirqueP.m===s.manche))s.cirqueP={m:s.manche,p}; /* Cirque V2 : premier Golem pose ici dans la manche (pose, remplacement, evolution) */
   if(C.id==='902')chatsPioche(s,p,'à la pose'); /* Jacen et Jaina : pioche a la pose, une fois sur la grille (deck vide : 1 point a l'adversaire) */
@@ -769,11 +781,11 @@ function agit(s,p,a){
    le sien puis l'adverse, ne compte pas au decompte (g.hors = s.manche) ; il reste en jeu. Puis Kiwi part a la defausse.
    Hasard : generateur du joueur de Kiwi (rejeu identique). Grille sans Golem : rien. Renvoie [{p (joueur de Kiwi), q (grille), l, k, c, f}]. */
 function mignonitude(s){
-  const r=[];
+  const r=[];Object.defineProperty(r,'partir',{value:[]}); /* kiwiApres : departs differes apres le decompte (propriete non enumerable : hors JSON et hors comparaisons) */
   [s.premier,1-s.premier].forEach(p=>{
     const J=s.j[p];
     for(let l=0;l<3;l++)for(let k=0;k<3;k++){
-      const A=J.grille[l][k];if(!animal(A)||carte(A.c).id!=='901')continue;
+      const H=J.grille[l][k],A=animal(H)&&carte(H.c).id==='901'?H:golem(H)&&H.ani&&carte(H.ani.c).id==='901'?H.ani:null;if(!A)continue; /* Kiwi sur sa case, ou attache sous son maitre */
       [p,1-p].forEach(q=>{
         const cs=[];s.j[q].grille.forEach((L,a)=>L.forEach((g,b)=>{if(golem(g)&&g.hors!==s.manche)cs.push([a,b])}));
         if(!cs.length){dire(s,p,'Kiwi : Mignonitude, aucun Golem '+(q===p?'dans sa grille':'dans la grille adverse')+'.');return}
@@ -782,7 +794,8 @@ function mignonitude(s){
         s.stats.ev.push({t:'h',sp:p,sc:A.c,cp:q,cc:g.c,n:f,m:s.manche});declenche(s,'Mignonitude',n+(q===p?'':' (adverse)')+' ne compte pas');
         dire(s,p,'Kiwi : Mignonitude, '+n+(q===p?'':' (adverse)')+' ne compte pas au décompte.');
       });
-      J.defausse.push(A.c);J.grille[l][k]=null;dire(s,p,'Kiwi part à la défausse.');
+      const part=()=>{J.defausse.push(A.c);if(A===H)J.grille[l][k]=null;else delete H.ani;dire(s,p,'Kiwi part à la défausse.')};
+      if(REGLAGE_ANIMAUX.kiwiApres)r.partir.push(part);else part();
     }
   });
   return r;
@@ -809,6 +822,7 @@ function decompte(s){
   });
   (s.resultats||(s.resultats=[])).push(gagnants.slice()); /* Bellock/Loxim : resultat de chaque terrain a chaque manche (null : egalite, ou Salle Verrouillee avant la manche 3) */
   s.dernier={colonnes:cols,gagnants,ecran:null,exclus};
+  exclus.partir.forEach(f=>f()); /* kiwiApres : Kiwi part juste apres le decompte */
   s.reperes.push([debut,s.log.length,s.log.length]); /* debut du decompte, debut des effets, fin des effets */
   return gagnants;
 }
@@ -1142,7 +1156,7 @@ function valeur(s,p){
 function utilite(s,p,c){
   const J=s.j[p],C=carte(c);
   if(C.id==='001'&&s.manche!==1)return 0;
-  if(C.animal)return J.grille.some(L=>L.some(g=>estMaitreDe(g,C)))?3:J.main.some(q=>carte(q).id===C.maitre)?2:.5; /* Kiwi : utile si son maitre est en jeu ou en main */
+  if(C.animal){const nv=REGLAGE_ANIMAUX.cout===0||REGLAGE_ANIMAUX.element||REGLAGE_ANIMAUX.attache;return J.grille.some(L=>L.some(g=>estMaitreDe(g,C)&&!g.ani))?(nv?5:3):J.main.some(q=>carte(q).id===C.maitre)?(nv?4:2):(nv?1:.5)} /* Kiwi : utile si son maitre est en jeu ou en main ; animaux jouables : plus utile, il ne coute rien */
   if(C.base){
     const base=q=>carte(q).id===C.base,enJeu=J.grille.some(L=>L.some(g=>g&&base(g.c)));
     return (enJeu?6:J.main.some(base)?3:1)-.5*elessars(s.j[1-p].grille); /* Elessar : evolution plus chere tant qu'un Elessar adverse est en jeu */
@@ -1173,6 +1187,7 @@ function gainCoup(s,p,a,v0){
   const f=c=>{const G=c.j[p].grille;
     if(a.t==='p'){
       const C=carte(a.c);
+      if(C.animal&&REGLAGE_ANIMAUX.attache){G[a.l][a.k].ani={c:a.c};return} /* animal attache : +1 a son maitre */
       const old=G[a.l][a.k];G[a.l][a.k]={c:a.c,f:C.id==='002'?3.5:C.id==='002e'?6.4:C.force,d:0};
       if(C.id==='013e'&&old&&old.fav!==undefined)G[a.l][a.k].fav=old.fav;
       if(C.base&&old)G.forEach(L=>L.forEach(h=>{if(h&&h.fav===old.c)h.fav=a.c}));
@@ -1421,7 +1436,7 @@ function robotFort(s,p,l,t){
 const api={VERSION,TRAIT_CUMULE,TAILLE_DECK,DECK_MIN,DECK_MAX,MAX_EX,erreurDeck,ELEM_MAX,elementsDeck,erreurElements,evolutionsSansBase,erreurEvolutions,deckTexte,lisDeck,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
   nomDetail,forceDe,ciblable,colonnes,valeurDecompte,coutPose,genre,TYPES_TEST,DECK_DEFAUT,DECK_TUTO,FAV_BONUS,favori,indrasDe,idEff,foudres,spoms,
   estAnimal,ANIMAL_MAX,maxEx,maitreDe,peutPoser,elessars,graines,COPIEURS,EL_VELNEN,kekwait,echangesMeandyou,DUO,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,partenaires,forgeUtile,jjBonus,ciblesJJ,REGLAGE_JJ,cercle2,blesse,loves,choixLove,REGLAGE_KC,generaux,nettoie,noteBonus,retire,chatsPioche,effetsGolems,agit,piochesAVenir,risqueDeck,doublons,ilSuffit,jourDePeche,POINT_DECK_VIDE,
-  ANCIENS_TERRAINS,REGLAGE_TERRAINS,estVersus,versusPose,slams,tarteX,cirqueInv,tirageTerrains,indexTerrain,ptsTerrain,gagnantColonne,golemsIci,ecart,ptsRobot,pronoRobot,miseTotale,decompte,effetTerrain,valeur,valeurForte};
+  REGLAGE_ANIMAUX,coutCarte,elAnimal,animauxVoisins,ANCIENS_TERRAINS,REGLAGE_TERRAINS,estVersus,versusPose,slams,tarteX,cirqueInv,tirageTerrains,indexTerrain,ptsTerrain,gagnantColonne,golemsIci,ecart,ptsRobot,pronoRobot,miseTotale,decompte,effetTerrain,valeur,valeurForte};
 
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else racine.GolemsMoteur=api;
 })(typeof window!=='undefined'?window:globalThis);

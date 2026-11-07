@@ -238,7 +238,7 @@ const R0={liste:null,force:null,cirque:'tarte'},regle=o=>Object.assign(M.REGLAGE
   ok(P(s,0,AL).includes(0)&&P(s,0,AL).includes(3)&&P(s,0,AL).includes(6),'colonne vide : 3 cases');
   pose(s,0,TR,1,1,0);deq(P(s,0,AL).filter(x=>x%3===0),[3],'deja un Golem ici : seulement le remplacer');
   s.j[0].main.push(27);ok(P(s,0,27).includes(3),'evolution sur place (Roi du Mobile sur Trigas)');
-  pose(s,0,TI,1,0,1);s.j[0].main.push(KI);deq(P(s,0,KI).filter(x=>x%3===0),[0],'animal : pas un Golem, se pose ici a cote de son maitre malgre le Golem');
+  pose(s,0,TI,1,0,1);s.j[0].main.push(KI);deq(P(s,0,KI),[1],'animal (0.5) : seulement sous son maitre, jamais sur une case');
   // pose : le Golem adverse ici perd 1 ; pas de Golem adverse : rien
   s=nouv(['Le Versus','La Faille','La Boutique']);s.j[0].energie=20;s.j[0].main=[AL,CY];pose(s,1,AL,5,2,0);
   M.applique(s,0,{t:'p',c:CY,l:0,k:0});eq(s.j[1].grille[2][0].d,1,'pose : -1 au Golem adverse ici');ok(log(s,/Le Versus : Alrevan \(adverse\) perd 1 de Force\./));
