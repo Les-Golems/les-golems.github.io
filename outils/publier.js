@@ -11,7 +11,8 @@ const git=(...a)=>execFileSync('git',a,{cwd:RACINE,encoding:'utf8',stdio:['ignor
 const stop=m=>{console.error(m);process.exit(1)};
 /* Fichiers du moteur, des donnees et des effets de cartes (comparaison entiere). Depuis l'etape 8, la liste d'affichage CARTES est lue dans cartes/donnees ;
    pour les anciennes references, le bloc const CARTES=[...] de onglets/cartes.js (etapes 5 a 7) ou d'index.html (avant) est encore compare. */
-const MOTEUR=['moteur.js','moteurs','cartes/donnees','cartes/effets'];
+const MOTEUR=['moteur.js','moteurs','cartes/donnees','cartes/effets']; /* sauf cartes/donnees/interface.js : donnees de l'interface seulement (numeros affiches, decks conseilles, bac a sable) */
+const HORS=[':(exclude)cartes/donnees/interface.js'];
 const blocCartes=t=>{const i=t.indexOf('const CARTES=[');if(i<0)return '';const j=t.indexOf('];',i);return t.slice(i,j+2).replace(/\r\n/g,'\n')};
 
 function reference(){
@@ -21,8 +22,8 @@ function reference(){
 }
 function moteurChange(ref){
   const l=[];
-  const d=git('diff','--name-only',ref,'--',...MOTEUR).trim();if(d)l.push(...d.split('\n'));
-  const n=git('ls-files','--others','--exclude-standard','--',...MOTEUR).trim();if(n)l.push(...n.split('\n'));
+  const d=git('diff','--name-only',ref,'--',...MOTEUR,...HORS).trim();if(d)l.push(...d.split('\n'));
+  const n=git('ls-files','--others','--exclude-standard','--',...MOTEUR,...HORS).trim();if(n)l.push(...n.split('\n'));
   /* Liste CARTES : onglets/cartes.js depuis l'etape 5 (avant : index.html), des deux cotes. */
   const avant=['onglets/cartes.js','index.html'].map(f=>{try{return blocCartes(git('show',ref+':'+f))}catch(e){return ''}}).find(x=>x)||'';
   const ici=['onglets/cartes.js','index.html'].map(f=>{try{return blocCartes(fs.readFileSync(path.join(RACINE,f),'utf8'))}catch(e){return ''}}).find(x=>x)||'';

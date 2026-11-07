@@ -303,19 +303,8 @@ function ouvreDeckLien(c){
     $('infoDeckJeu')?.remove();const q=el('p','vd-info','Deck « '+r.nom+' » choisi : lance une partie contre un Golem ou crée un salon.');q.id='infoDeckJeu';$('erreurJeu').before(q)};
   pb.append(imp,jo);pied.append(pb,msg);x.append(t,corps,pied);v.append(x);document.body.append(v);majVueDeck();fx.focus();
 }
-/* Decks de depart conseilles (0.4) : 4 decks valides de 30 cartes, copies dans les decks du joueur (invite compris). */
-const DECKS_CONSEILLES=[
- {nom:"Tempête",cartes:{"007":3,"007e":3,"026":3,"026e":3,"901":1,"041":3,"041e":3,"018":3,"018e":3,"036":3,"036e":2}, /* 0.4a, 4 elements au plus : JackJoy 3 et Drafteur 1 remplaces par Spom, Velnen, Le chansonnier, Le pomplard +1 */ /* Le Q (refonte) : Le Q 3 et Seul contre tous 3 remplaces par Velnen 2, Le chansonnier 2, Elessar +1, JackJoy +1 */
-  txt:"Forge tôt, pioche beaucoup avec Trigas, Titom76 et Velnen, puis améliore tes Golems en Roi du Mobile et Maître du bilig pour finir fort."},
- {nom:"Forge rapide",cartes:{"007":3,"007e":3,"029":3,"036":3,"009":3,"009e":2,"018":3,"015":3,"026":3,"001":3,"902":1}, /* 0.4a, 4 elements au plus : JackJoy 3 et K-Chan 3 remplaces par KaTarN +2, Titom76 +1, Roi du Mobile +1, GymRat 2 */ /* Le Q (refonte) : Le Q 2 remplace par Titom76 2 */
-  txt:"Pose 2 Golems pas chers par tour, remplis la grille avant l'adversaire et serre tes Golems pour profiter du Trait."},
- {nom:"Gros Golems",cartes:{"016":3,"016e":3,"015":3,"015e":3,"002":3,"002e":3,"041":3,"041e":3,"007e":3,"007":3}, /* Le Q (refonte) : Le Q 3 et Seul contre tous 2 remplaces par Le Ace de Aiges 3, Aiges Captain +1, Trigas +1 */
-  txt:"Ne te presse pas : garde ton énergie pour Loxim, Le chansonnier et Roi du Mobile, et forge Bellock pour aller chercher Loxim."},
- {nom:"Roche et Magma",cartes:{"009":3,"009e":3,"029":3,"029e":2,"001":3,"001e":3,"018":3,"018e":3,"036":2,"036e":2,"002":2,"902":1},
-  txt:"Fais baisser la Force des Golems d'en face avec Apo, Glad et Slim K, et pose KaTarN dès la manche 1."},
- {nom:"Marée bretonne",cartes:{"004":3,"004e":1,"026":3,"026e":2,"901":1,"007":3,"007e":3,"001":3,"001e":3,"036":3,"018":3,"018e":2}, /* deck meule autour du nouveau Le Q (0.4a) */
-  txt:"Vide le deck adverse avec Le Q et La Bretagne de Titom76, tiens la grille avec KaTarN et Elessar, et laisse chaque pioche impossible marquer pour toi."}
-];
+/* Decks de depart conseilles (0.4) : donnees dans cartes/donnees/interface.js. */
+const DECKS_CONSEILLES=window.GolemsDonnees.interface.decksConseilles;
 /* Deux elements dominants d'un deck (nombre de cartes par element). */
 function elsDominants(c){const n={};for(const k in c){const C=M.CARTES[k];if(C)(C.el||[]).forEach(e=>n[e]=(n[e]||0)+c[k])}return Object.keys(n).sort((a,b)=>n[b]-n[a]).slice(0,2)}
 function deckConseille(){
@@ -497,51 +486,9 @@ function editeur(b,l,d){
    Des (Alrevan, KEKWRevan) : resultat choisi (4 ; 3 et 4) ou relance au hasard, Force toujours entiere. Aucune ecriture : l'etat vit en memoire, par deck. */
 const bacs={};
 /* Des a la pose : nombre de des et valeurs par defaut ; resultat comme effetPose du moteur (2 des : leur somme, un double vaut un seul de). */
-const BAC_DES={'002':[4],'002e':[3,4]},bacDeF=v=>v.length>1&&v[0]!==v[1]?v[0]+v[1]:v[0];
-const BAC_NOTE={
- '001':'Jeunesse éphémère : Force de la manche 1 ; la perte de 4 en fin de manche n\'est pas comptée.',
- '001e':'Rap God touche la ligne adverse : non compté.',
- '002':'Tout ou rien : choisis le résultat du dé, ou relance-le.',
- '002e':'High Roll : choisis les 2 dés (un double vaut un seul dé), ou relance-les.',
- '003':'Tournoi annexe compté : +1 à chaque voisin.',
- '003e':'Palmarès : +1 aux voisins compté ; les +2 points de fin de manche ne le sont pas.',
- '004':'Jour de pêche vise le deck adverse : sans effet sur la Force.',
- '004e':'Il suffit : la destruction des cartes en plusieurs exemplaires n\'est pas comptée.',
- '007':'Spam (pioche et Forge) : sans effet sur la Force.',
- '007e':'Mode Avion (protection) : sans effet ici.',
- '008':'Rage : il faut subir des dégâts, non comptée.',
- '008e':"Love inconditionnel (soin d'un Golem blessé) : sans effet ici.",
- '013':'Soutien inconditionnel compté : choisis son favori (+1).',
- '013e':'Favori +2 compté ; Ragebait vise le Golem en face : non compté.',
- '009':'Slam vise un Golem adverse : non compté.',
- '009e':'Menfou palu (protection) : sans effet ici.',
- '029':'Gamba : dé à la pose (1 ou 2 : -2 ; 5 ou 6 : vise le Golem en face), non compté.',
- '029e':'Déguisement compté : choisis le voisin copié, son effet en jeu est gardé.',
- '037':'Counter-pick (cercle) : il faut un Golem en face, non compté.',
- '037e':'Full synergie : +1 par élément partagé compté ; le cercle +2 ne l\'est pas.',
- '026':'La Bretagne (pioche) : sans effet sur la Force.',
- '026e':'Caramel à volonté (énergie) : sans effet sur la Force.',
- '036':'Forge éclair : sans effet sur la Force.',
- '036e':'Survolté compté : +1 par Golem Foudre de ta grille.',
- '901':'Animal : pas de Force. Mignonitude (hasard, fin de manche) non comptée.',
- '902':'Animal : pas de Force. zqrinohbqzroihg (pioche) : sans effet sur la Force.',
- '018':'Réalisation de l\'âge (coût adverse) : sans effet sur la Force.',
- '018e':'Extinction du feu vise les Golems adverses : non compté.',
- '041':'Graine de Golem (pioche) : sans effet sur la Force.',
- '041e':'Imitation copie le Golem en face : rien à copier ici.',
- '025':'KEKWait compté : +1 par Golem allié au-dessus.',
- '025e':'meandyou : l\'échange se teste avec Déplacer.',
- '015':'Comeback dépend des manches perdues : non compté (manche 1).',
- '015e':'Double up ? compté ; Comeback non compté (manche 1).',
- '016':'Winstreak dépend des manches remportées : non compté (manche 1).',
- '016e':'Double up ? compté ; Winstreak non compté (manche 1).',
- '035':'Sub offert : il faut forger la carte, non compté.',
- '035e':'Draft diff : il faut forger, non compté.',
- '042':'Info tchat (cercle +2 dans sa colonne) : il faut un Golem en face, non compté.',
- '042e':'Chance du débutant (protection) : sans effet ici.',
- '020':'Grand Général compté : +1 aux autres Golems alliés de sa colonne.',
- '020e':"Bonus d'adjacence compté : +1 par voisin allié."
-};
+const BAC_DES={};idsAvecEffet('forceAuDe').forEach(id=>{const v=window.GolemsDonnees.interface.bacDes[effetDe(id,'forceAuDe').des];if(v)BAC_DES[id]=v}); /* cartes a de (fiches) -> valeurs par defaut selon le nombre de des (cartes/donnees/interface.js) */
+const bacDeF=v=>v.length>1&&v[0]!==v[1]?v[0]+v[1]:v[0];
+const BAC_NOTE=window.GolemsDonnees.interface.bacNotes;
 const bacVide=()=>[[null,null,null],[null,null,null],[null,null,null]];
 const bacTirage=()=>M.TERRAINS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,3);
 function bacDe(d){
@@ -571,8 +518,8 @@ function bacRetire(B,l,k){
 /* Effets de pose qui changent notre Force : des, favori, copie. Les autres effets de pose regardent l'adversaire, la pioche ou la Forge. */
 function bacPose(B,l,k){
   const g=B.G[l][k],C=M.carte(g.c);
-  if(C.id==='041e')g.cp=null; /* Imitation : le Golem en face, absent ici */
-  if(C.id==='029e'&&!('cp' in g)){
+  if(effetDe(C.id,'copie',r=>r.cible==='face'))g.cp=null; /* Imitation : le Golem en face, absent ici */
+  if(effetDe(C.id,'copie',r=>r.cible==='voisin')&&!('cp' in g)){
     const vs=bacVois(l,k).filter(([a,b])=>bacGolem(B.G[a][b]));
     if(!vs.length)g.cp=null;
     else if(vs.length===1)g.cp=M.idEff(B.G[vs[0][0]][vs[0][1]]);
@@ -593,7 +540,7 @@ function bacPlace(B,d,t,l,k){
   const s=bacEtat(B),c=bacLibre(B,d,t);if(c===null||!M.peutPoser(s,0,c,l,k))return false;
   const C=M.carte(c),occ=B.G[l][k],g={c,f:C.force||0,d:0};
   if(C.base){ /* evolution sur sa base : la base revient dans le deck du bac a sable */
-    if(C.id==='013e'&&occ.fav!==undefined)g.fav=occ.fav;if(occ.ani)g.ani=occ.ani; /* 0.5 : l'animal reste si son maitre evolue */
+    if(effetDe(C.id,'favori',r=>r.ragebait)&&occ.fav!==undefined)g.fav=occ.fav;if(occ.ani)g.ani=occ.ani; /* 0.5 : l'animal reste si son maitre evolue */
     B.G.forEach(L=>L.forEach(h=>{if(h&&h.fav===occ.c)h.fav=c;if(h&&M.carte(h.c).animal&&h.maitre===occ.c)h.maitre=c}));
   }else if(C.animal){occ.ani={c};B.sel=null;return true} /* 0.5 : animal sous son maitre, aucune case */
   else if(occ)bacRetire(B,l,k);
@@ -621,7 +568,7 @@ function bacDes(v,id,apres){
     z.append(r)});
   const r=el('div','bs'),q=el('button','pastille','Relancer');q.type='button';
   q.onclick=()=>{v.de=v.de.map(()=>1+Math.floor(Math.random()*6));v.f=bacDeF(v.de);apres()};
-  r.append(q,el('span','',(id==='002e'?'Force des dés : ':'Force du dé : ')+v.f+(v.de.length>1&&v.de[0]===v.de[1]?' (double)':'')));z.append(r);
+  r.append(q,el('span','',(effetDe(id,'forceAuDe',r=>r.des>1)?'Force des dés : ':'Force du dé : ')+v.f+(v.de.length>1&&v.de[0]===v.de[1]?' (double)':'')));z.append(r);
   return z;
 }
 function bacASable(b,d){
@@ -662,7 +609,7 @@ function bacASable(b,d){
     const T=s.terrains[k],dv=el('div','p-terrain'),sl=el('select');sl.setAttribute('aria-label','Terrain '+(k+1));
     M.TERRAINS.forEach((x,i)=>{const o=el('option','',x.nom);o.value=i;sl.append(o)});sl.value=B.T[k];
     sl.onchange=()=>{const v=+sl.value,j=B.T.indexOf(v);if(j>=0&&j!==k)B.T[j]=B.T[k];B.T[k]=v;peint()};
-    dv.append(sl,el('span','p-valeur',T.pts+(T.pts>1?' pts':' pt')),el('span','bac-tinfo',T.nom==='La Boutique'?'Coût -1 ici':'Force inchangée'));t.append(dv);
+    dv.append(sl,el('span','p-valeur',T.pts+(T.pts>1?' pts':' pt')),el('span','bac-tinfo',(r=>r?'Coût -'+r.cout+' ici':'Force inchangée')(effetTerrain(T,'reduction'))));t.append(dv);
   });
   let cible=null;const[sa,sb]=B.selC||[];
   if(B.sel){const c=bacLibre(B,d,B.sel);if(c!==null)cible=(l,k)=>M.peutPoser(s,0,c,l,k)?{texte:(G[l][k]?(M.carte(c).base?'Améliorer ':'Remplacer '):'Poser ')+M.coutPose(s,0,c,l,k),fait:()=>{bacPlace(B,d,B.sel,l,k);peint()}}:null}
@@ -713,7 +660,7 @@ function bacASable(b,d){
     bt('Déplacer',()=>{B.mode=B.mode==='bouge'?null:'bouge';peint()},B.mode==='bouge');
     bt('Retirer',()=>{bacRetire(B,sa,sb);B.selC=null;B.mode=null;peint()});
     if(M.FAV_BONUS[id])bt('Changer le favori',()=>{B.mode='fav';peint()},B.mode==='fav');
-    if(C.id==='029e'&&bacVois(sa,sb).filter(([a,b])=>bacGolem(G[a][b])).length>1)bt('Changer la copie',()=>{delete v.cp;delete v.fav;B.mode='copie';peint()},B.mode==='copie');
+    if(effetDe(C.id,'copie',r=>r.cible==='voisin')&&bacVois(sa,sb).filter(([a,b])=>bacGolem(G[a][b])).length>1)bt('Changer la copie',()=>{delete v.cp;delete v.fav;B.mode='copie';peint()},B.mode==='copie');
     bt('Désélectionner',()=>{B.selC=null;B.mode=null;peint()});
   }
   gauche.append(o);

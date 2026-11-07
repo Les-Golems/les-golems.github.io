@@ -27,5 +27,9 @@ deckDefaut:{'001':3,'001e':3,'002':3,'002e':2,'007':3,'007e':3,'041':3,'026':2,'
 terrainsListe:D.terrains.liste,reglageAnimaux:D.animaux.reglage,elVelnen:D.golems.elVelnen
 });
 for(const k of D.ordre)if(!CARTES[k])throw new Error('code sans fiche : '+k);
+/* Nom long affiche (onglet Cartes, editeur, historique) : nom du membre (la base pour une evolution) + ', ' + titre ; nomLong de la fiche s'il existe (nom hors regle). */
+D.nomLong=id=>{const c=CARTES[id];if(!c)return String(id);if(c.nomLong)return c.nomLong;const m=c.base&&CARTES[c.base]?CARTES[c.base].nom:c.nom;return c.titre?m+', '+c.titre:m};
+/* Ordre d'affichage (galerie, editeur) : ordre des fiches dans chaque fichier de donnees, types dans l'ordre de TYPES_DE_CARTES (pas l'ordre des rangs). */
+D.ordreAffichage=[].concat(...TYPES_DE_CARTES.map(t=>Object.keys(D[t.cle].cartes)));
 if(enNode)module.exports=D;
 })(typeof window!=='undefined'?window:globalThis);

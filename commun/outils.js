@@ -15,3 +15,13 @@ function memeVersion(v){return v===M.VERSION||(M.VERSION==='0.2'&&v==='0.2a')||(
 function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
 /* Oeil des champs de code (type password) : affiche ou masque le code tape, meme icone que le zoom des cartes.
    Focus et curseur gardes ; autocomplete intact ; remasque a l'envoi (gestionnaire de mots de passe) et a la fermeture de la fenetre. */
+
+/* Etape 8 : l'interface ne teste jamais un code de carte ni un nom de terrain ; elle lit les effets dans les fiches (cartes/donnees/*.js).
+   Fiches du jeu en service (window.GolemsDonnees) : les codes et les noms ne changent jamais d'une version a l'autre, un rejeu ancien lit donc les memes effets.
+   effetsCarte(id) : liste des effets de la carte ; effetDe(id,type,filtre) : son 1er effet de ce type (ou null) ; idsAvecEffet(type,filtre) : codes des cartes qui l'ont.
+   effetTerrain(T,type) : effet de ce type du terrain T (lu par son nom), ou null ; indexTerrainEffet(s,type) : colonne du 1er terrain de la partie qui l'a (-1 sinon). */
+const effetsCarte=id=>{const C=(window.GolemsDonnees.CARTES||{})[id];return C?[].concat(C.effet||[]):[]};
+const effetDe=(id,type,f)=>effetsCarte(id).find(r=>r.type===type&&(!f||f(r)))||null;
+const idsAvecEffet=(type,f)=>Object.keys(window.GolemsDonnees.CARTES).filter(id=>effetDe(id,type,f));
+const effetTerrain=(T,type)=>{const x=T&&window.GolemsDonnees.terrains.liste.find(z=>z.nom===T.nom);return x&&[].concat(x.effet||[]).find(r=>r.type===type)||null};
+const indexTerrainEffet=(s,type)=>s.terrains.findIndex(T=>effetTerrain(T,type));

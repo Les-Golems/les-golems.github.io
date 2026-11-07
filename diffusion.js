@@ -236,7 +236,7 @@ function plateau(s,qui){
   const t=mk('div','p-terrains d-tr'),cc=Mo.colonnes(s);
   [0,1,2].forEach(k=>{const T=s.terrains[k],a=cc[k][1-BAS()],m=cc[k][BAS()],d=mk('div','p-terrain'+(m>a?' m-moi':a>m?' m-lui':'')),to=mk('div','p-totaux'),te=mk('div','p-tete');
     te.append(mk('b','',T.nom));to.append(mk('b','m'+(m>a?' tete':''),String(m)),mk('span','','contre'),mk('b','a'+(a>m?' tete':''),String(a)));
-    const Mo2=Mo,v=Mo2.ptsTerrain?Mo2.ptsTerrain(s,k):T.pts;d.append(te,to,ptsEt('p-valeur',v,T.nom==='Le Tournoi',T.nom==='Les Pronos'&&Mo2.miseTotale?Mo2.miseTotale(s):0));d.onclick=()=>zoomTerrainDif(s,k);t.append(d)});
+    const Mo2=Mo,v=Mo2.ptsTerrain?Mo2.ptsTerrain(s,k):T.pts;d.append(te,to,ptsEt('p-valeur',v,!!effetTerrain(T,'pointsManche'),!!effetTerrain(T,'paris')&&Mo2.miseTotale?Mo2.miseTotale(s):0));d.onclick=()=>zoomTerrainDif(s,k);t.append(d)});
   plat.append(r1,t,r2);
   /* halo : case de la derniere carte jouee, 3,6 s a partir de la pose (repeinture : l'animation reprend ou elle en etait) */
   const h=suivi.halo;

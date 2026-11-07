@@ -215,8 +215,8 @@ function vol(de,vers,src,ms,delai){
 const srcC=c=>imgV('cartes/'+M.carte(c).id+'.jpg'),DOS=imgV('cartes/verso.jpg');
 /* Image du terrain, rendue par generer_terrains.py ; le texte de regle reste dans moteur.js. */
 /* 0.4a : valeur affichee d'un terrain en jeu. Le Tournoi (etoile « ? » sur la carte) : valeur de la manche en cours ; Les Pronos : mises de la manche en plus. */
-function valTerrain(Mx,s,k){const T=s.terrains[k],v=Mx.ptsTerrain?Mx.ptsTerrain(s,k):T.pts,n=Mx.miseTotale&&T.nom==='Les Pronos'?Mx.miseTotale(s):0;
-  return {v,txt:(T.nom==='Le Tournoi'?'? = ':'')+v+(v>1?' pts':' pt')+(n?' +'+n:''),long:v+(v>1?' points':' point')+(T.nom==='Le Tournoi'?' à cette manche':'')+(n?', '+n+(n>1?' mises':' mise'):'')}}
+function valTerrain(Mx,s,k){const T=s.terrains[k],v=Mx.ptsTerrain?Mx.ptsTerrain(s,k):T.pts,n=Mx.miseTotale&&effetTerrain(T,'paris')?Mx.miseTotale(s):0,tou=!!effetTerrain(T,'pointsManche');
+  return {v,txt:(tou?'? = ':'')+v+(v>1?' pts':' pt')+(n?' +'+n:''),long:v+(v>1?' points':' point')+(tou?' à cette manche':'')+(n?', '+n+(n>1?' mises':' mise'):'')}}
 const srcTerrain=T=>imgV('cartes/t'+String(window.GolemsMoteur.TERRAINS.findIndex(x=>x.nom===T.nom)+1).padStart(3,'0')+'.jpg');
 /* Carte jouee : grande au centre environ 1,5 s, puis glissade vers sa case. */
 function montreGrand(c,de,vers){
@@ -376,7 +376,7 @@ function etapesLignes(L,av,s,lignes,a){
       nv.forEach((c,i)=>vol(rectDe(piles(q,'deck')),rectDe(piles(q,'defausse')),srcC(c),500,i*120));return T(nv.length?500:0)});
     if(/^Slim K : 1 dégât/.test(x)&&a&&a.t==='p'){const c=[];[0,1,2].forEach(k=>{if(M.ciblable(av,1-p,a.l,k,p))c.push([1-p,a.l,k])});L.push(()=>touche(c,1))}
     if(/^(Kiwi|Jacen et Jaina) part à la défausse : son maître/.test(x))L.push(()=>{aniPartis(av,s,p,450,0);return T(300)});
-    if(x==='KaTarN perd 4 de Force.'){const c=[];for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=av.j[p].grille[l][k];if(g&&M.carte(g.c).id==='001')c.push([p,l,k])}L.push(()=>touche(c,4))}
+    if(x==='KaTarN perd 4 de Force.'){const c=[];for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=av.j[p].grille[l][k];if(g&&effetDe(M.carte(g.c).id,'pertesFinManche'))c.push([p,l,k])}L.push(()=>touche(c,4))}
     m=/: \+(\d+) points?\.$/.exec(x);
     if(m){const n=+m[1];L.push(()=>{etoile(rectDe('.p-plateau'),'+'+n);return T(700)},()=>{if(ecranFin)ecranFin.score[p]+=n;peintFin();ajoutFx({q:'.p-info.score',classe:'bascule'},700);return 0})}
     m=p!==null&&RE_DV.exec(x); /* deck vide (meule) : l'etoile part du deck de celui qui n'a pas pu piocher, le point va a l'autre */
@@ -454,10 +454,10 @@ function etapes(av,s,a,p){
   }else if(a.t==='z'){ /* Caramel a volonte : +1 energie */
     L.push(()=>{ajoutFx({q:caseDe(p,a.l,a.k),classe:'fx-bonus',texte:'+1'},1300);if(p===me)ajoutFx({q:'.p-camp.toi .c-enclume',classe:'bascule'},750);return T(450)});
   }else if(a.t==='o'){ /* 0.4a : tarte du Cirque, frappe et -1 sur le Golem adverse vise */
-    const q=caseDe(1-p,a.l,s.terrains.findIndex(x=>x.nom==='Le Cirque'));
+    const q=caseDe(1-p,a.l,indexTerrainEffet(s,'cirque'));
     L.push(()=>{ajoutFx({q,classe:'fx-frappe'},500);ajoutFx({q,classe:'fx-deg',texte:'-1'},1100);return T(550)});
   }else if(a.t==='t'){ /* 0.4a : mise des Pronos, +1 sur le terrain, l'energie bascule */
-    const q='.p-terrain[data-k="'+s.terrains.findIndex(x=>x.nom==='Les Pronos')+'"]';
+    const q='.p-terrain[data-k="'+indexTerrainEffet(s,'paris')+'"]';
     L.push(()=>{ajoutFx({q,classe:'fx-bonus',texte:'+1'},1300);if(p===me)ajoutFx({q:'.p-camp.toi .c-enclume',classe:'bascule'},750);return T(450)});
   }else if(a.t==='f'||a.t==='s'||a.t==='j'){ /* j : Forge eclair de Spom */
     const de=p===me?rectDe('.p-slot[data-c="'+a.c+'"]'):rectDe('.p-camp.lui .c-main');
@@ -821,10 +821,10 @@ function texteHisto(x){return VD.texteDiscord(VD.deHisto(x),'B')}
 function bonusPrevu(s,me,c,l,k){
   const G=s.j[me].grille,C=M.carte(c),vs=[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([x,y])=>G[x]&&G[x][y]).filter(Boolean);
   const trait=C.el.reduce((t,e)=>{const n=vs.filter(v=>M.carte(v.c).el.includes(e)).length;return t+(M.TRAIT_CUMULE?n:Math.min(n,1))},0),f=s.j[1-me].grille[l][k];
-  const dom=f&&C.el.some(e=>M.carte(f.c).el.includes(M.DOMINE[e])),c2=M.cercle2?M.cercle2(G,k,C.id)||C.id==='042':CERCLE_2.includes(C.id),o={trait,cercle:dom?(c2?2:1):0}; /* Vic222 : Info tchat dans la colonne */
-  if(C.id==='037e'){const n=C.el.filter(e=>vs.some(v=>M.carte(v.c).el.includes(e))).length;if(n)o.synergie=n}
-  if(C.id==='036e'&&M.foudres){const n=M.foudres(G)-(G[l][k]&&M.carte(G[l][k].c).el.includes('foudre')?1:0)+(C.el.includes('foudre')?1:0);if(n)o.survolte=n}
-  if(C.id==='025'&&M.kekwait){const n=M.kekwait(G,l,k);if(n)o.kekwait=n} /* Shifukuro : KEKWait */
+  const dom=f&&C.el.some(e=>M.carte(f.c).el.includes(M.DOMINE[e])),c2=M.cercle2?M.cercle2(G,k,C.id)||!!effetDe(C.id,'cercleTerrain'):CERCLE_2.includes(C.id),o={trait,cercle:dom?(c2?2:1):0}; /* Vic222 : Info tchat dans la colonne */
+  if(effetDe(C.id,'synergie')){const n=C.el.filter(e=>vs.some(v=>M.carte(v.c).el.includes(e))).length;if(n)o.synergie=n}
+  if(effetDe(C.id,'forceParGolem',r=>r.compte==='element')&&M.foudres){const n=M.foudres(G)-(G[l][k]&&M.carte(G[l][k].c).el.includes('foudre')?1:0)+(C.el.includes('foudre')?1:0);if(n)o.survolte=n}
+  if(effetDe(C.id,'forceParGolem',r=>r.compte==='dessus')&&M.kekwait){const n=M.kekwait(G,l,k);if(n)o.kekwait=n} /* Shifukuro : KEKWait */
   if(DUO_MANCHE[C.id]&&M.duoManches){const[x,w]=DUO_MANCHE[C.id],n=x*M.duoManches(s,me,k,!!w);if(n)o[w?'winstreak':'comeback']=n} /* Bellock et Loxim : manches deja jouees sur ce terrain */
   if(M.doubleUp&&M.doubleUp(G,l,k,C.id))o.doubleup=M.REGLAGE_DUO.doubleUp; /* Double up ? des evolutions du duo */
   return o;
@@ -907,8 +907,8 @@ function verifieRecap(){
   cols.forEach(k=>{
     const T=s.terrains[k],c=s.dernier.colonnes[k],w=s.dernier.gagnants[k],z=el('div','r-terrain');
     const fo=el('div','forces');fo.append('Toi ',el('b','',String(c[me])),' contre ',el('b','',String(c[lui])),' '+nl);
-    const bloque=T.nom==='La Salle Verrouillée'&&n<3;
-    z.append(el('h3','',T.nom),el('div','pts',w===null?'0 pt':(v=>'+'+v+(v>1?' pts':' pt'))(T.nom==='Le Tournoi'?n:T.pts)),fo,
+    const bloque=(r=>!!r&&n<r.manche)(effetTerrain(T,'derniereManche'));
+    z.append(el('h3','',T.nom),el('div','pts',w===null?'0 pt':(v=>'+'+v+(v>1?' pts':' pt'))(effetTerrain(T,'pointsManche')?n:T.pts)),fo,
       el('div','gagne',bloque?'Ne marque pas encore':w===null?'Égalité':w===me?'Gagné par toi':'Gagné par '+nl));
     d.append(z);
   });
@@ -971,15 +971,15 @@ function archiveResume(s,id){
   if(!compteCo()||!room.ecritResume||!s.fin)return null;
   const w=s.fin.gagnant,p0=s.premier^((s.manche-1)&1),B=M.bilan(s),st=(s.stats&&s.stats.t)||[];
   const t={};s.terrains.forEach((T,k)=>{const e=st.filter(x=>x.k===k);
-    t[k]={n:String(T.nom).slice(0,40),r:e.map(x=>x.gagnant===0||x.gagnant===1?String(x.gagnant):T.nom==='La Salle Verrouillée'&&x.manche<3?'-':x.forces[0]===x.forces[1]?'=':'-').join('').slice(0,3)||'-',q:Math.min(20,e.reduce((a,x)=>a+(+x.points||0),0))}});
+    t[k]={n:String(T.nom).slice(0,40),r:e.map(x=>x.gagnant===0||x.gagnant===1?String(x.gagnant):(r=>!!r&&x.manche<r.manche)(effetTerrain(T,'derniereManche'))?'-':x.forces[0]===x.forces[1]?'=':'-').join('').slice(0,3)||'-',q:Math.min(20,e.reduce((a,x)=>a+(+x.points||0),0))}});
   const o={v:String(M.VERSION).slice(0,12),m:partie.local?'golem-'+partie.niveau:'ligne',g:w===0||w===1?w:-1,pg:w===p0,a:s.fin.abandon!==undefined,
     s0:Math.min(30,s.j[0].score),s1:Math.min(30,s.j[1].score),mvp:B.mvp?String(B.mvp.carte).slice(0,40):'',t};
   [0,1].forEach(p=>{const k=M.lisDeck(s.decks[p])?s.decks[p]:'';o['k'+p]=k;o['e'+p]=elsTexte(k).join(',')});
   /* Partie contre un Golem : le robot joue le deck par defaut, enregistre sous son texte (30 cartes depuis 0.3, 33 avant ; camp ignore par agregeStats). */
   if(partie.local){const r=1-partie.moi;if(!o['k'+r])o['k'+r]=DECK_TEST_TXT}
-  /* Forces reellement tirees par Alrevan (002) et KEKWRevan (002e), des deux camps. */
-  {const dr={};(s.log||[]).forEach(x=>{const t=String(x[1]);let m=/^Alrevan lance le dé : Force (\d+)\.$/.exec(t),id='002';
-     if(!m){m=/^Alrevan \(KEKWRevan\) lance \d+ et \d+ : Force (\d+)\.$/.exec(t);id='002e'}
+  /* Forces reellement tirees par les cartes a de (type forceAuDe : Alrevan 1 de, KEKWRevan 2 des), des deux camps ; cle = code de la carte. Lignes du journal du moteur. */
+  {const dr={},id1=idsAvecEffet('forceAuDe',r=>r.des===1)[0],id2=idsAvecEffet('forceAuDe',r=>r.des===2)[0];(s.log||[]).forEach(x=>{const t=String(x[1]);let m=/^Alrevan lance le dé : Force (\d+)\.$/.exec(t),id=id1;
+     if(!m){m=/^Alrevan \(KEKWRevan\) lance \d+ et \d+ : Force (\d+)\.$/.exec(t);id=id2}
      if(m){const f=+m[1];if(f>=1&&f<=12)(dr[id]=dr[id]||[]).length<30&&dr[id].push(f)}});
    if(Object.keys(dr).length)o.dr=dr}
   /* Une seule fois par partie sur cet appareil, quel que soit le compte (la regle refuse aussi toute reecriture). */

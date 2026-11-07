@@ -1,50 +1,20 @@
 /* Onglet Cartes : liste CARTES, filtres, tri, galerie, zoom d'une carte, liens directs ?carte=. */
 /* Cartes */
-const CARTES=[
- ['001','KaTarN, Romain 18 ans',['magma','foudre'],0],['001e','KaTarN, Slim K',['magma','foudre'],1],
- ['002','Alrevan, Le High Roller Originel',['brume','roche'],0],['002e','Alrevan, KEKWRevan',['brume','roche'],1],
- ['003','Cyrdan, Le Champion des Tournois Annexes',['cristal','roche'],0],['003e','Cyrdan, Le Roi du Karaoké',['cristal','roche'],1],
- ['004','Le Q, Ragebaiter',['brume','magma'],0],['004e','Le Q, Seul contre tous',['brume','magma'],1],
- ['007','Trigas, Accro au Gacha',['foudre','brume'],0],['007e','Trigas, Le Roi du Mobile',['foudre','brume'],1],
- ['008','K-Chan, Reine du tilt',['magma','cristal'],0],['008e',"K-Chan, L'attachiante",['magma','cristal'],1],
- ['013','Indra, La Groupie',['cristal','magma'],0],['013e','Indra, La Fan enflammée',['cristal','magma'],1],
- ['009','Glad, /Poll',['roche','magma'],0],['009e','Glad, GymRat',['roche','magma'],1],
- ['029','Apo, Clown junior',['magma','roche'],0],['029e','Apo, Maître du déguisement',['magma','roche'],1],
- ['037','SuperFishman, Elosit Master',['roche','cristal'],0],['037e','SuperFishman, Monsieur Poisson',['roche','cristal'],1],
- ['026','Titom76, Le Breton',['brume','foudre'],0],['026e','Titom76, Maître du bilig',['brume','foudre'],1],
- ['036','Spom, Innocent ordinaire',['foudre','magma'],0],['036e','Spom, A encore menti',['foudre','magma'],1],
- ['018',"Elessar, Le p'tit jeune du Discord",['roche','foudre'],0],['018e','Elessar, Le pomplard',['roche','foudre'],1],
- ['041','Velnen, Spécialiste du potager',['roche','brume'],0],['041e','Velnen, Le chansonnier',['roche','brume'],1],
- ['025','Shifukuro, Le chatteur',['roche','cristal'],0],['025e','Shifukuro, Le modérateur',['roche','cristal'],1],
- ['015','Bellock, La terreur du PBE',['brume','magma'],0],['015e','Bellock, Aiges Captain',['brume','magma'],1],
- ['016',"Loxim, Le roi de l'impro",['brume','magma'],0],['016e','Loxim, Le Ace de Aiges',['brume','magma'],1],
- ['035',"JackJoy, Viewer de l'ombre",['foudre','cristal'],0],['035e','JackJoy, Drafteur expérimenté',['foudre','cristal'],1],
- ['042','Vic222, Lurker du discord',['cristal','roche'],0],['042e','Vic222, Baby gamer',['cristal','roche'],1],
- ['020','GénéralBrioche, Le pas sûr de lui',['cristal','roche'],0],['020e','GénéralBrioche, Le civ player',['cristal','roche'],1],
- ['901','Kiwi, Le lapin de Titom76',[],'a'],['902','Jacen et Jaina, Les chats de KaTarN',[],'a']];
+/* Liste d'affichage, lue dans les fiches (cartes/donnees/*.js) : [code, nom long, elements, 0 base | 1 evolution | 'a' animal], dans l'ordre des fiches. */
+const CARTES=window.GolemsDonnees.ordreAffichage.map(id=>{const c=window.GolemsDonnees.CARTES[id];return [id,window.GolemsDonnees.nomLong(id),c.el||[],c.animal?'a':c.base?1:0]});
 /* 4e champ d'une carte : 0 = base, 1 = évolution, 'a' = animal de compagnie (ex. ['041','Kiwi',['brume'],'a']). */
 const estAnimal=c=>c[3]==='a';
 /* Couleur du sous-titre : premier element ; animal = vert clair --animal-titre (#effed9, d'apres le sous-titre de 901 et 902) ; sinon or. */
 const coulT=c=>c[2][0]?'var(--'+c[2][0]+')':estAnimal(c)?'var(--animal-titre)':'var(--or)';
 /* Aperçus : visibles dans la galerie, absents du moteur, des decks et de l'éditeur. */
 const APERCUS=[],GALERIE=[...CARTES,...APERCUS];
-/* Numéro AFFICHÉ des Golems (ordre où ils deviennent jouables) : code interne -> numéro. Les codes internes ne changent jamais.
-   Golem à venir : absent de la table, aucun numéro affiché. Prochain jouable : 18. */
-const NUMERO_AFFICHE={'001':1,'002':2,'003':3,'004':4,'007':5,'008':6,'013':7,'009':8,'029':9,'037':10,'026':11,'036':12,'018':13,'041':14,'025':15,'015':16,'016':17,'035':18,'042':19,'020':20};
-/* Animaux de compagnie : numero affiche A-0NN, table a part (codes internes 9xx). */
-const NUMERO_ANIMAL={'901':11,'902':1};
+const NUMERO_AFFICHE=window.GolemsDonnees.interface.numeroAffiche; /* cartes/donnees/interface.js */
+const NUMERO_ANIMAL=window.GolemsDonnees.interface.numeroAnimal;
 const numeroAffiche=id=>{if(NUMERO_ANIMAL[id])return 'A-'+String(NUMERO_ANIMAL[id]).padStart(3,'0');const n=NUMERO_AFFICHE[String(id).slice(0,3)];return n?'G-'+String(n).padStart(3,'0')+(String(id).endsWith('e')?' ★':''):''};
 const EL=[['','Tous'],['magma','Magma'],['cristal','Cristal'],['foudre','Foudre'],['brume','Brume'],['roche','Roche']];
 const TY=[['','Toutes'],['0','Base'],['1','Évolution'],['a','Animaux'],['t','Terrains']]; /* 0.4 : bouton « À venir » retiré des filtres (tuiles et logique gardées) */
 const MSG_ANIMAUX="Aucun animal de compagnie pour l'instant.";
-/* Cartes à venir, hors moteur : retirer la ligne d'un membre quand sa carte arrive, les numéros restent fixes. */
-const A_VENIR=[
- ['005','Driscop'],['006','Falys'],['010','Orotembu'],
- ['011','Sleepy'],['012','Simon'],['014','Boubou'],
- ['017','Letran'],['019','Victone'],['021','Elccino'],['022','Shantiruka'],
- ['023','Kun_Mamba'],['024','MrTitou'],['027','Merser'],['028','Nadzu'],
- ['030','Cyd'],['031','Obsess'],['032','Marech'],['033','Greeny'],['034','Harentros'],
- ['038','TortueGourmande'],['039','TortueVéloce'],['040','PoulpeHome']];
+const A_VENIR=window.GolemsDonnees.interface.aVenir; /* cartes/donnees/interface.js */
 function pastilles(box,liste,get,set,point){
   liste.forEach(([v,t])=>{
     const b=document.createElement('button');b.className='pastille';b.dataset.v=v;
@@ -91,7 +61,7 @@ const TRI=[['','Numéro'],['cout','Coût'],['force','Force']];let fTri='',triDes
 pastilles($('filtreTri'),TRI,()=>fTri,v=>fTri=v);
 {const s=document.createElement('button');s.className='pastille';s.id='triSens';s.type='button';s.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span></span>';s.onclick=()=>{triDesc=!triDesc;maj()};const g=el('div','f-btns');g.append(s);$('filtreTri').after(g)}
 /* Force au de : moyenne reelle des lancers (forceMoy), sinon theorique (Alrevan 3,5 ; KEKWRevan 6,4). */
-const FORCE_TRI={'002':3.5,'002e':6.4};
+const FORCE_TRI={};idsAvecEffet('forceAuDe').forEach(id=>{FORCE_TRI[id]=effetDe(id,'forceAuDe').estime}); /* estime des fiches */
 const valTri=(id,k)=>{const C=window.GolemsMoteur.CARTES[id];if(!C)return 99;return k==='force'?(C.force==null?forceMoy(id)??0:C.force):C.cout}; /* animal : ni Force ni de, trie a 0 */
 /* Moyenne reelle : forces tirees (champ dr des resumes deja charges pour les Statistiques), par code, 1 decimale ;
    theorique tant qu'un code a moins de 30 lancers ou sans donnees (invite, hors ligne). Aucune lecture ni ecriture en plus. */
@@ -126,7 +96,7 @@ GALERIE.forEach(c=>{
   p.append(b);
 });
 /* 0.4a : valeur annoncee d'un terrain hors partie ; Le Tournoi (« ? » sur la carte) varie avec la manche. */
-const ptsAnnonce=T=>T.nom==='Le Tournoi'?'? (1 à 3 points selon la manche)':T.pts+(T.pts>1?' points':' point');
+const ptsAnnonce=T=>effetTerrain(T,'pointsManche')?'? (1 à 3 points selon la manche)':T.pts+(T.pts>1?' points':' point');
 function tuilesTerrains(){
   if($('grille').querySelector('[data-terrain]'))return;
   window.GolemsMoteur.TERRAINS.forEach(T=>{

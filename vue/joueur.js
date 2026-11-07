@@ -146,10 +146,10 @@ function lg(t,v,cl){const d=el('div','lg'+(cl?' '+cl:''));d.append(el('span','',
 /* Identifiant d'effet : le Maitre du deguisement (029e) et Le chansonnier (041e) portent l'effet copie. Anciens moteurs (rejeu) : celui de la carte. */
 const effId=g=>M.idEff?M.idEff(g):M.carte(g.c).id;
 /* Copieurs (badge « Copie X », detail de Force) : code -> nom de la capacite qui copie (meme liste que COPIEURS du moteur). */
-const COPIEUR={'029e':'Déguisement','041e':'Imitation'};
-const CERCLE_2=['037','037e']; /* Counter-pick et Full synergie : cercle +2 (meme table que CERCLE2 du moteur) */
+const COPIEUR={};idsAvecEffet('copie').forEach(id=>{const t=M0.CARTES[id].texte||'',i=t.indexOf(' :');COPIEUR[id]=i>0?t.slice(0,i):''}); /* type d'effet copie (fiches) -> nom de capacite (texte avant « : ») */
+const CERCLE_2=idsAvecEffet('cercle'); /* Counter-pick et Full synergie : cercle +2 (type d'effet cercle des fiches, comme le moteur) */
 /* Comeback (Bellock, Aiges Captain) et Winstreak (Loxim, Le Ace de Aiges) : Force par manche, perdue (0) ou remportee (1) sur son terrain (meme table que DUO_MANCHE du moteur) */
-const DUO_MANCHE={'015':[1,0],'015e':[2,0],'016':[1,1],'016e':[2,1]};
+const DUO_MANCHE={};idsAvecEffet('forceParManche').forEach(id=>{const r=effetDe(id,'forceParManche');DUO_MANCHE[id]=[r.bonus,r.gagne?1:0]}); /* lu dans les fiches : [bonus, gagnee] */
 /* Couleur de la Force en jeu : 'plus' au-dessus de la Force de base (g.f, résultat du dé pour Alrevan), 'moins' en dessous. */
 const sensForce=(fa,f)=>fa>f?'plus':fa<f?'moins':'';
 /* Nom de capacité d'une carte (texte avant « : », moteur en service M0 : les anciens textes disaient « En jeu »), pour dire d'où vient un bonus */
@@ -159,39 +159,39 @@ function detailForce(s,p,l,k){
   let somme=0;const ajoute=(t,n,v)=>{somme+=n;a.append(lg(t,v!==undefined?v:signe(n)))};
   a.append(el('h3','','Force'));
   if(COPIEUR[C.id]&&g.cp!==undefined)a.append(lg(g.cp?COPIEUR[C.id]+' : copie '+M.nomDetail(M.CARTES[g.cp]):COPIEUR[C.id]+' : rien à copier',''));
-  ajoute(id==='002'?'Résultat du dé':id==='002e'?'Résultat des dés':'Force de base',g.f,String(g.f));
+  {const r=effetDe(id,'forceAuDe');ajoute(r?(r.des>1?'Résultat des dés':'Résultat du dé'):'Force de base',g.f,String(g.f))}
   const vs=[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([x,y])=>G[x]&&G[x][y]).filter(Boolean);
-  vs.forEach(v=>{const c=M.carte(v.c),e=effId(v);if(e==='003'||e==='003e')ajoute((capa(e)||'Bonus')+' : voisin '+M.nomDetail(c)+(c.id!==e?' (copie de Cyrdan)':''),1)});
+  vs.forEach(v=>{const c=M.carte(v.c),e=effId(v);if(effetDe(e,'bonusVoisins'))ajoute((capa(e)||'Bonus')+' : voisin '+M.nomDetail(c)+(c.id!==e?' (copie de '+M0.CARTES[M0.CARTES[e].base||e].nom+')':''),1)});
   if(g.ra)ajoute('Rage',g.ra);
   if(g.ani)ajoute('Animal : '+M.carte(g.ani.c).nom,1); /* 0.5 : animal attache */
   if(M.indrasDe)M.indrasDe(s,p,g.c).forEach(n=>ajoute('Favori de '+M.nomDetail(M.carte(n.c)),M.FAV_BONUS[effId(n)]));
   if(g.fav!==undefined&&M.FAV_BONUS&&M.FAV_BONUS[id]){const x=G.flat().find(h=>h&&h.c===g.fav);if(x)a.append(lg('Son favori : '+M.nomDetail(M.carte(x.c)),'♥'))}
   let d=g.d;
-  if(C.id==='001'&&d>=3){
-    const n=Math.min(Math.floor(d/4),s.log.filter(([q,x])=>q===p&&x==='KaTarN perd 4 de Force.').length);
-    if(n){ajoute('Jeunesse éphémère : fin de manche',-4*n);d-=4*n}
+  {const r=effetDe(C.id,'pertesFinManche'),X=r&&r.degats;if(r&&d>=X-1){
+    const n=Math.min(Math.floor(d/X),s.log.filter(([q,x])=>q===p&&x===M0.CARTES[C.id].nom+' perd '+X+' de Force.').length); /* ligne du journal du moteur */
+    if(n){ajoute(capa(C.id)+' : fin de manche',-X*n);d-=X*n}}
   }
   if(M.generaux){const n=M.generaux(G,l,k);if(n)ajoute('Grand Général',n)} /* GeneralBrioche : +1 par GeneralBrioche allie de la colonne (pas lui-meme) */
-  if(id==='020e'){const n=vs.filter(v=>!M.carte(v.c).animal).length;ajoute("Bonus d'adjacence"+(n?'':' : aucun voisin'),n)} /* Le civ player : +1 par voisin allie */
+  if(effetDe(id,'forceParGolem',r=>r.compte==='voisins')){const n=vs.filter(v=>!M.carte(v.c).animal).length;ajoute("Bonus d'adjacence"+(n?'':' : aucun voisin'),n)} /* Le civ player : +1 par voisin allie */
   if(g.sub&&g.sub.length)ajoute('Sub offert',g.sub.length); /* JackJoy : bonus recus, gardes jusqu'a la fin de la partie */
   if(g.dr&&g.dr.length)ajoute('Draft diff',g.dr.length);
   if(d>0)ajoute('Dégâts subis',-d);
   const gs=vs.filter(v=>!M.carte(v.c).animal);
   C.el.forEach(e=>{const n=gs.filter(v=>M.carte(v.c).el.includes(e)).map(v=>M.nomDetail(M.carte(v.c)));
     ajoute('Trait '+NOMS_EL[e]+(n.length?' : voisin '+n.join(', '):' : aucun voisin'),M.TRAIT_CUMULE?n.length:Math.min(n.length,1))}); /* 0.2.1 : +1 par voisin */
-  if(id==='037e'){const n=C.el.filter(e=>gs.some(v=>M.carte(v.c).el.includes(e))).length;if(n)ajoute('Full synergie : '+(n>1?'2 éléments partagés':'1 élément partagé'),n)}
-  if(id==='036e'&&M.foudres){const n=M.foudres(G);if(n)ajoute('Survolté : '+n+(n>1?' Golems Foudre':' Golem Foudre')+' en jeu',n)}
-  if(id==='025'&&M.kekwait){const n=M.kekwait(G,l,k);ajoute((capa('025')||'KEKWait')+' : '+(n?n+(n>1?' Golems alliés':' Golem allié'):'aucun Golem allié')+' au-dessus',n)} /* Shifukuro, ou Apo et chansonnier qui l'ont copié */
+  if(effetDe(id,'synergie')){const n=C.el.filter(e=>gs.some(v=>M.carte(v.c).el.includes(e))).length;if(n)ajoute(capa(id)+' : '+(n>1?'2 éléments partagés':'1 élément partagé'),n)}
+  if(effetDe(id,'forceParGolem',r=>r.compte==='element')&&M.foudres){const n=M.foudres(G);if(n)ajoute(capa(id)+' : '+n+(n>1?' Golems Foudre':' Golem Foudre')+' en jeu',n)}
+  if(effetDe(id,'forceParGolem',r=>r.compte==='dessus')&&M.kekwait){const n=M.kekwait(G,l,k);ajoute((capa(id)||'KEKWait')+' : '+(n?n+(n>1?' Golems alliés':' Golem allié'):'aucun Golem allié')+' au-dessus',n)} /* Shifukuro, ou Apo et chansonnier qui l'ont copié */
   if(DUO_MANCHE[id]&&M.duoManches){ /* Bellock et Loxim (ou Apo et chansonnier qui les ont copiés) : manches de ce terrain, lues dans s.resultats */
     const[x,w]=DUO_MANCHE[id],n=M.duoManches(s,p,k,!!w),q=w?'remportée':'perdue';
     ajoute((capa(id)||(w?'Winstreak':'Comeback'))+' : '+(n?n+' manche'+(n>1?'s '+q+'s':' '+q):'aucune manche '+q)+' sur ce terrain'+(n&&x>1?' (+'+x+' chacune)':''),x*n)}
   if(M.doubleUp&&M.DUO&&M.DUO[id]&&M.CARTES[id].base){ /* Double up ? des évolutions du duo : une seule fois, ligne ou terrain */
     const v=M.doubleUp(G,l,k,id),nP=M.CARTES[M.DUO[id]].nom;
     ajoute(v?'Double up ? : seul avec '+M.nomDetail(M.carte(v.c))+' sur '+(G[l].includes(v)?'sa ligne':'son terrain'):'Double up ? : pas seul avec '+nP+' sur sa ligne ni son terrain',v?M.REGLAGE_DUO.doubleUp:0)}
-  if(s.terrains[k]&&s.terrains[k].nom==='Le Karaoké'&&M.golemsIci&&M.golemsIci(s,p,k)===2)ajoute('Le Karaoké : exactement 2 Golems ici',2); /* 0.4a */
+  {const r=effetTerrain(s.terrains[k],'paire');if(r&&M.golemsIci&&M.golemsIci(s,p,k)===r.n)ajoute(s.terrains[k].nom+' : exactement '+r.n+' Golems ici',r.bonus)} /* 0.4a */
   const h=s.j[1-p].grille[l][k],hC=h?M.carte(h.c):null,dom=hC?C.el.find(e=>hC.el.includes(M.DOMINE[e])):null,c2=dom&&(M.cercle2?M.cercle2(G,k,id):CERCLE_2.includes(id)),c2n=CERCLE_2.includes(id)?', Counter-pick':', Info tchat'; /* Vic222 : +2 aussi dans sa colonne */
   ajoute(dom?'Cercle : '+NOMS_EL[dom]+' domine '+NOMS_EL[M.DOMINE[dom]]+' ('+M.nomDetail(hC)+' en face)'+(c2?c2n:''):hC&&!hC.animal?'Cercle : '+M.nomDetail(hC)+' en face, pas de domination':'Cercle : aucun Golem en face',dom?(c2?2:1):0,dom?(c2?'+2':'+1'):'+0');
-  if(id==='042e')a.append(lg('Chance du débutant',g.cdb?'utilisée':'disponible')); /* Vic222 : bouclier unique (g.cdb une fois utilisé) */
+  {const r=effetDe(id,'immunite',r=>r.unique);if(r)a.append(lg(r.nom,g.cdb?'utilisée':'disponible'))} /* Vic222 : bouclier unique (g.cdb une fois utilisé) */
   if(fa!==somme)ajoute('Autres effets',fa-somme); /* filet : le total affiché reste celui du moteur */
   const t=lg('Force actuelle',String(fa),'tot'),sf=sensForce(fa,g.f);if(sf)t.lastChild.classList.add(sf);a.append(t);
   return [a];
@@ -392,7 +392,7 @@ function zoomTerrainJeu(s,k,me){
 }
 /* Elessar (Réalisation de l'âge) : surcoût d'une évolution pour le joueur p, lu dans le moteur (coutPose ; 0 sans Elessar adverse en jeu).
    Lu sur une colonne sans La Boutique : depuis le moteur 0.2b.2 elle réduit aussi les évolutions, son -1 s'affiche sur la case (Améliorer N), pas sur la carte en main. */
-function surcout(s,p,c){const C=M.carte(c);if(!s||!C.base)return 0;const k=s.terrains.findIndex(T=>T.nom!=='La Boutique');return M.coutPose(s,p,c,0,k<0?0:k)-C.cout}
+function surcout(s,p,c){const C=M.carte(c);if(!s||!C.base)return 0;const k=s.terrains.findIndex(T=>!effetTerrain(T,'reduction'));return M.coutPose(s,p,c,0,k<0?0:k)-C.cout}
 /* Explication du surcoût (survol, zoom, aria-label) : +1 par Elessar adverse. */
 const causeSurcout=n=>"Réalisation de l'âge "+(n>1?'de '+n+' Elessar adverses':"d'Elessar adverse")+', +'+n+'.';
 function txtSurcout(C,n){return 'Coûte '+(C.cout+n)+' énergie au lieu de '+C.cout+' : '+causeSurcout(n)}
@@ -442,7 +442,7 @@ function raisonPose(s,me,c,leg){
     if(!lib.length)return pris.length?{court:'Maître déjà pris',long:M.CARTES[m].nom+' a déjà un animal.'}:{court:M.CARTES[m].nom+' requis',long:'Il faut '+M.CARTES[m].nom+' en jeu.'};
     return {court:'Trop chère',long:'Coûte '+Math.min(...lib)+' énergie, il te reste '+e+'.'};
   }
-  if(C.id==='001'&&s.manche!==1)return {court:'Manche 1 seulement',long:'Se pose uniquement en manche 1.'};
+  {const r=effetDe(C.id,'poseManche');if(r&&s.manche!==r.manche)return {court:'Manche '+r.manche+' seulement',long:'Se pose uniquement en manche '+r.manche+'.'}}
   const cases=[];
   for(let l=0;l<3;l++)for(let k=0;k<3;k++)if(!C.base||(G[l][k]&&M.carte(G[l][k].c).id===C.base))cases.push(M.coutPose(s,me,c,l,k));
   if(!cases.length)return {court:'Base absente',long:'Il faut '+M.CARTES[C.base].nom+' en jeu.'};
@@ -488,10 +488,10 @@ function affiche(){
       return null;
     };
   }else if(modeTarte){ /* Le Cirque : touche un Golem adverse de la colonne du Cirque (cases dorees de la grille adverse) */
-    const kc=s.terrains.findIndex(x=>x.nom==='Le Cirque');
+    const kc=indexTerrainEffet(s,'cirque');
     cibleAdv=(l,k)=>{const a=k===kc&&coupsO.find(c=>c.l===l);return a?{texte:'',fait:()=>{modeTarte=false;joue(a)}}:null};
   }else if(modeFaille){
-    const kf=s.terrains.findIndex(x=>x.nom==='La Faille');
+    const kf=indexTerrainEffet(s,'deplacement');
     cible=(l,k)=>{
       if(!selCases.length)return coupsF.some(a=>a.l===l&&a.k===k)?{texte:'Choisir',fait:()=>{selCases=[[l,k]];affiche()}}:null;
       const[x,y]=selCases[0];
@@ -566,7 +566,7 @@ function affiche(){
     if(y>x)d.classList.add('m-moi');else if(x>y)d.classList.add('m-lui');
     d.tabIndex=0;d.setAttribute('role','button');const VT=valTerrain(M,A,k);d.setAttribute('aria-label',T.nom+', '+VT.long+' : toi '+y+', '+nomJ(lui)+' '+x);
     const te=el('div','p-tete'),mi=el('div','p-tmil'),pt=el('span','p-valeur');
-    te.append(el('b','',T.nom));pt.append(ico('coupe'),VT.txt);if(T.nom==='Le Tournoi')pt.title='Le Tournoi : 1, 2 puis 3 points selon la manche';mi.append(te,pt);
+    te.append(el('b','',T.nom));pt.append(ico('coupe'),VT.txt);if(effetTerrain(T,'pointsManche'))pt.title=T.nom+' : 1, 2 puis 3 points selon la manche';mi.append(te,pt);
     d.onclick=()=>zoomTerrainJeu(A,k,me);d.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();zoomTerrainJeu(A,k,me)}};d.onmouseenter=()=>montreApercu(d,srcTerrain(T));d.onmouseleave=cacheApercu;
     d.append(el('b','p-tot a'+(x>y?' tete':''),String(x)),mi,el('b','p-tot m'+(y>x?' tete':''),String(y)));t.append(d)});
     /* Miroir, comme aux echecs : l'adversaire en haut, moi en bas ; la ligne 0 du moteur (ligne 1 des regles) colle aux terrains
@@ -631,7 +631,7 @@ function affiche(){
     con(selCases.length?'Glad (Slam) : touche une case libre en surbrillance pour y reposer ce Golem. Il perdra 1 de Force.':pl1?'Glad (Slam) : touche un Golem adverse en surbrillance pour le soulever.':'Glad (Slam) : aucune case libre, touche un Golem adverse : il reste en place et perd 1 de Force.');
     pl.append(mainVue(J.main,{}));
   }else if(att&&att.t==='g'){
-    const I=J.grille[att.i[0]][att.i[1]],evo=I&&M.carte(I.c).id==='013e';
+    const I=J.grille[att.i[0]][att.i[1]],evo=I&&!!effetDe(M.carte(I.c).id,'favori',r=>r.ragebait);
     con('Indra'+(evo?' (La Fan enflammée)':'')+' : touche une case dorée pour choisir son favori'+(evo?' (+2 de Force, et le Golem adverse en face perd 2 de Force).':' (+1 de Force).'));
     pl.append(mainVue(J.main,{}));
   }else if(att&&att.t==='l'){
@@ -717,7 +717,7 @@ function affiche(){
     const rs=c=>raisonPose(s,me,c,leg),rz=sel!==null?rs(sel):null;
     const pc=el('div','p-consigne');
     if(C){pc.append(M.nomDetail(C)+(C.animal?', animal de compagnie de '+M.CARTES[C.maitre].nom:'')+', coût '+(C.cout+surcout(s,me,sel))+(surcout(s,me,sel)>0?" (Réalisation de l'âge : +"+surcout(s,me,sel)+')':'')+(C.force!=null?', Force '+C.force:'')+'. '+C.texte+(C.animal&&!rz?' Pose-le sur une case dorée, voisine de '+M.CARTES[C.maitre].nom+'.':''));if(rz)pc.append(el('em','',rz.long));
-      {const kv=s.terrains.findIndex(T=>T.nom==='Le Versus');if(!C.animal&&!C.base&&kv>=0&&M.golemsIci(s,me,kv))pc.prepend(el('em','versus-non','Le Versus : un seul Golem par joueur, tu peux seulement remplacer le tien. '))}}
+      {const kv=indexTerrainEffet(s,'unSeul');if(!C.animal&&!C.base&&kv>=0&&M.golemsIci(s,me,kv))pc.prepend(el('em','versus-non',s.terrains[kv].nom+' : un seul Golem par joueur, tu peux seulement remplacer le tien. '))}}
     else if(J.main.some(c=>!rs(c)))pc.append('Touche une carte, puis une case dorée.');
     else pc.append('Aucune pose possible ce tour. Termine ton tour.');
     pl.append(pc);
