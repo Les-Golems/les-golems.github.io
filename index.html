@@ -2201,7 +2201,18 @@ majMoi();
 
 /* Guides (0.5) : un bloc par video, le plus recent en tete. GUIDES vide = onglet cache.
    yt : identifiant YouTube ; titre (YouTube), auteur (pseudo de ses codes de deck) et date de publication (heure de Paris) releves a la main : aucune requete a YouTube au chargement ; decks : liens ?deck= du site (nom et nombre de cartes affiches a cote du bouton) ; pas de notes d'auteur (decision de Romain). */
-const GUIDES=[ /* vide : onglet cache ; les 5 guides de Bellock : Ressources/7 - Maquettes et audits/7 - Onglet Guides/guides_bellock_a_coller.txt */
+const GUIDES=[ /* guides de Bellock (accord du 7 nov. 2026) ; liste vide = onglet cache */
+ {titre:'Apo/Cyrdan Roche/Cristal',auteur:'Bellock',date:'7 nov. 2026',yt:'u9amOoOXy1A',
+  decks:[{nom:'Apo/Cyrdan Comeback',lien:'https://les-golems.github.io/?deck=GOL2-KgMPA8ADDAgAMMABQXBvL0N5cmRhbiBDb21lYmFjawpCZWxsb2Nr'}]},
+ {titre:'FORGE !',auteur:'Bellock',date:'6 nov. 2026',yt:'fXJVQ7yxy6w',
+  decks:[{onglet:'30 cartes',nom:'Deck Forge expérimental',lien:'https://les-golems.github.io/?deck=GOL2-KgMAw8DDzAAA8AAARGVjayBGb3JnZSBleHDDqXJpbWVudGFsCkJlbGxvY2s'},
+         {onglet:'24 cartes',nom:'Forge NoPioche',lien:'https://les-golems.github.io/?deck=GOL2-KgMAAMwDzAAA8AAARm9yZ2UgTm9QaW9jaGUKQmVsbG9jaw'}]},
+ {titre:'Bellock Loxim',auteur:'Bellock',date:'6 nov. 2026',yt:'4fw5nB_H-2g',
+  decks:[{nom:'Bellock & Loxim',lien:'https://les-golems.github.io/?deck=GOL2-KgcwCgCACAD8MwAAQmVsbG9jayAmIExveGltCkJlbGxvY2s'}]},
+ {titre:'Brume Cristal',auteur:'Bellock',date:'6 nov. 2026',yt:'J_famvZzFng',
+  decks:[{nom:'Big Roche/Cristal',lien:'https://les-golems.github.io/?deck=GOL2-KgMPAwC8BAwAIMABQmlnIFJvY2hlL0NyaXN0YWwKQmVsbG9jaw'}]},
+ {titre:'Spom Électrique !!! Le deck régulier',auteur:'Bellock',date:'6 nov. 2026',yt:'biR_tFUhM1k',
+  decks:[{nom:'26 Foudre et 4 Apo',lien:'https://les-golems.github.io/?deck=GOL2-KgcAD4DCvAIAMAAAMjYgRm91ZHJlIGV0IDQgQXBvCkJlbGxvY2s'}]}
 ];
 const GD={page:0,fait:false};
 const SVG_LECTURE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>';
@@ -2277,7 +2288,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
- {version:'Version 0.4a',date:'7 novembre 2026',notes:["6 nouveaux terrains : L'École, Le Karaoké, Les Pronos, Le Cirque, Le Tournoi et Le Versus","Nouvelle règle : 4 éléments différents au plus par deck","Nouvelle règle : pas d'évolution sans au moins un exemplaire de sa base dans le deck","Deck conseillé Marée bretonne, autour du nouveau Le Q","Decks conseillés et deck par défaut à 4 éléments","Lien direct vers une carte, à partager","Lisibilité améliorée pour les daltoniens","Nouveautés : pagination des versions","Déconnexion : la partie t'attend 60 secondes, puis abandon","Statistiques : meilleures cartes à partir de 10 parties"]},
+ {version:'Version 0.4a',date:'7 novembre 2026',notes:["6 nouveaux terrains : L'École, Le Karaoké, Les Pronos, Le Cirque, Le Tournoi et Le Versus","Nouvelle règle : 4 éléments différents au plus par deck","Nouvelle règle : pas d'évolution sans au moins un exemplaire de sa base dans le deck","Deck conseillé Marée bretonne, autour du nouveau Le Q","Decks conseillés et deck par défaut à 4 éléments","Lien direct vers une carte, à partager","Lisibilité améliorée pour les daltoniens","Nouveautés : pagination des versions","Déconnexion : la partie t'attend 60 secondes, puis abandon","Statistiques : meilleures cartes à partir de 10 parties","Nouvel onglet Guides : les vidéos de Bellock, avec le deck à importer en un clic"]},
  {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","Rework de Le Q : Brume et Magma, nouveaux effets","Nouvelle règle : deck vide, 1 point à l'adversaire par carte à piocher","Bug de Jacen et Jaina corrigé"]},
  {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
  {version:'Version 0.2c',date:'5 novembre 2026',notes:["La Boutique réduit aussi le coût des évolutions","Éditeur de deck : teste tes placements dans un bac à sable","Statistiques repensées : recherche, classement complet, toutes tes parties comptées","Profil des joueurs réorganisé, avec ton rang au classement","Partage de deck par lien cliquable","Résumé de partie prêt à coller sur Discord","Version vérifiée dans le salon, page mise à jour automatiquement","Appli installée : nouvelle icône, lancement bleu ciel","QoL ajoutés"]},
@@ -2304,7 +2315,8 @@ const DETAILS_VERSIONS={
    "Daltoniens : une flèche ▲ ou ▼ sur la Force modifiée, un « ! » sur la carte fautive d'un deck, et le mot « Animal » dans les listes. Aucune couleur ne change.",
    "Nouveautés : les versions sont rangées par pages, avec les flèches en haut à droite.",
    "Déconnexion en ligne : « Reconnexion » pendant 10 secondes, puis « Hors ligne » avec un minuteur de 60 secondes ; sans retour à temps, défaite par abandon. Connecté à ton compte, tu retrouves ta partie sur n'importe quel appareil. Contre les Golems, pas de minuteur.",
-   "Statistiques : le classement des meilleures cartes commence à 10 parties (5 pour les joueurs)."],
+   "Statistiques : le classement des meilleures cartes commence à 10 parties (5 pour les joueurs).",
+   "Nouvel onglet Guides : les vidéos de Bellock, avec le deck à importer en un clic."],
   corrections:[
    "Le panneau d'une évolution affiche le bon texte."],
   regles:[
