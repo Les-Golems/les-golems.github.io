@@ -817,7 +817,7 @@ body:not(.daltonien) .dl-force.dl-mot{visibility:hidden}
 @media (max-width:899px){.p-tourde{height:36px}.p-ener{font-size:25px}}
 .p-lignes .ico{font-size:15px;margin-top:2px}
 .p-lignes span:last-child{min-width:0}
-.j-pose,.j-point{color:var(--bleu)}.j-evo{color:var(--or)}.r-evo{color:var(--or);font-weight:700}.r-el{white-space:nowrap}.r-el img{width:1.15em;height:1.15em;vertical-align:-.2em;margin-right:.2em}.j-bonus{color:#6fe08a}.j-degat{color:#ff8a78}.j-mort{color:#8f9ca6}
+.j-pose,.j-point{color:var(--bleu)}.j-evo{color:var(--or)}.r-evo{color:var(--or);font-weight:700}.r-ani{color:#7be07f;font-weight:700}.r-el{white-space:nowrap}.r-el img{width:1.15em;height:1.15em;vertical-align:-.2em;margin-right:.2em}.j-bonus{color:#6fe08a}.j-degat{color:#ff8a78}.j-mort{color:#8f9ca6}
 /* Recapitulatif, attente, tour, des */
 #recap{z-index:13}
 #recap .boite{max-width:560px;text-align:left}
@@ -2009,7 +2009,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
   <details><summary><h3>Animaux de compagnie</h3></summary><div class="corps"><ul>
     <li><b>Pose :</b> coût 0. L'animal se glisse sous son maître, qui doit déjà être en jeu, et lui donne +1 de Force. Il ne prend pas de case. Un seul animal par maître.</li>
     <li><b>Pas un Golem :</b> ni élément ni Force à lui, jamais d'évolution. Aucun effet ne le concerne : ni cible, ni bonus, ni favori, ni copie ; il ne compte pas pour le Trait, ni pour le cercle, ni pour un terrain.</li>
-    <li><b>Deck :</b> 1 exemplaire par animal, et seulement avec une carte de son maître (base ou évolution). Plusieurs animaux différents sont permis.</li>
+    <li><b>Deck :</b> 1 exemplaire par animal, et seulement avec au moins un exemplaire de la base de son maître. Plusieurs animaux différents sont permis.</li>
     <li><b>Son maître :</b> s'il quitte le jeu (détruit, remplacé, La Nuit au Village), l'animal part à la défausse. S'il évolue, l'animal reste. S'il est déplacé (La Faille, Le Vaisseau, Slam), l'animal le suit. Un Golem qui copie son effet n'est pas son maître.</li>
     <li><b>Kiwi :</b> la Mignonitude se résout en fin de manche, puis vient le décompte, et juste après Kiwi part à la défausse. Deux Kiwi : celui du premier joueur d'abord, jamais deux fois le même Golem.</li>
     <li><b>Jacen et Jaina :</b> les chats de KaTarN (ou Slim K). À la pose, pioche 1 carte. Si leur maître est détruit, pioche 1 carte, puis les chats partent à la défausse. Si tu remplaces toi-même leur maître, pas de pioche. Deck vide : chaque carte que tu dois piocher donne 1 point à ton adversaire.</li>
@@ -2085,7 +2085,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 </section>
 
 <section id="decks" role="tabpanel" aria-labelledby="t-decks" hidden>
-  <p class="intro">De 24 à 30 cartes, 3 exemplaires maximum par carte, base et évolution comptées à part. Animal de compagnie : 1 exemplaire, avec son maître dans le deck.</p>
+  <p class="intro">De 24 à 30 cartes, 3 exemplaires maximum par carte, base et évolution comptées à part. Animal de compagnie : 1 exemplaire, avec au moins un exemplaire de la base de son maître.</p>
   <div id="listeDecks"></div>
 </section>
 
@@ -2438,7 +2438,8 @@ const DETAILS_VERSIONS={
    "Déconnexion en ligne : « Reconnexion » pendant 10 secondes, puis « Hors ligne » avec un minuteur de 60 secondes ; sans retour à temps, défaite par abandon. Connecté à ton compte, tu retrouves ta partie sur n'importe quel appareil. Contre les Golems, pas de minuteur.",
    "Statistiques : le classement des meilleures cartes commence à 10 parties (5 pour les joueurs).",
    "Nouvel onglet Guides : les vidéos de Bellock, avec le deck à importer en un clic.",
-   "Animaux de compagnie refaits : ils coûtent 0, se glissent sous leur maître déjà en jeu et lui donnent +1 de Force. Pour poser un animal, choisis son maître (sa case est dorée)."],
+   "Animaux de compagnie refaits : ils coûtent 0, se glissent sous leur maître déjà en jeu et lui donnent +1 de Force. Pour poser un animal, choisis son maître (sa case est dorée).",
+   "Un animal demande au moins un exemplaire de la base de son maître dans le deck (son évolution seule ne suffit plus)."],
   corrections:[
    "Le panneau d'une évolution affiche le bon texte."],
   regles:[
@@ -5107,8 +5108,9 @@ function raisonsDeck(d){
   const inc=Object.keys(o).filter(k=>!M.TYPES.includes(k)),ok=Object.keys(o).filter(k=>M.TYPES.includes(k));
   if(inc.length){const q=inc.reduce((t,k)=>t+o[k],0);R.push({c:q>1?q+' cartes retirées':'1 carte retirée',t:(q>1?q+' cartes retirées du jeu':'1 carte retirée du jeu')+' (code '+inc.join(', ')+').',ids:[],inc})}
   ok.forEach(k=>{const mx=maxEx(k);if(!Number.isInteger(o[k])||o[k]>mx)R.push({c:nom(k)+' ×'+o[k],t:nom(k)+' : '+(mx===1?'1 exemplaire au plus (animal de compagnie)':mx+' exemplaires au plus')+', '+o[k]+' dans le deck.',ids:[k]})});
-  ok.filter(k=>M.estAnimal(k)).forEach(k=>{const m=M.maitreDe(k),ev=M.TYPES.find(t=>M.CARTES[t].base===m);
-    if(!M.TYPES.some(t=>(t===m||M.CARTES[t].base===m)&&o[t]>0))R.push({c:nom(k)+' sans '+nom(m),t:nom(k)+' demande au moins un '+nom(m)+(ev?' (ou '+nom(ev)+')':'')+' dans le deck.',ids:[k]})});
+  /* 0.5 : un animal demande au moins un exemplaire de la base de son maitre (M.animauxSansBase ; le moteur garde l'ancienne regle pour les rejeux). Carte fautive = l'animal, nom en vert. */
+  ok.filter(k=>M.estAnimal(k)).forEach(k=>{const m=M.maitreDe(k);if(+o[m]>0)return;const cb=CARTES.find(x=>x[0]===m),nb=cb?cb[1]:nom(m);
+    R.push({c:nom(k)+' sans '+nb,t:nom(k)+' : ajoute au moins un '+nb+'.',pc:[{ani:nom(k)},' sans '+nb],pt:[{ani:nom(k)},' : ajoute au moins un '+nb+'.'],ids:[k]})});
   if(n<DECK_MIN)R.push({c:n+' cartes sur '+DECK_MIN,t:'Deck incomplet : '+n+' carte'+(n>1?'s':'')+' sur '+DECK_MIN+' minimum, il en manque '+(DECK_MIN-n)+'.',ids:[]});
   if(n>DECK_MAX)R.push({c:n+' cartes sur '+DECK_MAX,t:'Trop de cartes : '+n+' pour '+DECK_MAX+' au plus, '+(n-DECK_MAX)+' en trop.',ids:[]});
   /* 0.5 : une evolution demande au moins un exemplaire de sa base (M.evolutionsSansBase ; le moteur ne le verifie pas, pour les rejeux). Carte fautive = l'evolution. */
@@ -5120,7 +5122,7 @@ function raisonsDeck(d){
   return R;
 }
 /* 0.5 : texte riche d'une raison (pt, pc) : nom d'evolution en dore, picto + nom d'element a la taille du texte ; sinon le texte simple. */
-function texteRiche(P,txt){if(!P)return [txt];return P.map(x=>{if(typeof x==='string')return x;if(x.or)return el('span','r-evo',x.or);const z=el('span','r-el'),i=picto(x.el);i.alt='';z.append(i,nomEl(x.el));return z})}
+function texteRiche(P,txt){if(!P)return [txt];return P.map(x=>{if(typeof x==='string')return x;if(x.or)return el('span','r-evo',x.or);if(x.ani)return el('span','r-ani',x.ani);const z=el('span','r-el'),i=picto(x.el);i.alt='';z.append(i,nomEl(x.el));return z})}
 /* Encadre des raisons dans l'editeur ; Retirer enleve les cartes retirees du jeu, invisibles dans la grille. */
 function blocErreurs(R,d,l){
   const z=el('div','dl-erreurs');z.setAttribute('role','status');
@@ -5392,7 +5394,7 @@ function ouvreDeckLien(c){
   };
   const ko=r=>{msg.className='vd-m';msg.textContent=r.err};
   /* 0.4a/0.5 : deck refuse s'il depasse 4 elements ou contient une evolution sans sa base (Importer et Jouer). */
-  const refus=()=>{const E=M.elementsDeck(d.cartes);if(E.length>M.ELEM_MAX)return 'Deck refusé : '+E.length+' éléments différents, '+M.ELEM_MAX+' au plus.';const v=M.erreurEvolutions?M.erreurEvolutions(d.cartes):'';return v?'Deck refusé : '+v+' (une évolution demande au moins un exemplaire de sa base).':''};
+  const refus=()=>{const E=M.elementsDeck(d.cartes);if(E.length>M.ELEM_MAX)return 'Deck refusé : '+E.length+' éléments différents, '+M.ELEM_MAX+' au plus.';const v=M.erreurEvolutions?M.erreurEvolutions(d.cartes):'';return v?'Deck refusé : '+v+' (une évolution ou un animal demande au moins un exemplaire de la base).':''};
   imp.onclick=()=>{const rf=refus();if(rf)return ko({err:rf});const r=ajoute();if(r.err)return ko(r);
     msg.className='vd-m ok';msg.textContent=(r.deja?'Déjà dans tes decks : « ':'Ajouté à tes decks : « ')+r.nom+' ».';
     imp.textContent='Voir dans mes decks';imp.onclick=()=>{deckVu=r.id;deckOuvert=null;ferme();onglet('decks')}};
@@ -5453,7 +5455,7 @@ function importeDeck(b,l){
     const o=litCodeDeck(t.value);if(o.err){msg.textContent=o.err;return}
     if(!Object.keys(o.cartes).length){msg.textContent='Aucune carte connue dans ce code.';return}
     {const E=M.elementsDeck(o.cartes);if(E.length>M.ELEM_MAX){msg.textContent='Deck refusé : '+E.length+' éléments différents ('+E.map(nomEl).join(', ')+'), '+M.ELEM_MAX+' au plus.';return}}
-    {const v=M.erreurEvolutions?M.erreurEvolutions(o.cartes):'';if(v){msg.textContent='Deck refusé : '+v+'. Une évolution demande au moins un exemplaire de sa base.';return}} /* 0.5 */
+    {const v=M.erreurEvolutions?M.erreurEvolutions(o.cartes):'';if(v){msg.textContent='Deck refusé : '+v+'. Une évolution ou un animal demande au moins un exemplaire de la base.';return}} /* 0.5 */
     const pris=new Set(L.map(d=>d.nom));let nom=o.nom,k=2;while(pris.has(nom)){const s=' ('+k+++')';nom=o.nom.slice(0,24-s.length).trim()+s}
     const d={id:nouveauSid(),nom,cartes:o.cartes};gardeDecks(L.concat(d));deckVu=d.id;ferme();peintDecks();
     const n=[];if(o.inc)n.push(o.inc+' carte'+(o.inc>1?'s inconnues ignorées':' inconnue ignorée'));if(o.cou)n.push('quantités ramenées à '+MAX_EX+' exemplaires et '+DECK_MAX+' cartes au plus');
