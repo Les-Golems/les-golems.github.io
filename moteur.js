@@ -5,81 +5,19 @@ const VERSION='0.5';const TRAIT_CUMULE=true; /* 0.2.1 : Trait cumule (+1 par voi
 /* Le Q (refonte, 6 nov.) : Brume + Magma. Le Q (004) Jour de peche, attente 'q' (adv:1) sur le deck adverse, coup 'c' = carte defaussee ;
    Seul contre tous (004e, cout 7, Force 1) Il suffit, balayage des cartes en plusieurs exemplaires de chaque grille (ilSuffit). Plus d'Analyse ni d'Optimisation. */
 const POIDS_MVP={force:1,bonus:1,degats:1,morts:3};
-const EL_VELNEN=['roche','brume']; /* Velnen : elements de Velnen et du chansonnier, ecrits ici seulement */
-const CARTES={
- '001':{id:'001',nom:'KaTarN',el:['magma','foudre'],cout:1,force:8,texte:'Jeunesse éphémère : pose uniquement à la manche 1. Perds 4 de Force à chaque fin de manche.'},
- '001e':{id:'001e',nom:'Slim K',el:['magma','foudre'],cout:4,force:3,base:'001',texte:'Rap God : à la pose, inflige 1 dégât à chaque Golem de la ligne adverse.'},
- '002':{id:'002',nom:'Alrevan',el:['brume','roche'],cout:3,force:null,texte:'Tout ou rien : à la pose, lance 1 dé à 6 faces. Le résultat est ta Force.'},
- '002e':{id:'002e',nom:'KEKWRevan',el:['brume','roche'],cout:3,force:null,base:'002',texte:'High Roll : à la pose, lance 2 dés. Ta Force est leur somme. Sur un double, ta Force est la valeur d\'un seul dé.'},
- '003':{id:'003',nom:'Cyrdan',el:['cristal','roche'],cout:3,force:1,texte:'Tournoi annexe : en jeu, tes voisins gagnent +1 de Force.'},
- '003e':{id:'003e',nom:'Roi du Karaoké',el:['cristal','roche'],cout:5,force:2,base:'003',texte:'Palmarès : tes voisins gagnent +1 de Force. Fin de manche : si tu remportes le terrain qui rapporte le moins, marque +2 points.'},
- '004':{id:'004',nom:'Le Q',el:['brume','magma'],cout:2,force:1,texte:'Jour de pêche : à la pose, regarde les 2 premières cartes du deck adverse. Défausses-en 1 et replace l\'autre dessus.'}, /* Le Q : refonte (6 nov.), ex-Analyse, Brume + Cristal */
- '004e':{id:'004e',nom:'Seul contre tous',el:['brume','magma'],cout:7,force:1,base:'004',texte:'Il suffit : à la pose, détruis toutes tes cartes et toutes les cartes adverses posées en plusieurs exemplaires, toi compris.'}, /* Le Q : refonte, ex-Oracle des Stats (Optimisation, cout 3, Force 2) */
- '007':{id:'007',nom:'Trigas',el:['foudre','brume'],cout:1,force:1,texte:'Spam : à la pose, pioche 1 carte, puis place-en 1 de ta main dans ta Forge.'},
- '007e':{id:'007e',nom:'Roi du Mobile',el:['foudre','brume'],cout:4,force:4,base:'007',texte:'Mode Avion : tu ne peux pas être ciblé par les effets de cartes adverses.'},
- '008':{id:'008',nom:'K-Chan',el:['magma','cristal'],cout:2,force:2,texte:'Rage : chaque fois que tu subis des dégâts et survis, gagne +1 de Force (3 maximum).'},
- '013':{id:'013',nom:'Indra',el:['cristal','magma'],cout:2,force:2,texte:'Soutien inconditionnel : à la pose, choisis un de tes Golems : il devient ton favori. Tant que tu es en jeu, il gagne +1 de Force.'},
- '013e':{id:'013e',nom:'La Fan enflammée',el:['cristal','magma'],cout:4,force:3,base:'013',texte:'Ragebait : ton favori gagne +2 de Force et le Golem adverse en face de lui perd 2 de Force à la pose. Si ton favori n\'est plus en jeu, choisis-en un nouveau à la pose.'},
- '009':{id:'009',nom:'Glad',el:['roche','magma'],cout:2,force:1,texte:'Slam : à la pose, déplace un Golem adverse sur une case libre adjacente, si possible. Il perd 1 de Force.'},
- '009e':{id:'009e',nom:'GymRat',el:['roche','magma'],cout:3,force:3,base:'009',texte:'Menfou palu : tu ne perds jamais de Force à cause d\'un effet adverse.'},
- '029':{id:'029',nom:'Apo',el:['magma','roche'],cout:1,force:2,texte:'Gamba : à la pose, lance 1 dé. Sur 1 ou 2, tu perds 2 de Force. Sur 5 ou 6, le Golem adverse en face de toi perd 2 de Force.'},
- '029e':{id:'029e',nom:'Maître du déguisement',el:['magma','roche'],cout:5,force:3,base:'029',texte:'Déguisement : à la pose, choisis un de tes Golems voisins et copie son effet. S\'il agit à la pose, il se déclenche aussitôt. Sinon, tu le gardes tant que tu es en jeu.'},
- '037':{id:'037',nom:'SuperFishman',el:['roche','cristal'],cout:2,force:1,texte:'Counter-pick : si tu domines le Golem en face, gagne +2 de Force au lieu de +1.'},
- '037e':{id:'037e',nom:'Monsieur Poisson',el:['roche','cristal'],cout:4,force:2,base:'037',texte:'Full synergie : si tu domines le Golem en face, gagne +2 de Force au lieu de +1. Gagne aussi +1 de Force par élément que tu partages avec tes voisins (+2 maximum).'},
- '026':{id:'026',nom:'Titom76',el:['brume','foudre'],cout:2,force:1,texte:'La Bretagne, ça vous gagne : à la pose, chaque joueur pioche 1 carte par Golem Brume ou Foudre de sa grille (toi compris, 3 maximum).'},
- '026e':{id:'026e',nom:'Maître du bilig',el:['brume','foudre'],cout:4,force:3,base:'026',texte:'Caramel à volonté : une fois par manche, à ton tour, gagne +1 énergie (dès ta pose).'},
- '036':{id:'036',nom:'Spom',el:['foudre','magma'],cout:2,force:1,texte:'Forge éclair : au début de ton tour, tu peux forger 1 carte de plus. Si tu le fais, à la fin de ton tour, mélange ta Forge et reprends-en 1 au hasard dans ta main.'},
- '036e':{id:'036e',nom:'A encore menti',el:['foudre','magma'],cout:6,force:0,base:'036',texte:'Survolté : gagne +1 de Force par Golem Foudre que tu as en jeu, toi compris.'},
- /* Animaux de compagnie : animal:true, maitre = code du Golem de base (son evolution compte aussi). Ni Force ni element, jamais d'evolution.
-    Codes 9xx, hors des numeros de membres ; 1 exemplaire par deck (ANIMAL_MAX). */
- '901':{id:'901',nom:'Kiwi',el:[],cout:0,force:null,animal:true,maitre:'026',texte:'Mignonitude : à la fin de la manche, un Golem au hasard de chaque joueur ne compte pas au décompte (il reste en jeu). Puis tu pars à la défausse.'},
- '018':{id:'018',nom:'Elessar',el:['roche','foudre'],cout:2,force:2,texte:'Réalisation de l\'âge : tant que tu es en jeu, les évolutions adverses coûtent 1 énergie de plus.'}, /* Elessar */
- '018e':{id:'018e',nom:'Le pomplard',el:['roche','foudre'],cout:4,force:3,base:'018',texte:'Extinction du feu : à la pose, les Golems Magma adverses perdent 1 de Force.'}, /* Elessar */
- '041':{id:'041',nom:'Velnen',el:EL_VELNEN,cout:3,force:1,texte:'Graine de Golem : tant que tu es en jeu, tu pioches 1 carte de plus à chaque tour.'}, /* Velnen */
- '041e':{id:'041e',nom:'Le chansonnier',el:EL_VELNEN,cout:4,force:3,base:'041',texte:'Imitation : à la pose, tu peux copier l\'effet du Golem adverse en face de toi. S\'il agit à la pose, il se déclenche aussitôt. Sinon, tu le gardes tant que tu es en jeu.'}, /* Velnen */
- '025':{id:'025',nom:'Shifukuro',el:['roche','cristal'],cout:2,force:1,texte:'KEKWait : gagne +1 de Force par Golem allié au-dessus de toi sur ton terrain.'}, /* Shifukuro */
- '025e':{id:'025e',nom:'Le modérateur',el:['roche','cristal'],cout:3,force:4,base:'025',texte:'meandyou : à la pose, tu peux échanger de case un Golem allié au-dessus de toi sur ton terrain avec l\'un de ses voisins.'}, /* Shifukuro */
- '015':{id:'015',nom:'Bellock',el:['brume','magma'],cout:1,force:1,texte:'Comeback : si tu forges cette carte, pioche un Loxim de ton deck. Gagne +1 de Force par manche perdue sur ton terrain.'}, /* Bellock/Loxim */
- '015e':{id:'015e',nom:'Aiges Captain',el:['brume','magma'],cout:5,force:4,base:'015',texte:'Comeback : si tu forges cette carte, pioche un Loxim de ton deck. Gagne +2 de Force par manche perdue sur ton terrain. Double up ? : si Loxim et toi êtes seuls sur ta ligne ou ton terrain, gagne +3 de Force.'}, /* Bellock/Loxim */
- '016':{id:'016',nom:'Loxim',el:['brume','magma'],cout:5,force:4,texte:'Winstreak : si tu forges cette carte, pioche un Bellock de ton deck. Gagne +1 de Force par manche remportée sur ton terrain.'}, /* Bellock/Loxim */
- '016e':{id:'016e',nom:'Le Ace de Aiges',el:['brume','magma'],cout:1,force:4,base:'016',texte:'Winstreak : si tu forges cette carte, pioche un Bellock de ton deck. Gagne +2 de Force par manche remportée sur ton terrain. Double up ? : si Bellock et toi êtes seuls sur ta ligne ou ton terrain, gagne +3 de Force.'}, /* Bellock/Loxim */
- '035':{id:'035',nom:'JackJoy',el:['foudre','cristal'],cout:2,force:1,texte:'Sub offert : si tu forges cette carte, un Golem allié gagne +1 de Force jusqu\'à la fin de la partie.'}, /* JackJoy */
- '035e':{id:'035e',nom:'Drafteur expérimenté',el:['foudre','cristal'],cout:4,force:3,base:'035',texte:'Draft diff : chaque fois que tu forges, un Golem allié non voisin gagne +1 de Force jusqu\'à la fin de la partie.'}, /* JackJoy : texte V2 */
- '042':{id:'042',nom:'Vic222',el:['cristal','roche'],cout:3,force:1,texte:'Info tchat : les Golems alliés ici gagnent +2 au lieu de +1 grâce au cercle.'}, /* Vic222 */
- '042e':{id:'042e',nom:'Baby gamer',el:['cristal','roche'],cout:3,force:4,base:'042',texte:'Chance du débutant : la première fois qu\'un effet adverse devrait te faire perdre de la Force, il ne fait rien.'}, /* Vic222 */
- '008e':{id:'008e',nom:'L\'attachiante',el:['magma','cristal'],cout:4,force:4,base:'008',texte:'Love inconditionnel : une fois par manche, à ton tour, un Golem allié récupère 1 de Force.'}, /* K-Chan : evolution */
- '020':{id:'020',nom:'GénéralBrioche',el:['cristal','roche'],cout:2,force:1,texte:'Grand Général : les autres Golems alliés ici gagnent +1 de Force.'}, /* GeneralBrioche */
- '020e':{id:'020e',nom:'Le civ player',el:['cristal','roche'],cout:4,force:2,base:'020',texte:'Bonus d\'adjacence : gagne +1 de Force par voisin.'}, /* GeneralBrioche : evolution */
- '902':{id:'902',nom:'Jacen et Jaina',el:[],cout:0,force:null,animal:true,maitre:'001',texte:'zqrinohbqzroihg : à la pose, pioche 1 carte. Quand ton maître est détruit, pioche 1 carte.'} /* Jacen et Jaina : animal de KaTarN */
-};
-const TYPES=['001','001e','002','002e','003','003e','004','004e','007','007e','008','013','013e','009','009e','029','029e','037','037e','026','026e','036','036e','901','018','018e','041','041e','025','025e','015','015e','016','016e','035','035e','042','042e','008e','020','020e','902']; /* toujours ajouter en fin : l'identifiant de carte depend du rang. Kiwi (901) : rang 23, carte de partie 69, codee '~6'. Elessar : 018 rang 24 (72-74, '~9' a '~b'), 018e rang 25 (75-77, '~c' a '~e'). Velnen : 041 rang 26 (78-80, '~f' a '~h'), 041e rang 27 (81-83, '~i' a '~k'). Shifukuro : 025 rang 28 (84-86, '~l' a '~n'), 025e rang 29 (87-89, '~o' a '~q'). Bellock/Loxim : 015 rang 30 (90-92, '~r' a '~t'), 015e rang 31 (93-95, '~u' a '~w'), 016 rang 32 (96-98, '~x' a '~z'), 016e rang 33 (99-101, '~A' a '~C'). JackJoy : 035 rang 34 (102-104, '~D' a '~F'), 035e rang 35 (105-107, '~G' a '~I'). Vic222 : 042 rang 36 (108-110, '~J' a '~L'), 042e rang 37 (111-113, '~M' a '~O') */
-/* Deck par defaut (ancien paquet de test) : les 11 premiers types. 0.3 : 30 cartes, 3 exemplaires sauf 2 de KEKWRevan (002e), Roi du Karaoke (003e)
-   et Oracle des Stats (004e) ; jusqu'a 0.2c, 33 cartes (identifiants 0 a 32, rejeux par moteurs/moteur-0.2c.js et avant).
-   Le Q (refonte) : Le Q 3 et Seul contre tous 2 remplaces par Velnen 3 et Titom76 2 (cartes qui aident a trouver ses cartes), toujours 30 cartes. */
+/* Donnees des cartes (etape 6) : cartes/donnees/*.js. Sous Node, require ; en page, window.GolemsDonnees rempli par les scripts de donnees charges avant. */
+const D=(typeof module!=='undefined'&&module.exports&&typeof require==='function')?require('./cartes/donnees/index.js'):racine.GolemsDonnees;
+if(!D||!D.CARTES)throw new Error('Les Golems : donnees des cartes absentes (charger cartes/donnees/golems.js, animaux.js, terrains.js puis index.js avant moteur.js)');
+const EL_VELNEN=D.elVelnen; /* Velnen : elements de Velnen et du chansonnier (cartes/donnees/golems.js) */
+const CARTES=D.CARTES; /* toutes les fiches, tous types confondus : cartes/donnees/golems.js, animaux.js */
+const TYPES=D.ordre; /* cartes/donnees/index.js : toujours ajouter en fin, l'identifiant de carte depend du rang */
 const TYPES_TEST=TYPES.slice(0,11);
-const DECK_DEFAUT={'001':3,'001e':3,'002':3,'002e':2,'007':3,'007e':3,'041':3,'026':2,'018':3,'018e':2,'009':3}; /* 0.4a, 4 elements au plus : Cyrdan 3, Roi du Karaoke 2, K-Chan 3 remplaces par Elessar 3, Le pomplard 2, Glad 3 */
+const DECK_DEFAUT=D.deckDefaut; /* cartes/donnees/index.js */
 /* Partie guidee : le Golem garde l'ancien paquet de 33 cartes (identifiants 0 a 32, comme jusqu'a 0.2c) pour retrouver la meme partie avec la graine 19445.
    Texte reserve, refuse par lisDeck (jamais un deck de joueur), lu seulement par nouvelle. */
 const DECK_TUTO='tuto33';
 const EXEMPLAIRES=3,TAILLE_DECK=Object.values(DECK_DEFAUT).reduce((a,b)=>a+b,0); /* identifiant = type*3 + exemplaire ; deck par defaut : 30 cartes */
-const TERRAINS=[ /* copie de terrains.json, via generer_terrains.py */
- {"nom": "Le Buzzer", "pts": 1, "texte": "Fin de manche : le gagnant regarde ses 3 prochaines cartes et les remet dans l'ordre de son choix.", "cit": "Je l'avais sur le bout de la langue !"},
- {"nom": "Le Camp", "pts": 1, "texte": "Fin de manche : tous les Golems ici récupèrent 1 de Force.", "cit": "On fait un repos long ?"},
- {"nom": "L'Écran du MJ", "pts": 1, "texte": "Fin de manche : le gagnant regarde la main adverse.", "cit": "Fais-moi un jet... discrètement."},
- {"nom": "La Boutique", "pts": 2, "texte": "Jouer un Golem ici coûte 1 de moins.", "cit": "Promis, un dernier reroll et j'arrête."},
- {"nom": "La Faille", "pts": 2, "texte": "Une fois par manche : déplace un de tes Golems d'un autre terrain vers une case libre ici.", "cit": "Je vais gank sa daronne"},
- {"nom": "La Nuit au Village", "pts": 2, "texte": "Fin de manche : le Golem le plus faible ici est détruit.", "cit": "Le village s'endort..."},
- {"nom": "Le Plateau de Jeu", "pts": 2, "texte": "Fin de manche : lance 1 dé. Sur 5 ou 6, le gagnant marque 1 point de plus.", "cit": "C'est à qui de jouer ?"},
- {"nom": "Le Vaisseau", "pts": 2, "texte": "Une fois par manche : échange 2 de tes Golems ici.", "cit": "Je l'ai vu sortir du conduit."},
- {"nom": "Le Carrousel", "pts": 3, "texte": "Fin de manche : le gagnant défausse 1 carte de sa main.", "cit": "Merde, je n'ai pas la prio."},
- {"nom": "La Salle Verrouillée", "pts": 4, "texte": "Ne marque qu'à la dernière manche.", "cit": "Il nous reste combien de temps ?"},
- {"nom": "L'École", "pts": 2, "texte": "Fin de manche : le perdant pioche 1 carte.", "cit": "C'est en perdant qu'on apprend."},
- {"nom": "Le Karaoké", "pts": 2, "texte": "Si tu as exactement 2 Golems ici, ils gagnent +2 de Force chacun.", "cit": "À toi le micro !"},
- {"nom": "Les Pronos", "pts": 1, "texte": "Une fois par manche : mise 1 énergie ici.\nFin de manche : le gagnant marque 1 point de plus par mise des deux joueurs.", "cit": "Celle-là, elle est safe."},
- {"nom": "Le Cirque", "pts": 2, "texte": "Une fois par manche : inflige 1 dégât à un Golem adverse ici.", "cit": "Honk honk."},
- {"nom": "Le Tournoi", "pts": 1, "texte": "Vaut 1 point à la manche 1, 2 points à la manche 2 et 3 points à la manche 3.", "cit": "On garde le meilleur pour la fin."},
- {"nom": "Le Versus", "pts": 3, "texte": "Un seul Golem par joueur ici. Quand tu en poses un, le Golem adverse ici perd 1 de Force.", "cit": "Un nouveau challenger arrive !"}
-];
+const TERRAINS=D.terrainsListe; /* cartes/donnees/terrains.js (copie de terrains.json) */
 /* Terrains T-011 a T-015 (6 nov. 2026) : L'Ecole, Le Karaoke, Les Pronos (coup 't'), Le Cirque, Le Tournoi (pts = numero de la manche, ptsTerrain ; pts:1 garde pour l'affichage minimal).
    Tirage parmi les 15 ; REGLAGE_TERRAINS : liste (tirage restreint, noms ou rangs) et force (un terrain present a coup sur). */
 const ANCIENS_TERRAINS=10,REGLAGE_TERRAINS={liste:null,force:null,cirque:'tarte'}; /* cirque : departage des Forces egales au Cirque, null (personne), 'moins' (V1 : le moins de Golems ici), 'premier' (V2 : premier a poser un Golem ici dans la manche) */
@@ -147,7 +85,7 @@ function cercle2(G,k,id){return !!CERCLE2[id]||[0,1,2].some(a=>golem(G[a][k])&&i
    estAnimal accepte un code ('901'), une fiche de CARTES ou une carte de partie (69). Sur la grille : g.maitre = carte de partie du maitre. */
 const estAnimal=x=>{const C=typeof x==='number'?carte(x):typeof x==='string'?CARTES[x]:x;return !!(C&&C.animal)};
 /* Animaux jouables (7 nov.) : cout (1 = ancien, 0 = nouveau) ; element : l'animal porte le 1er element de son maitre et compte comme voisin pour le Trait. */
-const REGLAGE_ANIMAUX={cout:0,element:false,kiwiApres:true,attache:true}; /* kiwiApres : Kiwi part apres le decompte ; attache : animal sous son maitre (g.ani), +1 de Force */
+const REGLAGE_ANIMAUX=D.reglageAnimaux; /* cartes/donnees/animaux.js (reglage) ; kiwiApres : Kiwi part apres le decompte ; attache : animal sous son maitre (g.ani), +1 de Force */
 const coutCarte=C=>C.animal?REGLAGE_ANIMAUX.cout:C.cout; /* cout de base, avant Elessar et La Boutique */
 const elAnimal=A=>REGLAGE_ANIMAUX.element&&!REGLAGE_ANIMAUX.attache&&A.animal&&CARTES[A.maitre]?CARTES[A.maitre].el[0]:null;
 /* animaux allies voisins de (l,k) qui portent un element (nouveau reglage seulement) */
