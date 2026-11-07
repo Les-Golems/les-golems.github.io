@@ -326,3 +326,84 @@ html.dif-ouvert #vueDetail .dz-eg{font:400 18px/1 var(--titre);color:var(--or);m
 /* Etoile des points dans les etiquettes de terrain (tuiles et recapitulatif) : meme pictogramme que le score, couleur du texte de l'etiquette */
 #dif .d-ptse{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 #dif .d-ptse .ico{font-size:.85em;color:currentColor;flex:none}
+
+/* ===== Vue joueur (0.5) : ecran de partie sur ordinateur, mise en page de la maquette mq2 (7 - Maquettes et audits/1 - Ecran de jeu style diffusion), sous #dif.jr ===== */
+
+#dif.jr .d-ban{display:contents}
+#dif.jr .d-cpt{align-items:center!important;gap:10px!important;font-size:20px!important}#dif.jr .d-cpt>span,#dif.jr .d-ener{display:inline-flex!important;align-items:center!important;gap:6px!important;line-height:1!important}#dif.jr .d-cpt>span>*,#dif.jr .d-ener>*{line-height:1!important}#dif.jr .d-cpt .ico,#dif.jr .d-ener .ico{font-size:22px!important;align-self:center!important}#dif.jr .d-cpt b,#dif.jr .d-ener b{font-size:24px!important}#dif.jr .d-ener{font-size:20px!important;padding:5px 7px!important}#dif.jr .d-ban>.d-j .d-badge{font-size:24px;padding:7px 12px}#dif.jr .d-ban>.d-j{gap:12px;padding:0 14px}#dif.jr .d-ener{margin-left:0!important}
+#dif.jr .d-ban>.d-j,#dif.jr .d-ban>.d-mid{position:absolute}
+#dif.jr .d-ban>.d-j.lui{left:24px;top:16px;width:673px;height:128px;flex-direction:row;text-align:left}
+#dif.jr .d-ban>.d-j.lui .d-l1,#dif.jr .d-ban>.d-j.lui .d-cpt{flex-direction:row}
+#dif.jr .d-ban>.d-j.lui .d-l1 .d-badge,#dif.jr .d-ban>.d-j.lui .d-cpt>.d-ener{margin-left:auto;margin-right:0}
+#dif.jr .d-ban>.d-j.toi{left:24px;top:952px;width:673px;height:112px}
+#dif.jr .d-ban>.d-j .avatar{width:68px;height:68px}
+#dif.jr .d-ban>.d-j .d-nom{font-size:46px}
+#dif.jr .d-ban>.d-j .d-id{gap:10px}
+#dif.jr .d-ban>.d-mid{left:711px;top:16px;width:791px;height:128px;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;justify-items:center!important;align-items:center!important;padding:0!important;gap:0!important}
+#dif.jr .d-plat{top:158px;height:780px;--h:100px}
+#dif.jr .p-terrain{height:124px;min-height:124px}
+#dif.jr .mini{--f:62px}#dif.jr .mini .nom{font-size:25px}
+#dif.jr .d-col,#dif.jr .d-der{left:711px!important;width:791px!important}
+#dif.jr .d-col.mq-haut{top:158px!important;height:132px!important;flex-direction:row!important;align-items:center}
+#dif.jr .mq-fan{position:relative;flex:1;height:128px}
+#dif.jr .mq-fan img{position:absolute;bottom:0;transform-origin:50% 120%;display:block;border-radius:7px;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+#dif.jr .mq-etape{position:absolute;left:711px;top:304px;width:791px;height:72px;display:flex;flex-direction:column;gap:8px}
+#dif.jr .mq-etape .p-signal{margin:0}
+#dif.jr .mq-etape .p-signal b{font-size:26px}
+#dif.jr .mq-etape .p-consigne{margin:0;min-height:0;height:72px;box-sizing:border-box;font-size:16px;padding:8px 14px;overflow:hidden}#dif.jr .mq-etape .p-consigne b{display:block;font:400 22px/1.1 var(--titre);color:var(--or)}
+#dif.jr .mq-etape .p-cale{display:none}
+#dif.jr .d-der{top:390px!important;height:472px!important;grid-template-columns:334px minmax(0,1fr)!important}
+#dif.jr .d-der>button img{width:334px!important;height:468px!important}
+#dif.jr .d-der .d-txt{padding:14px 18px;gap:10px}
+#dif.jr .d-der .d-phr{font-size:20px}
+#dif.jr .d-der .d-phr b{font-size:30px}
+#dif.jr .d-der .d-chips>span{font-size:18px;padding:5px 8px}
+#dif.jr .d-der .d-chips b{font-size:22px}
+#dif.jr .d-col.bas{top:876px!important;height:188px!important;width:791px!important}
+#dif.jr .d-col.bas .d-joue,#dif.jr .mq-haut .d-joue{display:none}
+#dif.jr .mq-btns{position:absolute;left:1516px;top:878px;width:380px;height:36px;display:flex;gap:6px}
+#dif.jr .mq-btns .btn{flex:1 1 0;min-width:0;font-size:15px!important;padding:0 4px!important;height:34px!important;min-height:34px!important;min-width:0;min-height:36px;height:36px;padding:0 6px;font-size:16px;white-space:nowrap}
+#dif.jr .mq-piles{position:absolute;left:1516px;top:920px;width:380px;height:144px;display:flex;gap:8px;justify-content:space-between}
+#dif.jr .mq-piles .pile,#dif.jr .mq-piles .pile .dos{width:103px;flex:none}
+#dif.jr .mq-piles .pile .dos{height:144px}
+#dif.jr .d-coin{display:none}
+#dif.jr .d-cer{top:66px;height:226px}
+#dif.jr .d-act{top:306px;height:558px;display:flex!important;flex-direction:column}
+#dif.jr .d-act ol{flex:1;min-height:0;overflow-y:auto}
+#dif.jr .d-act li.j-moi{box-shadow:inset 3px 0 0 var(--moi);padding-left:8px}#dif.jr .d-act li.j-lui{box-shadow:inset 3px 0 0 var(--lui);padding-left:8px}
+#dif.jr .d-act .j-qui{font-family:var(--titre);font-weight:400}#dif.jr .d-act .j-moi .j-qui{color:var(--moi)}#dif.jr .d-act .j-lui .j-qui{color:var(--lui)}
+#dif.jr .d-act .j-lien{all:unset;font-family:var(--titre);color:#fff;cursor:pointer}#dif.jr .d-act .j-lien.j-evo{color:var(--or)}#dif.jr .d-act .j-lien:hover{text-decoration:underline}
+#dif.jr .mq-outils .d-chat{position:relative;font-size:18px;padding:0 12px;height:36px}#dif.jr .mq-outils .d-pastille{right:-8px;top:-8px;min-width:20px;height:20px;font-size:13px;line-height:20px}
+#dif.jr .mq-chatw{position:absolute;left:1516px;top:62px;width:380px;height:802px;z-index:60;display:flex;flex-direction:column;gap:10px;padding:14px 16px 16px;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--bleu);border-radius:18px 11px 20px 10px/11px 19px 10px 18px;box-shadow:0 18px 60px rgba(0,0,0,.6)}
+#dif.jr .mq-chatw .mq-ct{display:flex;align-items:center;justify-content:space-between;font:400 26px/1 Anton,var(--titre);text-transform:uppercase;letter-spacing:.04em;color:var(--or)}
+#dif.jr .mq-chatw .mq-ct button{background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 26px/1 var(--titre);width:40px;height:40px;cursor:pointer}
+#dif.jr .mq-chatw ul{flex:1;list-style:none;margin:0;padding:0;overflow-y:auto;font-size:19px;line-height:1.35;color:var(--texte)}#dif.jr .mq-chatw li{padding:5px 0}#dif.jr .mq-chatw time{color:var(--doux);font-size:15px;margin-right:6px}
+#dif.jr .mq-chatw form{display:flex;gap:8px}#dif.jr .mq-chatw input{flex:1;background:var(--panneau2);border:1px solid var(--trait);border-radius:7px;color:var(--texte);font:inherit;font-size:18px;padding:8px}#dif.jr .mq-chatw form button{font-size:18px;padding:0 14px}
+#dif.jr .mq-outils{position:absolute;left:1516px;top:16px;width:380px;height:36px;display:flex;justify-content:flex-end;gap:8px}
+#dif.jr .mq-outils button{background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 18px/1 var(--titre);padding:0 12px;height:36px;min-width:36px;opacity:.8;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+#dif.jr .mq-outils button svg{width:20px;height:20px}
+#dif.jr .mq-outils button:hover{opacity:1;color:#fff}
+/* Vue joueur : la partie d'origine reste dessinee mais invisible ; fenetres de la partie au-dessus de la vue */
+html.dif-joueur #partie{visibility:hidden}
+html.dif-joueur :is(#recap,#des,#scene,#passer,#absence,#nonEnr,.bulle-reac,#apercu,.barreRejeu){z-index:30}
+html.dif-joueur .chat.flottant.replie{display:none}
+#dif.jr.verrou :is(.p-grille,.d-col.bas,.mq-btns,.mq-piles,.mq-choix,.mq-etape){pointer-events:none}
+#dif.jr .mq-choix{position:absolute;left:711px;top:390px;width:791px;height:472px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px;box-sizing:border-box;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--or);border-radius:18px 11px 20px 10px/11px 19px 10px 18px}
+#dif.jr .mq-ch-t{font:400 26px/1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--or)}
+#dif.jr .mq-choix .p-main{flex:1;min-height:0;display:flex;gap:24px;justify-content:center;align-items:center}
+#dif.jr .mq-choix .p-slot{height:100%;display:flex}#dif.jr .mq-choix .p-carte{height:100%;width:auto}#dif.jr .mq-choix .p-carte img{height:100%;width:auto}
+#dif.jr .mq-choix .oeil{display:none}
+#dif.jr .mq-btns .p-btns{display:flex;gap:6px;width:100%;margin:0}
+#dif.jr .mq-btns .p-btns .btn{flex:1 1 0;min-width:0;font-size:15px;padding:0 4px;height:36px;min-height:36px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dif.jr .mq-outils button{height:36px}
+#dif.jr .mq-outils .d-quit{position:static}
+#dif.jr .d-main button.grisee img{filter:grayscale(.85) brightness(.55)}
+#dif.jr .d-main button{position:relative}
+#dif.jr .d-main button .raison{position:absolute;left:4px;right:4px;bottom:6px;font-size:11px}
+#dif.jr .d-main button[aria-pressed="true"]{outline:3px solid var(--or);outline-offset:-1px;border-radius:9px}
+#dif.jr .chat.flottant.mq-chatw{position:absolute;right:auto;bottom:auto;left:1516px;top:62px;width:380px;height:802px;max-width:none;margin:0;z-index:60;display:flex;flex-direction:column}
+#dif.jr .chat.flottant.mq-chatw .chat-liste{flex:1;height:auto;min-height:0}
+/* barre d'outils : « Daltonien » en premier, bord gauche aligne sur le cercle des elements ; Quitter au bord droit */
+#dif.jr .mq-outils.p-outils{position:absolute;left:1516px;right:auto;top:16px;transform:none;width:380px;height:36px;display:flex;align-items:center;gap:6px}
+#dif.jr .mq-outils .dal-inter{margin-right:auto}
+#dif.jr .mq-outils .dal-inter .pf-itx{display:inline}#dif.jr .mq-outils .dal-inter{padding:0 10px 0 12px}
