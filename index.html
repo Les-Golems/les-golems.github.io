@@ -2277,7 +2277,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
- {version:'Version 0.4a',date:'7 novembre 2026',notes:["6 nouveaux terrains : L'École, Le Karaoké, Les Pronos, Le Cirque, Le Tournoi et Le Versus","Nouvelle règle : 4 éléments différents au plus par deck","Nouvelle règle : pas d'évolution sans au moins un exemplaire de sa base dans le deck","Deck conseillé Marée bretonne, autour du nouveau Le Q","Decks conseillés et deck par défaut à 4 éléments","Lien direct vers une carte, à partager","Lisibilité améliorée pour les daltoniens","Nouveautés : pagination des versions","Déconnexion : la partie t'attend 60 secondes, puis abandon"]},
+ {version:'Version 0.4a',date:'7 novembre 2026',notes:["6 nouveaux terrains : L'École, Le Karaoké, Les Pronos, Le Cirque, Le Tournoi et Le Versus","Nouvelle règle : 4 éléments différents au plus par deck","Nouvelle règle : pas d'évolution sans au moins un exemplaire de sa base dans le deck","Deck conseillé Marée bretonne, autour du nouveau Le Q","Decks conseillés et deck par défaut à 4 éléments","Lien direct vers une carte, à partager","Lisibilité améliorée pour les daltoniens","Nouveautés : pagination des versions","Déconnexion : la partie t'attend 60 secondes, puis abandon","Statistiques : meilleures cartes à partir de 10 parties"]},
  {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","Rework de Le Q : Brume et Magma, nouveaux effets","Nouvelle règle : deck vide, 1 point à l'adversaire par carte à piocher","Bug de Jacen et Jaina corrigé"]},
  {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
  {version:'Version 0.2c',date:'5 novembre 2026',notes:["La Boutique réduit aussi le coût des évolutions","Éditeur de deck : teste tes placements dans un bac à sable","Statistiques repensées : recherche, classement complet, toutes tes parties comptées","Profil des joueurs réorganisé, avec ton rang au classement","Partage de deck par lien cliquable","Résumé de partie prêt à coller sur Discord","Version vérifiée dans le salon, page mise à jour automatiquement","Appli installée : nouvelle icône, lancement bleu ciel","QoL ajoutés"]},
@@ -2303,7 +2303,8 @@ const DETAILS_VERSIONS={
    "Lien direct vers une carte, un Golem, son évolution, un animal ou un terrain : il ouvre la carte en grand.",
    "Daltoniens : une flèche ▲ ou ▼ sur la Force modifiée, un « ! » sur la carte fautive d'un deck, et le mot « Animal » dans les listes. Aucune couleur ne change.",
    "Nouveautés : les versions sont rangées par pages, avec les flèches en haut à droite.",
-   "Déconnexion en ligne : « Reconnexion » pendant 10 secondes, puis « Hors ligne » avec un minuteur de 60 secondes ; sans retour à temps, défaite par abandon. Connecté à ton compte, tu retrouves ta partie sur n'importe quel appareil. Contre les Golems, pas de minuteur."],
+   "Déconnexion en ligne : « Reconnexion » pendant 10 secondes, puis « Hors ligne » avec un minuteur de 60 secondes ; sans retour à temps, défaite par abandon. Connecté à ton compte, tu retrouves ta partie sur n'importe quel appareil. Contre les Golems, pas de minuteur.",
+   "Statistiques : le classement des meilleures cartes commence à 10 parties (5 pour les joueurs)."],
   corrections:[
    "Le panneau d'une évolution affiche le bon texte."],
   regles:[
@@ -4519,7 +4520,7 @@ function dessineStats(RT){
    const ligneT=x=>{const r=el('div','st-tl'),t=el('b','',txt(x.taux)),TT=M.TERRAINS.find(T=>T.nom===x.nom);if(TT){r.classList.add('st-tc');r.tabIndex=0;r.onmouseenter=()=>montreApercu(r,srcTerrain(TT));r.onmouseleave=cacheApercu;r.onclick=()=>zoomTerrain(TT);r.onkeydown=e=>{if(e.key==='Enter')zoomTerrain(TT)}}t.style.color=coul(x.taux);const nm=el('span','st-tn',x.nom);nm.title=pl2(x.n,'partie');
      r.append(nm,t,el('span','',x.pts===null?'-':String(x.pts).replace('.',',')),el('span','',txt(x.eg)));return r};
    listes.push(listeP(P,L,ligneT,o));}
-  /* Ligne de carte compacte (comme le profil), apercu au survol, zoom au clic ; rang reel, « moins de 5 parties » hors classement. */
+  /* Ligne de carte compacte (comme le profil), apercu au survol, zoom au clic ; rang reel, « moins de 10 parties » hors classement. */
   const ligneC=x=>{const id=x.id,n=x.n,p=x.p,c=CARTES.find(y=>y[0]===id),C=M.CARTES[id];if(!c||!C)return null;
     const li=el('div','pf-item pf-mvps st-carte'),q=el('button','dl-ligne'),fo=el('span','dl-force'),e=el('span','dl-els'),src=imgV('cartes/'+c[0]+'.jpg');q.type='button';
     if(c[2].length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+c[2][0]+')');q.style.setProperty('--b','var(--fm-'+c[2][1]+')')}else if(estAnimal(c))q.classList.add('dl-animal')
@@ -4529,13 +4530,14 @@ function dessineStats(RT){
     if(estAnimal(c)){fo.className='dl-force dl-mot';fo.textContent='Animal';q.append(co,fo,nm)}else q.append(co,fo,e,nm);q.setAttribute('aria-label',c[1]+', '+pl2(n,'partie')+(p===null?'':', '+p+' % de victoires'));
     q.onclick=()=>{cacheApercu();dernier=q;zoom(src,c[1])};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
     const s=el('div','pf-dst'),t=el('b','pf-dt',txt(p));t.style.color=coul(p);
-    if(x.rang)s.append(el('span','pf-dk st-rg',rangTx(x.rang)+' · '));s.append(t,el('span','pf-dk',' de victoires · '+pl2(n,'partie')));if(x.peu)s.append(el('span','pf-peu','moins de 5 parties'));
+    if(x.rang)s.append(el('span','pf-dk st-rg',rangTx(x.rang)+' · '));s.append(t,el('span','pf-dk',' de victoires · '+pl2(n,'partie')));if(x.peu)s.append(el('span','pf-peu','moins de '+MIN_CARTES+' parties'));
     li.append(q,s);return li};
+  const MIN_CARTES=10; /* 0.4a : seuil des cartes (Meilleures cartes), distinct des joueurs (5) */
   const lc=[...cartes].map(([id,o])=>{const c=CARTES.find(y=>y[0]===id);return {id,n:o.n,p:pc(o.v,o.n),cle:c?c[1]:id}});
-  {const P=panneau(g,'m','Meilleures cartes','Taux de victoire, 5 parties minimum');
-   const tv=lc.filter(x=>x.n>=5).sort((a,b)=>b.p-a.p||b.n-a.n).map((x,i)=>({...x,rang:i+1}));
-   const p5=lc.filter(x=>x.n<5).sort((a,b)=>b.p-a.p||b.n-a.n).map(x=>({...x,rang:null,peu:true}));
-   listes.push(listeP(P,tv,ligneC,{tous:tv.concat(p5),rech:'Chercher une carte',aucun:'Aucune carte à ce nom.',vide:R.length?'Il faut au moins 5 parties par carte.':VIDE_FILTRES}));}
+  {const P=panneau(g,'m','Meilleures cartes','Taux de victoire, '+MIN_CARTES+' parties minimum');
+   const tv=lc.filter(x=>x.n>=MIN_CARTES).sort((a,b)=>b.p-a.p||b.n-a.n).map((x,i)=>({...x,rang:i+1}));
+   const p5=lc.filter(x=>x.n<MIN_CARTES).sort((a,b)=>b.p-a.p||b.n-a.n).map(x=>({...x,rang:null,peu:true}));
+   listes.push(listeP(P,tv,ligneC,{tous:tv.concat(p5),rech:'Chercher une carte',aucun:'Aucune carte à ce nom.',vide:R.length?'Il faut au moins '+MIN_CARTES+' parties par carte.':VIDE_FILTRES}));}
   {const P=panneau(g,'p','Cartes les plus jouées','Nombre de parties où elle est jouée');
    const lp=lc.slice().sort((a,b)=>b.n-a.n||b.p-a.p).map((x,i)=>({...x,rang:i+1}));
    listes.push(listeP(P,lp,ligneC,{rech:'Chercher une carte',aucun:'Aucune carte à ce nom.',vide:VIDE_R}));}
