@@ -58,10 +58,19 @@ function ordre(l){
     const q=m[i];if(!q||p.sameTab||(!q.sameTab&&p.updatedAt>q.updatedAt))m[i]=p});
   return t.filter(p=>{const i=p.presence.sid;return typeof i!=='string'||!i||m[i]===p});
 }
+/* Adversaire arrive dans ma partie en attente, onglet cache : le titre alterne « Adversaire arrivé ! · Les Golems » et le titre normal
+   jusqu'au retour sur l'onglet (repris de signal-tour.js, retire a l'etape 8 : son signal « À toi ! » ne marchait pas, une etiquette le remplace). */
+(()=>{const ARRIVEE='Adversaire arrivé ! · Les Golems';let normal=null,minuteur=0,bascule=false,arrivee=false;
+  const arrete=()=>{if(minuteur){clearInterval(minuteur);minuteur=0}if(normal!==null){document.title=normal;normal=null}};
+  const verifie=()=>{if(!document.hidden)arrivee=false;
+    if(document.hidden&&arrivee){if(!minuteur){normal=document.title;bascule=false;minuteur=setInterval(()=>{bascule=!bascule;document.title=bascule?(arrivee?ARRIVEE:normal):normal},1000);document.title=ARRIVEE;bascule=true}}
+    else arrete()};
+  window.golemsAdversaireArrive=()=>{if(document.hidden){arrivee=true;verifie()}};
+  document.addEventListener('visibilitychange',verifie);setInterval(verifie,1000);})();
 function majSalon(){
   if(!r)return;
   const l=ordre(r.peers());
-  /* Adversaire arrive dans ma partie en attente : son doux et titre de l'onglet (signal-tour.js). */
+  /* Adversaire arrive dans ma partie en attente : son doux et titre de l'onglet (golemsAdversaireArrive ci-dessus). */
   {const n=Math.min(l.length,MAX);if(createur&&!partie&&nbSalon===1&&n===2){joueSons(['arrivee']);if(window.golemsAdversaireArrive)window.golemsAdversaireArrive()}nbSalon=n}
   if(l.findIndex(p=>p.sameTab)>=MAX&&Date.now()-entree>1500){sortie('Ce salon est complet.');return}
   /* Versions differentes avant la partie : Pret retire et bloque, etiquette rouge sur le siege le plus ancien. */
