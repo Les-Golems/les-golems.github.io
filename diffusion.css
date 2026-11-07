@@ -572,3 +572,5 @@ html.tel-joueur #partie .p-barre .p-info.score .p-score>span{font-size:15px!impo
 html.tel-joueur #partie .p-barre .p-info{justify-content:flex-start!important;padding-top:5px!important;box-sizing:border-box}
 html.tel-joueur #partie .p-barre .p-info small{line-height:10px!important;margin:0 0 3px!important}
 }
+#dif:not(.jr) .d-l1 .dk-pt{position:static;flex:none;align-self:center;margin:0 4px}
+#dif:not(.jr) .d-coin .d-quit{white-space:nowrap;font-size:18px}

@@ -637,8 +637,8 @@ if(window.DECO&&DECO.onChange)DECO.onChange(decoJoueur);else addEventListener('l
    (10 s de reconnexion, puis 60 s) ; minuteur au texte neutre. */
 function decoSpec(){
   if(!D||src!=='spec'||!E||!E.uids)return;
-  const B=window.GOLEMS_PONT,r=B&&B.r;if(!r||typeof r.etats!=='function')return;
-  const et=r.etats()||{},now=typeof r.heure==='function'?r.heure():Date.now(),fin=E.etat&&E.etat.fin;
+  const S=window.SPEC;if(!S||typeof S.pres!=='function')return;
+  const et=S.pres()||{},now=typeof S.heure==='function'?S.heure():Date.now(),fin=E.etat&&E.etat.fin;
   scene.querySelectorAll('.dk-pt,.dk-et,.d-badge.dk-lab').forEach(x=>x.remove());
   scene.querySelectorAll('.d-badge.dk-cache').forEach(x=>{x.hidden=false;x.classList.remove('dk-cache')});
   if(!Object.keys(et).length)return;
@@ -646,10 +646,9 @@ function decoSpec(){
   [0,1].forEach(p=>{const u=E.uids[p],e=u&&et[u];let st='ok',reste=null;
     if(e&&e.c===false&&!fin){const t0=+e.t||now;if(now<t0+10000)st='att';else{st='off';reste=Math.max(0,t0+70000-now)}}
     const b=scene.querySelector('.d-ban>.d-j.'+(p===BAS()?'toi':'lui'));if(!b)return;
-    const pt=mk('i','dk-pt '+st);pt.title=st==='ok'?'En ligne':DK_LIB[st];b.append(pt);
-    if(st!=='ok'){const l1=b.querySelector('.d-l1'),bg=l1&&l1.querySelector('.d-badge');if(bg){bg.hidden=true;bg.classList.add('dk-cache')}if(l1)l1.append(mk('span','d-badge dk-lab '+st,DK_LIB[st]))}
+    const pt=mk('i','dk-pt '+st),l1=b.querySelector('.d-l1'),nm=l1&&l1.querySelector('.d-nom');pt.title=st==='ok'?'En ligne':DK_LIB[st];if(nm)nm.after(pt);else b.append(pt); /* vue spectateur : pastille juste apres le nom */
+    if(st!=='ok'){const bg=l1&&l1.querySelector('.d-badge');if(bg){bg.hidden=true;bg.classList.add('dk-cache')}if(l1)l1.append(mk('span','d-badge dk-lab '+st,DK_LIB[st]))}
     if(st==='off'&&!minu)minu={p,reste}});
-  centrePastilles();
   if(minu){const m=mk('div','dk-et dk-spec'),tx=mk('div','t'),br=mk('div','barre'),i=mk('i');m.setAttribute('role','status');
     tx.append(mk('b','',nom(minu.p)+" s'est déconnecté"),mk('span','',"Sans retour à temps, défaite par abandon."));
     i.style.width=(100*minu.reste/60000)+'%';br.append(i);m.append(tx,mk('div','n',mnS(minu.reste)),br);scene.append(m)}
