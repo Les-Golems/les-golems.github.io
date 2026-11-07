@@ -1844,6 +1844,9 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 #partie .p-chat:hover{opacity:1;color:#fff}
 #partie .p-chat-nb{position:absolute;right:-7px;top:-8px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--magma);color:#fff;font:400 13px/20px var(--titre);text-align:center}
 #partie .p-chat-nb:empty{display:none}
+/* 0.5.1 : point sur l'onglet Nouveautes tant que la version actuelle n'a pas ete vue (couleur de la pastille du chat) */
+.onglets button#t-nouveautes{position:relative}
+.o-nvpt{position:absolute;top:4px;right:6px;width:11px;height:11px;border-radius:50%;background:var(--magma);box-shadow:0 0 0 2px var(--encre);pointer-events:none}
 /* 10. Survols neutres (blanc) partout en jeu, sauf le score */
 #partie .j-lien:hover{color:#fff}
 /* Main : place de 7 cartes au moins, au-dela elles se resserrent ; consigne de place au tour adverse */
@@ -2341,7 +2344,7 @@ const GUIDES=[ /* guides de Bellock (accord du 7 nov. 2026) ; liste vide = ongle
  {titre:'Spom Électrique !!! Le deck régulier',auteur:'Bellock',date:'6 nov. 2026',yt:'biR_tFUhM1k',
   decks:[{nom:'26 Foudre et 4 Apo',lien:'https://les-golems.github.io/?deck=GOL2-KgcAD4DCvAIAMAAAMjYgRm91ZHJlIGV0IDQgQXBvCkJlbGxvY2s'}]}
 ];
-const GD={page:0,fait:false};
+const GD={page:0,fait:false,par:6};
 const SVG_LECTURE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>';
 /* Lecteur YouTube (nocookie) charge au clic seulement ; en quittant l'onglet ou la page, retour a la miniature (la video s'arrete). */
 function gdMiniature(z,g){
@@ -2391,8 +2394,8 @@ function peintGuides(){
     new MutationObserver(()=>{if($('guides').hidden)gdArrete()}).observe($('guides'),{attributes:true,attributeFilter:['hidden']});
   }
   /* Pagination comme les Nouveautes : 6 blocs par page (grille 3 x 2 des 1200 px, 1 colonne sur telephone), fleches < x / n > a droite de la phrase d'intro, masquees s'il n'y a qu'une page. */
-  const B=[...N.children],n=Math.max(1,Math.ceil(B.length/6));GD.page=Math.max(0,Math.min(GD.page,n-1));
-  B.forEach((a,i)=>{a.hidden=Math.floor(i/6)!==GD.page});gdArrete();
+  const B=[...N.children],n=Math.max(1,Math.ceil(B.length/GD.par));GD.page=Math.max(0,Math.min(GD.page,n-1));
+  B.forEach((a,i)=>{a.hidden=Math.floor(i/GD.par)!==GD.page});gdArrete();
   let z=document.querySelector('#guides .nv-pages');
   if(!z){z=mk('div','nv-pages haut');z.setAttribute('role','navigation');z.setAttribute('aria-label','Pages des guides');
     const p=mk('button','j-btn nv-prec','<'),s=mk('button','j-btn nv-suiv','>');p.type=s.type='button';
@@ -2408,11 +2411,31 @@ if(GUIDES.length)$('t-guides').hidden=false;else $('t-guides').remove();
 const noms=['nouveautes','jouer','decks','historique','stats','cartes','regles'].concat(GUIDES.length?['guides']:[]);
 function onglet(n){
   noms.forEach(x=>{$(x).hidden=x!==n;$('t-'+x).setAttribute('aria-selected',x===n)});
-  if(n==='decks')peintDecks();if(n==='historique')peintHisto();if(n==='stats')peintStats();if(n==='guides')peintGuides();
+  if(n==='decks')peintDecks();if(n==='historique')ajusteHisto();if(n==='stats')peintStats();if(n==='guides')ajusteGuides();if(n==='nouveautes')ajusteNotes();
   ecrire('golems.onglet',n);
+  if(n==='nouveautes'&&!versionVue())ecrire('golems.versionVue',M.VERSION);majPointNv();
   if(n==='jouer')proposeGuide();
 }
 noms.forEach(n=>$('t-'+n).onclick=()=>onglet(n));
+/* 0.5.1 : version vue (golems.versionVue). Version pas encore vue : point sur l'onglet Nouveautes et arrivee sur Nouveautes une fois. */
+function versionVue(){return lire('golems.versionVue')===M.VERSION}
+function majPointNv(){const t=$('t-nouveautes');let p=t.querySelector('.o-nvpt');
+  if(versionVue()&&$('nouveautes').hidden){p?.remove();return} /* le point reste pendant la premiere visite des Nouveautes */
+  if(versionVue())return;
+  if(!p){p=document.createElement('span');p.className='o-nvpt';p.setAttribute('aria-hidden','true');t.append(p);t.setAttribute('aria-label','Nouveautés (nouvelle version)')}}
+/* 0.5.1 : Guides, Historique et Nouveautes : autant de lignes qu'il en tient sans defilement dans la fenetre (au moins 2), colonnes lues dans la grille.
+   Une seule colonne (telephone) : nombres d'origine. Pas de recalcul en plein ecran (video). */
+function ajustePage(sec,grille,set,peint,defaut){
+  if($(sec).hidden||document.fullscreenElement)return;const g=grille();if(!g){peint();return}
+  const cs=getComputedStyle(g),cols=cs.display==='grid'?cs.gridTemplateColumns.split(' ').filter(Boolean).length:1;
+  if(cols<2){set(defaut);peint();return}
+  let r=12;set(r*cols);peint();
+  while(r>2&&grille().getBoundingClientRect().bottom+scrollY>innerHeight-12){r--;set(r*cols);peint()}
+}
+function ajusteGuides(){ajustePage('guides',()=>$('gdBlocs'),v=>GD.par=v,peintGuides,6)}
+function ajusteNotes(){ajustePage('nouveautes',()=>$('notes'),v=>NV.par=v,peintNotes,6)}
+function ajusteHisto(){ajustePage('historique',()=>document.querySelector('#histo .h-grille')||(peintHisto(),document.querySelector('#histo .h-grille')),v=>lignesPage=v,peintHisto,14)}
+{let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{ajusteGuides();ajusteNotes();ajusteHisto()},120)})}
 
 /* Deux colonnes : une section ouverte de chaque côté pour les équilibrer. */
 if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
@@ -2780,7 +2803,7 @@ const FEUILLE_DE_ROUTE=[
 ];
 const ETATS_FDR={actuelle:'Version actuelle',proche:'Prochaine mise à jour',prevu:'Prévu',tard:'Plus tard'};
 const SVG_EPINGLE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.6 2.6l6.8 6.8-1.9.9-3.4 3.4.4 4.6-1.6 1.6-4.2-4.2-5.6 5.6-1.3-1.3 5.6-5.6-4.2-4.2 1.6-1.6 4.6.4 3.4-3.4z"/></svg>';
-const NV={epingles:null,romain:false,page:0,room:null,blocs:[...$('notes').children]}; /* blocs : ordre d'origine, du plus recent au plus ancien */
+const NV={epingles:null,romain:false,page:0,par:6,room:null,blocs:[...$('notes').children]}; /* blocs : ordre d'origine, du plus recent au plus ancien */
 {
   const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
   const N=$('notes');
@@ -2812,7 +2835,7 @@ function peintNotes(){
   /* Feuille de route desepinglee : premier bloc de la liste (Romain peut la reepingler) */
   const U=[...(ep.includes('feuille-de-route')?[]:[[fdr]]),...unitesNotes()].map(u=>u.filter(a=>!ep.includes(a.dataset.id))).filter(u=>u.length);
   const pages=[[]];let n=ep.length;
-  U.forEach(u=>{if(n+u.length>6&&n>0){pages.push([]);n=0}pages[pages.length-1].push(...u);n+=u.length});
+  U.forEach(u=>{if(n+u.length>NV.par&&n>0){pages.push([]);n=0}pages[pages.length-1].push(...u);n+=u.length});
   if(pages.length>1&&!pages[0].length)pages.shift();
   NV.page=Math.max(0,Math.min(NV.page,pages.length-1));
   const ordre=[...ep.map(par),...pages.flat()],vus=new Set([...(NV.page===0?ep.map(par):[]),...pages[NV.page]]);
@@ -4939,7 +4962,6 @@ function peintHisto(){
     c.onclick=()=>detailHisto(x);gr.append(c);
   });
 }
-addEventListener('resize',()=>{if(!$('historique').hidden)peintHisto()});
 /* Profil joueur : resume calcule sur TOUTES les parties d'un compte (cumuls joueurs/{uid}/cumul, tenus a jour a chaque partie),
    sur l'historique de l'appareil (50 dernieres parties) pour un invite.
    Le meme resume est publie (profils/{uid}) : la fenetre d'un autre joueur affiche exactement ses chiffres. */
@@ -5878,7 +5900,8 @@ function quitteAvecConfirmation(){
 }
 function quitteBouton(){
   const enCours=()=>partie&&!partie.local&&!partie.rejeu&&!partie.tuto&&r&&partie.etat&&!partie.etat.fin&&M.VERSION===M0.VERSION;
-  if(!enCours()){quittePartie();return}
+  /* 0.5.1 : retour a l'accueil apres une partie terminee (hors replay) : Nouveautes si la version n'est pas encore vue */
+  if(!enCours()){const fini=partie&&!partie.rejeu&&partie.etat&&partie.etat.fin;quittePartie();if(fini&&!versionVue())onglet('nouveautes');return}
   confirmeAbandon('Quitter maintenant compte comme un abandon.',()=>{
     if(!enCours()){quittePartie();return}
     partie.mien.push(M.code({t:'a'}));sel=null;
@@ -6857,7 +6880,8 @@ $('formCode').onsubmit=e=>{
   choisirDeck(()=>{$('champCode').value='';createur=false;salonPublic=false;entre(c)});
 };
 $('quitter').onclick=()=>{oublie(code);sortie()};
-const memo=lire('golems.onglet');onglet(noms.includes(memo)?memo:'nouveautes');
+const memo=lire('golems.onglet'),lienDirect=/[?&](deck|carte|salon)=/.test(location.search)||!!salonRepris(); /* liens directs et reprise de salon gardent la priorite */
+majPointNv();onglet(!versionVue()&&!lienDirect?'nouveautes':noms.includes(memo)?memo:'nouveautes');
 /* Aperçu au survol de l'onglet Cartes, comme en partie */
 $('grille').addEventListener('mouseover',e=>{
   const b=e.target.closest('.carte');if(!b||b.contains(e.relatedTarget))return;
