@@ -1,0 +1,70 @@
+/* Onglet Jouer : disposition des blocs Creer, Rejoindre, Apprendre ; passe animations. */
+/* Onglet Jouer des 1080 px (Rejoindre un peu plus large de 1080 a 1199 px pour garder titre et code sur une ligne) : Creer, Rejoindre et Apprendre et s'entrainer sur une ligne ; boutons poses en bas de chaque bloc,
+   donc meme haut, meme hauteur et meme bas dans les trois blocs (0.4). */
+@media (min-width:1080px){
+  #accueil{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:16px}
+  #accueil>.bloc{display:flex;flex-direction:column;padding:16px}
+  #accueil>.bloc>.btn,#accueil>.bloc>form,#accueil>.bloc>.p-btns{margin-top:auto}
+  #accueil>.bloc>form{margin-bottom:0}
+  #premierePartie{grid-area:1/1/auto/-1}
+  #blocCreer{grid-area:2/1}
+  #blocRejoindre{grid-area:2/2}
+  #blocRobot{grid-area:2/3/auto/span 2}
+  #reprise{grid-area:3/1/auto/-1}
+  #blocListe{grid-area:4/1/auto/-1}
+  #blocEnCours{grid-area:5/1/auto/-1}
+  #accueil>.erreur{grid-area:6/1/auto/-1}
+  #blocRobot .niveaux{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (min-width:1080px) and (max-width:1199px){#accueil{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr)}}
+/* Onglet Jouer : bandeau Premiere partie, 3 blocs (Creer, Rejoindre, Apprendre et s'entrainer en pleine largeur) sur tablette, colonne sur telephone. */
+@media (min-width:700px) and (max-width:1079px){
+  #accueil{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px}
+  #accueil>.bloc{display:flex;flex-direction:column}
+  #accueil>.bloc>.btn,#accueil>.bloc>form,#accueil>.bloc>.p-btns{margin-top:auto}
+  #reprise,#blocListe,#blocEnCours,#accueil>.erreur,#premierePartie,#blocRobot{grid-column:1/-1}
+  #blocRobot .niveaux{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+/* Telephone : Tutoriel sur toute la largeur, les 3 niveaux dessous */
+@media (max-width:699px){#blocRobot .niveaux #lanceGuide{grid-column:1/-1}}
+#formCode #champCode{width:8.5ch;text-transform:uppercase}
+#formCode{flex-wrap:nowrap}#formCode>div{flex:0 1 auto}
+:is(#rejoindre,.niveaux .btn,#accueil #creer,#lanceGuide){height:46px;min-height:46px;padding-top:0;padding-bottom:0;font-size:16px}
+#rejoindre{width:96px;padding-left:4px;padding-right:4px;flex:0 0 auto}
+/* Passe animations */
+#scene{position:fixed;inset:0;z-index:16;pointer-events:none;overflow:hidden}
+#scene svg{position:absolute;inset:0;width:100%;height:100%}
+#passer{position:fixed;z-index:17;left:50%;bottom:12px;transform:translateX(-50%);min-height:42px;padding:6px 22px}
+body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
+.v-carte{position:absolute;left:0;top:0;width:200px;height:280px;transform-origin:0 0;will-change:transform}
+.v-carte img{display:block;width:100%;height:100%;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.7)}
+.v-etoile{position:absolute;left:0;top:0;width:60px;height:60px;transform-origin:30px 30px}
+.v-etoile .ico{width:100%;height:100%}
+.v-etoile b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 20px/1 var(--titre);color:#fff;-webkit-text-stroke:4px #0a121a;paint-order:stroke fill}
+.v-lien{fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 6px currentColor);animation:lien 1s ease-out both}
+.fx-cache{visibility:hidden}
+.fx-lien{position:absolute;z-index:3;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 0 3px var(--c),inset 0 0 20px var(--c);animation:lien 1s ease-out both}
+.fx-compte{position:absolute;z-index:3;left:50%;top:50%;pointer-events:none;font:400 30px/1 var(--titre);color:var(--or);-webkit-text-stroke:4px #0a121a;paint-order:stroke fill;animation:compte .65s ease-out both}
+.fx-tenu{z-index:1}
+.fx-fantome{animation-name:mortClign;animation-timing-function:linear}
+.fx-secoue{animation:secoue .5s linear both}
+.p-case:has(.fx-compte,.fx-lien){overflow:visible;z-index:2}
+.p-terrain.g-moi{background:color-mix(in srgb,var(--moi) 45%,var(--panneau2));border-color:var(--moi)}
+.p-terrain.g-lui{background:color-mix(in srgb,var(--lui) 45%,var(--panneau2));border-color:var(--lui)}
+.p-terrain{transition:background .25s}
+.verrou .p-poste,.verrou .p-plateau{pointer-events:none}
+.verrou .p-fin{visibility:hidden}
+.p-camp.joue{border-color:var(--lui);animation:halo 1.6s ease-in-out infinite}
+.p-joue{display:inline-block;margin-left:8px;font:800 12px/1 var(--corps);color:var(--texte)}
+.p-tourde{padding-right:122px}
+.p-outil{font-size:16px}
+@keyframes lien{0%{opacity:0}15%,60%{opacity:1}100%{opacity:0}}
+@keyframes compte{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}25%,75%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-90%)}}
+@keyframes mortClign{0%,30%,60%{opacity:1;background:#c5281a}15%,45%{opacity:.35}75%{opacity:1}100%{opacity:0;transform:translateY(12px) scale(.75)}}
+@keyframes secoue{0%,100%{transform:none}20%{transform:translate(-5px,2px)}40%{transform:translate(5px,-2px)}60%{transform:translate(-3px,1px)}80%{transform:translate(3px,-1px)}}
+@keyframes halo{0%,100%{box-shadow:0 0 0 1px var(--lui)}50%{box-shadow:0 0 0 2px var(--lui),0 0 16px var(--lui)}}
+@media (prefers-reduced-motion:reduce){
+  .fx-compte,.fx-lien,.v-lien,.fx-fantome{animation-name:fondu}
+  .fx-secoue,.p-camp.joue{animation:none}
+  .p-terrain{transition:none}
+}

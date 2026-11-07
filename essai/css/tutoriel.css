@@ -1,0 +1,21 @@
+/* Partie guidee (tutoriel) et bandeau Premiere partie. */
+/* Partie guidee : bulle, anneau sur l'element vise, bouton Passer toujours visible. */
+.g-anneau{position:fixed;z-index:70;border:3px solid var(--or);border-radius:10px;box-shadow:0 0 0 4px rgba(241,195,90,.25),0 0 18px rgba(241,195,90,.55);pointer-events:none;transition:all .2s}
+.g-bulle{position:fixed;z-index:72;width:min(340px,calc(100vw - 32px));background:#fdf6e3;color:#14202a;border-radius:12px;padding:12px 14px;box-shadow:0 8px 26px rgba(0,0,0,.55);font-size:15px;line-height:1.45}
+.g-bulle p{margin:0}.g-bulle b{color:#7a4c00}
+.g-bulle .g-pied{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;margin-top:10px}
+.g-bulle .g-num{margin-right:auto;font-size:12px;color:#5b6b78}
+.g-bulle .btn{padding:7px 14px;font-size:15px}
+.g-fleche{position:fixed;z-index:72;width:0;height:0;border:9px solid transparent;pointer-events:none}
+.g-fleche.bas{border-top-color:#fdf6e3}.g-fleche.haut{border-bottom-color:#fdf6e3}
+#gPasser{position:fixed;z-index:71;bottom:12px;left:12px;padding:7px 12px;font-size:14px;min-height:0}
+body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
+/* Premiere partie ? (0.4) : bandeau discret en haut de l'onglet Jouer, une seule fois par navigateur */
+#premierePartie{margin:0 0 12px;max-width:none;width:auto;display:flex;flex-direction:row;align-items:center;flex-wrap:wrap;gap:10px 16px;border-color:var(--or);border-left:4px solid var(--or);padding:12px 16px}
+#premierePartie[hidden]{display:none}
+.pp-tx{flex:1 1 260px;min-width:0}
+.pp-tx b{display:block;font:400 19px/1.2 var(--titre);color:var(--or)}
+.pp-tx span{color:var(--doux);font-size:14.5px}
+.pp-btns{display:flex;gap:8px;flex:0 1 auto}
+.pp-btns .btn{min-height:42px;padding:4px 16px;font-size:15px;margin:0;white-space:nowrap}
+@media (max-width:600px){#premierePartie .pp-btns{flex:1 1 100%}:is(#premierePartie .pp-btns .btn,#fam#fam){flex:1 1 auto;width:auto;padding-left:10px;padding-right:10px}}

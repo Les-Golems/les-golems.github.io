@@ -96,6 +96,9 @@ async function ouvre() {
   let enLigne = false;
   const ecouteCo = [];
   onValue(ref(db, ".info/connected"), s => { enLigne = s.val() === true; ecouteCo.forEach(f => f()); });
+  // Écart entre l'horloge locale et celle du serveur (déconnexion : minuteurs comptés en heure serveur).
+  let decalage = 0;
+  onValue(ref(db, ".info/serverTimeOffset"), s => { decalage = +s.val() || 0; });
 
   // Accueil : seulement pour un compte ; arrêté puis relancé à chaque changement de compte.
   let hallRef = null, hallStop = null, hallPres = {}, hallPeers = [], hallErreur = false;
@@ -425,11 +428,39 @@ async function ouvre() {
     const annRef = ref(db, P + "annonces/" + code);
     let annonceOn = false;
     function ecrit() { return update(moiRef, { ...pres, t: serverTimestamp() }); }
-    const reco = () => { if (enLigne && !fini) { onDisconnect(moiRef).remove(); ecrit().catch(() => {}); } };
+    // Présence de connexion (0.5, déconnexion) : salons/{code}/pres/{uid} = { c: connecté, t: heure serveur du dernier changement }.
+    // Le serveur écrit c:false lui-même à la coupure (onDisconnect) ; l'adversaire en tire « reconnexion » puis « hors ligne ».
+    const presRef = ref(db, base + "/pres/" + uid);
+    let etats = {}, forfaits = {};
+    const ecouteDeco = [];
+    const notifieDeco = () => { if (!fini) ecouteDeco.forEach(f => { try { f(); } catch (e) {} }); };
+    stop.push(onValue(ref(db, base + "/pres"), s => { etats = s.val() || {}; notifieDeco(); }, () => {}));
+    stop.push(onValue(ref(db, base + "/forfait"), s => { forfaits = s.val() || {}; notifieDeco(); }, () => {}));
+    function presCo() {
+      return onDisconnect(presRef).set({ c: false, t: serverTimestamp() }).then(() => set(presRef, { c: true, t: serverTimestamp() })).catch(() => {});
+    }
+    const reco = () => { if (enLigne && !fini) { onDisconnect(moiRef).remove(); ecrit().catch(() => {}); presCo(); } };
     ecouteCo.push(reco);
 
     await onDisconnect(moiRef).remove();
+    presCo();
     const salon = {
+      // Déconnexion (0.5) : états de connexion { uid: { c, t } }, forfaits { graine: { u, t } }, f() à chaque changement.
+      etats: () => etats,
+      forfaits: () => forfaits,
+      onDeco(f) { ecouteDeco.push(f); },
+      // Uids engagés dans la partie (lecture ponctuelle).
+      async engages() { try { return (await get(ref(db, base + "/engages"))).val() || {}; } catch (e) { return {}; } },
+      // Défaite par abandon d'un adversaire hors ligne depuis plus de 70 s (vérifié aussi par les règles de la base).
+      declareForfait(u, g) { return set(ref(db, base + "/forfait/" + g), { u, t: serverTimestamp() }); },
+      // Autre appareil du même compte : on lâche le salon sans effacer la présence (elle est à lui maintenant).
+      async lache() {
+        fini = true;
+        stop.forEach(f => f());
+        const i = ecouteCo.indexOf(reco); if (i >= 0) ecouteCo.splice(i, 1);
+        try { await onDisconnect(moiRef).cancel(); await onDisconnect(presRef).cancel(); } catch (e) {}
+        if (annonceOn) { annonceOn = false; try { await onDisconnect(annRef).cancel(); } catch (e) {} }
+      },
       peers() {
         return Object.keys(joueurs).map(u => {
           const q = pair(u, joueurs[u]);
@@ -467,12 +498,23 @@ async function ouvre() {
         touche();
         if (j !== undefined && j !== null) await envoieJournal(j);
       },
-      // o = { d: nom du deck, e: éléments "brume,roche", v: version du site } pour publier, null pour retirer.
+      // o = { d: nom du deck, e: éléments "brume,roche", v: version du site, w: uid de l'adversaire, q: son pseudo,
+      //       n: nombre de spectateurs } pour publier, null pour retirer. L'annonce reste tant que la partie n'a pas commencé.
+      // Une fois publiée, elle est mise à jour sans toucher à t (heure de création).
       async annonce(o) {
         if (o) {
           const v = { u: uid, p: donnees && donnees.pseudo || "", a: donnees && donnees.avatarId || "", d: String(o.d || "").slice(0, 24), e: String(o.e || "").slice(0, 60), t: serverTimestamp() };
           if (!v.a) delete v.a; if (!v.d) delete v.d; if (!v.e) delete v.e;
           if (typeof o.v === "string" && VERSION_OK.test(o.v)) v.v = o.v;
+          if (typeof o.w === "string" && o.w) { v.w = o.w; v.q = String(o.q || "").slice(0, 24); }
+          if (Number.isInteger(o.n) && o.n > 0) v.n = Math.min(o.n, 999);
+          // Partie en cours : g, manche m, score k ("a-b").
+          if (o.g === true) { v.g = true; if (typeof o.f === "string" && /^[a-z,]{0,60}$/.test(o.f) && o.f) v.f = o.f; if (Number.isInteger(o.m)) v.m = Math.min(Math.max(o.m, 1), 9); if (typeof o.k === "string" && /^\d{1,2}-\d{1,2}$/.test(o.k)) v.k = o.k; }
+          if (annonceOn) {
+            const { t, ...maj } = v;
+            for (const k of ["a", "d", "e", "v", "w", "q", "n", "g", "m", "k", "f"]) if (!(k in maj)) maj[k] = null;
+            try { await update(annRef, maj); return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
+          }
           if (!annonceOn) await onDisconnect(annRef).remove();
           await set(annRef, v); annonceOn = true;
         } else {
@@ -488,6 +530,7 @@ async function ouvre() {
         stop.forEach(f => f());
         const i = ecouteCo.indexOf(reco); if (i >= 0) ecouteCo.splice(i, 1);
         await onDisconnect(moiRef).cancel();
+        try { await onDisconnect(presRef).cancel(); await remove(presRef); } catch (e) {}
         await remove(moiRef);
       }
     };
@@ -496,6 +539,15 @@ async function ouvre() {
 
   return {
     connected: () => enLigne,
+    // Heure du serveur (ms), pour les minuteurs de déconnexion.
+    heure: () => Date.now() + decalage,
+    // Partie en ligne retenue par le compte (0.5) : joueurs/{uid}/salon. o = null pour effacer.
+    salonCompte: {
+      ecrit(o) { if (!estCompte()) return Promise.resolve(); return set(ref(db, P + "joueurs/" + moi + "/salon"), o ? { ...o, t: serverTimestamp() } : null); },
+      async lit() { if (!estCompte()) return null; try { return (await get(ref(db, P + "joueurs/" + moi + "/salon"))).val(); } catch (e) { return null; } },
+      ecoute(f) { if (!estCompte()) return () => {}; return onValue(ref(db, P + "joueurs/" + moi + "/salon"), s => f(s.val()), () => {}); },
+      uid: () => moi
+    },
     peers: () => hallPeers,
     onPeers(f, g) { ecouteHall.push(f); if (g) { hallPerdu.push(g); if (hallErreur) setTimeout(g, 0); } },
     onConnection(f, g) { ecouteCo.push(f); },
@@ -508,7 +560,9 @@ async function ouvre() {
       await update(hallRef, { ...q, t: serverTimestamp() });
     },
     compte,
-    // Salons publics en attente : f(liste de { code, u, p, a, d, e, t, v }) à chaque changement (v absent = ancienne version).
+    // Salons publics pas encore lancés : f(liste de { code, u, p, a, d, e, t, v, w, q, n }) à chaque changement
+    // (v absent = ancienne version ; w, q = adversaire assis, absent = place libre ; n = spectateurs ;
+    //  g = partie en cours, m = manche, k = score "a-b", e et f = éléments principaux des decks place 0 et place 1).
     annonces(f) {
       return onValue(ref(db, P + "annonces"), s => {
         const v = s.val() || {};
@@ -549,6 +603,22 @@ async function ouvre() {
     async litClassement() {
       const v = (await get(ref(db, P + "classement"))).val() || {};
       return Object.keys(v).map(u => ({ uid: u, ...v[u] })).filter(x => typeof x.p === "string" && Number.isInteger(x.n));
+    },
+    // Nouveautés (0.4) : blocs épinglés (nouveautes/epingles, 2 au plus, lus par tous, écrits par le seul compte de Romain).
+    // ecoute(f) : f(liste d'ids ou null si le nœud est vide) ; romain() : vrai si ce compte possède le pseudo KaTarN
+    // (affichage des épingles seulement ; la règle de la base vérifie son uid).
+    epingles: {
+      ecoute(f) {
+        return onValue(ref(db, P + "nouveautes/epingles"), s => { const v = s.val(); f(v && typeof v === "object" ? Object.keys(v).sort().map(k => v[k]).filter(x => typeof x === "string") : null); }, () => f(null));
+      },
+      ecrit(l) {
+        const o = {}; (l || []).slice(0, 2).forEach((x, i) => { o[i] = String(x); });
+        return set(ref(db, P + "nouveautes/epingles"), Object.keys(o).length ? o : { 0: "aucun" });
+      },
+      async romain() {
+        if (!estCompte()) return false;
+        try { return (await get(ref(db, P + "pseudos/katarn"))).val() === moi; } catch (e) { return false; }
+      }
     },
     // Lecture brute (tests locaux) : soumise aux mêmes règles que le reste.
     lit: p => get(ref(db, P + p)).then(s => s.val()),

@@ -1,0 +1,74 @@
+/* Editeur de deck : bac a sable de placement. */
+/* Bac a sable de placement (editeur de deck) : notre cote seulement, memes cases que la grille de partie (.p-case, miniVue). */
+.bac{--h:100px;margin:4px 0 18px;padding:12px;background:var(--panneau);border:1px solid var(--trait);border-radius:14px 10px 15px 9px/10px 14px 9px 15px}
+.bac-ouvre{margin:2px 0 12px}
+.bac-haut{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap;margin-bottom:8px}
+.bac-haut h3{margin:0;font:400 22px/1.1 var(--titre);color:var(--texte);margin-right:auto}
+.bac-haut .btn{min-height:38px;padding:6px 14px;font-size:16px}
+.bac-corps{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+/* Grand ecran : gauche (main, Detail, mention) etiree sur la hauteur du plateau, bas aligne sur les totaux ;
+   contain:size pour que la gauche ne grandisse jamais la rangee (le Detail defile s'il deborde). La somme passe dessous, a droite. */
+@media (min-width:900px){.bac-corps{grid-template-columns:minmax(0,1fr) minmax(0,600px);align-items:start}.bac-plateau{grid-column:2;grid-row:1}.bac-gauche{grid-column:1;grid-row:1;align-self:stretch;contain:size;display:flex;flex-direction:column}.bac-corps>.bac-somme{grid-column:2;grid-row:2;margin-top:-6px}.bac-gauche>.bac-pool{flex:none}.bac-gauche>.bac-det{flex:1 1 auto;min-height:0;overflow:auto}.bac-gauche>.bac-mention{flex:none}}
+.bac-det{margin-top:8px;padding:9px 14px 10px;background:var(--panneau2);border:1px solid var(--trait);border-radius:12px 9px 14px 8px;font-size:13.5px;line-height:1.35;scrollbar-width:thin}
+.bac-det>h4{margin:0 0 6px;font:400 18px/1.15 var(--titre);color:var(--bleu)}
+.bac-det p{margin:0 0 6px;color:var(--doux)}
+.bac-det p b{color:var(--texte)}
+.bac-det h5{margin:0 0 4px;font:800 13.5px var(--corps);color:var(--texte)}
+.bac-det ol{margin:0 0 8px;padding-left:20px;color:var(--doux)}.bac-det ol li{padding:1px 0}
+.bac-det .lg{display:flex;justify-content:space-between;gap:10px;padding:2px 0;border-top:1px solid rgba(42,63,80,.55)}
+.bac-det .lg b{flex:none;font-family:var(--titre);font-weight:400}
+.bac-det .tot{color:var(--or);font-weight:800}
+.bac-det section>h3{display:none}
+.bac-det .t{display:flex;align-items:baseline;gap:6px 10px;flex-wrap:wrap;margin-bottom:4px}
+.bac-det .t b{font:400 18px var(--titre);color:var(--texte)}.bac-det .t .fo{font:400 18px var(--titre);color:var(--bleu)}
+.bac-det .bs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.bac-det .pastille{min-height:34px;padding:4px 11px;font-size:13.5px}
+.bac-pool{display:flex;flex-wrap:wrap;gap:8px;padding:8px;border:1px dashed var(--trait);border-radius:12px;min-height:110px;align-content:flex-start}
+.bac-pool.survol{border-color:var(--bleu);background:rgba(1,193,240,.06)}
+.bac-slot{position:relative;flex:none}
+.bac-slot .oeil{right:4px;bottom:4px;width:24px;height:24px;padding:3px}
+.bac-carte{position:relative;width:72px;padding:0;border:2px solid transparent;border-radius:9px;background:none;cursor:pointer;flex:none}
+.bac-carte img{display:block;width:100%;aspect-ratio:750/1050;border-radius:7px;pointer-events:none}
+.bac-carte .n{position:absolute;right:-5px;top:-7px;min-width:24px;height:24px;padding:0 5px;border-radius:12px;background:var(--or);color:var(--encre);font:400 15px/24px var(--titre);text-align:center;box-shadow:0 1px 3px #000}
+.bac-carte[aria-pressed=true]{border-color:var(--bleu);box-shadow:0 0 0 2px var(--bleu),0 0 14px rgba(1,193,240,.5)}
+.bac-carte:disabled{opacity:.3;cursor:default}
+.bac-carte:disabled .n{background:var(--trait);color:var(--doux)}
+.bac-plateau .p-terrains{margin-bottom:6px}
+.bac-plateau .p-terrain{min-height:0;padding:5px 6px 6px;gap:4px;cursor:default}
+.bac-plateau .p-terrain select{width:100%;min-width:0;background:var(--panneau);color:var(--texte);border:1px solid var(--trait);border-radius:8px;font:400 15px/1.2 var(--titre);padding:5px 4px;text-overflow:ellipsis}
+.bac-plateau .p-terrain .p-valeur{position:static;align-self:center;font-size:13px;line-height:17px;padding:0 6px}
+.bac-plateau .bac-tinfo{font-size:11.5px;color:var(--doux);line-height:1.2;min-height:14px}
+.bac-plateau .p-grille{margin:0}
+.bac-plateau .p-case.cible{cursor:pointer}
+.bac-plateau .p-case.cible:not(:has(.mini)){font-size:14px}
+.bac-plateau .p-case.survol{outline:3px solid var(--bleu);outline-offset:-3px}
+.bac-totaux{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:6px}
+.bac-totaux div{background:var(--panneau2);border:1px solid var(--trait);border-radius:9px 14px 10px 15px/15px 10px 14px 9px;text-align:center;padding:3px 4px}
+.bac-totaux span{display:block;font-size:11.5px;color:var(--doux)}
+.bac-totaux b{font:400 26px/1.1 var(--titre);color:var(--bleu)}
+.bac-somme{margin:-6px 0 0;text-align:center;font-size:13.5px;color:var(--doux)}
+.bac-plateau{order:1}.bac-corps>.bac-somme{order:2}.bac-gauche{order:3}
+.bac-somme b{color:var(--texte);font:400 17px var(--titre)}
+.bac-des{margin-top:6px;display:grid;gap:5px}
+.bac-des .bs{align-items:center}
+.bac-des .bs>span{min-width:44px;color:var(--doux)}
+.bac-des .pastille{min-width:34px;justify-content:center;padding:4px 8px}
+#vueDetail .bac-des{margin-top:10px;font-size:13.5px}
+#vueDetail .bac-des .bs{display:flex;flex-wrap:wrap;gap:5px}
+#vueDetail .bac-des .pastille{min-height:32px}
+.bac-mention{margin:8px 0 0;font-size:12.5px;color:var(--doux);line-height:1.35}
+.bac-mention summary{cursor:pointer;color:var(--texte);font-weight:700}
+.bac-mention ul{margin:6px 0 0;padding-left:18px}
+.bac-mention li{margin:2px 0}
+.bac-mention .oui{color:#3ee86a;font-weight:700}
+.bac-mention .non{color:#ffb020;font-weight:700}
+@media (max-width:640px){
+  .d-haut>.bac-btn{order:9;width:100%}
+  .bac{--h:78px;padding:8px;margin-left:-4px;margin-right:-4px}
+  .bac-pool{flex-wrap:nowrap;overflow-x:auto;min-height:0;padding:8px 6px 6px;scrollbar-width:thin}
+  .bac-carte{width:58px}
+  .bac-slot .oeil{width:22px;height:22px;right:3px;bottom:3px}
+  .bac-plateau .p-terrain select{font-size:13px;padding:4px 2px}
+  .bac-plateau .bac-tinfo{font-size:10.5px}
+  .bac-haut h3{font-size:19px}
+  .bac-totaux b{font-size:22px}
+}

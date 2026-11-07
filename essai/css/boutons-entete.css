@@ -1,0 +1,61 @@
+/* Famille de boutons, onglets, en-tete bleu ciel, etiquettes de version, site d'essai. */
+/* Famille unique de boutons : deux tailles (normale 46 px, petite 36 px). #fam#fam n'existe pas : il sert a passer devant les regles de contexte. */
+:is(.btn,.pastille,.modif,.j-btn,.p-outil,.onglets button,#fam#fam){border:0;border-radius:8px;font-family:var(--titre);font-weight:400;line-height:1.15;transition:translate .1s,box-shadow .1s,filter .1s}
+:is(.btn,#fam#fam){min-height:46px;padding:8px 18px;font-size:18px}
+:is(.niveaux .btn,#fam#fam){padding-left:4px;padding-right:4px}
+:is(.pastille,.modif,.onglets button,.d-act>.btn,.p-pied .btn,.btnCode,.ligne .btn,#fam#fam){min-height:36px;padding:4px 12px;font-size:15px}
+:is(.j-btn,.p-outil,#fam#fam){width:36px;min-width:36px;height:36px;min-height:36px;padding:0;font-size:15px}
+.pastille,.modif,.p-outil,.onglets button{--bord:#121b24;background:linear-gradient(#3d4e5d,#283643);color:#e8eff4;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 3px 0 var(--bord),0 5px 10px rgba(0,0,0,.35)}
+.j-btn,.pastille[aria-pressed=true],.onglets button[aria-selected=true]{--bord:#08708c;background:linear-gradient(#3bd2f7,#01aad6);color:var(--encre);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 3px 0 var(--bord),0 5px 10px rgba(0,0,0,.35)}
+.onglets{gap:8px;padding-block:6px 9px}
+/* Onglets : 17 px et 44 px de haut partout (nav = 60 px, sous le top:64px des panneaux collants). */
+.onglets button:not(#_x#_x),body:has(#jouer.enJeu:not([hidden])) .onglets button:not(#_x#_x){min-height:44px;height:44px;font-size:17px;padding-block:0}
+.o-ic,.o-ct{display:none}
+/* Telephone : 6 onglets egaux sur une ligne, icone au-dessus d'un libelle court. */
+@media (max-width:640px){.onglets{gap:4px}.onglets button:not(#_x#_x),body:has(#jouer.enJeu:not([hidden])) .onglets button:not(#_x#_x){flex:1 1 0;min-width:0;max-width:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0 1px;font-size:12.5px;line-height:1}.o-lg{display:none}.o-ct{display:block;white-space:nowrap}.o-ic{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}}
+:is(.pastille,.modif,.j-btn,.p-outil,.onglets button):not(:disabled):hover{filter:brightness(1.08);translate:0 -1px}
+:is(.pastille,.modif,.j-btn,.p-outil,.onglets button):not(:disabled):active{transform:none;translate:0 2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 1px 0 var(--bord)}
+/* En-tete bleu ciel */
+header .haut #modifierPseudo{--bord:#063f50;background:rgba(1,193,240,.08);color:var(--bleu);box-shadow:inset 0 0 0 2px var(--bleu),0 3px 0 var(--bord)}
+header .haut #modifierPseudo:hover{background:rgba(1,193,240,.22);color:#7fe3ff;box-shadow:inset 0 0 0 2px #7fe3ff,0 3px 0 var(--bord),0 0 12px rgba(1,193,240,.35)}
+header{background:linear-gradient(180deg,#22cdf5,#01C1F0 55%,#00b0dc);border-bottom:2px solid #08708c}
+header h1,header .haut .sous-titre,header .moi,header .moi b{color:var(--encre)}
+header .haut img{filter:drop-shadow(0 2px 3px rgba(10,18,26,.45))}
+header #avatarMoi{box-shadow:0 0 0 2px var(--encre),0 2px 4px rgba(10,18,26,.4)}
+header .avatarBtn:hover #avatarMoi{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--encre)}
+header .haut #modifierPseudo{background:var(--encre);color:var(--bleu);box-shadow:inset 0 0 0 2px var(--encre),0 3px 0 #08708c}
+header .haut #modifierPseudo:hover{background:#1a2a38;color:#7fe3ff;box-shadow:inset 0 0 0 2px #7fe3ff,0 3px 0 #08708c}
+/* 0.5 : badge de version de l'en-tete en pastille bleu nuit, texte bleu ciel (couleurs du bouton « Se connecter ») ; taille et position inchangees */
+header #verEtq.etq-v{background:var(--encre);color:var(--bleu);border-color:var(--encre)}
+header .haut .qui{gap:16px;min-width:0}
+header .haut #pseudoAffiche{max-width:260px}
+header .haut .moi{min-width:0;flex:0 1 auto}
+@media (max-width:440px){header .haut .moi{flex:none;display:grid;grid-template-columns:auto auto;justify-items:end;align-items:center;column-gap:12px;row-gap:5px}header .haut .qui{display:contents}header .haut .avatarBtn{grid-row:1;grid-column:1}header .haut #modifierPseudo{grid-row:1;grid-column:2}header .haut #pseudoAffiche{grid-row:2;grid-column:1/3;font-size:13.5px;line-height:1.2;max-width:160px;white-space:nowrap}header .haut h1{min-width:0}}
+@media (max-width:359px){.haut{gap:7px}.haut img{width:36px;height:36px}.haut h1{font-size:18px}.haut .sous-titre{font-size:12px}header .haut .moi{column-gap:8px}#avatarMoi{width:38px;height:38px;font-size:19px}header .haut #modifierPseudo{padding:5px 8px;font-size:13px}}
+/* Etiquette de version : une seule apparence (classe etq-v) pour l'en-tete, le salon, les parties publiques et l'Historique.
+   Pastille arrondie, fond bleu de l'en-tete assombri, bord et texte encre ; seule la taille change selon l'endroit.
+   Salon : variante rouge (vx-diff) pour une version differente. */
+.etq-v{border:1px solid #066680;border-radius:999px;background:#02a6ce;color:var(--encre);font-family:var(--corps);font-weight:800;letter-spacing:.02em;opacity:1}
+/* En-tete : a la suite du sous-titre. Titre trop etroit (telephone, tablette, encadre Nouvelle version) : sous le sous-titre,
+   interlignes resserres, pour garder la hauteur de l'en-tete. Clic ou Entree : fenetre « Détails » de la version. */
+.haut h1{container:titre-site/inline-size}
+.haut .st-ligne{display:block;margin-top:5px;font:600 16px/1.2 var(--corps)}
+.haut .st-ligne>.sous-titre{display:inline;margin:0;line-height:inherit}
+.ver-etq{display:inline-block;margin:0 0 0 3px;padding:1px 9px;font-size:12px;line-height:1.25;white-space:nowrap;vertical-align:1px;cursor:pointer}
+.ver-etq:not(.ve-inerte,.ve-charge):hover,.ver-etq:focus-visible{background:var(--encre);border-color:var(--encre);color:var(--bleu)}
+.ver-etq:focus-visible{outline:2px solid var(--encre);outline-offset:2px}
+.ver-etq[hidden]{display:none}
+.ver-etq.ve-charge{opacity:.55;cursor:default}.ver-etq.ve-inerte{cursor:default}
+@container titre-site (max-width:275px){.haut .st-ligne{margin-top:2px;line-height:1.05}.ver-etq{display:block;width:fit-content;margin:2px 0 0;padding:0 6px;font-size:10.5px;line-height:11px}}
+@container titre-site (max-width:212px){.haut .st-ligne{margin-top:1px;line-height:1}.ver-etq{margin-top:1px}}
+@media (max-width:440px){.haut .st-ligne{margin-top:2px;font-size:13.5px;line-height:1.1}.ver-etq{margin-top:2px;font-size:10px}}
+@media (max-width:359px){.haut .st-ligne{font-size:12px;line-height:1.05}.ver-etq{margin-top:3px;padding:0 5px;font-size:9.5px;line-height:10px}}
+/* Site d'essai (/essai/) seulement : classe html.essai posee par le script (absente du site public). Liseré orange en haut de l'en-tete
+   (ombre interne, sans changer la hauteur) et pastille « SITE D'ESSAI » a cote du titre. */
+html.essai header{box-shadow:inset 0 5px 0 #ff7a1a}
+.essai-pastille{display:inline-block;margin-left:12px;padding:3px 12px;border:2px solid var(--encre);border-radius:999px;background:#ff7a1a;color:#fff;font:900 15px/1.2 var(--corps);letter-spacing:.06em;white-space:nowrap;vertical-align:5px;text-shadow:0 1px 1px rgba(0,0,0,.45);box-shadow:0 2px 0 #08708c}
+@media (max-width:640px){.essai-pastille{margin-left:7px;padding:2px 8px;font-size:11.5px;vertical-align:3px}}
+@media (max-width:440px){.essai-pastille{display:table;margin:2px 0 1px;padding:1px 7px;font-size:10.5px;border-width:1.5px}}
+/* Historique : version de la partie apres le score, et dans le detail d'une partie. */
+.h-ver-l.etq-v{padding:1px 7px .6px;font-size:11px;line-height:15px}
+.h-dver-v{display:inline-block;padding:0 7px;font-size:11.5px;line-height:1.3;vertical-align:1px}
