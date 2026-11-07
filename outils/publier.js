@@ -9,7 +9,7 @@ const fs=require('fs'),path=require('path'),{execFileSync}=require('child_proces
 const RACINE=path.resolve(__dirname,'..'),FICHIER=path.join(RACINE,'version.json');
 const git=(...a)=>execFileSync('git',a,{cwd:RACINE,encoding:'utf8',stdio:['ignore','pipe','pipe']});
 const stop=m=>{console.error(m);process.exit(1)};
-/* Fichiers du moteur et des donnees de cartes (comparaison entiere) ; index.html : seul le bloc const CARTES=[...] compte. */
+/* Fichiers du moteur et des donnees de cartes (comparaison entiere) ; onglets/cartes.js (avant l'etape 5 : index.html) : seul le bloc const CARTES=[...] compte. */
 const MOTEUR=['moteur.js','moteurs'];
 const blocCartes=t=>{const i=t.indexOf('const CARTES=[');if(i<0)return '';const j=t.indexOf('];',i);return t.slice(i,j+2).replace(/\r\n/g,'\n')};
 
@@ -22,8 +22,10 @@ function moteurChange(ref){
   const l=[];
   const d=git('diff','--name-only',ref,'--',...MOTEUR).trim();if(d)l.push(...d.split('\n'));
   const n=git('ls-files','--others','--exclude-standard','--',...MOTEUR).trim();if(n)l.push(...n.split('\n'));
-  let avant='';try{avant=git('show',ref+':index.html')}catch(e){}
-  if(blocCartes(avant)!==blocCartes(fs.readFileSync(path.join(RACINE,'index.html'),'utf8')))l.push('index.html (liste CARTES)');
+  /* Liste CARTES : onglets/cartes.js depuis l'etape 5 (avant : index.html), des deux cotes. */
+  const avant=['onglets/cartes.js','index.html'].map(f=>{try{return blocCartes(git('show',ref+':'+f))}catch(e){return ''}}).find(x=>x)||'';
+  const ici=['onglets/cartes.js','index.html'].map(f=>{try{return blocCartes(fs.readFileSync(path.join(RACINE,f),'utf8'))}catch(e){return ''}}).find(x=>x)||'';
+  if(avant!==ici)l.push('onglets/cartes.js (liste CARTES)');
   return l;
 }
 function buildParis(){
