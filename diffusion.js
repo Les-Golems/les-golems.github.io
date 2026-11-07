@@ -267,7 +267,7 @@ function zoomCarte(c){
   const u=U(),C=M().carte(c);u.cacheApercu();
   let det=null;
   if(C.animal&&typeof u.detailAnimal==='function')det=u.detailAnimal(C);
-  else if(typeof u.lg==='function'){const a=mk('section');a.append(mk('h3','','Force'),u.lg('Force de base',C.force!=null?String(C.force):'aucune'),u.lg('Coût',String(C.cout)));if(C.texte)a.append(mk('p','',C.texte));det=[a]}
+  else if(typeof u.lg==='function'){const a=mk('section');a.append(mk('h3','','Force'),u.lg('Force de base',C.force!=null?String(C.force):'aucune'),u.lg('Coût',String(C.cout)));if(C.texte)a.append(u.effetCouleur?u.effetCouleur(C,'p',''):mk('p','',C.texte));det=[a]}
   u.zoom(u.srcC(c),C.nom,det);
 }
 function main(s,p,top,joue){
@@ -324,7 +324,7 @@ function derniere(s){
   else{ph.append(bl(nom(d.p)+' '+L.replace(/\.$/,'')),ter?' sur '+ter+'.':'.')}
   /* 2e ligne : l'effet, son nom en gras */
   const pe=mk('p','d-phr'),t=C.texte||'',i=t.indexOf(' : ');
-  if(i>0){pe.append(mk('strong','',t.slice(0,i)),nb(t.slice(i)))}else if(t)pe.append(nb(t));
+  if(i>0){const sg=mk('strong','',t.slice(0,i));if(u.effetCouleur)sg.style.color=u.effetCouleur(C).firstChild.style.color;pe.append(sg,nb(t.slice(i)))}else if(t)pe.append(nb(t));
   const ch=mk('div','d-chips'),cc=mk('span'),cf=mk('span'),ce=mk('span');
   cc.append(u.ico('enclume'),'Coût ');cc.append(mk('b','',String(C.cout)));
   cf.append(u.ico('force'),'Force ');cf.append(mk('b','',C.force==null?'au dé':String(C.force)));

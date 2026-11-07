@@ -185,7 +185,7 @@ function texteCarte(){
   if(C.el&&C.el.length)sous.push(C.el.map(e=>NOMS_EL[e]||e).join(', '));
   sous.push('coût '+C.cout);sous.push(C.force==null?'Force au dé':'Force '+C.force);
   const t=h('p','aide-txt'),i=C.texte.indexOf(' :');
-  if(i>0){t.append(h('b','',C.texte.slice(0,i)+' :'),C.texte.slice(i+2))}else t.append(C.texte);
+  if(i>0){const b=h('b','',C.texte.slice(0,i)+' :'),U=window.GOLEMS_UI;if(U&&U.effetCouleur)b.style.color=U.effetCouleur(C).firstChild.style.color;t.append(b,C.texte.slice(i+2))} /* couleur de la carte : fonction commune effetCouleur (index.html) */else t.append(C.texte);
   s.append(h('h3','aide-nom',C.nom),h('p','aide-sous',sous.join(' · ')),t);
   d.prepend(s);
   /* Panneau cache (pas de statistiques, invite) : on l'affiche pour le texte de la carte */

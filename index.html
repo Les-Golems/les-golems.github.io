@@ -5974,13 +5974,18 @@ function detailMaitreAnimal(g){
   const im=c=>{const i=el('img');i.src=imgV('cartes/'+c.id+'.jpg');i.alt=c.nom;return i};
   const t=el('div','t'),h=el('h3','',C.nom),l=el('div','l');h.style.color=C.base?'var(--or)':'#fff';
   l.innerHTML=PATTE;l.append(A.nom+' : +1 de Force');
-  t.append(h,el('div','e',C.texte||''),l,el('h3','an',A.nom),el('div','e',A.texte),el('div','e rap',"Sous son maître. Part si le maître est détruit ou remplacé, reste s'il évolue."));
+  t.append(h,effetCouleur(C),l,el('h3','an',A.nom),effetCouleur(A),el('div','e rap',"Sous son maître. Part si le maître est détruit ou remplacé, reste s'il évolue."));
   const f=el('div','ani-fond');f.onclick=fermeDetailAnimal;
   d.append(x,im(C),im(A),t);document.body.append(f,d);x.focus({preventScroll:true});
 }
+/* Nom d'effet en couleur, comme sur la carte (generer_cartes.py / generer_animaux.py) : evolution en or, base = teinte claire de l'element 1 (TEXTE_ELT), animal = VERT_CLAIR */
+const TEXTE_EL={magma:'#ffb52a',cristal:'#ffa8d6',foudre:'#ffe36e',brume:'#c9b6f2',roche:'#ecbc8c'};
+/* Fonction commune a tous les panneaux de detail et zooms (vue joueur, vue spectateur, diffusion) : GOLEMS_UI.effetCouleur */
+function effetCouleur(C,tag,cls){const d=el(tag||'div',cls===undefined?'e':cls),x=C.texte||'',i=x.indexOf(' :');if(i<0){d.textContent=x;return d}
+  const b=el('b','',x.slice(0,i+2));b.style.color=C.animal?'#c8f58a':C.base?'#ffd23a':TEXTE_EL[C.el[0]]||'#fff';d.append(b,x.slice(i+2));return d}
 function fermeDetailAnimal(){document.querySelectorAll('#aniDet,.ani-fond').forEach(x=>x.remove())}
 addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('aniDet'))fermeDetailAnimal()});
-function detailAnimal(C){const a=el('section');a.append(el('h3','','Animal de compagnie'),lg('Maître',M.CARTES[C.maitre].nom),lg('Force','aucune'),el('p','',C.texte));return [a]}
+function detailAnimal(C){const a=el('section');a.append(el('h3','','Animal de compagnie'),lg('Maître',M.CARTES[C.maitre].nom),lg('Force','aucune'),effetCouleur(C,'p',''));return [a]}
 function ouvreTas(titre,ids){
   const b=$('tasCartes');b.textContent='';$('tasTitre').textContent=titre;$('tasVide').hidden=ids.length>0;
   ids.forEach(c=>{const C=M.carte(c),i=el('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;b.append(i)});
@@ -6777,7 +6782,7 @@ else{const v=new URLSearchParams(location.search).get('carte');if(v!==null){ongl
     jouerA(){if(!partie||partie.etat&&partie.etat.fin)return;partie.mien.push(M.code({t:'a'}));sel=null;sauve();pub({j:M.ecritJournal(partie.mien)});calcule()}, /* ma defaite par abandon (hors ligne trop longtemps) */
     forfaitAdv(){if(!partie||partie.etat&&partie.etat.fin)return;partie.sien=[...partie.sien,M.code({t:'a'})];sel=null;calcule();sauve()}, /* abandon de l'adversaire hors ligne */
     lache(msg){const a=r;r=null;code='';finPartie();$('salon').hidden=true;$('accueil').hidden=false;$('erreurJeu').textContent=msg||'';if(a&&a.lache)a.lache();majEtat();majReprise()}}; /* autre appareil du meme compte */
-  window.GOLEMS_UI={el,nomJ,uidJ,monAvatar,quitteAvecConfirmation,get partie(){return partie},avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,ligneDeckVide,piocheImpossible,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
+  window.GOLEMS_UI={el,effetCouleur,nomJ,uidJ,monAvatar,quitteAvecConfirmation,get partie(){return partie},avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,ligneDeckVide,piocheImpossible,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
 })();
 </script>
 <script>window.__golemsPret&&window.__golemsPret()</script>

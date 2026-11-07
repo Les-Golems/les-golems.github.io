@@ -185,7 +185,7 @@ function terrains(s,cols,haut,bas){
 function detailMain(C){
   if(C.animal&&typeof detailAnimal==='function')return detailAnimal(C);
   const a=mk('section');a.append(mk('h3','','Force'),lg('Force de base',C.force!=null?String(C.force):'aucune'),lg('Coût',String(C.cout)));
-  if(C.texte)a.append(mk('p','',C.texte));return [a];
+  if(C.texte)a.append(U.effetCouleur?U.effetCouleur(C,'p',''):mk('p','',C.texte));return [a];
 }
 function zoomMain(c){const C=M.carte(c);cacheApercu();zoom(srcC(c),C.nom,detailMain(C))}
 /* Zoom par identifiant de type : si la carte est en jeu chez son joueur, meme zoom que sa case (detail de Force), sinon detail de la carte */
