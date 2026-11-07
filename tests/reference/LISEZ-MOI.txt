@@ -1,0 +1,16 @@
+Corpus de reference du moteur (Les Golems)
+
+But : prouver qu'une reorganisation du code ne change rien au jeu.
+540 parties robot contre robot (Facile, Normal, Difficile, les 9 paires, 60 parties chacune),
+graines fixes, decks : paquet de test, deck par defaut, decks tires a graine fixe valides selon les regles 0.5.
+Chaque partie : graine, niveaux, decks, coups, journaux codes, fin (scores), etat final complet (dont log et stats).
+
+Depuis la racine du site :
+  Comparer : node tests/reference/comparer.js
+             -> "identique" ou, par partie, la graine et le premier coup divergent.
+             Verifie aussi que M.rejoue(journaux) redonne l'etat enregistre.
+  Regenerer : node tests/reference/generer_corpus.js
+             (seulement quand un changement de comportement est voulu ; ecrase corpus/)
+
+Fichiers : commun.js (plan des parties, decks, partie robot), corpus/lot00..lot05.json.gz.
+Environ 20 s chacun.
