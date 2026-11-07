@@ -3393,7 +3393,7 @@ document.querySelectorAll('input[type=password]').forEach(oeilCode);
 /* envoiPub : dernier envoi de presence (et du journal), attendu avant d'annoncer un depart. */
 let envoiPub=null;
 function pub(p){if(r)envoiPub=r.presence(p).catch(()=>{})}
-function finPartie(){arreteGuide();M=M0;clearTimeout(rejeuT);rejeuT=0;{const b=$('barreRejeu');if(b)b.remove()}arreteAnim();clearTimeout(robotT);robotT=0;fermeAide();stopCompte();jePret=false;$('vueTas').hidden=true;$('absence').hidden=true;partie=null;fx=[];derniereAdv=null;zoneSurvol=null;fermeRecap();arreteDes();$('partie').hidden=true;$('jouer').classList.remove('enJeu')}
+function finPartie(){arreteGuide();M=M0;clearTimeout(rejeuT);rejeuT=0;{const b=$('barreRejeu');if(b)b.remove()}arreteAnim();clearTimeout(robotT);robotT=0;fermeAide();stopCompte();jePret=false;$('vueTas').hidden=true;$('absence').hidden=true;partie=null;fx=[];derniereAdv=null;zoneSurvol=null;fermeRecap();arreteDes();$('partie').hidden=true;$('jouer').classList.remove('enJeu');if(window.DIFFUSION&&DIFFUSION.joueur)DIFFUSION.joueur()}
 function nouveauSid(){return Math.random().toString(36).slice(2,12)}
 /* Sauvegarde locale par code de salon */
 function cleSalon(c){return 'golems.partie.'+c}
@@ -5720,6 +5720,12 @@ function quittePartie(envoi){
   sortie('',Promise.all([envoi,envoiPub]).catch(()=>{}).then(()=>a.presence({quitte:g})).catch(()=>{}).then(()=>room&&room.presence({quitte:g})).catch(()=>{}).then(()=>pause(400)));
 }
 /* Bouton Quitter la partie : en ligne et en cours, confirmation puis abandon (coup 'a' envoye avant le depart). */
+/* Vue joueur : « Quitter » demande toujours confirmation (en ligne : par quitteBouton ; contre le robot : ici) */
+function quitteAvecConfirmation(){
+  if(!partie||partie.rejeu||!partie.etat||partie.etat.fin||partie.tuto){quitteBouton();return}
+  if(!partie.local&&r){quitteBouton();return}
+  confirmeAbandon('La partie en cours sera perdue.',()=>{if(partie)quitteBouton()});
+}
 function quitteBouton(){
   const enCours=()=>partie&&!partie.local&&!partie.rejeu&&!partie.tuto&&r&&partie.etat&&!partie.etat.fin&&M.VERSION===M0.VERSION;
   if(!enCours()){quittePartie();return}
@@ -6441,6 +6447,7 @@ function affiche(){
   poseFx();
   zoneSurvol=null;zoneMaj();if(partie.rejeu)barreRejeu();
   scrollTo(0,hautPage);
+  if(window.DIFFUSION&&DIFFUSION.joueur)DIFFUSION.joueur(); /* 0.5 : vue joueur sur ordinateur (diffusion.js) */
 }
 const LARGE=matchMedia('(min-width:900px)');let journalOuvert=false,journalPage=null,journalReperes=0;
 /* Zone d'apercu (ordinateur, 1200 px et plus) : carte survolee ou choisie de la main, sinon derniere carte posee par l'adversaire. */
@@ -6716,7 +6723,7 @@ else{const v=new URLSearchParams(location.search).get('carte');if(v!==null){ongl
     jouerA(){if(!partie||partie.etat&&partie.etat.fin)return;partie.mien.push(M.code({t:'a'}));sel=null;sauve();pub({j:M.ecritJournal(partie.mien)});calcule()}, /* ma defaite par abandon (hors ligne trop longtemps) */
     forfaitAdv(){if(!partie||partie.etat&&partie.etat.fin)return;partie.sien=[...partie.sien,M.code({t:'a'})];sel=null;calcule();sauve()}, /* abandon de l'adversaire hors ligne */
     lache(msg){const a=r;r=null;code='';finPartie();$('salon').hidden=true;$('accueil').hidden=false;$('erreurJeu').textContent=msg||'';if(a&&a.lache)a.lache();majEtat();majReprise()}}; /* autre appareil du meme compte */
-  window.GOLEMS_UI={el,avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,ligneDeckVide,piocheImpossible,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
+  window.GOLEMS_UI={el,nomJ,uidJ,monAvatar,quitteAvecConfirmation,get partie(){return partie},avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,ligneDeckVide,piocheImpossible,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
 })();
 </script>
 <script>window.__golemsPret&&window.__golemsPret()</script>

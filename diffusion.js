@@ -6,7 +6,10 @@
 (function(){
 'use strict';
 const ESSAI=location.pathname.split('/')[1]==='essai';
-const COL=['var(--moi)','var(--lui)'];
+/* couleurs par joueur : en vue joueur, le joueur de l'ecran est toujours en bleu (--moi), meme s'il est le joueur 2 */
+const inv=()=>src==='joueur'&&E&&E.moi===1;
+const COL={get 0(){return inv()?'var(--lui)':'var(--moi)'},get 1(){return inv()?'var(--moi)':'var(--lui)'}};
+const BAS=()=>src==='joueur'&&E?E.moi:0; /* joueur affiche en bas (vue joueur : toi ; vue spectateur : joueur 1) */
 const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const U=()=>window.GOLEMS_UI,M=()=>U().M;
 const d_=n=>/^[aeiouyhàâäéèêëîïôöùûü]/i.test(n)?"d'":'de '; /* Main d'Alrevan, Victoire de KaTarN */
@@ -176,7 +179,8 @@ function peindre(){
     suivi.nlog=s.log.length}
   [...scene.children].forEach(n=>{if(n!==chat.el&&n!==couche)n.remove()}); /* la fenetre de chat reste en place (saisie en cours), la carte en vol aussi */
   const fin=!!s.fin,qui=fin||s.phase==='mulligan'?null:u.quiJoue(s);
-  scene.append(bandeau(s,qui),plateau(s,qui),main(s,1,186,qui===1),cercle(),derniere(s),actions(s),main(s,0,854,qui===0),coin());
+  if(src==='joueur')peindreJoueur(s,qui);
+  else scene.append(bandeau(s,qui),plateau(s,qui),main(s,1,186,qui===1),cercle(),derniere(s),actions(s),main(s,0,854,qui===0),coin());
   if(!couche||couche.parentNode!==scene)couche=mk('div','d-couche');
   if(chat.el)scene.insertBefore(couche,chat.el);else scene.append(couche);
   ajusteNoms();
@@ -185,7 +189,8 @@ function peindre(){
   const nt=s.stats.t.length;
   if(suivi.nt<0)suivi.nt=premier&&!fin?nt:suivi.nt; /* arrivee en cours de partie : pas de fenetre pour une manche deja passee */
   /* les fenetres restent ouvertes jusqu'a « Fermer » ; la partie continue derriere */
-  if(fin&&!suivi.fin){suivi.fin=true;suivi.nt=nt;ouvrePop('partie')}
+  if(src==='joueur'){} /* vue joueur : les recapitulatifs de manche et de fin restent ceux de la partie (etape suivante) */
+  else if(fin&&!suivi.fin){suivi.fin=true;suivi.nt=nt;ouvrePop('partie')}
   else if(!fin&&nt>suivi.nt&&nt%3===0){suivi.nt=nt;ouvrePop('manche',nt/3)}
   else if(suivi.pile&&sigPile(suivi.pile)!==suivi.pile.sig)ouvrePop('pile',suivi.pile); /* pile ouverte : mise a jour en direct */
   /* recapitulatif ouvert pendant un decompte qui continue (bonus de fin de manche, de) : refait avec le journal a jour */
@@ -199,10 +204,10 @@ function bandeau(s,qui){
   const pile=(x,p,k,lib)=>{x.classList.add('d-pile');x.setAttribute('role','button');x.tabIndex=0;x.setAttribute('aria-label','Voir '+lib+' '+d_(nom(p))+nom(p));
     x.onclick=()=>ouvrePop('pile',{p,k});x.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvrePop('pile',{p,k})}};return x};
   const bloc=(p,dr)=>{
-    const J=s.j[p],b=mk('div','d-j '+(p===0?'toi':'lui')+(dr?' dr':'')+(qui===p?' actif':'')),id=mk('div','d-id'),c=mk('div','d-cpt'),l1=mk('div','d-l1');
+    const J=s.j[p],b=mk('div','d-j '+(p===BAS()?'toi':'lui')+(dr?' dr':'')+(qui===p?' actif':'')),id=mk('div','d-id'),c=mk('div','d-cpt'),l1=mk('div','d-l1');
     c.append(cpt('main','Main',J.main.length),pile(cpt('deck','Deck',J.deck.length),p,'deck','le deck'),pile(cpt('defausse','Défausse',J.defausse.length),p,'defausse','la défausse'),pile(cpt('enclume','Forge',J.forge.length),p,'forge','la Forge'));
     l1.append(mk('div','d-nom',nom(p)));
-    if(qui===p){l1.append(mk('span','d-badge','À lui de jouer'));const e=mk('span','d-ener');e.append(u.ico('enclume'),'Énergie ');e.append(mk('b','',String(J.energie)));c.lastChild.replaceWith(pile(e,p,'forge','la Forge'))}
+    if(qui===p){l1.append(mk('span','d-badge',src==='joueur'&&p===E.moi?'À toi de jouer':'À lui de jouer'));const e=mk('span','d-ener');e.append(u.ico('enclume'),'Énergie ');e.append(mk('b','',String(J.energie)));c.lastChild.replaceWith(pile(e,p,'forge','la Forge'))}
     id.append(l1,c);b.append(avatar(p),id);return b;
   };
   const pts=(n,clic)=>{const w=mk('span','d-pts');for(let i=1;i<=3;i++){const x=mk('i',i<n?'fait':i===n?'on':'');
@@ -212,22 +217,23 @@ function bandeau(s,qui){
     w.append(x)}return w};
   const co=(l,n,clic)=>{const c=mk('div','d-cote');c.append(mk('small','',l),mk('b','',String(n)),pts(n,clic));return c};
   const mid=mk('div','d-mid'),sc=mk('div','d-sc');
-  sc.append(mk('b','',String(s.j[0].score)),mk('span','','-'),mk('em','',String(s.j[1].score)));
+  sc.append(mk('b','',String(s.j[BAS()].score)),mk('span','','-'),mk('em','',String(s.j[1-BAS()].score)));
   /* partie finie : le score rouvre la fenetre de fin de partie (pendant la partie, il ne reagit pas) */
   if(s.fin){sc.classList.add('d-clic');sc.setAttribute('role','button');sc.tabIndex=0;sc.title='Résultat de la partie';sc.setAttribute('aria-label','Revoir le résultat de la partie');
     sc.onclick=()=>ouvrePop('partie');sc.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvrePop('partie')}}}
   mid.append(co('Manche',s.manche,true),sc,co('Tour',s.tour));
-  ban.append(bloc(0,false),mid,bloc(1,true));
+  ban.append(bloc(BAS(),false),mid,bloc(1-BAS(),src!=='joueur'));
   return ban;
 }
 function plateau(s,qui){
   const u=U(),Mo=M(),plat=mk('div','d-z d-plat');
-  const gh=u.grilleVue(s,1,[0,1,2],[2,1,0],null),gb=u.grilleVue(s,0,[0,1,2],[0,1,2],null);gh.classList.add('lui');gb.classList.add('mienne');
+  const live=src==='joueur'?document.querySelectorAll('#partie .p-plateau>.p-grille'):[]; /* vue joueur : les vraies grilles de la partie (cibles et clics) */
+  const gh=live.length===2?live[0]:u.grilleVue(s,1,[0,1,2],[2,1,0],null),gb=live.length===2?live[1]:u.grilleVue(s,0,[0,1,2],[0,1,2],null);gh.classList.add('lui');gb.classList.add('mienne');
   const r1=mk('div','d-rg'),r2=mk('div','d-rg');
-  r1.append(mk('div','d-vt lui'+(qui===1?' actif':''),nom(1)),gh);r2.append(mk('div','d-vt toi'+(qui===0?' actif':''),nom(0)),gb);
+  const hb=1-BAS();r1.append(mk('div','d-vt lui'+(qui===hb?' actif':''),nom(hb)),gh);r2.append(mk('div','d-vt toi'+(qui===BAS()?' actif':''),nom(BAS())),gb);
   /* terrains : Force de chaque camp, contour du joueur qui mene (neutre a egalite), valeur dessous */
   const t=mk('div','p-terrains d-tr'),cc=Mo.colonnes(s);
-  [0,1,2].forEach(k=>{const T=s.terrains[k],a=cc[k][1],m=cc[k][0],d=mk('div','p-terrain'+(m>a?' m-moi':a>m?' m-lui':'')),to=mk('div','p-totaux'),te=mk('div','p-tete');
+  [0,1,2].forEach(k=>{const T=s.terrains[k],a=cc[k][1-BAS()],m=cc[k][BAS()],d=mk('div','p-terrain'+(m>a?' m-moi':a>m?' m-lui':'')),to=mk('div','p-totaux'),te=mk('div','p-tete');
     te.append(mk('b','',T.nom));to.append(mk('b','m'+(m>a?' tete':''),String(m)),mk('span','','contre'),mk('b','a'+(a>m?' tete':''),String(a)));
     const Mo2=Mo,v=Mo2.ptsTerrain?Mo2.ptsTerrain(s,k):T.pts;d.append(te,to,ptsEt('p-valeur',v,T.nom==='Le Tournoi',T.nom==='Les Pronos'&&Mo2.miseTotale?Mo2.miseTotale(s):0));d.onclick=()=>zoomTerrainDif(s,k);t.append(d)});
   plat.append(r1,t,r2);
@@ -241,7 +247,7 @@ function plateau(s,qui){
 }
 /* Terrain en grand : a droite, un panneau par joueur (ses Golems sur ce terrain en lignes condensees, valeur au decompte, total) ;
    valeurs = M.valeurDecompte, comme les « n contre m » de la tuile (M.colonnes) */
-const COLZ=['var(--bleu)','var(--magma)'];
+const COLZ={get 0(){return inv()?'var(--magma)':'var(--bleu)'},get 1(){return inv()?'var(--bleu)':'var(--magma)'}};
 function zoomTerrainDif(s,k){
   const u=U(),Mo=M(),T=s.terrains[k],cc=Mo.colonnes(s)[k];u.cacheApercu();
   const pan=p=>{const a=mk('section','dz-camp'),h=mk('h3','',nom(p)),ol=mk('ol','dz-l');h.style.color=COLZ[p];a.append(h);
@@ -265,14 +271,21 @@ function zoomCarte(c){
   u.zoom(u.srcC(c),C.nom,det);
 }
 function main(s,p,top,joue){
-  const z=mk('div','d-z d-col'+(p===0?' bas':'')),J=s.j[p],h=mk('div','d-tm '+(p===0?'toi':'lui'),'Main '+d_(nom(p))+nom(p));
+  const z=mk('div','d-z d-col'+(p===BAS()?' bas':'')),J=s.j[p],h=mk('div','d-tm '+(p===BAS()?'toi':'lui'),src==='joueur'&&p===E.moi?'Ta main':'Main '+d_(nom(p))+nom(p));
     /* taille FIXE pour toute la partie (7 cartes sur une ligne : 103 x 144 px) ; au-dela de 7 cartes, elles se chevauchent sans changer de taille */
-  const W=769,w=103,n=J.main.length,gp=n<=7?8:(W-n*w)/(n-1);
+  const jr=src==='joueur'&&p===E.moi,W=769,w=103,n=J.main.length,gp=(n<=7?8:(W-n*w)/(n-1))+(jr&&n>1?22/(n-1):0); /* vue joueur : « Ta main » sur 791 px, seul le pas grandit */
   z.style.top=top+'px';z.dataset.p=p;
   h.append(mk('span','',J.main.length+(J.main.length>1?' cartes':' carte')));if(joue)h.append(mk('span','d-joue','Joue'));
   const r=mk('div','d-main');
   J.main.forEach((c,k)=>{const C=M().carte(c),b=mk('button'),i=mk('img');b.type='button';b.dataset.c=c;b.style.width=w+'px';b.style.height=Math.round(w*1.4)+'px';if(k)b.style.marginLeft=gp+'px';
-    i.src=U().srcC(c);i.alt=C.nom;b.setAttribute('aria-label','Agrandir '+M().nomDetail(C));b.onclick=()=>zoomCarte(c);b.append(i);r.append(b)});
+    i.src=U().srcC(c);i.alt=C.nom;b.setAttribute('aria-label','Agrandir '+M().nomDetail(C));b.onclick=()=>zoomCarte(c);b.append(i);
+    /* vue joueur : la carte reprend l'etat de la vraie main (grisee, surcout, choisie) et le clic passe par elle */
+    const v=jr&&document.querySelector('#partie .p-poste .p-slot[data-c="'+c+'"]>.p-carte');
+    if(v){['grisee','surtaxe'].forEach(x=>b.classList.toggle(x,v.classList.contains(x)));if(v.title)b.title=v.title;
+      if(v.hasAttribute('aria-pressed'))b.setAttribute('aria-pressed',v.getAttribute('aria-pressed'));
+      b.setAttribute('aria-label',(v.dataset.act?'Jouer ':'Agrandir ')+M().nomDetail(C));
+      [...v.children].forEach(x=>{if(x.tagName!=='IMG')b.append(x.cloneNode(true))});b.onclick=()=>v.click()}
+    r.append(b)});
   z.append(h,r);return z;
 }
 /* Cercle des elements : gros pictos sans anneau, fleches dans les espaces libres (maquette c1 : 68 px, cadre 350 x 188) */
@@ -363,7 +376,7 @@ function coin(){
   if(window.interDal)bas.append(interDal()); /* 0.5 : mode daltonien, a gauche de Chat */
   if(src==='spec'&&window.SPEC&&SPEC.chat){const b=mk('button','d-chat','Chat');b.type='button';b.setAttribute('aria-label','Ouvrir le chat');b.onclick=()=>chat.ouvre();
     const n=chat.nonLus();if(n>0){b.append(mk('span','d-pastille',n>9?'9+':String(n)));b.setAttribute('aria-label','Ouvrir le chat, '+n+' nouveau'+(n>1?'x':'')+' message'+(n>1?'s':''))}bas.append(b)}
-  const qt=mk('button','d-quit',src==='spec'?'Quitter la partie':'Quitter la diffusion');qt.type='button';qt.onclick=quitter;bas.append(qt);
+  const qt=mk('button','d-quit',src==='spec'?'Quitter la partie':'Quitter la vue spectateur');qt.type='button';qt.onclick=quitter;bas.append(qt);
   z.append(lo,bas);return z;
 }
 /* Chat (vue spectateur seulement) : ferme par defaut, pastille des nouveaux messages, fenetre par-dessus la vue ;
@@ -515,13 +528,63 @@ function ouvrir(source,entree){
   if(!window.GOLEMS_UI)return;
   if(D)fermer();
   src=source;E=entree;suivi=neufSuivi();
-  D=mk('div');D.id='dif';D.setAttribute('role','dialog');D.setAttribute('aria-label','Vue diffusion');
+  D=mk('div');D.id='dif';D.setAttribute('role','dialog');D.setAttribute('aria-label',source==='joueur'?'Partie':'Vue spectateur');
   scene=mk('div','d-scene');D.append(scene);
   /* telephone en portrait : la vue 16:9 se centre ; invitation discrete a tourner l'ecran */
   const tp=mk('div','d-tourne');tp.append(mk('span','','Tourne ton téléphone pour agrandir la vue.'));
   D.append(tp);
   if(source==='spec')chat.brancher();chat.vus=chat.liste().length;document.body.append(D);document.documentElement.classList.add('dif-ouvert');
   echelle();peindre();
+}
+/* ---------- Vue joueur (0.5) : l'ecran de partie sur ordinateur, a la mise en page de la vue spectateur (maquette mq2) ----------
+   index.html dessine toujours la partie dans #partie (cache) ; a la fin de chaque affiche(), DIFFUSION.joueur() repeint la vue joueur :
+   les vraies grilles, consigne, boutons et piles de #partie y sont deplaces (gestionnaires d'origine), la main y renvoie ses clics. */
+const ECRAN_JOUEUR=matchMedia('(min-width:1200px) and (min-height:600px)');
+function eventail(s,p){ /* main adverse en eventail de versos, resserre dans sa colonne */
+  const z=mk('div','d-z d-col mq-haut'),n=s.j[p].main.length,h=mk('div','d-tm lui','Main '+d_(nom(p))+nom(p)),f=mk('div','mq-fan'),w=86;
+  z.style.top='186px';h.style.margin='0';h.append(mk('span','',n+(n>1?' cartes':' carte')));
+  let sp=Math.min(40,560/Math.max(1,n));
+  for(let k=0;k<n;k++){const i=mk('img');i.src=imgV('cartes/verso.jpg');i.alt='';i.style.width=w+'px';i.style.height=Math.round(w*1.4)+'px';
+    i.style.transform='rotate('+(n>1?(k-(n-1)/2)*(24/(n-1)):0)+'deg)';f.append(i)}
+  const place=()=>[...f.children].forEach((i,k)=>i.style.left=(250-w/2+(k-(n-1)/2)*sp)+'px');place();
+  requestAnimationFrame(()=>{if(!scene)return;const im=[...f.children],R=scene.getBoundingClientRect(),k=R.width/1920||1;
+    for(let t=0;t<60&&im.length>1;t++){const r=Math.max(...im.map(e=>(e.getBoundingClientRect().right-R.left)/k));if(r<=1500)break;sp*=.95;place()}});
+  z.append(h,f);return z;
+}
+function peindreJoueur(s,qui){
+  const u=U(),P=document.getElementById('partie'),po=P&&P.querySelector('.p-poste');
+  D.classList.toggle('verrou',!!(P&&P.classList.contains('verrou')));
+  scene.append(bandeau(s,qui),plateau(s,qui),eventail(s,1-E.moi),cercle(),actions(s),main(s,E.moi,876,false));
+  /* etape : consigne de la partie, sinon « X : etape 1, Forge / etape 2, actions » */
+  const et=mk('div','mq-etape'),cs=po&&po.querySelector(':scope>.p-consigne:not(.p-cale)');
+  if(cs)et.append(cs);else{const d=mk('div','p-consigne'),q=M().attendus(s)[0],J=s.j[q];d.append(mk('b','',s.fin?'Partie terminée':q==null?'':nom(q)+(J&&J.etapeForge?' : étape 1, Forge':' : étape 2, actions')));et.append(d)}
+  scene.append(et);
+  /* cartes a choisir (main de choix de la partie, differente de ta main) : a la place de la derniere carte jouee */
+  const mains=po?[...po.querySelectorAll(':scope>.p-main')]:[],mainJ=s.j[E.moi].main.join(),ch=mains.find(m=>[...m.querySelectorAll('.p-slot')].map(x=>x.dataset.c).join()!==mainJ);
+  if(ch){const z=mk('div','d-z mq-choix');z.append(mk('div','mq-ch-t','Choisis une carte'),ch);scene.append(z)}else scene.append(derniere(s));
+  const bt=po&&po.querySelector(':scope>.p-btns:not(.p-cale)');if(bt){const b=mk('div','mq-btns');b.append(bt);scene.append(b)}
+  const pl=mk('div','mq-piles');if(po)po.querySelectorAll('.p-piles>.pile').forEach(x=>pl.append(x));scene.append(pl);
+  /* outils : Chat (parties en ligne), Daltonien, ?, son, Quitter (confirmation) */
+  const ou=mk('div','mq-outils p-outils'),o=typeof u.outils==='function'?u.outils():null;
+  if(o){const v=o.querySelector('#btnVitesse');if(v)v.remove();const x=o.querySelector('.dal-inter .pf-itx');if(x)x.textContent='Daltonien';ou.append(...o.children)}
+  const cf=document.querySelector('.chat.flottant');
+  if(cf){const c=mk('button','d-chat','Chat'),nb=cf.querySelector('.chat-nb'),n=nb?+nb.textContent||0:0;c.type='button';if(n)c.append(mk('span','d-pastille',n>9?'9+':String(n)));
+    c.onclick=()=>{cf.classList.toggle('replie');if(!cf.classList.contains('replie')){const i=cf.querySelector('input');if(i)i.focus()}placeChat()};const di=ou.querySelector('.dal-inter');if(di)di.after(c);else ou.prepend(c)}
+  const q=mk('button','d-quit','Quitter');q.type='button';q.title='Quitter la partie';q.onclick=()=>u.quitteAvecConfirmation();ou.append(q);
+  scene.append(ou);placeChat();
+}
+/* chat de la partie en ligne : panneau de la maquette (colonne de droite, jusqu'au bas de « Dernieres actions ») quand il est ouvert */
+function placeChat(){const cf=document.querySelector('.chat.flottant');if(!cf||!scene)return;const o=!cf.classList.contains('replie');cf.classList.toggle('mq-chatw',o);
+  if(o&&cf.parentNode!==scene)scene.append(cf);else if(!o&&cf.parentNode===scene)document.body.append(cf)}
+function joueur(){
+  const u=U();if(!u)return;const P=u.partie,box=document.getElementById('partie');
+  const ok=P&&P.etat&&!P.rejeu&&ECRAN_JOUEUR.matches&&box&&!box.hidden&&!(window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur());
+  if(!ok){if(D&&src==='joueur')fermer();return}
+  const x={etat:P.etat,moi:P.moi,noms:[0,1].map(p=>u.nomJ(p)),avatars:[0,1].map(p=>p===P.moi?u.monAvatar():''),uids:[0,1].map(p=>p===P.moi||P.local?'':u.uidJ(p))};
+  if(D&&src==='joueur'){E=x;peindre();return}
+  ouvrir('joueur',x);D.classList.add('jr');document.documentElement.classList.add('dif-joueur');
+  /* plein ecran au demarrage de la partie (geste de l'utilisateur : clic sur Jouer) ; refuse = rien */
+  try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}
 }
 /* « Quitter la partie » (spectateur) : la diffusion se ferme et le spectateur quitte la partie comme avec l'ancien bouton Quitter ;
    demonstration : « Quitter la diffusion » arrete la partie locale */
@@ -531,6 +594,8 @@ function fermer(){
   if(!D)return;
   if(chat.el){chat.el.remove();chat.el=null}
   if(src==='demo')demo.stop();
+  if(src==='joueur'){const cf=document.querySelector('.chat.flottant');if(cf&&D.contains(cf)){cf.classList.remove('mq-chatw');document.body.append(cf)}
+    document.documentElement.classList.remove('dif-joueur');try{if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}catch(e){}}
   D.remove();D=null;scene=null;E=null;src=null;suivi=null;document.documentElement.classList.remove('dif-ouvert');
 }
 
@@ -589,5 +654,5 @@ function blocDemo(){
 }
 blocDemo();
 
-window.DIFFUSION={ouvrir,fermer,demo,peindre,chat,etat:()=>({ouvert:!!D,src,pause:demo.enPause,pop:!!(suivi&&suivi.pop),fin:!!(E&&E.etat&&E.etat.fin)})};
+window.DIFFUSION={ouvrir,fermer,joueur,demo,peindre,chat,etat:()=>({ouvert:!!D,src,pause:demo.enPause,pop:!!(suivi&&suivi.pop),fin:!!(E&&E.etat&&E.etat.fin)})};
 })();
