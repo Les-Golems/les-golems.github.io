@@ -8,6 +8,14 @@ const POIDS_MVP={force:1,bonus:1,degats:1,morts:3};
 /* Donnees des cartes (etape 6) : cartes/donnees/*.js. Sous Node, require ; en page, window.GolemsDonnees rempli par les scripts de donnees charges avant. */
 const D=(typeof module!=='undefined'&&module.exports&&typeof require==='function')?require('./cartes/donnees/index.js'):racine.GolemsDonnees;
 if(!D||!D.CARTES)throw new Error('Les Golems : donnees des cartes absentes (charger cartes/donnees/golems.js, animaux.js, terrains.js puis index.js avant moteur.js)');
+/* Registre des types d'effets (etape 7) : cartes/effets/*.js. Chaque fiche declare effet:{type,...reglages} (ou une liste) ; le moteur appelle les crochets
+   du type (effs(code) : [{T:type,r:reglages}]) et ne teste jamais un code ni un nom de carte. Construit en fin de fichier (fabriques appelees avec M). */
+const FX=(typeof module!=='undefined'&&module.exports&&typeof require==='function')?require('./cartes/effets/index.js'):racine.GolemsEffets;
+if(!FX||!FX.construit)throw new Error('Les Golems : registre des effets absent (charger cartes/effets/golems.js, animaux.js, terrains.js puis index.js avant moteur.js)');
+let R=null,F=null;const EFF={},VIDE=[]; /* R : registre ; F : fonctions des fichiers d'effets ; EFF : code -> effets de la fiche */
+const effs=id=>id&&EFF[id]||VIDE;
+function somme(L,h,...a){let n=0;for(const e of L)if(e.T[h])n+=e.T[h](e.r,...a);return n}
+const aProp=(id,h)=>effs(id).some(e=>e.T[h]);
 const EL_VELNEN=D.elVelnen; /* Velnen : elements de Velnen et du chansonnier (cartes/donnees/golems.js) */
 const CARTES=D.CARTES; /* toutes les fiches, tous types confondus : cartes/donnees/golems.js, animaux.js */
 const TYPES=D.ordre; /* cartes/donnees/index.js : toujours ajouter en fin, l'identifiant de carte depend du rang */
@@ -77,10 +85,9 @@ const CARTE_RE='~{0,3}[0-9a-zA-Z_]',cartesDe=x=>x.match(new RegExp(CARTE_RE,'g')
    Un copieur ne porte jamais l'identifiant d'un copieur : copier un copieur donne son effet copie, sans boucle possible. */
 const COPIEURS={'029e':1,'041e':1};
 function idEff(g){const id=carte(g.c).id;return COPIEURS[id]?(g.cp||null):id}
-const CERCLE2={'037':1,'037e':1}; /* Counter-pick et Full synergie : cercle +2 au lieu de +1 */
 /* Vic222 : Info tchat (042, ou copieur qui l'a copiee) en jeu sur le terrain k : tout Golem allie de ce terrain (lui compris) a le cercle a +2.
    Jamais plus de +2 (plusieurs Vic222, SuperFishman : pas de cumul). */
-function cercle2(G,k,id){return !!CERCLE2[id]||[0,1,2].some(a=>golem(G[a][k])&&idEff(G[a][k])==='042')}
+function cercle2(G,k,id){return aProp(id,'cercle2')||[0,1,2].some(a=>golem(G[a][k])&&aProp(idEff(G[a][k]),'cercle2Terrain'))}
 /* Animaux de compagnie (Kiwi). Ce ne sont pas des Golems : aucun effet de Golem ne les concerne, Force 0 dans les colonnes.
    estAnimal accepte un code ('901'), une fiche de CARTES ou une carte de partie (69). Sur la grille : g.maitre = carte de partie du maitre. */
 const estAnimal=x=>{const C=typeof x==='number'?carte(x):typeof x==='string'?CARTES[x]:x;return !!(C&&C.animal)};
@@ -170,17 +177,18 @@ function nouvelle(graine,decks){
 function bonus(s,p,l,k){
   const G=s.j[p].grille;let b=0;
   [[l-1,k],[l+1,k],[l,k-1],[l,k+1]].forEach(([a,c])=>{
-    const v=G[a]&&G[a][c];if(v){const t=idEff(v);if(t==='003'||t==='003e')b++}
+    const v=G[a]&&G[a][c];if(v)b+=somme(effs(idEff(v)),'voisinBonus')
   });
   return b;
 }
 /* GeneralBrioche : Grand General (020, ou copieur), +1 par exemplaire allie dans la meme colonne, autre ligne (cumulatif, pas sur lui). */
-function generaux(G,l,k){let n=0;for(let a=0;a<3;a++)if(a!==l&&golem(G[a][k])&&idEff(G[a][k])==='020')n++;return n}
+function generaux(G,l,k){let n=0;for(let a=0;a<3;a++)if(a!==l&&golem(G[a][k]))n+=somme(effs(idEff(G[a][k])),'colonneBonus');return n}
 function voisins(G,l,k){return [[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([a,c])=>G[a]&&G[a][c]).filter(golem)}
 /* 0.2a.1 : Indra. g.fav = identifiant de carte du favori, dans le camp d'Indra. Base +1, evolution +2. */
-const FAV_BONUS={'013':1,'013e':2};
-function indrasDe(s,p,c){const r=[];s.j[p].grille.forEach(L=>L.forEach(g=>{if(g&&g.fav===c&&FAV_BONUS[idEff(g)])r.push(g)}));return r}
-function favori(s,p,c){return indrasDe(s,p,c).reduce((t,g)=>t+FAV_BONUS[idEff(g)],0)}
+const FAV_BONUS={}; /* code -> bonus du favori, deduit des fiches (type favori) en fin de fichier */
+const favBonus=id=>somme(effs(id),'favoriBonus');
+function indrasDe(s,p,c){const r=[];s.j[p].grille.forEach(L=>L.forEach(g=>{if(g&&g.fav===c&&favBonus(idEff(g)))r.push(g)}));return r}
+function favori(s,p,c){return indrasDe(s,p,c).reduce((t,g)=>t+favBonus(idEff(g)),0)}
 function caseDeCarte(s,p,c){for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=s.j[p].grille[l][k];if(g&&g.c===c)return [l,k]}return null}
 /* Force actuelle = base + capacites + Trait + cercle - degats, partout. */
 function forceDe(s,p,l,k){
@@ -189,14 +197,10 @@ function forceDe(s,p,l,k){
   if(!ci)el.forEach(e=>{v+=vs.filter(n=>carte(n.c).el.includes(e)).length}); /* 0.2.1 : +1 par voisin partageant l'element ; Le Cirque : pas de Trait */
   if(!ci&&REGLAGE_ANIMAUX.element)animauxVoisins(J,l,k).forEach(A=>{if(el.includes(elAnimal(carte(A.c))))v++}); /* animal voisin : +1 s'il partage son element */
   if(Tn==='Le Karaoké'&&golemsIci(s,p,k)===2)v+=2; /* Le Karaoke : exactement 2 Golems ici, +2 chacun */
-  const id=idEff(g);
-  if(id==='037e')el.forEach(e=>{if(vs.some(n=>carte(n.c).el.includes(e)))v++}); /* Full synergie : +1 par element partage par au moins un voisin, en plus du Trait (+2 maximum) */
-  if(id==='036e')v+=foudres(J); /* Survolte, +1 par Golem Foudre de sa grille (lui compris s'il est Foudre) */
-  if(id==='025')v+=kekwait(J,l,k); /* Shifukuro : KEKWait, +1 par Golem allie au-dessus (Apo et chansonnier qui l'ont copie : depuis leur case) */
-  if(DUO_MANCHE[id])v+=DUO_MANCHE[id][0]*duoManches(s,p,k,DUO_MANCHE[id][1]); /* Bellock/Loxim : Comeback, Winstreak (Apo et chansonnier qui l'ont copie : depuis leur case) */
-  if(DUO_EVO[id]&&doubleUp(J,l,k,id))v+=REGLAGE_DUO.doubleUp; /* Bellock/Loxim : Double up ? */
-  v+=generaux(J,l,k); /* GeneralBrioche : Grand General */
-  if(id==='020e')v+=vs.length; /* GeneralBrioche : Bonus d'adjacence, +1 par voisin allie (Golem), sans plafond */
+  const id=idEff(g),E=effs(id);
+  for(const e of E)if(e.T.force)v+=e.T.force(e.r,s,p,l,k,g,J,vs,el); /* capacites du Golem (copieurs : l'effet copie, depuis leur case) */
+  v+=generaux(J,l,k); /* auras de colonne (Grand General) */
+  for(const e of E)if(e.T.forceFin)v+=e.T.forceFin(e.r,s,p,l,k,g,J,vs,el); /* capacites ajoutees apres les auras (Bonus d'adjacence) */
   v+=jjBonus(g); /* JackJoy : Sub offert (partie) et Draft diff (manche) recus */
   if(g.ani)v+=1; /* animal attache : +1 a son maitre */
   const f=s.j[1-p].grille[l][k];
@@ -206,34 +210,21 @@ function forceDe(s,p,l,k){
 /* Mignonitude : un Golem marque hors = s.manche ne compte pas au decompte de cette manche (il reste en jeu, sa Force ne change pas). */
 const valeurDecompte=(s,p,l,k)=>{const g=s.j[p].grille[l][k];return g&&g.hors===s.manche?0:forceDe(s,p,l,k)};
 /* Golems Foudre d'une grille (Survolte) et Spom en jeu (Forge eclair, Apo deguise compris) */
-function foudres(G){let n=0;G.forEach(L=>L.forEach(g=>{if(g&&carte(g.c).el.includes('foudre'))n++}));return n}
 function spoms(G){let n=0;G.forEach(L=>L.forEach(g=>{if(g&&idEff(g)==='036')n++}));return n}
 /* Elessar : Realisation de l'age en jeu dans une grille (Elessar, Maitre du deguisement qui l'a copiee). Le pomplard ne la garde pas. */
 function elessars(G){let n=0;G.forEach(L=>L.forEach(g=>{if(golem(g)&&idEff(g)==='018')n++}));return n}
 /* Velnen : Graine de Golem en jeu dans une grille (Velnen de base, Apo ou chansonnier qui l'a copiee), cumulatif. Le chansonnier ne la garde pas. */
 function graines(G){let n=0;G.forEach(L=>L.forEach(g=>{if(golem(g)&&idEff(g)==='041')n++}));return n}
-/* Shifukuro : KEKWait, Golems allies au-dessus de (l,k) sur le meme terrain (meme colonne, ligne d'indice plus petit), pas forcement adjacents.
-   Un animal ne compte pas. Ligne 1 : 0 ; ligne 3 : 2 au plus. */
-function kekwait(G,l,k){let n=0;for(let a=0;a<l;a++)if(golem(G[a][k]))n++;return n}
 /* Bellock/Loxim. DUO : carte (base ou evolution) -> Golem de base du partenaire. Les cartes se reconnaissent par la carte, pas par l'effet
    (Apo deguise en Loxim n'est pas Loxim). REGLAGE_DUO : valeur de Double up ?, modifiable pour les simulations. */
-const DUO={'015':'016','015e':'016','016':'015','016e':'015'},DUO_EVO={'015e':1,'016e':1},REGLAGE_DUO={doubleUp:3};
-const DUO_NOM={'015':'Comeback','015e':'Comeback','016':'Winstreak','016e':'Winstreak'};
+const DUO={},DUO_NOM={}; /* code -> partenaire, nom de l'effet : deduits des fiches (type duo) en fin de fichier */
 /* Comeback (Bellock +1, Aiges Captain +2) : manches deja decomptees ou p a perdu le terrain k ; Winstreak (Loxim +1, Le Ace de Aiges +2) : ou il l'a remporte.
    Egalite, ou Salle Verrouillee avant la manche 3 (personne ne la remporte) : rien. Jamais stocke sur la carte : recalcule, le Golem deplace compte son nouveau terrain. */
-const DUO_MANCHE={'015':[1,false],'015e':[2,false],'016':[1,true],'016e':[2,true]};
-function duoManches(s,p,k,gagne){return (s.resultats||[]).filter(r=>r[k]===(gagne?p:1-p)).length}
 /* Golem du partenaire P (carte de base ou evolution) seul avec (l,k) sur sa ligne ou son terrain : l'autre case de la ligne ou du terrain est le partenaire,
    la troisieme est vide (un animal la bloque). Renvoie le partenaire (ligne d'abord) ou null. */
-function duoVoisin(G,l,k,P){
-  const est=g=>golem(g)&&(carte(g.c).id===P||carte(g.c).base===P),un=(a,b)=>est(a)&&!b?a:est(b)&&!a?b:null;
-  const L=[0,1,2].filter(x=>x!==k).map(x=>G[l][x]),C=[0,1,2].filter(x=>x!==l).map(x=>G[x][k]);
-  return un(L[0],L[1])||un(C[0],C[1]);
-}
 /* Double up ? (Aiges Captain, Le Ace de Aiges, ou copieur) : +REGLAGE_DUO.doubleUp une seule fois, meme si ligne et terrain sont vrais a la fois. */
-function doubleUp(G,l,k,id){return DUO_EVO[id]?duoVoisin(G,l,k,DUO[id]):null}
 /* Mort en chaine : le partenaire mort a la vague d'avant, sur la meme ligne ou le meme terrain, explique la perte de Double up ? */
-function duoMort(s,a,x){const g=s.j[x.p].grille[x.l][x.k],id=g&&idEff(g);return !!id&&!!DUO_EVO[id]&&a.p===x.p&&(a.l===x.l||a.k===x.k)&&a.nom.split(' (')[0]===CARTES[DUO[id]].nom}
+function duoMort(s,a,x){const g=s.j[x.p].grille[x.l][x.k],id=g&&idEff(g),e=effs(id).find(e=>e.r.doubleUp);return !!id&&!!e&&a.p===x.p&&(a.l===x.l||a.k===x.k)&&a.nom.split(' (')[0]===CARTES[e.r.partenaire].nom}
 /* « Si tu forges cette carte » : la carte c vient de passer de la main a la Forge (Forge 'f', Forge eclair 'j', Spam 's'). Le joueur pioche AU HASARD
    un exemplaire du partenaire parmi tous ceux de son deck, bases et evolutions confondues (chaque exemplaire a la meme chance : tirage pondere par
    le nombre d'exemplaires), par le generateur du joueur (rejeu identique), dans l'ordre des numeros de carte (l'ordre du deck ne compte pas).
@@ -334,6 +325,7 @@ function rage(s){
     if(n>0){g.ra=(g.ra||0)+n;dire(s,p,nomDetail(carte(g.c))+' : Rage, +'+n+' de Force.')}
   }
 }
+const dessus=id=>effs(id).some(e=>e.r.compte==='dessus'),colonne=id=>aProp(id,'colonneBonus'); /* explications des morts en chaine */
 /* Vagues simultanees : tous les Golems a 0 ou moins meurent ensemble, puis on recalcule. */
 function nettoie(s){
   let avant=null;
@@ -345,10 +337,10 @@ function nettoie(s){
     if(!morts.length){s.stats.coups={};rage(s);return}
     if(!avant)dire(s,null,morts.map(x=>x.nom).join(' et ')+(morts.length>1?' meurent.':' meurt.'));
     else dire(s,null,morts.map(x=>{
-      const c=avant.find(a=>(a.p===x.p&&Math.abs(a.l-x.l)+Math.abs(a.k-x.k)===1)||(a.p!==x.p&&a.l===x.l&&a.k===x.k))||avant.find(a=>a.p===x.p&&a.k===x.k&&a.l<x.l&&idEff(s.j[x.p].grille[x.l][x.k])==='025')||avant.find(a=>duoMort(s,a,x))||avant.find(a=>a.p===x.p&&a.k===x.k&&a.e==='020'); /* Shifukuro */
+      const c=avant.find(a=>(a.p===x.p&&Math.abs(a.l-x.l)+Math.abs(a.k-x.k)===1)||(a.p!==x.p&&a.l===x.l&&a.k===x.k))||avant.find(a=>a.p===x.p&&a.k===x.k&&a.l<x.l&&dessus(idEff(s.j[x.p].grille[x.l][x.k])))||avant.find(a=>duoMort(s,a,x))||avant.find(a=>a.p===x.p&&a.k===x.k&&colonne(a.e)); /* Shifukuro */
       return x.nom+' meurt ensuite'+(c?' : il perd le bonus de '+c.nom:'')+'.'}).join(' '));
     morts.forEach(x=>{
-      const c=avant&&(avant.find(a=>(a.p===x.p&&Math.abs(a.l-x.l)+Math.abs(a.k-x.k)===1)||(a.p!==x.p&&a.l===x.l&&a.k===x.k))||avant.find(a=>a.p===x.p&&a.k===x.k&&a.l<x.l&&idEff(s.j[x.p].grille[x.l][x.k])==='025')||avant.find(a=>duoMort(s,a,x))||avant.find(a=>a.p===x.p&&a.k===x.k&&a.e==='020')); /* Shifukuro */
+      const c=avant&&(avant.find(a=>(a.p===x.p&&Math.abs(a.l-x.l)+Math.abs(a.k-x.k)===1)||(a.p!==x.p&&a.l===x.l&&a.k===x.k))||avant.find(a=>a.p===x.p&&a.k===x.k&&a.l<x.l&&dessus(idEff(s.j[x.p].grille[x.l][x.k])))||avant.find(a=>duoMort(s,a,x))||avant.find(a=>a.p===x.p&&a.k===x.k&&colonne(a.e))); /* Shifukuro */
       x.src=(c&&c.src)||s.stats.coups[x.p+''+x.l+x.k]||s.stats.cause||{p:null,c:null,lib:'Perte de bonus'};
       note(s,'m',1,x.src,x.p,s.j[x.p].grille[x.l][x.k].c,avant?1:0);
     });
@@ -362,19 +354,16 @@ function noteBonus(s){
   for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){
     const G=s.j[p].grille,g=G[l][k];if(!golem(g)||g.hors===s.manche)continue; /* animal ou Golem hors decompte (Mignonitude) : rien a expliquer */
     const vs=voisins(G,l,k),el=carte(g.c).el,ci=s.terrains[k].nom==='Le Cirque'&&cirqueInv();
-    vs.forEach(n=>{const t=idEff(n);if(t==='003'||t==='003e')b('voisins',p,g.c,p,n.c)});
+    vs.forEach(n=>{if(somme(effs(idEff(n)),'voisinBonus'))b('voisins',p,g.c,p,n.c)});
     indrasDe(s,p,g.c).forEach(n=>b('favori',p,g.c,p,n.c));
     if(!ci)el.forEach(e=>vs.forEach(n=>{if(carte(n.c).el.includes(e))b('trait',p,g.c,p,n.c)}));
     if(!ci&&REGLAGE_ANIMAUX.element)animauxVoisins(G,l,k).forEach(A=>{if(el.includes(elAnimal(carte(A.c))))b('trait',p,g.c,p,A.c)}); /* animal voisin */
     const f=s.j[1-p].grille[l][k];
     if(!ci&&f&&el.some(e=>carte(f.c).el.includes(DOMINE[e]))){b('cercle',p,g.c,1-p,f.c);if(cercle2(G,k,idEff(g)))b('cercle',p,g.c,1-p,f.c)} /* Vic222 : Info tchat */
-    if(idEff(g)==='037e')el.forEach(e=>{const n=vs.find(n=>carte(n.c).el.includes(e));if(n)b('trait',p,g.c,p,n.c)});
-    if(idEff(g)==='036e')G.forEach(L=>L.forEach(n=>{if(n&&carte(n.c).el.includes('foudre'))b('survolte',p,g.c,p,n.c)})); /* Spom */
-    if(idEff(g)==='025')for(let a=0;a<l;a++){const n=G[a][k];if(golem(n))b('kekwait',p,g.c,p,n.c)} /* Shifukuro */
-    if(DUO_MANCHE[idEff(g)]){const [m,w]=DUO_MANCHE[idEff(g)],n=m*duoManches(s,p,k,w);for(let i=0;i<n;i++)b(w?'winstreak':'comeback',p,g.c,p,g.c)} /* Bellock/Loxim */
-    {const n=doubleUp(G,l,k,idEff(g));if(n)for(let i=0;i<REGLAGE_DUO.doubleUp;i++)b('doubleup',p,g.c,p,n.c)} /* Bellock/Loxim */
-    for(let a=0;a<3;a++){const n=G[a][k];if(a!==l&&golem(n)&&idEff(n)==='020')b('general',p,g.c,p,n.c)} /* GeneralBrioche */
-    if(idEff(g)==='020e')vs.forEach(n=>b('adjacence',p,g.c,p,n.c)); /* GeneralBrioche */
+    const E=effs(idEff(g));
+    for(const e of E)if(e.T.note)e.T.note(e.r,s,p,l,k,g,G,vs,el,b); /* capacites du Golem */
+    for(let a=0;a<3;a++){const n=G[a][k];if(a!==l&&golem(n)&&colonne(idEff(n)))b('general',p,g.c,p,n.c)} /* auras de colonne */
+    for(const e of E)if(e.T.noteFin)e.T.noteFin(e.r,s,p,l,k,g,G,vs,el,b);
     (g.sub||[]).forEach(()=>b('sub',p,g.c,p,g.c));(g.dr||[]).forEach(x=>b('draft',p,g.c,p,x)); /* JackJoy : la carte de Sub offert est dans la Forge, rien a lui attribuer */
   }
 }
@@ -1374,6 +1363,14 @@ function robotFort(s,p,l,t){
   const b=meilleur(F,p,q);
   return b.a&&b.g>.01?b.a:choixLove(F,p,l)||pronoRobot(s,p,l)||{t:'x'}; /* K-Chan ; Les Pronos */
 }
+/* Registre des effets : outils internes donnes aux fichiers d'effets (M), puis effets de chaque fiche. */
+const M={carte,golem,animal,CARTES,TYPES,effs,idEff};
+R=FX.construit(M);F=R.fonctions;
+for(const id in CARTES){
+  EFF[id]=[].concat(CARTES[id].effet||[]).map(r=>{const T=R.types[r.type];if(!T)throw new Error('type d\'effet inconnu '+r.type+' ('+id+')');return {T,r}});
+  for(const e of EFF[id]){if(e.T.favoriBonus)FAV_BONUS[id]=(FAV_BONUS[id]||0)+e.T.favoriBonus(e.r);if(e.r.type==='duo'){DUO[id]=e.r.partenaire;DUO_NOM[id]=e.r.nom}}
+}
+const {foudres,kekwait,REGLAGE_DUO,duoManches,duoVoisin,doubleUp}=F;
 const api={VERSION,TRAIT_CUMULE,TAILLE_DECK,DECK_MIN,DECK_MAX,MAX_EX,erreurDeck,ELEM_MAX,elementsDeck,erreurElements,evolutionsSansBase,animauxSansBase,erreurEvolutions,deckTexte,lisDeck,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
   nomDetail,forceDe,ciblable,colonnes,valeurDecompte,coutPose,genre,TYPES_TEST,DECK_DEFAUT,DECK_TUTO,FAV_BONUS,favori,indrasDe,idEff,foudres,spoms,
   estAnimal,ANIMAL_MAX,maxEx,maitreDe,peutPoser,elessars,graines,COPIEURS,EL_VELNEN,kekwait,echangesMeandyou,DUO,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,partenaires,forgeUtile,jjBonus,ciblesJJ,REGLAGE_JJ,cercle2,blesse,loves,choixLove,REGLAGE_KC,generaux,nettoie,noteBonus,retire,chatsPioche,effetsGolems,agit,piochesAVenir,risqueDeck,doublons,ilSuffit,jourDePeche,POINT_DECK_VIDE,
