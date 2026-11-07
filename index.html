@@ -466,7 +466,7 @@ b[class^="chat-"][title]{cursor:help}
 .nv-pages{display:flex;align-items:center;gap:6px;margin:0;font:400 15px/1 var(--titre);color:var(--texte);flex:none}
 .nv-pages[hidden]{display:none}
 .nv-pages .nv-num{padding:0 4px}
-#nouveautes>.intro.va{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:none}
+#nouveautes>.intro.va,#historique>.intro.va{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:none}
 :is(.note>.btn.nv-det,#f#f#f#f){position:absolute;right:12px;bottom:11px;margin:0;min-height:24px;height:24px;padding:0 8px;font-size:13px;line-height:24px;border-radius:7px;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 0 var(--bord),0 3px 6px rgba(0,0,0,.3)}
 /* Fenetre des details d'une version : en-tete fixe, rubriques qui defilent, Fermer en bas. */
 .dv-boite{max-width:620px;width:calc(100vw - 32px);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);padding:0;overflow:hidden;display:flex;flex-direction:column;text-align:left}
@@ -4634,20 +4634,22 @@ function confirmePage(box,msg,oui){
   n.onclick=oui;a.onclick=()=>{peintDecks();peintHisto()};
   const z=el('div','p-btns');z.append(n,a);box.append(el('p','o-conf',msg),z);
 }
-/* Grand ecran : autant de lignes que la fenetre en contient, de 10 a 15. Ailleurs 10 par page. */
-let pageHisto=0,lignesPage=10;
+/* 14 parties par page (2 colonnes x 7 sur grand ecran). Pagination des Nouveautes (< 1 / N >) a droite de la phrase d'intro. */
+let pageHisto=0,lignesPage=14;
 const PAS_HISTO=50;
 function peintHisto(){
   const b=$('histo'),l=lesParties();b.textContent='';
+  let z=document.querySelector('#historique .nv-pages');
+  if(!z){z=el('div','nv-pages haut');z.setAttribute('role','navigation');z.setAttribute('aria-label','Pages de l’historique');
+    const p=el('button','j-btn nv-prec','<'),s=el('button','j-btn nv-suiv','>');p.type=s.type='button';
+    p.title='Page précédente';s.title='Page suivante';p.setAttribute('aria-label',p.title);s.setAttribute('aria-label',s.title);
+    p.onclick=()=>{pageHisto--;peintHisto()};s.onclick=()=>{pageHisto++;peintHisto()};z.append(p,el('span','nv-num'),s);
+    const i=document.querySelector('#historique>.intro');i.classList.add('va');i.append(z)}
+  z.hidden=true;
   if(!l.length){b.append(el('p','vide','Aucune partie enregistrée.'));return}
-  const barre=el('div','h-barre'),pg=el('div','h-pages');
-  barre.append(pg);b.append(barre);
-  const bas=Math.ceil(barre.getBoundingClientRect().bottom+scrollY)+8;
-  lignesPage=10;
   const nb=Math.ceil(l.length/lignesPage);pageHisto=Math.max(0,Math.min(pageHisto,nb-1));
-  const pb=(t,d,off)=>{const q=el('button','btn sec',t);q.type='button';q.disabled=off;q.onclick=()=>{pageHisto+=d;peintHisto()};return q};
-  /* Une seule page : pas de rangee de pagination (aucun vide au-dessus de la liste). */
-  if(nb>1)pg.append(pb('Précédente',-1,pageHisto===0),el('span','','Page '+(pageHisto+1)+' sur '+nb),pb('Suivante',1,pageHisto>=nb-1));else barre.remove();
+  z.hidden=nb<2;z.querySelector('.nv-num').textContent=(pageHisto+1)+' / '+nb;
+  z.querySelector('.nv-prec').disabled=pageHisto===0;z.querySelector('.nv-suiv').disabled=pageHisto>=nb-1;
   const gr=el('div','h-grille'),pageL=l.slice(pageHisto*lignesPage,(pageHisto+1)*lignesPage);
   /* Niveau du Golem : le mot Golem prend la couleur du niveau (memes couleurs que le filtre Adversaires des Statistiques), legende au-dessus. */
   const nivG=a=>{const m=/^Golem \((facile|normal|difficile)\)$/i.exec(a||'');return m?NIV_ORDI.find(n=>n[0]===m[1].toLowerCase()):null};
