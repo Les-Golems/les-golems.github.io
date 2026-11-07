@@ -559,6 +559,7 @@ body.daltonien .mini .evs{display:inline}
 .mini .cout{display:inline-flex;align-items:center;gap:3px;padding:0 6px 0 3px;border-radius:8px 5px 9px 4px;background:rgba(10,18,26,.72);font:400 16px/23px var(--titre);color:#fff;-webkit-text-stroke:3px #0a121a;paint-order:stroke fill}
 .mini .cout .ico{font-size:17px;color:#d3dbe0}
 .p-case.cible{border:2px solid var(--or);background:var(--panneau2);color:var(--or);font-weight:800}
+.p-case.cible:has(.mini):not(:has(.act)){box-shadow:0 0 0 3px var(--or),0 0 20px 4px rgba(241,195,90,.75);z-index:2} /* Golem a viser (Tarte) : contour lumineux, sans etiquette */
 .p-case.choisie{border:3px solid var(--bleu)}
 .p-case .f{position:absolute;right:3px;bottom:2px;width:calc(var(--f)*.9);height:var(--f);color:#dfe5e9}
 .p-case .f .ico{position:absolute;inset:0;width:100%;height:100%}
@@ -1779,6 +1780,106 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
   .bac-haut h3{font-size:19px}
   .bac-totaux b{font-size:22px}
 }
+/* ===== 0.4a : ecran de partie au style de la diffusion (maquettes validees, Ressources/7 - Maquettes et audits/1 - Ecran de jeu style diffusion) ===== */
+/* 1. Bandeau : losanges dores (passes fonces, en cours lumineux), survol dore discret du score */
+#partie .p-pts i.fait{background:color-mix(in srgb,var(--or) 45%,var(--encre))}
+#partie .p-pts i.on{background:var(--or);box-shadow:0 0 10px var(--or)}
+#partie .p-info.score .p-score{border-radius:14px 9px 15px 8px;padding:4px 10px;margin:-4px -10px;transition:background .15s}
+#partie .p-info.score .p-score:hover{background:color-mix(in srgb,var(--or) 10%,transparent)}
+/* 2. Terrains (variante B) : total adverse en haut, nom et « etoile N pts » au milieu, ton total en bas ; contour 3 px du joueur qui mene */
+#partie .p-terrain{display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:2px;padding:3px 4px 4px;border:3px solid var(--trait)}
+#partie .p-terrain.m-moi{border-color:var(--moi)}
+#partie .p-terrain.m-lui{border-color:var(--lui)}
+#partie .p-tot{font:400 24px/1 var(--titre)}
+#partie .p-tot.a{color:var(--lui)}#partie .p-tot.m{color:var(--moi)}
+#partie .p-tot{opacity:.6}#partie .p-tot.tete{opacity:1;text-shadow:0 0 12px currentColor}
+#partie .p-tmil{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+#partie .p-terrain .p-valeur{position:static;display:inline-flex;align-items:center;gap:4px;font:400 14px/18px var(--titre);padding:0 7px;white-space:nowrap}
+#partie .p-valeur .ico{font-size:13px;color:var(--encre)}
+@media (min-width:900px){#partie .p-tmil{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:2px 6px}}
+@media (max-width:899px){#partie .p-tot{font-size:22px}}
+/* 3. Journal : ligne a la couleur du joueur, nom en gras, noms de cartes en blanc (evolutions en dore), souligne au survol seulement */
+#partie .p-lignes div.j-moi{box-shadow:inset 3px 0 0 var(--moi);padding-left:7px}
+#partie .p-lignes div.j-lui{box-shadow:inset 3px 0 0 var(--lui);padding-left:7px}
+#partie .p-lignes .j-qui{font-family:var(--titre);font-weight:400}
+#partie .j-moi .j-qui{color:var(--moi)}#partie .j-lui .j-qui{color:var(--lui)}
+#partie .p-lignes .j-lien{font-family:var(--titre);font-weight:400;color:#fff;text-decoration:none}
+#partie .p-lignes .j-lien.j-evo{color:var(--or)}
+#partie .p-lignes .j-lien:hover{text-decoration:underline}
+/* 5. Plus d'oeil en jeu : curseur main et leger eclaircissement au survol de tout ce qui s'ouvre */
+#partie .p-terrain,#partie .pile.clic,#partie .p-carte,#partie .p-case:not(:disabled){cursor:pointer}
+#partie .p-terrain,#partie .pile.clic,#partie .p-case:not(:disabled){transition:filter .12s,box-shadow .12s}
+@media (hover:hover){#partie .p-terrain:hover,#partie .pile.clic:hover,#partie .p-case:not(:disabled):hover{filter:brightness(1.12);box-shadow:0 0 0 1px rgba(255,255,255,.35)}}
+#partie .pile.clic:focus-visible,#partie .p-terrain:focus-visible{outline:2px solid #fff;outline-offset:2px}
+/* 6. Forge pendant le tour adverse : chiffre neutre */
+#partie .p-info.energie.forge .p-ener{color:var(--texte)}
+/* 7. Bandeaux des joueurs : cadre 2 px, compteurs #C9D4E2 dans un groupe de largeur fixe cale a droite (alignes au pixel entre les deux bandeaux), etiquette JOUE */
+#partie .p-camp{flex-wrap:nowrap;border:2px solid var(--trait);background:linear-gradient(180deg,var(--panneau2),var(--panneau));padding:1px 8px;gap:6px}
+#partie .p-camp>b{margin-right:0;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+#partie .p-camp.joue{animation:none;box-shadow:none}
+#partie .p-camp.toi.joue{border-color:var(--moi)}#partie .p-camp.lui.joue{border-color:var(--lui)}
+#partie .p-joue{flex:none;margin:0;font:400 13px/1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--encre);padding:4px 7px;border-radius:8px 6px 9px 5px}
+#partie .p-camp.toi .p-joue{background:var(--moi)}#partie .p-camp.lui .p-joue{background:var(--lui)}
+#partie .p-comptes{flex:none;margin-left:auto;display:grid;grid-template-columns:58px 64px 86px 62px;gap:4px}
+#partie .p-compteur{background:transparent;color:#c9d4e2;font-weight:700;font-size:12.5px;padding:2px 0;white-space:nowrap}
+#partie .p-compteur .ico{color:#c9d4e2;font-size:14px}
+#partie .p-compteur b{color:#fff;font-size:17px}
+@media (max-width:899px){
+  #partie .p-camp{flex-wrap:wrap;row-gap:0}
+  #partie .p-comptes{flex:1 0 100%;margin-left:0;grid-template-columns:repeat(4,auto);justify-content:space-between}
+  #partie .p-comptes{grid-template-columns:62px 68px 90px 66px}
+}
+/* 8. Cercle des elements permanent (pictos, style diffusion) ; telephone : repliable */
+#partie .p-cercle{background:var(--panneau);border:1px solid var(--trait);border-radius:12px 9px 14px 8px/9px 13px 8px 14px;flex:none}
+#partie .p-cercle summary{padding:10px 14px 10px 34px;font-family:var(--titre);font-size:18px;color:var(--bleu);cursor:pointer}
+#partie .p-cw{display:grid;place-items:center;padding:6px 8px}
+#partie .p-cw svg{display:block;width:min(100%,260px);height:auto;overflow:visible}
+#partie .p-cw svg .arc{fill:none;stroke:var(--bleu);stroke-width:3;stroke-linecap:round}
+@media (min-width:900px){#partie .p-cercle summary{display:none}}
+/* 9. Chat des parties en ligne : bouton discret avec pastille en bas de la colonne du journal ; fenetre fermee par defaut */
+.chat.flottant.replie{display:none}
+#partie .p-chat{position:relative;flex:none;align-self:stretch;background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 17px/1 var(--titre);padding:7px 14px;opacity:.75;cursor:pointer;min-height:34px}
+#partie .p-chat:hover{opacity:1;color:#fff}
+#partie .p-chat-nb{position:absolute;right:-7px;top:-8px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--magma);color:#fff;font:400 13px/20px var(--titre);text-align:center}
+#partie .p-chat-nb:empty{display:none}
+/* 10. Survols neutres (blanc) partout en jeu, sauf le score */
+#partie .j-lien:hover{color:#fff}
+/* Main : place de 7 cartes au moins, au-dela elles se resserrent ; consigne de place au tour adverse */
+#partie .p-main{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (min-width:900px){#partie .p-main{grid-template-columns:repeat(var(--n,7),minmax(0,1fr));gap:6px}#partie .p-carte .raison{font-size:10.5px;padding:2px}#partie .p-carte{border-width:2px}}
+#partie .p-cale{visibility:hidden}#partie .p-btns.p-cale{height:34px}
+@media (max-width:899px){#partie .p-cale{display:none}}
+/* Ordinateur (1200 px et plus) : derniere carte jouee en haut, ta main, tes piles et le bouton d'action en bas ; colonne de droite etiree, bas du journal et du chat alignes */
+@media (min-width:1200px){
+  #partie .p-poste>.p-signal{order:0}#partie .p-poste>.p-consigne{order:0}
+  #partie .p-poste>.p-apercu{order:1}
+  #partie .p-poste>.p-main{order:3}
+  #partie .p-poste>.p-piles{order:4}
+  #partie .p-poste>.p-btns{order:5}
+  #partie .p-poste>.p-consigne{min-height:0;height:62px;overflow:auto;padding:6px 12px}
+  #partie .p-cote{display:flex;flex-direction:column}
+  #partie .p-cote>.p-journal{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+  #partie .p-cote>.p-journal>.p-lignes{flex:1 1 0;height:auto;min-height:0}
+  /* Zone « Derniere carte jouee » (variante A) : carte a gauche, texte a droite */
+  #partie .p-poste>.p-apercu{flex-direction:row;gap:14px;padding:10px;border:1px solid var(--trait);border-style:solid;background:linear-gradient(180deg,var(--panneau2),var(--panneau));min-height:200px;overflow:hidden}
+  #partie .p-apercu .p-ap-img{flex:0 0 auto;height:100%;aspect-ratio:5/7;max-width:46%}
+  #partie .p-apercu.vide .p-ap-img{display:block;border:1px dashed var(--trait);border-radius:5.07%/3.62%}
+  #partie .p-apercu .p-ap-img img{width:100%;height:auto;max-height:100%}
+  #partie .p-ap-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;overflow:hidden;font-size:15px;line-height:1.35;color:var(--texte)}
+  #partie .p-apercu .p-ap-leg{margin:0;text-align:left;font:400 15px/1.1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--or)}
+  #partie .p-ap-ph{margin:0;font-weight:700}
+  #partie .p-apercu.vide .p-ap-ph{color:var(--doux);font-weight:400}
+  #partie .p-ap-qui{font:400 22px/1.15 var(--titre);color:var(--lui)}
+  #partie .p-ap-nom{font:400 30px/1.1 var(--titre);color:#fff}
+  #partie .p-ap-nom.evo{color:var(--or)}
+  #partie .p-ap-ef{margin:0;color:var(--doux);font-weight:700}
+  #partie .p-ap-ef b{font-family:var(--titre);font-weight:400;color:#fff}
+  #partie .p-ap-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding:2px}
+  #partie .p-ap-chips>span{display:inline-flex;align-items:center;gap:5px;background:var(--encre);border:1px solid var(--trait);border-radius:10px 7px 11px 6px;padding:4px 8px;font:700 13px/1 var(--corps);color:var(--doux);white-space:nowrap}
+  #partie .p-ap-chips b{font:400 17px/1 var(--titre);color:var(--texte)}
+  #partie .p-ap-chips img{width:20px;height:20px}
+}
+@media (min-width:1200px) and (max-height:799px){#partie .p-ap-nom{font-size:24px}#partie .p-ap-qui{font-size:18px}#partie .p-ap-txt{font-size:14px;gap:5px}}
 </style>
 
 <div id="ecranCharge" aria-hidden="true"><img alt="" width="144" height="144" fetchpriority="high"><script>document.currentScript.previousElementSibling.src=imgV("cartes/logo.png")</script><span class="ec-txt"><b class="ec-titre">Les Golems</b><span class="ec-sous">Jeu de cartes communautaire</span></span></div>
@@ -3255,7 +3356,7 @@ const chatBox=(()=>{
   const ul=el('ul','chat-liste'),f=document.createElement('form'),i=document.createElement('input'),b=el('button','btn','Envoyer'),inf=el('div','chat-info');
   ul.setAttribute('aria-live','polite');i.maxLength=200;i.placeholder=matchMedia('(max-width:520px)').matches?'Message':'Message (200 caractères max)';i.setAttribute('aria-label','Message');i.autocomplete='off';b.type='submit';
   f.append(i,b);c.append(h,ul,inf,f);
-  h.onclick=e=>{if(!c.classList.contains('flottant'))return;chatOuvert=c.classList.contains('replie');c.classList.toggle('replie',!chatOuvert);if(chatOuvert){chatVu=r&&r.chat?r.chat().length:0;nb.textContent='';ul.scrollTop=ul.scrollHeight;i.focus()}};
+  h.onclick=e=>{if(!c.classList.contains('flottant'))return;chatOuvert=c.classList.contains('replie');c.classList.toggle('replie',!chatOuvert);if(chatOuvert){chatVu=r&&r.chat?r.chat().length:0;nb.textContent='';ul.scrollTop=ul.scrollHeight;i.focus()}{const p=document.querySelector('#partie .p-chat-nb');if(p)p.textContent=nb.textContent}};
   f.onsubmit=async e=>{
     e.preventDefault();const m=i.value.replace(/\s+/g,' ').trim().slice(0,200);if(!m||!r||!r.dit)return;
     const t=Date.now();if(t-chatDernier<1000){inf.textContent='Un message par seconde au plus.';return}
@@ -3291,6 +3392,7 @@ function peintChat(l){
     li.append(h,nomChat(x),document.createTextNode(x.m));ul.append(li)});
   const fl=chatBox.c.classList.contains('flottant'),rep=chatBox.c.classList.contains('replie');
   if(fl&&rep){const n=l.slice(chatVu).filter(x=>x.a!==moi).length;nb.textContent=n>0?String(n):''}else{chatVu=l.length;nb.textContent=''}
+  {const p=document.querySelector('#partie .p-chat-nb');if(p)p.textContent=nb.textContent}
   if(bas||!rep)ul.scrollTop=ul.scrollHeight;
 }
 /* 0.4 : couleur du pseudo selon le role dans le salon (places de spectateur.js) : createur dore, adversaire bleu, spectateur gris clair avec un oeil.
@@ -3577,6 +3679,7 @@ const tf=c=>'translate('+c.x+'px,'+c.y+'px) scale('+c.w/200+')';
 function carteVol(src){const d=el('div','v-carte'),i=el('img');i.src=src;i.alt='';d.append(i);$('scene').append(d);return d}
 function vol(de,vers,src,ms,delai){
   if(vite()||REDUIT.matches||!de||!vers)return;
+  if(document.documentElement.classList.contains('dif-joueur'))return; /* vue joueur : le vol est celui de diffusion.js (pas de double) */
   const d=carteVol(src),a=d.animate([{transform:tf(cadre(de,56))},{transform:tf(cadre(vers,56))}],{duration:T(ms),delay:T(delai||0),easing:'cubic-bezier(.3,.7,.3,1)',fill:'both'});
   a.finished.finally(()=>d.remove()).catch(()=>{});
 }
@@ -3588,9 +3691,9 @@ function valTerrain(Mx,s,k){const T=s.terrains[k],v=Mx.ptsTerrain?Mx.ptsTerrain(
 const srcTerrain=T=>imgV('cartes/t'+String(window.GolemsMoteur.TERRAINS.findIndex(x=>x.nom===T.nom)+1).padStart(3,'0')+'.jpg');
 /* Carte jouee : grande au centre environ 1,5 s, puis glissade vers sa case. */
 function montreGrand(c,de,vers){
-  if(vite())return 0;
+  if(vite()||document.documentElement.classList.contains('dif-joueur'))return 0; /* vue joueur : « Derniere carte jouee » et le vol de diffusion.js suffisent */
   /* Ordinateur : la carte s'affiche dans la zone d'apercu sous les piles, puis glisse vers sa case. */
-  const zo=zoneEl(),zb=zo&&zo.getBoundingClientRect(),zr=zb&&{left:zb.left+8,top:zb.top+31,width:zb.width-16,height:zb.height-39,bottom:zb.bottom-8};
+  const zo=zoneEl(),zi=zo&&zo.querySelector('.p-ap-img'),zr=zi&&zi.getBoundingClientRect(); /* 0.4a : cadre de l'image de la zone (carte a gauche, texte a droite) */
   if(zo&&zr.height>120&&zr.bottom>0&&zr.top<innerHeight){
     const h=Math.min(zr.height,zr.width*7/5),w=h*5/7,C={x:zr.left+zr.width/2-w/2,y:zr.top+zr.height/2-h/2,w};
     zo.classList.add('vol');const tot=T(1950);setTimeout(()=>zo.classList.remove('vol'),tot);
@@ -3820,13 +3923,13 @@ function etapes(av,s,a,p){
       if(lv!==undefined){const qv=caseDe(1-p,lv,a.k);L.push(()=>{ajoutFx({q:qv,classe:'fx-frappe'},500);ajoutFx({q:qv,classe:'fx-deg',texte:'-1'},1100);return T(550)})}
     }
   }else if(a.t==='z'){ /* Caramel a volonte : +1 energie */
-    L.push(()=>{ajoutFx({q:caseDe(p,a.l,a.k),classe:'fx-bonus',texte:'+1'},1300);if(p===me)ajoutFx({q:'.p-info.energie',classe:'bascule'},750);return T(450)});
+    L.push(()=>{ajoutFx({q:caseDe(p,a.l,a.k),classe:'fx-bonus',texte:'+1'},1300);if(p===me)ajoutFx({q:'.p-camp.toi .c-enclume',classe:'bascule'},750);return T(450)});
   }else if(a.t==='o'){ /* 0.4a : tarte du Cirque, frappe et -1 sur le Golem adverse vise */
     const q=caseDe(1-p,a.l,s.terrains.findIndex(x=>x.nom==='Le Cirque'));
     L.push(()=>{ajoutFx({q,classe:'fx-frappe'},500);ajoutFx({q,classe:'fx-deg',texte:'-1'},1100);return T(550)});
   }else if(a.t==='t'){ /* 0.4a : mise des Pronos, +1 sur le terrain, l'energie bascule */
     const q='.p-terrain[data-k="'+s.terrains.findIndex(x=>x.nom==='Les Pronos')+'"]';
-    L.push(()=>{ajoutFx({q,classe:'fx-bonus',texte:'+1'},1300);if(p===me)ajoutFx({q:'.p-info.energie',classe:'bascule'},750);return T(450)});
+    L.push(()=>{ajoutFx({q,classe:'fx-bonus',texte:'+1'},1300);if(p===me)ajoutFx({q:'.p-camp.toi .c-enclume',classe:'bascule'},750);return T(450)});
   }else if(a.t==='f'||a.t==='s'||a.t==='j'){ /* j : Forge eclair de Spom */
     const de=p===me?rectDe('.p-slot[data-c="'+a.c+'"]'):rectDe('.p-camp.lui .c-main');
     L.push(()=>{vol(de,rectDe(piles(p,'forge')),p===me?srcC(a.c):DOS,600);return T(600)});
@@ -6001,7 +6104,7 @@ function pile(cls,lib,n,tas){
   if(cls==='forge')v.insertAdjacentHTML('beforeend',enclumeB());
   else{const i=el('img');i.src=imgV('cartes/logo.png');i.alt='';v.append(i)}
   o.append(v,el('span','v-mot',lib.toUpperCase()),el('span','v-nb',String(n)));d.append(o);d.setAttribute('aria-label',lib+' : '+n);
-  if(tas&&n){const e=el('button','oeil');e.type='button';e.append(ico('oeil'));e.setAttribute('aria-label','Voir '+lib);e.onclick=()=>ouvreTas(lib,tas);d.append(e)}
+  if(tas&&n){d.classList.add('clic');d.tabIndex=0;d.setAttribute('role','button');d.setAttribute('aria-label','Voir '+lib+' : '+n);d.onclick=()=>ouvreTas(lib,tas);d.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvreTas(lib,tas)}}} /* 0.4a : plus d'oeil, la pile entière s'ouvre */
   return d;
 }
 /* Bandeau « Remplacer / Améliorer N +X » des cases : mesuré à chaque changement de taille de la case et au chargement des polices ; trop large pour une ligne : « Remp. / Amél. N +X ». */
@@ -6051,8 +6154,12 @@ function grilleVue(s,p,cols,lignes,cible){
 function camp(s,p,moi){
   const J=s.j[p],d=el('div','p-camp '+(moi?'toi':'lui'));
   const nb=el('b','',nomJ(p)+(moi?' (toi)':''));d.append(moi?avatarDe(nomJ(p),monAvatar()):partie&&partie.local?avatarDe(nomJ(p)):avatarUid(nomJ(p),uidJ(p)),nb);
-  if(!moi&&!s.fin&&(s.phase==='mulligan'?!s.mull[p]:quiJoue(s)===p)){d.classList.add('joue');nb.append(el('small','p-joue','En train de jouer'))}
-  if(!moi)d.append(compteur('main','Main',J.main.length),compteur('deck','Deck',J.deck.length),compteur('defausse','Défausse',J.defausse.length),compteur('enclume','Forge',J.forge.length));
+  /* 0.4a (style diffusion) : étiquette « JOUE » à la couleur du joueur actif ; mêmes compteurs dans les deux bandeaux, groupe de largeur fixe calé à droite (alignés au pixel). */
+  const l1=el('span','p-l1'),actif=!s.fin&&(s.phase==='mulligan'?!s.mull[p]:quiJoue(s)===p);d.append(l1);l1.append(d.lastChild.previousSibling,nb);
+  if(actif){d.classList.add('joue');l1.append(el('span','p-joue','Joue'))}
+  /* Forge, ou Énergie (étiquette dorée de la diffusion) pendant le tour de ce joueur : même case de largeur fixe, aucun compteur ne bouge */
+  const cz=el('span','p-comptes'),fo=actif&&s.phase==='jeu'?compteur('enclume','Énergie',J.energie,'energie'):compteur('enclume','Forge',J.forge.length);
+  cz.append(compteur('main','Main',J.main.length),compteur('deck','Deck',J.deck.length),compteur('defausse','Défausse',J.defausse.length),fo);d.append(cz);
   return d;
 }
 const SURVOL=matchMedia('(hover:hover) and (min-width:900px)');
@@ -6063,7 +6170,7 @@ const NOMS_LOG=(()=>{const m=new Map();
   const e=[...m.keys()].sort((a,b)=>b.length-a.length).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
   return {m,re:new RegExp('(?<![\\p{L}\\p{N}])('+e.join('|')+')(?![\\p{L}\\p{N}])','gu')}})();
 function lienLog(nom){
-  const o=NOMS_LOG.m.get(nom),b=el('button','j-lien',nom);b.type='button';
+  const o=NOMS_LOG.m.get(nom),b=el('button','j-lien'+(o.C&&o.C.base?' j-evo':''),nom);b.type='button';
   if(o.T){b.onclick=()=>zoomTerrain(o.T);b.onmouseenter=()=>montreApercu(b,srcTerrain(o.T))}
   else{const src=imgV('cartes/'+o.C.id+'.jpg');b.onclick=()=>{cacheApercu();dernier=null;zoom(src,o.C.nom)};b.onmouseenter=()=>montreApercu(b,src)}
   b.onmouseleave=cacheApercu;return b;
@@ -6138,7 +6245,7 @@ function badgeSurcout(C,n){
 /* Même enclume rouge sur la carte agrandie (zoom, œil, bouton Voir) : le dessin est au repère 750 x 1050, il suit la taille de l'image. */
 const calqueSurcout=(C,n)=>n>0?[badgeSurcout(C,n)]:null;
 function mainVue(ids,opts){
-  const m=el('div','p-main'),s=partie&&partie.etat,sp=opts.p!==undefined?opts.p:partie&&partie.moi;
+  const m=el('div','p-main'),s=partie&&partie.etat,sp=opts.p!==undefined?opts.p:partie&&partie.moi;m.style.setProperty('--n',Math.max(7,ids.length)); /* 0.4a : 7 places au moins, au-dela les cartes se resserrent (hauteur fixe sur ordinateur) */
   ids.forEach(c=>{
     const C=M.carte(c),b=el('button','p-carte');b.type='button';
     const i=el('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;b.append(i);
@@ -6147,11 +6254,10 @@ function mainVue(ids,opts){
     if(rz){b.classList.add('grisee');b.append(el('span','raison',rz.court));b.title=rz.long+(sc>0?' Coût imprimé '+C.cout+' : '+causeSurcout(sc):'')}
     if(opts.presse)b.setAttribute('aria-pressed',opts.presse(c));
     if(opts.clic){b.dataset.act='carte';b.onclick=()=>opts.clic(c)}else b.onclick=()=>{dernier=null;zoom(i.src,C.nom,detailSurcout(C,sc),calqueSurcout(C,sc))};
-    const z=el('div','p-slot'),o=el('button','oeil');o.type='button';o.append(ico('oeil'));
-    o.setAttribute('aria-label','Agrandir '+C.nom);o.onclick=()=>{cacheApercu();dernier=null;zoom(imgV('cartes/'+C.id+'.jpg'),C.nom,detailSurcout(C,sc),calqueSurcout(C,sc))};
+    const z=el('div','p-slot'); /* 0.4a : plus d'oeil ; carte choisie : bouton Voir, ordinateur : zone d'aperçu */
     z.dataset.c=c;z.onmouseenter=()=>{if(zoneEl()&&SURVOL.matches){zoneSurvol=c;zoneMaj()}else montreApercu(z,imgV('cartes/'+C.id+'.jpg'))};
     z.onmouseleave=()=>{cacheApercu();if(zoneSurvol!==null){zoneSurvol=null;zoneMaj()}};
-    z.append(b,o);m.append(z);
+    z.append(b);m.append(z);
   });
   return m;
 }
@@ -6187,7 +6293,7 @@ function affiche(){
   const b=el('div','p-barre'+(aMoi?' amoi':''));
   const sc=el('div','p-score');sc.setAttribute('aria-label','Toi '+J.score+', adversaire '+s.j[lui].score);
   sc.append(el('b','',String(J.score)),el('span','','-'),el('em','',String(s.j[lui].score)));
-  const tr=el('div','p-trois');tr.append(info('','manche','Manche',points(s.manche,'Manche')),info('','tour','Tour',points(s.tour,'Tour')),info('score','coupe','Score',sc),info('energie','enclume','Énergie',el('b','p-ener',String(J.energie))));b.append(tr);
+  const tr=el('div','p-trois');tr.append(info('','manche','Manche',points(s.manche,'Manche')),info('score','coupe','Score',sc),info('','tour','Tour',points(s.tour,'Tour')));b.append(tr); /* 0.4a : comme la diffusion, Manche, Score, Tour ; l'énergie passe dans ton bandeau */
   let cible=null,cibleAdv=null;
   const coupsV=leg.filter(a=>a.t==='w');
   if(!coupsV.length)modeVaisseau=false;
@@ -6211,7 +6317,7 @@ function affiche(){
     };
   }else if(modeTarte){ /* Le Cirque : touche un Golem adverse de la colonne du Cirque (cases dorees de la grille adverse) */
     const kc=s.terrains.findIndex(x=>x.nom==='Le Cirque');
-    cibleAdv=(l,k)=>{const a=k===kc&&coupsO.find(c=>c.l===l);return a?{texte:'Tarte',fait:()=>{modeTarte=false;joue(a)}}:null};
+    cibleAdv=(l,k)=>{const a=k===kc&&coupsO.find(c=>c.l===l);return a?{texte:'',fait:()=>{modeTarte=false;joue(a)}}:null};
   }else if(modeFaille){
     const kf=s.terrains.findIndex(x=>x.nom==='La Faille');
     cible=(l,k)=>{
@@ -6283,14 +6389,14 @@ function affiche(){
   if(partie.rejeu){cible=null;cibleAdv=null}
   repeint=()=>{
     const A=partie&&partie.ecran||s,t=el('div','p-terrains'),cc=M.colonnes(A);
-    cols.forEach(k=>{const T=s.terrains[k],d=el('div','p-terrain'),x=cc[k][lui],y=cc[k][me],to=el('div','p-totaux');d.dataset.k=k;
-    to.append(el('b','m'+(y>x?' tete':''),String(y)),el('span','','contre'),el('b','a'+(x>y?' tete':''),String(x)));
-    const te=el('div','p-tete'),e=el('button','oeil');
-    te.append(el('b','',T.nom));
-    e.type='button';e.append(ico('oeil'));e.setAttribute('aria-label','Agrandir '+T.nom);
-    d.onclick=()=>zoomTerrainJeu(A,k,me);d.onmouseenter=()=>montreApercu(d,srcTerrain(T));d.onmouseleave=cacheApercu;
-    const VT=valTerrain(M,A,k),pv=el('span','p-valeur',VT.txt);if(T.nom==='Le Tournoi')pv.title='Le Tournoi : 1, 2 puis 3 points selon la manche';
-    d.append(te,to,pv,e);t.append(d)}); /* 0.4a : Le Tournoi « ? = N pts », Les Pronos « +mises » */
+    /* 0.4a (variante B, style diffusion) : total adverse en haut, nom + « ★ N pts » au milieu, ton total en bas ; contour à la couleur du joueur qui mène. Plus d'oeil. */
+    cols.forEach(k=>{const T=s.terrains[k],d=el('div','p-terrain'),x=cc[k][lui],y=cc[k][me];d.dataset.k=k;
+    if(y>x)d.classList.add('m-moi');else if(x>y)d.classList.add('m-lui');
+    d.tabIndex=0;d.setAttribute('role','button');const VT=valTerrain(M,A,k);d.setAttribute('aria-label',T.nom+', '+VT.long+' : toi '+y+', '+nomJ(lui)+' '+x);
+    const te=el('div','p-tete'),mi=el('div','p-tmil'),pt=el('span','p-valeur');
+    te.append(el('b','',T.nom));pt.append(ico('coupe'),VT.txt);if(T.nom==='Le Tournoi')pt.title='Le Tournoi : 1, 2 puis 3 points selon la manche';mi.append(te,pt);
+    d.onclick=()=>zoomTerrainJeu(A,k,me);d.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();zoomTerrainJeu(A,k,me)}};d.onmouseenter=()=>montreApercu(d,srcTerrain(T));d.onmouseleave=cacheApercu;
+    d.append(el('b','p-tot a'+(x>y?' tete':''),String(x)),mi,el('b','p-tot m'+(y>x?' tete':''),String(y)));t.append(d)});
     /* Miroir, comme aux echecs : l'adversaire en haut, moi en bas ; la ligne 0 du moteur (ligne 1 des regles) colle aux terrains
        des deux cotes, donc lignes 2,1,0 pour lui et 0,1,2 pour moi. Memes colonnes des deux cotes : chaque terrain reste face a face. */
     const gm=grilleVue(A,me,cols,[0,1,2],cible);gm.classList.add('mienne');if(aMoi)gm.classList.add('active');
@@ -6414,7 +6520,8 @@ function affiche(){
     }else if(modeTarte){
       con('Le Cirque : touche un Golem adverse de ce terrain, il subit 1 dégât. Une fois par manche, gratuit.');
       pl.append(mainVue(J.main,{}));
-      const z=el('div','p-btns'),ba=bouton('Annuler',()=>{modeTarte=false;affiche()},true);ba.id='annulerTarte';z.append(ba);pl.append(z);
+      /* deux boutons cote a cote (comme Forger / Ne pas forger) : Tarte enfonce (Golems vises mis en evidence) et Annuler */
+      const z=el('div','p-btns'),bt=bouton('Tarte',()=>{},false),ba=bouton('Annuler',()=>{modeTarte=false;affiche()},true);bt.id='tarteActive';bt.setAttribute('aria-pressed','true');bt.title='Touche un Golem adverse doré du Cirque';ba.id='annulerTarte';z.append(bt,ba);pl.append(z);
     }else if(modeFaille){
       con(selCases.length?'La Faille : touche une case libre de ce terrain.':'La Faille : touche un de tes Golems sur un autre terrain. Une fois par manche, gratuit.');
       pl.append(mainVue(J.main,{}));
@@ -6464,12 +6571,16 @@ function affiche(){
     /* « X joue. » : deja dit par la bande de tour adverse, seule la fin de manche garde sa consigne. */
     if(s.attente&&s.attente.t==='q'&&s.attente.adv&&s.attente.p!==me)con(nomJ(s.attente.p)+' : Jour de pêche, regarde les 2 premières cartes de ton deck et choisit celle à défausser.'); /* Le Q adverse */
     else if(s.fil||aMoi)con(nomJ(qui)+(s.fil?' choisit, fin de manche.':' joue.'));
+    else pl.append(el('div','p-consigne p-cale'))
+    if(!s.fil&&!aMoi&&!(s.attente&&s.attente.t==='q'&&s.attente.adv&&s.attente.p!==me))pl.append(el('div','p-btns p-cale')); /* 0.4a : place de la consigne gardee, la main ne bouge pas d'un tour a l'autre */
     pl.append(mainVue(J.main,{}));
   }
   const piles=el('div','p-piles');
   piles.append(pile('deck','Deck',J.deck.length),pile('forge','Forge',J.forge.length,J.forge.slice()),pile('defausse','Défausse',J.defausse.length,J.defausse.slice().reverse()));
   pl.append(piles);
-  if(ZONE.matches&&!s.fin){const ap=el('div','p-apercu'),fi=el('div','p-ap-img'),im=el('img');im.alt='';fi.append(im);ap.append(el('p','p-ap-leg'),fi);pl.append(ap);
+  if(ZONE.matches&&!s.fin){const ap=el('div','p-apercu'),fi=el('div','p-ap-img'),im=el('img'),tx=el('div','p-ap-txt');im.alt='';fi.append(im);
+    /* 0.4a (variante A, style diffusion) : carte a gauche ; a droite titre, « X pose Y sur Z. », effet, Cout / Force / elements */
+    tx.append(el('p','p-ap-leg'),el('p','p-ap-ph'),el('p','p-ap-ef'),el('div','p-ap-chips'));ap.append(fi,tx);pl.append(ap);
     /* Clic sur la zone : la carte montree en grand (comme l'oeil de la main). */
     ap.onclick=()=>{if(ap.dataset.c===undefined||!partie)return;const c=+ap.dataset.c,C=M.carte(c),n=partie.etat.j[partie.moi].main.includes(c)?surcout(partie.etat,partie.moi,c):0;cacheApercu();dernier=null;zoom(srcC(c),C.nom,detailSurcout(C,n),calqueSurcout(C,n))}}
   const jo=el('details','p-journal'),li=el('div','p-lignes'),su=el('summary','','Journal');
@@ -6480,7 +6591,11 @@ function affiche(){
   const pages=pagesLog(s),nb=pages.length,pg=journalPage===null?nb:Math.min(journalPage,nb),nav=el('div','j-nav');
   const va=(txt,lib,v,off)=>{const z=el('button','j-btn',txt);z.type='button';z.setAttribute('aria-label',lib);z.disabled=off;z.onclick=()=>{journalPage=v>=nb?null:v;affiche()};return z};
   su.append(' ',el('span','j-manche','Manche '+pg));nav.append(va('<','Manche précédente',pg-1,pg<=1),va('>','Manche suivante',pg+1,pg>=nb));
-  const causes=causesLog(s);pages[pg-1].forEach(e=>{const[p,x]=e,[c,n]=genreLog(x),d=el('div',c);d.append(ico(n),texteLog(ligneLog(p,x,me)+(causes.get(e)||'')));li.append(d)});
+  const causes=causesLog(s);pages[pg-1].forEach(e=>{const[p,x]=e,[c,n]=genreLog(x),d=el('div',c);
+    /* 0.4a : ligne à la couleur du joueur (liseré à gauche), nom du joueur en gras à sa couleur */
+    let t=ligneLog(p,x,me)+(causes.get(e)||''),q=null;
+    if(p!==null){d.classList.add(p===me?'j-moi':'j-lui');const pr=(p===me?'Toi':nomJ(p))+' : ';if(t.startsWith(pr)){q=el('b','j-qui',pr.slice(0,-3));t=t.slice(pr.length-3)}}
+    const sp=texteLog(t);if(q)sp.prepend(q);d.append(ico(n),sp);li.append(d)});
   jo.append(su,nav,li);
   const pied=el('div','p-pied'),q=el('button','btn sec plein','Quitter la partie');q.type='button';q.onclick=quitteBouton;pied.append(q);
   let enTuto=false;try{enTuto=!!tuto}catch(e){}
@@ -6490,7 +6605,11 @@ function affiche(){
   else if(!s.fin&&!partie.rejeu&&!partie.tuto&&M.VERSION===M0.VERSION){const ab=el('button','btn danger plein p-abandon-btn','Abandonner');ab.type='button';ab.id='abandonner';
     ab.onclick=()=>{if(!partie||partie.rejeu||!partie.etat||partie.etat.fin)return;confirmeAbandon(partie.local?'Elle comptera comme une défaite.':nomJ(1-partie.moi)+' gagnera, et la défaite sera enregistrée.',()=>{if(!partie||partie.rejeu||!partie.etat||partie.etat.fin)return;joue({t:'a'})})};
     pied.classList.add('duo');pied.append(ab)}
-  const cote=el('div','p-cote');if(!partie.local&&!partie.rejeu&&r&&!s.fin)cote.append(reactions()); /* fin de partie (abandon compris) : plus de reactions */cote.append(pied,jo);
+  const cote=el('div','p-cote');if(!partie.local&&!partie.rejeu&&r&&!s.fin)cote.append(reactions()); /* fin de partie (abandon compris) : plus de reactions */cote.append(pied,cercleJeu(),jo);
+  /* 0.4a : chat des parties en ligne, bouton discret en bas de la colonne du journal (pastille des messages non lus), fenetre fermee par defaut ; contre le robot, rien. */
+  if(!partie.local&&!partie.rejeu&&r){const bc=el('button','p-chat','Chat'),pa=el('span','p-chat-nb',chatBox.nb.textContent);bc.type='button';bc.id='btnChat';bc.append(pa);
+    bc.setAttribute('aria-label','Ouvrir le chat'+(pa.textContent?', '+pa.textContent+' non lu'+(+pa.textContent>1?'s':''):''));
+    bc.onclick=()=>{const c=chatBox.c;if(c.classList.contains('replie'))c.querySelector('.chat-tete').click()};cote.append(bc)}
   table.append(b,plat,pl,cote);
   /* Signal de tour juste au-dessus de la main, la consigne reste en dessous ; au tour adverse, main grisee (toujours consultable). */
   if(!s.fin&&s.phase==='jeu'){
@@ -6510,15 +6629,42 @@ function affiche(){
 }
 const LARGE=matchMedia('(min-width:900px)');let journalOuvert=false,journalPage=null,journalReperes=0;
 /* Zone d'apercu (ordinateur, 1200 px et plus) : carte survolee ou choisie de la main, sinon derniere carte posee par l'adversaire. */
+/* 0.4a : cercle des elements permanent en partie (style diffusion : pictos sans anneau, fleches dans les espaces libres). Noms dans l'aide « ? ».
+   Ordinateur : toujours visible ; telephone : repliable, ferme par defaut. */
+let svgCercleJeu=null,cercleOuvert=false;
+function cercleJeu(){
+  const d=el('details','p-cercle'),su=el('summary','','Cercle des éléments'),w=el('div','p-cw');
+  if(!svgCercleJeu){
+    const E5=['magma','cristal','foudre','brume','roche'],IM=68,ey=(188-IM)/1.809,ex=(350-IM)/1.902,DEG=Math.PI/180,P=a=>[ex*Math.cos(a*DEG),ey*Math.sin(a*DEG)];
+    const pos=E5.map((e,i)=>P(-90+72*i)),libre=a=>{const[x,y]=P(a);return !pos.some(([X,Y])=>Math.hypot(x-X,y-Y)<IM/2+5)};
+    let g='<defs><marker id="flJeu" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" style="fill:var(--bleu)"/></marker></defs>';
+    for(let i=0;i<5;i++){const a0=-90+72*i;let best=[0,0],cur=null;for(let a=a0;a<=a0+72;a+=.25){if(libre(a)){if(cur===null)cur=a;if(a-cur>best[1]-best[0])best=[cur,a]}else cur=null}
+      const p=P(best[0]+1),q=P(best[1]-1);g+='<path class="arc" d="M'+p+'A'+ex+' '+ey+' 0 0 1 '+q+'" marker-end="url(#flJeu)"/>'}
+    pos.forEach(([x,y],i)=>{g+='<image href="'+imgV('cartes/'+E5[i]+'.png')+'" x="'+(x-IM/2)+'" y="'+(y-IM/2)+'" width="'+IM+'" height="'+IM+'"/>'});
+    const x0=Math.min(...pos.map(p=>p[0]))-IM/2-3,x1=Math.max(...pos.map(p=>p[0]))+IM/2+3,y0=Math.min(...pos.map(p=>p[1]))-IM/2-3,y1=Math.max(...pos.map(p=>p[1]))+IM/2+3;
+    svgCercleJeu='<svg role="img" aria-label="Cercle des éléments : Magma domine Cristal, Cristal domine Foudre, Foudre domine Brume, Brume domine Roche, Roche domine Magma" viewBox="'+[x0,y0,x1-x0,y1-y0].map(v=>+v.toFixed(1)).join(' ')+'">'+g+'</svg>';
+  }
+  w.innerHTML=svgCercleJeu;d.open=cercleOuvert||LARGE.matches;d.ontoggle=()=>{if(!LARGE.matches)cercleOuvert=d.open};d.append(su,w);return d;
+}
 function zoneEl(){const z=document.querySelector('#partie .p-apercu');return z&&z.offsetParent?z:null}
 function zoneMaj(){
   const z=zoneEl();if(!z||!partie||!partie.etat)return;
   const main=partie.etat.j[partie.moi].main,c=zoneSurvol!==null?zoneSurvol:sel!==null&&main.includes(sel)?sel:derniereAdv;
-  const im=z.querySelector('img'),lg=z.querySelector('.p-ap-leg');
-  if(c===null){delete z.dataset.c;z.classList.add('vide');im.hidden=true;lg.textContent='Survole une carte de ta main pour la voir en grand.';return}
-  let src;try{src=srcC(c)}catch(e){return}
-  z.dataset.c=c;z.classList.remove('vide');im.hidden=false;if(im.getAttribute('src')!==src)im.src=src;im.alt=M.carte(c).nom;
-  lg.textContent=c===derniereAdv&&c!==zoneSurvol&&c!==sel?'Dernière carte jouée par '+nomJ(1-partie.moi):'Aperçu';
+  const im=z.querySelector('img'),lg=z.querySelector('.p-ap-leg'),ph=z.querySelector('.p-ap-ph'),ef=z.querySelector('.p-ap-ef'),ch=z.querySelector('.p-ap-chips');
+  ph.textContent='';ef.textContent='';ch.textContent='';
+  if(c===null){delete z.dataset.c;z.classList.add('vide');im.hidden=true;lg.textContent='Dernière carte jouée';ph.textContent='Survole une carte de ta main pour la voir en grand.';return}
+  let src,C;try{src=srcC(c);C=M.carte(c)}catch(e){return}
+  z.dataset.c=c;z.classList.remove('vide');im.hidden=false;if(im.getAttribute('src')!==src)im.src=src;im.alt=C.nom;
+  const der=c===derniereAdv&&c!==zoneSurvol&&c!==sel,s=partie.etat,lui=1-partie.moi;
+  lg.textContent=der?'Dernière carte jouée':'Aperçu';
+  const nm=el('b','p-ap-nom'+(C.base?' evo':''),C.nom);
+  if(der){let k=null;s.j[lui].grille.forEach(L=>L.forEach((x,kk)=>{if(x&&x.c===c)k=kk}));
+    ph.append(el('span','p-ap-qui',nomJ(lui)+' pose '),nm,k!==null?' sur '+s.terrains[k].nom+'.':'.')}
+  else ph.append(nm);
+  const t=C.texte||'',i=t.indexOf(' : ');if(i>0)ef.append(el('b','',t.slice(0,i)),t.slice(i));else ef.textContent=t;
+  const chip=(l,v)=>{const x=el('span');x.append(l+' ',el('b','',v));return x};
+  ch.append(chip('Coût',String(C.cout)));
+  if(C.animal)ch.append(el('span','','Animal'));else{ch.append(chip('Force',C.force==null?'au dé':String(C.force)));if((C.el||[]).length){const e=el('span','p-ap-els');C.el.forEach(x=>e.append(picto(x)));ch.append(e)}}
 }
 LARGE.addEventListener('change',()=>{if(partie)affiche()});
 /* Partie guidee : graine et deck fixes, Golem Facile. Le robot est deterministe, donc la partie suit toujours
@@ -6543,7 +6689,7 @@ const ETAPES=[
  {q:gForge(1),c:'.pile.deck',t:"Ton tour commence par la <b>pioche</b> : tu prends 2 cartes de ton deck. Tu as maintenant 7 cartes en main.",suiv:1},
  {q:gForge(1),c:gSlot(28),t:"Étape 1, la <b>Forge</b>. Touche <b>Roi du Mobile</b> pour le forger.",f:()=>sel===28||gJ().forge.length>=1},
  {q:gForge(1),c:'#forger',t:"Une carte forgée reste face cachée pour toujours et donne 1 énergie à chaque tour, dès ce tour. La Forge est ta seule source d'énergie. Touche <b>Forger</b>.",f:gForgee(1)},
- {q:gAct(1),c:'.p-info.energie',t:"Tu as 1 <b>énergie</b>. Elle sert à payer le coût de tes cartes.",suiv:1},
+ {q:gAct(1),c:'.p-camp.toi .c-enclume',t:"Tu as 1 <b>énergie</b>. Elle sert à payer le coût de tes cartes.",suiv:1},
  {q:gAct(1),c:gSlot(0),t:"Pose un Golem : touche <b>KaTarN</b>, il coûte 1.",f:()=>sel===0||!!gG(1,1)},
  {q:gAct(1),c:caseDe(0,1,1),t:"Les cases dorées montrent où le poser. Touche celle du milieu.",f:()=>!!gG(1,1)},
  {q:gAct(1),c:caseDe(0,1,1),t:"Le grand chiffre est sa <b>Force</b> : 8. Touche KaTarN pour voir le détail.",f:()=>!$('vue').hidden},
@@ -6782,7 +6928,7 @@ else{const v=new URLSearchParams(location.search).get('carte');if(v!==null){ongl
     jouerA(){if(!partie||partie.etat&&partie.etat.fin)return;partie.mien.push(M.code({t:'a'}));sel=null;sauve();pub({j:M.ecritJournal(partie.mien)});calcule()}, /* ma defaite par abandon (hors ligne trop longtemps) */
     forfaitAdv(){if(!partie||partie.etat&&partie.etat.fin)return;partie.sien=[...partie.sien,M.code({t:'a'})];sel=null;calcule();sauve()}, /* abandon de l'adversaire hors ligne */
     lache(msg){const a=r;r=null;code='';finPartie();$('salon').hidden=true;$('accueil').hidden=false;$('erreurJeu').textContent=msg||'';if(a&&a.lache)a.lache();majEtat();majReprise()}}; /* autre appareil du meme compte */
-  window.GOLEMS_UI={el,effetCouleur,nomJ,uidJ,monAvatar,quitteAvecConfirmation,get partie(){return partie},avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,ligneDeckVide,piocheImpossible,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
+  window.GOLEMS_UI={el,effetCouleur,partageFin,texteResume,donneesPartie,copie,nomJ,uidJ,monAvatar,quitteAvecConfirmation,get partie(){return partie},avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,ligneDeckVide,piocheImpossible,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
 })();
 </script>
 <script>window.__golemsPret&&window.__golemsPret()</script>
