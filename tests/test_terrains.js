@@ -17,7 +17,7 @@ const log=(s,re)=>s.log.some(x=>re.test(x[1]));
 const R0={liste:null,force:null,cirque:'tarte'},regle=o=>Object.assign(M.REGLAGE_TERRAINS,R0,o||{});
 { // 0. table des terrains
   eq(M.TERRAINS.length,16);eq(M.ANCIENS_TERRAINS,10);deq(M.TERRAINS.slice(0,10).map(x=>x.nom),['Le Buzzer','Le Camp','L\'Écran du MJ','La Boutique','La Faille','La Nuit au Village','Le Plateau de Jeu','Le Vaisseau','Le Carrousel','La Salle Verrouillée'],'10 anciens, meme ordre');
-  M.TERRAINS.slice(0,10).forEach(x=>deq(Object.keys(x),['nom','pts','texte','cit'],'anciens : memes champs'));
+  M.TERRAINS.slice(0,10).forEach(x=>deq(Object.keys(x),['nom','pts','texte','cit','effet'],'anciens : memes champs (effet : etape 7)'));
   deq(M.TERRAINS.slice(10).map(x=>[x.nom,x.pts]),[['L\'École',2],['Le Karaoké',2],['Les Pronos',1],['Le Cirque',2],['Le Tournoi',1],['Le Versus',3]]);
   eq(T('L\'École').texte,'Fin de manche : le perdant pioche 1 carte.');eq(T('L\'École').cit,'C\'est en perdant qu\'on apprend.');
   eq(T('Le Karaoké').texte,'Si tu as exactement 2 Golems ici, ils gagnent +2 de Force chacun.');eq(T('Le Karaoké').cit,'À toi le micro !');
