@@ -336,7 +336,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Abandon 0.2.2 OK');
 }
 { // 0.2a.1 : Indra (013, 013e). Ids : Indra 33-35, Fan enflammee 36-38, Cyrdan 12, Alrevan 6, K-Chan 30, Roi du Mobile 27, Le Q 18.
-  assert(['0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c','0.3','0.4','0.4a'].includes(M.VERSION));
+  assert(['0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c','0.3','0.4','0.5'].includes(M.VERSION));
   const D=M.deckTexte({'002':3,'003':3,'004':3,'007e':3,'008':3,'013':3,'013e':3,'001':3});assert(M.lisDeck(D),'deck Indra valide');
   assert.strictEqual(M.decode(M.code({t:'p',c:38,l:1,k:2})).c,38,'code base 36 etendu');assert.strictEqual(M.code({t:'p',c:36,l:0,k:0}),'pA00');
   assert.deepStrictEqual(M.decode('g12'),{t:'g',l:1,k:2});
@@ -384,7 +384,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Indra 0.2a.1 OK : 150 parties aleatoires ('+nG+' favoris) et 300 parties robot sans blocage ('+nR+' Ragebait), rejeux identiques');
 }
 { // 0.2a.2 : Glad (009, 009e). Ids : Glad 39-41, GymRat 42-44, KaTarN 0, Slim K 3, Cyrdan 12, Indra 33, Fan enflammee 36, Roi du Mobile 27, K-Chan 30, Alrevan 6.
-  assert(['0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c','0.3','0.4','0.4a'].includes(M.VERSION));
+  assert(['0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c','0.3','0.4','0.5'].includes(M.VERSION));
   const D=M.deckTexte({'001':3,'001e':3,'003':3,'008':3,'013':3,'013e':3,'009':3,'009e':3});assert(M.lisDeck(D),'deck Glad valide');
   assert.strictEqual(M.code({t:'p',c:44,l:0,k:0}),'pI00');assert.strictEqual(M.decode('pI00').c,44,'code etendu a 44');
   assert.deepStrictEqual(M.decode('h0102'),{t:'h',l:0,k:1,m:0,n:2});assert.strictEqual(M.code({t:'h',l:2,k:0,m:1,n:0}),'h2010');
@@ -441,7 +441,7 @@ duel('facile','normal');duel('normal','difficile');
   console.log('Glad 0.2a.2 OK : 150 parties aleatoires ('+nS+' Slam) et 300 parties robot sans blocage ('+nM+' Menfou palu), rejeux identiques');
 }
 { // 0.2b : K-Chan (008) Magma + Brume au lieu de Magma + Roche. Ids : K-Chan 30-32, Trigas 24, Cyrdan 12, Alrevan 6, Le Q 18, Glad 39.
-  assert(['0.2b','0.2b.1','0.2b.2','0.2c','0.3','0.4','0.4a'].includes(M.VERSION));assert.deepStrictEqual(M.CARTES['008'].el,['magma','cristal'],'K-Chan Magma + Cristal');
+  assert(['0.2b','0.2b.1','0.2b.2','0.2c','0.3','0.4','0.5'].includes(M.VERSION));assert.deepStrictEqual(M.CARTES['008'].el,['magma','cristal'],'K-Chan Magma + Cristal');
   const s=vide();s.j[0].grille[1][1]=gol(30,2);
   s.j[0].grille[0][1]=gol(24,1);assert.strictEqual(M.forceDe(s,0,1,1),2,'Trigas voisin : plus de Trait');
   s.j[0].grille[0][1]=gol(12,1);assert.strictEqual(M.forceDe(s,0,1,1),2+2,'Cyrdan voisin : son +1 et Trait Cristal');
@@ -1442,7 +1442,7 @@ duel('facile','normal');duel('normal','difficile');
   const moi=(s,c,f,l,k,x)=>{s.j[0].grille[l][k]={c,f,d:0,...(x||{})}},adv=(s,c,f,l,k,x)=>{s.j[1].grille[l][k]={c,f,d:0,...(x||{})}};
   const C=(s,p,c,l,k)=>M.coutPose(s,p,c,l,k),L=s=>s.log.map(x=>x[1]),leg=(s,c,l,k)=>M.legales(s,0).some(a=>a.t==='p'&&a.c===c&&a.l===l&&a.k===k);
   const E=72,KW=9,AL=6,LX=96,ACE=99,KIWI=69,TI=57,CY=12;
-  eq(M.VERSION,'0.4a');eq(TA(2).nom,'La Boutique');eq(TA(2).texte,'Jouer un Golem ici coûte 1 de moins.');
+  eq(M.VERSION,'0.5');eq(TA(2).nom,'La Boutique');eq(TA(2).texte,'Jouer un Golem ici coûte 1 de moins.');
   eq(M.carte(KW).id,'002e');eq(M.carte(ACE).id,'016e');eq(M.carte(LX).id,'016');eq(M.carte(KIWI).id,'901');eq(M.carte(E).id,'018');
   // evolution -1 sur la Boutique (colonne 0), cout plein ailleurs ; pose et remplacement aussi
   let s=prep([KW,CY]);moi(s,AL,3,0,0);moi(s,AL,3,1,1);moi(s,CY,1,2,0);

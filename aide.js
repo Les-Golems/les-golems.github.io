@@ -55,6 +55,8 @@ function nomsProteges(){
   const G=window.GolemsMoteur,S=new Set();
   if(G){Object.values(G.CARTES||{}).forEach(C=>{if(C.nom)S.add(C.nom);const i=(C.texte||'').indexOf(' :');if(i>0)S.add(C.texte.slice(0,i))});
     (G.TERRAINS||[]).forEach(T=>{if(T.nom)S.add(T.nom);const i=(T.texte||'').indexOf(' :');if(i>0&&i<40)S.add(T.texte.slice(0,i))})}
+  /* 0.5 : noms des decks conseilles proteges (« Forge rapide » n'est pas le mot-cle Forge) */
+  try{if(typeof DECKS_CONSEILLES!=='undefined')DECKS_CONSEILLES.forEach(d=>d.nom&&S.add(d.nom))}catch(e){}
   const L=[...S].filter(n=>n&&n.length>1).sort((a,b)=>b.length-a.length).map(n=>n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
   RE_NOMS=L.length?new RegExp('(?<![\\p{L}\\p{N}])(?:'+L.join('|')+')(?![\\p{L}\\p{N}])','gu'):/$^/g;
   return RE_NOMS;
@@ -74,6 +76,9 @@ function decore(racine){
     while((m=RE_MOTS.exec(s))){
       const a=m.index,b=a+m[0].length;if(prot.some(([x,y])=>a<y&&b>x))continue;
       const k=CLES[m.slice(1).findIndex(Boolean)];
+      /* 0.5 : fenetre Details, un seul souligne par terme et par ligne */
+      const li=n.parentElement.closest('#popDetailsVersion li');
+      if(li){const vus=li.__mc||(li.__mc=new Set([...li.querySelectorAll(':scope>.mc')].map(x=>x.dataset.mc)));if(vus.has(k))continue;vus.add(k)}
       f.append(s.slice(i,a));const sp=h('span','mc',m[0]);sp.dataset.mc=k;sp.tabIndex=0;sp.setAttribute('role','button');sp.setAttribute('aria-haspopup','dialog');
       f.append(sp);i=b;fait++;
     }
