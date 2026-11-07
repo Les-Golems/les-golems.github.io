@@ -197,7 +197,7 @@ const R0={liste:null,force:null,cirque:'tarte'},regle=o=>Object.assign(M.REGLAGE
   s.j[0].etapeForge=true;s.j[0].main=[40];deq(o(s,0),[],'pendant la Forge : non');s.j[0].etapeForge=false;s.j[0].main=[];
   {const u=nouv(['Le Cirque','La Faille','La Boutique']);pose(u,0,KA,8,0,0);pose(u,0,TR,1,1,0);eq(M.forceDe(u,0,0,0),9,'nouveau Cirque : Trait');pose(u,1,CY,1,0,0);eq(M.forceDe(u,0,0,0),10,'et cercle, comme ailleurs')}eq(M.gagnantColonne(s,0,[5,3]),0,'la plus grande Force gagne');
   M.applique(s,0,{t:'o',l:0});eq(s.j[1].grille[0][0].d,1,'perd 1 de Force (degat)');eq(s.j[1].grille[0][0].tt,1);eq(s.j[0].tarte,1);deq(o(s,0),[],'une fois par manche');
-  assert.throws(()=>M.applique(s,0,{t:'o',l:2}));nv++;ok(log(s,/Le Cirque : tarte sur Alrevan \(adverse\), 1 de Force en moins\./));
+  assert.throws(()=>M.applique(s,0,{t:'o',l:2}));nv++;ok(log(s,/Le Cirque : tarte sur Alrevan \(adverse\), 1 dégât./));
   deq(s.stats.terr.tartes,[{m:1,p:0,l:0,x:1,eff:1,mort:0,f:4}],'tarte : Alrevan a 4 (cercle) avant');
   s.manche=2;eq(o(s,0).length,2,'nouvelle manche : a nouveau');eq(s.j[1].grille[0][0].d,1,'perte definitive');M.applique(s,0,{t:'o',l:2});
   ok(!s.j[1].grille[2][0],'Titom76 a 0 : meurt');ok(s.j[1].defausse.includes(TI),'a la defausse');ok(!s.j[1].grille[1][0],'Kiwi suit son maitre');eq(s.stats.terr.tartes[1].mort,1);

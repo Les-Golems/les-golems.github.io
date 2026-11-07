@@ -908,7 +908,7 @@ function applique(s,p,a){
   }else if(a.t==='n')J.etapeForge=false;
   else if(a.t==='o'){ /* Le Cirque : tarte, X de Force en moins (definitif), protections de blesse ; J.tarte cree au premier usage */
     const kc=s.terrains.findIndex(T=>T.nom==='Le Cirque'),X=tarteX(s),K=s.j[1-p],g=K.grille[a.l][kc],f=forceDe(s,1-p,a.l,kc),d0=g.d,n=nomDetail(carte(g.c));
-    J.tarte=s.manche;s.stats.cause={p,c:null,lib:'Le Cirque'};declenche(s,'Le Cirque','Tarte : '+n+' perd '+X);dire(s,p,'Le Cirque : tarte sur '+n+' (adverse), '+X+' de Force en moins.');
+    J.tarte=s.manche;s.stats.cause={p,c:null,lib:'Le Cirque'};declenche(s,'Le Cirque','Tarte : '+n+' subit '+X+(X>1?' dégâts':' dégât'));dire(s,p,'Le Cirque : tarte sur '+n+' (adverse), '+X+(X>1?' dégâts.':' dégât.'));
     blesse(s,1-p,a.l,kc,X,{p,c:null,lib:'Le Cirque'});const eff=g.d-d0;if(eff)g.tt=(g.tt||0)+eff;nettoie(s);
     stT(s).tartes.push({m:s.manche,p,l:a.l,x:X,eff,mort:K.grille[a.l][kc]!==g?1:0,f});
   }

@@ -2709,10 +2709,12 @@ GALERIE.forEach(c=>{
   if(!p){p=el('div','paire');p.dataset.paire=num;$('grille').append(p)}
   p.append(b);
 });
+/* 0.4a : valeur annoncee d'un terrain hors partie ; Le Tournoi (« ? » sur la carte) varie avec la manche. */
+const ptsAnnonce=T=>T.nom==='Le Tournoi'?'? (1 à 3 points selon la manche)':T.pts+(T.pts>1?' points':' point');
 function tuilesTerrains(){
   if($('grille').querySelector('[data-terrain]'))return;
   window.GolemsMoteur.TERRAINS.forEach(T=>{
-    const b=document.createElement('button'),i=document.createElement('img');b.className='carte';b.dataset.terrain=T.nom;b.dataset.q=sansAccent(T.nom);b.setAttribute('aria-label',T.nom+', '+T.pts+(T.pts>1?' points':' point'));
+    const b=document.createElement('button'),i=document.createElement('img');b.className='carte';b.dataset.terrain=T.nom;b.dataset.q=sansAccent(T.nom);b.setAttribute('aria-label',T.nom+', '+ptsAnnonce(T));
     i.src=srcTerrain(T);i.alt=T.nom+'. '+T.texte;i.loading='lazy';i.width=600;i.height=840;b.append(i);b.onclick=()=>{ouvreTerrainGalerie(T);dernier=b};$('grille').append(b);
   });
 }
@@ -4105,7 +4107,7 @@ function verifieRecap(){
     const T=s.terrains[k],c=s.dernier.colonnes[k],w=s.dernier.gagnants[k],z=el('div','r-terrain');
     const fo=el('div','forces');fo.append('Toi ',el('b','',String(c[me])),' contre ',el('b','',String(c[lui])),' '+nl);
     const bloque=T.nom==='La Salle Verrouillée'&&n<3;
-    z.append(el('h3','',T.nom),el('div','pts',w===null?'0 pt':'+'+T.pts+(T.pts>1?' pts':' pt')),fo,
+    z.append(el('h3','',T.nom),el('div','pts',w===null?'0 pt':(v=>'+'+v+(v>1?' pts':' pt'))(T.nom==='Le Tournoi'?n:T.pts)),fo,
       el('div','gagne',bloque?'Ne marque pas encore':w===null?'Égalité':w===me?'Gagné par toi':'Gagné par '+nl));
     d.append(z);
   });
@@ -5727,6 +5729,7 @@ function detailForce(s,p,l,k){
   if(M.doubleUp&&M.DUO&&M.DUO[id]&&M.CARTES[id].base){ /* Double up ? des évolutions du duo : une seule fois, ligne ou terrain */
     const v=M.doubleUp(G,l,k,id),nP=M.CARTES[M.DUO[id]].nom;
     ajoute(v?'Double up ? : seul avec '+M.nomDetail(M.carte(v.c))+' sur '+(G[l].includes(v)?'sa ligne':'son terrain'):'Double up ? : pas seul avec '+nP+' sur sa ligne ni son terrain',v?M.REGLAGE_DUO.doubleUp:0)}
+  if(s.terrains[k]&&s.terrains[k].nom==='Le Karaoké'&&M.golemsIci&&M.golemsIci(s,p,k)===2)ajoute('Le Karaoké : exactement 2 Golems ici',2); /* 0.4a */
   const h=s.j[1-p].grille[l][k],hC=h?M.carte(h.c):null,dom=hC?C.el.find(e=>hC.el.includes(M.DOMINE[e])):null,c2=dom&&(M.cercle2?M.cercle2(G,k,id):CERCLE_2.includes(id)),c2n=CERCLE_2.includes(id)?', Counter-pick':', Info tchat'; /* Vic222 : +2 aussi dans sa colonne */
   ajoute(dom?'Cercle : '+NOMS_EL[dom]+' domine '+NOMS_EL[M.DOMINE[dom]]+' ('+M.nomDetail(hC)+' en face)'+(c2?c2n:''):hC&&!hC.animal?'Cercle : '+M.nomDetail(hC)+' en face, pas de domination':'Cercle : aucun Golem en face',dom?(c2?2:1):0,dom?(c2?'+2':'+1'):'+0');
   if(id==='042e')a.append(lg('Chance du débutant',g.cdb?'utilisée':'disponible')); /* Vic222 : bouclier unique (g.cdb une fois utilisé) */
