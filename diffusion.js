@@ -279,12 +279,18 @@ function main(s,p,top,joue){
   const r=mk('div','d-main');
   J.main.forEach((c,k)=>{const C=M().carte(c),b=mk('button'),i=mk('img');b.type='button';b.dataset.c=c;b.style.width=w+'px';b.style.height=Math.round(w*1.4)+'px';if(k)b.style.marginLeft=gp+'px';
     i.src=U().srcC(c);i.alt=C.nom;b.setAttribute('aria-label','Agrandir '+M().nomDetail(C));b.onclick=()=>zoomCarte(c);b.append(i);
+    if(C.base){const st=mk('span','evs','★');st.setAttribute('aria-hidden','true');b.append(st)} /* 0.5 : evolution, etoile centree sur les chiffres cout / Force (les deux modes) */
     /* vue joueur : la carte reprend l'etat de la vraie main (grisee, surcout, choisie) et le clic passe par elle */
     const v=jr&&document.querySelector('#partie .p-poste .p-slot[data-c="'+c+'"]>.p-carte');
     if(v){['grisee','surtaxe'].forEach(x=>b.classList.toggle(x,v.classList.contains(x)));if(v.title)b.title=v.title;
       if(v.hasAttribute('aria-pressed'))b.setAttribute('aria-pressed',v.getAttribute('aria-pressed'));
       b.setAttribute('aria-label',(v.dataset.act?'Jouer ':'Agrandir ')+M().nomDetail(C));
-      [...v.children].forEach(x=>{if(x.tagName!=='IMG')b.append(x.cloneNode(true))});b.onclick=()=>v.click()}
+      [...v.children].forEach(x=>{if(x.tagName!=='IMG')b.append(x.cloneNode(true))});b.onclick=()=>v.click();
+      /* apercu au survol (comme l'ancienne main) et oeil : la carte en grand sans la jouer */
+      const sl=v.parentNode,oe=sl&&sl.querySelector('.oeil');
+      if(U().SURVOL&&U().SURVOL.matches){b.onmouseenter=()=>U().montreApercu(b,i.src);b.onmouseleave=()=>U().cacheApercu()}
+      if(oe&&v.dataset.act){const o=mk('span','oeil');o.setAttribute('role','button');o.setAttribute('aria-label','Agrandir '+C.nom);o.innerHTML=oe.innerHTML;
+        o.onclick=e=>{e.stopPropagation();oe.click()};b.append(o)}}
     r.append(b)});
   z.append(h,r);return z;
 }
@@ -373,7 +379,7 @@ function actions(s){
 }
 function coin(){
   const z=mk('div','d-z d-coin'),lo=mk('div','d-logo'),li=mk('img'),bas=mk('div','d-bas');li.src=imgV('cartes/logo.png');li.alt='Les Golems';lo.append(li);
-  if(window.interDal)bas.append(interDal()); /* 0.5 : mode daltonien, a gauche de Chat */
+  if(window.interDal)bas.append(interDal('Daltonien')); /* 0.5 : mode daltonien, a gauche de Chat */
   if(src==='spec'&&window.SPEC&&SPEC.chat){const b=mk('button','d-chat','Chat');b.type='button';b.setAttribute('aria-label','Ouvrir le chat');b.onclick=()=>chat.ouvre();
     const n=chat.nonLus();if(n>0){b.append(mk('span','d-pastille',n>9?'9+':String(n)));b.setAttribute('aria-label','Ouvrir le chat, '+n+' nouveau'+(n>1?'x':'')+' message'+(n>1?'s':''))}bas.append(b)}
   const qt=mk('button','d-quit',src==='spec'?'Quitter la partie':'Quitter la vue spectateur');qt.type='button';qt.onclick=quitter;bas.append(qt);
@@ -571,8 +577,36 @@ function peindreJoueur(s,qui){
   if(cf){const c=mk('button','d-chat','Chat'),nb=cf.querySelector('.chat-nb'),n=nb?+nb.textContent||0:0;c.type='button';if(n)c.append(mk('span','d-pastille',n>9?'9+':String(n)));
     c.onclick=()=>{cf.classList.toggle('replie');if(!cf.classList.contains('replie')){const i=cf.querySelector('input');if(i)i.focus()}placeChat()};const di=ou.querySelector('.dal-inter');if(di)di.after(c);else ou.prepend(c)}
   const q=mk('button','d-quit','Quitter');q.type='button';q.title='Quitter la partie';q.onclick=()=>u.quitteAvecConfirmation();ou.append(q);
-  scene.append(ou);placeChat();
+  scene.append(ou);placeChat();decoJoueur();
 }
+/* Deconnexion (presence.js, window.DECO) : pastille 16 px au bord droit des deux bandeaux, etiquettes 171 x 38
+   « Reconnexion » / « Hors ligne » a la place de « A toi / A lui de jouer » ; ma coupure : mon etiquette Reconnexion doree ;
+   minuteur : bandeau dore a la place de l'encadre d'etape, barre detachee. L'ecran de fin par abandon reste celui de presence.js. */
+const DK_LIB={att:'Reconnexion',off:'Hors ligne'};
+const mnS=ms=>{const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+function decoJoueur(){
+  if(!D||src!=='joueur'||!window.DECO)return;
+  const e=DECO.etat()||{},on=!!e.actif;
+  scene.querySelectorAll('.dk-pt,.dk-et').forEach(x=>x.remove());
+  scene.querySelectorAll('.d-badge.dk-lab').forEach(x=>x.remove());
+  scene.querySelectorAll('.d-badge.dk-cache').forEach(x=>{x.hidden=false;x.classList.remove('dk-cache')});
+  D.classList.toggle('dk-on',on);
+  const et=scene.querySelector('.mq-etape');if(et)et.hidden=false;
+  if(!on)return;
+  [['toi',e.moi||'ok'],['lui',e.lui||'ok']].forEach(([c,st])=>{
+    const b=scene.querySelector('.d-ban>.d-j.'+c);if(!b)return;
+    const pt=mk('i','dk-pt '+st);pt.title=st==='ok'?'En ligne':DK_LIB[st];b.append(pt);
+    if(st!=='ok'){const l1=b.querySelector('.d-l1'),bg=l1&&l1.querySelector('.d-badge');if(bg){bg.hidden=true;bg.classList.add('dk-cache')}
+      if(l1)l1.append(mk('span','d-badge dk-lab '+st,DK_LIB[st]))}
+  });
+  if(e.lui==='off'&&e.reste!=null&&et){
+    const m=mk('div','dk-et'),tx=mk('div','t'),br=mk('div','barre'),i=mk('i');m.setAttribute('role','status');
+    tx.append(mk('b','',(e.nomLui||nom(1-E.moi))+" s'est déconnecté"),mk('span','',"S'il ne revient pas à temps, tu gagnes la partie par abandon."));
+    i.style.width=(100*e.reste/(e.total||60000))+'%';br.append(i);m.append(tx,mk('div','n',mnS(e.reste)),br);
+    et.hidden=true;scene.append(m);
+  }
+}
+if(window.DECO&&DECO.onChange)DECO.onChange(decoJoueur);else addEventListener('load',()=>{if(window.DECO&&DECO.onChange)DECO.onChange(decoJoueur)});
 /* chat de la partie en ligne : panneau de la maquette (colonne de droite, jusqu'au bas de « Dernieres actions ») quand il est ouvert */
 function placeChat(){const cf=document.querySelector('.chat.flottant');if(!cf||!scene)return;const o=!cf.classList.contains('replie');cf.classList.toggle('mq-chatw',o);
   if(o&&cf.parentNode!==scene)scene.append(cf);else if(!o&&cf.parentNode===scene)document.body.append(cf)}
