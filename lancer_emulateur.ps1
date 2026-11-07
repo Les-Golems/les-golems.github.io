@@ -6,7 +6,7 @@
 # Arrêt : Ctrl+C dans cette fenêtre (les données de test sont effacées).
 
 $ici = Split-Path -Parent $MyInvocation.MyCommand.Path
-$outil = Join-Path $ici "..\13 - Outils\firebase\firebase-tools-win.exe"
+$outil = Join-Path $ici "..\6 - Outils et simulations\1 - Outils\1 - Firebase\firebase-tools-win.exe"
 if (-not (Test-Path $outil)) { Write-Host "Outil introuvable : $outil"; exit 1 }
 if (-not (Get-Command java -ErrorAction SilentlyContinue)) {
   $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + $env:Path
