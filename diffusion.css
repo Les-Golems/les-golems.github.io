@@ -565,3 +565,10 @@ html.tel-joueur #partie .p-outils{gap:3px}
 html.tel-joueur #partie .p-outils .p-outil,html.tel-joueur #partie .mq-chat,html.tel-joueur #partie .mq-q{height:38px!important;min-width:38px!important;width:auto}
 html.tel-joueur #partie .p-outils .p-outil{width:38px!important}
 }
+@media (max-width:899px){
+/* score : deux chiffres de meme taille, un peu plus petits ; libelle SCORE sur la ligne de MANCHE et TOUR */
+html.tel-joueur #partie .p-barre .p-info.score .p-score>*{font-size:21px!important;line-height:22px!important;transform:none!important}
+html.tel-joueur #partie .p-barre .p-info.score .p-score>span{font-size:15px!important}
+html.tel-joueur #partie .p-barre .p-info{justify-content:flex-start!important;padding-top:5px!important;box-sizing:border-box}
+html.tel-joueur #partie .p-barre .p-info small{line-height:10px!important;margin:0 0 3px!important}
+}
