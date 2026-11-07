@@ -60,6 +60,16 @@
         "cumul": { ".validate": "newData.isString() && newData.val().length <= 100000" },
         // Témoin d'import des données locales (proposé une seule fois).
         "importe": { ".validate": "newData.isNumber()" },
+        // 0.5 : partie en ligne en cours, retenue par le compte (reprise sur un autre appareil ; dev = dernier appareil qui a la main).
+        "salon": {
+          ".validate": "newData.hasChildren(['c', 'g', 't'])",
+          "c": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{3,8}$/)" },
+          "g": { ".validate": "newData.isNumber()" },
+          "dev": { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "x": { ".validate": "newData.isString() && newData.val().length <= 4000" },
+          "t": { ".validate": "newData.val() === now" },
+          "$autre": { ".validate": false }
+        },
         "$autre": { ".validate": false }
       }
     },
@@ -156,6 +166,28 @@
             "deck":    { ".validate": "newData.isString() && newData.val().length <= 300 && newData.val().matches(/^([0-9]{3}e?[1-3])+$/)" },
             "t":       { ".validate": "newData.val() === now" },
             "$autre":  { ".validate": false }
+          }
+        },
+
+        // 0.5 : connexion de chaque joueur (c = connecté, t = heure serveur), écrite par lui seul, aussi par le serveur à sa coupure.
+        "pres": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && (!newData.exists() || !root.child('salons').child($code).child('engages').exists() || root.child('salons').child($code).child('engages').hasChild($uid))",
+            ".validate": "newData.hasChildren(['c', 't'])",
+            "c": { ".validate": "newData.isBoolean()" },
+            "t": { ".validate": "newData.val() === now" },
+            "$autre": { ".validate": false }
+          }
+        },
+        // 0.5 : défaite par abandon d'un joueur hors ligne depuis plus de 70 s (10 s de reconnexion + 60 s de minuteur),
+        // déclarée une seule fois par graine, par l'autre joueur engagé ; vérifiée sur la présence du déconnecté (marge de 5 s).
+        "forfait": {
+          "$g": {
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && root.child('salons').child($code).child('engages').hasChild(auth.uid) && newData.child('u').val() !== auth.uid && root.child('salons').child($code).child('engages').hasChild(newData.child('u').val()) && root.child('salons').child($code).child('pres').child(newData.child('u').val()).child('c').val() === false && root.child('salons').child($code).child('pres').child(newData.child('u').val()).child('t').val() < now - 65000",
+            ".validate": "$g.matches(/^-?[0-9]{1,12}$/) && newData.hasChildren(['u', 't'])",
+            "u": { ".validate": "newData.isString() && newData.val().length <= 128" },
+            "t": { ".validate": "newData.val() === now" },
+            "$autre": { ".validate": false }
           }
         },
 
@@ -462,6 +494,16 @@
           "cumul": { ".validate": "newData.isString() && newData.val().length <= 100000" },
           // Témoin d'import des données locales (proposé une seule fois).
           "importe": { ".validate": "newData.isNumber()" },
+          // 0.5 : partie en ligne en cours, retenue par le compte (reprise sur un autre appareil ; dev = dernier appareil qui a la main).
+          "salon": {
+            ".validate": "newData.hasChildren(['c', 'g', 't'])",
+            "c": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{3,8}$/)" },
+            "g": { ".validate": "newData.isNumber()" },
+            "dev": { ".validate": "newData.isString() && newData.val().length <= 16" },
+            "x": { ".validate": "newData.isString() && newData.val().length <= 4000" },
+            "t": { ".validate": "newData.val() === now" },
+            "$autre": { ".validate": false }
+          },
           "$autre": { ".validate": false }
         }
       },
@@ -561,6 +603,28 @@
             }
           },
   
+          // 0.5 : connexion de chaque joueur (c = connecté, t = heure serveur), écrite par lui seul, aussi par le serveur à sa coupure.
+          "pres": {
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && (!newData.exists() || !root.child('essai').child('salons').child($code).child('engages').exists() || root.child('essai').child('salons').child($code).child('engages').hasChild($uid))",
+              ".validate": "newData.hasChildren(['c', 't'])",
+              "c": { ".validate": "newData.isBoolean()" },
+              "t": { ".validate": "newData.val() === now" },
+              "$autre": { ".validate": false }
+            }
+          },
+          // 0.5 : défaite par abandon d'un joueur hors ligne depuis plus de 70 s (10 s de reconnexion + 60 s de minuteur),
+          // déclarée une seule fois par graine, par l'autre joueur engagé ; vérifiée sur la présence du déconnecté (marge de 5 s).
+          "forfait": {
+            "$g": {
+              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && root.child('essai').child('salons').child($code).child('engages').hasChild(auth.uid) && newData.child('u').val() !== auth.uid && root.child('essai').child('salons').child($code).child('engages').hasChild(newData.child('u').val()) && root.child('essai').child('salons').child($code).child('pres').child(newData.child('u').val()).child('c').val() === false && root.child('essai').child('salons').child($code).child('pres').child(newData.child('u').val()).child('t').val() < now - 65000",
+              ".validate": "$g.matches(/^-?[0-9]{1,12}$/) && newData.hasChildren(['u', 't'])",
+              "u": { ".validate": "newData.isString() && newData.val().length <= 128" },
+              "t": { ".validate": "newData.val() === now" },
+              "$autre": { ".validate": false }
+            }
+          },
+
           "coups": {
             // Permet la recherche des coups d'un joueur à la reprise.
             ".indexOn": ["a"],

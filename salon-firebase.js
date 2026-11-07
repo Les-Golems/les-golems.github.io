@@ -96,6 +96,9 @@ async function ouvre() {
   let enLigne = false;
   const ecouteCo = [];
   onValue(ref(db, ".info/connected"), s => { enLigne = s.val() === true; ecouteCo.forEach(f => f()); });
+  // Écart entre l'horloge locale et celle du serveur (déconnexion : minuteurs comptés en heure serveur).
+  let decalage = 0;
+  onValue(ref(db, ".info/serverTimeOffset"), s => { decalage = +s.val() || 0; });
 
   // Accueil : seulement pour un compte ; arrêté puis relancé à chaque changement de compte.
   let hallRef = null, hallStop = null, hallPres = {}, hallPeers = [], hallErreur = false;
@@ -425,11 +428,39 @@ async function ouvre() {
     const annRef = ref(db, P + "annonces/" + code);
     let annonceOn = false;
     function ecrit() { return update(moiRef, { ...pres, t: serverTimestamp() }); }
-    const reco = () => { if (enLigne && !fini) { onDisconnect(moiRef).remove(); ecrit().catch(() => {}); } };
+    // Présence de connexion (0.5, déconnexion) : salons/{code}/pres/{uid} = { c: connecté, t: heure serveur du dernier changement }.
+    // Le serveur écrit c:false lui-même à la coupure (onDisconnect) ; l'adversaire en tire « reconnexion » puis « hors ligne ».
+    const presRef = ref(db, base + "/pres/" + uid);
+    let etats = {}, forfaits = {};
+    const ecouteDeco = [];
+    const notifieDeco = () => { if (!fini) ecouteDeco.forEach(f => { try { f(); } catch (e) {} }); };
+    stop.push(onValue(ref(db, base + "/pres"), s => { etats = s.val() || {}; notifieDeco(); }, () => {}));
+    stop.push(onValue(ref(db, base + "/forfait"), s => { forfaits = s.val() || {}; notifieDeco(); }, () => {}));
+    function presCo() {
+      return onDisconnect(presRef).set({ c: false, t: serverTimestamp() }).then(() => set(presRef, { c: true, t: serverTimestamp() })).catch(() => {});
+    }
+    const reco = () => { if (enLigne && !fini) { onDisconnect(moiRef).remove(); ecrit().catch(() => {}); presCo(); } };
     ecouteCo.push(reco);
 
     await onDisconnect(moiRef).remove();
+    presCo();
     const salon = {
+      // Déconnexion (0.5) : états de connexion { uid: { c, t } }, forfaits { graine: { u, t } }, f() à chaque changement.
+      etats: () => etats,
+      forfaits: () => forfaits,
+      onDeco(f) { ecouteDeco.push(f); },
+      // Uids engagés dans la partie (lecture ponctuelle).
+      async engages() { try { return (await get(ref(db, base + "/engages"))).val() || {}; } catch (e) { return {}; } },
+      // Défaite par abandon d'un adversaire hors ligne depuis plus de 70 s (vérifié aussi par les règles de la base).
+      declareForfait(u, g) { return set(ref(db, base + "/forfait/" + g), { u, t: serverTimestamp() }); },
+      // Autre appareil du même compte : on lâche le salon sans effacer la présence (elle est à lui maintenant).
+      async lache() {
+        fini = true;
+        stop.forEach(f => f());
+        const i = ecouteCo.indexOf(reco); if (i >= 0) ecouteCo.splice(i, 1);
+        try { await onDisconnect(moiRef).cancel(); await onDisconnect(presRef).cancel(); } catch (e) {}
+        if (annonceOn) { annonceOn = false; try { await onDisconnect(annRef).cancel(); } catch (e) {} }
+      },
       peers() {
         return Object.keys(joueurs).map(u => {
           const q = pair(u, joueurs[u]);
@@ -499,6 +530,7 @@ async function ouvre() {
         stop.forEach(f => f());
         const i = ecouteCo.indexOf(reco); if (i >= 0) ecouteCo.splice(i, 1);
         await onDisconnect(moiRef).cancel();
+        try { await onDisconnect(presRef).cancel(); await remove(presRef); } catch (e) {}
         await remove(moiRef);
       }
     };
@@ -507,6 +539,15 @@ async function ouvre() {
 
   return {
     connected: () => enLigne,
+    // Heure du serveur (ms), pour les minuteurs de déconnexion.
+    heure: () => Date.now() + decalage,
+    // Partie en ligne retenue par le compte (0.5) : joueurs/{uid}/salon. o = null pour effacer.
+    salonCompte: {
+      ecrit(o) { if (!estCompte()) return Promise.resolve(); return set(ref(db, P + "joueurs/" + moi + "/salon"), o ? { ...o, t: serverTimestamp() } : null); },
+      async lit() { if (!estCompte()) return null; try { return (await get(ref(db, P + "joueurs/" + moi + "/salon"))).val(); } catch (e) { return null; } },
+      ecoute(f) { if (!estCompte()) return () => {}; return onValue(ref(db, P + "joueurs/" + moi + "/salon"), s => f(s.val()), () => {}); },
+      uid: () => moi
+    },
     peers: () => hallPeers,
     onPeers(f, g) { ecouteHall.push(f); if (g) { hallPerdu.push(g); if (hallErreur) setTimeout(g, 0); } },
     onConnection(f, g) { ecouteCo.push(f); },
