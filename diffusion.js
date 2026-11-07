@@ -229,7 +229,7 @@ function plateau(s,qui){
   const t=mk('div','p-terrains d-tr'),cc=Mo.colonnes(s);
   [0,1,2].forEach(k=>{const T=s.terrains[k],a=cc[k][1],m=cc[k][0],d=mk('div','p-terrain'+(m>a?' m-moi':a>m?' m-lui':'')),to=mk('div','p-totaux'),te=mk('div','p-tete');
     te.append(mk('b','',T.nom));to.append(mk('b','m'+(m>a?' tete':''),String(m)),mk('span','','contre'),mk('b','a'+(a>m?' tete':''),String(a)));
-    d.append(te,to,ptsEt('p-valeur',T.pts));d.onclick=()=>zoomTerrainDif(s,k);t.append(d)});
+    const Mo2=Mo,v=Mo2.ptsTerrain?Mo2.ptsTerrain(s,k):T.pts;d.append(te,to,ptsEt('p-valeur',v,T.nom==='Le Tournoi',T.nom==='Les Pronos'&&Mo2.miseTotale?Mo2.miseTotale(s):0));d.onclick=()=>zoomTerrainDif(s,k);t.append(d)});
   plat.append(r1,t,r2);
   /* halo : case de la derniere carte jouee, 3,6 s a partir de la pose (repeinture : l'animation reprend ou elle en etait) */
   const h=suivi.halo;
@@ -256,7 +256,7 @@ function zoomTerrainDif(s,k){
   u.zoom(u.srcTerrain(T),T.nom+'. '+T.texte,[pan(0),pan(1)]);
 }
 /* Etiquette de points d'un terrain : l'etoile du score (pictogramme des points) avant le nombre, « ★ 2 pts » */
-function ptsEt(cl,n){const e=mk('span',cl+' d-ptse');e.append(U().ico('coupe'),n+(n>1?' pts':' pt'));return e}
+function ptsEt(cl,n,q,m){const e=mk('span',cl+' d-ptse');e.append(U().ico('coupe'),(q?'? = ':'')+n+(n>1?' pts':' pt')+(m?' +'+m:''));return e} /* 0.4a : q = Le Tournoi (etoile « ? »), m = mises des Pronos */
 function zoomCarte(c){
   const u=U(),C=M().carte(c);u.cacheApercu();
   let det=null;

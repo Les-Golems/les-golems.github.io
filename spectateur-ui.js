@@ -178,7 +178,7 @@ function terrains(s,cols,haut,bas){
     const te=mk('div','p-tete'),e=mk('button','oeil');te.append(mk('b','',T.nom));
     e.type='button';e.append(ico('oeil'));e.setAttribute('aria-label','Agrandir '+T.nom);
     d.onclick=()=>zoomTerrain(T);d.onmouseenter=()=>montreApercu(d,srcTerrain(T));d.onmouseleave=cacheApercu;
-    d.append(te,to,mk('span','p-valeur',T.pts+(T.pts>1?' pts':' pt')),e);t.append(d)});
+    const Mq=window.GolemsMoteur,v=Mq&&Mq.ptsTerrain?Mq.ptsTerrain(s,k):T.pts;d.append(te,to,mk('span','p-valeur',(T.nom==='Le Tournoi'?'? = ':'')+v+(v>1?' pts':' pt')),e); /* 0.4a : Le Tournoi vaut la manche */t.append(d)});
   return t;
 }
 /* Detail de Force d'une carte en main : Force de base et texte (elle n'est pas encore en jeu) */

@@ -1746,7 +1746,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 
   <div class="colonnes"><div>
   <details open><summary><h3>La partie</h3></summary><div class="corps"><ul>
-    <li>3 terrains sont tirés au hasard parmi 10 et placés aléatoirement. Chacun rapporte les points imprimés dessus.</li>
+    <li>3 terrains sont tirés au hasard parmi 15 et placés aléatoirement. Chacun rapporte les points imprimés dessus.</li>
     <li>Les joueurs sont face à face. Chacun a une grille 3 x 3, en miroir de l'autre et une colonne correspond à un terrain.</li>
     <li>Les cartes ne citent jamais de numéro de ligne ou de colonne : elles désignent les cases par le terrain, la case en face ou la ligne adverse.</li>
     <li><b>En face :</b> même terrain, même ligne.</li>
@@ -1796,6 +1796,11 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
   <details id="dTerrains"><summary><h3>Terrains</h3></summary><div class="corps"><figure class="annote" id="lireTerrain" aria-label="Lire un terrain"></figure><ul>
     <li>Un effet de terrain s'applique aux deux joueurs, sauf mention contraire.</li>
     <li>Un terrain est actif toute la partie, et son résultat est définitif pour chaque manche.</li>
+    <li><b>Valeur variable :</b> un terrain marqué « ? » change de valeur selon la manche. Le Tournoi vaut 1 point à la manche 1, 2 points à la manche 2 et 3 points à la manche 3.</li>
+    <li><b>Mise :</b> Les Pronos. Une fois par manche, pendant tes actions, tu peux miser 1 énergie ici (bouton « Miser »). En fin de manche, celui qui conquiert le terrain marque 1 point de plus par mise des deux joueurs. Les mises de la manche sont perdues si personne ne le conquiert.</li>
+    <li><b>Tarte :</b> Le Cirque. Une fois par manche, pendant tes actions, tu peux infliger 1 dégât gratuit à un Golem adverse de cette colonne. Mode Avion en protège.</li>
+    <li><b>Pioche de fin de manche :</b> L'École. Le joueur qui perd ce terrain pioche 1 carte, personne en cas d'égalité. Deck vide : 1 point pour l'adversaire, comme pour toute pioche.</li>
+    <li><b>Exactement 2 :</b> Le Karaoké donne +2 de Force à chacun de tes Golems ici seulement si tu en as exactement 2.</li>
   </ul></div></details>
 
   <details><summary><h3>Force et dégâts</h3></summary><div class="corps"><ul>
@@ -2159,6 +2164,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
+ {version:'Version 0.4a',date:'7 novembre 2026',notes:["5 nouveaux terrains : L'École, Le Karaoké, Les Pronos, Le Cirque et Le Tournoi","Nouvelle règle : 4 éléments différents au plus par deck","Deck conseillé Marée bretonne, autour du nouveau Le Q","Decks conseillés et deck par défaut à 4 éléments","Lien direct vers une carte, à partager","Lisibilité améliorée pour les daltoniens","Nouveautés : pagination des versions"]},
  {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","Rework de Le Q : Brume et Magma, nouveaux effets","Nouvelle règle : deck vide, 1 point à l'adversaire par carte à piocher","Bug de Jacen et Jaina corrigé"]},
  {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
  {version:'Version 0.2c',date:'5 novembre 2026',notes:["La Boutique réduit aussi le coût des évolutions","Éditeur de deck : teste tes placements dans un bac à sable","Statistiques repensées : recherche, classement complet, toutes tes parties comptées","Profil des joueurs réorganisé, avec ton rang au classement","Partage de deck par lien cliquable","Résumé de partie prêt à coller sur Discord","Version vérifiée dans le salon, page mise à jour automatiquement","Appli installée : nouvelle icône, lancement bleu ciel","QoL ajoutés"]},
@@ -2170,6 +2176,28 @@ const NOUVEAUTES=[
    Une ligne = une phrase courte pour les joueurs. Sous-liste : {t:"titre :",l:[...]}. Rubrique vide : [] (message neutre affiché).
    Nouvelle version : ajouter son entree en tete, comme dans NOUVEAUTES. */
 const DETAILS_VERSIONS={
+ 'Version 0.4a':{
+  nouveautes:[
+   {t:"5 nouveaux terrains, 15 en tout :",l:[
+    "L'École (2 points) : fin de manche, le perdant pioche 1 carte.",
+    "Le Karaoké (2 points) : si tu as exactement 2 Golems ici, ils gagnent +2 de Force chacun.",
+    "Les Pronos (1 point) : une fois par manche, mise 1 énergie ici avec le bouton « Miser ». Fin de manche : le gagnant marque 1 point de plus par mise des deux joueurs.",
+    "Le Cirque (2 points) : une fois par manche, inflige 1 dégât à un Golem adverse ici.",
+    "Le Tournoi (« ? ») : vaut 1 point à la manche 1, 2 points à la manche 2 et 3 points à la manche 3."]},
+   "La partie guidée garde les 10 terrains d'origine.",
+   "Deck conseillé Marée bretonne : un deck Brume et Magma qui vide le deck adverse, autour du nouveau Le Q.",
+   "Lien direct vers une carte, un Golem, son évolution, un animal ou un terrain : il ouvre la carte en grand.",
+   "Daltoniens : une flèche ▲ ou ▼ sur la Force modifiée, un « ! » sur la carte fautive d'un deck, et le mot « Animal » dans les listes. Aucune couleur ne change.",
+   "Nouveautés : les versions sont rangées par pages, avec les flèches en haut à droite."],
+  corrections:[
+   "Le panneau d'une évolution affiche le bon texte."],
+  regles:[
+   "4 éléments différents au plus par deck : un Golem à 2 éléments compte les deux, un animal n'en a aucun.",
+   "Deck par défaut et decks conseillés Tempête et Forge rapide refaits pour respecter les 4 éléments.",
+   "Les Pronos : les mises sont perdues si personne ne conquiert le terrain.",
+   "L'École : en cas d'égalité, personne ne pioche. Deck vide : 1 point pour l'adversaire, comme pour toute pioche.",
+   "Le Cirque : Mode Avion protège du dégât."]
+ },
  'Version 0.4':{
   nouveautes:[
    "Nouvelle vue spectateur : le plateau en grand, les deux mains, la dernière carte jouée avec son effet en clair, les dernières actions et le cercle des éléments. Pensée pour regarder une partie ou la diffuser en direct.",
@@ -3199,7 +3227,7 @@ const REDUIT=matchMedia('(prefers-reduced-motion:reduce)');
 let robotT=0,sid='',arrivee=0,recapAff=0,fx=[],fileDes=[],desActif=false,desT=0,desF=0;
 /* Graines terminees ou quittees : jamais relancees par majPartie. */
 const grainesFinies=new Set();
-let partie=null,notice='',sel=null,selMull=[],selCases=[],modeVaisseau=false,modeFaille=false,modeCaramel=false,modeLove=false;
+let partie=null,notice='',sel=null,selMull=[],selCases=[],modeVaisseau=false,modeFaille=false,modeCaramel=false,modeLove=false,modeTarte=false;
 const ZONE=matchMedia('(min-width:1200px)');let derniereAdv=null,zoneSurvol=null; /* zone d'apercu de la partie (ordinateur) */
 const ICONES={
  force:'<svg width="66" height="66" viewBox="71 35 458 529"><path d="M300 98 L285 98 Q210 152 144 164 L144 370 L281 490 Z" fill="#bf6049" stroke="#bf6049" stroke-width="1.5" stroke-linejoin="round"/><path d="M300 98 L315 98 Q390 152 456 164 L456 367 L281 490 Z" fill="#8a3524" stroke="#8a3524" stroke-width="1.5" stroke-linejoin="round"/><path d="M281.2 52 L300 52 L300 98 L285 98Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M300 52 L318.8 52 L315 98 L300 98Z" fill="#a4452f" stroke="#a4452f" stroke-width="1.5" stroke-linejoin="round"/><path d="M318.8 52 Q398.7 112 499.75 126 L456 164 Q390 152 315 98Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M499.75 126 L499.75 390 L456 367 L456 164Z" fill="#70291b" stroke="#70291b" stroke-width="1.5" stroke-linejoin="round"/><path d="M499.75 390 L325.85 512 L295.3 534 L280 547 L281 490 L456 367Z" fill="#551d13" stroke="#551d13" stroke-width="1.5" stroke-linejoin="round"/><path d="M280 547 L100.25 390 L144 370 L281 490Z" fill="#a4452f" stroke="#a4452f" stroke-width="1.5" stroke-linejoin="round"/><path d="M100.25 390 L100.25 126 L144 164 L144 370Z" fill="#d27a5e" stroke="#d27a5e" stroke-width="1.5" stroke-linejoin="round"/><path d="M100.25 126 Q201.3 112 281.2 52 L285 98 Q210 152 144 164Z" fill="#efb096" stroke="#efb096" stroke-width="1.5" stroke-linejoin="round"/><path d="M160 180 Q222 166 288 116" fill="none" stroke="#ffe3d6" stroke-opacity=".55" stroke-width="7" stroke-linecap="round"/><path d="M281.2 52 L318.8 52 Q398.7 112 499.75 126 L499.75 390 L325.85 512 L295.3 534 L280 547 L100.25 390 L100.25 126 Q201.3 112 281.2 52Z" fill="none" stroke="#0b0a10" stroke-width="34" stroke-linejoin="round"/></svg>',
@@ -3298,7 +3326,7 @@ function lancer(g,moi,adv,sv){
   const dks=sv&&Array.isArray(sv.decks)&&sv.decks.length===2?sv.decks.map(t=>typeof t==='string'?t:''):['',''];
   partie={decks:dks,deckNom:sv&&typeof sv.deckNom==='string'?sv.deckNom:'',rejeu:sv&&sv.rejeu||null,debut:sv&&+sv.debut||Date.now(),local:!!(sv&&sv.local),tuto:!!(sv&&sv.tuto),niveau:sv&&sv.niveau||'normal',graine:g,moi:moi,mien:sv?sv.mien:[],sien:sv?sv.sien:[],etat:null,erreur:null,veut:!!(sv&&sv.veut),adv:adv||'',advNom:sv&&typeof sv.advNom==='string'?nettoie(sv.advNom):'',recapVu:sv?+sv.recapVu||0:0};
   CARTES.forEach(c=>{new Image().src=imgV('cartes/'+c[0]+'.jpg')});M.TERRAINS.forEach(T=>{new Image().src=srcTerrain(T)});new Image().src=DOS;
-  notice='';sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;modeLove=false;fx=[];journalPage=null;journalReperes=0;
+  notice='';sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;modeLove=false;modeTarte=false;fx=[];journalPage=null;journalReperes=0;
   stopCompte();jePret=false;
   pub({jg:g,j:M.ecritJournal(partie.mien),veut:partie.veut?g:null,adv:partie.adv||null,pret:null});
   if(room)room.presence({salon:null}).catch(()=>{});
@@ -3399,6 +3427,9 @@ function vol(de,vers,src,ms,delai){
 }
 const srcC=c=>imgV('cartes/'+M.carte(c).id+'.jpg'),DOS=imgV('cartes/verso.jpg');
 /* Image du terrain, rendue par generer_terrains.py ; le texte de regle reste dans moteur.js. */
+/* 0.4a : valeur affichee d'un terrain en jeu. Le Tournoi (etoile « ? » sur la carte) : valeur de la manche en cours ; Les Pronos : mises de la manche en plus. */
+function valTerrain(Mx,s,k){const T=s.terrains[k],v=Mx.ptsTerrain?Mx.ptsTerrain(s,k):T.pts,n=Mx.miseTotale&&T.nom==='Les Pronos'?Mx.miseTotale(s):0;
+  return {v,txt:(T.nom==='Le Tournoi'?'? = ':'')+v+(v>1?' pts':' pt')+(n?' +'+n:''),long:v+(v>1?' points':' point')+(T.nom==='Le Tournoi'?' à cette manche':'')+(n?', '+n+(n>1?' mises':' mise'):'')}}
 const srcTerrain=T=>imgV('cartes/t'+String(window.GolemsMoteur.TERRAINS.findIndex(x=>x.nom===T.nom)+1).padStart(3,'0')+'.jpg');
 /* Carte jouee : grande au centre environ 1,5 s, puis glissade vers sa case. */
 function montreGrand(c,de,vers){
@@ -3602,7 +3633,7 @@ function etapesDecompte(L,av,s,lignes){
       const hx=exclu(p,l,k),n=hx?0:M.forceDe(av,p,l,k);
       L.push(()=>{ecranFin.comptes[k][p]+=n;peintFin();ajoutFx({q:caseDe(p,l,k),classe:'fx-compte',texte:hx?'+0':'+'+n},650);return T(240)});
     }));
-    const w=D.gagnants[k],pts=s.terrains[k].pts;
+    const w=D.gagnants[k],pts=M.ptsTerrain?M.ptsTerrain(av,k):s.terrains[k].pts; /* 0.4a : Le Tournoi vaut la manche */
     L.push(()=>{ecranFin.gagnants[k]=w;peintFin();return T(320)});
     if(w!==null)L.push(()=>{etoile(rectDe('.p-terrain[data-k="'+k+'"]'),'+'+pts);return T(700)},()=>{ecranFin.score[w]+=pts;peintFin();ajoutFx({q:'.p-info.score',classe:'bascule'},700);return 0});
   });
@@ -3628,6 +3659,12 @@ function etapes(av,s,a,p){
     });
   }else if(a.t==='z'){ /* Caramel a volonte : +1 energie */
     L.push(()=>{ajoutFx({q:caseDe(p,a.l,a.k),classe:'fx-bonus',texte:'+1'},1300);if(p===me)ajoutFx({q:'.p-info.energie',classe:'bascule'},750);return T(450)});
+  }else if(a.t==='o'){ /* 0.4a : tarte du Cirque, frappe et -1 sur le Golem adverse vise */
+    const q=caseDe(1-p,a.l,s.terrains.findIndex(x=>x.nom==='Le Cirque'));
+    L.push(()=>{ajoutFx({q,classe:'fx-frappe'},500);ajoutFx({q,classe:'fx-deg',texte:'-1'},1100);return T(550)});
+  }else if(a.t==='t'){ /* 0.4a : mise des Pronos, +1 sur le terrain, l'energie bascule */
+    const q='.p-terrain[data-k="'+s.terrains.findIndex(x=>x.nom==='Les Pronos')+'"]';
+    L.push(()=>{ajoutFx({q,classe:'fx-bonus',texte:'+1'},1300);if(p===me)ajoutFx({q:'.p-info.energie',classe:'bascule'},750);return T(450)});
   }else if(a.t==='f'||a.t==='s'||a.t==='j'){ /* j : Forge eclair de Spom */
     const de=p===me?rectDe('.p-slot[data-c="'+a.c+'"]'):rectDe('.p-camp.lui .c-main');
     L.push(()=>{vol(de,rectDe(piles(p,'forge')),p===me?srcC(a.c):DOS,600);return T(600)});
@@ -4009,6 +4046,9 @@ function genreLog(x){
   if(/^doit piocher mais son deck est vide/.test(x))return ['j-mort','defausse']; /* 0.4 : defaite par deck vide (anciennes parties) */
   if(RE_DV.test(x))return ['j-point','coupe']; /* deck vide (meule) : point pour l'adversaire */
   if(/meur|est détruit/.test(x))return ['j-mort','defausse'];
+  if(/^Le Cirque : tarte /.test(x))return ['j-degat','degat']; /* 0.4a : tarte du Cirque */
+  if(/^Les Pronos : mise /.test(x))return ['j-bonus','coupe']; /* 0.4a : mise des Pronos */
+  if(/^L'École : pioche /.test(x))return ['j-pose','main']; /* 0.4a : pioche du perdant */
   if(/^marque |\+\d points?\.$/.test(x))return ['j-point','coupe'];
   if(/^améliore /.test(x))return ['j-evo','manche'];
   if(/^(pose|remplace|garde) /.test(x))return ['j-pose','main'];
@@ -5601,7 +5641,7 @@ function joue(a){
   if(!partie||partie.rejeu)return;
   if(window.SPEC&&SPEC.estSpectateur())return; /* spectateur : aucun coup */
   partie.mien.push(M.code(a));
-  sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;modeLove=false;
+  sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;modeLove=false;modeTarte=false;
   sauve();pub({j:M.ecritJournal(partie.mien)});calcule();
 }
 function uidJ(p){
@@ -5937,6 +5977,8 @@ function affiche(){
   if(coupsZ.length<2)modeCaramel=false;
   const coupsR=leg.filter(a=>a.t==='r'); /* K-Chan (L'attachiante) : Love inconditionnel, coup 'r' + case de K-Chan + case du blesse */
   if(!coupsR.length)modeLove=false;
+  const coupsO=leg.filter(a=>a.t==='o'),coupsT=leg.filter(a=>a.t==='t'); /* 0.4a : Le Cirque (tarte, coup 'o' + ligne du Golem adverse) et Les Pronos (mise, coup 't') */
+  if(!coupsO.length)modeTarte=false;
   const srcR=[...new Set(coupsR.map(a=>a.l+','+a.k))];
   if(modeLove&&!selCases.length&&srcR.length===1)selCases=[srcR[0].split(',').map(Number)];
   if(modeLove){
@@ -5947,6 +5989,9 @@ function affiche(){
       if(x===l&&y===k&&srcR.length>1)return {choisie:true,fait:()=>{selCases=[];affiche()}};
       return null;
     };
+  }else if(modeTarte){ /* Le Cirque : touche un Golem adverse de la colonne du Cirque (cases dorees de la grille adverse) */
+    const kc=s.terrains.findIndex(x=>x.nom==='Le Cirque');
+    cibleAdv=(l,k)=>{const a=k===kc&&coupsO.find(c=>c.l===l);return a?{texte:'Tarte',fait:()=>{modeTarte=false;joue(a)}}:null};
   }else if(modeFaille){
     const kf=s.terrains.findIndex(x=>x.nom==='La Faille');
     cible=(l,k)=>{
@@ -6024,7 +6069,8 @@ function affiche(){
     te.append(el('b','',T.nom));
     e.type='button';e.append(ico('oeil'));e.setAttribute('aria-label','Agrandir '+T.nom);
     d.onclick=()=>zoomTerrainJeu(A,k,me);d.onmouseenter=()=>montreApercu(d,srcTerrain(T));d.onmouseleave=cacheApercu;
-    d.append(te,to,el('span','p-valeur',T.pts+(T.pts>1?' pts':' pt')),e);t.append(d)});
+    const VT=valTerrain(M,A,k),pv=el('span','p-valeur',VT.txt);if(T.nom==='Le Tournoi')pv.title='Le Tournoi : 1, 2 puis 3 points selon la manche';
+    d.append(te,to,pv,e);t.append(d)}); /* 0.4a : Le Tournoi « ? = N pts », Les Pronos « +mises » */
     /* Miroir, comme aux echecs : l'adversaire en haut, moi en bas ; la ligne 0 du moteur (ligne 1 des regles) colle aux terrains
        des deux cotes, donc lignes 2,1,0 pour lui et 0,1,2 pour moi. Memes colonnes des deux cotes : chaque terrain reste face a face. */
     const gm=grilleVue(A,me,cols,[0,1,2],cible);gm.classList.add('mienne');if(aMoi)gm.classList.add('active');
@@ -6145,6 +6191,10 @@ function affiche(){
       con(selCases.length?"Love inconditionnel : touche un Golem allié blessé (case dorée), il récupère 1 de Force. Une fois par manche.":"Love inconditionnel : touche la K-Chan (L'attachiante) qui soigne.");
       pl.append(mainVue(J.main,{}));
       const z=el('div','p-btns'),ba=bouton('Annuler',()=>{modeLove=false;selCases=[];affiche()},true);ba.id='annulerLove';z.append(ba);pl.append(z);
+    }else if(modeTarte){
+      con('Le Cirque : touche un Golem adverse de ce terrain, il subit 1 dégât. Une fois par manche, gratuit.');
+      pl.append(mainVue(J.main,{}));
+      const z=el('div','p-btns'),ba=bouton('Annuler',()=>{modeTarte=false;affiche()},true);ba.id='annulerTarte';z.append(ba);pl.append(z);
     }else if(modeFaille){
       con(selCases.length?'La Faille : touche une case libre de ce terrain.':'La Faille : touche un de tes Golems sur un autre terrain. Une fois par manche, gratuit.');
       pl.append(mainVue(J.main,{}));
@@ -6185,6 +6235,8 @@ function affiche(){
     if(coupsZ.length){const n=coupsZ.length,bc=expl(bouton('Caramel',()=>{if(n===1)joue(coupsZ[0]);else{modeCaramel=true;sel=null;selCases=[];affiche()}},true),
       n===1?'Caramel : +1 énergie. Titom76 (Maître du bilig) : une fois par manche, +1 énergie':'Caramel : +1 énergie, '+n+' Titom76 (Maître du bilig) possibles, choisis le terrain. Une fois par manche chacun');bc.classList.add('caramel');bc.id='caramel';z.append(bc)}
     if(coupsR.length){const br=expl(bouton('Love',()=>{modeLove=true;sel=null;selCases=[];affiche()},true),"Love inconditionnel de K-Chan (L'attachiante) : une fois par manche, un Golem allié blessé récupère 1 de Force");br.id='love';z.append(br)}
+    if(coupsO.length){const bo=expl(bouton('Tarte',()=>{modeTarte=true;sel=null;selCases=[];affiche()},true),'Tarte du Cirque : une fois par manche, inflige 1 dégât à un Golem adverse du Cirque');bo.id='tarte';z.append(bo)}
+    if(coupsT.length){const bt=expl(bouton('Miser',()=>joue(coupsT[0]),true),'Les Pronos : une fois par manche, mise 1 énergie. Fin de manche : le gagnant des Pronos marque 1 point de plus par mise des deux joueurs');bt.id='miser';z.append(bt)}
     const fx=bouton('Fin du tour',()=>joue({t:'x'}));fx.id='finTour';z.append(fx);pl.append(z);
     }
   }else{
