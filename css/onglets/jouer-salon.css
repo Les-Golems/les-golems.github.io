@@ -1,0 +1,189 @@
+/* Onglet Jouer : salon, parties ouvertes et en cours, chat et reactions. */
+/* Salon : carte centree, deux joueurs face a face, chat */
+#salon{max-width:720px;margin:0 auto 14px;padding:20px;text-align:center}
+.sl-haut{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--panneau2);border-radius:10px;padding:10px 14px;margin-bottom:16px;text-align:left}
+.sl-haut small{display:block;color:var(--doux);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.sl-haut .code{font-size:40px;margin:0}
+.sl-haut .btnCode{margin:0;min-height:44px;font-size:17px}
+.sl-copies{display:flex;gap:8px;flex-wrap:wrap}
+/* Nouvelle version : encadre sombre a titre dore et bouton dore dans l'en-tete, a gauche de l'avatar ; la page se recharge seule au calme. */
+.majDispo{margin-left:auto;display:flex;align-items:center;gap:12px;padding:6px 6px 6px 14px;border-radius:10px;background:var(--encre);box-shadow:0 3px 0 #08708c}
+.majDispo[hidden]{display:none}
+.majDispo span{font:400 19px/1.15 var(--titre);color:var(--or);white-space:nowrap}
+:is(.majDispo .btn,#f#f#f#f){--bord:#6b4f12;margin:0;min-height:40px;padding:4px 16px;font-size:18px;white-space:nowrap;border-radius:7px;background:linear-gradient(#ffd97a,var(--or));color:var(--encre);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 3px 0 var(--bord)}
+:is(.majDispo .btn:hover,#f#f#f#f){background:linear-gradient(#ffe6a6,#f6cf72)}
+@media (max-width:1100px){.majDispo{gap:10px;padding-left:12px}.majDispo span{max-width:8em;font-size:16px;white-space:normal}:is(.majDispo .btn,#f#f#f#f){min-height:36px;font-size:16px;padding:4px 12px}}
+@media (max-width:860px){.haut:has(.majDispo:not([hidden])){flex-wrap:wrap}.majDispo{order:9;flex:1 0 100%;margin-left:0;justify-content:space-between}.majDispo span{max-width:none}}
+@media (max-width:600px){.majDispo span{font-size:14px;line-height:1.1}:is(.majDispo .btn,#f#f#f#f){min-height:34px;font-size:15px;padding:4px 10px}}
+@media (max-width:360px){:is(.majDispo .btn,#f#f#f#f){font-size:14px;padding:4px 9px}}
+.sl-scene{position:relative}
+.sl-duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:14px}
+.sl-vs{align-self:center;font:400 26px/1 var(--titre);color:var(--doux)}
+.sl-j{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;background:var(--panneau2);border:2px solid var(--trait);border-radius:12px;padding:14px 10px}
+/* Sieges en sous-grille : avatar, nom, etat, tuile de deck alignes d'un siege a l'autre (meme hauteur, meme position). */
+.sl-duo{grid-template-rows:repeat(7,auto)}.sl-duo>.sl-vs{grid-row:1/span 7}
+.sl-duo>.sl-j{display:grid;grid-row:1/span 7;grid-template-rows:subgrid;row-gap:8px;justify-items:center;align-items:start;align-content:start}
+.sl-duo>.sl-j:first-child{grid-column:1}.sl-duo>.sl-j:last-child{grid-column:-2}.sl-duo>.sl-j>.cd-tuile{align-self:stretch}
+.sl-j .sl-vide{visibility:hidden}
+.sl-j.pret{border-color:#3fcf6e}
+.sl-j.vide{border-style:dashed;justify-content:center;color:var(--doux);font-weight:700}
+#joueurs .sl-j .avatar{width:64px;height:64px;font-size:30px}
+.sl-nom{font:400 22px/1.15 var(--titre);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-nom em{font:800 12px var(--corps);background:var(--bleu);color:var(--encre);border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.sl-etat{font-size:14px;font-weight:800;color:var(--doux)}
+.sl-j.pret .sl-etat{color:#3fcf6e}
+.sl-j .cd-tuile{width:100%;cursor:default}
+.sl-j .btn{min-height:38px;padding:5px 12px;font-size:15px}
+.sl-compte{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;background:rgba(5,10,15,.55);border-radius:12px}
+.sl-compte b{font:400 120px/1 var(--titre);color:var(--or);text-shadow:0 4px 0 #6b4f12,0 0 30px rgba(241,195,90,.6);animation:slPop 1s ease-out both}
+@keyframes slPop{0%{transform:scale(1.8);opacity:0}25%{transform:scale(1);opacity:1}80%{opacity:1}100%{transform:scale(.8);opacity:.2}}
+@media (prefers-reduced-motion:reduce){.sl-compte b{animation:none}}
+#salon #pret{display:block;width:100%;max-width:340px;margin:0 auto 14px;min-height:54px;font-size:22px}
+#salon #pret[hidden]{display:none}
+#salon .sl-quitter{display:block;margin:12px auto 0;min-height:40px;padding:6px 18px;font-size:15px}
+.sl-j.sl-libre{border-style:dashed;color:var(--doux)}
+.sl-j.sl-libre .sl-nom{color:var(--doux)}
+#joueurs .sl-etat,#joueurs .sl-libre .cd-nb{text-align:center;white-space:normal}
+#joueurs .sl-taux{font-size:13px;font-weight:700;color:var(--doux);text-align:center;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+@media (max-width:520px){#salon #joueurs .sl-j .btn{white-space:normal;max-width:100%}}
+.sl-face{text-align:center;font-weight:800;color:var(--or);margin:0 0 10px}
+.caseSalon{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--doux);margin:0 0 10px;cursor:pointer}
+.caseSalon.pf-inter{margin:0 0 12px;width:max-content;max-width:100%}
+.sl-liste{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.sl-liste li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;background:var(--panneau2);border:1px solid var(--trait);border-radius:10px;padding:8px 12px}
+.sl-liste li.sl-vide{display:block;text-align:center;color:var(--doux);font-weight:700;padding:14px}
+.sl-liste .avatar{width:44px;height:44px;font-size:20px}
+.sl-liste .sl-qui{min-width:0}
+.sl-liste .sl-qui b{display:block;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-liste .sl-qui span{display:block;font-size:13px;color:var(--doux);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-liste .btn{min-height:40px;padding:5px 14px;font-size:16px;margin:0}
+.sl-liste.sl-grille{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.sl-liste li.sl-carte{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 12px 14px;text-align:center;border-radius:18px 11px 20px 10px/11px 19px 10px 18px;background:linear-gradient(180deg,var(--panneau2),var(--panneau));min-height:300px;box-sizing:border-box}
+/* Design B (0.4) : fond teinte par les elements (--tinte), voile sombre par-dessus, liseré de la meme teinte */
+.b-teinte{border:2px solid transparent!important;background:linear-gradient(180deg,rgba(10,18,26,.5),rgba(10,18,26,.86)) padding-box,var(--tinte) padding-box,var(--tinte) border-box!important}
+.b-teinte.sl-mien{box-shadow:0 0 0 2px var(--or)}
+/* Parties ouvertes : tuiles toutes de la meme taille, quel que soit le contenu */
+.sl-liste.sl-grille{grid-auto-rows:310px}
+.sl-liste li.sl-carte{height:310px;min-height:0;overflow:hidden}
+.sl-carte .sl-nm{width:100%;flex:none}
+.sl-carte .sl-att{margin-top:auto}
+.sl-liste li.sl-mien{border-color:var(--or);box-shadow:inset 0 0 0 1px var(--or)}
+.sl-liste .sl-carte .avatar{width:88px;height:88px;font-size:40px;flex:none}
+.sl-nm{font:400 24px/1.1 var(--titre);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-tx{font-size:13.5px;font-weight:800;color:var(--doux)}
+.sl-liste .sl-dk{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;max-width:none;box-sizing:border-box;padding:6px 10px;font-size:14px}
+.sl-pi{display:inline-flex;gap:2px;flex:none}.sl-pi img{width:22px;height:22px}
+/* Deck adverse masque avant la partie : bandeau neutre (gris, sans element), coupure entre les mots seulement ; pastille « ? » a la place des pictos. */
+.h-deck.dk-neutre{background:#4d5d6b;overflow-wrap:normal!important}
+.dk-inc{display:inline-flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;box-sizing:border-box;border-radius:50%;background:#4d5d6b;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55);color:#fff;font:800 14px/1 var(--corps);text-shadow:0 1px 3px #0a121a}
+.sl-dep{font-size:13px;color:var(--doux)}
+/* Version du site de chaque joueur : etiquette arrondie sous En attente (siege) ou sous En attente il y a N min (parties publiques) ; rouge = page a recharger. */
+.vx-etq{display:inline-block;max-width:100%;padding:2px 10px;font-size:12.5px;line-height:1.35;text-align:center;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}
+.vx-etq.vx-diff{background:#ff6b5e;border-color:#ff6b5e;color:var(--encre)}
+.sl-liste li.sl-carte .vx-etq{margin-top:-2px}
+.sl-carte .btn{margin-top:auto!important;width:100%;font-size:18px!important;min-height:46px!important}
+.sl-att{margin-top:auto;font-size:13px;color:var(--doux);font-style:italic;min-height:46px;display:flex;align-items:center}
+.sl-badge{position:absolute;top:8px;right:8px;padding:2px 8px;border-radius:6px;background:var(--or);color:var(--encre);font-weight:800;font-size:12px}
+/* Parties ouvertes (0.4) : titres de groupe, Rejoindre + Observer, lignes des salons complets */
+.po-gt{margin:4px 0 8px;font-size:12.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--doux)}
+.po-gt b{color:var(--texte);margin-left:4px}
+.sl-liste+.po-gt{margin-top:16px}
+.po-inf{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 12px}
+.po-spec{display:inline-flex;align-items:center;gap:5px;font-size:13px;line-height:16px;color:var(--doux)}
+.po-spec svg{width:15px;height:15px;flex:none;display:block}
+.po-spec>b,.po-spec>span{display:block;line-height:16px;height:16px}
+.po-spec b{color:var(--texte)}
+.po-els{display:inline-flex;align-items:center;gap:2px;flex:none;opacity:.9}
+.po-els img{width:18px;height:18px;display:block}
+/* Parties en cours (design B, compact) : 4 par ligne sur bureau, 2 sur tablette, 1 sur telephone */
+#listeEnCours .po-lignes{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#listeEnCours .sl-vide{grid-column:1/-1}
+@media (max-width:1199px){#listeEnCours .po-lignes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:699px){#listeEnCours .po-lignes{grid-template-columns:minmax(0,1fr)}}
+#listeEnCours li.po-ec{container-type:inline-size;display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:10px 10px 10px;border-radius:14px;position:relative;text-align:center}
+#listeEnCours .po-duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:6px;flex:none}
+#listeEnCours .po-j{flex-direction:column;align-items:center;gap:3px;min-width:0}
+#listeEnCours .po-j .avatar{width:40px;height:40px;font-size:18px;border:2px solid rgba(255,255,255,.85)}
+#listeEnCours .po-j b{font:400 15px/1.15 var(--titre);white-space:normal;overflow-wrap:anywhere;text-overflow:clip;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+#listeEnCours .po-els img{width:16px;height:16px}
+#listeEnCours .po-score{align-self:center;display:flex;flex-direction:column;align-items:center;gap:0;padding:0;background:none;border:0;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+#listeEnCours .po-score b{font:400 24px/1.05 var(--titre);color:var(--texte);letter-spacing:0;white-space:nowrap}
+#listeEnCours .po-pied{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
+#listeEnCours .po-obs{min-height:36px;padding:4px 12px;font-size:15px}
+#listeEnCours .po-badge{position:static}
+#listeEnCours .po-pied .po-obs{width:auto;flex:none}
+/* Salons complets sur telephone : joueurs en colonne de part et d'autre du VS, pseudos longs sur 2 lignes plutot que coupes */
+@media (max-width:600px){.po-ligne .po-j b{white-space:normal;overflow-wrap:anywhere;text-overflow:clip;text-align:center}.po-ligne .po-duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start}.po-ligne .po-j{flex-direction:column;gap:4px}.po-ligne .po-vs{align-self:center}}
+/* Carte etroite : Observer en icone seule (infobulle « Observer ») */
+@container (max-width:250px){#listeEnCours .po-obs-t{display:none}#listeEnCours .po-obs{padding:4px 10px}}
+.po-btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;margin-top:auto}
+.sl-carte .po-btns .btn{margin-top:0!important;font-size:16px!important;padding-left:6px;padding-right:6px}
+.po-obs{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.po-obs svg{width:17px;height:17px;flex:none}
+.sl-liste li.po-ligne{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;position:relative}
+.po-duo{display:flex;align-items:center;gap:10px;flex:1 1 280px;min-width:0}
+.po-j{display:flex;align-items:center;gap:8px;min-width:0}
+.po-j b{font:400 18px/1.15 var(--titre);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-liste .po-j .avatar{width:36px;height:36px;font-size:17px;flex:none}
+.po-vs{font:400 15px var(--titre);color:var(--doux);flex:none}
+.po-ligne .po-inf{justify-content:flex-end}
+.po-ligne .po-obs{flex:none}
+.po-ligne .po-badge{position:static}
+/* Parties en cours (0.4) : manche et score */
+.po-score{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;background:var(--panneau);border:1px solid var(--trait);font-size:13px;color:var(--doux);white-space:nowrap}
+.po-score b{color:var(--texte);font-size:14px}
+@media (max-width:600px){.sl-liste li.po-ligne{flex-direction:column;align-items:stretch;text-align:center}.po-duo{flex:none;justify-content:center}.po-ligne .po-inf{justify-content:center}.po-ligne .po-obs{width:100%}}
+@media (max-width:1100px){.sl-liste.sl-grille{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.sl-liste.sl-grille{grid-template-columns:minmax(0,1fr)}.sl-liste li.sl-carte{gap:6px;padding:14px 12px 12px}.sl-liste .sl-carte .avatar{width:68px;height:68px;font-size:32px}}
+.sl-liste .sl-carte .avatar{border:3px solid rgba(255,255,255,.85)}
+/* Salon (design B) : sieges teintes */
+#joueurs .sl-j.b-teinte{border-width:2px!important}
+#joueurs .sl-j.b-teinte.pret{box-shadow:0 0 0 2px #3fcf6e}
+@media (max-width:520px){#salon{padding:12px}.sl-duo{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.sl-vs{display:none}.sl-j{padding:10px 6px}#joueurs .sl-j .avatar{width:48px;height:48px;font-size:22px}.sl-nom{font-size:18px}#salon .sl-j .btn{font-size:14px;padding:5px 8px;white-space:nowrap}.sl-haut .code{font-size:32px}.sl-compte b{font-size:90px}}
+/* Chat */
+.chat{display:flex;flex-direction:column;background:var(--encre);border:1px solid var(--trait);border-radius:10px;text-align:left;margin:4px 0 8px;min-height:0}
+.chat-tete{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;font-weight:800;font-size:14px;color:var(--doux);border-bottom:1px solid var(--trait)}
+.chat-tete button{background:none;border:0;color:var(--texte);font:inherit;font-size:18px;cursor:pointer;padding:0 4px}
+.chat-liste{list-style:none;margin:0;padding:6px 10px;overflow-y:auto;height:150px;font-size:14.5px;overflow-wrap:anywhere}
+.chat-liste li{padding:2px 0}
+.chat-liste b{color:var(--bleu);margin-right:5px}
+/* 0.4 : pseudo selon le role (createur dore, adversaire bleu, spectateur gris clair avec un oeil, parti neutre) ; aussi dans la vue spectateur */
+b.chat-createur{color:var(--or)}b.chat-adversaire{color:var(--bleu)}b.chat-spectateur{color:#c2ccd2}b.chat-parti{color:var(--doux)}
+b[class^="chat-"][title]{cursor:help}
+.chat-oeil{display:inline-block;width:1.05em;height:1.05em;margin-right:.25em;vertical-align:-.15em;opacity:.85}
+.chat-oeil svg{display:block;width:100%;height:100%;fill:currentColor}
+.chat-liste time{color:var(--doux);font-size:12px;margin-right:5px}
+.chat-vide{color:var(--doux);font-style:italic}
+.chat form{display:flex;gap:6px;padding:6px;border-top:1px solid var(--trait)}
+.chat input{flex:1;min-width:0;background:var(--panneau2);border:1px solid var(--trait);border-radius:7px;color:var(--texte);font:inherit;font-size:16px;padding:6px 8px}
+.chat form .btn{min-height:36px;padding:4px 12px;font-size:15px}
+.chat-info{font-size:12px;color:var(--erreur);padding:0 10px 4px;min-height:0}
+.chat-info:empty{display:none}
+/* Reactions rapides en partie en ligne et bulle pres du pseudo */
+.p-reac{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 6px}
+.p-reac button{flex:1 1 auto;background:var(--panneau2);border:1px solid var(--trait);border-radius:14px;color:var(--texte);font:inherit;font-size:13.5px;padding:4px 9px;cursor:pointer;min-height:30px}
+.p-reac button:disabled{opacity:.45;cursor:default}
+.bulle-reac{position:fixed;z-index:40;background:var(--or);color:#0a121a;font-weight:800;font-size:15px;padding:5px 11px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.45);pointer-events:none;white-space:nowrap;animation:bulleReac 2.6s ease forwards}
+@keyframes bulleReac{0%{opacity:0;transform:translateY(6px)}10%,80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-6px)}}
+.p-abandon{font-weight:800;color:var(--or)}
+#salon .chat-tete button{display:none}
+/* En partie : panneau replie en bas a droite, bouton flottant sur telephone */
+.chat.flottant{position:fixed;right:12px;bottom:12px;z-index:15;width:320px;max-width:calc(100vw - 24px);margin:0;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.chat.flottant .chat-liste{height:220px}
+.chat.flottant.replie{width:auto}
+.chat.flottant.replie>:not(.chat-tete){display:none}
+.chat.flottant.replie .chat-tete{border:0;cursor:pointer}
+.chat.flottant.replie .chat-tete button{display:none}
+.chat-nb{background:var(--magma);color:#fff;border-radius:9px;padding:0 6px;font-size:12px;margin-left:6px}
+.chat-nb:empty{display:none}
+@media (max-width:640px){
+  .chat.flottant.replie{right:10px;bottom:10px;border-radius:50%;width:52px;height:52px;background:var(--bleu);border:0}
+  .chat.flottant.replie .chat-tete{width:52px;height:52px;padding:0;justify-content:center;color:var(--encre);font-size:0;position:relative}
+  .chat.flottant.replie .chat-tete::before{content:'';width:24px;height:22px;background:var(--encre);clip-path:polygon(0 0,100% 0,100% 72%,45% 72%,20% 100%,22% 72%,0 72%)}
+  .chat.flottant.replie .chat-nb{position:absolute;top:2px;right:2px;font-size:12px}
+  .chat.flottant.replie .chat-tete button{display:none}
+  .chat.flottant:not(.replie){left:8px;right:8px;bottom:8px;width:auto;max-width:none}
+  .chat.flottant:not(.replie) .chat-liste{height:40vh}
+}
+.absent{background:var(--panneau2);border-left:3px solid var(--or);padding:10px 14px;border-radius:6px;margin:0 0 14px}
+

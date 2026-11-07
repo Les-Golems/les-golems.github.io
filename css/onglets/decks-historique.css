@@ -1,0 +1,231 @@
+/* Fin de partie, detail d'historique, profil, decks (injouables, animaux, courbe), liste de l'Historique. */
+/* Fin de partie : Partager le resume et Rejouer cote a cote, memes dimensions */
+.p-duo{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}.p-duo .btn{width:100%}
+.p-pied.trio{grid-template-columns:1fr 1fr}.p-pied.trio>:first-child{grid-column:1/-1}
+/* Detail d'historique : Rejeu | Fermer, Partager le resume sous Rejeu, memes dimensions */
+.p-pile{display:contents}
+/* Trois blocs alignes ligne a ligne : sous-grille commune (titre + 4 lignes). */
+.pf-jauge{height:5px}.pf-np{font-size:12.5px;margin-top:2px;text-align:left}.pf-dst{margin:2px 0 0;font-size:12.5px}.pf-item .pf-dt{min-width:0}
+.pf-niv{width:14px;height:14px;border-radius:50%;justify-self:center;margin:0 8px}
+.pf-an{min-width:0;overflow-wrap:anywhere}
+.pf-ring span{font-size:12.5px;color:var(--doux);margin-top:3px}
+.pf-vdn{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;min-width:0}.pf-vdn .pf-tuile{padding:16px 6px;justify-content:center}.pf-vdn .pf-tuile b{font-size:28px}
+.pf-dp{display:inline-flex;gap:3px;margin-left:auto;padding-left:8px}.pf-dp img{width:20px;height:20px}.pf-deck .h-deck{display:flex;align-items:center}
+.dl-liste.pf-mvps{max-width:none;margin:0}.pf-mvps li+li{margin-top:4px}.pf-mvps .dl-ligne{grid-template-columns:44px 42px 46px minmax(0,1fr) auto}.pf-mvps .pf-mc{white-space:nowrap}
+.pf-v b{color:#3ecf6e}.pf-d b{color:#ef4f4f}.pf-n b{color:#9aa4ae}.pf-tot b{color:#01C1F0}
+.pf-v{box-shadow:inset 0 -3px 0 #3ecf6e}.pf-d{box-shadow:inset 0 -3px 0 #ef4f4f}.pf-n{box-shadow:inset 0 -3px 0 #9aa4ae}.pf-tot{box-shadow:inset 0 -3px 0 #01C1F0}
+.pf-serie{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 14px;border-radius:12px;background:var(--panneau2)}
+.pf-serie b{font-size:18px}.pf-sl{margin-left:auto;font-size:13px;color:var(--doux)}.pf-flamme{font-size:24px;line-height:1}
+.pf-sv{background:linear-gradient(90deg,rgba(240,120,30,.35),var(--panneau2));box-shadow:inset 0 0 0 1px rgba(240,140,40,.6)}.pf-sv b{color:#ffb347}
+.pf-sd{background:linear-gradient(90deg,rgba(239,79,79,.28),var(--panneau2))}.pf-sd b{color:#ef4f4f}
+.pf-barre{margin:0 0 9px}.pf-bh{display:flex;justify-content:space-between;gap:10px;font-size:15px;margin-bottom:4px}.pf-bh span{min-width:0;overflow-wrap:anywhere}.pf-bh b{font-weight:600;text-align:right;font-size:13.5px}
+.pf-jauge{height:8px;border-radius:5px;background:var(--panneau2);overflow:hidden}.pf-jauge i{display:block;height:100%;border-radius:5px}
+.pf-deck{display:flex;align-items:center;gap:10px;margin-bottom:8px}.pf-deck .h-deck{flex:1;min-width:0}.pf-dk{color:var(--doux);font-size:13.5px;white-space:nowrap}.pf-dt{min-width:44px;text-align:right}
+.pf-mvp{aspect-ratio:63.5/88.9;border-radius:9px;padding:8px 6px;display:flex;flex-direction:column;justify-content:space-between;text-align:center;box-shadow:inset 0 0 0 2px rgba(255,255,255,.25),0 3px 8px rgba(0,0,0,.4);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.pf-mn{font-size:14px;overflow-wrap:anywhere}.pf-mc{font-size:12px;background:rgba(0,0,0,.35);border-radius:6px;padding:2px 4px}
+@media (max-width:440px){.pf-boite.boite{padding:18px 14px}.pf-ring{width:108px;height:108px}.pf-ring b{font-size:21px}.pf-vdn .pf-serie b{font-size:15px}.pf-vdn .pf-flamme{font-size:18px}.pf-hero{gap:10px}.pf-vdn{gap:6px;grid-template-columns:1fr 1fr}.pf-vdn .pf-tuile{padding:8px 4px}.pf-vdn .pf-tuile b{font-size:20px}.pf-mvps .dl-ligne{grid-template-columns:36px 36px 40px minmax(0,1fr) auto;gap:4px}.pf-sl{display:none}.pf-mn{font-size:12.5px}.pf-bh{flex-direction:column;gap:1px}.pf-bh b{text-align:left}}
+.d-tuile{cursor:pointer}
+/* Deck injouable : contour rouge comme le contour dore de la tuile choisie (taille inchangee) ; choisie et injouable : rouge, puis anneau dore autour. */
+.d-tuile.d-injouable{outline:3px solid #ff6b5e;outline-offset:1px}.d-tuile.d-injouable.choisie{outline-color:#ff6b5e;box-shadow:0 0 0 7px var(--or)}
+.d-tuile.choisie{outline:3px solid var(--or);outline-offset:1px}
+.d-zone{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.d-panneau{min-width:0;padding:12px;border:1px solid var(--trait);border-radius:12px;background:var(--panneau)}
+.d-panneau .intro{margin:0}
+@media (min-width:1200px){
+  /* --d-h : hauteur restante sous l'en-tete, calculee par hauteurDecks(). Trois lignes de 4 tuiles = hauteur du panneau. */
+  main:has(.d-zone){padding-bottom:12px}
+  /* Panneau condense (504 px, limite : nom de Cyrdan sur une ligne) ; 3 tuiles par ligne des 1200 px (4 lignes pour 12 decks). Tuiles a hauteur naturelle. */
+  .d-zone{grid-template-columns:minmax(0,1fr) minmax(0,504px);align-items:start;min-height:var(--d-h)}
+  .d-zone .d-grille{grid-template-columns:repeat(3,minmax(0,1fr));align-content:start}
+  .d-zone .d-tuile{gap:6px;padding:10px;justify-content:flex-start}
+  #listeDecks#listeDecks .d-zone .d-act>.btn{padding:3px 0;font-size:12.5px;letter-spacing:-.2px}
+  .d-zone .d-haut{margin-bottom:0}
+  .d-panneau{position:sticky;top:64px;height:var(--d-h);display:flex;flex-direction:column;overflow-y:auto}
+  .d-panneau .dl-liste{width:100%}
+  .d-panneau .dl-pied{width:100%;margin-top:auto;padding-top:10px}
+  .d-panneau .dl-ligne{grid-template-columns:36px 36px 40px minmax(0,1fr) 26px;gap:4px;min-height:30px;padding:2px 6px}
+  .d-panneau{overflow-x:hidden}
+  .d-panneau .dl-liste,.d-panneau .dl-pied{max-width:none}
+  .d-panneau .dl-nom{flex-direction:row;align-items:baseline;gap:8px}
+  .d-panneau .dl-pseudo{flex:none}
+  .d-panneau .dl-titre{flex:1;min-width:0}
+  .d-panneau .dl-nom{font-size:15.5px;line-height:1.15}
+  .d-panneau .dl-titre{font-size:13px}
+  .d-panneau .dl-cout,.d-panneau .dl-force,.d-panneau .dl-nb{font-size:17px}
+  .d-panneau .dl-els img{width:22px;height:22px}
+  .d-panneau{scrollbar-gutter:stable}
+  /* Panneau condense : 30 cartes et la courbe des couts tiennent a 1280 x 800 sans defiler. */
+  .d-panneau .d-haut{flex-wrap:nowrap;gap:6px}
+  .d-panneau .d-haut h3{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .d-panneau .d-haut:has(.ligne){flex-wrap:wrap}
+  .d-panneau .dl-liste li+li{margin-top:1px}
+  .d-panneau .dl-ligne{grid-template-columns:40px 40px 48px minmax(0,1fr) 30px;min-height:30px;padding:2px 6px}
+  .d-panneau .dl-nom{line-height:1.05}
+  .d-panneau .dl-pied{padding-top:6px;position:sticky;bottom:-12px;margin-bottom:-12px;padding-bottom:12px;background:var(--panneau);box-shadow:0 -6px 8px -6px rgba(0,0,0,.6)}
+  .d-panneau .dl-total{margin-bottom:4px}
+  .d-panneau .dl-col i{height:calc(var(--v)*32px)}
+  .d-panneau .d-haut{margin-bottom:3px}
+  /* Tuiles larges : nom plus grand, boutons en 2 x 2 plus hauts et mieux espaces (pictos inchanges). */
+  .d-zone .d-tuile .d-haut h3{font-size:24px}
+  #listeDecks#listeDecks .d-zone .d-act{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  #listeDecks#listeDecks .d-zone .d-act>.btn{min-height:36px;font-size:14.5px;letter-spacing:0}
+  /* Panneau aussi haut que les 4 lignes de tuiles : courbe d'energie et compteur agrandis, lignes un peu plus hautes. */
+  .d-panneau .dl-col i{height:calc(var(--v)*46px);width:30px}
+  .d-panneau .dl-col small{font-size:17px}
+  .d-panneau .dl-pc{font-size:17px}.d-panneau .dl-pc .ico{font-size:19px}
+  .d-panneau .dl-courbe{grid-template-columns:repeat(7,46px);column-gap:12px}
+  .d-panneau .dl-tot{font-size:22px}.d-panneau .dl-moy b{font-size:22px}
+  .d-panneau .dl-ligne.dl-ligne{min-height:33px}
+  /* En-tete : nom (coupe avec ...), pictos, puis nombre de cartes tout a droite. */
+  .d-panneau.d-panneau .d-haut>h3{flex:1 1 0;min-width:0}
+  .d-panneau.d-panneau .d-haut .d-compte{margin-left:8px}
+  /* Tuile etroite : boutons sur deux lignes de deux, jamais coupes. */
+  @container (max-width:250px){#listeDecks#listeDecks .d-zone .d-act{grid-template-columns:repeat(2,minmax(0,1fr))}#listeDecks#listeDecks .d-zone .d-act>.btn{font-size:13px}.d-zone .d-tuile .d-haut h3{font-size:18px}}
+}
+.dl-liste{list-style:none;margin:0 auto;padding:0;max-width:640px}
+.dl-liste li+li{margin-top:3px}
+.dl-ligne{display:grid;grid-template-columns:44px 42px 46px minmax(0,1fr) 32px;align-items:center;gap:6px;width:100%;min-height:38px;padding:3px 8px;border:0;border-radius:7px 5px 8px 4px;background:var(--panneau2);color:var(--texte);text-align:left;cursor:pointer}
+.dl-ligne:hover{background:#22384a}
+.dl-ligne.dl-duo{background:linear-gradient(90deg,var(--a) 22%,var(--b) 78%);color:#fff}
+.dl-ligne.dl-duo:hover{filter:brightness(1.12)}
+.dl-duo .dl-nom{color:#fff;text-shadow:0 1px 3px #0a121a}
+/* Animaux de compagnie (901, 902) : vert du bandeau de leur carte (preleve sur cartes/901.jpg et 902.jpg : #0d3012 a gauche, #4aa82e a droite). */
+:root{--animal-titre:#effed9} /* sous-titre : vert clair de la carte (#d9faa9) eclairci pour rester lisible sur le bout clair du degrade (essai 1b retenu par Romain) */
+.dl-ligne.dl-animal{background:linear-gradient(90deg,#0d3012 0%,#4aa82e 100%);color:#fff}
+.dl-ligne.dl-animal:hover{filter:brightness(1.12)}
+.dl-animal .dl-nom{color:#fff;text-shadow:0 1px 3px #0a121a}
+.dl-animal .dl-titre{text-shadow:0 0 4px #0a121a,0 1px 2px #0a121a}
+.dl-duo .dl-cout,.dl-duo .dl-force,.dl-duo .dl-nb{-webkit-text-stroke:3px #0a121a;paint-order:stroke fill}
+.dl-duo .dl-force .ico{color:#dfe5e9}
+.dl-cout,.dl-force{display:inline-flex;align-items:center;gap:3px;font:400 16px/1 var(--titre)}
+.dl-force.dl-dec{gap:0;font-size:14px;letter-spacing:-.5px} /* Force moyenne (3,5 ; 6,4) : tient dans la colonne */
+.dl-cout .ico,.dl-force .ico{font-size:16px;color:var(--doux)}
+.dl-nom{font-weight:700;overflow-wrap:anywhere;min-width:0;display:flex;flex-direction:column}
+.dl-pseudo{color:#fff}
+.dl-titre{display:block;font-size:12px;line-height:1.2;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-text-stroke:3px #0a121a;paint-order:stroke fill;letter-spacing:.2px;text-shadow:0 0 2px #0a121a,0 1px 3px #0a121a}
+.dl-els{display:flex;gap:2px}
+.dl-els img{display:block;width:21px;height:21px}
+.dl-nb{text-align:right;font:400 16px/1 var(--titre);color:var(--or)}
+.dl-apercu{position:fixed;z-index:50;width:220px;height:308px;object-fit:contain;border-radius:10px;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.dl-pied{max-width:640px;margin:14px auto 0}
+.dl-total{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 0 8px;padding:0 8px}
+.dl-tot{font:400 18px/1 var(--titre);color:#01C1F0}
+.dl-moy{font-size:14px;color:var(--doux)}.dl-moy b{font:400 18px/1 var(--titre);color:#01C1F0;margin-left:4px}
+.dl-courbe{display:grid;grid-template-columns:repeat(7,40px);justify-content:center;column-gap:10px;align-items:end;margin:0 auto}
+.dl-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;padding:3px 0 2px;border-radius:6px;color:var(--doux);height:100%}
+.dl-col i{display:block;width:26px;height:calc(var(--v)*44px);border-radius:3px 3px 0 0;background:#01C1F0}
+.dl-col small{font:400 14px/1 var(--titre);color:#fff}
+.dl-pc{display:inline-flex;align-items:center;gap:2px;font:400 14px/1 var(--titre);color:#01C1F0}.dl-pc .ico{font-size:16px}.dl-pc .ico svg{filter:brightness(2.7)}
+.dl-col.dl-vide{opacity:.35}.dl-col.dl-vide small{color:var(--doux)}
+@media (max-width:440px){.dl-courbe{grid-template-columns:repeat(7,minmax(0,38px));column-gap:6px}.dl-col i{width:22px}.dl-total{padding:0 4px}}
+.d-limite{color:var(--or);font-weight:700}
+.dl-invalide{margin:0 0 8px}
+/* Deck injouable : toutes les raisons en clair (editeur, liste du deck), carte en cause cerclee de rouge. */
+.dl-erreurs{margin:0 0 8px;padding:6px 10px;border:1px solid #ff6b5e;border-left-width:4px;border-radius:8px;background:rgba(255,107,94,.1);overflow-wrap:anywhere}
+.dl-erreurs>b{color:#ff6b5e}
+.dl-erreurs ul{margin:2px 0 0;padding-left:20px}
+.dl-erreurs li+li{margin-top:2px}
+#listeDecks#listeDecks .dl-erreurs .btn{min-height:32px;margin:2px 0 2px 8px;padding:3px 10px;font-size:14px;vertical-align:middle} /* comme Renommer (.dl-renomme) */
+.d-carte.d-fautive img{outline:3px solid #ff6b5e;outline-offset:2px}
+.d-carte-err{margin:4px 0 0;text-align:center;font-size:13px;font-weight:700;line-height:1.25;color:#ff8a80}
+.dl-ligne.dl-fautive{box-shadow:inset 0 0 0 2px #ff6b5e}
+/* Tuile d'un deck injouable (onglet Decks, choix du deck) : raison courte, toujours visible (souris et toucher). */
+/* Bandeau a droite d'Importer un deck : raison du deck ouvert dans le panneau ; seul sur sa ligne et pleine largeur s'il manque de place. */
+/* Largeur au contenu, plafonnee a la place libre ; 46 px et rebord de 3 px comme les boutons (.btn : 0 3px 0) ; 2 lignes au plus. */
+.d-bandeau{flex:0 1 auto;width:max-content;max-width:100%;min-width:0;height:46px;box-sizing:border-box;display:flex;align-items:center;margin:0;padding:2px 12px;border:1px solid #ff6b5e;border-radius:8px;background:rgba(255,107,94,.1);box-shadow:0 3px 0 #7a2a24;line-height:1.15;overflow-wrap:anywhere}
+.d-bandeau>span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}.d-bandeau b{color:#ff6b5e}
+/* 600 px et plus : le bandeau reste a cote des boutons et se resserre ; en dessous, il passe dessous (largeur au contenu, pleine largeur s'il est long). */
+@media (min-width:600px){.d-btns:has(.d-bandeau){flex-wrap:nowrap}.d-btns:has(.d-bandeau)>.btn{flex:none}}
+.d-raison{display:block;margin:0;padding:2px 8px;border-radius:8px;background:rgba(10,18,26,.75);color:#ff8a80;font-size:14px;font-weight:700;line-height:1.35;overflow-wrap:anywhere}
+.d-panneau{scrollbar-width:thin;scrollbar-color:#3d4e5d transparent}
+.d-panneau::-webkit-scrollbar{width:8px}.d-panneau::-webkit-scrollbar-thumb{background:#3d4e5d;border-radius:4px}.d-panneau::-webkit-scrollbar-track{background:transparent}
+.d-haut .dl-renomme,#listeDecks#listeDecks .dl-renomme{min-height:32px;padding:3px 10px;font-size:14px}
+.d-panneau .d-haut h3{flex:0 1 auto}.d-panneau .d-haut .d-pict{flex:none;min-height:0}.d-panneau .d-haut .d-pict img{width:22px;height:22px}.d-panneau .d-haut .d-compte{margin-left:auto}
+.d-haut .ligne{flex:1 1 100%}.d-haut .ligne input{flex:1;width:auto;min-width:0;padding:6px 10px}
+/* Rejoindre : meme grille que Facile, Normal, Difficile ; le champ prend les deux premieres colonnes. */
+#formCode{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:end}
+#formCode>div{grid-column:span 2;min-width:0}
+#formCode #champCode{height:46px}
+#formCode#formCode #rejoindre{width:100%;min-height:46px;padding:8px 4px;font-size:18px}
+#formCode{grid-template-columns:minmax(0,1fr) max-content}#formCode#formCode #rejoindre{width:auto;padding:8px 22px}#formCode>div{grid-column:auto}#formCode#formCode #champCode{width:0;min-width:100%;box-sizing:border-box}
+.o-nb{margin:10px 0}.o-haut{margin-bottom:12px}.o-conf{margin:0 0 8px;font-weight:800}
+.d-grille{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.d-tuile{display:flex;flex-direction:column;gap:10px;border:1px solid var(--trait);border-radius:12px;padding:12px}
+.d-haut{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.d-haut h3{flex:1;min-width:0;font-size:21px;overflow-wrap:anywhere;text-shadow:0 1px 3px #0a121a;-webkit-text-stroke:4px #0a121a;paint-order:stroke fill}
+.d-compte{font:400 18px/24px var(--titre);padding:0 8px;border-radius:8px;background:rgba(10,18,26,.75);color:var(--texte)}
+.d-compte.ok{color:#6fe08a}
+.d-pict{display:flex;gap:4px;min-height:26px}
+.d-act{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+#listeDecks#listeDecks .d-act>.btn{min-width:0;min-height:32px;padding:3px 1px;font-size:clamp(12px,6cqi,14px);white-space:nowrap}
+.d-tuile{container-type:inline-size}
+/* Nom long : 2 lignes au plus, les boutons restent entiers. */
+.d-tuile .d-haut h3{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.d-tuile .d-act{flex:none}
+.d-tuile.mono .d-haut h3{color:var(--bleu)}
+.d-act>:not(.btn){grid-column:1/-1}
+.d-carte img{display:block;width:100%;aspect-ratio:5/7;height:auto;border-radius:10px}
+.d-carte img.d-zoom{cursor:zoom-in}
+.d-qte{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;font-family:var(--titre)}
+.d-qte b{font-weight:400;min-width:30px;text-align:center}
+.h-barre{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.h-pages{display:flex;align-items:center;gap:10px}
+.h-pages span{font-family:var(--titre);min-width:90px;text-align:center}
+main:has(#historique:not([hidden])){padding-bottom:12px}
+.h-grille{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:800px){.h-grille{grid-template-columns:1fr 1fr}}
+.h-carte{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px 10px;align-items:center;width:100%;padding:10px 14px;border:1px solid var(--trait);border-left:6px solid #98a4ae;border-radius:10px;background:var(--panneau);color:var(--texte);text-align:left;cursor:pointer;font:inherit}
+.h-carte:hover{background:var(--panneau2)}
+.h-carte.h-v{border-left-color:#46a866}.h-carte.h-d{border-left-color:#c9493c}
+.h-l1{grid-column:1;grid-row:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}
+@media (min-width:800px){.h-l1{flex-wrap:nowrap}}
+.h-date{font-size:14px;color:var(--doux);white-space:nowrap}
+.h-rj{grid-column:2;grid-row:1;justify-self:end;display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border:0;border-radius:7px;background:linear-gradient(#3bd2f7,#01aad6);color:var(--encre);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 2px 0 #08708c;font:400 15px/1 var(--titre);cursor:pointer;white-space:nowrap}
+.h-rj-i{font-size:11px}
+.h-rj:not([aria-disabled=true]):hover{filter:brightness(1.08)}
+.h-rj[aria-disabled=true]{opacity:.35;cursor:not-allowed;box-shadow:none}
+.h-res{grid-column:3;grid-row:1;justify-self:stretch;text-align:center;font:400 18px/1 var(--titre);padding:5px 10px;border-radius:6px;color:#0a121a;background:#c3ccd3}
+.h-v .h-res{background:#6fd08c}.h-d .h-res{background:#ea7a6c}
+.h-adv{min-width:0;max-width:100%;font-weight:800;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h-sc{font:400 19px/1 var(--titre);color:var(--or);white-space:nowrap}
+.h-adv .niv{font-weight:800}
+.h-leg{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:0 0 10px;font-size:13.5px;color:var(--doux)}
+.h-leg b{font-weight:800}
+.h-mvp{grid-column:1/3;grid-row:2;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h-mvp-e{display:inline-block;margin-right:6px;padding:1px 6px;border-radius:4px;background:var(--or);color:var(--encre);font:400 12px/1.3 var(--titre);letter-spacing:.04em;vertical-align:1px}
+.h-mvp-n{font-weight:800}
+.h-ver{margin-left:8px;font-size:12px;color:var(--doux);opacity:.8}
+.h-dver{margin:-4px 0 12px;font-size:13px;color:var(--doux)}
+@media (max-width:640px){.h-carte .h-deck{max-width:120px}}
+.h-carte .h-deck{grid-column:3;justify-self:stretch;text-align:center}
+.h-deck{grid-column:2;grid-row:2;justify-self:end;max-width:170px;padding:3px 10px;border-radius:6px 4px 7px 3px;font-weight:800;font-size:13px;color:#fff;text-shadow:0 1px 3px #0a121a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-deck.h-sans{background:var(--panneau2);color:var(--doux);text-shadow:none}
+.h-detail.boite{max-width:640px;text-align:left}
+.h-detail h2{text-align:center}
+.h-detail h3{margin:14px 0 6px}
+.h-detail h4{margin:10px 0 4px}
+.h-detail ul{margin:0;padding-left:18px}
+.h-tab{width:100%;table-layout:fixed;border-collapse:collapse;font-size:14px;margin-bottom:6px;font-variant-numeric:tabular-nums}
+.h-tab .h-col-c{width:40%}.h-tab .h-col-n{width:15%}
+.h-tab th,.h-tab td{padding:4px 6px;border-bottom:1px solid var(--trait);text-align:center;vertical-align:middle}
+.h-tab th{font-size:12px;font-weight:600;color:var(--doux);line-height:1.2}
+.h-tab th:first-child,.h-tab td:first-child{text-align:left}
+@media (max-width:480px){.h-crt{flex-direction:column;align-items:flex-start;gap:2px}.h-cnom{flex-direction:column;align-items:flex-start;gap:0;max-width:100%}.h-dmvp .h-crt,.h-dmvp .h-cnom{flex-direction:row;align-items:center;gap:4px}.h-cti{max-width:100%}.h-tab .h-col-c{width:32%}.h-tab .h-col-n{width:17%}.h-tab th,.h-tab td{padding:4px 1px}.h-tab th{font-size:11px}.h-tab td.h-cn{padding-left:2px}}
+.h-crt{display:flex;align-items:center;gap:6px;min-width:0;max-width:100%;vertical-align:middle}
+.h-cels{display:inline-flex;flex:none;gap:1px}.h-cels img{width:18px;height:18px}
+.h-cnom{display:flex;align-items:baseline;gap:4px;min-width:0;line-height:1.15}
+.h-cps{flex:none;font-weight:700;color:var(--texte);white-space:nowrap}
+.h-cti{flex:1;min-width:0;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-dmvp .h-mvp{display:inline-flex;align-items:center;gap:0}
+.h-chaud{color:var(--or);font-weight:700}.h-froid{color:#e6a39a}.h-zero{color:#5d7080}
+.h-moi{color:#01C1F0}.h-lui{color:var(--magma)}.h-detail h4.h-moi,.h-detail h4.h-lui{font-weight:800}
+.h-detail h2.h-dv span:first-child{color:#3ecf6e}.h-detail h2.h-dd span:first-child{color:#ef4f4f}.h-detail h2.h-dn span:first-child{color:#9aa4ae}
+.h-dsc{color:var(--texte)}.h-dsub{color:var(--doux)}
+.h-detail h3{color:#01C1F0;padding-top:10px;border-top:1px solid rgba(1,193,240,.25)}
+.h-detail ul.h-man{list-style:none;padding:0}.h-man li{margin:4px 0;font-size:14px}
+.h-man-n{display:inline-block;min-width:72px;color:var(--doux)}.h-man-g{margin-right:8px}.h-man-d{color:var(--doux)}.h-man-d .h-pt{color:var(--or)}
+.h-dmvp{margin:0}.h-dmvp .h-mvp{white-space:normal}.h-dmvp-s{display:block;color:var(--doux);font-size:13px;margin-top:2px}
+.h-detail .p-btns{justify-content:center;margin-top:14px}
+.h-lg{font-size:14px;color:var(--doux);white-space:pre-wrap;overflow-wrap:anywhere}
+/* Coins exacts de la carte : memes rayons que le cadre, pour masquer les coins du JPG. */
+.carte img,.p-carte img,.v-carte img,.grand img,.tas img,.d-carte img,#apercu,.dl-apercu,.an-carte>img{border-radius:5.07%/3.62%}
