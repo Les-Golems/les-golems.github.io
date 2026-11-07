@@ -266,16 +266,16 @@ function retire(s,p,l,k,rem){
   J.defausse.push(g.c);
   J.grille[l][k]=null;
   if(golem(g))orphelins(s,p,g.c,rem);
-  if(g.ani){const A=carte(g.ani.c);J.defausse.push(g.ani.c);if(!rem&&A.id==='902')chatsPioche(s,p,'son maître est détruit');dire(s,p,A.nom+' part à la défausse : son maître a quitté le jeu.')} /* animal attache */
+  if(g.ani){const A=carte(g.ani.c);J.defausse.push(g.ani.c);if(!rem)animalHook(A,'maitreDetruit',s,p);dire(s,p,A.nom+' part à la défausse : son maître a quitté le jeu.')} /* animal attache */
 }
 /* Un animal part a la defausse quand son maitre quitte le jeu (mort, remplace, detruit). Deplace ou evolue, le maitre le garde (agit suit l'evolution). */
 function orphelins(s,p,c,rem){ /* rem : remplacement par son joueur, pas une destruction (Jacen et Jaina) */
   const J=s.j[p];
   /* 0.4 : les chats quittent la grille avant de piocher ; journal dans le meme ordre */
-  J.grille.forEach(L=>L.forEach((h,k)=>{if(animal(h)&&h.maitre===c){J.defausse.push(h.c);L[k]=null;if(!rem&&carte(h.c).id==='902')chatsPioche(s,p,'son maître est détruit');dire(s,p,carte(h.c).nom+' part à la défausse : son maître a quitté le jeu.')}}));
+  J.grille.forEach(L=>L.forEach((h,k)=>{if(animal(h)&&h.maitre===c){J.defausse.push(h.c);L[k]=null;if(!rem)animalHook(carte(h.c),'maitreDetruit',s,p);dire(s,p,carte(h.c).nom+' part à la défausse : son maître a quitté le jeu.')}}));
 }
-/* Jacen et Jaina (902) : pioche 1 carte. Deck vide : 1 point pour l'adversaire (evenement 'jj' seulement si une carte est piochee). */
-function chatsPioche(s,p,pq){const v=!s.j[p].deck.length&&!s.deckLibre;dire(s,p,'Jacen et Jaina : '+pq+', pioche 1 carte.');pioche(s,p,1);if(!v)s.stats.ev.push({t:'jj',cp:p,y:pq})} /* journal : l'effet, puis le point si le deck est vide */
+/* Effets d'un animal (fiche C) : poseAnimal, maitreDetruit (Jacen et Jaina : pioche 1 carte, cartes/effets/animaux.js) */
+function animalHook(C,h,s,p){for(const e of effs(C.id))if(e.T[h])e.T[h](e.r,s,p)}
 /* Statistiques : evenements en lecture seule, aucun effet sur la partie. src = {p,c,lib}, c et p peuvent etre null. */
 function note(s,t,n,src,cp,cc,ch){const o={t,n,sp:src.p,sc:src.c,lib:src.lib,cp,cc};if(ch)o.ch=1;s.stats.ev.push(o)}
 function declenche(s,nom,e){s.stats.act.push({m:s.manche,nom,e})}
@@ -582,7 +582,7 @@ function agit(s,p,a){
   if(sur>0)F.annonceSurtaxe(s,p,C,sur); /* Realisation de l'age */
   if(C.base&&occ.d>0)s.stats.ev.push({t:'r',cp:p,cc:a.c,n:occ.d,y:'evolution'});
   J.energie-=cout;J.aAgi=true;J.main.splice(J.main.indexOf(a.c),1);
-  if(C.animal&&REGLAGE_ANIMAUX.attache){occ.ani={c:a.c};dire(s,p,'pose '+C.nom+' sous '+nomDetail(carte(occ.c))+'.');if(C.id==='902')chatsPioche(s,p,'à la pose');return} /* animal attache : sous son maitre, aucune case */
+  if(C.animal&&REGLAGE_ANIMAUX.attache){occ.ani={c:a.c};dire(s,p,'pose '+C.nom+' sous '+nomDetail(carte(occ.c))+'.');animalHook(C,'poseAnimal',s,p);return} /* animal attache : sous son maitre, aucune case */
   const g={c:a.c,f:C.force||0,d:0};
   if(C.base){J.defausse.push(occ.c);dire(s,p,'améliore '+nomDetail(carte(occ.c))+' en '+C.nom+'.');if(C.id==='013e'&&occ.fav!==undefined)g.fav=occ.fav;J.grille.forEach(L=>L.forEach(h=>{if(h&&h.fav===occ.c)h.fav=a.c;if(animal(h)&&h.maitre===occ.c)h.maitre=a.c}))} /* 0.2a.1 : le favori survit a l'evolution d'Indra et a la sienne ; l'animal suit son maitre qui evolue */
   else if(C.animal){const[x,y]=maitreVoisin(J.grille,C,a.l,a.k);g.maitre=J.grille[x][y].c;dire(s,p,'pose '+C.nom+'.')} /* lie au maitre voisin (haut, bas, gauche, droite) ; Jacen et Jaina piochent une fois poses (0.4) */
@@ -591,29 +591,19 @@ function agit(s,p,a){
   if(C.base&&REGLAGE_JJ.garde){if(occ.sub)g.sub=occ.sub.slice();if(occ.dr)g.dr=occ.dr.slice()}
   if(C.base&&occ.ani)g.ani=occ.ani; /* animal attache : reste si son maitre evolue */ /* JackJoy, V2 : Sub offert et Draft diff gardes a l'evolution */
   J.grille[a.l][a.k]=g;
-  if(C.id==='902')chatsPioche(s,p,'à la pose'); /* Jacen et Jaina : pioche a la pose, une fois sur la grille (deck vide : 1 point a l'adversaire) */
+  if(C.animal)animalHook(C,'poseAnimal',s,p); /* Jacen et Jaina : pioche a la pose, une fois sur la grille (deck vide : 1 point a l'adversaire) */
   if(!C.animal)for(const e of effsT(s,a.k))if(e.T.poseIci)e.T.poseIci(e.r,s,p,a.k,C,g,C.base?'evoluer':occ?'remplacer':'poser'); /* terrain (Le Versus, Cirque V2) : avant l'effet de pose de la carte */
   effetPose(s,p,a.l,a.k,g);
 }
-/* Mignonitude (Kiwi), avant le decompte : pour chaque Kiwi en jeu (premier joueur de la manche d'abord), un Golem au hasard de chaque grille,
-   le sien puis l'adverse, ne compte pas au decompte (g.hors = s.manche) ; il reste en jeu. Puis Kiwi part a la defausse.
-   Hasard : generateur du joueur de Kiwi (rejeu identique). Grille sans Golem : rien. Renvoie [{p (joueur de Kiwi), q (grille), l, k, c, f}]. */
+/* Animaux avant le decompte (Mignonitude de Kiwi) : pour chaque animal en jeu (premier joueur de la manche d'abord, ordre de lecture), sur sa case
+   ou attache sous son maitre, son crochet avantDecompte. Renvoie les Golems exclus [{p (joueur de l'animal), q (grille), l, k, c, f}]. */
 function mignonitude(s){
   const r=[];Object.defineProperty(r,'partir',{value:[]}); /* kiwiApres : departs differes apres le decompte (propriete non enumerable : hors JSON et hors comparaisons) */
   [s.premier,1-s.premier].forEach(p=>{
     const J=s.j[p];
     for(let l=0;l<3;l++)for(let k=0;k<3;k++){
-      const H=J.grille[l][k],A=animal(H)&&carte(H.c).id==='901'?H:golem(H)&&H.ani&&carte(H.ani.c).id==='901'?H.ani:null;if(!A)continue; /* Kiwi sur sa case, ou attache sous son maitre */
-      [p,1-p].forEach(q=>{
-        const cs=[];s.j[q].grille.forEach((L,a)=>L.forEach((g,b)=>{if(golem(g)&&g.hors!==s.manche)cs.push([a,b])}));
-        if(!cs.length){dire(s,p,'Kiwi : Mignonitude, aucun Golem '+(q===p?'dans sa grille':'dans la grille adverse')+'.');return}
-        const[a,b]=cs[Math.floor(alea(s.rng,p)*cs.length)],g=s.j[q].grille[a][b],f=forceDe(s,q,a,b),n=nomDetail(carte(g.c));
-        g.hors=s.manche;r.push({p,q,l:a,k:b,c:g.c,f});
-        s.stats.ev.push({t:'h',sp:p,sc:A.c,cp:q,cc:g.c,n:f,m:s.manche});declenche(s,'Mignonitude',n+(q===p?'':' (adverse)')+' ne compte pas');
-        dire(s,p,'Kiwi : Mignonitude, '+n+(q===p?'':' (adverse)')+' ne compte pas au décompte.');
-      });
-      const part=()=>{J.defausse.push(A.c);if(A===H)J.grille[l][k]=null;else delete H.ani;dire(s,p,'Kiwi part à la défausse.')};
-      if(REGLAGE_ANIMAUX.kiwiApres)r.partir.push(part);else part();
+      const H=J.grille[l][k],A=animal(H)?H:golem(H)&&H.ani?H.ani:null;if(!A)continue; /* animal sur sa case, ou attache sous son maitre */
+      for(const e of effs(carte(A.c).id))if(e.T.avantDecompte)e.T.avantDecompte(e.r,s,p,l,k,H,A,J,r);
     }
   });
   return r;
@@ -911,9 +901,9 @@ function piochesAVenir(s,p,g){
 /* Effet de pose id (Spam, Jacen et Jaina, La Bretagne, Graine de Golem) joue par p : valeur en points de deck vide. Pioches manquees en plus pour p
    (tout de suite, puis aux debuts de tour a venir), comptees en moins ; pioches manquees en plus pour l'adversaire (La Bretagne), comptees en plus.
    gr : Golems Brume ou Foudre de chaque grille apres la pose (La Bretagne) ; g : Graines de Golem de p apres la pose. Le robot ne voit que la taille des decks. */
-const PIOCHE_POSE={'007':1,'902':1};
+const PIOCHE_POSE={'007':1};
 function risqueDeck(s,p,id,gr,g){
-  const D=[s.j[0].deck.length,s.j[1].deck.length],moi=PIOCHE_POSE[id]||(id==='026'?Math.min(3,gr[p]):0),lui=id==='026'?Math.min(3,gr[1-p]):id==='004'&&D[1-p]>0?1:0; /* Le Q : Jour de peche, 1 carte adverse en moins (risque en points) */
+  const D=[s.j[0].deck.length,s.j[1].deck.length],moi=PIOCHE_POSE[id]||effs(id).reduce((n,e)=>n+(e.T.risque?e.T.risque(e.r,s,p,gr,D)[0]:0),0)||(id==='026'?Math.min(3,gr[p]):0),lui=id==='026'?Math.min(3,gr[1-p]):id==='004'&&D[1-p]>0?1:0; /* Le Q : Jour de peche, 1 carte adverse en moins (risque en points) */
   const g0=graines(s.j[p].grille),ga=graines(s.j[1-p].grille);
   const manque=(q,n,gq,gq0)=>Math.max(0,n-D[q])+Math.max(0,piochesAVenir(s,q,gq)-Math.max(0,D[q]-n))-Math.max(0,piochesAVenir(s,q,gq0)-D[q]);
   return POINT_DECK_VIDE*(manque(1-p,lui,ga,ga)-manque(p,moi,g,g0));
@@ -949,7 +939,7 @@ function gainCoup(s,p,a,v0){
   if(a.t==='p'&&DUO[carte(a.c).id]&&apres.j[p].grille[a.l][a.k]&&duoVoisin(apres.j[p].grille,a.l,a.k,DUO[carte(a.c).id]))g+=.25; /* Bellock/Loxim : vise Double up ? (deja compte dans la Force si une evolution en profite) */
   if(a.t==='p'&&carte(a.c).id==='026'){const n=[p,1-p].map(q=>Math.min(3,s.j[q].grille.flat().filter(h=>h&&BRETON(h.c)).length+(q===p?1:0)));g+=.25*Math.min(n[0],s.j[p].deck.length)-.15*Math.min(n[1],s.j[1-p].deck.length)}
   if(a.t==='p'&&carte(a.c).id==='026e')g+=.4;
-  if(a.t==='p'&&carte(a.c).id==='901')g+=mignonEstime(apres,p)-.05;if(a.t==='p'&&carte(a.c).id==='902')g+=(s.j[p].deck.length?.5:0)-.05; /* Jacen et Jaina : 1 carte piochee */ /* Kiwi : Mignonitude estimee sur le plateau actuel, moins la case occupee */
+  if(a.t==='p'&&carte(a.c).animal)for(const e of effs(carte(a.c).id))if(e.T.robotPose)g=e.T.robotPose(e.r,s,p,a,apres,g); /* Jacen et Jaina : 1 carte piochee */ /* Kiwi : Mignonitude estimee sur le plateau actuel, moins la case occupee */
   if(a.t==='p'&&carte(a.c).id==='018')g+=elessarEstime(s,p); /* Elessar : Realisation de l'age gagnee */
   if(a.t==='p'&&carte(a.c).id==='018e')g-=elessarEstime(s,p); /* Elessar : Realisation de l'age perdue en evoluant */
   if(a.t==='p'&&(carte(a.c).id==='041'||carte(a.c).id==='041e')){const r=9-((s.manche-1)*3+s.tour);g+=(carte(a.c).id==='041'?1:-1)*.08*Math.min(4,r)} /* Velnen : Graine de Golem, cartes en plus aux tours suivants (perdue en evoluant) */
@@ -1169,10 +1159,10 @@ function robotFort(s,p,l,t){
 }
 /* Registre des effets : outils internes donnes aux fichiers d'effets (M), puis effets de chaque fiche. */
 const protegeRobot=h=>effs(idEff(h)).some(e=>e.T.protege&&(!e.r.unique||!h.cdb)); /* robot : perte adverse annulee (Menfou palu, Chance du debutant pas encore utilisee) */
-const M={carte,golem,animal,CARTES,TYPES,effs,idEff,REGLAGE_TERRAINS,golemsIci,kAvec,statsSansTerrain,gagnantColonne,ecart,colonnes,forceDe,retire,protegeRobot,dire,declenche,note,nomDetail,blesse,ciblable,de,pioche,melange,orphelins,nettoie,forgee,estCopieur:id=>!!COPIEURS[id]};
+const M={carte,golem,animal,CARTES,TYPES,effs,idEff,alea,REGLAGE_ANIMAUX,mignonEstime,REGLAGE_TERRAINS,golemsIci,kAvec,statsSansTerrain,gagnantColonne,ecart,colonnes,forceDe,retire,protegeRobot,dire,declenche,note,nomDetail,blesse,ciblable,de,pioche,melange,orphelins,nettoie,forgee,estCopieur:id=>!!COPIEURS[id]};
 R=FX.construit(M);F=R.fonctions;const ACT={};for(const x in R.actions)ACT[x]=R.actions[x];
 for(const T of TERRAINS)EFFT[T.nom]=[].concat(T.effet||[]).map(r=>{const X=R.types[r.type];if(!X)throw new Error('type d\'effet inconnu '+r.type+' ('+T.nom+')');return {T:X,r}});
-const {cirqueInv,tarteX,miseTotale,stT,stV,cfTarte,versusPose}=F;
+const {cirqueInv,tarteX,miseTotale,stT,stV,cfTarte,versusPose,chatsPioche}=F;
 const TY_HOOKS={};function TYPES_AVEC(h){return TY_HOOKS[h]||(TY_HOOKS[h]=Object.values(R.types).filter(T=>T[h]))} /* types qui ont le crochet h, dans l'ordre d'enregistrement */
 for(const id in CARTES){
   EFF[id]=[].concat(CARTES[id].effet||[]).map(r=>{const T=R.types[r.type];if(!T)throw new Error('type d\'effet inconnu '+r.type+' ('+id+')');return {T,r}});
