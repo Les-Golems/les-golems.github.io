@@ -9,8 +9,9 @@ const fs=require('fs'),path=require('path'),{execFileSync}=require('child_proces
 const RACINE=path.resolve(__dirname,'..'),FICHIER=path.join(RACINE,'version.json');
 const git=(...a)=>execFileSync('git',a,{cwd:RACINE,encoding:'utf8',stdio:['ignore','pipe','pipe']});
 const stop=m=>{console.error(m);process.exit(1)};
-/* Fichiers du moteur et des donnees de cartes (comparaison entiere) ; onglets/cartes.js (avant l'etape 5 : index.html) : seul le bloc const CARTES=[...] compte. */
-const MOTEUR=['moteur.js','moteurs'];
+/* Fichiers du moteur, des donnees et des effets de cartes (comparaison entiere). Depuis l'etape 8, la liste d'affichage CARTES est lue dans cartes/donnees ;
+   pour les anciennes references, le bloc const CARTES=[...] de onglets/cartes.js (etapes 5 a 7) ou d'index.html (avant) est encore compare. */
+const MOTEUR=['moteur.js','moteurs','cartes/donnees','cartes/effets'];
 const blocCartes=t=>{const i=t.indexOf('const CARTES=[');if(i<0)return '';const j=t.indexOf('];',i);return t.slice(i,j+2).replace(/\r\n/g,'\n')};
 
 function reference(){
