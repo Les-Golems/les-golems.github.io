@@ -186,6 +186,10 @@ function erreurDeck(o){
 const ELEM_MAX=4;
 function elementsDeck(o){const E=new Set();for(const id in o)if(+o[id]>0&&CARTES[id])CARTES[id].el.forEach(e=>E.add(e));return [...E]}
 function erreurElements(o){const n=elementsDeck(o||{}).length;return n>ELEM_MAX?n+' éléments différents ('+ELEM_MAX+' au plus)':''}
+/* Regle des evolutions (0.5) : une evolution (champ base) demande au moins un exemplaire de sa base dans le deck. Meme statut que erreurElements :
+   verifiee par le site seulement, jamais par erreurDeck ni lisDeck (rejeux et parties en cours inchanges). Renvoie les evolutions orphelines. */
+function evolutionsSansBase(o){o=o||{};return Object.keys(o).filter(id=>+o[id]>0&&CARTES[id]&&CARTES[id].base&&!(+o[CARTES[id].base]>0))}
+function erreurEvolutions(o){const L=evolutionsSansBase(o);return L.length?L.map(id=>CARTES[id].nom+' sans '+CARTES[CARTES[id].base].nom).join(', '):''}
 function deckTexte(o){
   if(!o)return '';
   return TYPES.filter(t=>+o[t]>0).map(t=>t+o[t]).join('');
@@ -1414,7 +1418,7 @@ function robotFort(s,p,l,t){
   const b=meilleur(F,p,q);
   return b.a&&b.g>.01?b.a:choixLove(F,p,l)||pronoRobot(s,p,l)||{t:'x'}; /* K-Chan ; Les Pronos */
 }
-const api={VERSION,TRAIT_CUMULE,TAILLE_DECK,DECK_MIN,DECK_MAX,MAX_EX,erreurDeck,ELEM_MAX,elementsDeck,erreurElements,deckTexte,lisDeck,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
+const api={VERSION,TRAIT_CUMULE,TAILLE_DECK,DECK_MIN,DECK_MAX,MAX_EX,erreurDeck,ELEM_MAX,elementsDeck,erreurElements,evolutionsSansBase,erreurEvolutions,deckTexte,lisDeck,POIDS_MVP,bilan,robot,CARTES,TYPES,DOMINE,TERRAINS,carte,nouvelle,legales,applique,attendus,code,decode,rejoue,ecritJournal,litJournal,
   nomDetail,forceDe,ciblable,colonnes,valeurDecompte,coutPose,genre,TYPES_TEST,DECK_DEFAUT,DECK_TUTO,FAV_BONUS,favori,indrasDe,idEff,foudres,spoms,
   estAnimal,ANIMAL_MAX,maxEx,maitreDe,peutPoser,elessars,graines,COPIEURS,EL_VELNEN,kekwait,echangesMeandyou,DUO,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,partenaires,forgeUtile,jjBonus,ciblesJJ,REGLAGE_JJ,cercle2,blesse,loves,choixLove,REGLAGE_KC,generaux,nettoie,noteBonus,retire,chatsPioche,effetsGolems,agit,piochesAVenir,risqueDeck,doublons,ilSuffit,jourDePeche,POINT_DECK_VIDE,
   ANCIENS_TERRAINS,REGLAGE_TERRAINS,estVersus,versusPose,slams,tarteX,cirqueInv,tirageTerrains,indexTerrain,ptsTerrain,gagnantColonne,golemsIci,ecart,ptsRobot,pronoRobot,miseTotale,decompte,effetTerrain,valeur,valeurForte};

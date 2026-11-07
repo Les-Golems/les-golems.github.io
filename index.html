@@ -1850,6 +1850,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
   <details><summary><h3>Cartes et decks</h3></summary><div class="corps"><ul>
     <li>Deck de 24 à 30 cartes, 3 exemplaires maximum de chaque carte, 1 seul par animal. Une base et son évolution sont deux cartes différentes, comptées à part.</li>
     <li>4 éléments différents au maximum par deck : un Golem à 2 éléments compte les deux, un animal n'en a aucun.</li>
+    <li>Pas d'évolution sans sa base : pour mettre une évolution dans ton deck, ajoute au moins un exemplaire de sa carte de base.</li>
   </ul></div></details>
 
   <details><summary><h3>Animaux de compagnie</h3></summary><div class="corps"><ul>
@@ -2177,7 +2178,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 const NOUVEAUTES=[
- {version:'Version 0.4a',date:'7 novembre 2026',notes:["6 nouveaux terrains : L'École, Le Karaoké, Les Pronos, Le Cirque, Le Tournoi et Le Versus","Nouvelle règle : 4 éléments différents au plus par deck","Deck conseillé Marée bretonne, autour du nouveau Le Q","Decks conseillés et deck par défaut à 4 éléments","Lien direct vers une carte, à partager","Lisibilité améliorée pour les daltoniens","Nouveautés : pagination des versions"]},
+ {version:'Version 0.4a',date:'7 novembre 2026',notes:["6 nouveaux terrains : L'École, Le Karaoké, Les Pronos, Le Cirque, Le Tournoi et Le Versus","Nouvelle règle : 4 éléments différents au plus par deck","Nouvelle règle : pas d'évolution sans au moins un exemplaire de sa base dans le deck","Deck conseillé Marée bretonne, autour du nouveau Le Q","Decks conseillés et deck par défaut à 4 éléments","Lien direct vers une carte, à partager","Lisibilité améliorée pour les daltoniens","Nouveautés : pagination des versions"]},
  {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","Rework de Le Q : Brume et Magma, nouveaux effets","Nouvelle règle : deck vide, 1 point à l'adversaire par carte à piocher","Bug de Jacen et Jaina corrigé"]},
  {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
  {version:'Version 0.2c',date:'5 novembre 2026',notes:["La Boutique réduit aussi le coût des évolutions","Éditeur de deck : teste tes placements dans un bac à sable","Statistiques repensées : recherche, classement complet, toutes tes parties comptées","Profil des joueurs réorganisé, avec ton rang au classement","Partage de deck par lien cliquable","Résumé de partie prêt à coller sur Discord","Version vérifiée dans le salon, page mise à jour automatiquement","Appli installée : nouvelle icône, lancement bleu ciel","QoL ajoutés"]},
@@ -2207,6 +2208,7 @@ const DETAILS_VERSIONS={
    "Le panneau d'une évolution affiche le bon texte."],
   regles:[
    "4 éléments différents au plus par deck : un Golem à 2 éléments compte les deux, un animal n'en a aucun.",
+   "Une évolution demande au moins un exemplaire de sa carte de base dans le deck : retirer la dernière base rend le deck injouable, l'évolution n'est pas retirée.",
    "Deck par défaut et decks conseillés Tempête et Forge rapide refaits pour respecter les 4 éléments.",
    "Les Pronos : les mises sont perdues si personne ne conquiert le terrain.",
    "L'École : en cas d'égalité, personne ne pioche. Deck vide : 1 point pour l'adversaire, comme pour toute pioche.",
@@ -4863,22 +4865,24 @@ function raisonsDeck(d){
     if(!M.TYPES.some(t=>(t===m||M.CARTES[t].base===m)&&o[t]>0))R.push({c:nom(k)+' sans '+nom(m),t:nom(k)+' demande au moins un '+nom(m)+(ev?' (ou '+nom(ev)+')':'')+' dans le deck.',ids:[k]})});
   if(n<DECK_MIN)R.push({c:n+' cartes sur '+DECK_MIN,t:'Deck incomplet : '+n+' carte'+(n>1?'s':'')+' sur '+DECK_MIN+' minimum, il en manque '+(DECK_MIN-n)+'.',ids:[]});
   if(n>DECK_MAX)R.push({c:n+' cartes sur '+DECK_MAX,t:'Trop de cartes : '+n+' pour '+DECK_MAX+' au plus, '+(n-DECK_MAX)+' en trop.',ids:[]});
+  /* 0.5 : une evolution demande au moins un exemplaire de sa base (M.evolutionsSansBase ; le moteur ne le verifie pas, pour les rejeux). Carte fautive = l'evolution. */
+  if(M.evolutionsSansBase)M.evolutionsSansBase(o).forEach(k=>{const b=M.CARTES[k].base,cb=CARTES.find(x=>x[0]===b),nb=cb?cb[1]:nom(b);R.push({c:nom(k)+' sans '+nb,t:nom(k)+' : ajoute au moins un '+nb+'.',ids:[k]})});
   /* 0.4a : 4 elements differents au plus (M.erreurElements ; le moteur ne le verifie pas, pour les rejeux). */
   {const E=M.elementsDeck?M.elementsDeck(o):[];if(E.length>M.ELEM_MAX)R.push({c:E.length+' éléments sur '+M.ELEM_MAX,t:'Trop d’éléments : '+E.length+' éléments différents ('+E.map(nomEl).join(', ')+') pour '+M.ELEM_MAX+' au plus.',ids:[]})}
   /* Le moteur fait foi : s'il refuse le deck pour une raison non prevue ici, son message est repris. */
-  if(!R.length){let e='';try{e=M.erreurDeck(o)||''}catch(x){e='deck illisible'}if(e)R.push({c:e,t:'Deck injouable : '+e+'.',ids:[]})}
+  if(!R.length){let e='';try{e=M.erreurDeck(o)||''}catch(x){e='deck illisible'}if(e)R.push({c:e,t:'Deck invalide : '+e+'.',ids:[]})}
   return R;
 }
 /* Encadre des raisons dans l'editeur ; Retirer enleve les cartes retirees du jeu, invisibles dans la grille. */
 function blocErreurs(R,d,l){
   const z=el('div','dl-erreurs');z.setAttribute('role','status');
   const ret=r=>{const q=el('button','btn sec','Retirer');q.type='button';q.onclick=e=>{e.stopPropagation();r.inc.forEach(k=>delete d.cartes[k]);gardeDecks(l);peintDecks()};return q};
-  if(R.length===1){z.append(el('b','','Deck injouable : '),R[0].t);if(R[0].inc)z.append(ret(R[0]));return z}
+  if(R.length===1){z.append(el('b','','Deck invalide : '),R[0].t);if(R[0].inc)z.append(ret(R[0]));return z}
   const u=el('ul');R.forEach(r=>{const li=el('li','',r.t);if(r.inc)li.append(ret(r));u.append(li)});
-  z.append(el('b','','Deck injouable, '+R.length+' raisons :'),u);return z;
+  z.append(el('b','','Deck invalide, '+R.length+' raisons :'),u);return z;
 }
 /* Raison courte sur une tuile de deck : visible sans survol (telephone), texte complet en title pour la souris. */
-function raisonTuile(R){const p=el('span','d-raison','Injouable : '+R.map(r=>r.c).join(' · '));p.title=R.map(r=>r.t).join('\n');return p}
+function raisonTuile(R){const p=el('span','d-raison','Invalide : '+R.map(r=>r.c).join(' · '));p.title=R.map(r=>r.t).join('\n');return p}
 let deckOuvert=null,deckVu=null,triDeck='',triDeckDesc=false;const fDeck={ty:'',sel:new Set(),mode:'ou',q:''};
 /* Compte connecte : decks dans Firebase (ecriture groupee apres 600 ms). Invite : sur l'appareil. */
 const decksLocaux=()=>litListe('golems.decks').filter(d=>d&&typeof d.nom==='string'&&d.cartes);
@@ -4891,7 +4895,7 @@ function gardeDecks(l){
 }
 /* Choix du deck avant Pret et contre le robot : paquet de test ou deck complet (24 a 30 cartes). */
 let deckPret={id:'',nom:'Test',texte:''};
-function decksJouables(){return lesDecks().filter(d=>{const o=Object.fromEntries(Object.entries(d.cartes).filter(([,n])=>+n>0).map(([k,n])=>[k,+n]));return !M.erreurDeck(o)&&!(M.erreurElements&&M.erreurElements(o))})}
+function decksJouables(){return lesDecks().filter(d=>{const o=Object.fromEntries(Object.entries(d.cartes).filter(([,n])=>+n>0).map(([k,n])=>[k,+n]));return !M.erreurDeck(o)&&!(M.erreurElements&&M.erreurElements(o))&&!(M.erreurEvolutions&&M.erreurEvolutions(o))})}
 function deckChoisi(){
   const id=lire('golems.deckChoisi')||'',d=id&&decksJouables().find(x=>x.id===id);
   if(!d)return {id:'',nom:'Test',texte:''};
@@ -5126,11 +5130,11 @@ function ouvreDeckLien(c){
   const so=el('p','vd-sous',o.auteur?'Partagé par '+o.auteur:'Deck partagé');if(E.length)so.append(el('span','vd-noms',' · '+E.map(nomEl).join(', ')));
   l1.append(el('h2','',d.nom),compteDeck(d),fx);l2.append(p,so);t.append(l1,l2);
   const corps=el('div','vd-corps');
-  if(R.length)corps.append(el('p','vd-raison','Injouable : '+R.map(r=>r.c).join(' · ')));
+  if(R.length)corps.append(el('p','vd-raison','Invalide : '+R.map(r=>r.c).join(' · ')));
   decklist(corps,d,[]);corps.querySelector('.d-haut')?.remove();
   if(o.inc)corps.append(el('p','vd-m',o.inc+' carte'+(o.inc>1?'s inconnues ignorées':' inconnue ignorée')+' (lien venu d’une version plus récente du site ?)'));
   const pied=el('div','vd-pied'),pb=el('div','p-btns'),imp=el('button','btn','Importer dans mes decks'),jo=el('button','btn','Jouer avec ce deck'),msg=el('p','vd-m');imp.type=jo.type='button';
-  imp.dataset.attend=jo.dataset.attend='1';msg.dataset.etat='1';if(R.length){jo.dataset.injouable='1';jo.title='Deck injouable'}
+  imp.dataset.attend=jo.dataset.attend='1';msg.dataset.etat='1';if(R.length){jo.dataset.injouable='1';jo.title='Deck invalide'}
   /* Ajout dans mes decks : deck identique deja present = reutilise, sinon nom unique comme l'import par code. */
   const ajoute=()=>{
     const L=lesDecks(),deja=L.find(y=>memeDeck(y,d));if(deja)return {id:deja.id,nom:deja.nom,deja:true};
@@ -5139,11 +5143,13 @@ function ouvreDeckLien(c){
     const n={id:nouveauSid(),nom,cartes:{...d.cartes}};gardeDecks(L.concat(n));return {id:n.id,nom,deja:false};
   };
   const ko=r=>{msg.className='vd-m';msg.textContent=r.err};
-  imp.onclick=()=>{const E=M.elementsDeck(d.cartes);if(E.length>M.ELEM_MAX)return ko({err:'Deck refusé : '+E.length+' éléments différents, '+M.ELEM_MAX+' au plus.'});const r=ajoute();if(r.err)return ko(r);
+  /* 0.4a/0.5 : deck refuse s'il depasse 4 elements ou contient une evolution sans sa base (Importer et Jouer). */
+  const refus=()=>{const E=M.elementsDeck(d.cartes);if(E.length>M.ELEM_MAX)return 'Deck refusé : '+E.length+' éléments différents, '+M.ELEM_MAX+' au plus.';const v=M.erreurEvolutions?M.erreurEvolutions(d.cartes):'';return v?'Deck refusé : '+v+' (une évolution demande au moins un exemplaire de sa base).':''};
+  imp.onclick=()=>{const rf=refus();if(rf)return ko({err:rf});const r=ajoute();if(r.err)return ko(r);
     msg.className='vd-m ok';msg.textContent=(r.deja?'Déjà dans tes decks : « ':'Ajouté à tes decks : « ')+r.nom+' ».';
     imp.textContent='Voir dans mes decks';imp.onclick=()=>{deckVu=r.id;deckOuvert=null;ferme();onglet('decks')}};
   /* Jouer : deck ajoute et preselectionne (Choisis ton deck l'aura coche), onglet Jouer avec un bandeau d'info. */
-  jo.onclick=()=>{const r=ajoute();if(r.err)return ko(r);ecrire('golems.deckChoisi',r.id);majChoixDeck();ferme();onglet('jouer');
+  jo.onclick=()=>{const rf=refus();if(rf)return ko({err:rf});const r=ajoute();if(r.err)return ko(r);ecrire('golems.deckChoisi',r.id);majChoixDeck();ferme();onglet('jouer');
     $('infoDeckJeu')?.remove();const q=el('p','vd-info','Deck « '+r.nom+' » choisi : lance une partie contre un Golem ou crée un salon.');q.id='infoDeckJeu';$('erreurJeu').before(q)};
   pb.append(imp,jo);pied.append(pb,msg);x.append(t,corps,pied);v.append(x);document.body.append(v);majVueDeck();fx.focus();
 }
@@ -5199,6 +5205,7 @@ function importeDeck(b,l){
     const o=litCodeDeck(t.value);if(o.err){msg.textContent=o.err;return}
     if(!Object.keys(o.cartes).length){msg.textContent='Aucune carte connue dans ce code.';return}
     {const E=M.elementsDeck(o.cartes);if(E.length>M.ELEM_MAX){msg.textContent='Deck refusé : '+E.length+' éléments différents ('+E.map(nomEl).join(', ')+'), '+M.ELEM_MAX+' au plus.';return}}
+    {const v=M.erreurEvolutions?M.erreurEvolutions(o.cartes):'';if(v){msg.textContent='Deck refusé : '+v+'. Une évolution demande au moins un exemplaire de sa base.';return}} /* 0.5 */
     const pris=new Set(L.map(d=>d.nom));let nom=o.nom,k=2;while(pris.has(nom)){const s=' ('+k+++')';nom=o.nom.slice(0,24-s.length).trim()+s}
     const d={id:nouveauSid(),nom,cartes:o.cartes};gardeDecks(L.concat(d));deckVu=d.id;ferme();peintDecks();
     const n=[];if(o.inc)n.push(o.inc+' carte'+(o.inc>1?'s inconnues ignorées':' inconnue ignorée'));if(o.cou)n.push('quantités ramenées à '+MAX_EX+' exemplaires et '+DECK_MAX+' cartes au plus');
@@ -5325,7 +5332,7 @@ function editeur(b,l,d){
     i.classList.add('d-zoom');i.tabIndex=0;i.setAttribute('role','button');i.setAttribute('aria-label','Agrandir '+c[1]);
     i.onclick=()=>{dernier=i;zoom(i.src,c[1],statZoomCarte(c[0]))};i.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();i.onclick()}};
     q.append(m,el('b','',n+'/'+mx),p);z.append(i,q);
-    if(fautes.has(c[0])){z.classList.add('d-fautive');z.append(el('p','d-carte-err',fautes.get(c[0])))}
+    if(fautes.has(c[0]))z.classList.add('d-fautive'); /* encadre rouge seul, la raison est dans le bandeau */
     g.append(z);
   });
   b.append(g);
@@ -5658,7 +5665,7 @@ function majPartie(){
     /* Decks : le mien tel que publie avec Pret (ou garde par la partie precedente en cas de Rejouer), le sien lu dans sa presence. */
     const mien=partie?{texte:partie.decks[partie.moi]||'',nom:partie.deckNom}:deckPret,sien=typeof lui.presence.deck==='string'?lui.presence.deck:'';
     const dks=['',''];dks[moi]=mien.texte||'';dks[1-moi]=sien;
-    if(!partie&&M.erreurElements)[0,1].forEach(p=>{const o=M.lisDeck(dks[p]);if(o&&M.erreurElements(o))dks[p]=''}); /* 0.4a : deck a 5 elements = deck par defaut, des deux cotes */
+    if(!partie&&M.erreurElements)[0,1].forEach(p=>{const o=M.lisDeck(dks[p]);if(o&&(M.erreurElements(o)||(M.erreurEvolutions&&M.erreurEvolutions(o))))dks[p]=''}); /* 0.4a : deck a 5 elements = deck par defaut, des deux cotes ; 0.5 : idem evolution sans sa base */
     if(moi===0&&r&&r.engage)r.engage([l[0].peer,l[1].peer]);
     lancer(g,moi,typeof lui.presence.sid==='string'?lui.presence.sid:'',{mien:[],sien:[],decks:dks,deckNom:mien.texte?mien.nom:''});sauve();return}
   if(partie.advNom!==nomDe(lui)){partie.advNom=nomDe(lui);sauve()}
