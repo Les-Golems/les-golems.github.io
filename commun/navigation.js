@@ -26,9 +26,9 @@ function ajustePage(sec,grille,set,peint,defaut){
   let r=12;set(r*cols);peint();
   while(r>1&&deborde()){r--;set(r*cols);peint()}
 }
-function ajusteGuides(){ajustePage('guides',()=>$('gdBlocs'),v=>GD.par=v,peintGuides,6)}
-function ajusteNotes(){ajustePage('nouveautes',()=>$('notes'),v=>NV.par=v,peintNotes,6)}
-function ajusteHisto(){ajustePage('historique',()=>document.querySelector('#histo .h-grille')||(peintHisto(),document.querySelector('#histo .h-grille')),v=>lignesPage=v,peintHisto,14)}
+function ajusteGuides(){if(typeof peintGuides!=="function")return;ajustePage('guides',()=>$('gdBlocs'),v=>GD.par=v,peintGuides,6)}
+function ajusteNotes(){if(typeof peintNotes!=="function")return;ajustePage('nouveautes',()=>$('notes'),v=>NV.par=v,peintNotes,6)}
+function ajusteHisto(){if(typeof peintHisto!=="function")return;ajustePage('historique',()=>document.querySelector('#histo .h-grille')||(peintHisto(),document.querySelector('#histo .h-grille')),v=>lignesPage=v,peintHisto,14)}
 {let t=0;const tout=()=>{clearTimeout(t);t=setTimeout(()=>{ajusteGuides();ajusteNotes();ajusteHisto()},120)};addEventListener('resize',tout);
   ['guides','nouveautes','historique'].forEach(x=>$(x).addEventListener('load',e=>{if(e.target.tagName==='IMG'&&!document.querySelector('#gdBlocs [data-joue="1"]'))tout()},true));document.fonts?.ready.then(tout);addEventListener('load',tout)}
 
