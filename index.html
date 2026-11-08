@@ -25,7 +25,7 @@
 <link rel="manifest" href="manifest.webmanifest?v=2">
 <script>/* Version des images (cartes, terrains, verso, avatars) : imgV(u) ajoute ?v=<build>, pour que les joueurs voient aussitot une image remplacee.
    A CHAQUE PUBLICATION : IMG_V = champ build de version.json (meme valeur). Fonction centrale, utilisable par tous les scripts du site. */
-window.IMG_V='2026-11-07 14:46';window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
+window.IMG_V='2026-11-08 12:45';window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
 document.documentElement.style.setProperty('--verso','url("'+imgV('cartes/verso.jpg')+'")');
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[data-src]').forEach(i=>{i.src=imgV(i.dataset.src)}));</script>
 <link rel="stylesheet" href="spectateur.css?v=0.5">
@@ -778,6 +778,11 @@ body:not(.daltonien) .dl-force.dl-mot{visibility:hidden}
 #vueTas .boite{max-width:640px}
 .tas{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:14px}
 .tas img{display:block;width:100%;height:auto;aspect-ratio:5/7;border-radius:10px}
+.tas .tas-g{margin:0;display:flex;flex-direction:column;gap:4px}.tas .tas-g figcaption{font:700 13px/1.2 var(--corps);color:var(--texte);text-align:center}
+#partie .p-compteur.clic{cursor:pointer;border-radius:6px}#partie .p-compteur.clic b{text-decoration:underline dotted;text-underline-offset:3px}
+#partie .p-compteur.clic:focus-visible{outline:2px solid var(--bleu)}
+html.dif-joueur #vueTas{z-index:25}
+html.tel-joueur #vueTas,html.tel-joueur #vue{z-index:60} /* telephone : au-dessus de la barre d action collee en bas (z-index 40) */
 /* Carte en grand avec detail de Force */
 .grand.avecDetail{display:grid;grid-template-columns:minmax(0,462px) minmax(240px,340px);justify-content:center;align-items:start;gap:12px 16px;max-width:822px}
 .grand.avecDetail .btn{grid-column:1/-1;justify-self:center}
@@ -2158,7 +2163,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 <script type="module" src="salon-firebase.js?v=0.5"></script>
 <script type="module" src="spectateur.js?v=0.5"></script>
 <script src="spectateur-ui.js?v=0.5" defer></script>
-<script src="diffusion.js?v=0.5" defer></script>
+<script src="diffusion.js?v=0.5a" defer></script>
 <script src="aide.js?v=0.5" defer></script>
 <script src="moteur.js?v=0.5"></script>
 <script src="presence.js?v=0.5" defer></script><!-- 0.5 déconnexion (window.DECO) -->
@@ -2448,6 +2453,7 @@ if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 /* Date de publication de la 0.5 : A REMPLACER LE JOUR J (ex. '8 novembre 2026'), sert au bloc de version et au bloc video. */
 const DATE_V05='7 novembre 2026';
 const NOUVEAUTES=[
+ {version:'Version 0.5a',date:'8 novembre 2026',notes:["Sur ordinateur, les piles Deck, Forge et Défausse s'ouvrent de nouveau","Sur téléphone, les compteurs des bandeaux affichent les cartes","Ton deck se consulte trié par nom, avec le nombre d'exemplaires","Le deck adverse n'est plus consultable, seul son nombre de cartes s'affiche"]},
  {version:'Version 0.5',date:DATE_V05,notes:["Nouvel écran de partie","6 nouveaux terrains","Animaux de compagnie retravaillés","Nouvelle règle : 4 éléments différents au plus par deck","Decks conseillés retravaillés","État de la connexion et reprise de la partie","Mode daltonien","Nouvel onglet Guides","Diverses améliorations de confort"]},
  {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","Rework de Le Q : Brume et Magma, nouveaux effets","Nouvelle règle : deck vide, 1 point à l'adversaire par carte à piocher","Bug de Jacen et Jaina corrigé"]},
  {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
@@ -2460,6 +2466,7 @@ const NOUVEAUTES=[
    Une ligne = une phrase courte pour les joueurs. Sous-liste : {t:"titre :",l:[...]}. Rubrique vide : [] (message neutre affiché).
    Nouvelle version : ajouter son entree en tete, comme dans NOUVEAUTES. */
 const DETAILS_VERSIONS={
+ 'Version 0.5a':{nouveautes:["Ton deck se consulte trié par nom, avec le nombre d'exemplaires (ex. « Glad x2 »), et plus dans l'ordre de pioche.","Le deck adverse n'est plus consultable : seul son nombre de cartes s'affiche.","Forge et Défausse restent consultables des deux côtés."],corrections:["Sur ordinateur, les piles Deck, Forge et Défausse de l'écran de partie s'ouvrent de nouveau (merci à Bellock).","Sur téléphone, les compteurs Deck, Défausse et Forge des bandeaux se touchent pour voir les cartes."],regles:[]},
  'Version 0.5':{
   nouveautes:[
    "Nouvel écran de partie : la mise en page de la vue spectateur, le plateau en grand, les deux mains, la dernière carte jouée et les dernières actions. Il s'ouvre en plein écran ; « Quitter » demande confirmation.",
@@ -6140,9 +6147,23 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('ani
 function detailAnimal(C){const a=el('section');a.append(el('h3','','Animal de compagnie'),lg('Maître',M.CARTES[C.maitre].nom),lg('Force','aucune'),effetCouleur(C,'p',''));return [a]}
 function ouvreTas(titre,ids){
   const b=$('tasCartes');b.textContent='';$('tasTitre').textContent=titre;$('tasVide').hidden=ids.length>0;
-  ids.forEach(c=>{const C=M.carte(c),i=el('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;b.append(i)});
+  /* entree {c,n} : deck du joueur trie par nom et regroupe (« Glad x2 ») */
+  ids.forEach(x=>{const g=typeof x==='object',c=g?x.c:x,C=M.carte(c),i=el('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;
+    if(g){const f=el('figure','tas-g');f.append(i,el('figcaption','',M.nomDetail(C)+' x'+x.n));b.append(f)}else b.append(i)});
   $('vueTas').hidden=false;$('tasFermer').focus();
 }
+/* Piles d'un joueur (correctif 0.5a) : Forge et Defausse consultables des deux cotes ; Deck : le sien seulement, trie par nom
+   et regroupe (jamais l'ordre de pioche) ; deck adverse : nombre seul. Rejeu et spectateurs : deck jamais ouvert ici (inchange). */
+function tasPile(p,k){if(!partie||!partie.etat)return null;const J=partie.etat.j[p];
+  if(k==='forge')return J.forge.slice();if(k==='defausse')return J.defausse.slice().reverse();
+  if(k!=='deck'||p!==partie.moi||partie.rejeu||window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur())return null;
+  const m=new Map();J.deck.forEach(c=>{const k=M.nomDetail(M.carte(c)),x=m.get(k);if(x)x.n++;else m.set(k,{c,n:1,nom:k})}); /* exemplaires d'une meme carte (codes differents) regroupes par nom */
+  return [...m.values()].sort((a,b)=>a.nom.localeCompare(b.nom,'fr'))}
+const LIB_PILE={deck:'Deck',forge:'Forge',defausse:'Défausse'};
+function voirPile(p,k){const t=tasPile(p,k);if(t)ouvreTas(LIB_PILE[k]+(p===partie.moi?'':' de '+nomJ(p))+(k==='deck'?' (trié par nom)':''),t)}
+/* compteur du bandeau d'un camp (Deck, Defausse, Forge ou Energie) : ouvre la pile, comme les piles de la vue joueur */
+function compteurPile(x,p,k){if(partie.rejeu||!tasPile(p,k))return x;x.classList.add('clic');x.tabIndex=0;x.setAttribute('role','button');x.setAttribute('aria-label','Voir '+LIB_PILE[k]+(p===partie.moi?'':' de '+nomJ(p)));
+  x.onclick=()=>voirPile(p,k);x.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();voirPile(p,k)}};return x}
 let uidN=0;
 /* Enclume B : Ressources/9 - Pictos points/Enclume relief.svg, sans le chiffre. Ids uniques : un doublon masque casserait le rendu. */
 function enclumeB(){const n=++uidN,P='M50 14L170 14L170 52L140 58Q130 78 136 100L158 114L158 148L42 148L42 114L64 100Q70 78 60 58L52 56Q20 50 6 16Z';
@@ -6208,7 +6229,7 @@ function camp(s,p,moi){
   if(actif){d.classList.add('joue');l1.append(el('span','p-joue','Joue'))}
   /* Forge, ou Énergie (étiquette dorée de la diffusion) pendant le tour de ce joueur : même case de largeur fixe, aucun compteur ne bouge */
   const cz=el('span','p-comptes'),fo=actif&&s.phase==='jeu'?compteur('enclume','Énergie',J.energie,'energie'):compteur('enclume','Forge',J.forge.length);
-  cz.append(compteur('main','Main',J.main.length),compteur('deck','Deck',J.deck.length),compteur('defausse','Défausse',J.defausse.length),fo);d.append(cz);
+  cz.append(compteur('main','Main',J.main.length),compteurPile(compteur('deck','Deck',J.deck.length),p,'deck'),compteurPile(compteur('defausse','Défausse',J.defausse.length),p,'defausse'),compteurPile(fo,p,'forge'));d.append(cz);
   return d;
 }
 const SURVOL=matchMedia('(hover:hover) and (min-width:900px)');
@@ -6625,7 +6646,8 @@ function affiche(){
     pl.append(mainVue(J.main,{}));
   }
   const piles=el('div','p-piles');
-  piles.append(pile('deck','Deck',J.deck.length),pile('forge','Forge',J.forge.length,J.forge.slice()),pile('defausse','Défausse',J.defausse.length,J.defausse.slice().reverse()));
+  piles.append(pile('deck','Deck',J.deck.length,tasPile(me,'deck')),pile('forge','Forge',J.forge.length,J.forge.slice()),pile('defausse','Défausse',J.defausse.length,J.defausse.slice().reverse()));
+  {const d=piles.firstChild;if(d.classList.contains('clic')){const f=()=>voirPile(me,'deck');d.onclick=f;d.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}}}
   pl.append(piles);
   if(ZONE.matches&&!s.fin){const ap=el('div','p-apercu'),fi=el('div','p-ap-img'),im=el('img'),tx=el('div','p-ap-txt');im.alt='';fi.append(im);
     /* 0.4a (variante A, style diffusion) : carte a gauche ; a droite titre, « X pose Y sur Z. », effet, Cout / Force / elements */

@@ -202,7 +202,7 @@ function bandeau(s,qui){
   const u=U(),ban=mk('div','d-z d-ban');
   const cpt=(n,lib,v)=>{const x=mk('span');x.append(u.ico(n),lib+' ');x.append(mk('b','',String(v)));return x};
   /* Deck, Defausse, Forge (et Energie, qui prend la place de la Forge chez le joueur actif) : ouvrent la pile en grand */
-  const pile=(x,p,k,lib)=>{x.classList.add('d-pile');x.setAttribute('role','button');x.tabIndex=0;x.setAttribute('aria-label','Voir '+lib+' '+d_(nom(p))+nom(p));
+  const pile=(x,p,k,lib)=>{if(!pileOuverte(p,k))return x;x.classList.add('d-pile');x.setAttribute('role','button');x.tabIndex=0;x.setAttribute('aria-label','Voir '+lib+' '+d_(nom(p))+nom(p));
     x.onclick=()=>ouvrePop('pile',{p,k});x.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvrePop('pile',{p,k})}};return x};
   const bloc=(p,dr)=>{
     const J=s.j[p],b=mk('div','d-j '+(p===BAS()?'toi':'lui')+(dr?' dr':'')+(qui===p?' actif':'')),id=mk('div','d-id'),c=mk('div','d-cpt'),l1=mk('div','d-l1');
@@ -430,11 +430,20 @@ if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi.pop=null;s
 /* Piles (Deck, Defausse, Forge) : ordre de pioche (1 = prochaine carte), defausse de la plus recente a la plus ancienne, forge dans l'ordre */
 const PILES={deck:'Deck',defausse:'Défausse',forge:'Forge'};
 function cartesPile(o){const L=(E.etat.j[o.p][o.k]||[]).slice();return o.k==='defausse'?L.reverse():L}
+/* vue joueur (correctif 0.5a) : le deck adverse ne s'ouvre pas ; son propre deck : trie par nom et regroupe, jamais l'ordre de pioche.
+   Vue spectateur et demonstration : inchange (ordre de pioche). */
+function pileOuverte(p,k){return !(src==='joueur'&&k==='deck'&&p!==E.moi)}
+function deckGroupe(o){return src==='joueur'&&o.k==='deck'}
 function sigPile(o){return o.p+o.k+':'+cartesPile(o).join()}
 function popPile(o,pp){
-  const L=cartesPile(o),n=L.length,h=mk('h2'),b=mk('span','',nom(o.p));b.style.color=COL[o.p];
+  const L=cartesPile(o),n=L.length,h=mk('h2'),b=mk('span','',nom(o.p)),gr=deckGroupe(o);b.style.color=COL[o.p];
   h.append(PILES[o.k]+' '+d_(nom(o.p)),b,' ('+n+(n>1?' cartes':' carte')+')');pp.append(h);
   if(!n){pp.append(mk('p','pp-sous pp-vide','Aucune carte.'));return}
+  if(gr){const m=new Map();L.forEach(c=>{const nm=M().nomDetail(M().carte(c)),x=m.get(nm);if(x)x.k++;else m.set(nm,{c,k:1,nm})}); /* exemplaires regroupes par nom */
+    const G=[...m.values()].sort((a,b)=>a.nm.localeCompare(b.nm,'fr'));
+    pp.append(mk('p','pp-sous','Cartes restantes, triées par nom.'));
+    const nc=G.length<=12?1:G.length<=36?2:3,g=mk('ul','pp-pile pp-groupe');g.style.setProperty('--nc',nc);g.style.gridTemplateRows='repeat('+Math.ceil(G.length/nc)+',auto)';
+    G.forEach(x=>{const li=mk('li');li.append(mk('span','pp-num','x'+x.k),lignePile(x.c));g.append(li)});pp.append(g);return}
   /* lignes condensees comme le panneau de l'onglet Decks ; 1 colonne jusqu'a 12 cartes, 2 jusqu'a 36, 3 au-dela ; lecture colonne par colonne */
   const nc=n<=12?1:n<=36?2:3,g=mk('ol','pp-pile');g.style.setProperty('--nc',nc);g.style.gridTemplateRows='repeat('+Math.ceil(n/nc)+',auto)';
   L.forEach((c,i)=>{const li=mk('li');li.append(mk('span','pp-num',String(i+1)),lignePile(c));g.append(li)});
@@ -597,6 +606,11 @@ function peindreJoueur(s,qui){
     sl.forEach(x=>{x.style.width=w+'px';x.style.height=Math.round(w*7/5)+'px';x.style.flex='none'})}else scene.append(derniere(s));
   const bt=po&&po.querySelector(':scope>.p-btns:not(.p-cale)');if(bt){const b=mk('div','mq-btns');b.append(bt);scene.append(b)}
   const pl=mk('div','mq-piles');if(po)po.querySelectorAll('.p-piles>.pile').forEach(x=>pl.append(x));scene.append(pl);
+  /* correctif 0.5a : ces piles ouvraient la fenetre de l'ancien ecran (#vueTas), cachee sous la vue joueur ; elles ouvrent maintenant la fenetre de la vue */
+  pl.querySelectorAll('.pile').forEach(x=>{const k=['deck','forge','defausse'].find(c=>x.classList.contains(c)),n=k?E.etat.j[E.moi][k].length:0;
+    if(!n){x.classList.remove('clic');x.onclick=x.onkeydown=null;x.removeAttribute('role');x.removeAttribute('tabindex');return}
+    const f=()=>ouvrePop('pile',{p:E.moi,k});x.classList.add('clic');x.tabIndex=0;x.setAttribute('role','button');x.setAttribute('aria-label','Voir '+PILES[k]+' : '+n);
+    x.onclick=f;x.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}});
   /* outils : Chat (parties en ligne), Daltonien, ?, son, Quitter (confirmation) */
   const ou=mk('div','mq-outils p-outils'),o=typeof u.outils==='function'?u.outils():null;
   if(o){const v=o.querySelector('#btnVitesse');if(v)v.remove();const x=o.querySelector('.dal-inter .pf-itx');if(x)x.textContent='Daltonien';ou.append(...o.children)}

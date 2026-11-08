@@ -49,16 +49,21 @@ function etiquette(o){
   if(typeof etiquetteV==='function')return etiquetteV(o.v!==undefined?o.v:maV,!!o.vRouge);
   return mk('span','etq-v vx-etq','');
 }
-function siege(o,moi,btns){
-  const s=mk('div','sl-j'+(o.pret?' pret':'')+(moi?' sl-moi':'')),n=mk('div','sl-nom',nomP(o));
+/* Design B (0.4) : sieges a teinte neutre avant la partie (aucun deck revele). */
+function teinteSiege(){const g=window.GOLEMS_UI;return g&&g.teinte?g.teinte([]):''}
+function siege(o,moi,btns,createur){
+  const s=mk('div','sl-j b-teinte'+(o.pret?' pret':'')+(moi?' sl-moi':'')),n=mk('div','sl-nom',nomP(o));
+  const t=teinteSiege(o,moi);if(t)s.style.setProperty('--tinte',t);
   if(moi)n.append(mk('em','','toi'));
-  s.append(av(o),n,mk('span','sl-etat',o.pret?'Prêt':'En attente'),etiquette(o),tuileDeck(o,moi));
+  s.append(av(o),n);if(createur)s.append(mk('span','sp-role','Créateur'));
+  s.append(mk('span','sl-etat',o.pret?'Prêt':'En attente'),etiquette(o),tuileDeck(o,moi));
   const tx=tauxDe(o);if(tx)s.append(mk('span','sl-taux',tx));
   if(btns.length){const w=mk('div','sp-btns');w.append(...btns);s.append(w)}
   return s;
 }
 function siegeLibre(btns){
-  const v=mk('div','sl-j sl-libre'),t=mk('div','cd-tuile'),e=etiquette({});e.classList.add('sl-vide');
+  const v=mk('div','sl-j sl-libre b-teinte'),t=mk('div','cd-tuile'),e=etiquette({});e.classList.add('sl-vide');
+  const g=window.GOLEMS_UI;if(g&&g.teinte)v.style.setProperty('--tinte',g.teinte([]));
   t.append(mk('span','h-deck h-sans','Place libre'),mk('span','cd-nb','Un spectateur peut la prendre'));
   v.append(mk('div','avatar','?'),mk('div','sl-nom','Adversaire'),mk('span','sl-etat sl-vide','En attente'),e,t);
   if(btns.length){const w=mk('div','sp-btns');w.append(...btns);v.append(w)}
@@ -73,14 +78,30 @@ function puce(x){
   const li=mk('li','sp-puce'+(x.moi?' sp-moi':'')),b=mk('b','',nomP(x));
   if(x.moi)b.append(mk('em','','toi'));li.append(av(x),b);return li;
 }
+/* 0.4 : colonne Spectateurs a droite des sieges (variante C « Tribune ») : oeil, nombre et mot centres, puis une ligne par spectateur.
+   Bureau : meme hauteur que les sieges, la liste defile a l'interieur. Telephone : sous les sieges, hauteur maximale. */
 function tribune(liste){
-  let w=document.querySelector('#salon .sp-tribune');
-  if(!w){w=mk('div','sp-tribune');const sc=document.querySelector('#salon .sl-scene');if(sc)sc.after(w);else return}
-  w.textContent='';
-  const t=mk('div','sp-ttl');t.innerHTML=OEIL;t.append(mk('span','','Spectateurs'),mk('b','sp-nb',String(liste.length)));
+  document.querySelectorAll('#salon .sp-tribune').forEach(x=>x.remove()); /* ancienne bande sous les sieges */
+  const w=mk('div','sp-trib'),n=liste.length;w.setAttribute('aria-label','Spectateurs');
+  const t=mk('div','sp-ttl');t.innerHTML=OEIL;t.append(mk('b','sp-nb',String(n)),mk('span','',n>1?'spectateurs':'spectateur'));
   w.append(t);
-  if(liste.length){const ul=mk('ul','sp-puces');liste.forEach(x=>ul.append(puce(x)));w.append(ul)}
+  if(n){const ul=mk('ul','sp-puces');liste.forEach(x=>ul.append(puce(x)));w.append(ul)}
   else w.append(mk('span','sp-aucun','Aucun spectateur'));
+  return w;
+}
+/* 0.4 : bandeau d'information sous le code du salon quand l'adversaire devient createur (variante A). */
+function bandeauPromotion(p){
+  let w=document.querySelector('#salon .sp-promo');
+  if(!p){if(w)w.remove();return}
+  if(!w){w=mk('div','sp-promo');w.setAttribute('role','status');const h=document.querySelector('#salon .sl-haut');if(h)h.after(w);else return}
+  w.textContent='';
+  const i=mk('span','sp-promo-i','i');i.setAttribute('aria-hidden','true');
+  const t=mk('div','sp-promo-t');t.append(mk('b','',p.ancien+' a quitté le salon.'));
+  t.append(mk('span','',p.moi?"Tu deviens le créateur. La place d'adversaire est libre : un spectateur ou un nouvel arrivant peut la prendre."
+    :(p.nouveau||'Ton adversaire')+" devient le créateur. La place d'adversaire est libre."));
+  const x=mk('button','sp-promo-x','×');x.type='button';x.setAttribute('aria-label','Fermer');
+  x.onclick=()=>{const S=SPECobj();if(S&&S.fermerPromotion)S.fermerPromotion();else w.remove()};
+  w.append(i,t,x);
 }
 let enCours=false;
 function peindreSalon(etat){
@@ -89,7 +110,8 @@ function peindreSalon(etat){
   const S=SPECobj(),moi=etat.moi,j1=etat.j1||{},adv=etat.adv||null,spec=Array.isArray(etat.spectateurs)?etat.spectateurs:[];
   u.textContent='';
   /* Siege du createur : Changer de deck s'il est a moi (comme siegeSalon) */
-  const s1=siege(j1,moi==='j1',moi==='j1'?[boutonChangerDeck(j1)]:[]);
+  const s1=siege(j1,moi==='j1',moi==='j1'?[boutonChangerDeck(j1)]:[],!!etat.j1);
+  bandeauPromotion(etat.promotion||null);
   let s2;
   if(adv){
     const bs=[];
@@ -111,8 +133,8 @@ function peindreSalon(etat){
     }
     s2=siegeLibre(bs);
   }
-  u.append(s1,mk('div','sl-vs','VS'),s2);
-  tribune(spec);
+  u.classList.add('sp-3col');
+  u.append(s1,mk('div','sl-vs','VS'),s2,tribune(spec));
   document.body.classList.toggle('sp-spectateur',moi==='spec');
   /* Spectateur : pas de Pret, une phrase d'etat a la place */
   if(moi==='spec'){
@@ -156,14 +178,14 @@ function terrains(s,cols,haut,bas){
     const te=mk('div','p-tete'),e=mk('button','oeil');te.append(mk('b','',T.nom));
     e.type='button';e.append(ico('oeil'));e.setAttribute('aria-label','Agrandir '+T.nom);
     d.onclick=()=>zoomTerrain(T);d.onmouseenter=()=>montreApercu(d,srcTerrain(T));d.onmouseleave=cacheApercu;
-    d.append(te,to,mk('span','p-valeur',T.pts+(T.pts>1?' pts':' pt')),e);t.append(d)});
+    const Mq=window.GolemsMoteur,v=Mq&&Mq.ptsTerrain?Mq.ptsTerrain(s,k):T.pts;d.append(te,to,mk('span','p-valeur',(T.nom==='Le Tournoi'?'? = ':'')+v+(v>1?' pts':' pt')),e); /* 0.4a : Le Tournoi vaut la manche */t.append(d)});
   return t;
 }
 /* Detail de Force d'une carte en main : Force de base et texte (elle n'est pas encore en jeu) */
 function detailMain(C){
   if(C.animal&&typeof detailAnimal==='function')return detailAnimal(C);
   const a=mk('section');a.append(mk('h3','','Force'),lg('Force de base',C.force!=null?String(C.force):'aucune'),lg('Coût',String(C.cout)));
-  if(C.texte)a.append(mk('p','',C.texte));return [a];
+  if(C.texte)a.append(U.effetCouleur?U.effetCouleur(C,'p',''):mk('p','',C.texte));return [a];
 }
 function zoomMain(c){const C=M.carte(c);cacheApercu();zoom(srcC(c),C.nom,detailMain(C))}
 /* Zoom par identifiant de type : si la carte est en jeu chez son joueur, meme zoom que sa case (detail de Force), sinon detail de la carte */
@@ -197,7 +219,7 @@ function montre(ap,id,leg,p){
   const im=ap.querySelector('img'),l=ap.querySelector('.p-ap-leg'),C=id!=null?M.CARTES[id]:null;
   if(!C){delete ap.dataset.id;delete ap.dataset.p;ap.classList.add('vide');im.hidden=true;l.textContent='Aucune carte jouée pour le moment.';return}
   ap.dataset.id=id;if(p!=null)ap.dataset.p=p;else delete ap.dataset.p;
-  ap.classList.remove('vide');im.hidden=false;const src='cartes/'+id+'.jpg';if(im.getAttribute('src')!==src)im.src=src;im.alt=C.nom;l.textContent=leg;
+  ap.classList.remove('vide');im.hidden=false;const src=window.imgV?imgV('cartes/'+id+'.jpg'):'cartes/'+id+'.jpg';if(im.getAttribute('src')!==src)im.src=src;im.alt=C.nom;l.textContent=leg;
 }
 function montreDerniere(ap){
   const E=dernierEtat;if(!E)return;
@@ -216,7 +238,8 @@ function journal(E,s){
   su.append(' ',mk('span','j-manche','Manche '+pg));nav.append(va('<','Manche précédente',pg-1,pg<=1),va('>','Manche suivante',pg+1,pg>=nb));
   const causes=causesLog(s);
   (pages[pg-1]||[]).forEach(e=>{const[p,x]=e,[c,n]=genreLog(x),d=mk('div',c);
-    d.append(ico(n),texteLog((p===null?'':nomJoueur(E,p)+' : ')+x+(causes.get(e)||'')));li.append(d)});
+    const dv=p!==null&&U.ligneDeckVide&&U.ligneDeckVide(x,nomJoueur(E,p),nomJoueur(E,1-p),false,false); /* deck vide (meule) : X n'a pas pu piocher, +1 point pour Y */
+    d.append(ico(n),texteLog(dv||(p===null?'':nomJoueur(E,p)+' : ')+x+(causes.get(e)||'')));li.append(d)});
   jo.append(su,nav,li);
   return {jo,li};
 }
@@ -262,7 +285,7 @@ function peindrePartieSpectateur(etatPartie){
 function finBloc(E,s){
   const f=mk('div','bloc p-fin'),w=s.fin.gagnant;
   f.append(mk('h3',w===null?'f-n':'f-v',w===null?'Match nul':'Victoire de '+nomJoueur(E,w)));
-  if(s.fin.abandon!==undefined)f.append(mk('p','p-abandon',nomJoueur(E,s.fin.abandon)+' a abandonné'));
+  if(s.fin.abandon!==undefined)f.append(mk('p','p-abandon',nomJoueur(E,s.fin.abandon)+(s.fin.quitte?' a quitté la partie':' a abandonné')));
   f.append(mk('p','',nomJoueur(E,0)+' '+s.j[0].score+' à '+s.j[1].score+' '+nomJoueur(E,1)));
   return f;
 }

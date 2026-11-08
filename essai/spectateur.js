@@ -11,9 +11,13 @@ const P = location.pathname.split("/")[1] === "essai" ? "essai/" : "";
 let db = null, auth = null;
 let code = "", moi = "spec", actif = false, stops = [];
 let joueurs = {}, coups = {}, siege = null, engages = null, specs = {};
+// 0.4 : promotion automatique de l'adversaire quand le créateur part avant la partie.
+// publicVu : une annonce publique a existé pour ce salon (le promu la republie).
+let publicVu = false, dernierJ1 = null, dernierAdv = null, promotion = null, promoT = 0, promoEnCours = false;
 const profils = {}; // uid -> { pseudo, avatar } (lus une fois)
 const ecoutes = [], ecoutesChat = [];
 let chat = [];
+let presJ = {}, decalage = 0, forfaitsJ = {};
 
 function base() { return P + "salons/" + code; }
 function uid() { return auth && auth.currentUser ? auth.currentUser.uid : ""; }
@@ -64,7 +68,7 @@ function fiche(x) {
 function etatSalon() {
   const { j1, adv } = places(), u = uid();
   return {
-    code, moi, actif,
+    code, moi, actif, promotion, publicSalon: publicVu,
     j1: fiche(j1), adv: fiche(adv),
     placeLibre: !siege && !adv && !engages,
     enPartie: !!engages || presents().some(x => Number.isInteger(x.jg)),
@@ -82,27 +86,79 @@ function journal(x, g) {
   return s;
 }
 // État complet de la partie en cours, rejoué depuis la graine : spectateur arrivé en cours de partie compris.
-let cache = { cle: "", val: null };
+// 0.4 : la dernière paire engagée est mémorisée (sid, jg, deck, journal) ; si un joueur part (sa présence disparaît),
+// la partie est rejouée depuis les coups conservés : l'abandon (coup 'a') termine la partie chez le spectateur.
+// Départ sans coup 'a' (verrou engages retiré par un départ volontaire) : fin par départ, fin.quitte = true.
+let cache = { cle: "", val: null }, paire = null;
+function copieJ(x) { return { uid: x.uid, pseudo: x.pseudo || "", sid: x.sid, jg: x.jg, deck: x.deck || "", j: typeof x.j === "string" ? x.j : "", v: x.v || "" }; }
 function etatPartie() {
   const M = window.GolemsMoteur; if (!M) return null;
   const l = presents().filter(x => Number.isInteger(x.jg) && typeof x.sid === "string");
   let a = null, b = null;
   for (const x of l) { const y = l.find(z => z !== x && z.jg === x.jg && x.graine === x.jg); if (y) { a = x; b = y; break; } }
-  if (!a) return null;
-  const g = a.jg, j = [journal(a, g), journal(b, g)], decks = [a.deck || "", b.deck || ""];
-  const cle = g + "|" + j[0].join(",") + "|" + j[1].join(",") + "|" + decks.join("/");
+  if (a) {
+    if (!paire || paire.g !== a.jg || paire.j[0].sid !== a.sid || paire.j[1].sid !== b.sid) paire = { g: a.jg, j: [copieJ(a), copieJ(b)], engVu: false };
+    else paire.j = [copieJ(a), copieJ(b)];
+  }
+  if (!paire) return null;
+  if (engages) paire.engVu = true;
+  const g = paire.g;
+  // Joueurs encore à leur place (même sid, même partie) : leur présence fait foi, sinon la copie mémorisée.
+  const enPlace = paire.j.map(m => { const x = joueurs[m.uid]; return !!(x && !x.quitte && x.sid === m.sid && x.jg === g); });
+  const A = paire.j.map((m, i) => enPlace[i] ? { ...m, ...joueurs[m.uid], uid: m.uid } : m);
+  const j = [journal(A[0], g), journal(A[1], g)], decks = [A[0].deck || "", A[1].deck || ""];
+  // Départ volontaire d'un seul joueur sans coup 'a' : le verrou de partie a été retiré.
+  const parti = !a && paire.engVu && !engages && enPlace.filter(Boolean).length === 1 ? enPlace.indexOf(false) : -1;
+  const cle = g + "|" + j[0].join(",") + "|" + j[1].join(",") + "|" + decks.join("/") + "|" + parti;
   if (cache.cle !== cle) {
     let r; try { r = M.rejoue(g, j, decks); } catch (e) { r = { etat: null, erreur: String(e) }; }
+    if (parti >= 0 && r.etat && !r.etat.fin) {
+      try { const q = j.map((x, i) => i === parti ? x.concat("a") : x), r2 = M.rejoue(g, q, decks); if (r2.etat && r2.etat.fin) { r = r2; r.etat.fin.quitte = true; } } catch (e) {}
+    }
     cache = { cle, val: { graine: g, decks, journaux: j, etat: r.etat, erreur: r.erreur || null } };
   }
-  return { ...cache.val, joueurs: [fiche(a), fiche(b)], fin: !!(cache.val.etat && cache.val.etat.fin) };
+  return { ...cache.val, joueurs: [fiche(A[0]), fiche(A[1])], fin: !!(cache.val.etat && cache.val.etat.fin) };
 }
 
+// Suivi des places : qui était créateur (j1) et adversaire, pour annoncer une promotion à tous ;
+// l'adversaire resté seul avant la partie devient créateur (après 1,5 s, le temps d'un rechargement du créateur).
+function suitPlaces() {
+  if (!actif) return;
+  const { j1, adv } = places();
+  if (j1) {
+    if (dernierJ1 && dernierJ1.uid !== j1.uid && dernierAdv && dernierAdv.uid === j1.uid)
+      promotion = { ancien: dernierJ1.pseudo || "Le créateur", nouveau: j1.pseudo || profil(j1.uid).pseudo || "", moi: j1.uid === uid() };
+    dernierJ1 = { uid: j1.uid, pseudo: j1.pseudo || profil(j1.uid).pseudo };
+  }
+  if (adv) { if (promotion && dernierJ1 && adv.uid !== dernierJ1.uid) promotion = null; dernierAdv = { uid: adv.uid, pseudo: adv.pseudo }; }
+  const seul = moi === "adv" && !engages && siege === uid() && !j1 && presents().some(x => x.uid === uid());
+  if (!seul) { clearTimeout(promoT); promoT = 0; return; }
+  if (!promoT) promoT = setTimeout(() => { promoT = 0; promouvoir(); }, 1500);
+}
+async function promouvoir() {
+  if (promoEnCours || moi !== "adv") return;
+  promoEnCours = true;
+  try {
+    if ((await get(ref(db, base() + "/engages"))).exists()) return;
+    if (moi !== "adv" || presents().some(x => x.uid !== uid())) return;
+    await rendsSiege(); moi = "j1";
+    // Le moteur de places donne alors j1 = moi : suitPlaces note la promotion.
+    suitPlaces();
+    if (window.__golemsSpecPromu) try { window.__golemsSpecPromu({ public: publicVu }); } catch (e) { console.warn(e); }
+    notifie();
+  } catch (e) { console.warn("promotion", e); }
+  finally { promoEnCours = false; }
+}
 function ecoute() {
   stops.forEach(f => f()); stops = [];
-  const on = (k, f) => stops.push(onValue(ref(db, base() + "/" + k), s => { f(s.val()); notifie(); }, () => {}));
+  const on = (k, f) => stops.push(onValue(ref(db, base() + "/" + k), s => { f(s.val()); suitPlaces(); notifie(); }, () => {}));
+  stops.push(onValue(ref(db, P + "annonces/" + code), s => { if (s.exists()) publicVu = true; }, () => {}));
   on("joueurs", v => { joueurs = v || {}; });
   on("coups", v => { coups = v || {}; });
+  // 0.5 : connexion des joueurs (salons/{code}/pres/{uid} = { c, t }) et decalage de l'horloge du serveur, pour la vue spectateur
+  stops.push(onValue(ref(db, base() + "/pres"), s => { presJ = s.val() || {}; }, () => {}));
+  stops.push(onValue(ref(db, base() + "/forfait"), s => { forfaitsJ = s.val() || {}; }, () => {}));
+  stops.push(onValue(ref(db, ".info/serverTimeOffset"), s => { decalage = +s.val() || 0; }, () => {}));
   on("siege", v => { siege = typeof v === "string" ? v : null; });
   on("engages", v => { engages = v || null; });
   on("spectateurs", v => { specs = v || {}; });
@@ -114,14 +170,14 @@ async function inscrisSpec() {
   await onDisconnect(r).remove();
   await set(r, { p: await pseudoDe(u), t: serverTimestamp() });
 }
-async function retireSpec() { const r = ref(db, base() + "/spectateurs/" + uid()); try { await onDisconnect(r).cancel(); await remove(r); } catch (e) {} }
+async function retireSpec(c) { const r = ref(db, (c ? P + "salons/" + c : base()) + "/spectateurs/" + uid()); try { await onDisconnect(r).cancel(); await remove(r); } catch (e) {} }
 async function prendsSiege() {
   const u = uid();
   const t = await runTransaction(ref(db, base() + "/siege"), cur => (cur === null || cur === u) ? u : undefined, { applyLocally: false });
   if (t.committed && t.snapshot.val() === u) { try { await onDisconnect(ref(db, base() + "/siege")).remove(); } catch (e) {} return true; }
   return false;
 }
-async function rendsSiege() { const r = ref(db, base() + "/siege"); try { await onDisconnect(r).cancel(); } catch (e) {} try { await remove(r); } catch (e) {} }
+async function rendsSiege(c) { const r = ref(db, (c ? P + "salons/" + c : base()) + "/siege"); try { await onDisconnect(r).cancel(); } catch (e) {} try { await remove(r); } catch (e) {} }
 
 const SPEC = {
   // Appelé par entre() d'index.html AVANT room.join. Renvoie 'j1', 'adv' ou 'spec'.
@@ -140,6 +196,8 @@ const SPEC = {
     joueurs = js.val() || {}; engages = eg.val() || null; siege = typeof sg.val() === "string" ? sg.val() : null;
     if (engages) { moi = engages[u] ? (siege === u ? "adv" : "j1") : "spec"; if (moi === "spec") await inscrisSpec(); notifie(); return moi; }
     const autres = presents().filter(x => x.uid !== u);
+    // Observer (parties ouvertes) : entrer en spectateur même si la place d'adversaire est libre.
+    if (o && o.observer && autres.length) { if (siege === u) await rendsSiege(); moi = "spec"; await inscrisSpec(); notifie(); return moi; }
     // Place de j1 libre (salon vide, ou j1 rechargé alors que l'adversaire est resté) : je suis j1.
     if (!autres.some(x => x.uid !== siege)) { if (siege === u) await rendsSiege(); moi = "j1"; }
     else if (await prendsSiege()) { moi = "adv"; await retireSpec(); }
@@ -147,18 +205,23 @@ const SPEC = {
     notifie(); return moi;
   },
   // Sortie du salon (bouton Quitter, ou salon perdu).
+  // Écoutes coupées et état remis à zéro AVANT toute écriture : plus aucune peinture de la partie ni chat de spectateur.
   async sortir() {
     if (!code) return;
-    if (moi === "spec") await retireSpec();
-    if (moi === "adv") await rendsSiege();
+    const c = code, m = moi;
     stops.forEach(f => f()); stops = [];
-    code = ""; actif = false; moi = "spec"; joueurs = {}; coups = {}; siege = null; engages = null; specs = {}; cache = { cle: "", val: null };
+    code = ""; actif = false; moi = "spec"; joueurs = {}; coups = {}; siege = null; engages = null; specs = {}; cache = { cle: "", val: null }; paire = null;
+    publicVu = false; dernierJ1 = dernierAdv = promotion = null; clearTimeout(promoT); promoT = 0;
     notifie();
+    if (m === "spec") await retireSpec(c);
+    if (m === "adv") await rendsSiege(c);
   },
   etatSalon, etatPartie,
   // État brut du moteur (même objet que partie.etat chez les joueurs), pour comparer.
   etatMoteur() { const p = etatPartie(); return p ? p.etat : null; },
   estSpectateur: () => actif && moi === "spec",
+  // Bandeau de promotion fermé (croix).
+  fermerPromotion() { promotion = null; notifie(); },
   role: () => moi,
   onChange(f) { if (typeof f === "function") ecoutes.push(f); },
   // L'adversaire laisse sa place (avant la partie) : quitte joueurs, rend le siège, devient spectateur.
@@ -178,6 +241,9 @@ const SPEC = {
     notifie(); return true;
   },
   chat: () => chat,
+  pres: () => presJ,
+  forfaits: () => forfaitsJ,
+  heure: () => Date.now() + decalage,
   onChat(f) { ecoutesChat.push(f); f(chat); },
   // Chat d'un spectateur (les joueurs gardent r.dit de salon-firebase.js).
   async dit(m) {
