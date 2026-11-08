@@ -12,9 +12,11 @@ else{const v=new URLSearchParams(location.search).get('carte');if(v!==null){ongl
   const fin=()=>{if(partie&&partie.local){return}r=null;code='';finPartie();$('salon').hidden=true;$('accueil').hidden=false;indisponible()};
   room.onPeers(()=>{majEtat();if(partie)majPartie()},fin);
   room.onConnection(majEtat,fin);
-  if(room.annonces)room.annonces(l=>{annoncesL=l;peintListe()});
+  /* Annonces : ecoute relancee a chaque changement de compte (les regles refusent la lecture aux invites). */
+  let stopAnn=null;const ecouteAnnonces=()=>{if(!room.annonces)return;if(typeof stopAnn==="function")stopAnn();annoncesL=[];stopAnn=room.annonces(l=>{annoncesL=l;peintListe()})};
+  ecouteAnnonces();
   if(room.compte.resumeur){if(room.compte.cumuleur)room.compte.cumuleur(cumulAjoute);room.compte.resumeur(resumeProfil);if(compteCo())profilPublie=room.compte.publieProfil()}
-  room.compte.onChange(()=>{surCompte();majVueDeck();if(compteCo()&&room.compte.publieProfil)profilPublie=room.compte.publieProfil();if(compteCo()){room.presence({pseudo:pseudo}).catch(()=>{});if(invit)suitInvit();reessaie()}});
+  room.compte.onChange(()=>{ecouteAnnonces();surCompte();majVueDeck();if(compteCo()&&room.compte.publieProfil)profilPublie=room.compte.publieProfil();if(compteCo()){room.presence({pseudo:pseudo}).catch(()=>{});if(invit)suitInvit();reessaie()}});
   surCompte();
   reessaie(); /* parties restees en attente d'ecriture */
   if(compteCo())room.presence({pseudo:pseudo}).catch(()=>{});
