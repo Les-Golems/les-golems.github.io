@@ -268,7 +268,7 @@ function ouvreTas(titre,ids){
     if(g){const f=el('figure','tas-g');f.append(i,el('figcaption','',M.nomDetail(C)+' x'+x.n));b.append(f)}else b.append(i)});
   $('vueTas').hidden=false;$('tasFermer').focus();
 }
-/* Piles d'un joueur (correctif 0.5.4) : Forge et Defausse consultables des deux cotes ; Deck : le sien seulement, trie par nom
+/* Piles d'un joueur (correctif 0.5a) : Forge et Defausse consultables des deux cotes ; Deck : le sien seulement, trie par nom
    et regroupe (jamais l'ordre de pioche) ; deck adverse : nombre seul. Rejeu et spectateurs : deck jamais ouvert ici (inchange). */
 function tasPile(p,k){if(!partie||!partie.etat)return null;const J=partie.etat.j[p];
   if(k==='forge')return J.forge.slice();if(k==='defausse')return J.defausse.slice().reverse();

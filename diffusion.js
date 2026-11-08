@@ -430,7 +430,7 @@ if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi.pop=null;s
 /* Piles (Deck, Defausse, Forge) : ordre de pioche (1 = prochaine carte), defausse de la plus recente a la plus ancienne, forge dans l'ordre */
 const PILES={deck:'Deck',defausse:'Défausse',forge:'Forge'};
 function cartesPile(o){const L=(E.etat.j[o.p][o.k]||[]).slice();return o.k==='defausse'?L.reverse():L}
-/* vue joueur (correctif 0.5.4) : le deck adverse ne s'ouvre pas ; son propre deck : trie par nom et regroupe, jamais l'ordre de pioche.
+/* vue joueur (correctif 0.5a) : le deck adverse ne s'ouvre pas ; son propre deck : trie par nom et regroupe, jamais l'ordre de pioche.
    Vue spectateur et demonstration : inchange (ordre de pioche). */
 function pileOuverte(p,k){return !(src==='joueur'&&k==='deck'&&p!==E.moi)}
 function deckGroupe(o){return src==='joueur'&&o.k==='deck'}
@@ -606,7 +606,7 @@ function peindreJoueur(s,qui){
     sl.forEach(x=>{x.style.width=w+'px';x.style.height=Math.round(w*7/5)+'px';x.style.flex='none'})}else scene.append(derniere(s));
   const bt=po&&po.querySelector(':scope>.p-btns:not(.p-cale)');if(bt){const b=mk('div','mq-btns');b.append(bt);scene.append(b)}
   const pl=mk('div','mq-piles');if(po)po.querySelectorAll('.p-piles>.pile').forEach(x=>pl.append(x));scene.append(pl);
-  /* correctif 0.5.4 : ces piles ouvraient la fenetre de l'ancien ecran (#vueTas), cachee sous la vue joueur ; elles ouvrent maintenant la fenetre de la vue */
+  /* correctif 0.5a : ces piles ouvraient la fenetre de l'ancien ecran (#vueTas), cachee sous la vue joueur ; elles ouvrent maintenant la fenetre de la vue */
   pl.querySelectorAll('.pile').forEach(x=>{const k=['deck','forge','defausse'].find(c=>x.classList.contains(c)),n=k?E.etat.j[E.moi][k].length:0;
     if(!n){x.classList.remove('clic');x.onclick=x.onkeydown=null;x.removeAttribute('role');x.removeAttribute('tabindex');return}
     const f=()=>ouvrePop('pile',{p:E.moi,k});x.classList.add('clic');x.tabIndex=0;x.setAttribute('role','button');x.setAttribute('aria-label','Voir '+PILES[k]+' : '+n);
