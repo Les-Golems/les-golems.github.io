@@ -263,9 +263,23 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('ani
 function detailAnimal(C){const a=el('section');a.append(el('h3','','Animal de compagnie'),lg('Maître',M.CARTES[C.maitre].nom),lg('Force','aucune'),effetCouleur(C,'p',''));return [a]}
 function ouvreTas(titre,ids){
   const b=$('tasCartes');b.textContent='';$('tasTitre').textContent=titre;$('tasVide').hidden=ids.length>0;
-  ids.forEach(c=>{const C=M.carte(c),i=el('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;b.append(i)});
+  /* entree {c,n} : deck du joueur trie par nom et regroupe (« Glad x2 ») */
+  ids.forEach(x=>{const g=typeof x==='object',c=g?x.c:x,C=M.carte(c),i=el('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;
+    if(g){const f=el('figure','tas-g');f.append(i,el('figcaption','',M.nomDetail(C)+' x'+x.n));b.append(f)}else b.append(i)});
   $('vueTas').hidden=false;$('tasFermer').focus();
 }
+/* Piles d'un joueur (correctif 0.5.4) : Forge et Defausse consultables des deux cotes ; Deck : le sien seulement, trie par nom
+   et regroupe (jamais l'ordre de pioche) ; deck adverse : nombre seul. Rejeu et spectateurs : deck jamais ouvert ici (inchange). */
+function tasPile(p,k){if(!partie||!partie.etat)return null;const J=partie.etat.j[p];
+  if(k==='forge')return J.forge.slice();if(k==='defausse')return J.defausse.slice().reverse();
+  if(k!=='deck'||p!==partie.moi||partie.rejeu||window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur())return null;
+  const m=new Map();J.deck.forEach(c=>{const k=M.nomDetail(M.carte(c)),x=m.get(k);if(x)x.n++;else m.set(k,{c,n:1,nom:k})}); /* exemplaires d'une meme carte (codes differents) regroupes par nom */
+  return [...m.values()].sort((a,b)=>a.nom.localeCompare(b.nom,'fr'))}
+const LIB_PILE={deck:'Deck',forge:'Forge',defausse:'Défausse'};
+function voirPile(p,k){const t=tasPile(p,k);if(t)ouvreTas(LIB_PILE[k]+(p===partie.moi?'':' de '+nomJ(p))+(k==='deck'?' (trié par nom)':''),t)}
+/* compteur du bandeau d'un camp (Deck, Defausse, Forge ou Energie) : ouvre la pile, comme les piles de la vue joueur */
+function compteurPile(x,p,k){if(partie.rejeu||!tasPile(p,k))return x;x.classList.add('clic');x.tabIndex=0;x.setAttribute('role','button');x.setAttribute('aria-label','Voir '+LIB_PILE[k]+(p===partie.moi?'':' de '+nomJ(p)));
+  x.onclick=()=>voirPile(p,k);x.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();voirPile(p,k)}};return x}
 let uidN=0;
 /* Enclume B : Ressources/9 - Pictos points/Enclume relief.svg, sans le chiffre. Ids uniques : un doublon masque casserait le rendu. */
 function enclumeB(){const n=++uidN,P='M50 14L170 14L170 52L140 58Q130 78 136 100L158 114L158 148L42 148L42 114L64 100Q70 78 60 58L52 56Q20 50 6 16Z';
@@ -331,7 +345,7 @@ function camp(s,p,moi){
   if(actif){d.classList.add('joue');l1.append(el('span','p-joue','Joue'))}
   /* Forge, ou Énergie (étiquette dorée de la diffusion) pendant le tour de ce joueur : même case de largeur fixe, aucun compteur ne bouge */
   const cz=el('span','p-comptes'),fo=actif&&s.phase==='jeu'?compteur('enclume','Énergie',J.energie,'energie'):compteur('enclume','Forge',J.forge.length);
-  cz.append(compteur('main','Main',J.main.length),compteur('deck','Deck',J.deck.length),compteur('defausse','Défausse',J.defausse.length),fo);d.append(cz);
+  cz.append(compteur('main','Main',J.main.length),compteurPile(compteur('deck','Deck',J.deck.length),p,'deck'),compteurPile(compteur('defausse','Défausse',J.defausse.length),p,'defausse'),compteurPile(fo,p,'forge'));d.append(cz);
   return d;
 }
 const SURVOL=matchMedia('(hover:hover) and (min-width:900px)');
@@ -748,7 +762,8 @@ function affiche(){
     pl.append(mainVue(J.main,{}));
   }
   const piles=el('div','p-piles');
-  piles.append(pile('deck','Deck',J.deck.length),pile('forge','Forge',J.forge.length,J.forge.slice()),pile('defausse','Défausse',J.defausse.length,J.defausse.slice().reverse()));
+  piles.append(pile('deck','Deck',J.deck.length,tasPile(me,'deck')),pile('forge','Forge',J.forge.length,J.forge.slice()),pile('defausse','Défausse',J.defausse.length,J.defausse.slice().reverse()));
+  {const d=piles.firstChild;if(d.classList.contains('clic')){const f=()=>voirPile(me,'deck');d.onclick=f;d.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}}}
   pl.append(piles);
   if(ZONE.matches&&!s.fin){const ap=el('div','p-apercu'),fi=el('div','p-ap-img'),im=el('img'),tx=el('div','p-ap-txt');im.alt='';fi.append(im);
     /* 0.4a (variante A, style diffusion) : carte a gauche ; a droite titre, « X pose Y sur Z. », effet, Cout / Force / elements */

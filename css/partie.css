@@ -298,6 +298,11 @@ body:not(.daltonien) .dl-force.dl-mot{visibility:hidden}
 #vueTas .boite{max-width:640px}
 .tas{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:14px}
 .tas img{display:block;width:100%;height:auto;aspect-ratio:5/7;border-radius:10px}
+.tas .tas-g{margin:0;display:flex;flex-direction:column;gap:4px}.tas .tas-g figcaption{font:700 13px/1.2 var(--corps);color:var(--texte);text-align:center}
+#partie .p-compteur.clic{cursor:pointer;border-radius:6px}#partie .p-compteur.clic b{text-decoration:underline dotted;text-underline-offset:3px}
+#partie .p-compteur.clic:focus-visible{outline:2px solid var(--bleu)}
+html.dif-joueur #vueTas{z-index:25}
+html.tel-joueur #vueTas,html.tel-joueur #vue{z-index:60} /* telephone : au-dessus de la barre d action collee en bas (z-index 40) */
 /* Carte en grand avec detail de Force */
 .grand.avecDetail{display:grid;grid-template-columns:minmax(0,462px) minmax(240px,340px);justify-content:center;align-items:start;gap:12px 16px;max-width:822px}
 .grand.avecDetail .btn{grid-column:1/-1;justify-self:center}
