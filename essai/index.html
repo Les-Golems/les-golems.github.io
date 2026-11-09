@@ -25,11 +25,11 @@
 <link rel="manifest" href="manifest.webmanifest?v=2">
 <script>/* Version des images (cartes, terrains, verso, avatars) : imgV(u) ajoute ?v=<build>, pour que les joueurs voient aussitot une image remplacee.
    A CHAQUE PUBLICATION : IMG_V = champ build de version.json (meme valeur). Fonction centrale, utilisable par tous les scripts du site. */
-window.IMG_V='2026-11-08 12:45';window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
+window.IMG_V='2026-11-09 15:30';window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
 document.documentElement.style.setProperty('--verso','url("'+imgV('cartes/verso.jpg')+'")');
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[data-src]').forEach(i=>{i.src=imgV(i.dataset.src)}));</script>
 <link rel="stylesheet" href="spectateur.css?v=0.5">
-<link rel="stylesheet" href="diffusion.css?v=0.5">
+<link rel="stylesheet" href="diffusion.css?v=0.5a.2">
 <link rel="stylesheet" href="aide.css?v=0.5">
 <meta name="apple-mobile-web-app-title" content="Golems">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -2163,7 +2163,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 <script type="module" src="salon-firebase.js?v=0.5"></script>
 <script type="module" src="spectateur.js?v=0.5"></script>
 <script src="spectateur-ui.js?v=0.5" defer></script>
-<script src="diffusion.js?v=0.5a" defer></script>
+<script src="diffusion.js?v=0.5a.2" defer></script>
 <script src="aide.js?v=0.5" defer></script>
 <script src="moteur.js?v=0.5"></script>
 <script src="presence.js?v=0.5" defer></script><!-- 0.5 déconnexion (window.DECO) -->
