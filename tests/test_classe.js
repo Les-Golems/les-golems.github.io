@@ -112,12 +112,32 @@ function base(uid,pseudo,db){
   const BA=base('ua','Alice',db),BB=base('ub','Bob',db),SA=C.service(BA),SB=C.service(BB);
   const ja=await SA.profil(),jb=await SB.profil();eq(ja.elo,1000);eq(ja.saison,0);eq(ja.maj,1000,'maj en heure serveur');eq(jb.parties,0);
   ok(!db.classe.classement,'pas de classement pendant le placement');
-  // Classée entre joueurs : A gagne ; B (perdant) confirme et applique aussi la partie de A.
-  const ra=await SA.finJoueurs({sa:'AbC1',gr:-42,a:'ua',b:'ub',gagnant:'ua'});eq(ra.id,'abc1--42','id en minuscules');
-  ok(db.classe.parties['abc1--42'].ok.ua);
+  // Classée entre joueurs : A gagne. A (gagnant) n'écrit RIEN ; B (perdant) crée, confirme et applique les deux profils.
+  const nA=BA.ecrits.length,ra=await SA.finJoueurs({sa:'AbC1',gr:-42,a:'ua',b:'ub',gagnant:'ua'});eq(ra.id,'abc1--42','id en minuscules');
+  ok(ra.attente&&!ra.fait,'gagnant : en attente');eq(BA.ecrits.length,nA,'gagnant : aucune écriture');ok(!db.classe.parties,'pas de partie écrite par le gagnant');
+  let pauses=0;eq(await SA.attends('abc1--42',{essais:3,pause:async()=>{pauses++}}),null,"gagnant : rien tant que le perdant n'a pas écrit");eq(pauses,2);
+  const ecoute=SA.attends('abc1--42',{essais:5,pause:async()=>{await new Promise(r=>setImmediate(r))}});
   const rb=await SB.finJoueurs({sa:'abc1',gr:-42,a:'ua',b:'ub',gagnant:'ua'});ok(rb.fait);
+  ok(db.classe.parties['abc1--42'].ok.ub);ok(!db.classe.parties['abc1--42'].ok.ua,'le gagnant ne confirme pas');
   eq(db.classe.joueurs.ua.elo,1032);eq(db.classe.joueurs.ub.elo,968);eq(db.classe.joueurs.ua.dern,'abc1--42');ok(db.classe.parties['abc1--42'].fait.ua&&db.classe.parties['abc1--42'].fait.ub);
+  const vuA=await ecoute;ok(vuA,"gagnant : profil vu par l'écoute");eq(vuA.elo,1032,"gagnant : Elo réel (pas l'estimation)");eq(vuA.dern,'abc1--42');
+  eq(BA.ecrits.length,nA,'gagnant : toujours aucune écriture');
   ok(await SA.applique('abc1--42'),'déjà appliquée : true sans rien réécrire');eq(db.classe.joueurs.ua.parties,1,'appliquée une seule fois');
+  // Déconnexion du perdant AVANT toute écriture : rien dans la base ; le gagnant reste en attente ; reprise du perdant au chargement.
+  const db2={classe:{saison:{id:0,nom:'Bêta',debut:1}}},A2=base('ua','Alice',db2),B2=base('ub','Bob',db2),SA2=C.service(A2),SB2=C.service(B2);
+  await SA2.profil();await SB2.profil();
+  eq(await SA2.attends('x-1',{essais:2,pause:async()=>{}}),null);ok(!(await SA2.applique('x-1')),'gagnant au chargement : partie absente, reste en attente');
+  ok((await SB2.finJoueurs({sa:'x',gr:1,a:'ua',b:'ub',gagnant:'ua'})).fait,'perdant : reprise de la fin au chargement');
+  eq(db2.classe.joueurs.ua.elo,1032);eq(db2.classe.joueurs.ub.elo,968);ok(await SA2.applique('x-1'),"gagnant : déjà appliquée, sortie de l'attente");eq(db2.classe.joueurs.ua.parties,1);
+  // Déconnexion du perdant APRÈS création et confirmation, avant les profils : chacun applique la sienne au chargement.
+  await B2.ecrit({['classe/parties/x-2']:C.creePartie({sa:'x',gr:2,a:'ua',b:'ub',profilA:db2.classe.joueurs.ua,profilB:db2.classe.joueurs.ub,gagnant:'ua',saison:0}).partie});
+  await B2.ecrit(C.confirmation('x-2','ub'));
+  ok(await SA2.applique('x-2'),'gagnant au chargement : partie confirmée, il applique la sienne');ok(!db2.classe.parties['x-2'].fait.ub);
+  ok(await SB2.applique('x-2'),'perdant au chargement : applique la sienne');eq(db2.classe.joueurs.ub.parties,2);eq(db2.classe.joueurs.ua.parties,2,'gagnant appliqué une seule fois');
+  // Perdant coupé après sa confirmation : sa reprise (applique) applique aussi le gagnant.
+  await B2.ecrit({['classe/parties/x-3']:C.creePartie({sa:'x',gr:3,a:'ua',b:'ub',profilA:db2.classe.joueurs.ua,profilB:db2.classe.joueurs.ub,gagnant:'ub',saison:0}).partie});
+  const avB=A2.ecrits.length;ok(await SA2.applique('x-3'),'perdant (A) : confirme et applique');ok(db2.classe.parties['x-3'].ok.ua);ok(db2.classe.parties['x-3'].fait.ub,'et applique aussi le gagnant');ok(A2.ecrits.length>avB);
+  eq((await SB2.attends('x-3',{essais:1})).dern,'x-3','gagnant : voit la valeur écrite');
   // Classée contre un robot.
   const r=await SA.finRobot({sa:'abc1',gr:7,niveau:C.niveauRobot(1032),gagne:true});ok(r.fait);eq(r.id,'abc1-7-robot-normal');
   eq(db.classe.joueurs.ua.robots.n,1);eq(r.delta,db.classe.joueurs.ua.elo-1032);ok(r.delta>0&&r.delta<=32);

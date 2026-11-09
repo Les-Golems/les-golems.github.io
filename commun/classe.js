@@ -195,6 +195,7 @@
       deltaA: variation(o.profilA, R.elo, o.gagne, { robot: true }),
       robot: true, saison: o.saison, t: HORODATAGE, sa: String(o.sa).toLowerCase(), gr: String(o.gr) } };
   }
+  function perdantDe(p) { return p.gagnant === p.a ? p.b : p.a; }
   function confirmation(id, uid) { var u = {}; u['classe/parties/' + id + '/ok/' + uid] = true; return u; }
   /* Application d'une partie au profil de uid (par lui ou par son adversaire) : une seule écriture multi-chemins. */
   function application(uid, profil, id, partie, ms) {
@@ -263,14 +264,40 @@
       }
       return n;
     }
-    /* Applique la partie id au profil de qui (moi par défaut). Renvoie true si c'est fait (ou déjà fait). */
-    async function applique(id, qui) {
-      qui = qui || B.uid();
+    /* Applique la partie id au profil de qui, une seule fois (déjà faite : true). */
+    async function appliqueUn(id, qui) {
       var p = await B.lit('classe/parties/' + id); if (!p) return false;
       if (p.fait && p.fait[qui]) return true;
       var j = await B.lit('classe/joueurs/' + qui); if (!j) return false;
       try { await B.ecrit(application(qui, j, id, p)); } catch (e) { return false; }
       return true;
+    }
+    /* Applique la partie id au profil de qui (moi par défaut). Renvoie true si c'est fait (ou déjà fait).
+       Partie entre joueurs reprise par son PERDANT (fin normale ou nouvel essai au chargement) : il confirme si besoin,
+       applique sa partie puis celle du gagnant. Le gagnant n'écrit que la sienne, et seulement si le perdant a confirmé. */
+    async function applique(id, qui) {
+      var moi = B.uid(); qui = qui || moi;
+      var p = await B.lit('classe/parties/' + id); if (!p) return false;
+      if (qui === moi && p.robot !== true && p.gagnant !== 'nul' && perdantDe(p) === moi) {
+        if (!(p.ok && p.ok[moi])) { try { await B.ecrit(confirmation(id, moi)); } catch (e) { return false; } }
+        var fait = await appliqueUn(id, moi);
+        try { await appliqueUn(id, p.gagnant); } catch (e) {}
+        return fait;
+      }
+      return appliqueUn(id, qui);
+    }
+    /* Le gagnant d'une classée entre joueurs n'écrit rien : il écoute son profil jusqu'à ce que le perdant y ait appliqué la partie id.
+       Relecture toutes les o.delai ms (1 500), o.essais fois (40, soit une minute). Renvoie le profil relu, ou null (partie restée en attente). */
+    async function attends(id, o) {
+      o = o || {};
+      var u = B.uid(), n = o.essais || 40, d = o.delai || 1500;
+      var pause = o.pause || function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+      for (var i = 0; i < n; i++) {
+        var j = await B.lit('classe/joueurs/' + u);
+        if (j && (j.dern === id || await B.lit('classe/parties/' + id + '/fait/' + u))) return j;
+        if (i < n - 1) await pause(d);
+      }
+      return null;
     }
     /* Fin d'une classée contre un robot (salons/<sa>/robot posé avant la partie). o = { sa, gr, niveau, gagne }. */
     async function finRobot(o) {
@@ -282,26 +309,28 @@
       try { await publieClassement(n); } catch (e) {}
       return { id: P.id, fait: ok, avant: j, apres: n, delta: ok && n ? n.elo - j.elo : P.partie.deltaA };
     }
-    /* Fin d'une classée entre joueurs. o = { sa, gr, a, b, gagnant (uid de a ou de b, jamais de nul) }. Chaque joueur appelle cette fonction :
-       la partie est écrite une fois (la seconde écriture est refusée), chacun confirme, puis chacun applique ce qui peut l'être.
-       Le perdant applique aussi la partie du gagnant (il ne peut pas esquiver sa défaite). Renvoie { id, fait }. */
+    /* Fin d'une classée entre joueurs. o = { sa, gr, a, b, gagnant (uid de a ou de b, jamais de nul) }.
+       UN SEUL côté écrit, le PERDANT (les règles n'acceptent la partie que confirmée par lui) : il crée la partie, confirme,
+       applique sa partie puis celle du gagnant (il ne peut pas esquiver sa défaite). Le gagnant n'écrit rien (attente: true) :
+       il écoute son profil (attends) ; s'il ne voit rien venir, la partie reste en attente et applique() est réessayé au chargement.
+       Renvoie { id, fait, partie } (perdant) ou { id, fait: false, attente: true } (gagnant). */
     async function finJoueurs(o) {
       if (o.gagnant !== o.a && o.gagnant !== o.b) throw sansGagnant();
-      var u = B.uid(), id = idPartie(o.sa, o.gr), p = await B.lit('classe/parties/' + id);
+      var u = B.uid(), id = idPartie(o.sa, o.gr);
+      if (u === o.gagnant) return { id: id, fait: false, attente: true };
+      var p = await B.lit('classe/parties/' + id);
       if (!p) {
         var s = await saisonCourante(), pa = await B.lit('classe/joueurs/' + o.a), pb = await B.lit('classe/joueurs/' + o.b);
         if (!s || !pa || !pb) throw new Error('classe/profil');
         try { await B.ecrit(m1('classe/parties/' + id, creePartie({ sa: o.sa, gr: o.gr, a: o.a, b: o.b, profilA: pa, profilB: pb, gagnant: o.gagnant, saison: s.id }).partie)); } catch (e) {}
         p = await B.lit('classe/parties/' + id); if (!p) throw new Error('classe/partie');
       }
-      if (!(p.ok && p.ok[u])) await B.ecrit(confirmation(id, u));
-      var fait = await applique(id, u), autre = p.a === u ? p.b : p.a;
-      if (p.gagnant !== u) { try { await applique(id, autre); } catch (e) {} }
+      var fait = await applique(id);
       try { await publieClassement(await B.lit('classe/joueurs/' + u)); } catch (e) {}
       return { id: id, fait: fait, partie: p };
     }
     return { saisonCourante: saisonCourante, profil: profil, publieClassement: publieClassement, recompenses: recompenses,
-      applique: applique, finRobot: finRobot, finJoueurs: finJoueurs };
+      applique: applique, attends: attends, finRobot: finRobot, finJoueurs: finJoueurs };
   }
 
   var API = {
