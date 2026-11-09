@@ -163,7 +163,7 @@ async function ouvre() {
       avatarImg: typeof v.avatarImg === "string" ? v.avatarImg : "",
       importe: !!v.importe,
       cree: +v.cree || 0,
-      decks: versListe(v.decks).map(d => ({ id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0 })),
+      decks: versListe(v.decks).map(d => ({ id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0, ...(d.v ? { v: d.v } : {}) })),
       historique: Object.keys(v.historique || {}).map(k => { try { return JSON.parse(v.historique[k].x); } catch (e) { return null; } })
         .filter(x => x && x.id).sort((a, b) => b.date - a.date),
       cumul: lisCumul(v.cumul),
@@ -367,6 +367,7 @@ async function ouvre() {
       l.slice(0, MAX_DECKS).forEach((d, i) => {
         const c = {}; for (const k in d.cartes || {}) if (+d.cartes[k] > 0) c[k] = +d.cartes[k];
         o[i] = { id: String(d.id), nom: String(d.nom).slice(0, 24) || "Deck", cartes: c, t: Date.now() };
+        if (typeof d.v === "string" && /^[0-9a-z.]{1,10}$/.test(d.v)) o[i].v = d.v;
       });
       donnees.decks = l.slice(0, MAX_DECKS);
       await set(ref(db, P + "joueurs/" + moi + "/decks"), o);
