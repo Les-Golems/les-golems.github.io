@@ -186,10 +186,18 @@ function dkPasse(id,d){const C=M.CARTES[id],c=CARTES.find(x=>x[0]===id);if(!C||!
   const e=C.el||[];if((fDk.inc.size||fDk.exc.size)&&!e.length)return false;if(e.some(x=>fDk.exc.has(x)))return false;
   if(fDk.inc.size&&!(fDk.mode==='et'?[...fDk.inc].every(x=>e.includes(x)):e.some(x=>fDk.inc.has(x))))return false;
   if(fDk.cout.size&&!fDk.cout.has(Math.min(6,C.cout)))return false;return true}
+/* 0.6 (Romain) : tri par nom sur le NOM DU GOLEM : une evolution prend le nom de sa base et vient juste apres elle ; un animal, son propre nom
+   (melange aux Golems). desc inverse l'ordre des noms, la base reste toujours avant son evolution. Rend <0, 0 ou >0 (ids de cartes). */
+function cmpNomCarte(a,b,desc){
+  const C=M.CARTES,cle=id=>{const x=C[id]||{};return x.base&&C[x.base]?C[x.base].nom:(x.nom||'')};
+  const n=cle(a).localeCompare(cle(b),'fr',{sensitivity:'base',numeric:true});
+  return (desc?-n:n)||(!!(C[a]||{}).base-!!(C[b]||{}).base);
+}
 function dkVues(d){
-  if(fDk.ty==='t'){const L=M.TERRAINS.slice();if(fDk.tri==='nom')L.sort((a,b)=>a.nom.localeCompare(b.nom,'fr',{sensitivity:'base'}));return fDk.desc?L.reverse():L}
+  if(fDk.ty==='t'){const L=M.TERRAINS.slice();const sa=n=>n.replace(/^(Les |Le |La |L['’])/,'');if(fDk.tri==='nom')L.sort((a,b)=>sa(a.nom).localeCompare(sa(b.nom),'fr',{sensitivity:'base'}));return fDk.desc?L.reverse():L}
   const ORD=CARTES.map(c=>c[0]),o=(a,b)=>ORD.indexOf(a)-ORD.indexOf(b),C=M.CARTES;
-  const k={nom:(a,b)=>C[a].nom.localeCompare(C[b].nom,'fr',{sensitivity:'base',numeric:true})||o(a,b),cout:(a,b)=>C[a].cout-C[b].cout||o(a,b),force:(a,b)=>(C[a].force||0)-(C[b].force||0)||o(a,b)}[fDk.tri]||o;
+  if(fDk.tri==='nom')return ORD.filter(id=>dkPasse(id,d)).sort((a,b)=>cmpNomCarte(a,b,fDk.desc)||o(a,b));
+  const k={cout:(a,b)=>C[a].cout-C[b].cout||o(a,b),force:(a,b)=>(C[a].force||0)-(C[b].force||0)||o(a,b)}[fDk.tri]||o;
   const L=ORD.filter(id=>dkPasse(id,d)).sort(k);return fDk.desc?L.reverse():L}
 const btnDk=(t,cl,f)=>{const b=el('button','sc-btn'+(cl?' '+cl:''),t);b.type='button';if(f)b.onclick=f;return b};
 const alerteDk=(t,info,cl)=>{const a=el('div','sc-alerte '+(info?'sc-info':'sc-erreur')+(cl?' '+cl:''));a.setAttribute('role',info?'status':'alert');a.append(el('i'));const s=el('span');if(typeof t==='string')s.textContent=t;else s.append(...t);a.append(s);return a};
@@ -425,7 +433,7 @@ function decklist(b,d,l){
   b.append(h);
   const fautes=new Set(raisonsDeck(d).flatMap(r=>r.ids)); /* raison dans le bandeau a cote d'Importer un deck */
   /* M.CARTES est indexe par identifiant ('001e') ; M.carte attend un numero d'exemplaire de partie. */
-  const L=CARTES.filter(c=>d.cartes[c[0]]>0).map(c=>({c,C:M.CARTES[c[0]],n:+d.cartes[c[0]]})).sort((x,y)=>x.C.cout-y.C.cout||x.c[1].localeCompare(y.c[1],'fr'));
+  const L=CARTES.filter(c=>d.cartes[c[0]]>0).map(c=>({c,C:M.CARTES[c[0]],n:+d.cartes[c[0]]})).sort((x,y)=>x.C.cout-y.C.cout||cmpNomCarte(x.c[0],y.c[0]));
   if(!L.length){b.append(el('p','intro o-nb','Ce deck est vide.'));return}
   const u=el('ul','dl-liste'),ap=el('img','dl-apercu');ap.alt='';ap.hidden=true;
   const place=e=>{const W=220,H=308,x=e.clientX+18,y=e.clientY-H/2;ap.style.left=(x+W>innerWidth?e.clientX-W-18:x)+'px';ap.style.top=Math.max(8,Math.min(innerHeight-H-8,y))+'px'};
