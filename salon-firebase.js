@@ -285,10 +285,11 @@ async function ouvre() {
         try { await set(ref(db, P + "classement/" + moi), { p: donnees.pseudo, v: r.v, n: r.n }); } catch (e) {}
       }
       const o = { p: donnees.pseudo, m: !!donnees.masque, n: r.n, v: r.v, d: r.d, t: serverTimestamp() };
-      if (donnees.cree) o.cr = donnees.cree;
+      // 0.6 : profil privé (masque) : ni date de création (cr) ni Elo (el).
+      if (donnees.cree && !donnees.masque) o.cr = donnees.cree;
       if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv", "pm"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
       // 0.6 : Elo classé affiché (placement fini seulement, règle profils/el).
-      const lisEl = async () => { delete o.el; try { const j = (await get(ref(db, P + "classe/joueurs/" + moi))).val(); if (j && j.parties >= 5 && Number.isFinite(j.elo)) o.el = j.elo; } catch (e) {} };
+      const lisEl = async () => { delete o.el; if (donnees.masque) return; try { const j = (await get(ref(db, P + "classe/joueurs/" + moi))).val(); if (j && j.parties >= 5 && Number.isFinite(j.elo)) o.el = j.elo; } catch (e) {} };
       await lisEl();
       try { await set(ref(db, P + "profils/" + moi), o); return true; } catch (e) {
         // el doit égaler classe/joueurs/<uid>/elo au moment de l'écriture : une fin de classée (finRobot, finJoueurs) peut
