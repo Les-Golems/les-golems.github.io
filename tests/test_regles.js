@@ -326,6 +326,22 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('vote, guide hors liste'), false, req(A, 'PUT', P + 'guides/guide-invente/votes/' + A.uid, 1));
   await attendu(ici('vote retiré, guide vidéo'), true, req(A, 'DELETE', P + 'guides/l8-g9rcBFnI/votes/' + A.uid));
 
+  // 0.6 : propositions de guides (fenêtre « Proposer un guide »).
+  const PG = P + 'propositionsGuides/', pv = { u: A.uid, p: pA, ty: 'v', ti: 'Magma rapide', yt: 'Xk29fQ_r7Ls', d1: 'GOL2-KgMPA8ADDAgA', t: HEURE };
+  await attendu(ici('proposition vidéo'), true, req(A, 'PUT', PG + 'pa' + t, pv));
+  await attendu(ici('proposition texte'), true, req(A, 'PUT', PG + 'pb' + t, { u: A.uid, p: pA, ty: 't', ti: 'Mon plan', tx: 'Pose Roche en premier.', d1: 'GOL2-KgMPA8ADDAgA', d2: 'GOL1-QUJD', t: HEURE }));
+  await attendu(ici('proposition modifiée par son auteur'), false, req(A, 'PUT', PG + 'pa' + t, { ...pv, ti: 'Autre titre' }));
+  await attendu(ici('proposition par un invité'), false, req(G, 'PUT', PG + 'pg' + t, { ...pv, u: G.uid }));
+  await attendu(ici('proposition au nom de B'), false, req(A, 'PUT', PG + 'pc' + t, { ...pv, u: B.uid }));
+  await attendu(ici('proposition, pseudo de B'), false, req(A, 'PUT', PG + 'pd' + t, { ...pv, p: pB }));
+  await attendu(ici('proposition vidéo sans lien'), false, req(A, 'PUT', PG + 'pe' + t, { ...pv, yt: undefined }));
+  await attendu(ici('proposition, lien invalide'), false, req(A, 'PUT', PG + 'pf' + t, { ...pv, yt: 'https://exemple.fr' }));
+  await attendu(ici('proposition sans deck'), false, req(A, 'PUT', PG + 'ph' + t, { ...pv, d1: undefined }));
+  await attendu(ici('proposition, champ inconnu'), false, req(A, 'PUT', PG + 'pi' + t, { ...pv, x: 1 }));
+  await attendu(ici('propositions lues par un joueur'), false, req(A, 'GET', PG));
+  await attendu(ici('propositions lues par Romain'), true, req(R, 'GET', PG));
+  await attendu(ici('proposition effacée par Romain'), true, req(R, 'DELETE', PG + 'pa' + t));
+
   // En ligne (invités compris).
   await attendu(ici('invité se signale en ligne'), true, req(G, 'PUT', P + 'enligne/' + G.uid, HEURE));
   await attendu(ici('invité signale un autre'), false, req(G, 'PUT', P + 'enligne/' + A.uid, HEURE));

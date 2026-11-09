@@ -706,7 +706,15 @@ async function ouvre() {
         const r = ref(db, P + "guides/" + id + "/votes/" + moi);
         return v === 1 || v === -1 ? set(r, v) : remove(r);
       },
-      uid: () => estCompte() ? moi : null
+      uid: () => estCompte() ? moi : null,
+      // Proposition de guide (rules/60-guides.js, propositionsGuides) : o = { ty: 'v'|'t', ti, yt?, tx?, d1, d2? } ; rend la clé écrite.
+      async propose(o) {
+        if (!estCompte() || !donnees) throw new Error("compte");
+        const x = { u: moi, p: donnees.pseudo, ty: o.ty, ti: o.ti, d1: o.d1, t: serverTimestamp() };
+        for (const k of ["yt", "tx", "d2"]) if (o[k]) x[k] = o[k];
+        const r = push(ref(db, P + "propositionsGuides"));
+        await set(r, x); return r.key;
+      }
     },
     // Lecture brute (tests locaux) : soumise aux mêmes règles que le reste.
     lit: p => get(ref(db, P + p)).then(s => s.val()),

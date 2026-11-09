@@ -177,3 +177,79 @@ function cjInit(){
   if(id){const g=GUIDES.find(x=>x.id===id);const ouvre=()=>{if(typeof onglet==='function')onglet('regles');if(g){GD.cur=g;GD.fait=false}cjVue('guides');scrollTo(0,0)};
     if(document.readyState==='complete')setTimeout(ouvre,0);else addEventListener('load',()=>setTimeout(ouvre,0))}
 }
+/* ----- 0.6 : « Proposer un guide » (maquette 31\Guides, B3 compte et B4 invite ; choix du deck B6 = fenetre de deck unique choisirDeck).
+   Bouton sous la pagination de la liste ; invite : bouton secondaire au cadenas, fenetre floutee + « Se connecter » / « Créer un compte ».
+   Envoi : room.guides.propose (propositionsGuides, rules/60-guides.js), relu par l'equipe avant publication. */
+const SVG_CADENAS='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10.5" width="16" height="11" rx="2.5" fill="currentColor"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>';
+function gdMajProp(){const b=$('gdProp');if(!b)return;const co=compteCo();b.className='sc-btn gd-prop'+(co?'':' sc-secondaire');b.innerHTML=(co?'':'<span class="gd-pcad">'+SVG_CADENAS+'</span>')+'Proposer un guide'}
+const gdYt=u=>{u=String(u||'').trim();const m=/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/|\/live\/)([A-Za-z0-9_-]{11})/.exec(u)||/^([A-Za-z0-9_-]{11})$/.exec(u);return m?m[1]:''};
+function gdTuileDeck(d){
+  const t=gdMk('div','gd-strip dg gd-tf'),E=elsOrdre(d);t.style.background=fondDeck(E);
+  const n=gdMk('div','gd-dn');n.append(gdMk('small','','Deck'),gdMk('b','',d.nom));n.lastChild.title=d.nom;
+  const pe=gdMk('div','gd-els');
+  E.forEach(e=>{const s=gdMk('span','gd-el'),q=Object.keys(d.cartes).filter(k=>+d.cartes[k]>0&&(M.CARTES[k]?.el||[]).includes(e)).reduce((x,k)=>x+(+d.cartes[k]),0);
+    s.title=nomEl(e);s.append(picto(e),gdMk('b','',String(q)));pe.append(s)});
+  t.append(n,pe,gdMk('span','gd-ct',totalDeck(d)+'/30'),etqVersionDeck(d.v||V_DECK_ANCIEN,d.cartes));return t;
+}
+function ouvrePropGuide(){
+  $('gdPFen')?.remove();
+  const co=compteCo(),v=gdMk('div','voile gd-pvoile'),f=gdMk('div','sc-fenetre gd-pfen');
+  v.id='gdPFen';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','gdPT');
+  const h=gdMk('h3','sc-fen-titre','Proposer un guide');h.id='gdPT';const msg=gdMk('div','gd-pmsg');f.append(h,msg);
+  const ferme=()=>{v.remove();$('gdProp')?.focus()};v.onclick=e=>{if(e.target===v)ferme()};v.onkeydown=e=>{if(e.key==='Escape'&&!$('popDeck'))ferme()};
+  const choisi=()=>{const id=lire('golems.deckChoisi')||'';return lesDecks().find(x=>x.id===id)||null};
+  const P={ty:'v',d1:co?choisi():null,d2:null};
+  const corps=gdMk('div','gd-pcorps'),info=gdMk('div','gd-pinfo');
+  alerteInfo(info,'L\'équipe relit chaque guide avant de le publier. Tu reçois une réponse dans tes notifications.').classList.add('sc-une-ligne');
+  const fl=gdMk('div','gd-fl'),lab=(t,s)=>{const l=gdMk('label','',t);if(s)l.append(gdMk('small','',s));return l};
+  const ty=gdMk('div','sc-sel gd-pty');ty.setAttribute('role','group');ty.setAttribute('aria-label','Type de guide');
+  [['v','Vidéo'],['t','Texte']].forEach(([k,t])=>{const b=gdMk('button','',t);b.type='button';b.dataset.k=k;b.onclick=()=>{P.ty=k;maj()};ty.append(b)});
+  const ti=gdMk('input','gd-ch');ti.maxLength=80;ti.placeholder='Titre de ton guide';ti.setAttribute('aria-label','Titre');
+  const yt=gdMk('input','gd-ch');yt.placeholder='https://www.youtube.com/watch?v=...';yt.setAttribute('aria-label','Lien YouTube');
+  const tx=gdMk('textarea','gd-ch');tx.maxLength=4000;tx.placeholder='Explique ton plan de jeu, tes choix de cartes, les terrains que tu vises...';tx.setAttribute('aria-label','Texte');
+  const lYt=lab('Lien YouTube'),lTx=lab('Texte'),d1=gdMk('div','gd-ldk'),d2=gdMk('div','gd-ldk');
+  /* Choix d'un deck : fenetre de deck unique (B6) ; le deck choisi pour jouer est remis tel quel ensuite. */
+  const prend=k=>{const av=lire('golems.deckChoisi')||'';
+    choisirDeck(()=>{const d=choisi();ecrire('golems.deckChoisi',av);if(typeof majChoixDeck==='function')majChoixDeck();if(d)P[k]=d;maj()},'Choisir ce deck','Deck à importer avec ton guide');
+    const pd=$('popDeck');if(pd)pd.style.zIndex=60};
+  const ligneDk=(z,k)=>{z.replaceChildren();const d=P[k];
+    if(d)z.append(gdTuileDeck(d));
+    else{const t=gdMk('div','gd-strip gd-tf'),n=gdMk('div','gd-dn vide');n.append(gdMk('small','','Deck'),gdMk('b','',k==='d1'?'Aucun deck choisi':'Aucune 2e version'));t.append(n);z.append(t)}
+    const b=gdMk('button','sc-btn sc-secondaire',k==='d2'&&d?'Retirer':d?'Changer':'Choisir');b.type='button';b.onclick=()=>{if(k==='d2'&&d){P.d2=null;maj()}else prend(k)};z.append(b)};
+  fl.append(lab('Type'),ty,lab('Titre'),ti,lYt,yt,lab('Deck à importer','version 1'),d1,lab('2e version','facultative'),d2,lTx,tx);
+  const rg=gdMk('div','sc-fen-actions'),ok=gdMk('button','sc-btn','Envoyer pour relecture'),an=gdMk('button','sc-btn sc-secondaire','Annuler');
+  ok.type=an.type='button';an.onclick=ferme;rg.append(ok,an);
+  function maj(){
+    ty.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===P.ty)));
+    const vid=P.ty==='v';lYt.hidden=yt.hidden=!vid;
+    lTx.replaceChildren('Texte');if(vid)lTx.append(gdMk('small','','facultatif pour une vidéo'));
+    ligneDk(d1,'d1');ligneDk(d2,'d2');
+  }
+  ok.onclick=async()=>{
+    const titre=ti.value.trim(),id=gdYt(yt.value),texte=tx.value.trim(),vid=P.ty==='v';
+    const e=titre.length<3?'Guide : titre manquant. Donne un titre de 3 caractères au moins.'
+      :vid&&!id?'Guide : lien YouTube invalide. Colle le lien de ta vidéo.'
+      :!vid&&!texte?'Guide : texte manquant. Écris ton guide.'
+      :!P.d1?'Guide : aucun deck choisi. Choisis le deck à importer.':'';
+    if(e){alerte(msg,e);return}
+    if(!GD.room||!GD.room.guides||!GD.room.guides.propose){alerte(msg,'Guide : serveur injoignable. Réessaie dans un instant.');return}
+    ok.disabled=true;alerte(msg,'');
+    const ps=GD.room.compte&&GD.room.compte.pseudo?GD.room.compte.pseudo():'';
+    try{await GD.room.guides.propose({ty:P.ty,ti:titre,yt:vid?id:'',tx:texte,d1:codeDeck2(P.d1,ps),d2:P.d2?codeDeck2(P.d2,ps):''})}
+    catch(x){console.warn('proposition de guide',x);ok.disabled=false;alerte(msg,'Guide : envoi impossible. Réessaie dans un instant.');return}
+    ferme();alerteInfo('gdAlq','Guide : proposition envoyée. L\'équipe la relit avant de la publier.');
+  };
+  corps.append(info,fl,rg);
+  if(co)f.append(corps);
+  else{
+    const w=gdMk('div','gd-verrou');corps.classList.add('gd-flou');corps.setAttribute('aria-hidden','true');corps.inert=true;
+    const c=gdMk('div','gd-cad'),ic=gdMk('span','gd-cadi');ic.innerHTML=SVG_CADENAS;
+    const r=gdMk('div','sc-rangee'),a=gdMk('button','sc-btn','Se connecter'),b=gdMk('button','sc-btn sc-secondaire','Créer un compte');a.type=b.type='button';
+    a.onclick=()=>{ferme();ouvrePseudo()};b.onclick=()=>{ferme();ouvrePseudo();modeCompte(true)};r.append(a,b);
+    c.append(ic,gdMk('b','','Un compte est nécessaire pour proposer un guide'),gdMk('span','','Connecte-toi pour envoyer une vidéo ou un texte à l\'équipe.'),r);
+    w.append(corps,c);f.append(w);
+  }
+  maj();v.append(f);document.body.append(v);(co?ti:f.querySelector('.gd-cad .sc-btn')).focus();
+}
+if($('gdProp')){$('gdProp').onclick=ouvrePropGuide;gdMajProp();
+  if(window.golemsSalon)Promise.resolve(window.golemsSalon).then(r=>{if(r&&r.compte&&r.compte.onChange)r.compte.onChange(gdMajProp);gdMajProp()}).catch(()=>{})}
