@@ -58,7 +58,7 @@ function ordre(l){
     const q=m[i];if(!q||p.sameTab||(!q.sameTab&&p.updatedAt>q.updatedAt))m[i]=p});
   return t.filter(p=>{const i=p.presence.sid;return typeof i!=='string'||!i||m[i]===p});
 }
-/* Adversaire arrive dans ma partie en attente, onglet cache : le titre alterne « Adversaire arrivé ! · Les Golems » et le titre normal
+/* Adversaire arrive dans ma partie en attente, onglet cache : le titre alterne « Adversaire arrivé ! - Les Golems » et le titre normal
    jusqu'au retour sur l'onglet (repris de signal-tour.js, retire a l'etape 8 : son signal « À toi ! » ne marchait pas, une etiquette le remplace). */
 (()=>{const ARRIVEE='Adversaire arrivé ! - Les Golems';let normal=null,minuteur=0,bascule=false,arrivee=false;
   const arrete=()=>{if(minuteur){clearInterval(minuteur);minuteur=0}if(normal!==null){document.title=normal;normal=null}};
@@ -81,9 +81,9 @@ function majSalon(){
   if(!specUI)u.textContent='';
   const sieges=l.slice(0,MAX).map(siegeSalon);
   while(sieges.length<MAX){const v=el('div','sl-j sl-libre'),a=el('div','avatar','?'),t=el('div','cd-tuile');
-    t.append(el('span','h-deck h-sans','Aucun deck'),el('span','cd-nb','Partage le code ou le lien'));
+    t.append(tuileDk({nom:'Aucun deck',masque:true,sous:'Partage le code ou le lien'}));
     const e=etiquetteV(maV,false);e.classList.add('sl-vide');
-    v.append(a,el('div','sl-nom','Place libre'),el('span','sl-etat',"En attente d'un adversaire"),e,t);sieges.push(v)}
+    v.append(a,(()=>{const n=el('div','sl-nom'),w=el('span','sl-pw');w.append(el('span','sl-pn','Place libre'));n.append(w);return n})(),el('span','sl-etat',"En attente d'un adversaire"),e,t);sieges.push(v)}
   if(l.length)sieges[0].append(el('span','sl-role','Créateur'));
   if(!specUI)u.append(sieges[0],el('div','sl-vs','VS'),sieges[1]);
   majSpecs();
@@ -108,20 +108,40 @@ function infoDeck(t){
   const o=M.lisDeck(t);let nb=0;if(o)for(const k in o)nb+=+o[k]||0;
   return {nom:'',els:elsTexte(t),nb:nb||M.TAILLE_DECK};
 }
+/* 0.6 (charte, salon) : rang a cote du pseudo. Embleme a 20 px a gauche du pseudo (centre sur l'avatar, coupe avant le bord du deck),
+   Elo sous l'embleme sur la ligne du statut ; salon amical : embleme seul. Placement : embleme de placement, sans Elo.
+   Mon profil : profilClasse() ; adversaire : classe/joueurs/<uid> lu par room.compte.classeDe. */
+const classeCache={};
+function profilSiege(p){
+  if(p.sameTab)return compteCo()?profilClasse():null;
+  if(p.peer in classeCache)return classeCache[p.peer];
+  classeCache[p.peer]=null;
+  if(room&&room.compte&&typeof room.compte.classeDe==='function')room.compte.classeDe(p.peer).then(j=>{classeCache[p.peer]=j&&Number.isFinite(j.elo)?j:null;if(r)majSalon()}).catch(()=>{});
+  return null;
+}
+function nomSiege(p,nom,moi){
+  const n=el('div','sl-nom'),w=el('span','sl-pw'),pn=el('span','sl-pn',nom);pn.title=nom;w.append(pn);n.append(w);
+  if(moi)w.append(el('em','','toi'));
+  const j=window.GolemsClasse?profilSiege(p):null;
+  if(j){const A=GolemsClasse.affichage(j),R=A.placement?{id:'placement',nom:'Placement'}:A.rang,im=el('img','sl-emb');
+    im.src=imgRang(R.id);im.alt=R.nom;im.title=A.placement?A.texte:R.nom;im.width=im.height=48;w.append(im);
+    if(salonClasse&&!A.placement)w.append(el('span','sl-elo',String(Math.round(A.elo))))}
+  return n;
+}
+/* Ligne de contexte de la fenetre de deck dans le salon. */
+const ctxSalon=()=>(salonClasse?'Partie classée':'Partie amicale')+' - salon '+String(code||'').toUpperCase();
 function siegeSalon(p){
   const nom=nomDe(p),moi=p.sameTab,pr=estPret(p),s=el('div','sl-j'+(pr?' pret':'')+(moi?' sl-moi':''));
-  const n=el('div','sl-nom',nom);if(moi)n.append(el('em','','toi'));
-  s.append(moi?avatarDe(nom,monAvatar()):avatarUid(nom,p.peer),n,el('span','sl-etat',pr?'Prêt':'En attente'),etiquetteV(vDe(p),vxRouge===(moi?'moi':p.peer)));
+  s.append(moi?avatarDe(nom,monAvatar()):avatarUid(nom,p.peer),nomSiege(p,nom,moi),el('span','sl-etat',pr?'Prêt':'En attente'),etiquetteV(vDe(p),vxRouge===(moi?'moi':p.peer)));
   const t=el('div','cd-tuile');
-  if(moi){const c=jePret&&deckPret?deckPret:deckChoisi(),i=infoDeck(c.texte);t.append(...enteteDeck(c.nom,i.els,i.nb))}
-  /* Deck de l'adversaire masque avant la partie : meme tuile que la mienne, bandeau neutre « Deck choisi » (ni nom, ni element, ni couleur),
-     nombre de cartes, pastille « ? » ; « Choix en cours » tant qu'il n'est pas pret. Il se decouvre en jeu, carte par carte. */
-  else{const h=el('div','cd-haut'),pi=el('div','d-pict');
-    if(pr){h.append(el('span','h-deck dk-neutre','Deck choisi'),compteNb(infoDeck(p.presence.deck).nb));pi.append(pastilleInconnue())}
-    else h.append(el('span','h-deck dk-neutre','Choix en cours'));
-    t.append(h,pi)}
+  /* Tuile de deck unique (tuileDk de l'onglet Decks). Mon deck : nom, elements, version (rouge si une carte a change depuis). */
+  if(moi){const c=jePret&&deckPret?deckPret:deckChoisi(),i=infoDeck(c.texte),d=c.id?lesDecks().find(x=>x.id===c.id):null;
+    t.append(tuileDk({nom:c.id?c.nom:'Deck par défaut',els:i.els,nb:i.nb,v:d?d.v||M.VERSION:M.VERSION,cartes:d?d.cartes:null}))}
+  /* Deck de l'adversaire masque avant la partie : meme tuile, neutre (« Deck choisi », ni nom, ni element, ni couleur), nombre de cartes,
+     pastille « ? » ; « Choix en cours » tant qu'il n'est pas pret. Il se decouvre en jeu, carte par carte. */
+  else t.append(tuileDk(pr?{nom:'Deck choisi',masque:true,nb:infoDeck(p.presence.deck).nb}:{nom:'Choix en cours',masque:true}));
   s.append(t,tauxSiege(p));
-  if(moi&&!partie){const b=el('button','btn sec','Changer de deck');b.type='button';b.disabled=jePret;b.title=jePret?'Retire ton Prêt pour changer de deck':'';b.onclick=()=>choisirDeck(()=>majSalon(),'Choisir');s.append(b)}
+  if(moi&&!partie){const b=el('button','btn sec','Changer de deck');b.type='button';b.disabled=jePret;b.title=jePret?'Retire ton Prêt pour changer de deck':'';b.onclick=()=>choisirDeck(()=>majSalon(),'Choisir ce deck',ctxSalon());s.append(b)}
   return s;
 }
 /* Taux de victoire sur toutes les parties : le mien en direct (cumuls), celui de l'adversaire via joueurs/{uid}/stats. */
@@ -238,7 +258,7 @@ async function suitInvit(){
   if(!n){alerte('erreurJeu','Salon impossible : salon '+C+' fermé. Crée ton salon ou rejoins-en un autre.');return}
   if(!(j&&j[moi])&&(eng&&!eng[moi]||n>=MAX)){alerte('erreurJeu','Salon impossible : salon '+C+' complet. Rejoins un autre salon.');return}
   $('erreurJeu').textContent='';
-  choisirDeck(()=>{createur=false;salonPublic=false;annonceVue='';entre(c)});
+  choisirDeck(()=>{createur=false;salonPublic=false;annonceVue='';entre(c)},'Rejoindre','Salon '+C);
 }
 $('pret').onclick=()=>{
   jePret=!jePret;
@@ -388,8 +408,10 @@ new MutationObserver(()=>{if(!$('historique').hidden&&$('jVue').parentNode!==$('
 function selPub(id){const z=$(id),b=[...z.querySelectorAll('button')];b.forEach((x,i)=>x.onclick=()=>{b.forEach((y,k)=>y.setAttribute('aria-pressed',k===i?'true':'false'))});return ()=>b[0].getAttribute('aria-pressed')==='true'}
 const pubClasse=selPub('pubClasse'),pubAmicale=selPub('pubAmicale');
 let salonClasse=false; /* salon classe en cours (createur, ou joueur entre par une annonce classee) */
-$('creer').addEventListener('click',()=>{salonClasse=false;$('salonPublicCase').checked=pubAmicale()},true);
-$('creerClasse').onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(()=>{salonClasse=true;$('salonPublicCase').checked=pubClasse();creerSalon()})};
+$('creer').addEventListener('click',()=>{salonClasse=false;$('salonPublicCase').checked=pubAmicale();choixDeckCtx={lib:'Créer le salon',ctx:'Partie amicale',t:Date.now()}},true);
+/* Rejoindre par code (commun/raccords.js) : libelle et contexte de la fenetre de deck. */
+$('formCode').addEventListener('submit',()=>{choixDeckCtx={lib:'Rejoindre',ctx:'Salon '+$('champCode').value.trim().toUpperCase(),t:Date.now()}},true);
+$('creerClasse').onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(()=>{salonClasse=true;$('salonPublicCase').checked=pubClasse();creerSalon()},'Créer le salon','Partie classée')};
 /* Le classement de la saison est dans Statistiques (mode Classees). */
 $('voirClassement').onclick=()=>onglet('stats');
 
@@ -456,7 +478,7 @@ function encartEntrainement(){
 }
 /* Pastille du deck de l'Entrainement : nom + teinte des elements, clic = fenetre de choix du deck. */
 function majPilDeck(){const d=deckChoisi(),b=$('jDeck');b.querySelector('span').textContent=d.nom;b.style.setProperty('--j-teinte',teinte(elsPrincipaux(d.texte),'90deg'));b.title='Deck : '+d.nom+' (changer)'}
-$('jDeck').onclick=()=>choisirDeck(majPilDeck,'Choisir');
+$('jDeck').onclick=()=>choisirDeck(majPilDeck,'Choisir ce deck','Entraînement contre le Golem');
 /* Invite (final_invite) : tuiles Classee et Amicale floutees sous un verrou, liste floutee avec Se connecter / Creer un compte. */
 const VERROU='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>';
 function jVerrou(parent,titre,sous,deux){
@@ -517,7 +539,7 @@ function peintListe(){
     let b;
     if(mien)b=el('span','j-tag j-moi','Ta partie');
     else if(et==='o'){b=el('button','sc-btn',vd?'Version différente':'Rejoindre');b.type='button';b.disabled=!!r||occupe||vd;
-      b.onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(()=>{salonPublic=false;createur=false;salonClasse=x.cl===true;annonceVue='';entre(x.code)})}}
+      b.onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(()=>{salonPublic=false;createur=false;salonClasse=x.cl===true;annonceVue='';entre(x.code)},'Rejoindre',(x.cl===true?'Partie classée':'Partie amicale')+' - salon '+String(x.code).toUpperCase())}}
     else{b=el('button','sc-btn sc-secondaire','Regarder');b.type='button';b.disabled=!!r||occupe||vd;b.onclick=()=>observer(x)}
     li.append(el('span','j-et '+et,et==='o'?'Ouverte':et==='c'?'Complète':'En cours'),el('span','j-tag'+(x.cl===true?' cl':''),x.cl===true?'Classée':'Amicale'),duo,inf,sp,b);
     g.append(li);
@@ -541,8 +563,8 @@ function majBandeauRobot(){
   const C=GolemsClasse,j=profilClasse(),R=C.ROBOTS[C.niveauRobot(j.elo)],reste=C.robotsRestants(j.robots),t=z.querySelector('span'),b=$('affronterGolem'),ms=ATTENTE_ROBOT-(Date.now()-entree);
   z.hidden=false;
   if(reste<=0){t.textContent='Limite atteinte : '+C.ROBOTS_PAR_JOUR+' parties contre un Golem par jour en classée. Reviens demain ou attends un adversaire.';b.hidden=true;return}
-  if(ms>0){const s=Math.ceil(ms/1000);t.textContent='Personne n\'a encore rejoint : un Golem te sera proposé dans '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+'.';b.hidden=true;robotT2=setTimeout(majBandeauRobot,(ms%1000)+20);return}
-  t.textContent='Personne n\'a rejoint : affronte le '+R.nom+' - Elo '+R.elo+'. Points divisés par 2 - '+C.compteRobot(j.robots).n+' sur '+C.ROBOTS_PAR_JOUR+' aujourd\'hui.';b.hidden=false;
+  if(ms>0){const s=Math.ceil(ms/1000);t.textContent='Salon classé : personne n\'a encore rejoint. Un Golem te sera proposé dans '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+'.';b.hidden=true;robotT2=setTimeout(majBandeauRobot,(ms%1000)+20);return}
+  t.textContent='Salon classé : personne n\'a rejoint. Affronte le '+R.nom+' - Elo '+R.elo+', points divisés par 2, '+C.compteRobot(j.robots).n+' sur '+C.ROBOTS_PAR_JOUR+' aujourd\'hui.';b.hidden=false;
 }
 $('affronterGolem').onclick=async()=>{
   const j=profilClasse(),sa=code;if(!GolemsClasse.peutAffronterRobot(j.robots)){majBandeauRobot();return}
@@ -553,7 +575,7 @@ $('affronterGolem').onclick=async()=>{
 };
 
 /* Colonne des spectateurs du salon (refonte v2) : 5 lignes au plus, puis « +N autres » ; « Aucun spectateur » si vide. */
-$('slDeck').onclick=()=>choisirDeck(()=>majSalon(),'Choisir');
+$('slDeck').onclick=()=>choisirDeck(()=>majSalon(),'Choisir ce deck',ctxSalon());
 function majSpecs(){
   const z=$('slSpecs');if(!z)return;z.textContent='';
   const E=window.SPEC&&SPEC.etatSalon?SPEC.etatSalon():null,l=E&&Array.isArray(E.spectateurs)?E.spectateurs:[];

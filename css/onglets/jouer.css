@@ -62,9 +62,21 @@
 .j-pages{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin:12px 0 0}
 .j-pages[hidden]{display:none}
 .j-pages .nv-num{font:400 17px/1 var(--titre);min-width:44px;text-align:center}
-/* Fenetre de choix du deck (B2a) : J09 titre au modele sc-fenetre, J10 deck invalide contour rouge 2 px */
-#popDeck .cd-boite>h2{font:800 18px/1.2 var(--corps);margin:0 0 14px;color:var(--texte)}
-#popDeck .cd-tuile.cd-off{box-shadow:0 0 0 2px var(--rouge);border-color:var(--rouge)}
+/* Fenetre de choix du deck UNIQUE (B2a, onglets/decks.js choisirDeck) : titre sc-fenetre, contexte, tuiles de deck uniques (.dk-tuile de Mes decks)
+   sur 2 colonnes, deck invalide (contour rouge 2 px, raison) grise, « + Nouveau deck » en pointilles, rangee [action] [Modifier ce deck] [Annuler]. */
+#popDeck .cd-fen{width:min(700px,calc(100vw - 32px));max-width:none;box-sizing:border-box}
+#popDeck .cd-fen>.sc-fen-titre{margin-bottom:4px}
+#popDeck .cd-ctx{margin:0 0 14px;font:400 14px/1.3 var(--corps);color:var(--texte)}
+#popDeck .cd-grille{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:10px;margin:0 -4px;padding:4px;max-height:min(420px,calc(100vh - 260px));overflow-y:auto;scrollbar-width:thin;scrollbar-color:#4b6274 transparent}
+#popDeck .cd-grille{align-items:stretch}#popDeck .cd-grille>.dk-tuile{height:auto;min-height:54px}#popDeck .cd-grille>.dk-tuile.inv{min-height:68px}
+#popDeck .cd-off{cursor:not-allowed}#popDeck .cd-off>div,#popDeck .cd-off>.ct{opacity:.45}
+@media (hover:hover){#popDeck .cd-off:hover{filter:none}}
+#popDeck .cd-nouveau{display:flex;align-items:center;justify-content:center;gap:8px;min-height:54px;box-sizing:border-box;border:2px dashed #4b6274;border-radius:10px;background:none;color:var(--texte);font:800 15.5px var(--corps);cursor:pointer}
+#popDeck .cd-nouveau .cd-plus{color:var(--bleu);font:900 22px/1 var(--corps)}
+@media (hover:hover){#popDeck .cd-nouveau:not(:disabled):hover{border-color:var(--bleu)}}
+#popDeck .cd-nouveau:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
+#popDeck .cd-nouveau:disabled{opacity:.45;cursor:not-allowed}
+#popDeck .sc-fen-actions>.sc-btn{flex:1 1 0;min-width:0}
 /* Salon classe : etiquette a cote du code, bandeau du Golem (36 variante B) */
 .j-codeL{display:flex;align-items:center;gap:14px}
 .j-robot{margin:0 0 16px}
@@ -129,6 +141,5 @@ b.chat-moi{color:var(--bleu)}b.chat-adv{color:var(--adverse)}
 #formCode #rejoindre{flex:1;width:auto}
 .j-robot>span{text-align:left}
 #formCode#formCode.j-rangee{display:flex;gap:12px}#formCode#formCode #rejoindre{flex:1;width:auto;min-height:46px;padding:0 20px;font-size:18px}#formCode#formCode #champCode{flex:0 0 184px;width:184px;height:46px}
-#popDeck .cd-boite{width:min(700px,calc(100vw - 32px));max-width:none;text-align:left}#popDeck .cd-boite>h2{text-align:left}
 #formCode#formCode#formCode #champCode{min-width:0;width:184px;flex:0 0 184px}#formCode#formCode#formCode #rejoindre{flex:1 1 auto;min-width:0}
 #accueil.j-invite #blocListe{min-height:470px;box-sizing:border-box}

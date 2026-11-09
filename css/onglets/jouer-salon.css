@@ -220,3 +220,20 @@ b[class^="chat-"][title]{cursor:help}
 #salon .sl-copies{gap:12px}
 #salon .sl-haut .btnCode{width:180px;min-height:46px;--bord:#26323c;background:#3b4b59;color:var(--texte);box-shadow:0 2px 0 #26323c}
 #salon .sl-haut .btnCode{font-size:17px}.sl-cadre .sl-scene,.sl-cadre .sl-duo{height:100%}
+
+/* 0.6 (charte, salon) : tuile de deck unique (.dk-tuile de Mes decks) dans le conteneur .cd-tuile, qui devient transparent. */
+.sl-j .cd-tuile{padding:0;border:0;background:none;min-height:0;gap:0;box-shadow:none}
+.sl-j .cd-tuile>.dk-tuile{cursor:default}
+@media (hover:hover){.sl-j .cd-tuile>.dk-tuile:hover{filter:none}}
+.dk-tuile.dk-masque{border-color:var(--trait)}
+.dk-tuile .dk-sous{font:700 12.5px/16px var(--corps);color:var(--doux);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dk-tuile .pi .dk-inc{width:16px;height:16px;font-size:11px;line-height:16px}
+/* Rang a cote du pseudo : pseudo centre sur l'avatar, embleme 48 px a 20 px a sa gauche, jamais au-dela du bord du deck
+   (pseudo coupe : 2 x (48 + 20) px reserves), Elo sous l'embleme sur la ligne du statut (classee seulement). */
+#joueurs .sl-nom{position:relative;width:100%;max-width:none;align-self:stretch;min-height:32px;display:flex;justify-content:center;overflow:visible;font:400 24px/32px var(--titre)}
+#joueurs .sl-pw{position:relative;overflow:visible;display:inline-flex;align-items:center;min-width:0;max-width:calc(100% - 136px);min-height:32px}
+#joueurs .sl-pn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#joueurs .sl-pw>em{position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);margin:0}
+#joueurs .sl-emb{position:absolute;right:calc(100% + 20px);top:-8px;width:48px;height:48px}
+#joueurs .sl-elo{position:absolute;right:calc(100% + 20px);top:calc(100% + 8px);width:48px;text-align:center;font:800 14px/20px var(--corps);color:#fff;white-space:nowrap}
+#joueurs .sl-etat{font:800 14px/20px var(--corps)}

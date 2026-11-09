@@ -459,7 +459,6 @@ body.daltonien .dk-tuile.inv::after{content:'!';position:absolute;right:8px;bott
 .dk-fen{width:520px;text-align:left}
 .dk-fen-p{margin:0;color:var(--doux);font:600 15px/1.4 var(--corps)}
 .dk-fen.dk-test{width:min(1280px,calc(100vw - 32px));max-width:none;max-height:calc(100vh - 32px);overflow-y:auto}
-.dk-fen.dk-test .bac{margin:0;padding:0;border:0;background:none}
 .dk-q button.dk-gris{opacity:.45;cursor:not-allowed}
 .voile.dk-voile{z-index:19} /* sous la carte en grand (#vue, 20) : zoom de carte et de terrain depuis le bac */
 
@@ -472,7 +471,7 @@ body.daltonien .dk-tuile.inv::after{content:'!';position:absolute;right:8px;bott
 .vx-etq.vx-diff{background:var(--rouge);border-color:var(--rouge)}
 .dk-tuile .pi{align-items:center}.dk-tuile .pi .vx-etq{margin-left:8px}
 /* Fenetres sc-fenetre de l'onglet */
-.dk-fen>.sc-alerte{margin:0 0 12px}.dk-fen>.sc-alerte+.sc-alerte{margin-top:-4px}
+.dk-fen>.sc-alerte{margin:0 0 12px;justify-content:flex-start;text-align:left}.dk-fen>.sc-alerte>span{flex:1 1 auto;min-width:0;text-align:left}.dk-fen>.sc-alerte+.sc-alerte{margin-top:-4px}
 .dk-fen-lib{margin:0 0 6px;color:var(--doux);font:700 13px var(--corps)}
 .dk-fen .pp-dc{margin:0 0 10px}.dk-fen .pp-lien{margin:0 0 10px;word-break:break-all;color:var(--doux);font-size:12.5px}
 .dk-fen-l{width:600px}

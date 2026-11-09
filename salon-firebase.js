@@ -244,6 +244,11 @@ async function ouvre() {
       await update(ref(db, P + "joueurs/" + moi), { avatarImg: url, avatarId: "__img" });
       donnees.avatarImg = url; donnees.avatarId = "__img";
     },
+    // 0.6 : profil classé d'un autre compte (classe/joueurs/{uid}, lisible par tout compte : rules/50-classe.js) ; null si absent.
+    async classeDe(uid) {
+      if (!estCompte() || typeof uid !== "string" || !uid) return null;
+      try { const j = (await get(ref(db, P + "classe/joueurs/" + uid))).val(); return j && typeof j === "object" ? j : null; } catch (e) { return null; }
+    },
     // Avatar d'un autre compte (lisible par tout connecté, aucune règle à changer).
     async avatarDe(uid) {
       if (typeof uid !== "string" || !uid) return "";
