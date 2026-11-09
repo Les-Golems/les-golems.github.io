@@ -136,8 +136,9 @@ function peindreSalon(etat){
     }
     s2=siegeLibre(bs);
   }
-  u.classList.add('sp-3col');
-  u.append(s1,mk('div','sl-vs','VS'),s2,tribune(spec));
+  /* 0.6 : la colonne des spectateurs est celle du salon refait (jouer.js, majSpecs) : plus de tribune en double */
+  u.classList.remove('sp-3col');document.querySelectorAll('#salon .sp-trib').forEach(x=>x.remove());
+  u.append(s1,mk('div','sl-vs','VS'),s2);
   document.body.classList.toggle('sp-spectateur',moi==='spec');
   /* Spectateur : pas de Pret, une phrase d'etat a la place */
   if(moi==='spec'){

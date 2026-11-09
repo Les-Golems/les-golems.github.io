@@ -97,7 +97,7 @@ function majSalon(){
   /* Pret toujours visible sous les deux joueurs : grise tant qu'on est seul, ou si les versions different. */
   $('pret').hidden=!!partie;$('pret').disabled=vxEcart||!(libre||jePret);
   $('pret').textContent=vxEcart?'Versions différentes':jePret?'Pas prêt':!c?'En attente d\'un adversaire':'Prêt';$('pret').classList.toggle('sc-secondaire',jePret);
-  $('slDeck').hidden=!!partie;$('slDeck').disabled=jePret;$('slDeck').title=jePret?'Retire ton Prêt pour changer de deck':'';
+  $('slDeck').hidden=!!partie||specUI;$('slDeck').disabled=jePret;$('slDeck').title=jePret?'Retire ton Prêt pour changer de deck':'';
   majAnnonce(l);
   $('attente').textContent=vxEcart?'Salon impossible : ton adversaire n\'a pas la même version du site. Recharge la page.':compteFin?texteCompte():!c?notice||'':jePret?'Salon : ton adversaire n\'est pas prêt. Patiente un instant.':duo.some(estPret)?'Salon : ton adversaire est prêt. Clique sur Prêt.':'Salon : deux joueurs présents. Clique sur Prêt.';
   $('attente').classList.toggle('pret',c&&!vxEcart);
