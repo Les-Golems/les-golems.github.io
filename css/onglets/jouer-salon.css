@@ -245,3 +245,11 @@ b[class^="chat-"][title]{cursor:help}
 .haut:has(>.majDispo:not([hidden])) h1{flex:none}
 .haut:has(>.majDispo:not([hidden]))>.moi{margin-left:auto}
 @media (max-width:860px){.haut:has(>.majDispo:not([hidden])){flex-wrap:wrap}.majDispo{order:9;margin-left:0}.haut:has(>.majDispo:not([hidden])) h1{flex:1 1 0}}
+
+/* 0.6.1 (maquette 23) : passer en spectateur, oeil dans le coin du siege de l'adversaire assis, info-bulle au survol ; prendre la place libre */
+.sl-coinw{position:absolute;top:10px;right:10px;z-index:2}
+.sl-coin{display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border-radius:8px;border:1px solid var(--trait);background:var(--panneau);color:var(--doux);cursor:pointer}
+.sl-coin:hover,.sl-coin:focus-visible{color:var(--texte);border-color:var(--bleu)}.sl-coin svg{width:18px;height:18px}
+.sl-bulle{position:absolute;top:3px;right:40px;white-space:nowrap;background:#0a121a;color:var(--texte);border:1px solid var(--trait);border-radius:6px;padding:4px 8px;font-size:13px;font-weight:700;display:none;pointer-events:none}
+.sl-coinw:hover .sl-bulle,.sl-coin:focus-visible+.sl-bulle{display:block}
+#salon .sl-prendre{margin:0;min-height:46px;width:100%;font-size:18px}

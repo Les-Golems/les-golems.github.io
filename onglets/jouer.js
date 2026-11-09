@@ -153,6 +153,12 @@ function siegeSalon(p){
      pastille « ? » ; « Choix en cours » tant qu'il n'est pas pret. Il se decouvre en jeu, carte par carte. */
   else t.append(tuileDk(pr?{nom:'Deck choisi',masque:true,nb:infoDeck(p.presence.deck).nb}:{nom:'Choix en cours',masque:true}));
   s.append(t,tauxSiege(p));
+  /* 0.6.1 (maquette 23, etat h) : l'adversaire assis peut passer en spectateur : oeil dans le coin de son siege, info-bulle, confirmation. */
+  if(moi&&!partie&&window.SPEC&&SPEC.role&&SPEC.role()==='adv'&&SPEC.passerSpectateur){
+    const w=el('span','sl-coinw'),c=el('button','sl-coin');c.type='button';c.innerHTML=OEIL_PO;c.setAttribute('aria-label','Passer en spectateur');c.id='passerSpectateur';
+    c.onclick=async()=>{if(!await confirmeFen({titre:'Passer en spectateur ?',texte:"Ta place d'adversaire devient libre. Tu restes dans le salon et peux la reprendre.",action:'Passer en spectateur'}))return;
+      try{await SPEC.passerSpectateur()}catch(e){console.warn('passer spectateur',e)}};
+    w.append(c,el('span','sl-bulle','Passer en spectateur : libère ta place'));s.append(w)}
   if(moi&&!partie){const b=el('button','btn sec','Changer de deck');b.type='button';b.disabled=jePret;b.title=jePret?'Retire ton Prêt pour changer de deck':'';b.onclick=()=>choisirDeck(()=>majSalon(),'Choisir ce deck',ctxSalon());s.append(b)}
   return s;
 }

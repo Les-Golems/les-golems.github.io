@@ -128,7 +128,7 @@ function peindreSalon(etat){
   }else{
     const bs=[];
     if(moi==='spec'){
-      const d=btn('Devenir adversaire','plein');d.id='devenirAdversaire';d.disabled=enCours;
+      const d=btn('Prendre la place','plein sl-prendre'); /* 0.6.1 : libelle de la maquette 23 (rf-prendre) */d.id='devenirAdversaire';d.disabled=enCours;
       d.onclick=()=>{if(!S||!S.devenirAdversaire||enCours)return;enCours=true;d.disabled=true;
         Promise.resolve(S.devenirAdversaire()).then(ok=>{enCours=false;if(!ok)message("Trop tard : la place d'adversaire vient d'être prise.");if(S.etatSalon)peindreSalon(S.etatSalon())},
           ()=>{enCours=false;message("La place d'adversaire n'a pas pu être prise.");if(S.etatSalon)peindreSalon(S.etatSalon())})};
