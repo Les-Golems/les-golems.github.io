@@ -220,9 +220,11 @@ async function lanceRejeu(x,confirme){
   let Mr;try{Mr=await chargeMoteur(R.v)}catch(e){err('Replay impossible : moteur de la version '+R.v+' introuvable. Recharge la page puis réessaie.');return}
   if(partie)finPartie();
   M=Mr;
-  let j,seq;try{j=R.j.map(M.litJournal);seq=ordreRejeu(R,j)}catch(e){M=M0;err('Replay impossible : partie illisible. Choisis une autre partie.');return}
+  /* 0.6 : decks normalises une seule fois, la meme liste sert au calcul de l'ordre et au lancement */
+  const decks=Array.isArray(R.decks)?R.decks:['',''],Rn=decks===R.decks?R:Object.assign({},R,{decks});
+  let j,seq;try{j=R.j.map(M.litJournal);seq=ordreRejeu(Rn,j)}catch(e){M=M0;err('Replay impossible : partie illisible. Choisis une autre partie.');return}
   onglet('jouer');
-  lancer(R.graine,R.moi===1?1:0,'',{mien:[],sien:[],decks:Array.isArray(R.decks)?R.decks:['',''],advNom:x.advNom||String(x.adv||'Adversaire'),local:true,
+  lancer(R.graine,R.moi===1?1:0,'',{mien:[],sien:[],decks,advNom:x.advNom||String(x.adv||'Adversaire'),local:true,
     rejeu:{seq,j,pos:0,n:[0,0],lecture:true,vitesse:1}});
   barreRejeu();pasRejeu();
 }
