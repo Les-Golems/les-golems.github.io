@@ -801,8 +801,10 @@ function joueur(){
   const ok=P&&P.etat&&!P.rejeu&&ECRAN_JOUEUR.matches&&box&&!box.hidden&&!(window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur());
   if(!ok){if(D&&src==='joueur')fermer();return}
   const x={etat:P.etat,moi:P.moi,noms:[0,1].map(p=>u.nomJ(p)),avatars:[0,1].map(p=>p===P.moi?u.monAvatar():''),uids:[0,1].map(p=>p===P.moi||P.local?'':u.uidJ(p))};
+  /* nouvelle partie dans la meme vue (revanche) : memoire de la vue remise a zero (fenetres, derniere carte, manches vues) */
+  if(D&&src==='joueur'&&suivi&&suivi.P!==P){if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi=neufSuivi();suivi.P=P}
   if(D&&src==='joueur'){E=x;peindre();return}
-  ouvrir('joueur',x);D.classList.add('jr');document.documentElement.classList.add('dif-joueur');
+  ouvrir('joueur',x);suivi.P=P;D.classList.add('jr');document.documentElement.classList.add('dif-joueur');
   /* plein ecran au demarrage de la partie (geste de l'utilisateur : clic sur Jouer) ; refuse = rien */
   try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}
 }
