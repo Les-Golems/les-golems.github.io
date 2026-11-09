@@ -12,7 +12,10 @@ function avatarDe(nom,avatarId){
 }
 /* Mon avatar : Firebase pour un compte, appareil pour un invite. */
 /* Image importee (data URL) prioritaire sur l'avatar de galerie ; invite : golems-avatar-img en local seulement. */
-function monAvatar(){try{return compteCo()?(room.compte.avatarImg&&room.compte.avatarImg())||room.compte.avatarId()||'':lire('golems-avatar-img')||lire('golems-avatar')||''}catch(e){return ''}}
+/* 0.6 : « Mon image » gardee quand on choisit un autre avatar ; marqueurs "__img" (image active) et "__init" (initiale, image gardee). */
+function monAvatar(){try{if(compteCo())return (room.compte.avatarImg&&room.compte.avatarImg())||room.compte.avatarId()||'';
+  const a=lire('golems-avatar')||'',i=lire('golems-avatar-img')||'';if(i&&(!a||a==='__img'))return i;return /^__(img|init)$/.test(a)?'':a}catch(e){return ''}}
+function monImage(){try{return compteCo()?(room.compte.imageGardee?room.compte.imageGardee():room.compte.avatarImg())||'':lire('golems-avatar-img')||''}catch(e){return ''}}
 /* Avatar d'un autre compte (uid) : lu une fois dans joueurs/{uid}/avatarId, puis les ronds marques data-av sont remplaces. */
 const avCache={},avT={}; /* relu au plus toutes les 15 s : un remplacement chez l'adversaire finit par apparaitre */
 function avatarUid(nom,uid,repli){
@@ -24,8 +27,8 @@ function avatarUid(nom,uid,repli){
 }
 /* 0.6 : capsule du bandeau B3 (maquette 32). Connecte : [embleme + Elo |] pseudo | avatar, clic = mon profil, porte de deconnexion visible.
    Invite (I2) : « Invité » + « Se connecter » dessous, avatar « ? », clic = fenetre de connexion, pas de porte.
-   Rang : TODO quand le classement 0.6 sera branche (commun/classe.js) : appeler majRangMoi({img, nom, elo}) ; d'ici la, embleme et Elo
-   restent masques et la capsule montre le pseudo et l'avatar seulement. */
+   Rang : majRangMoi({img, nom, elo}) appele par onglets/jouer.js (majRangBandeau) d'apres le profil classe Firebase ;
+   pendant le placement ou sans compte, embleme et Elo restent masques. */
 function majRangMoi(r){const g=$('rangMoi'),sep=g.nextElementSibling,ok=!!(r&&r.img&&Number.isFinite(r.elo));
   g.hidden=sep.hidden=!ok;if(ok){g.querySelector('img').src=r.img;g.querySelector('img').alt=r.nom||'';$('rangElo').textContent=Math.round(r.elo).toLocaleString('fr-FR')}}
 function majMoi(){
@@ -65,7 +68,7 @@ function galPeint(){
 async function ouvreGalerie(){
   $('galMsg').textContent='';cadMsg('');
   if(!listeAvatars){try{listeAvatars=await (await fetch('avatars/avatars.json',{cache:'no-cache'})).json()}catch(e){listeAvatars=[]}}
-  const cur=monAvatar();GAL.img=/^data:/.test(cur)?cur:'';GAL.actuel=GAL.img?'__img':cur;GAL.choix=GAL.actuel;GAL.imp=false;
+  const cur=monAvatar();GAL.img=monImage();GAL.actuel=/^data:/.test(cur)?'__img':cur;GAL.choix=GAL.actuel;GAL.imp=false;
   galPeint();
   $('galerieAvatar').hidden=false;document.documentElement.classList.add('galOuverte');
   const g=$('galGrille');g.scrollTop=0;(g.querySelector('[aria-pressed="true"]')||g.firstChild).focus({preventScroll:true});
@@ -81,9 +84,8 @@ $('cadChanger').onclick=()=>$('avFichier').click();
 $('galOk').onclick=async()=>{
   if(GAL.imp){await cadValide();return}
   const id=GAL.choix;if(id===GAL.actuel){fermeGalerie();return}
-  if(id==='__img'){galApplique();return} /* image deja enregistree (cas d'un invite qui revient a son image) */
   if(compteCo()){try{await room.compte.choisirAvatar(id)}catch(e){alerte('galMsg','Avatar : connexion perdue. Vérifie ta connexion puis réessaie.');return}}
-  else{ecrire('golems-avatar',id);try{localStorage.removeItem(LS('golems-avatar-img'))}catch(e){}}
+  else ecrire('golems-avatar',id||(GAL.img?'__init':'')); /* l'image importee reste (« Mon image ») */
   galApplique();
 };
 /* Import d'avatar : fichier image, recadrage rond dans le panneau de gauche (glisser, molette, pincement, curseur),
@@ -125,7 +127,7 @@ async function cadValide(){
   if(compteCo()){try{await room.compte.choisirImage(url)}catch(e){
     const m=String(e&&(e.code||e.message)||'').toLowerCase();console.warn('avatarImg',e,url.slice(0,30),url.length);
     cadMsg(/permission/.test(m)?"Avatar : enregistrement refusé par le serveur. Préviens KaTarN (Romain).":/too|size|large|limit/.test(m)?"Avatar : image trop lourde pour le serveur. Zoome ou choisis une autre image.":/network|disconnect|offline|unavailable/.test(m)?"Avatar : connexion perdue. Vérifie ta connexion puis réessaie.":"Avatar : enregistrement impossible ("+(e&&(e.code||e.message)||'erreur inconnue')+"). Réessaie ou préviens KaTarN (Romain).");return}}
-  else{try{localStorage.setItem(LS('golems-avatar-img'),url)}catch(e){cadMsg("Avatar : stockage de l'appareil plein. Libère de la place ou crée un compte.");return}}
+  else{try{localStorage.setItem(LS('golems-avatar-img'),url);ecrire('golems-avatar','__img')}catch(e){cadMsg("Avatar : stockage de l'appareil plein. Libère de la place ou crée un compte.");return}}
   galApplique();
 }
 function avatarChange(){if(!r)return;try{majSalon()}catch(e){}r.presence({pseudo:pseudo}).catch(()=>{})}

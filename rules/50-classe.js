@@ -18,7 +18,7 @@
 //     esquiver sa défaite en ne publiant rien.
 //   classe/classement/<uid> = { pseudo, elo, rang, v, d }  copie exacte du profil classé, placement fini seulement
 //   classe/instantanes/<id>/<uid> = instantané de fin de saison (place : Romain seul)
-//   classe/ecussons/<uid>/<id> = { saison, rang, palier, image }  lecture publique, palier selon la place de l'instantané
+//   classe/ecussons/<uid>/<id> = { saison, place?, ecu? }  récompense publique : médaille de saison (placement fini), écu pour un top 10
 //
 // RESTE FALSIFIABLE sans Cloud Functions : la valeur exacte du delta (bornée par K, signe imposé par le résultat, pas la formule) ;
 // le résultat d'une partie contre un robot (déclaré par le joueur : gain borné à K/2, 5 par jour) ; un tricheur qui refuse
@@ -64,7 +64,7 @@ module.exports = r => {
   const nv = k => `newData.child('${k}').val()`;
   const commune = `!data.exists() && ${nv('saison')} === ${COURANTE} && newData.child('t').val() === now && ${SALON(nv('sa'))}.child('cl').val() === true`;
   const contreRobot = `${nv('robot')} === true && ${nv('a')} === auth.uid && ${nv('eloB')} === ${eloRobot(nv('b'))} && ${nv('eloA')} === ${J(nv('a'))}.child('elo').val() && ${J(nv('a'))}.child('saison').val() === ${COURANTE} && ${SALON(nv('sa'))}.child('robot').child('u').val() === auth.uid && !newData.hasChild('deltaB') && (${nv('gagnant')} === ${nv('a')} || ${nv('gagnant')} === ${nv('b')})`;
-  const entreJoueurs = `${nv('robot')} === false && $id === ${nv('sa')} + '-' + ${nv('gr')} && (${nv('a')} === auth.uid || ${nv('b')} === auth.uid) && ${nv('a')} !== ${nv('b')} && ${SALON(nv('sa'))}.child('engages').hasChild(${nv('a')}) && ${SALON(nv('sa'))}.child('engages').hasChild(${nv('b')}) && ${nv('eloA')} === ${J(nv('a'))}.child('elo').val() && ${nv('eloB')} === ${J(nv('b'))}.child('elo').val() && ${J(nv('a'))}.child('saison').val() === ${COURANTE} && ${J(nv('b'))}.child('saison').val() === ${COURANTE} && newData.hasChild('deltaB') && (${nv('gagnant')} === ${nv('a')} || ${nv('gagnant')} === ${nv('b')} || ${nv('gagnant')} === 'nul')`;
+  const entreJoueurs = `${nv('robot')} === false && $id === ${nv('sa')} + '-' + ${nv('gr')} && (${nv('a')} === auth.uid || ${nv('b')} === auth.uid) && ${nv('a')} !== ${nv('b')} && ${SALON(nv('sa'))}.child('engages').hasChild(${nv('a')}) && ${SALON(nv('sa'))}.child('engages').hasChild(${nv('b')}) && ${nv('eloA')} === ${J(nv('a'))}.child('elo').val() && ${nv('eloB')} === ${J(nv('b'))}.child('elo').val() && ${J(nv('a'))}.child('saison').val() === ${COURANTE} && ${J(nv('b'))}.child('saison').val() === ${COURANTE} && newData.hasChild('deltaB') && (${nv('gagnant')} === ${nv('a')} || ${nv('gagnant')} === ${nv('b')})`;
   const PA = `${C}.child('parties').child($id)`;
 
   // ----- Instantané et écusson -----
@@ -186,28 +186,28 @@ module.exports = r => {
             "rang": { ".validate": "newData.isString()" },
             "place": { ".validate": `${ENTIER} && newData.val() >= 1` },
             "placementFini": { ".validate": "newData.isBoolean()" },
-            "modes": { "$m": { ".validate": "$m.matches(/^(classee|amicale|entrainement)$/) && newData.hasChildren(['parties', 'v', 'd'])", "parties": { ".validate": ENTIER }, "v": { ".validate": ENTIER }, "d": { ".validate": ENTIER }, "$autre": { ".validate": false } } },
+            "modes": { "$m": { ".validate": "$m.matches(/^(classee|amicale|entrainement)$/) && newData.hasChildren(['parties', 'v', 'd'])", "parties": { ".validate": ENTIER }, "v": { ".validate": ENTIER }, "d": { ".validate": ENTIER }, "best": { ".validate": ENTIER }, "serie": { ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -1000 && newData.val() <= 1000" }, "$autre": { ".validate": false } } },
             "dernieres": { "$i": { ".validate": "$i.matches(/^[0-9]$/)", "mode": { ".validate": "newData.isString() && newData.val().length <= 20" }, "gagne": { ".validate": "newData.isBoolean()" }, "adv": { ".validate": "newData.isString() && newData.val().length <= 40" }, "t": { ".validate": "newData.isNumber()" }, "$autre": { ".validate": false } } },
-            "tops": { "$k": { ".validate": "$k.matches(/^(golems|terrains)$/)", "$i": { ".validate": "$i.matches(/^[0-4]$/)", "id": { ".validate": "newData.isString() && newData.val().length <= 12" }, "n": { ".validate": ENTIER }, "v": { ".validate": ENTIER }, "$autre": { ".validate": false } } } },
+            // Tops 5 : golems, terrains (id, n, v), decks (nom, e = éléments, n, v), mvp (id, n).
+            "tops": { "$k": { ".validate": "$k.matches(/^(golems|terrains|decks|mvp)$/)", "$i": { ".validate": "$i.matches(/^[0-4]$/) && newData.hasChild('n')", "id": { ".validate": "newData.isString() && newData.val().length <= 12" }, "nom": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" }, "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)" }, "n": { ".validate": ENTIER }, "v": { ".validate": ENTIER }, "$autre": { ".validate": false } } } },
             "elements": { "$e": { ".validate": "$e.matches(/^[a-z]{1,12}$/)", "n": { ".validate": ENTIER }, "v": { ".validate": ENTIER }, "$autre": { ".validate": false } } },
-            "ecusson": { "saison": { ".validate": ENTIER }, "rang": { ".validate": "newData.isString() && newData.val().length <= 20" }, "palier": { ".validate": "newData.isString() && newData.val().matches(/^(base|top10|podium|champion)$/)" }, "image": { ".validate": "newData.isString() && newData.val().length <= 120" }, "$autre": { ".validate": false } },
             "$autre": { ".validate": false }
           }
         }
       },
 
-      // Écussons : lecture publique (profils, invités compris) ; posés par le joueur d'après son instantané
-      // (placement fini, même rang ; palier top10 / podium / champion selon la place posée par Romain), ou par Romain.
+      // Récompenses de saison (règle du 9 nov. 2026), lecture publique (profils, invités compris) : { saison, place?, ecu? }
+      // posées par le joueur d'après son instantané (placement fini = médaille ronde de la saison, Saison 0 = Pionnier),
+      // ou par Romain. Un top 10 reçoit EN PLUS un écu : place = celle posée par Romain dans l'instantané, or 1, argent 2-3, bronze 4-10.
       "ecussons": {
         ".read": true,
         "$uid": {
           "$s": {
             ".write": `${ROMAIN} || (${COMPTE} && auth.uid === $uid && newData.exists())`,
-            ".validate": `newData.hasChildren(['saison', 'rang', 'palier', 'image']) && newData.child('saison').val() + '' === $s && ${inst}.child('placementFini').val() === true && (newData.child('rang').val() === ${inst}.child('rang').val() || ($s === '0' && newData.child('rang').val() === 'pionnier')) && (newData.child('palier').val() === 'base' || (newData.child('palier').val() === 'top10' && ${inst}.child('place').val() <= 10) || (newData.child('palier').val() === 'podium' && ${inst}.child('place').val() <= 3) || (newData.child('palier').val() === 'champion' && ${inst}.child('place').val() === 1))`,
+            ".validate": `newData.hasChild('saison') && newData.child('saison').val() + '' === $s && ${inst}.child('placementFini').val() === true && (newData.hasChild('place') === newData.hasChild('ecu')) && (!newData.hasChild('place') || (newData.child('place').val() === ${inst}.child('place').val() && newData.child('ecu').val() === (newData.child('place').val() === 1 ? 'or' : newData.child('place').val() <= 3 ? 'argent' : 'bronze')))`,
             "saison": { ".validate": ENTIER },
-            "rang": { ".validate": "newData.isString() && newData.val().matches(/^[a-z]{1,20}$/)" },
-            "palier": { ".validate": "newData.isString()" },
-            "image": { ".validate": "newData.isString() && newData.val().length <= 120 && newData.val().matches(/^[a-zA-Z0-9_\\/.-]+$/)" },
+            "place": { ".validate": `${ENTIER} && newData.val() >= 1 && newData.val() <= 10` },
+            "ecu": { ".validate": "newData.isString() && newData.val().matches(/^(or|argent|bronze)$/)" },
             "$autre": { ".validate": false }
           }
         }

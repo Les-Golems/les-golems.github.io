@@ -19,26 +19,23 @@
 .st-rech input::placeholder{color:var(--doux);font-weight:400}.st-rech input:focus{outline:none;border-color:var(--bleu)}
 .st-rech svg{position:absolute;left:14px;top:14px;width:18px;height:18px}
 /* Panneau de saison (variante C) : de la colonne 2 jusqu'à 16 px avant Patchs */
-.st-saison{grid-column:2/4;margin-right:184px;height:46px;min-width:0;position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;padding:0 14px 0 6px;border-radius:10px;border:1px solid rgba(241,195,90,.5);background:linear-gradient(100deg,rgba(241,195,90,.14),var(--panneau) 70%);color:var(--doux);cursor:pointer;white-space:nowrap;font:inherit;text-align:left;transition:filter .12s}
+.st-saison{grid-column:2/4;margin-right:184px;height:46px;min-width:0;position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;padding:0 14px 0 6px;border-radius:10px;border:1px solid #3a7fd0;background:linear-gradient(100deg,rgba(51,110,188,.34),rgba(51,110,188,.12) 40%,var(--panneau) 75%);color:var(--doux);cursor:pointer;white-space:nowrap;font:inherit;text-align:left;transition:filter .12s}
 @media (hover:hover){.st-saison:hover{filter:brightness(1.08);border-color:var(--bleu)}}
 .st-saison:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
-.st-saison::after{content:'';position:absolute;top:0;bottom:0;left:38%;width:60px;background:linear-gradient(100deg,transparent,rgba(255,240,200,.16),transparent);transform:skewX(-20deg);animation:st-bal 4s infinite;pointer-events:none}
+.st-saison::after{content:'';position:absolute;top:0;bottom:0;left:38%;width:60px;background:linear-gradient(100deg,transparent,rgba(220,235,255,.28),transparent);transform:skewX(-20deg);animation:st-bal 4s infinite;pointer-events:none}
 @keyframes st-bal{0%{left:-20%}60%,100%{left:120%}}
 .st-sz-c1{display:flex;align-items:center;gap:10px;width:172px;flex:none;min-width:0}
 .st-sz-n{font:17px var(--titre);color:#fff;overflow:hidden;text-overflow:ellipsis}
 .st-sz-cs{height:30px;display:flex;align-items:center;padding-left:16px;border-left:1px solid var(--trait)}
 .st-sz-rg{flex-direction:column;align-items:flex-start;justify-content:center;height:34px;font:700 12.5px/1.15 var(--corps);color:var(--doux)}.st-sz-rg b{display:block;font:17px var(--titre);color:#e0a46a}.st-sz-rg b.st-sz-hors{color:#fff}
-.st-sz-bgs{gap:6px;height:34px}.st-bx{opacity:.35;display:block}.st-bx.on{opacity:1}.st-bx .st-bd{width:24px;height:28px;display:block}
-.st-bx.or.on svg{filter:drop-shadow(0 0 4px rgba(241,195,90,.9))}.st-bx.ar.on svg{filter:drop-shadow(0 0 2px rgba(220,230,240,.6))}.st-bx.pi.on svg{filter:drop-shadow(0 0 3px rgba(59,210,247,.7))}
+.st-sz-bgs{gap:6px;height:34px}.st-bx{opacity:.35;display:block}.st-bx.on{opacity:1}.st-bx .st-bd{width:28px;height:28px;display:block}
+
 .st-sz-du{margin-left:auto;border-left:0;font:700 12.5px var(--corps);color:var(--doux)}.st-sz-du b{color:#fff;font-weight:800}
 /* Médaille de saison (provisoire) */
 .st-med{position:relative;display:inline-block;width:calc(40px*var(--k));height:calc(40px*var(--k));flex:none}
-.st-med-i{position:absolute;left:0;top:0;width:40px;height:40px;transform:scale(var(--k));transform-origin:0 0}
-.st-med svg{position:absolute}.st-ring{inset:0;width:40px;height:40px;transform:rotate(-90deg)}.st-piece{left:4px;top:4px;width:32px;height:32px;filter:drop-shadow(0 0 6px rgba(241,195,90,.7))}
-.st-med i{position:absolute;width:8px;height:8px;background:radial-gradient(#fff 0 30%,transparent 70%);clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);animation:st-sc 2.4s infinite}
-.st-med i:nth-of-type(1){left:31px;top:2px}.st-med i:nth-of-type(2){left:1px;top:26px;animation-delay:.8s;width:6px;height:6px}.st-med i:nth-of-type(3){left:30px;top:30px;animation-delay:1.6s;width:6px;height:6px}
+.st-med img{width:100%;height:100%;display:block}
 @keyframes st-sc{0%,100%{opacity:.25;transform:scale(.6)}50%{opacity:1;transform:scale(1.15)}}
-@media (prefers-reduced-motion:reduce){.st-saison::after,.st-med i{animation:none}}
+@media (prefers-reduced-motion:reduce){.st-saison::after{animation:none}}
 /* Grille des 4 colonnes */
 .st-g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:start}
 @media (max-width:1199px){.st-barre>*{grid-row:auto}.st-g4,.st-barre{grid-template-columns:repeat(2,minmax(0,1fr))}.st-saison{grid-column:1/-1;margin-right:0}.st-tot,.st-pat,.st-rech{grid-column:auto}}
@@ -121,7 +118,7 @@
 .st-fnm{font:26px/1.1 var(--titre);color:#fff;margin-top:4px}.st-fdt{color:var(--doux);font-weight:700;font-size:13.5px}.st-fdt b{color:#fff}
 .st-sep{display:flex;align-items:center;gap:12px;margin:16px 0 12px;font:800 12px var(--corps);letter-spacing:.08em;text-transform:uppercase;color:var(--or)}.st-sep::before,.st-sep::after{content:'';flex:1;height:1px;background:var(--trait)}
 .st-rw{display:grid;grid-template-columns:56px minmax(0,1fr) 150px;align-items:center;gap:14px;padding:10px 12px;margin-bottom:8px;border-radius:10px;background:var(--panneau2);border:1px solid var(--trait)}
-.st-rw .st-bd{width:48px;height:54px}.st-rw>div>b{display:block;font:18px var(--titre);color:#fff}.st-rw small{color:var(--doux);font-size:12.5px;font-weight:700}
+.st-rw .st-bd{width:52px;height:52px}.st-rw>div>b{display:block;font:18px var(--titre);color:#fff}.st-rw small{color:var(--doux);font-size:12.5px;font-weight:700}
 .st-pl{text-align:right;font:800 12px var(--corps);text-transform:uppercase;letter-spacing:.05em;color:var(--doux)}.st-pl b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:20px var(--titre);color:#fff;letter-spacing:0;text-transform:none}.st-pl b.st-ok{color:var(--vert)}
 .st-rw.toi{border-color:var(--bleu);background:rgba(1,193,240,.08)}
 .st-nt{margin:12px 0 0;font-size:13px;color:var(--doux)}

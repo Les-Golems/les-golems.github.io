@@ -90,6 +90,7 @@ async function ouvre() {
   const estCompte = () => !!auth.currentUser && !auth.currentUser.isAnonymous;
   let moi = auth.currentUser.uid;
   let donnees = null, resumeur = null, cumuleur = null;        // copie de joueurs/{uid} pour un compte
+  const imageActive = () => !!donnees && !!donnees.avatarImg && (!donnees.avatarId || donnees.avatarId === "__img");
   const ecouteCompte = [];
   const signale = () => ecouteCompte.forEach(f => { try { f(); } catch (e) {} });
 
@@ -134,6 +135,22 @@ async function ouvre() {
   // Après une reconnexion, la présence effacée par onDisconnect est réécrite.
   ecouteCo.push(() => { if (enLigne && hallRef) { onDisconnect(hallRef).remove(); ecritHall().catch(() => {}); } });
 
+  // 0.6 : pastille « N en ligne », invités compris : enligne/<uid> = heure serveur, posée par chaque visiteur pour lui seul,
+  // effacée à sa déconnexion (rules/60-guides.js). Retirée avant chaque changement de compte (l'ancien uid ne pourra plus l'effacer).
+  let enligneRef = null, enligneN = 0;
+  const ecouteEnligne = [];
+  async function majEnligne() {
+    const r = ref(db, P + "enligne/" + moi); enligneRef = r;
+    try { await onDisconnect(r).remove(); await set(r, serverTimestamp()); } catch (e) {}
+  }
+  async function quitteEnligne() {
+    const r = enligneRef; enligneRef = null; if (!r) return;
+    try { await onDisconnect(r).cancel(); await remove(r); } catch (e) {}
+  }
+  onValue(ref(db, P + "enligne"), s => { enligneN = Object.keys(s.val() || {}).length; ecouteEnligne.forEach(f => { try { f(); } catch (e) {} }); }, () => {});
+  ecouteCo.push(() => { if (enLigne && enligneRef) majEnligne(); });
+  majEnligne();
+
   // Données du compte
   function versListe(o) { return Object.values(o || {}).filter(Boolean); }
   function lisCumul(t) { if (typeof t !== "string") return null; try { const c = JSON.parse(t); return c && typeof c === "object" ? c : null; } catch (e) { return null; } }
@@ -167,8 +184,10 @@ async function ouvre() {
   }
   async function bascule(f) {
     await arreteHall();
+    await quitteEnligne();
     await f();
     moi = auth.currentUser.uid;
+    majEnligne();
     await chargeDonnees();
     demarreHall();
     signale();
@@ -194,32 +213,45 @@ async function ouvre() {
     return (fileCumul = fileCumul.then(f, f));
   }
 
+  // 0.6 : marque classée de l'historique (rules/10-comptes.js) : c = classée, de = variation d'Elo, ro = robot affronté.
+  function marqueClassee(e, x) {
+    const c = x && x.classe; if (!(x && (x.mode === "classee" || c))) return;
+    e.c = true;
+    if (c && Number.isInteger(c.delta) && Math.abs(c.delta) <= 64) e.de = c.delta;
+    if (c && /^(facile|normal|difficile)$/.test(c.niveau || "")) e.ro = c.niveau;
+  }
   const compte = {
     erreurPseudo, nettoiePseudo,
     connecte: () => estCompte() && !!donnees,
     uid: () => moi,
     pseudo: () => donnees ? donnees.pseudo : "",
-    avatarId: () => donnees ? donnees.avatarId : "",
-    // Avatar choisi en galerie ("" = initiale) : joueurs/{uid}/avatarId.
+    // 0.6 : « Mon image » n'est plus effacée quand on choisit un autre avatar. avatarId = "__img" : image importée active ;
+    // "__init" : initiale alors qu'une image est gardée ; absent : image si elle existe (anciens comptes), sinon initiale.
+    avatarId: () => donnees && !/^__(img|init)$/.test(donnees.avatarId) && !imageActive() ? donnees.avatarId : "",
+    // Avatar choisi en galerie ("" = initiale, "__img" = mon image) : joueurs/{uid}/avatarId ; l'image importée reste.
     async choisirAvatar(id) {
       if (!estCompte() || !donnees) return;
-      // Un avatar de galerie (ou l'initiale) efface l'image importée.
-      await update(ref(db, P + "joueurs/" + moi), { avatarId: id || null, avatarImg: null });
-      donnees.avatarId = id || ""; donnees.avatarImg = "";
+      const v = id === "__img" ? (donnees.avatarImg ? "__img" : "") : id || (donnees.avatarImg ? "__init" : "");
+      await update(ref(db, P + "joueurs/" + moi), { avatarId: v || null });
+      donnees.avatarId = v;
     },
-    avatarImg: () => donnees ? donnees.avatarImg : "",
-    // Image importée (data:image/webp|jpeg;base64, 140 000 caractères au plus) : joueurs/{uid}/avatarImg.
+    // Image active (affichée) ; imageGardee : image enregistrée, active ou non (case « Mon image » de la galerie).
+    avatarImg: () => imageActive() ? donnees.avatarImg : "",
+    imageGardee: () => donnees ? donnees.avatarImg : "",
+    // Image importée (data:image/webp|jpeg;base64, 140 000 caractères au plus) : joueurs/{uid}/avatarImg, et elle devient active.
     async choisirImage(url) {
       if (!estCompte() || !donnees) return;
-      await set(ref(db, P + "joueurs/" + moi + "/avatarImg"), url);
-      donnees.avatarImg = url;
+      await update(ref(db, P + "joueurs/" + moi), { avatarImg: url, avatarId: "__img" });
+      donnees.avatarImg = url; donnees.avatarId = "__img";
     },
     // Avatar d'un autre compte (lisible par tout connecté, aucune règle à changer).
     async avatarDe(uid) {
       if (typeof uid !== "string" || !uid) return "";
-      // Image importée en priorité, sinon avatar de galerie.
-      try { const i = (await get(ref(db, P + "joueurs/" + uid + "/avatarImg"))).val(); if (typeof i === "string" && i) return i; } catch (e) {}
-      try { const v = (await get(ref(db, P + "joueurs/" + uid + "/avatarId"))).val(); return typeof v === "string" ? v : ""; } catch (e) { return ""; }
+      let v = "";
+      try { v = (await get(ref(db, P + "joueurs/" + uid + "/avatarId"))).val(); v = typeof v === "string" ? v : ""; } catch (e) {}
+      if (v === "__init") return "";
+      if (!v || v === "__img") { try { const i = (await get(ref(db, P + "joueurs/" + uid + "/avatarImg"))).val(); if (typeof i === "string" && i) return i; } catch (e) {} return ""; }
+      return v;
     },
     // Résumé public des parties (joueurs/{uid}/stats = { v: victoires, n: parties }) et classement, sur toutes les parties
     // (cumuls), après ajout au cumul des parties qui viennent d'être écrites (extra). Sans la page : l'historique seul.
@@ -249,7 +281,9 @@ async function ouvre() {
       }
       const o = { p: donnees.pseudo, m: !!donnees.masque, n: r.n, v: r.v, d: r.d, t: serverTimestamp() };
       if (donnees.cree) o.cr = donnees.cree;
-      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
+      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv", "pm"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
+      // 0.6 : Elo classé affiché (placement fini seulement, règle profils/el).
+      try { const j = (await get(ref(db, P + "classe/joueurs/" + moi))).val(); if (j && j.parties >= 5 && Number.isFinite(j.elo)) o.el = j.elo; } catch (e) {}
       try { await set(ref(db, P + "profils/" + moi), o); return true; } catch (e) { console.warn("profil", e); return false; }
     },
     async masquerProfil(b) {
@@ -341,7 +375,7 @@ async function ouvre() {
       // En dernier recours, l'essentiel seulement (résultat, score, adversaire) : la partie compte toujours.
       const texte = x => { let t = JSON.stringify(x); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [], rejeu: null }); if (t.length > 12000) t = JSON.stringify({ id: x.id, date: x.date, adv: x.adv, res: x.res, abandon: x.abandon, score: x.score, mvp: x.mvp, pseudo: x.pseudo, advNom: x.advNom, moteur: x.moteur }); return t.length > 12000 ? null : t; };
       const trop = [];
-      entrees.forEach(x => { const t = x && x.id && texte(x); if (x && x.id && !t) trop.push(x.id); if (t && !donnees.historique.some(y => y.id === x.id)) { donnees.historique.push(x); ajoutes.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; } });
+      entrees.forEach(x => { const t = x && x.id && texte(x); if (x && x.id && !t) trop.push(x.id); if (t && !donnees.historique.some(y => y.id === x.id)) { donnees.historique.push(x); ajoutes.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; marqueClassee(maj[x.id], x); } });
       donnees.historique.sort((a, b) => b.date - a.date);
       donnees.historique.splice(MAX_HISTO).forEach(x => { maj[x.id] = null; });
       for (const k in maj) if (maj[k] && !donnees.historique.some(y => y.id === k)) delete maj[k];
@@ -487,6 +521,11 @@ async function ouvre() {
         await set(push(ref(db, base + "/chat")), { a: uid, p: donnees.pseudo, t: serverTimestamp(), m });
       },
       async libere() { try { await remove(ref(db, base + "/engages")); } catch (e) {} },
+      // 0.6 : salon classé. marqueClasse : cl = true et heure d'ouverture (cree, une fois) ; estClasse : lecture de cl ;
+      // poseRobot(o) : bandeau « Affronter un Golem » (o = GolemsClasse.salonRobot), à poser avant de quitter le salon.
+      async marqueClasse() { await set(ref(db, base + "/cl"), true); try { await set(ref(db, base + "/cree"), serverTimestamp()); } catch (e) {} },
+      async estClasse() { try { return (await get(ref(db, base + "/cl"))).val() === true; } catch (e) { return false; } },
+      poseRobot(o) { return set(ref(db, base + "/robot"), o); },
       async presence(p) {
         const { j, ...reste } = p;
         if ("pseudo" in reste) reste.pseudo = donnees && donnees.pseudo || null;
@@ -508,11 +547,14 @@ async function ouvre() {
           if (typeof o.v === "string" && VERSION_OK.test(o.v)) v.v = o.v;
           if (typeof o.w === "string" && o.w) { v.w = o.w; v.q = String(o.q || "").slice(0, 24); }
           if (Number.isInteger(o.n) && o.n > 0) v.n = Math.min(o.n, 999);
+          // 0.6 : salon classé (cl) et Elo du créateur hors placement (el, vérifié par les règles).
+          if (o.cl === true) v.cl = true;
+          if (Number.isFinite(o.el)) v.el = o.el;
           // Partie en cours : g, manche m, score k ("a-b").
           if (o.g === true) { v.g = true; if (typeof o.f === "string" && /^[a-z,]{0,60}$/.test(o.f) && o.f) v.f = o.f; if (Number.isInteger(o.m)) v.m = Math.min(Math.max(o.m, 1), 9); if (typeof o.k === "string" && /^\d{1,2}-\d{1,2}$/.test(o.k)) v.k = o.k; }
           if (annonceOn) {
             const { t, ...maj } = v;
-            for (const k of ["a", "d", "e", "v", "w", "q", "n", "g", "m", "k", "f"]) if (!(k in maj)) maj[k] = null;
+            for (const k of ["a", "d", "e", "v", "w", "q", "n", "g", "m", "k", "f", "cl", "el"]) if (!(k in maj)) maj[k] = null;
             try { await update(annRef, maj); return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
           }
           if (!annonceOn) await onDisconnect(annRef).remove();
@@ -549,6 +591,16 @@ async function ouvre() {
       uid: () => moi
     },
     peers: () => hallPeers,
+    // 0.6 : visiteurs en ligne (enligne/, invités compris) et écoute de ce nombre.
+    enLigneN: () => enligneN,
+    onEnLigne(f) { ecouteEnligne.push(f); },
+    // 0.6 : base du service classé (commun/classe.js, GolemsClasse.service) : lecture et écriture multi-chemins sous le préfixe.
+    classeBase: () => ({
+      uid: () => moi,
+      pseudo: () => donnees ? donnees.pseudo : "",
+      lit: p => get(ref(db, P + p)).then(s => s.val()),
+      ecrit: m => { const o = {}; for (const k in m) o[P + k] = m[k]; return update(ref(db), o); }
+    }),
     onPeers(f, g) { ecouteHall.push(f); if (g) { hallPerdu.push(g); if (hallErreur) setTimeout(g, 0); } },
     onConnection(f, g) { ecouteCo.push(f); },
     async presence(p) {

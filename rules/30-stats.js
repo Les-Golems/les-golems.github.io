@@ -26,7 +26,7 @@ module.exports = r => ({
     "$uid": {
       // Jamais effacé par le joueur. n et v = ceux du classement (écrit juste avant) ; sans classement, 0 partie.
       ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
-      ".validate": `(${r}.child('classement').child($uid).exists() ? newData.child('n').val() === ${r}.child('classement').child($uid).child('n').val() && newData.child('v').val() === ${r}.child('classement').child($uid).child('v').val() : newData.child('n').val() === 0) && newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))`,
+      ".validate": `(${r}.child('classement').child($uid).exists() ? newData.child('n').val() === ${r}.child('classement').child($uid).child('n').val() && newData.child('v').val() === ${r}.child('classement').child($uid).child('v').val() : newData.child('n').val() === 0) && newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv') || newData.hasChild('pm')))`,
       "p":  { ".validate": `newData.isString() && ${pseudoReel(r, '$uid')}` },
       "m":  { ".validate": "newData.isBoolean()" },
       "t":  { ".validate": `${MAINTENANT}` },
@@ -52,6 +52,24 @@ module.exports = r => ({
       // Détail par version du site (0.2a, 0.2b...) pour le filtre Patch du panneau Joueurs : 10 versions au plus (emplacements 0 à 9),
       // chacune avec son nom p, ses parties n, ses victoires v et le detail contre l'ordinateur o (comme ci-dessus).
       "pv": { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^[0-9]$/) && newData.hasChildren(['p', 'n', 'v'])", "p": { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "o": { "$niv": { ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])", "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } }, "$autre": { ".validate": false } } },
+      // 0.6 : résumé public PAR MODE (classee, amicale, entrainement), 50 dernières parties du compte : n, v, d, b meilleure série,
+      // s série en cours (signée), r 10 dernières (V, D, N), el part des éléments en %, tops 5 : dk decks, cb cartes, mv MVP.
+      "pm": {
+        "$m": {
+          ".validate": "$m.matches(/^(classee|amicale|entrainement)$/) && newData.hasChildren(['n', 'v', 'd'])",
+          "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000" },
+          "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000 && newData.val() <= newData.parent().child('n').val()" },
+          "d": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000 && newData.val() <= newData.parent().child('n').val()" },
+          "b": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000" },
+          "s": { ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -1000 && newData.val() <= 1000" },
+          "r": { ".validate": "newData.isString() && newData.val().matches(/^[VDN]{0,10}$/)" },
+          "el": { "$e": { ".validate": "$e.matches(/^[a-z]{1,12}$/) && newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" } },
+          "dk": { "$i": { ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['nom', 'n', 'v'])", "nom": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" }, "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000" }, "$autre": { ".validate": false } } },
+          "cb": { "$i": { ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000" }, "$autre": { ".validate": false } } },
+          "mv": { "$i": { ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['c', 'n'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000" }, "$autre": { ".validate": false } } },
+          "$autre": { ".validate": false }
+        }
+      },
       "$autre": { ".validate": false }
     }
   },
@@ -77,6 +95,8 @@ module.exports = r => ({
       "s0":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
       "s1":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 30" },
       "mvp": { ".validate": "newData.isString() && newData.val().length <= 40" },
+      // 0.6 : partie classée (onglet Statistiques, mode Classées).
+      "cl":  { ".validate": "newData.isBoolean()" },
       "dr":  { ".validate": "newData.hasChildren()",
         "002":  { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0" } },
         "002e": { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^([0-9]|[12][0-9])$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 12 && newData.val() % 1 === 0" } },

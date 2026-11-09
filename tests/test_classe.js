@@ -1,4 +1,4 @@
-// Classées, rangs, robots, saisons, écussons (0.6). Node : node tests/test_classe.js
+// Classées, rangs, robots, saisons, récompenses (0.6). Node : node tests/test_classe.js
 const C=require('../commun/classe.js'),assert=require('assert');
 let nv=0;const ok=(c,m)=>{assert(c,m);nv++},eq=(a,b,m)=>{assert.strictEqual(a,b,m||String(b));nv++},deq=(a,b,m)=>{assert.deepStrictEqual(a,b,m);nv++};
 const res=[];
@@ -56,22 +56,31 @@ const res=[];
   const n=C.nouvelleSaison({elo:1300,parties:40,partiesTotal:40,v:25,d:15});eq(n.elo,1150);eq(n.parties,0);eq(n.partiesTotal,40);eq(n.v,0);
   ok(C.enPlacement(n));eq(C.facteurK(n.partiesTotal),20);res.push('saisons');
 }
-{ // écussons et instantané
-  eq(C.palier(1),'champion');eq(C.palier(2),'podium');eq(C.palier(3),'podium');eq(C.palier(4),'top10');eq(C.palier(10),'top10');eq(C.palier(11),'base');eq(C.palier(null),'base');
-  eq(C.ecusson(0,{elo:1200,parties:3},null),null,'placement non fini : pas d écusson');
-  deq(C.ecusson(0,{elo:1200,parties:5},2),{saison:0,rang:'pionnier',palier:'podium',image:'images/ecussons/saison-0-pionnier-podium.png'});
-  deq(C.ecusson(1,{elo:1420,parties:20},1),{saison:1,rang:'diamant',palier:'champion',image:'images/ecussons/saison-1-diamant-champion.png'});
-  eq(C.ecusson(1,{elo:960,parties:8},40).image,'images/ecussons/saison-1-topaze-base.png');
+{ // récompenses (règle du 9 nov.) et instantané
+  eq(C.metalEcu(1),'or');eq(C.metalEcu(2),'argent');eq(C.metalEcu(3),'argent');eq(C.metalEcu(4),'bronze');eq(C.metalEcu(10),'bronze');eq(C.metalEcu(11),null);eq(C.metalEcu(null),null);
+  eq(C.nomMedaille(0),'Pionnier');eq(C.nomMedaille(2),'Saison 2');
+  eq(C.imageMedaille(0,56),'images/recompenses/saison-0-56.png');eq(C.imageMedaille(0),'images/recompenses/saison-0-104.png');
+  eq(C.imageEcu(1,104),'images/recompenses/ecu-or-1-104.png');eq(C.imageEcu(3,56),'images/recompenses/ecu-argent-3-56.png');eq(C.imageEcu(7),'images/recompenses/ecu-bronze-7-104.png');eq(C.imageEcu(11),null);
+  eq(C.recompense(0,null),null,'pas d instantané : rien');eq(C.recompense(0,{placementFini:false,place:1}),null,'placement non fini : rien, même avec une place');
+  deq(C.recompense(0,{placementFini:true}),{saison:0},'placement fini sans place : médaille seule');
+  deq(C.recompense(0,{placementFini:true,place:40}),{saison:0},'hors top 10 : médaille seule');
+  deq(C.recompense(0,{placementFini:true,place:1}),{saison:0,place:1,ecu:'or'});deq(C.recompense(1,{placementFini:true,place:2}),{saison:1,place:2,ecu:'argent'});
+  deq(C.recompense(1,{placementFini:true,place:10}),{saison:1,place:10,ecu:'bronze'});
   const dern=Array.from({length:14},(_,i)=>({mode:'classee',gagne:i%2===0,adv:'x',t:i}));
-  const s=C.instantaneSaison(0,{elo:1260,parties:12},7,{modes:{classee:{parties:12,v:7,d:5}},dernieres:dern,tops:{golems:[1,2,3,4,5,6].map(id=>({id,n:1,v:1})),terrains:[]},elements:{feu:{n:3,v:2}}});
-  eq(s.rang,'rubis');eq(s.place,7);ok(s.placementFini);eq(s.dernieres.length,10);eq(s.dernieres[9].t,13);eq(s.tops.golems.length,5);eq(s.ecusson.palier,'top10');eq(s.elements.feu.v,2);
-  const s2=C.instantaneSaison(0,{elo:1100,parties:2},null,{});eq(s2.rang,null);eq(s2.ecusson,null);ok(!s2.placementFini);
-  res.push('ecussons');
+  const six=[1,2,3,4,5,6];
+  const s=C.instantaneSaison(0,{elo:1260,parties:12},{modes:{classee:{parties:12,v:7,d:5,best:4,serie:-1}},dernieres:dern,
+    tops:{golems:six.map(id=>({id,n:1,v:1})),terrains:[],decks:six.map(i=>({nom:'D'+i,e:'brume',n:5,v:3})),mvp:six.map(i=>({id:'00'+i,n:i}))},elements:{feu:{n:3,v:2}}});
+  eq(s.rang,'rubis');ok(!('place' in s),'jamais de place dans l instantané du joueur');ok(s.placementFini);eq(s.dernieres.length,10);eq(s.dernieres[9].t,13);
+  eq(s.tops.golems.length,5);eq(s.tops.decks.length,5);eq(s.tops.mvp.length,5);eq(s.modes.classee.best,4);eq(s.elements.feu.v,2);ok(!('ecusson' in s));
+  const s2=C.instantaneSaison(0,{elo:1100,parties:2},{});ok(!s2.placementFini);eq(s2.rang,'saphir');
+  deq(C.sansNuls({a:1,b:null,c:{d:null,e:[1,{f:null,g:2}]}}),{a:1,c:{e:[1,{g:2}]}});
+  deq(C.ligneClassement('Bob',{elo:1260,parties:5,v:3,d:2}),{pseudo:'Bob',elo:1260,rang:'rubis',v:3,d:2});eq(C.ligneClassement('Bob',{elo:1260,parties:4}),null);
+  res.push('recompenses');
 }
 { // objets Firebase exigés par rules/50-classe.js
   const j0=C.nouveauJoueur(0);deq(j0,{elo:1000,parties:0,partiesTotal:0,v:0,d:0,saison:0});ok(!('dern' in j0)&&!('robots' in j0));
   const ns=C.nouvelleSaison({elo:1300,parties:9,partiesTotal:9,v:5,d:4,saison:0,dern:'x-1',robots:{jour:'a',j:5,n:2}});eq(ns.saison,1);ok(!('dern' in ns));deq(ns.robots,{jour:'a',j:5,n:2});
-  eq(C.idPartie('ABCD',-123),'ABCD-123'.replace('-123','--123'));
+  eq(C.idPartie('ABCD',-123),'abcd--123','minuscules');
   const A={elo:1000,parties:0,partiesTotal:0,v:0,d:0,saison:0},B={elo:1100,parties:7,partiesTotal:40,v:4,d:3,saison:0};
   const {id,partie}=C.creePartie({sa:'abcd',gr:4567,a:'ua',b:'ub',profilA:A,profilB:B,gagnant:'ub',saison:0});
   eq(id,'abcd-4567');eq(partie.gr,'4567');eq(partie.sa,'abcd');eq(partie.robot,false);deq(partie.t,{'.sv':'timestamp'});eq(partie.eloA,1000);eq(partie.eloB,1100);
@@ -80,8 +89,9 @@ const res=[];
   const ua=C.application('ua',A,id,partie,0);eq(ua['classe/parties/abcd-4567/fait/ua'],true);const pa=ua['classe/joueurs/ua'];
   eq(pa.elo,1000+partie.deltaA);eq(pa.dern,id);eq(pa.saison,0);eq(pa.d,1);eq(pa.v,0);eq(pa.parties,1);ok(!('robots' in pa),'partie humaine : robots inchangés');
   const pb=C.application('ub',B,id,partie,0)['classe/joueurs/ub'];eq(pb.elo,1100+partie.deltaB);eq(pb.v,5);eq(pb.dern,id);
-  const nul=C.creePartie({sa:'abcd',gr:'9',a:'ua',b:'ub',profilA:A,profilB:B,gagnant:'nul',saison:0}).partie;
-  ok(nul.deltaA>0&&nul.deltaB<0);const pn=C.application('ua',A,'abcd-9',nul,0)['classe/joueurs/ua'];eq(pn.v,0);eq(pn.d,0);eq(pn.parties,1);
+  assert.throws(()=>C.creePartie({sa:'abcd',gr:'9',a:'ua',b:'ub',profilA:A,profilB:B,gagnant:'nul',saison:0}),/sans-gagnant/);nv++;
+  assert.throws(()=>C.creePartie({sa:'abcd',gr:'9',a:'ua',b:'ub',profilA:A,profilB:B,gagnant:null,saison:0}),/sans-gagnant/);nv++;
+  assert.throws(()=>C.creePartieRobot({sa:'abcd',gr:9,a:'ua',profilA:B,niveau:'normal',gagne:'nul',saison:0}),/sans-gagnant/);nv++;
   const t=Date.UTC(2026,10,9,12);const R=C.creePartieRobot({sa:'abcd',gr:12,a:'ua',profilA:B,niveau:'normal',gagne:true,saison:0});
   ok(/^[a-z0-9-]{3,60}$/.test(R.id));eq(R.partie.b,'robot-normal');eq(R.partie.eloB,1100);ok(!('deltaB' in R.partie));eq(R.partie.deltaA,C.variation(B,1100,true,{robot:true}));
   const pr=C.application('ua',B,R.id,R.partie,t)['classe/joueurs/ua'];deq(pr.robots,{jour:'2026-11-09',j:C.numJour(t),n:1});eq(pr.elo,1100+R.partie.deltaA);
@@ -89,4 +99,44 @@ const res=[];
   eq(C.salonRobot('ua',900).n,'normal');eq(C.salonRobot('ua',1150).n,'difficile');
   res.push('firebase');
 }
-console.log('test_classe : '+nv+' vérifications OK ('+res.join(', ')+')');
+// service(B) : branchement Firebase simulé (base en mémoire, sans règles ; les règles sont testées sur l'émulateur par test_regles.js).
+function base(uid,pseudo,db){
+  const get=p=>p.split('/').reduce((o,k)=>o&&o[k]!==undefined?o[k]:undefined,db);
+  const put=(p,v)=>{const k=p.split('/'),d=k.pop();let o=db;k.forEach(x=>{if(!o[x]||typeof o[x]!=='object')o[x]={};o=o[x]});
+    const sv=x=>x&&typeof x==='object'?(x['.sv']==='timestamp'?1000:Object.fromEntries(Object.entries(x).map(([a,b])=>[a,sv(b)]))):x;if(v===null)delete o[d];else o[d]=sv(v)};
+  return {db,ecrits:[],uid:()=>uid,pseudo:()=>pseudo,lit:async p=>{const v=get(p);return v===undefined?null:JSON.parse(JSON.stringify(v))},
+    ecrit:async function(m){this.ecrits.push(Object.keys(m));for(const p in m)put(p,m[p])}};
+}
+(async()=>{
+  const db={classe:{saison:{id:0,nom:'Bêta',debut:1}}};
+  const BA=base('ua','Alice',db),BB=base('ub','Bob',db),SA=C.service(BA),SB=C.service(BB);
+  const ja=await SA.profil(),jb=await SB.profil();eq(ja.elo,1000);eq(ja.saison,0);eq(ja.maj,1000,'maj en heure serveur');eq(jb.parties,0);
+  ok(!db.classe.classement,'pas de classement pendant le placement');
+  // Classée entre joueurs : A gagne ; B (perdant) confirme et applique aussi la partie de A.
+  const ra=await SA.finJoueurs({sa:'AbC1',gr:-42,a:'ua',b:'ub',gagnant:'ua'});eq(ra.id,'abc1--42','id en minuscules');
+  ok(db.classe.parties['abc1--42'].ok.ua);
+  const rb=await SB.finJoueurs({sa:'abc1',gr:-42,a:'ua',b:'ub',gagnant:'ua'});ok(rb.fait);
+  eq(db.classe.joueurs.ua.elo,1032);eq(db.classe.joueurs.ub.elo,968);eq(db.classe.joueurs.ua.dern,'abc1--42');ok(db.classe.parties['abc1--42'].fait.ua&&db.classe.parties['abc1--42'].fait.ub);
+  ok(await SA.applique('abc1--42'),'déjà appliquée : true sans rien réécrire');eq(db.classe.joueurs.ua.parties,1,'appliquée une seule fois');
+  // Classée contre un robot.
+  const r=await SA.finRobot({sa:'abc1',gr:7,niveau:C.niveauRobot(1032),gagne:true});ok(r.fait);eq(r.id,'abc1-7-robot-normal');
+  eq(db.classe.joueurs.ua.robots.n,1);eq(r.delta,db.classe.joueurs.ua.elo-1032);ok(r.delta>0&&r.delta<=32);
+  let refus=null;try{await SA.finRobot({sa:'abc1',gr:8,niveau:'normal',gagne:'nul'})}catch(e){refus=e.code}eq(refus,'classe/sans-gagnant','fin sans gagnant refusée');ok(!db.classe.parties['abc1-8-robot-normal']);
+  refus=null;try{await SA.finJoueurs({sa:'abc1',gr:9,a:'ua',b:'ub',gagnant:null})}catch(e){refus=e.code}eq(refus,'classe/sans-gagnant');ok(!db.classe.parties['abc1-9']);
+  await SA.finRobot({sa:'abc1',gr:8,niveau:'normal',gagne:false});eq(db.classe.joueurs.ua.robots.n,2);
+  // Placement fini : ligne du classement publiée.
+  for(let i=0;i<2;i++)await SA.finRobot({sa:'abc1',gr:20+i,niveau:'normal',gagne:true});
+  eq(db.classe.joueurs.ua.parties,5);deq(db.classe.classement.ua,C.ligneClassement('Alice',db.classe.joueurs.ua));
+  // Fin de saison : instantané (placement fini), remise à mi-chemin, classement retiré ; puis place posée par Romain -> médaille + écu.
+  const eloFin=db.classe.joueurs.ua.elo;db.classe.saison={id:1,nom:'Saison 1',debut:2};db.classe.saisons={0:{nom:'Bêta',debut:1,fin:2}};
+  let vu=null;const j1=await SA.profil({stats:async s=>{vu=s;return {modes:{classee:{parties:5,v:4,d:0,best:3,serie:3}},tops:{decks:[{nom:'Montée',e:'brume',n:5,v:4}],mvp:[{id:'001',n:2}]}}}});
+  eq(vu,0,'stats demandées pour la saison finie');eq(j1.saison,1);eq(j1.parties,0);eq(j1.elo,C.eloRemise(eloFin));ok(!db.classe.classement||!db.classe.classement.ua,'classement retiré');
+  const I=db.classe.instantanes[0].ua;eq(I.elo,eloFin);ok(I.placementFini);ok(!('place' in I));eq(I.tops.decks[0].nom,'Montée');eq(I.modes.classee.best,3);
+  deq(db.classe.ecussons.ua[0],{saison:0},'médaille Pionnier seule avant la place');
+  db.classe.instantanes[0].ua.place=2;await SA.recompenses();deq(db.classe.ecussons.ua[0],{saison:0,place:2,ecu:'argent'},'écu argent après la place posée par Romain');
+  eq(await SA.recompenses(),0,'rien à réécrire');
+  // B : placement non fini -> ni instantané ni récompense.
+  await SB.profil();ok(!db.classe.instantanes[0].ub);ok(!db.classe.ecussons.ub);eq(db.classe.joueurs.ub.saison,1);
+  res.push('service');
+  console.log('test_classe : '+nv+' vérifications OK ('+res.join(', ')+')');
+})().catch(e=>{console.error(e);process.exit(1)});

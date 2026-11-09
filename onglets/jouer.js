@@ -158,9 +158,8 @@ function majAnnonce(l){
   }else{
     if(!createur||l.some(p=>Number.isInteger(p.presence.jg)))return; /* lancement en cours : rien a changer */
     if(salonPublic)o={d:d.nom,e:elsTexte(d.texte).join(','),v:maV,n:ns};
-    /* TODO branchement classé : el (Elo du createur hors placement) et salons/<code>/cl */
   }
-  if(o&&salonClasse)o.cl=true;
+  if(o&&salonClasse){o.cl=true;const j=classeMoi;if(j&&Number.isFinite(j.elo)&&!GolemsClasse.enPlacement(j))o.el=j.elo} /* Elo du createur, placement fini seulement (regle annonces/el) */
   if(o&&adv){o.w=adv.peer;o.q=nomDe(adv)}
   const cle=o?JSON.stringify(o):'';
   if(cle===annonceVue)return;annonceVue=cle;
@@ -350,6 +349,9 @@ async function entre(c,opt){
     if(window.SPEC){const rl=await SPEC.entrer(c,{createur,observer:!!(opt&&opt.observer)});if(rl==='spec'){specBranche();r=null;code=c;$('codeSalon').textContent=c.toUpperCase();$('accueil').hidden=true;$('salon').hidden=false;occupe=false;majEtat();return}}
     const s=await room.join(c);
     r=s;code=c;entree=Date.now();
+    /* 0.6 classe : le createur marque le salon (cl, cree) ; les autres lisent cl (entree par code ou reprise) ; profil classe pret avant la partie. */
+    if(s.marqueClasse){if(createur&&salonClasse&&!sv)await s.marqueClasse().catch(e=>console.warn('salon classe',e));else salonClasse=await s.estClasse()}
+    if(salonClasse)await chargeClasse();
     sid=sv?sv.sid:nouveauSid();arrivee=sv?sv.arrivee:entree;
     $('codeSalon').textContent=c.toUpperCase();
     if(sv)lancer(sv.graine,sv.place,sv.adv,sv);
@@ -388,19 +390,35 @@ const pubClasse=selPub('pubClasse'),pubAmicale=selPub('pubAmicale');
 let salonClasse=false; /* salon classe en cours (createur, ou joueur entre par une annonce classee) */
 $('creer').addEventListener('click',()=>{salonClasse=false;$('salonPublicCase').checked=pubAmicale()},true);
 $('creerClasse').onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(()=>{salonClasse=true;$('salonPublicCase').checked=pubClasse();creerSalon()})};
-/* TODO branchement classé : fenetre du classement (classe/classement). En attendant : vue Statistiques. */
+/* Le classement de la saison est dans Statistiques (mode Classees). */
 $('voirClassement').onclick=()=>onglet('stats');
 
-/* Profil classe du joueur. TODO branchement classé : lire classe/joueurs/<uid> (Firebase) ; d'ici la, profil local d'essai
-   (golems.classe.<uid>), tenu a jour par resultatClasseLocal apres une classee contre un Golem (vue/partie.js, finClasse). */
-function cleClasse(){return 'golems.classe.'+(room&&room.compte&&room.compte.uid?room.compte.uid()||'':'')}
-function profilClasse(){
-  let j=null;try{j=JSON.parse(lire(cleClasse()))}catch(e){}
-  return j&&Number.isFinite(j.elo)?j:GolemsClasse.nouveauJoueur(0);
+/* 0.6 : profil classe du joueur, lu dans Firebase (classe/joueurs/<uid>) par le service de commun/classe.js :
+   cree s'il manque, remis a la nouvelle saison (instantane d'abord), classement et recompenses tenus a jour.
+   classeMoi = derniere copie lue (affichage seulement ; chaque ecriture relit Firebase). */
+let classeMoi=null,classeCharge=null;
+function serviceClasse(){return compteCo()&&room&&room.classeBase&&window.GolemsClasse?GolemsClasse.service(room.classeBase()):null}
+function profilClasse(){return classeMoi&&Number.isFinite(classeMoi.elo)?classeMoi:GolemsClasse.nouveauJoueur(0)}
+function chargeClasse(){
+  const S=serviceClasse();if(!S){classeMoi=null;majRangBandeau();return Promise.resolve(null)}
+  const u=room.compte.uid();
+  return classeCharge=S.profil({stats:id=>typeof pfInstantane==='function'?pfInstantane(id):{}}).then(j=>{if(compteCo()&&room.compte.uid()===u){classeMoi=j;majRangBandeau();majTuiles()}return j},
+    e=>{console.warn('classe',e);return null});
 }
-function resultatClasseLocal(c,apres){
-  const n=Object.assign({},profilClasse(),apres);
-  ecrire(cleClasse(),JSON.stringify(n));majTuiles();
+/* Capsule du bandeau (commun/compte.js, majRangMoi) : embleme + Elo, placement fini seulement ; pendant le placement, rien. */
+function majRangBandeau(){
+  if(typeof majRangMoi!=='function')return;const j=classeMoi;
+  if(!compteCo()||!j||!Number.isFinite(j.elo)||GolemsClasse.enPlacement(j)){majRangMoi(null);return}
+  const R=GolemsClasse.rang(j.elo);majRangMoi({img:imgRang(R.id),nom:R.nom,elo:j.elo});
+}
+/* Parties classees pas encore appliquees au profil (adversaire qui n'a pas encore confirme, coupure) : nouvel essai au chargement. */
+const ATTENTE_CL='golems.classeAttente';
+function attenteClasse(id,on){const u=compteCo()?room.compte.uid():'';let l=[];try{l=JSON.parse(lire(ATTENTE_CL))||[]}catch(e){}
+  l=l.filter(x=>x&&x.id!==id);if(on&&u)l.unshift({id,u});ecrire(ATTENTE_CL,JSON.stringify(l.slice(0,20)))}
+async function reessaieClasse(){
+  const S=serviceClasse();if(!S){await chargeClasse();return}const u=room.compte.uid();let l=[];try{l=JSON.parse(lire(ATTENTE_CL))||[]}catch(e){}
+  for(const x of l.filter(y=>y&&y.u===u))try{if(await S.applique(x.id))attenteClasse(x.id,false)}catch(e){}
+  await chargeClasse();
 }
 function imgRang(id){return imgV('images/rangs/'+id+'.png')}
 const pcJ=(v,n)=>n?Math.round(100*v/n):null;
@@ -528,7 +546,9 @@ function majBandeauRobot(){
 }
 $('affronterGolem').onclick=async()=>{
   const j=profilClasse(),sa=code;if(!GolemsClasse.peutAffronterRobot(j.robots)){majBandeauRobot();return}
-  /* TODO branchement classé : poser salons/<code>/robot (GolemsClasse.salonRobot) avant de quitter le salon. */
+  /* Bandeau robot pose dans le salon (regles : 2 min, sans adversaire, 5 par jour) avant de le quitter. */
+  try{if(!r||!r.poseRobot)throw new Error('salon');await r.poseRobot(GolemsClasse.salonRobot(room.compte.uid(),j.elo))}
+  catch(e){console.warn(e);alerte('erreurJeu','Partie classée impossible : Golem refusé par le serveur. Réessaie dans un instant.');return}
   await sortie('');lanceClasseRobot(j,sa);
 };
 
