@@ -63,3 +63,24 @@
 .dv-pied{flex:none;justify-content:center;padding:10px 20px 14px;border-top:1px solid var(--trait)}
 :is(.dv-pied .btn,#f#f#f#f){flex:0 0 auto;margin:0;min-height:36px;padding:4px 22px;font-size:15px}
 @media (max-width:520px){.dv-tete{padding:12px 14px 8px}.dv-tete h2{font-size:23px}.dv-corps{padding:10px 14px 6px}.dv-corps li{font-size:15px}.dv-pied{padding:8px 14px 12px}}
+/* Nouveautes B4 (maquette 16 - Nouveautés trois lignes\apresB4, validee le 8 nov.) : pas de phrase d'intro, blocs de hauteur fixe (297 px, 3 rangees
+   en 1683x1180), un bloc par version (video a gauche, puces a droite), Details en haut a droite (tertiaire), etiquette de version a sa gauche,
+   pagination sous les blocs calee en bas a droite, a place fixe. */
+@media (min-width:700px){#nouveautes>#notes{grid-auto-rows:var(--h-bloc,297px);column-gap:16px;row-gap:16px}#nouveautes>#notes>.note{overflow:hidden;margin:0}}
+#notes>.note li.coupe{display:none!important}
+#nouveautes>.nv-pages.bas{max-width:none;justify-content:flex-end;margin-top:16px}
+#notes>.note{padding:16px}#notes>.note>:last-child,#notes>.note>.nv-det~*:last-child{margin-bottom:0}
+#notes .nv-etq{top:17px}
+.note>.sc-btn.nv-det{position:absolute;right:16px;top:12px;margin:0}
+.note.a-det>.nv-etq{right:94px}
+.note.a-det>h3::before{width:150px}
+.note.a-det>ul>li:last-child::after{display:none}
+@media (max-width:359px){.note.a-det>.nv-etq{position:static;float:right;margin:1px 64px 0 8px}}
+#notes .fdr-l li{padding:3px 0 3px 26px;min-height:31px}
+#notes .nv-fdr .fdr-sous{margin-bottom:9px}
+#notes .nv-etq.gd-ver{padding:1px 7px .6px;font-size:11px;line-height:15px;top:19px}
+.nv-pages .j-btn:disabled{opacity:.45}
+#nouveautes>#premierePartie{margin-bottom:16px}
+main:has(#nouveautes:not([hidden])){padding-bottom:24px}
+@media (min-width:700px){.note.nv-avid>.nv-corps{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start;margin-top:4px}.note.nv-avid .nv-video{width:100%}}
+@media (min-width:1200px){#nouveautes>#notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-width:none}#nouveautes>#notes>.note{margin-bottom:0}}

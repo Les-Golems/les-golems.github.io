@@ -331,28 +331,29 @@ NOUVEAUTES.forEach(n=>{
   n.notes.forEach(x=>{const li=document.createElement('li');li.append(textePictos(x));u.append(li)});
   a.append(h,etqBloc(n.version),d,u);$('notes').append(a);
   /* Bouton « Détails » : blocs de version seulement (jamais les blocs video), s'ils ont leurs details. */
-  if(DETAILS_VERSIONS[n.version]){const b=document.createElement('button');b.type='button';b.className='btn sec nv-det';b.textContent='Détails';
+  if(DETAILS_VERSIONS[n.version]){const b=document.createElement('button');b.type='button';b.className='sc-btn sc-tertiaire nv-det';b.textContent='Détails';
     b.setAttribute('aria-haspopup','dialog');b.setAttribute('aria-label','Détails de la '+n.version.toLowerCase());b.onclick=()=>ouvreDetailsVersion(n,b);a.classList.add('a-det');a.append(b)}
 });
 /* Une seule liste du plus récent au plus ancien (grille 2 colonnes, gauche puis droite) : tout nouveau bloc s'insère en tête.
    Blocs vidéo : présentation seule, cadrée à la hauteur du bloc voisin, juste avant le bloc de sa version. Un bloc par entrée, le plus récent en tête. */
 const NOUVEAUX_GOLEMS=[
- {titre:'Nouvel écran de partie. Et plus encore…',date:DATE_V05,version:'Version 0.5',apres:true,
+ {titre:'Nouvel écran de partie. Et plus encore…',date:DATE_V05,version:'Version 0.5',puces:["Nouvel écran de partie", "6 nouveaux terrains", "Animaux de compagnie retravaillés", "4 éléments différents au plus par deck", "Decks conseillés retravaillés", "Connexion et reprise de la partie", "Mode daltonien", "Nouvel onglet Guides"],apres:true,
   video:'videos/patch_05.mp4',affiche:'videos/patch_05.jpg',aria:'Présentation de la version 0.5'},
- {titre:'Nouveaux Golems disponibles : GénéralBrioche, JackJoy, K-Chan, Vic222.\nEt plus encore…',date:'5 novembre 2026',version:'Version 0.3',apres:true,
+ {titre:'Nouveaux Golems disponibles : GénéralBrioche, JackJoy, K-Chan, Vic222.\nEt plus encore…',date:'5 novembre 2026',version:'Version 0.3',puces:["Mode spectateur depuis le salon", "Golems : JackJoy, Vic222, GénéralBrioche", "K-Chan passe en Magma et Cristal", "Évolution de K-Chan : L'attachiante", "Nouvel animal : Jacen et Jaina", "Deck par défaut à 30 cartes", "Decks : panneau toujours ouvert", "Renommage du deck au crayon"],apres:true,
   video:'videos/nouvelles_cartes_05nov.mp4',affiche:'videos/nouvelles_cartes_05nov.jpg',aria:'Présentation des nouvelles cartes de la version 0.3'},
- {titre:'Nouveaux Golems disponibles : trop nombreux pour les citer',date:'4 novembre 2026',version:'Version 0.2b',
+ {titre:'Nouveaux Golems disponibles : trop nombreux pour les citer',date:'4 novembre 2026',version:'Version 0.2b',puces:["De nombreux nouveaux Golems", "Premier animal : Kiwi, de Titom76", "K-Chan devient Magma + Brume", "Plateau en miroir : ton camp en bas", "Statistiques par patch et adversaire", "Profils publics des joueurs", "Nouveaux filtres et tri des cartes", "Aide : le cercle des éléments"],
   video:'videos/nouvelles_cartes_04nov.mp4',affiche:'videos/nouvelles_cartes_04nov.jpg',aria:'Présentation des nouvelles cartes'},
- {titre:'Nouveaux Golems disponibles : Indra et Glad',date:'3 novembre 2026',version:'Version 0.2a',
+ {titre:'Nouveaux Golems disponibles : Indra et Glad',date:'3 novembre 2026',version:'Version 0.2a',puces:["Jeu en ligne, avec comptes", "Parties publiques et privées", "Discussion pendant la partie", "Tutoriel et entraînement", "Decks et historique des parties", "Rejeu des parties et profil", "Avatars personnalisables"],
   video:'videos/nouveaux_golems.mp4',affiche:'videos/nouveaux_golems.jpg',aria:'Présentation des nouveaux Golems'}
 ];
 NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-  const a=mk('article','note nv-golem'),l=mk('div','nv-ligne'),v=mk('video','nv-video');
+  /* Nouveautes B4 (16 - Nouveautés trois lignespresB4, decision de Romain) : UN SEUL bloc par version ; la video entre dans le bloc de sa version,
+     a gauche, les puces courtes a droite (8 lignes au plus, le reste dans Details). */
+  const a=[...$('notes').children].find(x=>x.querySelector('h3')?.textContent===g.version),l=mk('div','nv-corps'),v=mk('video','nv-video');
   v.src=g.video;v.poster=g.affiche;v.preload='metadata';v.controls=v.playsInline=true;v.volume=0.6;
   v.setAttribute('playsinline','');v.setAttribute('aria-label',g.aria);
-  const ti=mk('h3');g.titre.split('\n').forEach((x,i)=>{if(i)ti.append(document.createElement('br'));ti.append(x)}); /* \n dans le titre : retour a la ligne force */
-  l.append(v);a.append(ti,etqBloc(g.version),mk('time','',g.date),l);
-  {const n=$('notes'),ver=[...n.children].find(x=>x.querySelector('h3')?.textContent===g.version);if(ver)(g.apres?ver.after(a):ver.before(a));else n.prepend(a)} /* apres : juste apres le bloc de sa version (0.3) */
+  if(!a)return;{const u=a.querySelector(':scope>ul');if(g.puces){u.replaceChildren();g.puces.forEach(x=>{const li=document.createElement('li');li.append(textePictos(x));u.append(li)})}
+  l.append(v,u)}a.querySelector(':scope>time').after(l);a.classList.add('nv-avid');
   /* Aucune lecture automatique : tu cliques sur lecture (avec le son, volume 0,6). Une seule lecture, pas de boucle. Pause hors de l'onglet. */
   const sec=$('nouveautes');new MutationObserver(()=>{if(sec.hidden)v.pause()}).observe(sec,{attributes:true,attributeFilter:['hidden']});
 });
@@ -398,7 +399,7 @@ function epinglesNotes(){
   const l=['feuille-de-route','v'+String(NOUVEAUTES[0].version).replace(/^Version /,'')];
   return l.filter(x=>ids.has(x));
 }
-function peintNotes(){
+function peintNotes0(){
   const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
   const N=$('notes'),ep=epinglesNotes(),fdr=N.querySelector('.nv-fdr'),par=id=>N.querySelector(':scope>article[data-id="'+id+'"]');
   /* Feuille de route desepinglee : premier bloc de la liste (Romain peut la reepingler) */
@@ -409,6 +410,8 @@ function peintNotes(){
   U.flat().forEach(a=>{if(n>=NV.par&&n>0){pages.push([]);n=0}pages[pages.length-1].push(a);n++});
   if(pages.length>1&&!pages[0].length&&!ep.length)pages.shift(); /* 0.5.2 : epingles seuls en page 1 s il ne reste pas de place */
   NV.page=Math.max(0,Math.min(NV.page,pages.length-1));
+  {const cols=getComputedStyle(N).gridTemplateColumns.split(' ').filter(Boolean).length||1; /* B4 : hauteur d'une page pleine, la pagination reste a sa place */
+   N.style.gridTemplateRows=innerWidth<700?'':'repeat('+Math.ceil(NV.par/cols)+',var(--h-bloc,297px))'}
   const ordre=[...ep.map(par),...pages.flat()],vus=new Set([...(NV.page===0?ep.map(par):[]),...pages[NV.page]]);
   if(ordre.some((a,i)=>N.children[i]!==a))ordre.forEach(a=>N.append(a));
   N.querySelectorAll(':scope>article.note').forEach(a=>{const e=ep.includes(a.dataset.id);a.classList.toggle('nv-epingle',e);a.hidden=!vus.has(a);
@@ -419,20 +422,25 @@ function peintNotes(){
     if(!b){b=mk('button','nv-epingler');b.type='button';b.innerHTML=SVG_EPINGLE;b.onclick=()=>basculeEpingle(a.dataset.id,b);a.append(b)}
     b.classList.toggle('on',e);b.setAttribute('aria-pressed',String(e));b.title=e?'Désépingler ce bloc':'Épingler ce bloc';b.setAttribute('aria-label',b.title)});
   N.classList.toggle('nv-romain',NV.romain);
-  /* Fleches de pagination, a droite de la phrase d'intro (style des fleches du Journal), creees une fois */
+  /* B4 : pagination sous les blocs, calee en bas a droite (un seul composant partout), creee une fois */
   {
     let z=document.querySelector('#nouveautes .nv-pages');
-    if(!z){z=mk('div','nv-pages haut');z.setAttribute('role','navigation');z.setAttribute('aria-label','Pages des nouveautés');
+    if(!z){z=mk('div','nv-pages bas');z.setAttribute('role','navigation');z.setAttribute('aria-label','Pages des nouveautés');
       const p=mk('button','j-btn nv-prec','<'),s=mk('button','j-btn nv-suiv','>');p.type=s.type='button';
       p.title='Page précédente';s.title='Page suivante';p.setAttribute('aria-label',p.title);s.setAttribute('aria-label',s.title);
       p.onclick=()=>pageNotes(-1);s.onclick=()=>pageNotes(1);z.append(p,mk('span','nv-num'),s);
-      const i=document.querySelector('#nouveautes>.intro');i.classList.add('va');i.append(z)}
+      $('notes').after(z)}
     z.hidden=pages.length<2;z.querySelector('.nv-num').textContent=(NV.page+1)+' / '+pages.length;
     z.querySelector('.nv-prec').disabled=NV.page===0;z.querySelector('.nv-suiv').disabled=NV.page>=pages.length-1}
 }
+/* B4 : coupe propre des blocs trop longs (lignes entieres masquees), le bouton Details donne le reste */
+function peintNotes(){peintNotes0();if(innerWidth<700)return;
+  for(const n of document.querySelectorAll('#notes>.note')){if(!n.offsetParent)continue;n.querySelectorAll('.coupe').forEach(x=>x.classList.remove('coupe'));
+    const lim=n.getBoundingClientRect().bottom-14,li=[...n.querySelectorAll('ul>li,ol>li')];
+    for(let k=li.length-1;k>0&&li[k].getBoundingClientRect().bottom>lim;k--)li[k].classList.add('coupe')}}
 function pageNotes(d){
   NV.page+=d;peintNotes();
-  const h=document.querySelector('#nouveautes .nv-pages.haut'),y=(h&&!h.hidden?h:$('notes')).getBoundingClientRect().top+scrollY-(document.querySelector('body>nav,nav.onglets')?.offsetHeight||0)-12;
+  const y=$('notes').getBoundingClientRect().top+scrollY-(document.querySelector('body>nav,nav.onglets')?.offsetHeight||0)-12;
   if(y<scrollY)scrollTo({top:Math.max(0,y)});
 }
 function basculeEpingle(id,b){
