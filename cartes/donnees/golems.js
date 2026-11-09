@@ -45,7 +45,9 @@ const donnees={type:'golem',cartes:{
  '042':{id:'042',effet:{type:'cercleTerrain'},nom:'Vic222',titre:'Lurker du discord',el:['cristal','roche'],cout:3,force:1,texte:'Info tchat : les Golems alliés ici gagnent +2 au lieu de +1 grâce au cercle.'}, /* Vic222 */
  '042e':{id:'042e',effet:{type:'immunite',nom:'Chance du débutant',unique:true},nom:'Baby gamer',titre:'Baby gamer',el:['cristal','roche'],cout:3,force:4,base:'042',texte:'Chance du débutant : la première fois qu\'un effet adverse devrait te faire perdre de la Force, il ne fait rien.'}, /* Vic222 */
  '020':{id:'020',effet:{type:'bonusColonne',bonus:1},nom:'GénéralBrioche',titre:'Le pas sûr de lui',el:['cristal','roche'],cout:2,force:1,texte:'Grand Général : les autres Golems alliés ici gagnent +1 de Force.'}, /* GeneralBrioche */
- '020e':{id:'020e',effet:{type:'forceParGolem',compte:'voisins',note:'adjacence',apres:true},nom:'Le civ player',titre:'Le civ player',el:['cristal','roche'],cout:4,force:2,base:'020',texte:'Bonus d\'adjacence : gagne +1 de Force par voisin.'} /* GeneralBrioche : evolution */
+ '020e':{id:'020e',effet:{type:'forceParGolem',compte:'voisins',note:'adjacence',apres:true},nom:'Le civ player',titre:'Le civ player',el:['cristal','roche'],cout:4,force:2,base:'020',texte:'Bonus d\'adjacence : gagne +1 de Force par voisin.'}, /* GeneralBrioche : evolution */
+ '021':{id:'021',effet:{type:'cafeDuMatin',bonus:1,valeurCopie:.45},nom:'Elccino',titre:'Life happens, coffee helps',el:['brume','cristal'],cout:3,force:1,texte:'Café du matin : à la pose et à chaque début de manche, regarde les 2 premières cartes de ton deck, prends-en 1 et remets l\'autre sous ton deck. Puis un Golem allié gagne +1 de Force.'}, /* Elccino (G-021) */
+ '021e':{id:'021e',effet:{type:'taupe',bonus:2,valeurCopie:.6},nom:'Agent double SOLAEGIS',titre:'Agent double SOLAEGIS',el:['brume','cristal'],cout:4,force:2,base:'021',texte:'La taupe : à la pose, regarde la main adverse et choisis-en 1 : ton adversaire la défausse. Un Golem allié gagne +2 de Force.'} /* Elccino : evolution */
 },
 elVelnen:EL_VELNEN
 };

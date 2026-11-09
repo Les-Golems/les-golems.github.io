@@ -3,15 +3,15 @@
 (function(r){'use strict';
 (r.GolemsDonnees=r.GolemsDonnees||{}).interface={
 /* Numéro AFFICHÉ des Golems (ordre où ils deviennent jouables) : code interne -> numéro. Les codes internes ne changent jamais.
-   Golem à venir : absent de la table, aucun numéro affiché. Prochain jouable : 18. */
-numeroAffiche:{'001':1,'002':2,'003':3,'004':4,'007':5,'008':6,'013':7,'009':8,'029':9,'037':10,'026':11,'036':12,'018':13,'041':14,'025':15,'015':16,'016':17,'035':18,'042':19,'020':20},
+   Golem à venir : absent de la table, aucun numéro affiché. Prochain jouable : 22. */
+numeroAffiche:{'001':1,'002':2,'003':3,'004':4,'007':5,'008':6,'013':7,'009':8,'029':9,'037':10,'026':11,'036':12,'018':13,'041':14,'025':15,'015':16,'016':17,'035':18,'042':19,'020':20,'021':21},
 /* Animaux de compagnie : numero affiche A-0NN, table a part (codes internes 9xx). */
 numeroAnimal:{'901':11,'902':1,'903':15},
 /* Cartes à venir, hors moteur : retirer la ligne d'un membre quand sa carte arrive, les numéros restent fixes. */
 aVenir:[
  ['005','Driscop'],['006','Falys'],['010','Orotembu'],
  ['011','Sleepy'],['012','Simon'],['014','Boubou'],
- ['017','Letran'],['019','Victone'],['021','Elccino'],['022','Shantiruka'],
+ ['017','Letran'],['019','Victone'],['022','Shantiruka'],
  ['023','Kun_Mamba'],['024','MrTitou'],['027','Merser'],['028','Nadzu'],
  ['030','Cyd'],['031','Obsess'],['032','Marech'],['033','Greeny'],['034','Harentros'],
  ['038','TortueGourmande'],['039','TortueVéloce'],['040','PoulpeHome']],
