@@ -58,7 +58,7 @@ function ordre(l){
     const q=m[i];if(!q||p.sameTab||(!q.sameTab&&p.updatedAt>q.updatedAt))m[i]=p});
   return t.filter(p=>{const i=p.presence.sid;return typeof i!=='string'||!i||m[i]===p});
 }
-/* Adversaire arrive dans ma partie en attente, onglet cache : le titre alterne « Adversaire arrivé ! · Les Golems » et le titre normal
+/* Adversaire arrive dans ma partie en attente, onglet cache : le titre alterne « Adversaire arrivé ! - Les Golems » et le titre normal
    jusqu'au retour sur l'onglet (repris de signal-tour.js, retire a l'etape 8 : son signal « À toi ! » ne marchait pas, une etiquette le remplace). */
 (()=>{const ARRIVEE='Adversaire arrivé ! - Les Golems';let normal=null,minuteur=0,bascule=false,arrivee=false;
   const arrete=()=>{if(minuteur){clearInterval(minuteur);minuteur=0}if(normal!==null){document.title=normal;normal=null}};
