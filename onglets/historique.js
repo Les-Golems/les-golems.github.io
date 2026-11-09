@@ -274,7 +274,7 @@ function ligneHisto(x){
   const res=resHisto(x);if(x.abandon||x.deckVide)res.title=x.res+(x.abandon?' (abandon)':' (deck vide)');
   li.append(res,etqHisto(x),dk,el('span','hl-vs','contre'),advHisto(x),sc,mvpHisto(x.mvp),dt,verHisto(x),el('span','hl-fl','›'));
   li.lastChild.setAttribute('aria-hidden','true');
-  li.setAttribute('aria-label',x.res+' contre '+advAff(x.adv)+', '+x.score+', '+dateH(x.date));
+  li.setAttribute('aria-label',x.res+' contre '+advAff(x.adv)+', '+String(x.score||'-')+', '+dateH(x.date));
   li.onclick=()=>detailHisto(x);li.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();detailHisto(x)}};
   return li;
 }
