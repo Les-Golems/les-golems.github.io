@@ -57,6 +57,9 @@
             "t": {
               ".validate": "newData.isNumber()"
             },
+            "v": {
+              ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,10}$/)"
+            },
             "cartes": {
               "$c": {
                 ".validate": "$c.matches(/^[0-9]{3}e?$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 3"
@@ -1087,6 +1090,9 @@
               },
               "t": {
                 ".validate": "newData.isNumber()"
+              },
+              "v": {
+                ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,10}$/)"
               },
               "cartes": {
                 "$c": {

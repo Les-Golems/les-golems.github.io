@@ -38,6 +38,8 @@ module.exports = r => ({
           "id":  { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}$/)" },
           "nom": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 24" },
           "t":   { ".validate": "newData.isNumber()" },
+          // 0.6 : version du site à l'enregistrement du deck (M.VERSION, ex. « 0.6 »), 10 caractères au plus.
+          "v":   { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,10}$/)" },
           // Carte (001, 001e...) : 1 à 3 exemplaires, base et évolution à part.
           "cartes": {
             "$c": { ".validate": "$c.matches(/^[0-9]{3}e?$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 3" }

@@ -309,6 +309,10 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('historique, variation d\'Elo de 100'), false, req(A, 'PATCH', P + 'joueurs/' + A.uid + '/historique', { [h]: { d: t, x: '{}', de: 100 } }));
   await attendu(ici('12e deck (emplacement 11)'), true, req(A, 'PUT', P + 'joueurs/' + A.uid + '/decks/11', { id: 'd12', nom: 'Douze' }));
   await attendu(ici('13e deck (emplacement 12)'), false, req(A, 'PUT', P + 'joueurs/' + A.uid + '/decks/12', { id: 'd13', nom: 'Treize' }));
+  // 0.6 : étiquette de version du deck (v, chaîne de 10 caractères au plus).
+  await attendu(ici('deck avec version v'), true, req(A, 'PUT', P + 'joueurs/' + A.uid + '/decks/1', { id: 'd2', nom: 'Versionné', v: '0.6', cartes: { '001': 2 } }));
+  await attendu(ici('deck, v trop longue'), false, req(A, 'PUT', P + 'joueurs/' + A.uid + '/decks/1', { id: 'd2', nom: 'Versionné', v: '0.6.1234567' }));
+  await attendu(ici('deck, v non chaîne'), false, req(A, 'PUT', P + 'joueurs/' + A.uid + '/decks/1', { id: 'd2', nom: 'Versionné', v: 6 }));
 
   // Faille : pseudo libéré alors que le compte le porte encore.
   await attendu(ici('faille pseudo : libérer le pseudo porté'), false, req(X, 'DELETE', P + 'pseudos/' + pX.toLowerCase()));
