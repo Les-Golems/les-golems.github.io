@@ -52,9 +52,10 @@ function etiquette(o){
 /* Design B (0.4) : sieges a teinte neutre avant la partie (aucun deck revele). */
 function teinteSiege(){const g=window.GOLEMS_UI;return g&&g.teinte?g.teinte([]):''}
 function siege(o,moi,btns,createur){
-  const s=mk('div','sl-j b-teinte'+(o.pret?' pret':'')+(moi?' sl-moi':'')),n=mk('div','sl-nom',nomP(o));
+  const s=mk('div','sl-j b-teinte'+(o.pret?' pret':'')+(moi?' sl-moi':''));
+  /* 0.6 : embleme et Elo comme les sieges de jouer.js (nomSiege) ; repli sur le pseudo seul */
+  let n;if(typeof window.nomSiege==='function'&&o.uid)n=window.nomSiege({peer:o.uid,sameTab:!!moi},nomP(o),!!moi);else{n=mk('div','sl-nom',nomP(o));if(moi)n.append(mk('em','','toi'))}
   const t=teinteSiege(o,moi);if(t)s.style.setProperty('--tinte',t);
-  if(moi)n.append(mk('em','','toi'));
   s.append(av(o),n);if(createur)s.append(mk('span','sp-role','Créateur'));
   s.append(mk('span','sl-etat',o.pret?'Prêt':'En attente'),etiquette(o),tuileDeck(o,moi));
   const tx=tauxDe(o);if(tx)s.append(mk('span','sl-taux',tx));

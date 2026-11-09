@@ -116,7 +116,7 @@ function profilSiege(p){
   if(p.sameTab)return compteCo()?profilClasse():null;
   if(p.peer in classeCache)return classeCache[p.peer];
   classeCache[p.peer]=null;
-  if(room&&room.compte&&typeof room.compte.classeDe==='function')room.compte.classeDe(p.peer).then(j=>{classeCache[p.peer]=j&&Number.isFinite(j.elo)?j:null;if(r)majSalon()}).catch(()=>{});
+  if(room&&room.compte&&typeof room.compte.classeDe==='function')room.compte.classeDe(p.peer).then(j=>{if(j&&Number.isFinite(j.elo)){classeCache[p.peer]=j;if(r)majSalon();try{if(window.SPEC&&window.SPEC_UI&&SPEC.etatSalon().actif)SPEC_UI.peindreSalon(SPEC.etatSalon())}catch(e){}}else setTimeout(()=>{if(classeCache[p.peer]===null)delete classeCache[p.peer]},3000)}).catch(()=>{}); /* profil pas encore cree : nouvel essai 3 s plus tard */
   return null;
 }
 function nomSiege(p,nom,moi){
