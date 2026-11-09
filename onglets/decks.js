@@ -160,12 +160,16 @@ function cartesModifiees(v,cartes){
   const L=window.VERSIONS_CARTES||{};if(!v||!cartes)return [];
   return Object.keys(cartes).filter(k=>+cartes[k]>0&&L[k]&&cmpVersion(L[k],v)>0).map(k=>({id:k,v:L[k]}));
 }
+/* 0.6 (maquette 43, A) : « KaTarN, Le Q et Spom ont changé en v0.6 » : noms seuls (sans titre), groupes par version, sans point final. */
+function phraseModifiees(m){
+  const parV={};m.forEach(x=>{const n=M.CARTES[x.id]?M.CARTES[x.id].nom:x.id,g=parV[x.v]=parV[x.v]||[];if(!g.includes(n))g.push(n)});
+  const et=l=>l.length>1?l.slice(0,-1).join(', ')+' et '+l[l.length-1]:l[0];
+  return Object.keys(parV).sort(cmpVersion).map(w=>et(parV[w])+(parV[w].length>1?' ont changé':' a changé')+' en v'+w).join(' ; ');
+}
 function etqVersionDeck(v,cartes){
   const m=cartesModifiees(v,cartes),e=el('span','etq-v vx-etq'+(m.length?' vx-diff':''),'v'+v);
   if(!m.length){e.title='Deck de la version '+v;return e}
-  const nomC=k=>{const c=CARTES.find(x=>x[0]===k);return c?c[1]:M.CARTES[k]?M.CARTES[k].nom:k};
-  const parV={};m.forEach(x=>(parV[x.v]=parV[x.v]||[]).push(nomC(x.id)));
-  e.title='Deck de la v'+v+' : '+Object.keys(parV).sort(cmpVersion).map(w=>parV[w].join(', ')+(parV[w].length>1?' modifiées':' modifiée')+' en v'+w).join(' ; ')+'. Vérifie ton deck.';
+  e.title=phraseModifiees(m)+'.';
   e.setAttribute('aria-label',e.title);return e;
 }
 /* Pastille « ? » du deck adverse masque (a la place des pictos d'elements). */
@@ -285,7 +289,7 @@ function grilleDk(box,d,l){
     i.onclick=()=>{dernier=i;zoom(i.src,c[1],[...statZoomCarte(id),boutonLienCarte(idLienCarte(id))])};i.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();i.onclick()}};z.append(i);
     if(qte){const mx=maxEx(id),q=el('div','dk-q'+(n?'':' zero')),m=el('button','','-'),p=el('button','','+');m.type=p.type='button';
       m.setAttribute('aria-label','Retirer '+c[1]);p.setAttribute('aria-label','Ajouter '+c[1]);m.disabled=!n;
-      const ch=v=>{d.cartes[id]=n+v;d.v=M.VERSION;msgInfoDk=null;if(!d.cartes[id])delete d.cartes[id];msgDk=msgDkId=null;gardeDecks(l);peintDecks()};m.onclick=()=>ch(-1);
+      const ch=v=>{d.cartes[id]=n+v;msgInfoDk=null;if(!d.cartes[id])delete d.cartes[id];msgDk=msgDkId=null;gardeDecks(l);peintDecks()};m.onclick=()=>ch(-1);
       const neufs=(C.el||[]).filter(e=>!Ed.includes(e)),trop=!n&&neufs.length&&Ed.length+neufs.length>M.ELEM_MAX;
       if(tot>=DECK_MAX){p.classList.add(msgDkId===id?'dk-ko':'dk-gris');p.title=DECK_MAX+' cartes au plus';p.onclick=()=>{msgDkId=id;msgDk='Ajout impossible : deck complet, '+DECK_MAX+' cartes au plus. Retire une carte avant d’en ajouter une.';peintDecks()}}
       else if(n>=mx){p.classList.add(msgDkId===id?'dk-ko':'dk-gris');p.title=mx===1?'1 exemplaire au plus':mx+' exemplaires au plus';p.onclick=()=>{msgDkId=id;msgDk='Ajout impossible : '+C.nom+' x'+n+', '+(mx===1?'1 exemplaire au plus pour un animal.':mx+' exemplaires au plus.');peintDecks()}}
@@ -308,6 +312,9 @@ function panneauDk(R,d,l){
   const Ed=M.elementsDeck(d.cartes),inf=el('div','dk-inf'),nb=f=>Object.keys(d.cartes).filter(k=>M.CARTES[k]&&f(M.CARTES[k])).reduce((a,k)=>a+(+d.cartes[k]||0),0);
   const sp=(t,v,ko)=>{const s=el('span','',t+' ');s.append(el('b',ko?'ko':'',v));inf.append(s)};
   sp('Éléments',Ed.length+'/'+M.ELEM_MAX,Ed.length>M.ELEM_MAX);sp('Bases',String(nb(C=>!C.base&&!C.animal)));sp('Évolutions',String(nb(C=>!!C.base)));R.append(inf);
+  /* 0.6 (maquette 43, A) : cartes changees depuis la version du deck : bandeau d'information + « J'ai vérifié », seul geste qui remet le deck a la version actuelle. */
+  {const m=cartesModifiees(d.v||V_DECK_ANCIEN,d.cartes);if(m.length){const a=alerteDk('Deck : '+phraseModifiees(m)+'. Vérifie-le.',1,'sc-deux-lignes dk-verif');
+    a.append(btnDk("J'ai vérifié",'sc-tertiaire',()=>{d.v=M.VERSION;gardeDecks(l);peintDecks()}));R.append(a)}}
   const RS=raisonsDeck(d);RS.forEach(r=>{const a=alerteDk(['Deck invalide : ',...texteRiche(r.pt,r.t.replace(/^(Deck incomplet|Trop de cartes|Deck invalide) : /,''))],0,'sc-deux-lignes dk-errp');a.title=r.t;
     if(r.inc){const q=btnDk('Retirer','sc-tertiaire',()=>{r.inc.forEach(k=>delete d.cartes[k]);gardeDecks(l);peintDecks()});a.append(q)}R.append(a)});
   const p=el('div','dk-liste'+(listeDepliee?' deplie':''));decklist(p,d,l);R.append(p);

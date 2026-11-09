@@ -442,7 +442,7 @@ body.daltonien .dk-tuile.inv::after{content:'!';position:absolute;right:8px;bott
 .dk-ent.dl-edit form{display:flex;gap:8px;width:100%;margin:0}.dk-ent.dl-edit input{flex:1;min-width:0;height:32px;margin:0}
 .dk-inf{display:flex;gap:14px;font:700 13px var(--corps);color:var(--doux);margin:-4px 0 10px;flex:none}
 .dk-inf b{color:#fff}.dk-inf b.ko{color:var(--rouge)}
-.dk-errp{margin:0 0 10px;flex:none}
+.dk-errp,.dk-verif{margin:0 0 10px;flex:none}
 .dk-liste{min-height:0;flex:1;display:flex;flex-direction:column}
 .dk-liste .d-haut{display:none}
 .dk-liste .dl-liste{width:calc(100% + 8px);max-width:none;margin:0;padding-right:6px;overflow-y:auto;overflow-x:hidden;flex:1;min-height:0;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#4b6274 transparent}
