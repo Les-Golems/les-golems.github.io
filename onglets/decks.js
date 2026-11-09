@@ -128,61 +128,161 @@ function enteteDeck(nom,els,nb,injouable){
 /* Pastille « ? » du deck adverse masque (a la place des pictos d'elements). */
 function pastilleInconnue(){const s=el('span','dk-inc','?');s.setAttribute('aria-hidden','true');return s}
 function picto(e){const i=el('img');i.src=imgV('cartes/'+e+'.png');i.alt=e;i.width=26;i.height=26;return i}
+/* 0.6 (maquette 25, disposition A) : onglet Decks fusionne avec Cartes derriere le selecteur « Decks | Cartes ».
+   Decks = trois colonnes (Mes decks - catalogue filtre avec quantites - panneau du deck ouvert) ; Cartes = le meme catalogue, sans quantites.
+   Le deck choisi se modifie directement dans le catalogue (plus d'editeur a part) ; « Placements » ouvre « Tester des placements » en fenetre. */
+let vueDk='decks',pageDk=0,msgDk=null,msgDkId=null,listeDepliee=false;
+const fDk={q:'',inc:new Set(),exc:new Set(),mode:'ou',ty:'',cout:new Set(),tri:'',desc:false};
+const ELS_DK=['magma','cristal','foudre','brume','roche'];
+const fondDeck=E=>E.length>1?'linear-gradient(120deg,'+E.map(e=>'color-mix(in srgb,var(--'+e+') 60%,#0a121a)').join(',')+')':E.length?'color-mix(in srgb,var(--'+E[0]+') 60%,#0a121a)':'var(--panneau2)';
+const dkAuDepart=()=>!fDk.q&&!fDk.inc.size&&!fDk.exc.size&&!fDk.cout.size&&!fDk.ty&&!fDk.tri&&!fDk.desc&&fDk.mode==='ou';
+function dkPasse(id,d){const C=M.CARTES[id],c=CARTES.find(x=>x[0]===id);if(!C||!c)return false;
+  if(fDk.ty==='m'&&!(d&&+d.cartes[id]>0))return false;
+  if(fDk.q){const t=sansAccent(c[1]+' '+numeroAffiche(id)+' '+(C.texte||''));if(!t.includes(sansAccent(fDk.q.trim())))return false}
+  if(fDk.ty==='a'&&!C.animal)return false;if(fDk.ty==='0'&&(C.base||C.animal))return false;if(fDk.ty==='1'&&!C.base)return false;
+  const e=C.el||[];if((fDk.inc.size||fDk.exc.size)&&!e.length)return false;if(e.some(x=>fDk.exc.has(x)))return false;
+  if(fDk.inc.size&&!(fDk.mode==='et'?[...fDk.inc].every(x=>e.includes(x)):e.some(x=>fDk.inc.has(x))))return false;
+  if(fDk.cout.size&&!fDk.cout.has(Math.min(6,C.cout)))return false;return true}
+function dkVues(d){
+  if(fDk.ty==='t'){const L=M.TERRAINS.slice();if(fDk.tri==='nom')L.sort((a,b)=>a.nom.localeCompare(b.nom,'fr',{sensitivity:'base'}));return fDk.desc?L.reverse():L}
+  const ORD=CARTES.map(c=>c[0]),o=(a,b)=>ORD.indexOf(a)-ORD.indexOf(b),C=M.CARTES;
+  const k={nom:(a,b)=>C[a].nom.localeCompare(C[b].nom,'fr',{sensitivity:'base',numeric:true})||o(a,b),cout:(a,b)=>C[a].cout-C[b].cout||o(a,b),force:(a,b)=>(C[a].force||0)-(C[b].force||0)||o(a,b)}[fDk.tri]||o;
+  const L=ORD.filter(id=>dkPasse(id,d)).sort(k);return fDk.desc?L.reverse():L}
+const btnDk=(t,cl,f)=>{const b=el('button','sc-btn'+(cl?' '+cl:''),t);b.type='button';if(f)b.onclick=f;return b};
+const alerteDk=(t,info,cl)=>{const a=el('div','sc-alerte '+(info?'sc-info':'sc-erreur')+(cl?' '+cl:''));a.setAttribute('role',info?'status':'alert');a.append(el('i'));const s=el('span');if(typeof t==='string')s.textContent=t;else s.append(...t);a.append(s);return a};
+function selVueDk(){const s=el('div','sc-sel sc-large dk-vue');s.setAttribute('role','group');s.setAttribute('aria-label','Vue');
+  [['decks','Decks'],['cartes','Cartes']].forEach(([v,t])=>{const b=el('button','',t);b.type='button';b.setAttribute('aria-pressed',String(vueDk===v));b.onclick=()=>{if(vueDk===v)return;vueDk=v;pageDk=0;if(v==='cartes'&&fDk.ty==='m')fDk.ty='';peintDecks()};s.append(b)});return s}
 function peintDecks(){
-  const b=$('listeDecks'),l=lesDecks();b.textContent='';
-  if(deckOuvert){const d=l.find(x=>x.id===deckOuvert);if(d){
-    /* Editeur a gauche, liste compacte du deck a droite (reste ouverte pendant la modification). */
-    deckVu=d.id;const zo=el('div','d-zone d-zone-ed'),ed=el('div','d-ed'),pan=el('aside','d-panneau');pan.id='panneauDeck';pan.setAttribute('aria-label','Liste du deck');pan.setAttribute('aria-live','polite');
-    editeur(ed,l,d);decklist(pan,d,l);zo.append(ed,pan);if(bacDe(d).ouvert)zo.classList.add('sans-pan');
-    /* Meme hauteur que dans la liste : decalage mesure sur les vrais elements de la liste (boutons + compteur), aussitot retires. */
-    if(matchMedia('(min-width:1200px)').matches){const nb=el('div','d-btns'),q=el('button','btn','Nouveau deck'),o=el('p','intro o-nb','1 deck');nb.append(q);b.append(nb,o,zo);
-      const y=zo.getBoundingClientRect().top;nb.remove();o.remove();pan.style.marginTop=(y-zo.getBoundingClientRect().top)+'px';
-      /* Rechercher s'arrete au bord droit du dernier bouton d'element. */
-      if(!bacDe(d).ouvert){const s=ed.querySelector('.f-rech'),e=ed.querySelector('.f-els')?.lastElementChild;if(s&&e)s.style.width=(e.getBoundingClientRect().right-s.getBoundingClientRect().left)+'px'}}else b.append(zo);
-    hauteurDecks();return}deckOuvert=null}
-  if(deckVu&&!l.some(x=>x.id===deckVu))deckVu=null;
-  const n=el('button','btn','Nouveau deck');n.type='button';n.disabled=l.length>=MAX_DECKS;
-  n.onclick=()=>{if(l.length>=MAX_DECKS)return;const d={id:nouveauSid(),nom:'Deck '+(l.length+1),cartes:{}};l.push(d);gardeDecks(l);deckOuvert=d.id;peintDecks()};
-  const plein=l.length>=MAX_DECKS;
-  const im=el('button','btn','Importer un deck');im.type='button';im.onclick=()=>importeDeck(b,l);
-  const dc=el('button','btn','Partir d\'un deck conseillé');dc.type='button';dc.onclick=deckConseille;
-  const nb=el('div','d-btns');nb.append(n,im,dc);
-  const bandeau=d=>{nb.querySelector('.d-bandeau')?.remove();const R=d?raisonsDeck(d):[];if(!R.length)return;
-    const s=el('p','d-bandeau'),x=el('span');s.setAttribute('role','status');s.title=R.map(r=>r.t).join('\n');x.append(el('b','',d.nom+' : '),...R.flatMap((r,i)=>[...(i?[' - ']:[]),...texteRiche(r.pc,r.c)]));s.append(x);nb.append(s)};b.append(nb,el('p','intro o-nb'+(plein?' d-limite':''),l.length+' deck'+(l.length>1?'s':'')+' sur '+MAX_DECKS+(plein?'. Limite atteinte : supprime un deck pour en créer un nouveau.':'')));
-  const zo=el('div','d-zone sans-pan'),g=el('div','d-grille'),pan=el('aside','d-panneau');pan.id='panneauDeck';pan.setAttribute('aria-label','Liste du deck');pan.setAttribute('aria-live','polite');
-  const montre=(d,t)=>{
-    deckVu=d.id;zo.classList.remove('sans-pan');g.querySelectorAll('.d-tuile').forEach(x=>{const o=x===t;x.classList.toggle('choisie',o);x.setAttribute('aria-pressed',o)});
-    pan.textContent='';decklist(pan,d,l);bandeau(d);
-    /* Tuiles empilees : le panneau est sous la pile, on l'amene a l'ecran. */
-    if(matchMedia('(max-width:1199px)').matches)pan.scrollIntoView({block:'start'});
-  };
-  l.forEach(d=>{
-    const E=elsDeck(d),t=el('article',E.length>1?'d-tuile':'d-tuile mono');
-    t.style.background=E.length>1?'linear-gradient(120deg,'+E.map(e=>'color-mix(in srgb,var(--'+e+') 60%,#0a121a)').join(',')+')':E.length?'color-mix(in srgb,var(--'+E[0]+') 60%,#0a121a)':'var(--panneau2)';
-    const p=el('div','d-pict');E.forEach(e=>p.append(picto(e)));
-    /* Renommer sur la tuile : crayon seul, a gauche du compteur ; clic sur le nom = ouvrir la liste comme le reste de la tuile. */
-    const h=el('div','d-haut'),ti=el('h3','dl-renom',d.nom),cr=el('button','dl-crayon');cr.type='button';cr.title='Renommer';cr.setAttribute('aria-label','Renommer '+d.nom);
-    cr.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg>';
-    const ren=e=>{e.stopPropagation();h.classList.add('dl-edit');renomme(h,l,d)};cr.onclick=ren;
-    h.append(ti,cr,compteDeck(d));
-    const z=el('div','d-act'),bt=(x,f)=>{const q=el('button','btn sec',x);q.type='button';q.onclick=f;z.append(q);return q};
-    bt('Modifier',()=>{deckOuvert=d.id;deckVu=d.id;peintDecks()});
-    bt('Dupliquer',()=>{
-      if(l.length>=MAX_DECKS){z.querySelector('.d-limite')?.remove();z.append(el('p','d-limite','Limite de '+MAX_DECKS+' decks atteinte.'));return}
-      const c={id:nouveauSid(),nom:nettoie(d.nom.slice(0,16).trim()+' (copie)',24)||'Deck',cartes:{...d.cartes}};
-      gardeDecks(l.concat(c));peintDecks()});
-    bt('Partager',()=>partageDeck(z,d));
-    bt('Supprimer',()=>confirmePage(z,'Supprimer '+d.nom+' ?',()=>{gardeDecks(l.filter(x=>x!==d));peintDecks()})).classList.add('danger');
-    t.append(h,p,z);if(raisonsDeck(d).length)t.classList.add('d-injouable');g.append(t);
-    t.tabIndex=0;t.setAttribute('role','button');t.setAttribute('aria-label','Voir la liste de '+d.nom);
-    const vue=d.id===deckVu;t.setAttribute('aria-pressed',vue);if(vue)t.classList.add('choisie');
-    t.onclick=e=>{if(!e.target.closest('.d-act,a,.d-haut .ligne'))montre(d,t)};
-    t.onkeydown=e=>{if(e.target===t&&(e.key==='Enter'||e.key===' ')){e.preventDefault();montre(d,t)}};
-  });
-  const vu=l.find(x=>x.id===deckVu);
-  if(vu){zo.classList.remove('sans-pan');decklist(pan,vu,l);bandeau(vu)}else pan.append(el('p','intro o-nb',l.length?'Choisis un deck pour voir sa liste.':'Aucun deck pour le moment.'));
-  zo.append(g,pan);b.append(zo);hauteurDecks();
+  const b=$('listeDecks');if(!b)return;b.textContent='';$('popTest')?.remove();
+  const l=lesDecks(),co=compteCo(),plein=l.length>=MAX_DECKS;
+  if(deckVu&&!l.some(x=>x.id===deckVu))deckVu=null;if(!deckVu&&l.length)deckVu=l[0].id;
+  const d=vueDk==='decks'?l.find(x=>x.id===deckVu)||null:null;deckOuvert=d?d.id:null;
+  const W=el('div',vueDk==='decks'?'dkA':'dkA dk-cartes');W.id='dkA';b.append(W);
+  /* 1. Mes decks */
+  const L=el('div','bloc dk-col');
+  L.append(selVueDk());
+  if(vueDk==='decks'){
+    const h=el('h3','dk-titre','Mes decks');h.append(el('span','dk-nb',l.length+' sur '+MAX_DECKS));L.append(h);
+    const ls=el('div','dk-dks');ls.setAttribute('role','list');
+    l.forEach(x=>{const E=elsOrdre(x),R=raisonsDeck(x),n=totalDeck(x),t=el('div','dk-tuile'+(x.id===deckVu?' sel':'')+(R.length?' inv':''));
+      t.style.background=fondDeck(E);t.tabIndex=0;t.setAttribute('role','listitem');t.setAttribute('aria-current',String(x.id===deckVu));
+      const g=el('div'),nm=el('b','',x.nom);nm.title=x.nom;const pi=el('span','pi');E.forEach(e=>pi.append(picto(e)));g.append(nm,pi);
+      t.append(g,el('span','ct'+(n<DECK_MIN||n>DECK_MAX?' ko':''),n+'/'+DECK_MAX));
+      if(R.length){const r=el('span','rs','Invalide : '+R[0].c);r.title=R.map(z=>z.t).join('\n');t.append(r)}
+      const ouvre=()=>{deckVu=x.id;msgDk=null;listeDepliee=false;peintDecks()};t.onclick=ouvre;t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvre()}};ls.append(t)});
+    if(!l.length)ls.append(el('p','dk-vide0','Aucun deck pour le moment. Crée ton premier deck.'));
+    L.append(ls);
+    /* Invite (variante B) : tuile sous la liste, decks gardes sur l'appareil, repris a la connexion */
+    if(!co){const iv=el('div','dk-invite');iv.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 18h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+      const p=el('p');p.append(el('b','','Decks sur cet appareil'),'Connecte-toi pour les avoir partout.');
+      const c1=btnDk('Se connecter','',()=>ouvrePseudo()),c2=btnDk('Créer un compte','sc-secondaire',()=>{ouvrePseudo();const c=$('creerCompte')||document.querySelector('#popPseudo [data-mode="creer"],#popPseudo .co-creer');if(c)c.click()});
+      iv.append(p,c1,c2);L.append(iv)}
+    if(plein)L.append(alerteDk('Limite atteinte : '+MAX_DECKS+' decks. Supprime-en un.',0,'sc-deux-lignes dk-lim'));
+    const nv=btnDk('Nouveau deck','dk-plein',()=>{if(lesDecks().length>=MAX_DECKS)return;const L2=lesDecks(),x={id:nouveauSid(),nom:'Deck '+(L2.length+1),cartes:{}};gardeDecks(L2.concat(x));deckVu=x.id;msgDk=null;peintDecks()});
+    const im=btnDk('Importer','sc-secondaire',()=>importeDeck(b,lesDecks())),cs=btnDk('Conseillés','sc-secondaire',deckConseille);
+    if(plein)[nv,im,cs].forEach(x=>{x.disabled=true;x.title=MAX_DECKS+' decks au plus'});
+    const r2=el('div','dk-ligne');r2.append(im,cs);L.append(nv,r2);
+  }else L.append(el('p','dk-aide-c','Toutes les cartes du jeu. Touche une carte pour la voir en grand.'));
+  W.append(L);
+  /* 2. Catalogue */
+  const Cc=el('div','bloc dk-cat');W.append(Cc);
+  const f1=el('div','dk-f'),f2=el('div','dk-f'),f3=el('div','dk-f');
+  const rc=el('input','dk-rech');rc.type='search';rc.placeholder='Nom, numéro ou mot';rc.value=fDk.q;rc.setAttribute('aria-label','Rechercher une carte');
+  let tq=0;rc.oninput=()=>{fDk.q=rc.value;clearTimeout(tq);tq=setTimeout(()=>{pageDk=0;peintDecks();const r=document.querySelector('#dkA .dk-rech');if(r){r.focus();r.setSelectionRange(r.value.length,r.value.length)}},250)};
+  const pills=(L2,sel,clic,cl)=>{const z=el('div','dk-pp'+(cl?' '+cl:''));L2.forEach(([v,t])=>{const q=el('button','dk-p',t);q.type='button';q.setAttribute('aria-pressed',String(sel(v)));q.onclick=()=>clic(v);z.append(q)});return z};
+  const re=()=>{pageDk=0;peintDecks()};
+  const tri=pills([['','Numéro'],['nom','Nom'],['cout','Coût'],['force','Force']],v=>v===fDk.tri,v=>{fDk.tri=v;re()});
+  if(fDk.ty==='t')[...tri.children].slice(2).forEach(x=>{x.disabled=true;x.title='Les terrains n’ont ni coût ni Force'});
+  {const s=el('button','dk-p');s.type='button';s.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="'+(fDk.desc?'M8 3v10M3.5 8.5L8 13l4.5-4.5':'M8 13V3M3.5 7.5L8 3l4.5 4.5')+'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';s.append(fDk.desc?'Décroissant':'Croissant');s.onclick=()=>{fDk.desc=!fDk.desc;re()};tri.append(s)}
+  const ri=btnDk('Réinitialiser','sc-tertiaire dk-reinit',()=>{fDk.q='';fDk.inc.clear();fDk.exc.clear();fDk.cout.clear();fDk.ty='';fDk.tri='';fDk.desc=false;fDk.mode='ou';re()});ri.disabled=dkAuDepart();
+  f1.append(rc,el('span','dk-sep'),el('span','dk-lib','Trier'),tri,el('span','dk-sep'),ri);
+  const TYS=[['','Toutes'],['0','Base'],['1','Évolution'],['a','Animaux'],['t','Terrains']].concat(d?[['m','Dans mon deck']]:[]);
+  f2.append(el('span','dk-lib','Afficher'),pills(TYS,v=>v===fDk.ty,v=>{fDk.ty=v;if(v==='t'&&fDk.tri!=='nom')fDk.tri='';re()}));
+  {const q2=el('span','dk-lib dk-q2');q2.append('Éléments ');const i=el('i','','?');i.tabIndex=0;i.setAttribute('aria-label','Aide : 1 clic inclure, 2 clics exclure, 3e clic neutre');q2.append(i);
+   const bu=el('span','dk-bulle');bu.innerHTML='1 clic : <b>inclure</b> - 2 clics : <b class="dk-x">exclure</b> - 3e clic : neutre';q2.append(bu);
+   const es=el('div','e3s'+(fDk.inc.size?'':' neutre'));
+   ELS_DK.forEach(e=>{const x=el('button','e3');x.type='button';const im=el('img');im.src=imgV('cartes/'+e+'.png');im.alt='';x.append(im);x.style.setProperty('--c','var(--'+e+')');
+     const s=fDk.inc.has(e)?'in':fDk.exc.has(e)?'out':'';x.dataset.s=s;x.title=nomEl(e)+(s==='in'?' : inclus':s==='out'?' : exclu':'');x.setAttribute('aria-label',x.title);
+     x.onclick=()=>{if(s==='')fDk.inc.add(e);else if(s==='in'){fDk.inc.delete(e);fDk.exc.add(e)}else fDk.exc.delete(e);re()};es.append(x)});
+   const md=el('div','sc-sel sc-petit dk-mode');md.setAttribute('role','group');md.setAttribute('aria-label','Une carte doit avoir');
+   [['ou','Au moins un'],['et','Tous']].forEach(([v,t])=>{const x=el('button','',t);x.type='button';x.setAttribute('aria-pressed',String(fDk.mode===v));x.onclick=()=>{fDk.mode=v;re()};md.append(x)});
+   const cts=pills([[0,'0'],[1,'1'],[2,'2'],[3,'3'],[4,'4'],[5,'5'],[6,'6+']],v=>fDk.cout.has(v),v=>{fDk.cout.has(v)?fDk.cout.delete(v):fDk.cout.add(v);re()},'dk-couts');
+   f3.append(q2,es,md,el('span','dk-sep'),el('span','dk-lib','Coût'),cts);if(fDk.ty==='t')f3.classList.add('dk-off')}
+  Cc.append(f1,f2,f3);
+  if(msgDk&&d)Cc.append(alerteDk(msgDk,0,'sc-une-ligne dk-msg'));
+  if(fDk.q.trim()){const a=alerteDk('Recherche : « '+fDk.q.trim()+' » dans le nom, le numéro et le texte des cartes.',1,'sc-une-ligne dk-msg'),x=btnDk('Effacer la recherche','sc-tertiaire',()=>{fDk.q='';re()});a.append(x);Cc.append(a)}
+  const gb=el('div','dk-gb');Cc.append(gb);
+  /* 3. Panneau du deck ouvert */
+  let R=null;
+  if(vueDk==='decks'){R=el('div','bloc dk-pan');W.append(R);
+    if(!d){R.classList.add('dk-r0');R.append(el('p','dk-aide-c','De '+DECK_MIN+' à '+DECK_MAX+' cartes, 3 exemplaires au plus, '+M.ELEM_MAX+' éléments au plus.'))}
+    else panneauDk(R,d,l)}
+  /* hauteur : l'onglet tient dans l'ecran (24 px sous les blocs), sauf ecran trop bas */
+  const top=W.getBoundingClientRect().top+scrollY;W.style.height=Math.max(640,innerHeight-top-24)+'px';
+  grilleDk(gb,d,l);
 }
+function grilleDk(box,d,l){
+  const ids=dkVues(d),g=el('div','dk-gr'),pd=el('div','dk-pied');box.append(g,pd);
+  const W2=g.clientWidth,H2=box.getBoundingClientRect().bottom-g.getBoundingClientRect().top-52,cols=vueDk==='cartes'?(innerWidth>1800?9:8):(innerWidth>1800?7:6),gap=14,qte=vueDk==='decks'&&d&&fDk.ty!=='t',bas=(qte?36:0)+(fDk.q.trim()?24:0);
+  const w=Math.max(60,Math.floor(Math.min((W2-gap*(cols-1))/cols,((H2+gap)/3-gap-bas)/1.4)));
+  g.style.gridTemplateColumns='repeat('+cols+','+w+'px)';g.style.setProperty('--h',Math.round(w*1.4)+'px');
+  const per=cols*3,pages=Math.max(1,Math.ceil(ids.length/per));if(pageDk>=pages)pageDk=pages-1;
+  const Ed=d?M.elementsDeck(d.cartes):[],tot=d?totalDeck(d):0,fautes=new Set(d?raisonsDeck(d).flatMap(r=>r.ids):[]);
+  ids.slice(pageDk*per,pageDk*per+per).forEach(id=>{
+    if(typeof id==='object'){const T=id,z=el('div','dk-c dk-ter'),i=el('img');i.src=srcTerrain(T);i.alt=T.nom;i.tabIndex=0;i.setAttribute('role','button');i.setAttribute('aria-label','Agrandir '+T.nom);
+      i.onclick=()=>{dernier=i;ouvreTerrainGalerie(T)};i.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();i.onclick()}};const p=el('div','dk-tn'),s=el('span','dk-pts');s.append(ico('coupe'),T.pts+(T.pts>1?' pts':' pt'));p.append(s);z.append(i,p);g.append(z);return}
+    const c=CARTES.find(x=>x[0]===id),C=M.CARTES[id],n=d?+d.cartes[id]||0:0,z=el('div','dk-c'+(n?' dans':'')+(fautes.has(id)?' faute':'')),i=el('img');
+    i.src=imgV('cartes/'+id+'.jpg');i.alt=c[1];i.loading='lazy';i.tabIndex=0;i.setAttribute('role','button');i.setAttribute('aria-label','Agrandir '+c[1]);
+    i.onclick=()=>{dernier=i;zoom(i.src,c[1],statZoomCarte(id))};i.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();i.onclick()}};z.append(i);
+    if(qte){const mx=maxEx(id),q=el('div','dk-q'+(n?'':' zero')),m=el('button','','-'),p=el('button','','+');m.type=p.type='button';
+      m.setAttribute('aria-label','Retirer '+c[1]);p.setAttribute('aria-label','Ajouter '+c[1]);m.disabled=!n;
+      const ch=v=>{d.cartes[id]=n+v;if(!d.cartes[id])delete d.cartes[id];msgDk=msgDkId=null;gardeDecks(l);peintDecks()};m.onclick=()=>ch(-1);
+      const neufs=(C.el||[]).filter(e=>!Ed.includes(e)),trop=!n&&neufs.length&&Ed.length+neufs.length>M.ELEM_MAX;
+      if(tot>=DECK_MAX){p.classList.add(msgDkId===id?'dk-ko':'dk-gris');p.title=DECK_MAX+' cartes au plus';p.onclick=()=>{msgDkId=id;msgDk='Ajout impossible : deck complet, '+DECK_MAX+' cartes au plus. Retire une carte avant d’en ajouter une.';peintDecks()}}
+      else if(n>=mx){p.classList.add(msgDkId===id?'dk-ko':'dk-gris');p.title=mx===1?'1 exemplaire au plus':mx+' exemplaires au plus';p.onclick=()=>{msgDkId=id;msgDk='Ajout impossible : '+C.nom+' x'+n+', '+(mx===1?'1 exemplaire au plus pour un animal.':mx+' exemplaires au plus.');peintDecks()}}
+      else if(trop){p.classList.add(msgDkId===id?'dk-ko':'dk-gris');p.title=M.ELEM_MAX+' éléments au plus par deck';p.onclick=()=>{msgDkId=id;msgDk='Ajout impossible : '+C.nom+' ajouterait un '+(Ed.length+neufs.length)+'e élément, '+M.ELEM_MAX+' au plus. Retire d’abord les cartes d’un élément.';peintDecks()}}
+      else p.onclick=()=>ch(1);
+      q.append(m,el('b','',n+'/'+mx),p);z.append(q)}
+    if(fDk.q.trim()){const src=C.texte||'',k=sansAccent(src).indexOf(sansAccent(fDk.q.trim())),ex=el('div','dk-ex');
+      if(k>=0){const L=fDk.q.trim().length,a=Math.max(0,k-14),b2=Math.min(src.length,k+L+14);ex.append((a?'…':'')+src.slice(a,k),el('mark','',src.slice(k,k+L)),src.slice(k+L,b2)+(b2<src.length?'…':''))}else ex.append(el('mark','',C.nom));ex.title=src;z.append(ex)}
+    g.append(z)});
+  if(!ids.length){const a=alerteDk('Aucun résultat pour ces filtres. Réinitialise les filtres.',1,'sc-une-ligne dk-vide2');a.append(btnDk('Réinitialiser les filtres','sc-tertiaire',()=>{fDk.q='';fDk.inc.clear();fDk.exc.clear();fDk.cout.clear();fDk.ty='';fDk.mode='ou';pageDk=0;peintDecks()}));g.append(a)}
+  const nb=el('span','nb',ids.length+(fDk.ty==='t'?(ids.length>1?' terrains':' terrain'):ids.length>1?' cartes':' carte')),pg=el('span','dk-pag'),pr=el('button','','‹'),su=el('button','','›');pr.type=su.type='button';
+  pr.setAttribute('aria-label','Page précédente');su.setAttribute('aria-label','Page suivante');pr.disabled=pageDk<=0;su.disabled=pageDk>=pages-1;
+  pr.onclick=()=>{pageDk--;peintDecks()};su.onclick=()=>{pageDk++;peintDecks()};pg.append(pr,(pageDk+1)+'/'+pages,su);pd.append(nb,pg);
+}
+function panneauDk(R,d,l){
+  const E=elsOrdre(d),n=totalDeck(d),en=el('div','dk-ent'),nm=el('span','nm',d.nom),pi=el('span','pi'),cr=el('button','cr');nm.title=d.nom;E.forEach(e=>pi.append(picto(e)));
+  cr.type='button';cr.title='Renommer';cr.setAttribute('aria-label','Renommer '+d.nom);cr.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg>';
+  cr.onclick=()=>{en.classList.add('dl-edit');renomme(en,l,d)};
+  en.append(nm,pi,cr,el('span','ct'+(n<DECK_MIN||n>DECK_MAX?' ko':''),n+'/'+DECK_MAX));R.append(en);
+  const Ed=M.elementsDeck(d.cartes),inf=el('div','dk-inf'),nb=f=>Object.keys(d.cartes).filter(k=>M.CARTES[k]&&f(M.CARTES[k])).reduce((a,k)=>a+(+d.cartes[k]||0),0);
+  const sp=(t,v,ko)=>{const s=el('span','',t+' ');s.append(el('b',ko?'ko':'',v));inf.append(s)};
+  sp('Éléments',Ed.length+'/'+M.ELEM_MAX,Ed.length>M.ELEM_MAX);sp('Bases',String(nb(C=>!C.base&&!C.animal)));sp('Évolutions',String(nb(C=>!!C.base)));R.append(inf);
+  const RS=raisonsDeck(d);RS.forEach(r=>{const a=alerteDk(['Deck invalide : ',...texteRiche(r.pt,r.t.replace(/^(Deck incomplet|Trop de cartes|Deck invalide) : /,''))],0,'sc-deux-lignes dk-errp');a.title=r.t;
+    if(r.inc){const q=btnDk('Retirer','sc-tertiaire',()=>{r.inc.forEach(k=>delete d.cartes[k]);gardeDecks(l);peintDecks()});a.append(q)}R.append(a)});
+  const p=el('div','dk-liste'+(listeDepliee?' deplie':''));decklist(p,d,l);R.append(p);
+  const ul=p.querySelector('.dl-liste');
+  if(ul){const v=el('button','sc-btn sc-tertiaire dk-voir');v.type='button';ul.after(v);
+    requestAnimationFrame(()=>{if(listeDepliee){v.textContent='Réduire la liste';v.onclick=()=>{listeDepliee=false;peintDecks()};return}
+      const bot=ul.getBoundingClientRect().bottom;let k=0;[...ul.children].forEach(li=>{if(li.getBoundingClientRect().bottom>bot+.5){li.hidden=true;k++}});
+      if(k){v.textContent='Voir toute la liste ('+k+' de plus)';v.onclick=()=>{listeDepliee=true;peintDecks()}}else v.remove()})}
+  const r1=el('div','dk-ligne'),r2=el('div','dk-ligne');
+  r1.append(btnDk('Placements','',()=>ouvreTest(d,l)),btnDk('Partager','sc-secondaire',()=>partageDeck(R,d)));
+  const du=btnDk('Dupliquer','sc-secondaire',()=>{const L2=lesDecks();if(L2.length>=MAX_DECKS)return;const c={id:nouveauSid(),nom:nettoie(d.nom.slice(0,16).trim()+' (copie)',24)||'Deck',cartes:{...d.cartes}};gardeDecks(L2.concat(c));deckVu=c.id;peintDecks()});
+  if(l.length>=MAX_DECKS){du.disabled=true;du.title=MAX_DECKS+' decks au plus'}
+  r2.append(du,btnDk('Supprimer','dk-danger',()=>confirmeSuppr(d,l)));R.append(r1,r2);
+}
+function fenDk(id){$(id)?.remove();const v=el('div','voile dk-voile'),f=el('div','sc-fenetre dk-fen');v.id=id;v.append(f);v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');
+  const prec=document.activeElement,esc=e=>{if(e.key==='Escape'&&$('vue').hidden)ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc);if(prec&&prec.isConnected)prec.focus()};addEventListener('keydown',esc);
+  v.onclick=e=>{if(e.target===v)ferme()};document.body.append(v);v.hidden=false;return {v,f,ferme}}
+function confirmeSuppr(d,l){const {v,f,ferme}=fenDk('popSuppr'),t=el('h3','sc-fen-titre','Supprimer le deck '+d.nom+' ?');t.id='suTitre';v.setAttribute('aria-labelledby','suTitre');
+  const a=el('div','sc-fen-actions'),ok=btnDk('Supprimer','dk-danger',()=>{gardeDecks(lesDecks().filter(x=>x.id!==d.id));deckVu=null;ferme();peintDecks()}),an=btnDk('Annuler','sc-secondaire',ferme);
+  a.append(ok,an);f.append(t,el('p','dk-fen-p','Le deck et ses '+totalDeck(d)+' cartes seront effacés. Cette action est définitive.'),a);an.focus()}
+/* Tester des placements : le bac a sable dans une fenetre, Fermer en bas a droite */
+function ouvreTest(d,l){const {v,f,ferme}=fenDk('popTest');f.classList.add('dk-test');v.setAttribute('aria-label','Tester des placements');
+  const B=bacDe(d);B.ouvert=true;const peint=()=>{f.textContent='';bacASable(f,d);const a=el('div','sc-fen-actions');a.append(btnDk('Fermer','sc-secondaire',()=>{B.ouvert=false;ferme()}));f.append(a)};
+  f._peint=peint;peint();f.querySelector('button')?.focus()}
 /* Partage de deck par code : GOL1- + base64 URL de "nom\ntexte du deck" (format 1). */
 const CODE_DECK='GOL1-';
 function codeDeck(d){
@@ -430,7 +530,7 @@ function editeur(b,l,d){
   h.append(el('h3','',d.nom),compteDeck(d),tb,r);b.append(h);
   /* 0.4a : elements du deck (4 au plus), discret sous l'en-tete ; message si un + ferait depasser. */
   const Ed=M.elementsDeck(d.cartes),eTxt=el('p','d-code-m d-els-nb','Éléments : '+Ed.length+'/'+M.ELEM_MAX+(Ed.length?' ('+Ed.map(nomEl).join(', ')+')':''));
-  if(Ed.length>M.ELEM_MAX)eTxt.style.color='#ff6b5e';const eMsg=el('p','d-code-m');eMsg.setAttribute('role','status');b.append(eTxt,eMsg);
+  if(Ed.length>M.ELEM_MAX)eTxt.style.color='var(--rouge)';const eMsg=el('p','d-code-m');eMsg.setAttribute('role','status');b.append(eTxt,eMsg);
   /* Raisons a jour a chaque ajout ou retrait (peintDecks repeint l'editeur) ; carte en cause cerclee dans la grille. */
   const R=raisonsDeck(d),fautes=new Map();R.forEach(r=>r.ids.forEach(k=>fautes.set(k,r.c)));if(R.length)b.append(blocErreurs(R,d,l));
   if(B.ouvert)bacASable(b,d);
@@ -465,7 +565,7 @@ function editeur(b,l,d){
     const ch=v=>{d.cartes[c[0]]=n+v;gardeDecks(l);peintDecks()};m.onclick=()=>ch(-1);
     const neufs=(M.CARTES[c[0]]?M.CARTES[c[0]].el:[]).filter(e=>!Ed.includes(e)),trop=!n&&neufs.length&&Ed.length+neufs.length>M.ELEM_MAX;
     if(trop&&!p.disabled){p.classList.add('d-trop-el');p.title=M.ELEM_MAX+' éléments au plus par deck';
-      p.onclick=()=>{eMsg.textContent='Impossible d’ajouter '+M.CARTES[c[0]].nom+' : le deck passerait à '+(Ed.length+neufs.length)+' éléments ('+M.ELEM_MAX+' au plus). Retire d’abord les cartes d’un élément.';eMsg.style.color='#ff6b5e'}}
+      p.onclick=()=>{eMsg.textContent='Impossible d’ajouter '+M.CARTES[c[0]].nom+' : le deck passerait à '+(Ed.length+neufs.length)+' éléments ('+M.ELEM_MAX+' au plus). Retire d’abord les cartes d’un élément.';eMsg.style.color='var(--rouge)'}}
     else p.onclick=()=>ch(1);
     /* Clic sur l'image : la carte en grand, comme dans l'onglet Cartes (les boutons + et - restent a part). */
     i.classList.add('d-zoom');i.tabIndex=0;i.setAttribute('role','button');i.setAttribute('aria-label','Agrandir '+c[1]);
@@ -571,6 +671,18 @@ function bacDes(v,id,apres){
   r.append(q,el('span','',(effetDe(id,'forceAuDe',r=>r.des>1)?'Force des dés : ':'Force du dé : ')+v.f+(v.de.length>1&&v.de[0]===v.de[1]?' (double)':'')));z.append(r);
   return z;
 }
+/* Terrain du bac en grand : ton camp seulement, lignes condensees (cout, Force, elements, nom + titre coupe par « … », titre complet au survol). */
+function zoomTerrainBac(s,k){
+  const T=s.terrains[k],cc=M.colonnes(s)[k];cacheApercu();dernier=document.activeElement;
+  const a=el('section','zt-camp toi bt-camp'),h=el('h3','',compteCo()?pseudo:'Ton camp'),ol=el('ol','zt-l');h.style.color='var(--bleu)';a.append(h);
+  for(let l=0;l<3;l++){const g=s.j[0].grille[l][k],li=el('li');
+    if(!g){li.className='zt-vide';li.append(el('span','','Case vide'))}
+    else{const v=M.valeurDecompte(s,0,l,k),f=el('span','zt-v'),fb=el('b','',String(v));fb.style.color='var(--bleu)';f.append(ico('force'),fb);f.setAttribute('role','img');f.setAttribute('aria-label','Force '+v);
+      const q=ligneZt(g.c);q.title=(q.getAttribute('aria-label')||'').replace(/^Agrandir /,'');li.append(q,f)}
+    ol.append(li)}
+  const tt=el('div','zt-tot'),b=el('b','',String(cc[0]));b.style.color='var(--bleu)';tt.append('Total ',ico('force'),b);tt.setAttribute('aria-label','Force totale '+cc[0]);a.append(ol,tt);
+  zoom(srcTerrain(T),T.nom+'. '+T.texte,[a]);$('vueGrand').classList.add('zt-bac');
+}
 function bacASable(b,d){
   const B=bacDe(d);
   /* deck modifie : on retire les exemplaires en trop */
@@ -609,7 +721,7 @@ function bacASable(b,d){
     const T=s.terrains[k],dv=el('div','p-terrain'),sl=el('select');sl.setAttribute('aria-label','Terrain '+(k+1));
     M.TERRAINS.forEach((x,i)=>{const o=el('option','',x.nom);o.value=i;sl.append(o)});sl.value=B.T[k];
     sl.onchange=()=>{const v=+sl.value,j=B.T.indexOf(v);if(j>=0&&j!==k)B.T[j]=B.T[k];B.T[k]=v;peint()};
-    dv.append(sl,el('span','p-valeur',T.pts+(T.pts>1?' pts':' pt')),el('span','bac-tinfo',(r=>r?'Coût -'+r.cout+' ici':'Force inchangée')(effetTerrain(T,'reduction'))));t.append(dv);
+    dv.append(sl,el('span','p-valeur',T.pts+(T.pts>1?' pts':' pt')),el('span','bac-tinfo',(r=>r?'Coût -'+r.cout+' ici':'Force inchangée')(effetTerrain(T,'reduction'))));const zv=el('button','sc-btn sc-tertiaire bac-zt','Voir');zv.type='button';zv.title='Voir '+T.nom+' en grand, avec tes Golems';zv.onclick=()=>zoomTerrainBac(s,k);dv.append(zv);t.append(dv);
   });
   let cible=null;const[sa,sb]=B.selC||[];
   if(B.sel){const c=bacLibre(B,d,B.sel);if(c!==null)cible=(l,k)=>M.peutPoser(s,0,c,l,k)?{texte:(G[l][k]?(M.carte(c).base?'Améliorer ':'Remplacer '):'Poser ')+M.coutPose(s,0,c,l,k),fait:()=>{bacPlace(B,d,B.sel,l,k);peint()}}:null}

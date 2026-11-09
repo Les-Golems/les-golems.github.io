@@ -72,3 +72,5 @@
   .bac-haut h3{font-size:19px}
   .bac-totaux b{font-size:22px}
 }
+/* 0.6 : terrain du bac en grand (bouton Voir) */
+.p-terrain .bac-zt{margin-top:4px}

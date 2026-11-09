@@ -136,6 +136,7 @@ function maj(){
 maj();
 /* calque : éléments redessinés par-dessus l'image (badgeSurcout, badgeForce), repère 750 x 1050 de la carte */
 function zoom(src,alt,detail,calque){
+  $('vueGrand').classList.remove('zt-bac');
   $('vueImg').hidden=$('vueBoite').hidden=false;$('vueTerrain').hidden=true;$('vueImg').src=src;$('vueImg').alt=alt;
   const q=$('vueCalque');q.textContent='';if(calque)q.append(...calque);
   const d=$('vueDetail'),vu=!!detail&&detail.some(x=>!x.hidden);d.textContent='';d.hidden=!vu;$('vueGrand').classList.toggle('avecDetail',vu);if(detail)d.append(...detail);
