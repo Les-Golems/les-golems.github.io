@@ -81,7 +81,7 @@ function scoreHisto(x,cl){
 function mvpHisto(nom){
   const z=el('span','hl-mvp');z.append(el('span','hl-mvpe','MVP'));
   const C=carteDe(nom),b=el('b','',C?C.nom+(C.base?' ★':''):(nom||'-'));
-  if(C&&elCarte(C))b.style.color='var(--'+elCarte(C)+')';if(C&&C.base)b.title=C.nom+' (évolution de '+M0.CARTES[C.base].nom+')';else b.title=b.textContent;
+  if(C&&elCarte(C))b.style.color='var(--'+elCarte(C)+')';if(C&&C.base)b.title=C.nom+' (évolution de '+((M0.CARTES[C.base]||{}).nom||'-')+')';else b.title=b.textContent;
   z.append(b);return z;
 }
 /* 0.6 : partie sans date (ou date illisible) : « - » et non « Invalid Date » */
@@ -182,7 +182,7 @@ function bilanHisto(x,ps,lui,moiN,golem,tout){
       if(m&&!t.includes(m))t=[t[0],t[1],m];if(R.length>t.length)plus=true;return t}
     const ani=R.filter(r=>(carteDe(r[0])||{}).animal),res=R.filter(r=>!ani.includes(r));
     ani.forEach(a=>{const C=carteDe(a[0]),mt=a[5]||(C&&C.maitre&&M0.CARTES[C.maitre]?M0.CARTES[C.maitre].nom:null);
-      const k=res.findIndex(r=>{const D=carteDe(r[0]);return r[0]===mt||(D&&(D.nom===mt||(D.base&&M0.CARTES[D.base].nom===mt)))});
+      const k=res.findIndex(r=>{const D=carteDe(r[0]);return r[0]===mt||(D&&(D.nom===mt||(D.base&&(M0.CARTES[D.base]||{}).nom===mt)))});
       a=a.slice();a.sous=k>=0;if(k>=0)res.splice(k+1,0,a);else res.push(a)});
     return res};
   const nomC=(r,droite)=>{const C=carteDe(r[0]),td=el('td','hd-cc'),n=el('span','hd-cn'+(C&&C.base?' evo':C&&C.animal?' ani':''),C?C.nom:String(r[0]));n.title=n.textContent;
