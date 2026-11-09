@@ -51,8 +51,11 @@ function prepareAnims(s,premier,nev0){
   const ev=s.stats.ev;let pose=null;const morts=[];
   for(let i=Math.max(0,nev0);i<ev.length;i++){const e=ev[i];if(e.t==='p')pose=e;else if(e.t==='m')morts.push(e)}
   let t0=t; /* debut des effets de cette action : a l'arrivee de la carte posee */
+  /* Choix a faire tout de suite par ce joueur (Elccino : Cafe du matin, La taupe) : pas de vol, la tuile est deja en place pendant le choix */
+  const A=s.attente,choix=src==='joueur'&&A&&A.p===E.moi&&(A.t==='cafe'||A.t==='taupe');
+  if(choix&&suivi.vol){suivi.vol=null;if(couche)couche.querySelectorAll('.d-vole').forEach(i=>i.remove())}
   if(pose&&scene){const x=chercheCarte(s,pose.cp,pose.cc);
-    if(x&&!REDUIT.matches){
+    if(x&&!REDUIT.matches&&!choix){
       const b=scene.querySelector('.d-col[data-p="'+pose.cp+'"] button[data-c="'+pose.cc+'"]'),zm=scene.querySelector('.d-col[data-p="'+pose.cp+'"] .d-main');
       let de=b?rectScene(b):zm?rectScene(zm):null;
       if(de&&!b)de={x:de.x+de.w/2-51,y:de.y,w:103,h:144};
