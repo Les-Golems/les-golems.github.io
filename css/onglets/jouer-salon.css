@@ -79,7 +79,7 @@
 .sl-dep{font-size:13px;color:var(--doux)}
 /* Version du site de chaque joueur : etiquette arrondie sous En attente (siege) ou sous En attente il y a N min (parties publiques) ; rouge = page a recharger. */
 .vx-etq{display:inline-block;max-width:100%;padding:2px 10px;font-size:12.5px;line-height:1.35;text-align:center;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}
-.vx-etq.vx-diff{background:#ff6b5e;border-color:#ff6b5e;color:var(--encre)}
+.vx-etq.vx-diff{background:var(--rouge);border-color:var(--rouge);color:var(--encre)}
 .sl-liste li.sl-carte .vx-etq{margin-top:-2px}
 .sl-carte .btn{margin-top:auto!important;width:100%;font-size:18px!important;min-height:46px!important}
 .sl-att{margin-top:auto;font-size:13px;color:var(--doux);font-style:italic;min-height:46px;display:flex;align-items:center}

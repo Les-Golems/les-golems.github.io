@@ -57,7 +57,7 @@ function cleSalon(c){return 'golems.partie.'+c}
 function oublie(c){notePublic(c,false);try{localStorage.removeItem(LS(cleSalon(c)));if(lire('golems.derniere')===c)localStorage.removeItem(LS('golems.derniere'))}catch(e){}}
 function sauve(){
   if(partie&&(partie.rejeu||partie.tuto))return; /* partie guidee : ni reprise ni sauvegarde */
-  if(partie&&partie.local){ecrire('golems.local',JSON.stringify({version:M.VERSION,niveau:partie.niveau,debut:partie.debut,graine:partie.graine,mien:partie.mien,sien:partie.sien,decks:partie.decks,deckNom:partie.deckNom,recapVu:partie.recapVu,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));return}
+  if(partie&&partie.local){ecrire('golems.local',JSON.stringify({version:M.VERSION,niveau:partie.niveau,debut:partie.debut,graine:partie.graine,mien:partie.mien,sien:partie.sien,decks:partie.decks,deckNom:partie.deckNom,recapVu:partie.recapVu,classe:partie.classe||null,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));return}
   if(!partie||!code)return;
   ecrire(cleSalon(code),JSON.stringify({version:M.VERSION,debut:partie.debut,pseudo:pseudo,decks:partie.decks,deckNom:partie.deckNom,graine:partie.graine,mien:partie.mien,sien:partie.sien,place:partie.moi,arrivee:arrivee,sid:sid,adv:partie.adv,advNom:partie.advNom,recapVu:partie.recapVu,veut:partie.veut,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));
   ecrire('golems.derniere',code);
@@ -93,7 +93,25 @@ function lanceLocal(v){
   $('erreurJeu').textContent='';
   const dc=deckChoisi(),g=v?v.graine:nouvelleGraine();
   lancer(g,0,'',{mien:v?v.mien:[],sien:v?v.sien:[],advNom:'Golem',niveau:v?v.niveau:niveauChoisi,recapVu:v?v.recapVu:0,debut:v&&v.debut,local:true,
-    decks:v&&Array.isArray(v.decks)?v.decks:[dc.texte,deckRobot(g)],deckNom:v?v.deckNom:dc.nom});
+    decks:v&&Array.isArray(v.decks)?v.decks:[dc.texte,deckRobot(g)],deckNom:v?v.deckNom:dc.nom,classe:v?v.classe||null:classeEnAttente});
+  classeEnAttente=null;
+}
+/* 0.6 : classee contre un Golem (bouton « Affronter un Golem » du salon classe, onglets/jouer.js). Le robot est choisi par l'Elo (GolemsClasse.niveauRobot),
+   son deck tire par deckRobot(graine) comme a l'entrainement. partie.classe = { robot: 'facile|normal|difficile', eloAdv, profil (avant), sa: code du salon }. */
+let classeEnAttente=null;
+function lanceClasseRobot(profil,sa){
+  const C=window.GolemsClasse,n=C.niveauRobot(profil.elo),R=C.ROBOTS?C.ROBOTS[n]:null;
+  classeEnAttente={robot:n,eloAdv:R?R.elo:profil.elo,profil:{elo:profil.elo,parties:profil.parties||0,partiesTotal:profil.partiesTotal||0,v:profil.v||0,d:profil.d||0,robots:profil.robots||null},sa:sa||''};
+  niveauChoisi=n;oublieLocal();lanceLocal(null);
+}
+/* Fin d'une classee contre un Golem : variation calculee par commun/classe.js (points divises par 2), gardee dans partie.classe.res pour l'ecran de fin.
+   TODO branchement classé : ecrire classe/parties/<id> (GolemsClasse.creePartieRobot) puis le profil (GolemsClasse.application) dans Firebase ;
+   d'ici la, resultatClasseLocal (onglets/jouer.js) tient un profil local d'essai pour l'affichage. */
+function finClasse(s){
+  const c=partie&&partie.classe;if(!c||c.res||!s||!s.fin)return;
+  const C=window.GolemsClasse,w=s.fin.gagnant,g=w===null||w===undefined?'nul':w===partie.moi,A=C.appliquePartie(c.profil,c.eloAdv,g,{robot:true}),apres=A.joueur;
+  c.res={gagne:g,avant:c.profil.elo,apres:apres.elo,delta:A.delta,placement:C.enPlacement(c.profil),profil:apres};
+  if(typeof resultatClasseLocal==='function')resultatClasseLocal(c,apres);
 }
 /* 0.6 : deck du Golem tire dans la reserve (decks conseilles) a partir de la graine de la partie : meme graine = meme deck, rejeux exacts (le deck est aussi garde dans partie.decks). Partie guidee : deck fixe (onglets/tutoriel.js). */
 function deckRobot(g){
@@ -117,7 +135,7 @@ document.querySelectorAll('[data-niveau]').forEach(b=>{b.onclick=()=>choisirDeck
 $('repriseRobot').onclick=()=>{const v=chargeLocal();if(v)lanceLocal(v)};
 function lancer(g,moi,adv,sv){
   const dks=sv&&Array.isArray(sv.decks)&&sv.decks.length===2?sv.decks.map(t=>typeof t==='string'?t:''):['',''];
-  partie={decks:dks,deckNom:sv&&typeof sv.deckNom==='string'?sv.deckNom:'',rejeu:sv&&sv.rejeu||null,debut:sv&&+sv.debut||Date.now(),local:!!(sv&&sv.local),tuto:!!(sv&&sv.tuto),niveau:sv&&sv.niveau||'normal',graine:g,moi:moi,mien:sv?sv.mien:[],sien:sv?sv.sien:[],etat:null,erreur:null,veut:!!(sv&&sv.veut),adv:adv||'',advNom:sv&&typeof sv.advNom==='string'?nettoie(sv.advNom):'',recapVu:sv?+sv.recapVu||0:0};
+  partie={classe:sv&&sv.classe||null,decks:dks,deckNom:sv&&typeof sv.deckNom==='string'?sv.deckNom:'',rejeu:sv&&sv.rejeu||null,debut:sv&&+sv.debut||Date.now(),local:!!(sv&&sv.local),tuto:!!(sv&&sv.tuto),niveau:sv&&sv.niveau||'normal',graine:g,moi:moi,mien:sv?sv.mien:[],sien:sv?sv.sien:[],etat:null,erreur:null,veut:!!(sv&&sv.veut),adv:adv||'',advNom:sv&&typeof sv.advNom==='string'?nettoie(sv.advNom):'',recapVu:sv?+sv.recapVu||0:0};
   CARTES.forEach(c=>{new Image().src=imgV('cartes/'+c[0]+'.jpg')});M.TERRAINS.forEach(T=>{new Image().src=srcTerrain(T)});new Image().src=DOS;
   notice='';sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;modeLove=false;modeTarte=false;fx=[];journalPage=null;journalReperes=0;
   stopCompte();jePret=false;
@@ -143,6 +161,7 @@ function calcule(){
     });
   }
   partie.etat=x.etat;partie.erreur=x.erreur;
+  if(x.etat&&x.etat.fin&&!partie.rejeu&&!partie.tuto&&partie.classe)finClasse(x.etat);
   if(x.etat&&x.etat.fin&&!partie.rejeu&&!partie.tuto)enregistrePartie(x.etat); /* partie guidee : hors historique et profil */
   if(x.etat&&x.etat.fin&&!partie.local&&!partie.rejeu&&!partie.tuto)grainesFinies.add(partie.graine);
   affiche();
@@ -945,6 +964,7 @@ function enregistrePartie(s){
   if(l.some(x=>x.id===id))return;
   const o=archiveResume(s,id);
   enregistreDans(l,s,id);
+  {const c=partie.classe&&partie.classe.res;if(c&&l[0]&&l[0].id===id){l[0].mode='classee';l[0].classe={elo:c.avant,delta:c.delta,eloAdv:partie.classe.eloAdv,robot:true}}} /* 0.6 : etiquette Classee + Golem de l'Historique */
   if(compteCo()){const x={id,u:room.compte.uid(),h:l[0]};if(o)x.r=o;majAttente(id,y=>Object.assign(y,x));envoieAttente(id);return}
   ecrire('golems.historique',JSON.stringify(l.slice(0,50)));
 }
