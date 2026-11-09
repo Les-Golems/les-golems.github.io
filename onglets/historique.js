@@ -208,11 +208,13 @@ function ordreRejeu(R,j){
     if(!avance&&!s.fin)for(const p of [0,1])if(!s.fin&&j[p][i[p]]==='a'){M.applique(s,p,{t:'a'});seq.push(p);i[p]++;avance=true}}
   return seq;
 }
-async function lanceRejeu(x){
+async function lanceRejeu(x,confirme){
   const R=x.rejeu,err=t=>{onglet('historique');alerte('histoAlerte',t);$('histoAlerte').scrollIntoView({block:'nearest'})};alerte('histoAlerte','');
   if(r){err('Salon en cours : replay indisponible dans un salon. Quitte le salon d\'abord.');return}
   if(!R){err('Replay impossible : partie enregistrée sans ses journaux. Choisis une autre partie.');return}
   if(!rejeuPossible(R)){err('Replay impossible : partie d\'une ancienne version, plus relisible. Choisis une autre partie.');return}
+  /* 0.6 : une partie en cours contre le robot n'est plus supprimee sans confirmation */
+  if(!confirme&&partie&&!partie.rejeu&&!partie.tuto&&partie.etat&&!partie.etat.fin){confirmeAbandon('La partie en cours sera perdue.',()=>lanceRejeu(x,true),'Quitter la partie ?','Quitter');return}
   let Mr;try{Mr=await chargeMoteur(R.v)}catch(e){err('Replay impossible : moteur de la version '+R.v+' introuvable. Recharge la page puis réessaie.');return}
   if(partie)finPartie();
   M=Mr;
