@@ -106,7 +106,8 @@ async function litClasseSt(){
   const uid=compteCo()?room.compte.uid():null;
   const [cl,moi,sa]=await Promise.all([lit('classe/classement'),uid?lit('classe/joueurs/'+uid):null,lit('classe/saison')]);
   const G=window.GolemsClasse;
-  const L=Object.keys(cl||{}).map(u=>({uid:u,...cl[u]})).filter(x=>x&&typeof x.pseudo==='string'&&Number.isFinite(x.elo)&&!G.estRobot(x.uid))
+  const sid=sa&&typeof sa==='object'?sa.id|0:G.SAISONS[0].id; /* 0.6.1 : lignes de la saison en cours seulement */
+  const L=Object.keys(cl||{}).map(u=>({uid:u,...cl[u]})).filter(x=>x&&typeof x.pseudo==='string'&&Number.isFinite(x.elo)&&!G.estRobot(x.uid)&&x.saison===sid)
     .sort((a,b)=>b.elo-a.elo||(b.v|0)-(a.v|0)||a.pseudo.localeCompare(b.pseudo,'fr'));
   L.forEach((x,i)=>{x.place=i+1});
   return {liste:L,moi:moi&&typeof moi==='object'?moi:null,uid,saison:sa};

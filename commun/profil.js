@@ -198,7 +198,7 @@ async function ouvreProfil(autre){
   const zr=E('div','pr-zr');id.append(zr);
   const etR=E('div','pr-et','Rang classé'),rg=E('div','pr-rg'),jg=E('div','pr-jg');zr.append(E('div','pr-sep'),etR,rg,jg);
   /* Rang en cours : placement, ou rang + Elo + place au classement + jauge vers le rang suivant. */
-  const place=(()=>{const l=Object.entries(cla||{}).filter(([,x])=>x&&Number.isFinite(x.elo)).sort((a,b)=>b[1].elo-a[1].elo);const i=l.findIndex(([u])=>u===uid);return i<0?null:{i:i+1,sur:l.length}})();
+  const place=(()=>{const sid=sa&&typeof sa==='object'?sa.id|0:0,l=Object.entries(cla||{}).filter(([,x])=>x&&Number.isFinite(x.elo)&&x.saison===sid) /* 0.6.1 : saison en cours */.sort((a,b)=>b[1].elo-a[1].elo);const i=l.findIndex(([u])=>u===uid);return i<0?null:{i:i+1,sur:l.length}})();
   const pose=(idR,titre,sous,coul)=>{rg.textContent='';const im=el('img');im.alt='';im.src=PF_EMB+(idR||'placement')+'.png';im.onerror=()=>{im.style.visibility='hidden'};
     const tx=E('div'),bb=E('b','',titre);bb.style.color=coul||'#fff';tx.append(bb,E('small','',sous));rg.append(im,tx);id.style.setProperty('--rc',coul||'#2a3f50')};
   const rangCours=()=>{etR.textContent='Rang classé';jg.hidden=true;jg.textContent='';

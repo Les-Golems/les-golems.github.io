@@ -73,9 +73,12 @@ module.exports = r => ({
       // Verrou de partie : les deux uid engagés, posé au démarrage par un joueur présent.
       // Ensuite seuls ces deux comptes peuvent écrire dans le salon (un tiers voit « salon complet »).
       // Un engagé peut l'effacer (adversaire parti), ce qui rouvre le salon.
+      // 0.6.1 : g = graine de la partie engagée (texte). Salon classé : g obligatoire, les deux engagés connectés à la création,
+      // et le verrou n'est levé qu'une fois la partie classée de cette graine écrite (une seule partie par engagement).
       "engages": {
-        ".write": `${COMPTE} && ((!data.exists() && newData.hasChild(auth.uid)) || (data.hasChild(auth.uid) && !newData.exists()))`,
-        "$u": { ".validate": `newData.val() === true && ${r}.child('salons').child($code).child('joueurs').child($u).exists()` }
+        ".write": `${COMPTE} && ((!data.exists() && newData.hasChild(auth.uid) && (${r}.child('salons').child($code).child('cl').val() !== true || newData.hasChild('g'))) || (data.hasChild(auth.uid) && !newData.exists() && (${r}.child('salons').child($code).child('cl').val() !== true || !data.hasChild('g') || ${r}.child('classe').child('parties').child($code + '-' + data.child('g').val()).exists())))`,
+        "g": { ".validate": "newData.isString() && newData.val().matches(/^-?[0-9]{1,12}$/)" },
+        "$u": { ".validate": `newData.val() === true && ${r}.child('salons').child($code).child('joueurs').child($u).exists() && (${r}.child('salons').child($code).child('cl').val() !== true || ${r}.child('salons').child($code).child('pres').child($u).child('c').val() === true)` }
       },
 
       "joueurs": {
@@ -116,7 +119,7 @@ module.exports = r => ({
       // déclarée une seule fois par graine, par l'autre joueur engagé ; vérifiée sur la présence du déconnecté (marge de 5 s).
       "forfait": {
         "$g": {
-          ".write": `${COMPTE} && !data.exists() && ${r}.child('salons').child($code).child('engages').hasChild(auth.uid) && newData.child('u').val() !== auth.uid && ${r}.child('salons').child($code).child('engages').hasChild(newData.child('u').val()) && ${r}.child('salons').child($code).child('pres').child(newData.child('u').val()).child('c').val() === false && ${r}.child('salons').child($code).child('pres').child(newData.child('u').val()).child('t').val() < now - 65000`,
+          ".write": `${COMPTE} && !data.exists() && ${r}.child('salons').child($code).child('engages').hasChild(auth.uid) && (${r}.child('salons').child($code).child('cl').val() !== true || ${r}.child('salons').child($code).child('engages').child('g').val() === $g) && newData.child('u').val() !== auth.uid && ${r}.child('salons').child($code).child('engages').hasChild(newData.child('u').val()) && ${r}.child('salons').child($code).child('pres').child(newData.child('u').val()).child('c').val() === false && ${r}.child('salons').child($code).child('pres').child(newData.child('u').val()).child('t').val() < now - 65000`,
           ".validate": "$g.matches(/^-?[0-9]{1,12}$/) && newData.hasChildren(['u', 't'])",
           "u": { ".validate": "newData.isString() && newData.val().length <= 128" },
           "t": { ".validate": `${MAINTENANT}` },
@@ -173,8 +176,13 @@ module.exports = r => ({
       },
 
       // 0.6 : salon CLASSÉ (cl = true), posé ou retiré par un joueur présent avant le début de la partie ; jamais changé ensuite.
+      // 0.6.1 : hote = uid du créateur du salon, posé une fois par lui, présent ; seul l'hôte pose ou retire cl.
+      "hote": {
+        ".write": `${COMPTE} && !data.exists() && newData.val() === auth.uid && ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid)`,
+        ".validate": "newData.isString()"
+      },
       "cl": {
-        ".write": `${COMPTE} && ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) && !${r}.child('salons').child($code).child('engages').exists()`,
+        ".write": `${COMPTE} && ${r}.child('salons').child($code).child('hote').val() === auth.uid && ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) && !${r}.child('salons').child($code).child('engages').exists()`,
         ".validate": "newData.isBoolean()"
       },
       // 0.6 : ouverture du salon (heure serveur), posée une fois par un joueur présent : sert au délai du bandeau robot.

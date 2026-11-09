@@ -6,6 +6,8 @@ function adversaireParti(){
   const g=partie.graine,vu=p=>!p.sameTab&&p.presence&&p.presence.quitte===g;
   return personnes(r.peers()).some(vu)||!!room&&personnes(room.peers()).some(vu);
 }
+/* 0.6.1 : classee entre joueurs : le verrou (engages) n'est leve qu'apres l'ecriture de la partie (sinon refus des regles). */
+function liberePres(a,cl){const e=cl&&!cl.robot&&cl.envoi;if(e)e.finally(()=>a.libere());else a.libere()}
 /* envoi : promesse du coup d'abandon, attendue avant d'annoncer le depart. */
 function quittePartie(envoi){
   if(partie&&partie.rejeu){finRejeu();return}
@@ -14,7 +16,7 @@ function quittePartie(envoi){
   oublie(code);
   if(!a||!g){sortie();return}
   grainesFinies.add(g);
-  if(a.libere)a.libere();
+  if(a.libere)liberePres(a,partie&&partie.classe);
   /* Derniers coups envoyes d'abord, puis depart publie dans le salon, puis dans le lobby : chez l'adversaire, le salon voit le depart avant le lobby (sinon la partie se relancait en boucle). */
   sortie('',Promise.all([envoi,envoiPub]).catch(()=>{}).then(()=>a.presence({quitte:g})).catch(()=>{}).then(()=>room&&room.presence({quitte:g})).catch(()=>{}).then(()=>pause(400)));
 }
@@ -73,7 +75,8 @@ function majPartie(){
     rattrape();if(partie.relDep===1||relit('relDep',majPartie))return;
     const ab=partie.etat&&partie.etat.fin&&partie.etat.fin.abandon===1-partie.moi;
     grainesFinies.add(partie.graine);
-    oublie(code);finPartie();notice=ab?'Partie : ton adversaire a abandonné. Tu es de retour dans le salon.':'Partie : ton adversaire a quitté la partie. Tu es de retour dans le salon.';if(r.libere)r.libere();
+    const cl=partie.classe,rr=r;
+    oublie(code);finPartie();notice=ab?'Partie : ton adversaire a abandonné. Tu es de retour dans le salon.':'Partie : ton adversaire a quitté la partie. Tu es de retour dans le salon.';if(rr.libere)liberePres(rr,cl);
     pub({graine:null,jg:null,j:null,veut:null,adv:null});
     $('salon').hidden=false;majSalon();return;
   }
@@ -105,7 +108,7 @@ function majPartie(){
     const mien=partie?{texte:partie.decks[partie.moi]||'',nom:partie.deckNom}:deckPret,sien=typeof lui.presence.deck==='string'?lui.presence.deck:'';
     const dks=['',''];dks[moi]=mien.texte||'';dks[1-moi]=sien;
     if(!partie&&M.erreurElements)[0,1].forEach(p=>{const o=M.lisDeck(dks[p]);if(o&&(M.erreurElements(o)||(M.erreurEvolutions&&M.erreurEvolutions(o))))dks[p]=''}); /* 0.4a : deck a 5 elements = deck par defaut, des deux cotes ; 0.5 : idem evolution sans sa base */
-    if(moi===0&&r&&r.engage)r.engage([l[0].peer,l[1].peer]);
+    if(moi===0&&r&&r.engage)r.engage([l[0].peer,l[1].peer],g); /* 0.6.1 : graine dans le verrou (regles du classe) */
     lancer(g,moi,typeof lui.presence.sid==='string'?lui.presence.sid:'',{mien:[],sien:[],decks:dks,deckNom:mien.texte?mien.nom:'',classe:salonClasse?{sa:code,a:l[0].peer,b:l[1].peer}:null});if(partie.classe)prepareClasse(partie.classe);sauve();return} /* 0.6 : classee entre joueurs (uids des places 0 et 1) */
   if(partie.advNom!==nomDe(lui)){partie.advNom=nomDe(lui);sauve()}
   if(lui.presence.jg!==g||typeof lui.presence.j!=='string')return;

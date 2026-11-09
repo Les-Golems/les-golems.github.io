@@ -74,7 +74,7 @@ const res=[];
   eq(s.tops.golems.length,5);eq(s.tops.decks.length,5);eq(s.tops.mvp.length,5);eq(s.modes.classee.best,4);eq(s.elements.feu.v,2);ok(!('ecusson' in s));
   const s2=C.instantaneSaison(0,{elo:1100,parties:2},{});ok(!s2.placementFini);eq(s2.rang,'saphir');
   deq(C.sansNuls({a:1,b:null,c:{d:null,e:[1,{f:null,g:2}]}}),{a:1,c:{e:[1,{g:2}]}});
-  deq(C.ligneClassement('Bob',{elo:1260,parties:5,v:3,d:2}),{pseudo:'Bob',elo:1260,rang:'rubis',v:3,d:2});eq(C.ligneClassement('Bob',{elo:1260,parties:4}),null);
+  deq(C.ligneClassement('Bob',{elo:1260,parties:5,v:3,d:2,saison:1}),{pseudo:'Bob',elo:1260,rang:'rubis',v:3,d:2,saison:1});eq(C.ligneClassement('Bob',{elo:1260,parties:4}),null);
   res.push('recompenses');
 }
 { // objets Firebase exigés par rules/50-classe.js

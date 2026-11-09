@@ -183,7 +183,9 @@ function majAnnonce(l){
   if(o&&adv){o.w=adv.peer;o.q=nomDe(adv)}
   const cle=o?JSON.stringify(o):'';
   if(cle===annonceVue)return;annonceVue=cle;
-  r.annonce(o).then(ok=>{if(ok===false&&annonceVue===cle)annonceVue=''},e=>{console.warn(e);annonceVue=''});
+  /* 0.6.1 : annonce classee refusee (Elo du cache perime) : Elo relu, puis nouvel essai si il a change. */
+  const relu=()=>{if(!o||!Number.isFinite(o.el)||!compteCo())return;room.lit('classe/joueurs/'+room.compte.uid()).then(j=>{if(j&&Number.isFinite(j.elo)&&j.elo!==o.el&&r){classeMoi=j;annonceVue='';majAnnonce(ordre(r.peers()))}}).catch(()=>{})};
+  r.annonce(o).then(ok=>{if(ok===false&&annonceVue===cle){annonceVue='';relu()}},e=>{console.warn(e);annonceVue='';relu()});
 }
 /* Design B (0.4) : tuiles teintees. Avant la partie (parties ouvertes, salon) : teinte neutre, rien du deck n'est revele.
    Parties en cours : degrade d'apres les elements des decks des deux joueurs. */
@@ -382,6 +384,7 @@ async function entre(c,opt){
     await s.presence(pres);
     /* le createur marque cl et cree apres l'ecriture de joueurs/<uid> (la regle exige sa presence) */
     if(s.marqueClasse&&createur&&salonClasse&&!sv)await s.marqueClasse().catch(e=>console.warn('salon classe',e));
+    else if(s.marqueHote&&createur&&!sv)await s.marqueHote(); /* 0.6.1 : tout salon a son hote (seul a pouvoir le rendre classe) */
     await room.presence({pseudo:pseudo,salon:sv?null:c,quitte:null});
     if(!partie){$('accueil').hidden=true;$('salon').hidden=false}
     majSalon();
@@ -572,12 +575,15 @@ function majBandeauRobot(){
   t.textContent='Salon classé : personne n\'a rejoint. Affronte le '+R.nom+' - Elo '+R.elo+', points divisés par 2, '+C.compteRobot(j.robots).n+' sur '+C.ROBOTS_PAR_JOUR+' aujourd\'hui.';b.hidden=false;
 }
 $('affronterGolem').onclick=async()=>{
+  const b=$('affronterGolem');if(b.disabled)return;b.disabled=true;try{await affronterGolem()}finally{b.disabled=false} /* 0.6.1 : un seul lancement au double clic */
+};
+async function affronterGolem(){
   const j=profilClasse(),sa=code;if(!GolemsClasse.peutAffronterRobot(j.robots)){majBandeauRobot();return}
   /* Bandeau robot pose dans le salon (regles : 2 min, sans adversaire, 5 par jour) avant de le quitter. */
   try{if(!r||!r.poseRobot)throw new Error('salon');await r.poseRobot(GolemsClasse.salonRobot(room.compte.uid(),j.elo))}
   catch(e){console.warn(e);alerte('erreurJeu','Partie classée impossible : Golem refusé par le serveur. Réessaie dans un instant.');return}
   await sortie('');lanceClasseRobot(j,sa);
-};
+}
 
 /* Colonne des spectateurs du salon (refonte v2) : 5 lignes au plus, puis « +N autres » ; « Aucun spectateur » si vide. */
 $('slDeck').onclick=()=>choisirDeck(()=>majSalon(),'Choisir ce deck',ctxSalon());

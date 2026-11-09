@@ -217,9 +217,11 @@ async function ouvre() {
   function marqueClassee(e, x) {
     const c = x && x.classe; if (!(x && (x.mode === "classee" || c))) return;
     e.c = true;
-    if (c && Number.isInteger(c.delta) && Math.abs(c.delta) <= 64) e.de = c.delta;
+    if (c && !c.attente && Number.isInteger(c.delta) && Math.abs(c.delta) <= 64) e.de = c.delta;
     if (c && /^(facile|normal|difficile)$/.test(c.niveau || "")) e.ro = c.niveau;
   }
+  // Texte d'une entrée d'historique (12 000 caractères au plus ; allégé si besoin) ; null si impossible.
+  const texteHisto = x => { let t = JSON.stringify(x); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [], rejeu: null }); if (t.length > 12000) t = JSON.stringify({ id: x.id, date: x.date, adv: x.adv, res: x.res, abandon: x.abandon, score: x.score, mvp: x.mvp, pseudo: x.pseudo, advNom: x.advNom, moteur: x.moteur }); return t.length > 12000 ? null : t; };
   const compte = {
     erreurPseudo, nettoiePseudo,
     connecte: () => estCompte() && !!donnees,
@@ -385,7 +387,7 @@ async function ouvre() {
       const maj = {}, ajoutes = [];
       // Trop long : on retire d'abord le bilan, puis le detail des manches, le rejeu en dernier, jamais en coupant le JSON.
       // En dernier recours, l'essentiel seulement (résultat, score, adversaire) : la partie compte toujours.
-      const texte = x => { let t = JSON.stringify(x); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [], rejeu: null }); if (t.length > 12000) t = JSON.stringify({ id: x.id, date: x.date, adv: x.adv, res: x.res, abandon: x.abandon, score: x.score, mvp: x.mvp, pseudo: x.pseudo, advNom: x.advNom, moteur: x.moteur }); return t.length > 12000 ? null : t; };
+      const texte = texteHisto;
       const trop = [];
       entrees.forEach(x => { const t = x && x.id && texte(x); if (x && x.id && !t) trop.push(x.id); if (t && !donnees.historique.some(y => y.id === x.id)) { donnees.historique.push(x); ajoutes.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; marqueClassee(maj[x.id], x); } });
       donnees.historique.sort((a, b) => b.date - a.date);
@@ -395,6 +397,13 @@ async function ouvre() {
       compte.publieStats(ajoutes);
       // Plus d'échec silencieux : la page affiche « Partie non enregistrée ».
       if (trop.length) throw Object.assign(new Error("historique trop long"), { code: "golems/trop-long" });
+    },
+    // 0.6.1 : réécrit une entrée déjà enregistrée (variation classée écrite après coup : fin de « en attente »).
+    async majHisto(x) {
+      if (!compte.connecte() || !x || !x.id || !donnees.historique.some(y => y.id === x.id)) return false;
+      const t = texteHisto(x); if (!t) return false;
+      const e = { d: +x.date || Date.now(), x: t }; marqueClassee(e, x);
+      await set(ref(db, P + "joueurs/" + moi + "/historique/" + x.id), e); return true;
     },
     async marqueImport() {
       if (!compte.connecte()) return;
@@ -520,10 +529,16 @@ async function ouvre() {
       journalDe: (sid, g) => journal(sid, g),
       async journalFrais(sid, g) { await relitCoups(); return journal(sid, g); },
       // Verrou de partie : les deux uid engagés (sans effet s'il existe déjà).
-      async engage(uids) {
+      // 0.6.1 : g = graine de la partie (salon classé : obligatoire ; nouvelle graine = ancien verrou levé d'abord, permis une fois sa partie écrite).
+      async engage(uids, g) {
         const o = {}; uids.forEach(u => { if (typeof u === "string") o[u] = true; });
         if (!o[uid] || Object.keys(o).length !== 2) return;
-        try { await set(ref(db, base + "/engages"), o); } catch (e) {}
+        if (Number.isInteger(g)) o.g = String(g);
+        try {
+          const e = (await get(ref(db, base + "/engages"))).val();
+          if (e && o.g && e.g !== o.g && e[uid]) await remove(ref(db, base + "/engages"));
+          await set(ref(db, base + "/engages"), o);
+        } catch (e) {}
       },
       chat: () => chat,
       onChat(f) { ecouteChat.push(f); f(chat); },
@@ -535,7 +550,9 @@ async function ouvre() {
       async libere() { try { await remove(ref(db, base + "/engages")); } catch (e) {} },
       // 0.6 : salon classé. marqueClasse : cl = true et heure d'ouverture (cree, une fois) ; estClasse : lecture de cl ;
       // poseRobot(o) : bandeau « Affronter un Golem » (o = GolemsClasse.salonRobot), à poser avant de quitter le salon.
-      async marqueClasse() { await set(ref(db, base + "/cl"), true); try { await set(ref(db, base + "/cree"), serverTimestamp()); } catch (e) {} },
+      // 0.6.1 : hote = créateur du salon (seul à pouvoir poser cl), posé à la création de tout salon.
+      async marqueHote() { try { await set(ref(db, base + "/hote"), uid); } catch (e) {} },
+      async marqueClasse() { try { await set(ref(db, base + "/hote"), uid); } catch (e) {} await set(ref(db, base + "/cl"), true); try { await set(ref(db, base + "/cree"), serverTimestamp()); } catch (e) {} },
       async estClasse() { try { return (await get(ref(db, base + "/cl"))).val() === true; } catch (e) { return false; } },
       poseRobot(o) { return set(ref(db, base + "/robot"), o); },
       async presence(p) {

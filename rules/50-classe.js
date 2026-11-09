@@ -58,13 +58,13 @@ module.exports = r => {
   const resultat = `((${g} === $uid && ${delta} >= 0 && ${delta} <= ${kmax} && ${n('v')} === ${o('v')} + 1 && ${n('d')} === ${o('d')}) || (${g} !== $uid && ${g} !== 'nul' && ${delta} <= 0 && -${delta} <= ${kmax} && ${n('v')} === ${o('v')} && ${n('d')} === ${o('d')} + 1) || (${g} === 'nul' && ${delta} <= ${kmax} && -${delta} <= ${kmax} && ${n('v')} === ${o('v')} && ${n('d')} === ${o('d')}))`;
   const rn = k => `newData.child('robots').child('${k}').val()`, ro = k => `data.child('robots').child('${k}').val()`;
   const robots = `(${pv('robot')} === true ? (${rn('n')} <= 5 && (${rn('j')} === ${ro('j')} ? ${rn('n')} === ${ro('n')} + 1 : (${rn('n')} === 1 && ${aujourdhui(rn('j'))}))) : (${rn('j')} === ${ro('j')} && ${rn('n')} === ${ro('n')}))`;
-  const partie = `data.exists() && ${o('saison')} === ${COURANTE} && ${n('saison')} === ${COURANTE} && newData.hasChild('dern') && ${n('dern')} !== ${o('dern')} && ${P}.exists() && ${pv('saison')} === ${COURANTE} && (${estA} || ${pv('b')} === $uid) && !${P}.child('fait').child($uid).exists() && ${racineApres(3)}.child('classe').child('parties').child(${n('dern')}).child('fait').child($uid).exists() && ((${estA} && ${pv('eloA')} === ${o('elo')} && ${pv('deltaA')} === ${delta}) || (!(${estA}) && ${pv('eloB')} === ${o('elo')} && ${pv('deltaB')} === ${delta})) && ${n('parties')} === ${o('parties')} + 1 && ${n('partiesTotal')} === ${o('partiesTotal')} + 1 && ${resultat} && ${confirme} && ${robots}`;
+  const partie = `data.exists() && ${o('saison')} === ${COURANTE} && ${n('saison')} === ${COURANTE} && newData.hasChild('dern') && ${n('dern')} !== ${o('dern')} && ${P}.exists() && ${pv('saison')} === ${COURANTE} && (${estA} || ${pv('b')} === $uid) && !${P}.child('fait').child($uid).exists() && ${racineApres(3)}.child('classe').child('parties').child(${n('dern')}).child('fait').child($uid).exists() && ((${estA} && ${pv('deltaA')} === ${delta}) || (!(${estA}) && ${pv('deltaB')} === ${delta})) && ${n('parties')} === ${o('parties')} + 1 && ${n('partiesTotal')} === ${o('partiesTotal')} + 1 && ${resultat} && ${confirme} && ${robots}`;
 
   // ----- Création d'une partie -----
   const nv = k => `newData.child('${k}').val()`;
   const commune = `!data.exists() && ${nv('saison')} === ${COURANTE} && newData.child('t').val() === now && ${SALON(nv('sa'))}.child('cl').val() === true`;
   const contreRobot = `${nv('robot')} === true && ${nv('a')} === auth.uid && ${nv('eloB')} === ${eloRobot(nv('b'))} && ${nv('eloA')} === ${J(nv('a'))}.child('elo').val() && ${J(nv('a'))}.child('saison').val() === ${COURANTE} && ${SALON(nv('sa'))}.child('robot').child('u').val() === auth.uid && !newData.hasChild('deltaB') && (${nv('gagnant')} === ${nv('a')} || ${nv('gagnant')} === ${nv('b')})`;
-  const entreJoueurs = `${nv('robot')} === false && $id === ${nv('sa')} + '-' + ${nv('gr')} && (${nv('a')} === auth.uid || ${nv('b')} === auth.uid) && ${nv('a')} !== ${nv('b')} && ${SALON(nv('sa'))}.child('engages').hasChild(${nv('a')}) && ${SALON(nv('sa'))}.child('engages').hasChild(${nv('b')}) && ${nv('eloA')} === ${J(nv('a'))}.child('elo').val() && ${nv('eloB')} === ${J(nv('b'))}.child('elo').val() && ${J(nv('a'))}.child('saison').val() === ${COURANTE} && ${J(nv('b'))}.child('saison').val() === ${COURANTE} && newData.hasChild('deltaB') && (${nv('gagnant')} === ${nv('a')} || ${nv('gagnant')} === ${nv('b')})`;
+  const entreJoueurs = `${nv('robot')} === false && $id === ${nv('sa')} + '-' + ${nv('gr')} && ${SALON(nv('sa'))}.child('engages').child('g').val() === ${nv('gr')} && (${nv('a')} === auth.uid || ${nv('b')} === auth.uid) && ${nv('a')} !== ${nv('b')} && ${SALON(nv('sa'))}.child('engages').hasChild(${nv('a')}) && ${SALON(nv('sa'))}.child('engages').hasChild(${nv('b')}) && ${nv('eloA')} === ${J(nv('a'))}.child('elo').val() && ${nv('eloB')} === ${J(nv('b'))}.child('elo').val() && ${J(nv('a'))}.child('saison').val() === ${COURANTE} && ${J(nv('b'))}.child('saison').val() === ${COURANTE} && newData.hasChild('deltaB') && (${nv('gagnant')} === ${nv('a')} || ${nv('gagnant')} === ${nv('b')})`;
   const PA = `${C}.child('parties').child($id)`;
 
   // ----- Instantané et écusson -----
@@ -163,12 +163,14 @@ module.exports = r => {
         ".read": true,
         "$uid": {
           ".write": `${COMPTE} && (newData.exists() || !${racineApres(3)}.child('classe').child('joueurs').child($uid).exists() || ${racineApres(3)}.child('classe').child('joueurs').child($uid).child('parties').val() < 5)`,
-          ".validate": `newData.hasChildren(['pseudo', 'elo', 'rang', 'v', 'd']) && ${racineApres(3)}.child('classe').child('joueurs').child($uid).child('parties').val() >= 5 && newData.child('elo').val() === ${racineApres(3)}.child('classe').child('joueurs').child($uid).child('elo').val() && newData.child('v').val() === ${racineApres(3)}.child('classe').child('joueurs').child($uid).child('v').val() && newData.child('d').val() === ${racineApres(3)}.child('classe').child('joueurs').child($uid).child('d').val() && newData.child('rang').val() === ${rangDe("newData.child('elo').val()")}`,
+          ".validate": `newData.hasChildren(['pseudo', 'elo', 'rang', 'v', 'd', 'saison']) && newData.child('saison').val() === ${racineApres(3)}.child('classe').child('saison').child('id').val() && ${racineApres(3)}.child('classe').child('joueurs').child($uid).child('parties').val() >= 5 && newData.child('elo').val() === ${racineApres(3)}.child('classe').child('joueurs').child($uid).child('elo').val() && newData.child('v').val() === ${racineApres(3)}.child('classe').child('joueurs').child($uid).child('v').val() && newData.child('d').val() === ${racineApres(3)}.child('classe').child('joueurs').child($uid).child('d').val() && newData.child('rang').val() === ${rangDe("newData.child('elo').val()")}`,
           "pseudo": { ".validate": `newData.isString() && ${pseudoReel(r, '$uid')}` },
           "elo": { ".validate": "newData.isNumber()" },
           "rang": { ".validate": "newData.isString()" },
           "v": { ".validate": "newData.isNumber()" },
           "d": { ".validate": "newData.isNumber()" },
+          // 0.6.1 : saison de la ligne (lignes d'une saison passée ignorées à la lecture).
+          "saison": { ".validate": "newData.isNumber()" },
           "$autre": { ".validate": false }
         }
       },

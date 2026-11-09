@@ -181,13 +181,23 @@ async function scenarioClasse(P, c, R) {
   const code2 = 'c' + (t % 1000000).toString(36), S2 = P + 'salons/' + code2;
   await attendu(ici('A entre dans le salon classé'), true, req(A, 'PUT', S2 + '/joueurs/' + A.uid, { pseudo: pA, sid: 'sa', t: HEURE }));
   await attendu(ici('salon classé (cl) par un absent'), false, req(X, 'PUT', S2 + '/cl', true));
+  await attendu(ici("0.6.1 cl sans hôte"), false, req(A, 'PUT', S2 + '/cl', true));
+  await attendu(ici("0.6.1 hôte au nom d'un autre"), false, req(A, 'PUT', S2 + '/hote', B.uid));
+  await attendu(ici("0.6.1 hôte posé par le créateur"), true, req(A, 'PUT', S2 + '/hote', A.uid));
+  await attendu(ici("0.6.1 hôte réécrit"), false, req(A, 'PUT', S2 + '/hote', A.uid));
   await attendu(ici('salon classé (cl) par le créateur'), true, req(A, 'PUT', S2 + '/cl', true));
   await attendu(ici('ouverture du salon (cree)'), true, req(A, 'PUT', S2 + '/cree', HEURE));
   await attendu(ici('ouverture réécrite'), false, req(A, 'PUT', S2 + '/cree', HEURE));
   await attendu(ici('faille siège : le créateur prend le siège'), false, req(A, 'PUT', S2 + '/siege', A.uid));
   await attendu(ici('B prend le siège du salon classé'), true, req(B, 'PUT', S2 + '/siege', B.uid));
   await attendu(ici('B entre dans le salon classé'), true, req(B, 'PUT', S2 + '/joueurs/' + B.uid, { pseudo: pB, sid: 'sb', t: HEURE }));
-  await attendu(ici('engagement classé'), true, req(A, 'PUT', S2 + '/engages', { [A.uid]: true, [B.uid]: true }));
+  await attendu(ici("0.6.1 cl changé par un joueur qui n'est pas l'hôte"), false, req(B, 'PUT', S2 + '/cl', false));
+  await req(A, 'PUT', S2 + '/pres/' + A.uid, { c: true, t: HEURE });
+  await attendu(ici("0.6.1 engagement classé sans graine"), false, req(A, 'PUT', S2 + '/engages', { [A.uid]: true, [B.uid]: true }));
+  await attendu(ici("0.6.1 engagement classé, adversaire déconnecté"), false, req(A, 'PUT', S2 + '/engages', { [A.uid]: true, [B.uid]: true, g: '77' }));
+  await req(B, 'PUT', S2 + '/pres/' + B.uid, { c: true, t: HEURE });
+  await attendu(ici('engagement classé'), true, req(A, 'PUT', S2 + '/engages', { [A.uid]: true, [B.uid]: true, g: '77' }));
+  await attendu(ici("0.6.1 verrou levé avant l'écriture de la partie"), false, req(B, 'DELETE', S2 + '/engages'));
   await attendu(ici('cl changé après engagement'), false, req(A, 'PUT', S2 + '/cl', false));
   await attendu(ici('bandeau robot avec adversaire engagé'), false, req(A, 'PUT', S2 + '/robot', { u: A.uid, n: 'normal', t: HEURE }));
 
@@ -198,6 +208,7 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('partie classée, Elo de départ faux'), false, req(A, 'PUT', CL + 'parties/' + id, { ...partie, eloA: 1200 }));
   await attendu(ici('partie classée, id sans graine'), false, req(A, 'PUT', CL + 'parties/' + code2 + '-78', partie));
   await attendu(ici('partie classée hors salon classé'), false, req(A, 'PUT', CL + 'parties/' + c.code + '-77', { ...partie, sa: c.code }));
+  await attendu(ici("0.6.1 partie classée sur une autre graine que l'engagement"), false, req(A, 'PUT', CL + 'parties/' + code2 + '-76', { ...partie, gr: '76' }));
   await attendu(ici('partie classée créée'), true, req(A, 'PUT', CL + 'parties/' + id, partie));
   await attendu(ici('partie classée sans gagnant (nul)'), false, req(B, 'PUT', CL + 'parties/' + code2 + '-79', { ...partie, gr: '79', gagnant: 'nul' }));
   await attendu(ici('partie classée réécrite'), false, req(A, 'PUT', CL + 'parties/' + id, { ...partie, gagnant: B.uid }));
@@ -213,15 +224,29 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('victoire appliquée deux fois'), false, req(A, 'PATCH', '', appli(A, { elo: 1064, parties: 2, partiesTotal: 2, v: 2 })));
   await attendu(ici('défaite de B appliquée par un tiers'), false, req(X, 'PATCH', '', appli(B, { elo: 968, parties: 1, partiesTotal: 1, d: 1 })));
   await attendu(ici('défaite de B changée en victoire'), false, req(B, 'PATCH', '', appli(B, { elo: 1032, parties: 1, partiesTotal: 1, v: 1 })));
-  await attendu(ici('défaite de B appliquée par le gagnant'), true, req(A, 'PATCH', '', appli(B, { elo: 968, parties: 1, partiesTotal: 1, d: 1 })));
+  // 0.6.1 : profil appliqué en retard (l'Elo de B a changé depuis) : validé sur le delta de la partie.
+  await req('admin', 'PATCH', J(B), { elo: 990 });
+  await attendu(ici("0.6.1 défaite en retard, delta faux"), false, req(A, 'PATCH', '', appli(B, { elo: 968, parties: 1, partiesTotal: 1, d: 1 })));
+  await attendu(ici('défaite de B appliquée par le gagnant'), true, req(A, 'PATCH', '', appli(B, { elo: 958, parties: 1, partiesTotal: 1, d: 1 })));
+  await req('admin', 'PATCH', J(B), { elo: 968 });
+  await attendu(ici("0.6.1 verrou levé une fois la partie écrite"), true, req(B, 'DELETE', S2 + '/engages'));
+  // 0.6.1 : forfait seulement sur la graine engagée (vol d'Elo sur une graine inventée refusé).
+  await req(A, 'PUT', S2 + '/engages', { [A.uid]: true, [B.uid]: true, g: '80' });
+  await req('admin', 'PUT', S2 + '/pres/' + B.uid, { c: false, t: Date.now() - 100000 });
+  await attendu(ici("0.6.1 forfait sur une graine inventée"), false, req(A, 'PUT', S2 + '/forfait/81', { u: B.uid, t: HEURE }));
+  await attendu(ici("0.6.1 forfait sur la graine engagée"), true, req(A, 'PUT', S2 + '/forfait/80', { u: B.uid, t: HEURE }));
+  await attendu(ici("0.6.1 partie de forfait sur une autre graine"), false, req(A, 'PUT', CL + 'parties/' + code2 + '-81', { ...partie, gr: '81', eloA: 1032, eloB: 968 }));
+  await attendu(ici("0.6.1 nouvel engagement avant l'écriture de la partie 80"), false, req(A, 'DELETE', S2 + '/engages'));
 
   // Classement (copie exacte, placement fini) et Elo affiché.
-  const ligne = { pseudo: pA, elo: 1032, rang: 'topaze', v: 1, d: 0 };
+  const ligne = { pseudo: pA, elo: 1032, rang: 'topaze', v: 1, d: 0, saison: 0 };
   await attendu(ici('classement pendant le placement'), false, req(A, 'PUT', CL + 'classement/' + A.uid, ligne));
   await req('admin', 'PATCH', J(A), { parties: 5 });
   await attendu(ici('classement, rang faux'), false, req(X, 'PUT', CL + 'classement/' + A.uid, { ...ligne, rang: 'diamant' }));
   await attendu(ici('classement, Elo faux'), false, req(A, 'PUT', CL + 'classement/' + A.uid, { ...ligne, elo: 1500, rang: 'diamant' }));
   await attendu(ici('classement, pseudo usurpé'), false, req(X, 'PUT', CL + 'classement/' + A.uid, { ...ligne, pseudo: pX }));
+  await attendu(ici("0.6.1 classement sans saison"), false, req(X, 'PUT', CL + 'classement/' + A.uid, { pseudo: pA, elo: 1032, rang: 'topaze', v: 1, d: 0 }));
+  await attendu(ici("0.6.1 classement, saison fausse"), false, req(X, 'PUT', CL + 'classement/' + A.uid, { ...ligne, saison: 3 }));
   await attendu(ici('classement, copie exacte par un tiers'), true, req(X, 'PUT', CL + 'classement/' + A.uid, ligne));
   await attendu(ici('classement effacé (placement fini)'), false, req(X, 'DELETE', CL + 'classement/' + A.uid));
   await attendu(ici('invité lit le classement classé'), true, req(G, 'GET', CL + 'classement'));
@@ -237,6 +262,7 @@ async function scenarioClasse(P, c, R) {
   const code3 = 'r' + (t % 1000000).toString(36), S3 = P + 'salons/' + code3;
   // Ordre du site : entrer, puis cl et cree (ils exigent un joueur déjà présent).
   await attendu(ici('X ouvre un salon classé'), true, req(X, 'PUT', S3 + '/joueurs/' + X.uid, { pseudo: pX, sid: 'sx', t: HEURE }));
+  await req(X, 'PUT', S3 + '/hote', X.uid);
   await attendu(ici('X le rend classé'), true, req(X, 'PATCH', S3, { cl: true, cree: HEURE }));
   await attendu(ici('bandeau robot avant 2 min'), false, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));
   await req('admin', 'PUT', S3 + '/cree', Date.now() - 200000);

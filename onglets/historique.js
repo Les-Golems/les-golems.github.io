@@ -70,6 +70,7 @@ function advHisto(x,droite){
   return z;
 }
 function deltaHisto(x){
+  if(x.classe&&x.classe.attente){const s=el('span','hl-delta','…');s.title='Variation d’Elo en attente d’écriture';return s} /* 0.6.1 */
   const d=x.classe&&Number.isFinite(x.classe.delta)?Math.round(x.classe.delta):null;
   if(d===null)return null;return el('span','hl-delta '+(d>0?'p':d<0?'m':''),(d>0?'+':'')+d);
 }
