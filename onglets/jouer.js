@@ -607,6 +607,6 @@ function majSpecs(){
   const u=el('ul');l.slice(0,l.length>5?4:5).forEach(x=>{const nm=nettoie(x.pseudo||'')||'Joueur',li=el('li',x.moi?'moi':'');li.append(avatarUid(nm,x.uid,x.avatar),el('b','',nm));u.append(li)});
   if(l.length>5)u.append(el('li','plus','+'+(l.length-4)+' autres'));z.append(u);
 }
-if(window.SPEC&&SPEC.onChange)SPEC.onChange(()=>{if(!$('salon').hidden)majSpecs()});
+if(window.SPEC&&SPEC.onChange)SPEC.onChange(()=>{if(!$('salon').hidden)majSpecs();if(SPEC.estSpectateur())$('slDeck').hidden=true}); /* spectateur : pas de deck a changer */
 /* Premier affichage (invite, ou avant la connexion) : tuiles et liste peintes des que decks.js et vue/partie.js sont charges. */
 (function t(){if(typeof deckChoisi==='function'&&typeof lesParties==='function'&&typeof teinte==='function')peintListe();else setTimeout(t,50)})();

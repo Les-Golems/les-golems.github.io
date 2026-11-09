@@ -142,7 +142,7 @@ function peindreSalon(etat){
   document.body.classList.toggle('sp-spectateur',moi==='spec');
   /* Spectateur : pas de Pret, une phrase d'etat a la place */
   if(moi==='spec'){
-    const p=q('pret'),a=q('attente');if(p)p.hidden=true;
+    const p=q('pret'),a=q('attente'),d=q('slDeck');if(p)p.hidden=true;if(d)d.hidden=true; /* pas de deck a changer */
     if(a&&!enCours){a.textContent=adv?'Salon : tu regardes ce salon en spectateur. Prends une place libre pour jouer.':"Salon : place d'adversaire libre. Prends-la pour jouer.";a.classList.toggle('pret',!adv)}
   }
 }
