@@ -357,9 +357,11 @@ async function ouvreProfil(autre){
       if(estAnimal(c)||C.animal){fo.className='dl-force dl-mot';fo.textContent='Animal';q.append(co2,fo,nm)}else q.append(co2,fo,ee,nm);const src=imgV('cartes/'+c[0]+'.jpg');q.onclick=()=>{cacheApercu();zoom(src,c[1])};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
       const w=E('div','pr-it');w.append(q,lab);return w};
     const top=resume&&!pmAutre?3:5;
-    pan('Meilleurs decks',D.dk.slice(0,top).map(deckL),D.global?'':I?'Non conservé pour les saisons terminées.':'Un deck apparaît après 5 parties.');
-    pan('Meilleures cartes',D.cb.slice(0,top).map(x=>carteL(x.c,st(x.n,x))),D.global?'':'Une carte apparaît après 5 parties.');
-    pan('Cartes le plus souvent MVP',D.mv.slice(0,top).map(x=>{const s=E('div','pr-st');s.append(E('span','pr-mvp','MVP'),E('b','',String(x.n)),' fois MVP');return carteL(x.c,s)}),D.global?'':I?'Non conservé pour les saisons terminées.':'Pas encore assez de parties.');
+    /* 0.6.1 : ancien compte (parties d'avant la 0.6.2 reconstruites au total) : aucun element compte pour le mode, ou les 10 dernieres ne couvrent pas toutes ses parties. */
+    const AV=(moi?'Tes':'Ses')+" parties d'avant la v0.6.2 comptent dans le total, pas par mode.",avant=!I&&!D.global&&D.n>0&&(!(D.els||[]).length||(D.der||[]).length<Math.min(D.n,10));
+    pan('Meilleurs decks',D.dk.slice(0,top).map(deckL),D.global?'':I?'Non conservé pour les saisons terminées.':!D.dk.length&&avant?AV:'Un deck apparaît après 5 parties.');
+    pan('Meilleures cartes',D.cb.slice(0,top).map(x=>carteL(x.c,st(x.n,x))),D.global?'':!D.cb.length&&avant?AV:'Une carte apparaît après 5 parties.');
+    pan('Cartes le plus souvent MVP',D.mv.slice(0,top).map(x=>{const s=E('div','pr-st');s.append(E('span','pr-mvp','MVP'),E('b','',String(x.n)),' fois MVP');return carteL(x.c,s)}),D.global?'':I?'Non conservé pour les saisons terminées.':!D.mv.length&&avant?AV:'Pas encore assez de parties.');
   }
   await rend();
   const bt=E('div','pr-btns'),f=E('button','sc-btn sc-secondaire','Fermer');f.type='button';bt.append(f);b.append(bt);
