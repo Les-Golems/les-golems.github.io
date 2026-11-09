@@ -313,6 +313,15 @@ function cercle(){
 }
 function derniere(s){
   const u=U(),Mo=M(),z=mk('div','d-z d-bloc d-der'),tx=mk('div','d-txt'),d=suivi.der;
+  /* vue joueur, choix de carte a faire (Cafe du matin, La taupe) : « Choisis une carte » a la place de la derniere carte jouee ; le clic passe par la vraie vue (.p-choix) */
+  const A0=s.attente;
+  if(src==='joueur'&&A0&&A0.p===E.moi&&(A0.t==='cafe'||A0.t==='taupe')){
+    tx.append(mk('div','d-h','Choisis une carte'));const r=mk('div','d-main');
+    A0.options.forEach((c,k)=>{const C=Mo.carte(c),b=mk('button'),im=mk('img');b.type='button';im.src=imgV('cartes/'+C.id+'.jpg');im.alt=C.nom;b.setAttribute('aria-label','Choisir '+Mo.nomDetail(C));
+      b.style.width='103px';b.style.height='144px';if(k)b.style.marginLeft='8px';b.append(im);
+      b.onclick=()=>{const v=document.querySelector('#partie .p-choix .p-slot[data-c="'+c+'"]>.p-carte');if(v)v.click()};r.append(b)});
+    tx.append(r);z.append(tx);return z;
+  }
   tx.append(mk('div','d-h','Dernière carte jouée'));
   if(!d){z.classList.add('vide');tx.append(mk('p','d-phr d-rien','Aucune carte jouée pour le moment.'));z.append(tx);return z}
   const C=Mo.carte(d.c),bt=mk('button'),im=mk('img');bt.type='button';im.src=imgV('cartes/'+C.id+'.jpg');im.alt=C.nom;bt.setAttribute('aria-label','Agrandir '+Mo.nomDetail(C));bt.append(im);

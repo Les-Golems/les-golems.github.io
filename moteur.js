@@ -373,20 +373,20 @@ function code(a){
     case 'e':return 'e'+a.a.join('')+a.b.join('');
     case 'w':return 'w'+a.k+a.a+a.b;
     case 'y':return 'y'+a.l+a.k+a.d;
-    case 'g':case 'k':case 'z':case 'l':return a.t+a.l+a.k; /* 'l' : JackJoy */
+    case 'g':case 'k':case 'z':case 'l':case 'q':return a.t+a.l+a.k; /* 'l' : JackJoy ; 'q' : Golem qui recoit un bonus (Cafe du matin, La taupe) */
     case 'h':case 'r':return a.t+a.l+a.k+a.m+a.n; /* 'r' : K-Chan */
     case 'i':return 'i'+(a.o?1:0); /* Velnen */
     case 'o':return 'o'+a.l; /* Le Cirque : tarte */
     case 'b':return 'b'+a.o.map(b32).join('');
-    case 'f':case 'c':case 'd':case 's':case 'j':return a.t+b32(a.c);
+    case 'f':case 'c':case 'd':case 's':case 'j':case 'u':return a.t+b32(a.c); /* 'u' : carte choisie (Cafe du matin, La taupe) */
     default:return a.t;
   }
 }
 function decode(x){
   const C='(?:'+CARTE_RE+')'; /* carte sur 1 ou 2 caracteres, coup 'j' */
-  if(typeof x!=='string'||!new RegExp('^(m'+C+'{0,3}|p'+C+'[0-2][0-2]|e[0-2]{4}|w[0-2]{3}|y[0-2]{3}|[hr][0-2]{4}|[gklz][0-2]{2}|i[01]|b'+C+'{1,3}|[fcdsj]'+C+'|o[0-2]|[xvnat])$').test(x))throw new Error('action illisible');
+  if(typeof x!=='string'||!new RegExp('^(m'+C+'{0,3}|p'+C+'[0-2][0-2]|e[0-2]{4}|w[0-2]{3}|y[0-2]{3}|[hr][0-2]{4}|[gklzq][0-2]{2}|i[01]|b'+C+'{1,3}|[fcdsju]'+C+'|o[0-2]|[xvnat])$').test(x))throw new Error('action illisible');
   const t=x[0],h=h32;
-  if(t==='g'||t==='k'||t==='z'||t==='l')return {t,l:+x[1],k:+x[2]};
+  if(t==='g'||t==='k'||t==='z'||t==='l'||t==='q')return {t,l:+x[1],k:+x[2]};
   if(t==='h'||t==='r')return {t,l:+x[1],k:+x[2],m:+x[3],n:+x[4]};
   if(t==='i')return {t,o:+x[1]}; /* Velnen */
   if(t==='o')return {t,l:+x[1]}; /* Le Cirque : tarte */
@@ -513,7 +513,7 @@ function deroule(s){
   }
   {let x=false;for(const T of TYPES_AVEC('expire'))if(T.expire(s))x=true;if(x)nettoie(s)} /* bonus qui expirent en fin de manche (Draft diff, premiere version) : un Golem peut en mourir */
   s.manche++;s.tour=1;s.premier=1-s.premier;s.joueur=s.premier;
-  debutTour(s);
+  if(!TYPES_AVEC('debutManche').some(T=>T.debutManche(s)))debutTour(s); /* effets de debut de manche avant le premier tour (Cafe du matin) : ils lancent debutTour a la fin de leur file */
 }
 function passe(s){
   if(s.joueur===s.premier){s.joueur=1-s.premier;debutTour(s);return}
@@ -856,7 +856,7 @@ function robotFort(s,p,l,t){
 /* Registre des effets : outils internes donnes aux fichiers d'effets (M), puis effets de chaque fiche. */
 const insensible=h=>effs(idEff(h)).some(e=>e.T.protege&&!e.r.unique); /* robot : Menfou palu (toute perte adverse annulee) */
 const protegeRobot=h=>effs(idEff(h)).some(e=>e.T.protege&&(!e.r.unique||!h.cdb)); /* robot : perte adverse annulee (Menfou palu, Chance du debutant pas encore utilisee) */
-const M={carte,golem,animal,CARTES,TYPES,effs,idEff,gainCopie,valeurImitation,gainEchange,caseDeCarte,favBonus,effetPose,voisinsCases,estVersus,choixCopie,choixImitation,choixMeandyou,meilleur,valeur,simule,parUtilite,forgeForte,forgePreferee,legales,coutPose,insensible,alea,REGLAGE_ANIMAUX,mignonEstime,REGLAGE_TERRAINS,golemsIci,kAvec,statsSansTerrain,gagnantColonne,ecart,colonnes,forceDe,retire,protegeRobot,dire,declenche,note,nomDetail,blesse,ciblable,de,pioche,melange,orphelins,nettoie,forgee,estCopieur:id=>!!COPIEURS[id]};
+const M={carte,golem,animal,CARTES,TYPES,effs,idEff,gainCopie,valeurImitation,gainEchange,caseDeCarte,favBonus,effetPose,voisinsCases,estVersus,choixCopie,choixImitation,choixMeandyou,meilleur,valeur,simule,parUtilite,forgeForte,forgePreferee,legales,coutPose,insensible,alea,REGLAGE_ANIMAUX,mignonEstime,REGLAGE_TERRAINS,golemsIci,kAvec,statsSansTerrain,gagnantColonne,ecart,colonnes,forceDe,retire,protegeRobot,dire,declenche,note,nomDetail,blesse,ciblable,de,pioche,melange,orphelins,nettoie,forgee,debutTour,estCopieur:id=>!!COPIEURS[id]};
 R=FX.construit(M);F=R.fonctions;const ACT={},ATT={};for(const x in R.actions)ACT[x]=R.actions[x];for(const x in R.attentes)ATT[x]=R.attentes[x];
 for(const T of TERRAINS)EFFT[T.nom]=[].concat(T.effet||[]).map(r=>{const X=R.types[r.type];if(!X)throw new Error('type d\'effet inconnu '+r.type+' ('+T.nom+')');return {T:X,r}});
 const {cirqueInv,tarteX,miseTotale,stT,stV,cfTarte,versusPose,chatsPioche}=F;

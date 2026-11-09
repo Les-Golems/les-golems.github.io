@@ -547,6 +547,8 @@ function affiche(){
     cible=(l,k)=>{const a=leg.find(x=>x.t==='g'&&x.l===l&&x.k===k);return a?{texte:'Favori',fait:()=>joue(a)}:null};
   }else if(att&&att.t==='l'){ /* JackJoy : Sub offert (035) ou Draft diff (035e), Golem allie qui recoit +1, cases dorees, pas de bouton passer */
     cible=(l,k)=>{const a=leg.find(x=>x.t==='l'&&x.l===l&&x.k===k);return a?{texte:'+1',fait:()=>joue(a)}:null};
+  }else if(att&&att.t==='boost'){ /* Elccino : Cafe du matin (+1) ou La taupe (+2), Golem allie qui recoit le bonus, cases dorees */
+    cible=(l,k)=>{const a=leg.find(x=>x.t==='q'&&x.l===l&&x.k===k);return a?{texte:'+'+att.n,fait:()=>joue(a)}:null};
   }else if(att&&att.t==='k'){ /* Deguisement d'Apo (029e) : voisin dont il copie l'effet, cases dorees */
     cible=(l,k)=>{const a=leg.find(x=>x.t==='k'&&x.l===l&&x.k===k);return a?{texte:'Copier',fait:()=>joue(a)}:null};
   }else if(att&&att.t==='i'){ /* Imitation du chansonnier (041e) : le Golem adverse en face, case doree sur la grille adverse ; refus par le bouton Ne pas copier */
@@ -618,6 +620,7 @@ function affiche(){
     pl.append(f);
   }
   const con=x=>pl.append(el('div','p-consigne',x));
+  let choixCartes=null; /* Elccino : cartes a choisir (Cafe du matin, La taupe), montrees dans la zone « Choisis une carte » a la place de « Derniere carte jouee » */
   if(s.fin)pl.append(mainVue(J.main,{}));
   else if(s.phase==='mulligan'){
     if(s.mull[me]){con("En attente de l'adversaire.");pl.append(mainVue(J.main,{}))}
@@ -637,6 +640,15 @@ function affiche(){
   }else if(att&&att.t==='q'){ /* ancien Le Q (Analyse, son propre deck) : replays des versions archivees */
     con('Le Q : choisis 1 carte, les autres restent sur le deck.');
     pl.append(mainVue(att.options,{clic:c=>joue({t:'c',c})}),mainVue(J.main,{}));
+  }else if(att&&(att.t==='cafe'||att.t==='taupe')){
+    const N=M.nomDetail(M.carte(att.src));
+    con(att.t==='cafe'?N+' (Café du matin) : touche la carte à prendre parmi les 2 premières de ton deck. L\'autre va sous ton deck.'
+      :N+' (La taupe) : touche la carte de la main adverse que ton adversaire défausse.');
+    choixCartes=mainVue(att.options,{p:att.t==='taupe'?lui:me,clic:c=>joue({t:'u',c})});
+    pl.append(mainVue(J.main,{}));
+  }else if(att&&att.t==='boost'){
+    con(M.nomDetail(M.carte(att.src))+' ('+att.nom+') : touche une case dorée pour choisir le Golem allié qui gagne +'+att.n+" de Force jusqu'à la fin de la partie.");
+    pl.append(mainVue(J.main,{}));
   }else if(att&&att.t==='b'){
     const n=att.options.length;
     con('Le Buzzer : fin de manche, touche '+(n>1?'tes '+n+" prochaines cartes dans l'ordre où tu veux les piocher, la première en premier.":'ta prochaine carte pour continuer.')+(selMull.length?' Ordre : '+selMull.map(c=>M.nomDetail(M.carte(c))).join(', puis ')+'.':''));
@@ -772,7 +784,8 @@ function affiche(){
   piles.append(pile('deck','Deck',J.deck.length,tasPile(me,'deck')),pile('forge','Forge',J.forge.length,J.forge.slice()),pile('defausse','Défausse',J.defausse.length,J.defausse.slice().reverse()));
   {const d=piles.firstChild;if(d.classList.contains('clic')){const f=()=>voirPile(me,'deck');d.onclick=f;d.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}}}
   pl.append(piles);
-  if(ZONE.matches&&!s.fin){const ap=el('div','p-apercu'),fi=el('div','p-ap-img'),im=el('img'),tx=el('div','p-ap-txt');im.alt='';fi.append(im);
+  if(choixCartes){const z=el('div','p-choix');z.append(el('p','p-ap-leg','Choisis une carte'),choixCartes);pl.append(z)}
+  else if(ZONE.matches&&!s.fin){const ap=el('div','p-apercu'),fi=el('div','p-ap-img'),im=el('img'),tx=el('div','p-ap-txt');im.alt='';fi.append(im);
     /* 0.4a (variante A, style diffusion) : carte a gauche ; a droite titre, « X pose Y sur Z. », effet, Cout / Force / elements */
     tx.append(el('p','p-ap-leg'),el('p','p-ap-ph'),el('p','p-ap-ef'),el('div','p-ap-chips'));ap.append(fi,tx);pl.append(ap);
     /* Clic sur la zone : la carte montree en grand (comme l'oeil de la main). */

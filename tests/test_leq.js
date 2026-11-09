@@ -15,7 +15,7 @@ const PTS=M.POINT_DECK_VIDE!==undefined,videPerdu=(s,q)=>PTS?(!s.fin&&s.j[1-q].s
   const A=M.CARTES['004'],B=M.CARTES['004e'];
   deq(A.el,['brume','magma']);eq(A.cout,2);eq(A.force,1);ok(/^Jour de pêche : à la pose, regarde les 2 premières cartes du deck adverse\. Défausses-en 1 et replace l'autre dessus\.$/.test(A.texte));
   deq(B.el,['brume','magma']);eq(B.cout,7);eq(B.force,1);eq(B.nom,'Seul contre tous');eq(B.base,'004');ok(/^Il suffit : à la pose, détruis toutes tes cartes et toutes les cartes adverses posées en plusieurs exemplaires, toi compris\.$/.test(B.texte));
-  eq(M.carte(18).id,'004');eq(M.carte(23).id,'004e');eq(M.TYPES.length,43);res.push('cartes');
+  eq(M.carte(18).id,'004');eq(M.carte(23).id,'004e');eq(M.TYPES.length,45);res.push('cartes');
 }
 { // 1. Jour de peche, deck adverse a 2 cartes ou plus : choix, la carte choisie a la defausse adverse, l'autre reste dessus
   const s=nouv();s.j[1].deck=[60,61,62];s.j[0].deck=[70,71];joue(s,Q,1,1);

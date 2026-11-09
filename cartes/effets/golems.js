@@ -294,6 +294,61 @@ function caramelUtile(s,p,l,seuil){
 }
 /* ---- Le Q, robot : Jour de peche, defausse la carte la plus utile a l'adversaire (utilite vue de son camp, sa main cachee : vide). */
 function choixPeche(s,p,l){const H={...s,j:s.j.map((K,i)=>i===1-p?{...K,main:[]}:K)};return M.parUtilite(H,1-p,l.map(a=>a.c))[0]}
+/* ---- Elccino. Cafe du matin (cafeDuMatin, Elccino de base ou copieur) : a la pose (apres les morts de la pose), puis au debut des manches 2 et 3
+   avant le premier tour (chaque Golem en jeu qui porte l'effet, premier joueur de la manche d'abord, file s.cafes creee seulement dans ce cas).
+   Regarde les 2 premieres cartes de son deck : attente 'cafe' (coup 'u' + carte prise), l'autre va tout en bas du deck. 1 carte : prise d'office.
+   Deck vide : rien, ce n'est pas une pioche (aucun point). Puis un Golem allie au choix, lui compris, gagne +r.bonus (g.cf, jusqu'a la fin de la partie).
+   La taupe (taupe, evolution ou copieur) : a la pose, regarde la main adverse, attente 'taupe' (coup 'u' + carte), l'adversaire la defausse (main vide : rien),
+   puis un Golem allie au choix gagne +r.bonus. Pas un ciblage de Golem (Mode Avion ne protege pas). Le Cafe du matin ne joue plus apres l'evolution.
+   Bonus : attente 'boost' (coup 'q' + ligne + colonne) ; un seul Golem allie : d'office ; aucun : rien. g.cf garde a l'evolution, suit les deplacements,
+   perdu au remplacement. Statistiques : s.stats.elc = {cafe, taupe, boost}, cree au premier effet. src : carte qui agit (Elccino ou copieur). */
+function stE(s){return s.stats.elc||(s.stats.elc={cafe:[],taupe:[],boost:[]})}
+function cafe(s,p,src,quand,r){
+  const J=s.j[p],D=J.deck,n=nomDetail(carte(src));
+  if(D.length>=2){dire(s,p,n+' : Café du matin, regarde les 2 premières cartes de son deck.');M.declenche(s,'Café du matin','Regarde 2');stE(s).cafe.push({m:s.manche,p,n:1,v:0,q:quand});
+    s.attente={t:'cafe',p,options:D.slice(0,2),regard:1,oblig:1,src,b:r.bonus};return}
+  const pris=D.length;
+  if(pris){J.main.push(D.shift());dire(s,p,n+' : Café du matin, prend la dernière carte de son deck.');M.declenche(s,'Café du matin','Prend 1')}
+  else{dire(s,p,n+' : Café du matin, deck vide, rien à prendre.');M.declenche(s,'Café du matin','Deck vide')}
+  stE(s).cafe.push({m:s.manche,p,n:pris,v:0,q:quand});
+  boost(s,p,r.bonus,src,'Café du matin');
+}
+function taupe(s,p,src,r){
+  const K=s.j[1-p],n=nomDetail(carte(src));M.declenche(s,'La taupe','Regarde la main adverse');dire(s,p,n+' : La taupe, regarde la main adverse.');
+  if(K.main.length){s.attente={t:'taupe',p,adv:1,options:K.main.slice(),src,b:r.bonus};return}
+  stE(s).taupe.push({m:s.manche,p,c:null});dire(s,p,'La taupe : main adverse vide, rien à défausser.');boost(s,p,r.bonus,src,'La taupe');
+}
+function boost(s,p,n,src,nom){
+  const cs=[];s.j[p].grille.forEach((L,l)=>L.forEach((g,k)=>{if(golem(g))cs.push([l,k])}));
+  if(cs.length>1){s.attente={t:'boost',p,cases:cs,n,src,nom};return}
+  if(cs.length)donneBoost(s,p,cs[0][0],cs[0][1],n,nom);
+  suiteCafe(s);
+}
+function donneBoost(s,p,l,k,n,nom){
+  const g=s.j[p].grille[l][k];g.cf=(g.cf||0)+n;stE(s).boost.push({m:s.manche,p,n,c:g.c});
+  M.declenche(s,nom,nomDetail(carte(g.c))+' +'+n);dire(s,p,nomDetail(carte(g.c))+' gagne +'+n+' de Force.');
+}
+/* debut des manches 2 et 3 : renvoie true si des Cafes sont en file (debutTour viendra a la fin de la file) */
+function cafesManche(s){
+  const f=[];[s.premier,1-s.premier].forEach(p=>s.j[p].grille.forEach(L=>L.forEach(g=>{if(golem(g)){const e=aEffet(M.idEff(g),'cafeDuMatin');if(e)f.push({p,c:g.c})}})));
+  if(!f.length)return false;
+  s.cafes=f;suiteCafe(s);return true;
+}
+function suiteCafe(s){
+  if(!s.cafes||s.attente)return;
+  while(s.cafes.length){const x=s.cafes.shift(),i=M.caseDeCarte(s,x.p,x.c);if(!i)continue;const e=aEffet(M.idEff(s.j[x.p].grille[i[0]][i[1]]),'cafeDuMatin');if(!e)continue;
+    cafe(s,x.p,x.c,'manche',e.r);if(s.attente)return}
+  delete s.cafes;M.debutTour(s);
+}
+/* Robot : Cafe, la carte la plus utile ; La taupe, la carte adverse la plus utile (il la voit) ; bonus, le Golem qui fait le plus monter la valeur du plateau. */
+function choixElccino(s,p,l){
+  const A=s.attente;
+  if(A.t==='cafe')return {t:'u',c:M.parUtilite(s,p,A.options)[0]};
+  if(A.t==='taupe')return {t:'u',c:M.parUtilite(s,1-p,A.options)[0]};
+  const F={...s,fort:true},v0=M.valeur(F,p);let m=l[0],v=-Infinity;
+  l.forEach(a=>{const x=M.valeur(M.simule(F,c=>{const g=c.j[p].grille[a.l][a.k];g.cf=(g.cf||0)+A.n}),p)-v0;if(x>v){v=x;m=a}});
+  return m;
+}
 /* Attentes (s.attente.t) des Golems : coups proposes, application, choix du robot (X : etat vu par le robot, {fort:true} en Difficile). */
 const attentes={
   q:{legales:(s,p,a,J,r)=>a.options.forEach(c=>r.push({t:'c',c})), /* Le Q : Jour de peche, coup 'c' */
@@ -336,7 +391,18 @@ const attentes={
      robot:(s,p,l,X)=>M.choixMeandyou(X,p,l)},
   l:{legales:(s,p,a,J,r)=>a.cases.forEach(([l,k])=>r.push({t:'l',l,k})), /* JackJoy : cible de Sub offert ou Draft diff */
      applique:(s,p,a)=>{const A=s.attente;s.attente=null;donneJJ(s,p,A,a.l,a.k);suiteJJ(s,p,A.file)}, /* cible choisie, puis la suite */
-     robot:(s,p,l,X)=>choixJJ(X,p,l)}
+     robot:(s,p,l,X)=>choixJJ(X,p,l)},
+  cafe:{legales:(s,p,a,J,r)=>a.options.forEach(c=>r.push({t:'u',c})), /* Elccino : Cafe du matin, carte prise (l'autre sous le deck) */
+     applique:(s,p,a,J)=>{const A=s.attente,D=J.deck,o=A.options.find(c=>c!==a.c);s.attente=null;D.splice(D.indexOf(a.c),1);D.splice(D.indexOf(o),1);J.main.push(a.c);D.push(o);
+       dire(s,p,'Café du matin : prend une carte et remet l\'autre sous son deck.');boost(s,p,A.b,A.src,'Café du matin')},
+     robot:(s,p,l)=>choixElccino(s,p,l)},
+  taupe:{legales:(s,p,a,J,r)=>a.options.forEach(c=>r.push({t:'u',c})), /* Elccino : La taupe, carte adverse defaussee */
+     applique:(s,p,a)=>{const A=s.attente,K=s.j[1-p];s.attente=null;K.main.splice(K.main.indexOf(a.c),1);K.defausse.push(a.c);stE(s).taupe.push({m:s.manche,p,c:a.c});
+       dire(s,p,'La taupe : l\'adversaire défausse '+nomDetail(carte(a.c))+'.');boost(s,p,A.b,A.src,'La taupe')},
+     robot:(s,p,l)=>choixElccino(s,p,l)},
+  boost:{legales:(s,p,a,J,r)=>a.cases.forEach(([l,k])=>r.push({t:'q',l,k})), /* Elccino : Golem allie qui gagne le bonus */
+     applique:(s,p,a)=>{const A=s.attente;s.attente=null;donneBoost(s,p,a.l,a.k,A.n,A.nom);suiteCafe(s)},
+     robot:(s,p,l)=>choixElccino(s,p,l)}
 };
 const types={
   /* Cyrdan (003, 003e) : tes voisins gagnent +bonus de Force */
@@ -474,6 +540,11 @@ const types={
   energieTour:{actionsTour:(s,p)=>caramels(s,p),robotAvant:(X,p,l,seuil)=>caramelUtile(X,p,l,seuil)},
   /* L'attachiante (008e) : Love inconditionnel, une fois par manche, un Golem allie blesse recupere 1 de Force (action 'r'). */
   soinAllie:{actionsTour:(s,p)=>loves(s,p),robotFinTour:(X,p,l)=>choixLove(X,p,l)},
+  /* Elccino (021) : Cafe du matin, a la pose et au debut des manches 2 et 3. Crochets de type : bonus g.cf (Cafe et La taupe), garde a l'evolution. */
+  cafeDuMatin:{poseApres:(r,s,p,l,k,g)=>cafe(s,p,g.c,'pose',r),debutManche:s=>cafesManche(s),
+    forceRecue:g=>g.cf||0,evolution:(s,occ,g)=>{if(occ.cf)g.cf=occ.cf}},
+  /* Agent double SOLAEGIS (021e) : La taupe, a la pose. */
+  taupe:{poseApres:(r,s,p,l,k,g)=>taupe(s,p,g.c,r)},
 };
 /* ---- Robot : estimations par type d'effet (le robot ne voit que ce qu'un joueur voit).
    forceEstimee(r) : Force moyenne d'une pose a Force aleatoire ; tirages(r) : toutes les Forces possibles (Imitation, moyenne exacte) ;
@@ -542,6 +613,9 @@ const robot={
   jourDePeche:{robotPoseFin:(r,s,p,a,g)=>s.j[1-p].deck.length?g+.25:g,risque:(r,s,p,gr,D)=>[0,D[1-p]>0?1:0]},
   spam:{robotPoseFin:(r,s,p,a,g)=>g+.3,risque:()=>[1,0]},
   favori:{robotPoseFin:(r,s,p,a,g)=>s.j[p].grille.some(L=>L.some(Boolean))?g+.3:g},
+  /* Elccino : +1 carte, +1 de Force, et le Cafe des manches suivantes (perdu en evoluant) ; La taupe : +2, une carte adverse */
+  cafeDuMatin:{robotPose:(r,s,p,a,apres,g)=>g+.45+.3*(3-s.manche),robotPerte:(r,s)=>.3*(3-s.manche)},
+  taupe:{robotPose:(r,s,p,a,apres,g)=>g+.6+(s.j[1-p].main.length?.3:0)},
   deplaceAdverse:{robotPoseFin:(r,s,p,a,g)=>slams(s,p).length?g+.3:g,robotCopie:(r,c,p)=>slams(c,p).length?.4:0}
 };
 for(const t in robot){if(!types[t])throw new Error('robot : type inconnu '+t);Object.assign(types[t],robot[t])}
@@ -577,7 +651,7 @@ function noteCompte(r,p,l,k,g,G,vs,b){
   else if(r.compte==='dessus'){for(let a=0;a<l;a++){const n=G[a][k];if(golem(n))b(r.note,p,g.c,p,n.c)}if(aniDessus(g))b(r.note,p,g.c,p,g.ani.c)}
   else vs.forEach(n=>b(r.note,p,g.c,p,n.c));
 }
-return {types,actions,attentes,fonctions:{partenaires,forgeUtile,REGLAGE_JJ,jjBonus,ciblesJJ,choisitFavori,slams,echangesMeandyou,loves,choixLove,REGLAGE_KC,caramels,choixPeche,choixJJ,choixFavori,annonceSurtaxe,foudres,kekwait,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,elessars,graines,spoms,jourDePeche,doublons,ilSuffit}};
+return {types,actions,attentes,fonctions:{cafe,taupe,boost,cafesManche,choixElccino,partenaires,forgeUtile,REGLAGE_JJ,jjBonus,ciblesJJ,choisitFavori,slams,echangesMeandyou,loves,choixLove,REGLAGE_KC,caramels,choixPeche,choixJJ,choixFavori,annonceSurtaxe,foudres,kekwait,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,elessars,graines,spoms,jourDePeche,doublons,ilSuffit}};
 }
 if(typeof module!=='undefined'&&module.exports)module.exports=fabrique;else (racine.GolemsEffets=racine.GolemsEffets||{}).golems=fabrique;
 })(typeof window!=='undefined'?window:globalThis);
