@@ -370,7 +370,7 @@ async function entre(c,opt){
     const s=await room.join(c);
     r=s;code=c;entree=Date.now();
     /* 0.6 classe : le createur marque le salon (cl, cree) ; les autres lisent cl (entree par code ou reprise) ; profil classe pret avant la partie. */
-    if(s.marqueClasse){if(createur&&salonClasse&&!sv)await s.marqueClasse().catch(e=>console.warn('salon classe',e));else salonClasse=await s.estClasse()}
+    if(s.marqueClasse&&!(createur&&salonClasse&&!sv))salonClasse=await s.estClasse();
     if(salonClasse)await chargeClasse();
     sid=sv?sv.sid:nouveauSid();arrivee=sv?sv.arrivee:entree;
     $('codeSalon').textContent=c.toUpperCase();
@@ -380,6 +380,8 @@ async function entre(c,opt){
     const pres={pseudo:pseudo,arrivee:arrivee,sid:sid,pret:null};if(maV)pres.v=maV;
     if(sv){pres.deck=Array.isArray(sv.decks)&&sv.decks[sv.place]||null;pres.jg=sv.graine;pres.j=M.ecritJournal(sv.mien);pres.adv=sv.adv;if(sv.place===0)pres.graine=sv.graine;if(sv.veut)pres.veut=sv.graine}
     await s.presence(pres);
+    /* le createur marque cl et cree apres l'ecriture de joueurs/<uid> (la regle exige sa presence) */
+    if(s.marqueClasse&&createur&&salonClasse&&!sv)await s.marqueClasse().catch(e=>console.warn('salon classe',e));
     await room.presence({pseudo:pseudo,salon:sv?null:c,quitte:null});
     if(!partie){$('accueil').hidden=true;$('salon').hidden=false}
     majSalon();
