@@ -42,9 +42,9 @@ const DETAILS_VERSIONS={
   avenir:[
    {t:"Prochaine version (v0.6a) :",l:[
     "Rejeu des parties : il s'affiche encore avec l'ancien écran de partie. Il passera sur la nouvelle interface.",
-    "Nouveaux guides : une pastille signalera chaque nouveau guide publié.",
     "Équilibrage des cartes et des éléments.",
-    "Mode clair."]},
+    "Mode clair.",
+    "Nouveaux guides : une pastille signalera chaque nouveau guide publié."]},
    "Version ultérieure : la nouvelle interface sera adaptée à la tablette et au téléphone."]
  },
  'Version 0.5a':{
