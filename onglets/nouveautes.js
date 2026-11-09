@@ -315,7 +315,7 @@ const RUBRIQUES_VERSION=[['nouveautes','Nouveautés'],['corrections','Correction
 function ouvreDetailsVersion(n,bouton){
   $('popDetailsVersion')?.remove();
   const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-  const D=DETAILS_VERSIONS[n.version],v=mk('div','voile'),x=mk('div','boite dv-boite'),te=mk('div','dv-tete'),h=mk('h2','',n.version),co=mk('div','dv-corps'),pb=mk('div','p-btns dv-pied'),fe=mk('button','btn fermer','Fermer');
+  const D=DETAILS_VERSIONS[n.version],v=mk('div','voile'),x=mk('div','boite dv-boite'),te=mk('div','dv-tete'),h=mk('h2','',n.version),co=mk('div','dv-corps'),pb=mk('div','p-btns dv-pied'),fe=mk('button','sc-btn sc-secondaire fermer','Fermer');
   v.id='popDetailsVersion';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','dvTitre');h.id='dvTitre';fe.type='button';
   const fr=s=>s.replace(/« /g,'«\u00a0').replace(/ (»|:)/g,'\u00a0$1'),liste=L=>{const u=mk('ul');L.forEach(y=>{const li=mk('li');li.append(textePictos(fr(typeof y==='string'?y:y.t),true));if(y.l)li.append(liste(y.l));u.append(li)});return u};
   RUBRIQUES_VERSION.forEach(([k,titre])=>{const L=D[k]||[];co.append(mk('h3','',titre),L.length?liste(L):mk('p','dv-vide',k==='corrections'&&n===NOUVEAUTES[NOUVEAUTES.length-1]?'Première version du jeu.':'Rien pour cette version.'))});
@@ -430,7 +430,7 @@ function peintNotes0(){
       p.title='Page précédente';s.title='Page suivante';p.setAttribute('aria-label',p.title);s.setAttribute('aria-label',s.title);
       p.onclick=()=>pageNotes(-1);s.onclick=()=>pageNotes(1);z.append(p,mk('span','nv-num'),s);
       $('notes').after(z)}
-    z.hidden=pages.length<2;z.querySelector('.nv-num').textContent=(NV.page+1)+' / '+pages.length;
+    z.hidden=pages.length<2;z.querySelector('.nv-num').textContent=(NV.page+1)+'/'+pages.length;
     z.querySelector('.nv-prec').disabled=NV.page===0;z.querySelector('.nv-suiv').disabled=NV.page>=pages.length-1}
 }
 /* B4 : coupe propre des blocs trop longs (lignes entieres masquees), le bouton Details donne le reste */
