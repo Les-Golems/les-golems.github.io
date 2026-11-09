@@ -320,6 +320,8 @@ async function ouvreProfil(autre){
     const D=prive&&cours?resume:I?pfStatsInstantane(I,MO):cours?compteursMode(PM,MO,mode===2?PF_DIF[dif]:''):compteursMode(null,MO);
     if(attente)D.attente=true;
     const P=prive?resume:D;
+    /* 0.6.1 : ancien compte (parties d'avant le correctif du 9 nov. reconstruites au total) : aucun element compte pour le mode, ou les 10 dernieres ne couvrent pas toutes ses parties. */
+    const AV=(moi?'Tes':'Ses')+" parties d'avant le 9 novembre comptent dans le total, pas par mode.",avant=!I&&!D.global&&D.n>0&&(!(D.els||[]).length||(D.der||[]).length<Math.min(D.n,10));
     /* Bilan */
     const hr=E('div','pr-hr'),gc=E('div','pr-gc'),gn=E('div','pr-gn');
     const tx=P.n?Math.round(100*P.v/P.n):null,coul=couleurTaux.valeur(tx,P.n);
@@ -341,7 +343,7 @@ async function ouvreProfil(autre){
       D.els.forEach(x=>{const l=C*x[1]/100;sv+='<circle r="'+R0+'" cx="68" cy="68" fill="none" stroke="var(--fm-'+x[0]+')" stroke-width="20" stroke-dasharray="'+Math.max(l-3,0)+' '+C+'" stroke-dashoffset="'+(-o)+'" transform="rotate(-90 68 68)"></circle>';o+=l});
       ar.innerHTML='<svg viewBox="0 0 136 136">'+sv+'</svg>';const lg=E('div','pr-lg');
       D.els.forEach(x=>{const r=E('div');try{r.append(picto(x[0]))}catch(e){}r.append(E('span','',x[0].charAt(0).toUpperCase()+x[0].slice(1)),E('b','',x[1]+' %'));lg.append(r)});ar.append(lg);an.append(ar)}
-    else an.append(E('div','pr-anv',prive?'Masqué (profil privé)':D.attente?'Pas encore publié':'Aucune partie'));
+    else an.append(E('div','pr-anv',prive?'Masqué (profil privé)':D.attente?'Pas encore publié':avant?AV:'Aucune partie'));
     hr.append(an);dr.append(hr);
     const p3=E('div','pr-p3');dr.append(p3);
     if(prive){const pn=E('div','pr-pn pr-pv');pn.append(E('div','pr-ins','Profil privé : ce joueur ne partage que son rang et son bilan.'));p3.append(pn);return}
@@ -357,8 +359,6 @@ async function ouvreProfil(autre){
       if(estAnimal(c)||C.animal){fo.className='dl-force dl-mot';fo.textContent='Animal';q.append(co2,fo,nm)}else q.append(co2,fo,ee,nm);const src=imgV('cartes/'+c[0]+'.jpg');q.onclick=()=>{cacheApercu();zoom(src,c[1])};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
       const w=E('div','pr-it');w.append(q,lab);return w};
     const top=resume&&!pmAutre?3:5;
-    /* 0.6.1 : ancien compte (parties d'avant la 0.6.2 reconstruites au total) : aucun element compte pour le mode, ou les 10 dernieres ne couvrent pas toutes ses parties. */
-    const AV=(moi?'Tes':'Ses')+" parties d'avant la v0.6.2 comptent dans le total, pas par mode.",avant=!I&&!D.global&&D.n>0&&(!(D.els||[]).length||(D.der||[]).length<Math.min(D.n,10));
     pan('Meilleurs decks',D.dk.slice(0,top).map(deckL),D.global?'':I?'Non conservé pour les saisons terminées.':!D.dk.length&&avant?AV:'Un deck apparaît après 5 parties.');
     pan('Meilleures cartes',D.cb.slice(0,top).map(x=>carteL(x.c,st(x.n,x))),D.global?'':!D.cb.length&&avant?AV:'Une carte apparaît après 5 parties.');
     pan('Cartes le plus souvent MVP',D.mv.slice(0,top).map(x=>{const s=E('div','pr-st');s.append(E('span','pr-mvp','MVP'),E('b','',String(x.n)),' fois MVP');return carteL(x.c,s)}),D.global?'':I?'Non conservé pour les saisons terminées.':!D.mv.length&&avant?AV:'Pas encore assez de parties.');
