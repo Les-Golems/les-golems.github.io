@@ -31,6 +31,8 @@ module.exports = r => ({
       "m":  { ".validate": "newData.isBoolean()" },
       "t":  { ".validate": `${MAINTENANT}` },
       "cr": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+      // 0.6 : Elo classé affiché sur le profil = celui du profil classé, placement fini seulement (pas d'Elo exact pendant le placement).
+      "el": { ".validate": `newData.isNumber() && newData.val() === ${r}.child('classe').child('joueurs').child($uid).child('elo').val() && ${r}.child('classe').child('joueurs').child($uid).child('parties').val() >= 5` },
       "n":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0" },
       "v":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0" },
       "d":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000 && newData.val() % 1 === 0" },

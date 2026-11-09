@@ -12,6 +12,15 @@ module.exports = r => ({
       ".write": `auth != null && auth.uid === '${UID_ROMAIN}'`,
       ".validate": "newData.hasChildren()",
       "$i": { ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)" }
+    },
+    // 0.6 : message affiché en tête des Nouveautés (début de saison...), t = texte, d = date ; Romain seul.
+    "message": {
+      ".read": true,
+      ".write": `auth != null && auth.uid === '${UID_ROMAIN}'`,
+      ".validate": "newData.hasChildren(['t', 'd'])",
+      "t": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 600" },
+      "d": { ".validate": "newData.isNumber()" },
+      "$autre": { ".validate": false }
     }
   }
 });

@@ -7,9 +7,9 @@ const fs = require('fs'), path = require('path');
 const { lireRegles } = require('./lire-json');
 
 const ICI = __dirname, CIBLE = path.join(ICI, '..', 'database.rules.json');
-const BLOCS = ['10-comptes.js', '20-en-ligne.js', '30-stats.js', '40-nouveautes.js'];
+const BLOCS = ['10-comptes.js', '20-en-ligne.js', '30-stats.js', '40-nouveautes.js', '50-classe.js', '60-guides.js'];
 // Remonter de plusieurs crans pour atteindre une collection de la racine (le bug de essai/activite) : interdit.
-const VERS_AILLEURS = /parent\(\)\.parent\(\)(\.parent\(\))*\.child\('(pseudos|joueurs|hall|activite|annonces|salons|classement|profils|resume|nouveautes|essai)'\)/;
+const VERS_AILLEURS = /parent\(\)\.parent\(\)(\.parent\(\))*\.child\('(pseudos|joueurs|hall|activite|annonces|salons|classement|profils|resume|nouveautes|essai|classe|guides|enligne)'\)/;
 const RACINE = 'root', RACINE_ESSAI = "root.child('essai')";
 
 function blocs(r) {
