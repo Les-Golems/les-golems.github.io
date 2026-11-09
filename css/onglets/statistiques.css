@@ -19,10 +19,10 @@
 .st-rech input::placeholder{color:var(--doux);font-weight:400}.st-rech input:focus{outline:none;border-color:var(--bleu)}
 .st-rech svg{position:absolute;left:14px;top:14px;width:18px;height:18px}
 /* Panneau de saison (variante C) : de la colonne 2 jusqu'à 16 px avant Patchs */
-.st-saison{grid-column:2/4;margin-right:184px;height:46px;min-width:0;position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;padding:0 14px 0 6px;border-radius:10px;border:1px solid rgba(241,195,90,.5);background:linear-gradient(100deg,rgba(241,195,90,.14),var(--panneau) 70%);color:var(--doux);cursor:pointer;white-space:nowrap;font:inherit;text-align:left;transition:filter .12s}
+.st-saison{grid-column:2/4;margin-right:184px;height:46px;min-width:0;position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;padding:0 14px 0 6px;border-radius:10px;border:1px solid #3a7fd0;background:linear-gradient(100deg,rgba(51,110,188,.34),rgba(51,110,188,.12) 40%,var(--panneau) 75%);color:var(--doux);cursor:pointer;white-space:nowrap;font:inherit;text-align:left;transition:filter .12s}
 @media (hover:hover){.st-saison:hover{filter:brightness(1.08);border-color:var(--bleu)}}
 .st-saison:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
-.st-saison::after{content:'';position:absolute;top:0;bottom:0;left:38%;width:60px;background:linear-gradient(100deg,transparent,rgba(255,240,200,.16),transparent);transform:skewX(-20deg);animation:st-bal 4s infinite;pointer-events:none}
+.st-saison::after{content:'';position:absolute;top:0;bottom:0;left:38%;width:60px;background:linear-gradient(100deg,transparent,rgba(220,235,255,.28),transparent);transform:skewX(-20deg);animation:st-bal 4s infinite;pointer-events:none}
 @keyframes st-bal{0%{left:-20%}60%,100%{left:120%}}
 .st-sz-c1{display:flex;align-items:center;gap:10px;width:172px;flex:none;min-width:0}
 .st-sz-n{font:17px var(--titre);color:#fff;overflow:hidden;text-overflow:ellipsis}
