@@ -356,6 +356,7 @@ html.dif-ouvert #vueDetail .dz-eg{font:400 18px/1 var(--titre);color:var(--or);m
 #dif.jr .d-der{top:390px!important;height:472px!important;grid-template-columns:334px minmax(0,1fr)!important}
 #dif.jr .d-der>button img{width:334px!important;height:468px!important}
 #dif.jr .d-der .d-txt{padding:14px 18px;gap:10px}
+#dif.jr .d-der.d-choix{grid-template-columns:minmax(0,1fr)!important} /* Choisis une carte (Elccino) : une seule colonne, cartes a 103 px */
 #dif.jr .d-der .d-phr{font-size:20px}
 #dif.jr .d-der .d-phr b{font-size:30px}
 #dif.jr .d-der .d-chips>span{font-size:18px;padding:5px 8px}

@@ -316,9 +316,11 @@ function derniere(s){
   /* vue joueur, choix de carte a faire (Cafe du matin, La taupe) : « Choisis une carte » a la place de la derniere carte jouee ; le clic passe par la vraie vue (.p-choix) */
   const A0=s.attente;
   if(src==='joueur'&&A0&&A0.p===E.moi&&(A0.t==='cafe'||A0.t==='taupe')){
-    tx.append(mk('div','d-h','Choisis une carte'));const r=mk('div','d-main');
+    z.classList.add('d-choix');tx.append(mk('div','d-h','Choisis une carte'));const r=mk('div','d-main');
+    /* cartes a 103 x 144 (taille de la main) sur toute la largeur de la zone (755 px utiles) ; trop nombreuses : chevauchement, jamais reduites */
+    const nO=A0.options.length,ec=nO>1?Math.min(8,Math.floor((755-103*nO)/(nO-1))):0;
     A0.options.forEach((c,k)=>{const C=Mo.carte(c),b=mk('button'),im=mk('img');b.type='button';im.src=imgV('cartes/'+C.id+'.jpg');im.alt=C.nom;b.setAttribute('aria-label','Choisir '+Mo.nomDetail(C));
-      b.style.width='103px';b.style.height='144px';if(k)b.style.marginLeft='8px';b.append(im);
+      b.style.width='103px';b.style.height='144px';if(k)b.style.marginLeft=ec+'px';b.append(im);
       b.onclick=()=>{const v=document.querySelector('#partie .p-choix .p-slot[data-c="'+c+'"]>.p-carte');if(v)v.click()};r.append(b)});
     tx.append(r);z.append(tx);return z;
   }
