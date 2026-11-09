@@ -1,5 +1,5 @@
-/* commun/classe.js - Parties classées, rangs, robots en classée, saisons, écussons (0.6).
-   Fonctions pures (aucun accès DOM ni Firebase) : utilisables en Node (require) et dans le navigateur (window.GolemsClasse).
+/* commun/classe.js - Parties classées, rangs, robots en classée, saisons, récompenses (0.6).
+   Fonctions pures (aucun accès DOM ; Firebase seulement par service(B), base injectée) : utilisables en Node (require) et dans le navigateur (window.GolemsClasse).
 
    FORMAT DES DONNÉES FIREBASE (à l'usage de l'agent des règles) :
    classe/saison : { id: 0, nom: "Bêta", debut: <ms>, fin: null }          saison en cours (fin null = sans date de fin)
@@ -19,14 +19,15 @@
      { a: uid, b: uid ou "robot-facile|robot-normal|robot-difficile", gagnant: uid ou id robot,
      eloA, eloB (avant), deltaA, deltaB (deltaB absent pour un robot), robot: bool, saison: id, t: <ms> }
    classe/saisons/<id> : { nom, debut, fin }   saisons terminées
-   classe/instantanes/<id>/<uid> : instantané complet de fin de saison (voir instantaneSaison) :
-     { saison, elo, rang, place (ou null), placementFini: bool,
-       modes: { classee|amicale|entrainement: { parties, v, d } },
+   classe/instantanes/<id>/<uid> : instantané complet de fin de saison (voir instantaneSaison), écrit par le joueur, placement fini seulement :
+     { saison, elo, rang, placementFini: true, place (posée ENSUITE à la main par Romain),
+       modes: { classee|amicale|entrainement: { parties, v, d, best (meilleure série), serie (série finale) } },
        dernieres: [ { mode, gagne: bool, adv, t } ] (10 max, la plus récente à la fin),
-       tops: { golems: [ {id, n, v} ], terrains: [ {id, n, v} ] } (5 max chacun),
-       elements: { <élément>: { n, v } },
-       ecusson: { saison, rang, palier, image } ou null }
-   classe/ecussons/<uid>/<idSaison> : { saison, rang, palier, image }   (palier : base | top10 | podium | champion)
+       tops: { golems: [ {id, n, v} ], terrains: [ {id, n, v} ], decks: [ {nom, e, n, v} ], mvp: [ {id, n} ] } (5 max chacun),
+       elements: { <élément>: { n, v } } }
+   classe/ecussons/<uid>/<idSaison> : récompense publique { saison, place?, ecu? } (voir recompense) :
+     médaille ronde de la saison pour tout placement fini (Saison 0 = Pionnier) ; écu en plus pour un top 10 (or 1, argent 2-3, bronze 4-10).
+   salons/<code>/robot est posé par le joueur avant une classée contre un robot ; ids de partie toujours en minuscules.
 */
 (function (racine) {
   'use strict';
@@ -137,53 +138,58 @@
   }
   function saison(id) { for (var i = 0; i < SAISONS.length; i++) if (SAISONS[i].id === id) return SAISONS[i]; return null; }
 
-  function palier(place) {
-    if (place === 1) return 'champion';
-    if (place >= 2 && place <= 3) return 'podium';
-    if (place >= 4 && place <= 10) return 'top10';
-    return 'base';
-  }
-  /* Fichier d'image prévu : images/ecussons/saison-<id>-<matière>-<palier>.png ; Saison 0 = matière « pionnier ». */
-  function imageEcusson(idSaison, idRang, pal) {
-    return 'images/ecussons/saison-' + idSaison + '-' + (idSaison === 0 ? 'pionnier' : idRang) + '-' + pal + '.png';
-  }
-  /* 1 écusson par saison si placement fini, sinon null. place = place finale au classement (ou null). */
-  function ecusson(idSaison, j, place) {
-    if (enPlacement(j)) return null;
-    var r = rang(j.elo).id, p = palier(place);
-    return { saison: idSaison, rang: idSaison === 0 ? 'pionnier' : r, palier: p, image: imageEcusson(idSaison, r, p) };
+  /* ----- Récompenses de saison (règle du 9 nov. 2026) -----
+     Médaille ronde de la saison pour tout joueur ayant fini son placement (Saison 0 = médaille Pionnier) ;
+     un top 10 reçoit EN PLUS un écu à sa place : or 1, argent 2-3, bronze 4-10.
+     La place finale est posée à la main par Romain dans classe/instantanes/<saison>/<uid>/place. */
+  function metalEcu(place) { return place === 1 ? 'or' : place >= 2 && place <= 3 ? 'argent' : place >= 4 && place <= 10 ? 'bronze' : null; }
+  function nomMedaille(idSaison) { return idSaison === 0 ? 'Pionnier' : 'Saison ' + idSaison; }
+  /* Images : images/recompenses/saison-<id>-<taille>.png et ecu-<métal>-<place>-<taille>.png (tailles 104 et 56). */
+  function imageMedaille(idSaison, taille) { return 'images/recompenses/saison-' + idSaison + '-' + (taille || 104) + '.png'; }
+  function imageEcu(place, taille) { var m = metalEcu(place); return m ? 'images/recompenses/ecu-' + m + '-' + place + '-' + (taille || 104) + '.png' : null; }
+  /* Récompense d'une saison d'après l'instantané : null si placement non fini ; { saison } = médaille seule ; + place, ecu pour un top 10. */
+  function recompense(idSaison, inst) {
+    if (!inst || inst.placementFini !== true) return null;
+    var r = { saison: idSaison }, p = inst.place;
+    if (Number.isInteger(p) && metalEcu(p)) { r.place = p; r.ecu = metalEcu(p); }
+    return r;
   }
 
-  /* Instantané complet de fin de saison. stats = { modes, dernieres, tops, elements } déjà calculés par l'appelant. */
-  function instantaneSaison(idSaison, j, place, stats) {
+  /* Instantané complet de fin de saison (sans la place, posée ensuite par Romain).
+     stats = { modes: { classee|amicale|entrainement: { parties, v, d, best, serie } }, dernieres, tops: { golems, terrains, decks, mvp }, elements }. */
+  function instantaneSaison(idSaison, j, stats) {
     stats = stats || {};
-    var fini = !enPlacement(j);
-    return {
-      saison: idSaison, elo: j.elo, rang: fini ? rang(j.elo).id : null, place: fini && place ? place : null, placementFini: fini,
+    var fini = !enPlacement(j), t = stats.tops || {}, o = {
+      saison: idSaison, elo: j.elo, rang: rang(j.elo).id, placementFini: fini,
       modes: stats.modes || {}, dernieres: (stats.dernieres || []).slice(-10),
-      tops: { golems: ((stats.tops || {}).golems || []).slice(0, 5), terrains: ((stats.tops || {}).terrains || []).slice(0, 5) },
-      elements: stats.elements || {}, ecusson: ecusson(idSaison, j, place)
+      tops: {
+        golems: (t.golems || []).slice(0, 5), terrains: (t.terrains || []).slice(0, 5),
+        decks: (t.decks || []).slice(0, 5), mvp: (t.mvp || []).slice(0, 5)
+      },
+      elements: stats.elements || {}
     };
+    return o;
   }
 
   /* ----- Objets à écrire dans Firebase ----- */
   var HORODATAGE = { '.sv': 'timestamp' };
-  function idPartie(sa, gr) { return sa + '-' + String(gr); }
+  /* Id de partie toujours en minuscules (règle : [a-z0-9-]{3,60}). */
+  function idPartie(sa, gr) { return (String(sa) + '-' + String(gr)).toLowerCase(); }
   /* Partie entre joueurs : o = { sa, gr, a, b, profilA, profilB, gagnant (uid ou 'nul'), saison }. */
   function creePartie(o) {
     var nul = o.gagnant === 'nul', ga = nul ? 'nul' : o.gagnant === o.a, gb = nul ? 'nul' : o.gagnant === o.b;
     return { id: idPartie(o.sa, o.gr), partie: {
       a: o.a, b: o.b, gagnant: o.gagnant, eloA: o.profilA.elo, eloB: o.profilB.elo,
       deltaA: variation(o.profilA, o.profilB.elo, ga), deltaB: variation(o.profilB, o.profilA.elo, gb),
-      robot: false, saison: o.saison, t: HORODATAGE, sa: o.sa, gr: String(o.gr) } };
+      robot: false, saison: o.saison, t: HORODATAGE, sa: String(o.sa).toLowerCase(), gr: String(o.gr) } };
   }
-  /* Partie contre un robot : o = { sa, gr, a, profilA, niveau ('facile|normal|difficile'), gagne: bool, saison, id (facultatif) }. */
+  /* Partie contre un robot : o = { sa, gr, a, profilA, niveau ('facile|normal|difficile'), gagne: true | false | 'nul', saison, id (facultatif) }. */
   function creePartieRobot(o) {
-    var R = ROBOTS[o.niveau];
-    return { id: o.id || (idPartie(o.sa, o.gr) + '-' + R.id).toLowerCase(), partie: {
-      a: o.a, b: R.id, gagnant: o.gagne ? o.a : R.id, eloA: o.profilA.elo, eloB: R.elo,
-      deltaA: variation(o.profilA, R.elo, !!o.gagne, { robot: true }),
-      robot: true, saison: o.saison, t: HORODATAGE, sa: o.sa, gr: String(o.gr) } };
+    var R = ROBOTS[o.niveau], nul = o.gagne === 'nul';
+    return { id: (o.id || (idPartie(o.sa, o.gr) + '-' + R.id)).toLowerCase(), partie: {
+      a: o.a, b: R.id, gagnant: nul ? 'nul' : o.gagne ? o.a : R.id, eloA: o.profilA.elo, eloB: R.elo,
+      deltaA: variation(o.profilA, R.elo, nul ? 'nul' : !!o.gagne, { robot: true }),
+      robot: true, saison: o.saison, t: HORODATAGE, sa: String(o.sa).toLowerCase(), gr: String(o.gr) } };
   }
   function confirmation(id, uid) { var u = {}; u['classe/parties/' + id + '/ok/' + uid] = true; return u; }
   /* Application d'une partie au profil de uid (par lui ou par son adversaire) : une seule écriture multi-chemins. */
@@ -191,22 +197,120 @@
     var estA = partie.a === uid, res = partie.gagnant === 'nul' ? 'nul' : partie.gagnant === uid;
     var n = appliquePartie(profil, estA ? partie.eloB : partie.eloA, res,
       { delta: estA ? partie.deltaA : partie.deltaB, idPartie: id, robot: partie.robot === true, maintenant: ms }).joueur;
+    n.maj = HORODATAGE;
     var u = {}; u['classe/joueurs/' + uid] = n; u['classe/parties/' + id + '/fait/' + uid] = true; return u;
   }
   function salonClasse() { return { cl: true, cree: HORODATAGE }; }
   function niveauRobot(elo) { return elo < 900 ? 'facile' : elo < 1150 ? 'normal' : 'difficile'; }
   function salonRobot(uid, elo) { return { u: uid, n: niveauRobot(elo), t: HORODATAGE }; }
+  /* Ligne du classement (copie exacte du profil, placement fini seulement). */
+  function ligneClassement(pseudo, j) { return enPlacement(j) ? null : { pseudo: pseudo, elo: j.elo, rang: rang(j.elo).id, v: j.v || 0, d: j.d || 0 }; }
+  function sansNuls(o) {
+    if (Array.isArray(o)) return o.map(sansNuls);
+    if (!o || typeof o !== 'object') return o;
+    var r = {}; for (var k in o) if (o[k] !== null && o[k] !== undefined) r[k] = sansNuls(o[k]); return r;
+  }
+
+  /* ----- Branchement Firebase : service(B), B = { lit(chemin), ecrit(maj multi-chemins), uid(), pseudo() }.
+     Chemins relatifs à la racine des données (le préfixe essai/ est ajouté par salon-firebase.js).
+     Chaque étape relit Firebase : aucune valeur locale n'est crue. Les échecs (règles, hors ligne) remontent à l'appelant. */
+  function service(B) {
+    function m1(chemin, val) { var u = {}; u[chemin] = val; return u; }
+    async function saisonCourante() { var s = await B.lit('classe/saison'); return s && Number.isInteger(s.id) ? s : null; }
+    /* Profil classé du joueur : créé s'il manque, remis à la nouvelle saison (instantané d'abord si placement fini),
+       ligne du classement et récompenses tenues à jour. opts.stats(idSaison, saison) -> stats de l'instantané. */
+    async function profil(opts) {
+      opts = opts || {};
+      var u = B.uid(), s = await saisonCourante(); if (!u || !s) return null;
+      var j = await B.lit('classe/joueurs/' + u);
+      if (!j) {
+        var n = nouveauJoueur(s.id); n.maj = HORODATAGE;
+        await B.ecrit(m1('classe/joueurs/' + u, n)); j = await B.lit('classe/joueurs/' + u);
+      } else if (j.saison < s.id) {
+        if (!enPlacement(j) && !(await B.lit('classe/instantanes/' + j.saison + '/' + u))) {
+          var st = opts.stats ? await opts.stats(j.saison) : {};
+          await B.ecrit(m1('classe/instantanes/' + j.saison + '/' + u, sansNuls(instantaneSaison(j.saison, j, st))));
+        }
+        var r = nouvelleSaison(j, s.id); r.maj = HORODATAGE;
+        await B.ecrit(m1('classe/joueurs/' + u, r));
+        try { await B.ecrit(m1('classe/classement/' + u, null)); } catch (e) {}
+        j = await B.lit('classe/joueurs/' + u);
+      }
+      try { await publieClassement(j); } catch (e) {}
+      try { await recompenses(); } catch (e) {}
+      return j;
+    }
+    async function publieClassement(j) {
+      var u = B.uid(), l = j && B.pseudo ? ligneClassement(B.pseudo(), j) : null;
+      if (!l || !l.pseudo) return false;
+      var o = await B.lit('classe/classement/' + u);
+      if (o && o.elo === l.elo && o.v === l.v && o.d === l.d && o.pseudo === l.pseudo) return false;
+      await B.ecrit(m1('classe/classement/' + u, l)); return true;
+    }
+    /* Récompenses des saisons terminées : copie publique (classe/ecussons/<uid>/<s>) de ce que donne l'instantané. */
+    async function recompenses() {
+      var u = B.uid(), ss = await B.lit('classe/saisons'), deja = (await B.lit('classe/ecussons/' + u)) || {}, n = 0;
+      for (var k in (ss || {})) {
+        var id = +k; if (!Number.isInteger(id)) continue;
+        var r = recompense(id, await B.lit('classe/instantanes/' + id + '/' + u)), o = deja[k];
+        if (!r) continue;
+        if (o && o.saison === r.saison && o.place === r.place && o.ecu === r.ecu) continue;
+        await B.ecrit(m1('classe/ecussons/' + u + '/' + id, r)); n++;
+      }
+      return n;
+    }
+    /* Applique la partie id au profil de qui (moi par défaut). Renvoie true si c'est fait (ou déjà fait). */
+    async function applique(id, qui) {
+      qui = qui || B.uid();
+      var p = await B.lit('classe/parties/' + id); if (!p) return false;
+      if (p.fait && p.fait[qui]) return true;
+      var j = await B.lit('classe/joueurs/' + qui); if (!j) return false;
+      try { await B.ecrit(application(qui, j, id, p)); } catch (e) { return false; }
+      return true;
+    }
+    /* Fin d'une classée contre un robot (salons/<sa>/robot posé avant la partie). o = { sa, gr, niveau, gagne }. */
+    async function finRobot(o) {
+      var u = B.uid(), s = await saisonCourante(), j = await B.lit('classe/joueurs/' + u);
+      if (!s || !j) throw new Error('classe/profil');
+      var P = creePartieRobot({ sa: o.sa, gr: o.gr, a: u, profilA: j, niveau: o.niveau, gagne: o.gagne, saison: s.id });
+      if (!(await B.lit('classe/parties/' + P.id))) await B.ecrit(m1('classe/parties/' + P.id, P.partie));
+      var ok = await applique(P.id, u), n = await B.lit('classe/joueurs/' + u);
+      try { await publieClassement(n); } catch (e) {}
+      return { id: P.id, fait: ok, avant: j, apres: n, delta: ok && n ? n.elo - j.elo : P.partie.deltaA };
+    }
+    /* Fin d'une classée entre joueurs. o = { sa, gr, a, b, gagnant (uid ou 'nul') }. Chaque joueur appelle cette fonction :
+       la partie est écrite une fois (la seconde écriture est refusée), chacun confirme, puis chacun applique ce qui peut l'être.
+       Le perdant applique aussi la partie du gagnant (il ne peut pas esquiver sa défaite). Renvoie { id, fait }. */
+    async function finJoueurs(o) {
+      var u = B.uid(), id = idPartie(o.sa, o.gr), p = await B.lit('classe/parties/' + id);
+      if (!p) {
+        var s = await saisonCourante(), pa = await B.lit('classe/joueurs/' + o.a), pb = await B.lit('classe/joueurs/' + o.b);
+        if (!s || !pa || !pb) throw new Error('classe/profil');
+        try { await B.ecrit(m1('classe/parties/' + id, creePartie({ sa: o.sa, gr: o.gr, a: o.a, b: o.b, profilA: pa, profilB: pb, gagnant: o.gagnant, saison: s.id }).partie)); } catch (e) {}
+        p = await B.lit('classe/parties/' + id); if (!p) throw new Error('classe/partie');
+      }
+      if (!(p.ok && p.ok[u])) await B.ecrit(confirmation(id, u));
+      var fait = await applique(id, u), autre = p.a === u ? p.b : p.a;
+      if (p.gagnant !== u) { try { await applique(id, autre); } catch (e) {} }
+      try { await publieClassement(await B.lit('classe/joueurs/' + u)); } catch (e) {}
+      return { id: id, fait: fait, partie: p };
+    }
+    return { saisonCourante: saisonCourante, profil: profil, publieClassement: publieClassement, recompenses: recompenses,
+      applique: applique, finRobot: finRobot, finJoueurs: finJoueurs };
+  }
 
   var API = {
     HORODATAGE: HORODATAGE, numJour: numJour, idPartie: idPartie, creePartie: creePartie, creePartieRobot: creePartieRobot,
     confirmation: confirmation, application: application, salonClasse: salonClasse, niveauRobot: niveauRobot, salonRobot: salonRobot,
+    ligneClassement: ligneClassement, sansNuls: sansNuls, service: service,
     ELO_DEPART: ELO_DEPART, K_DEBUT: K_DEBUT, K_ENSUITE: K_ENSUITE, PARTIES_K_DEBUT: PARTIES_K_DEBUT, PLACEMENT: PLACEMENT,
-    ROBOTS_PAR_JOUR: ROBOTS_PAR_JOUR, RANGS: RANGS, ROBOTS: ROBOTS, SAISONS: SAISONS, PALIERS: PALIERS,
+    ROBOTS_PAR_JOUR: ROBOTS_PAR_JOUR, RANGS: RANGS, ROBOTS: ROBOTS, SAISONS: SAISONS,
     rang: rang, enPlacement: enPlacement, facteurK: facteurK, attendu: attendu, variation: variation, appliquePartie: appliquePartie,
     nouveauJoueur: nouveauJoueur, affichage: affichage, rangEstime: rangEstime, robotPour: robotPour, estRobot: estRobot,
     jourParis: jourParis, robotsRestants: robotsRestants, peutAffronterRobot: peutAffronterRobot, compteRobot: compteRobot,
-    classement: classement, eloRemise: eloRemise, nouvelleSaison: nouvelleSaison, saison: saison, palier: palier,
-    imageEcusson: imageEcusson, ecusson: ecusson, instantaneSaison: instantaneSaison
+    classement: classement, eloRemise: eloRemise, nouvelleSaison: nouvelleSaison, saison: saison,
+    metalEcu: metalEcu, nomMedaille: nomMedaille, imageMedaille: imageMedaille, imageEcu: imageEcu, recompense: recompense,
+    instantaneSaison: instantaneSaison
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   else racine.GolemsClasse = API;

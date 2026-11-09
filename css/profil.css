@@ -136,6 +136,7 @@ html.galOuverte,html.galOuverte body{overflow:hidden}
 .pr-bd{align-self:stretch;display:flex;flex-wrap:wrap;gap:8px}
 .pr-bd .bd{position:relative;flex:none;width:calc((100% - 16px)/3);height:104px;border-radius:10px;background:#121e29;border:1px solid #2a3f50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font:inherit;padding:0 4px;color:inherit}
 .pr-bd .bd img{width:56px;height:56px}.pr-bd .bd b{font:800 12px/1.15 var(--corps);color:#fff}.pr-bd .bd span{font-size:11.5px;color:#a6bac6;line-height:1.1}
+.pr-bd .bd img.bd-ecu{position:absolute;right:4px;top:4px;width:30px;height:30px} /* ecu du top 10, en plus de la medaille de saison */
 .pr-bd .bd.cours{border-color:#1f8fb0;background:rgba(1,193,240,.10)}
 @media(hover:hover){.pr-bd .bd:hover{border-color:#7fe3ff}}
 .pr-bd .bd:focus-visible{outline:2px solid #01C1F0;outline-offset:2px}

@@ -72,7 +72,32 @@ function resumeCumul(c){
 }
 /* Resume publie (salon-firebase.js) : cumuls c du compte completes par les parties de l'historique l pas encore comptees ;
    sans cumuls (invite, ancien fichier), l'historique seul. */
-function resumeProfil(l,c){c=c&&typeof c==='object'?c:null;return resumeCumul(cumulAjoute(c,l)||c)}
+function resumeProfil(l,c){c=c&&typeof c==='object'?c:null;const R=resumeCumul(cumulAjoute(c,l)||c);R.pm=resumeModes(l);return R}
+/* 0.6 : resume public PAR MODE (profils/<uid>/pm, rules/30-stats.js) sur l'historique du compte (50 dernieres parties) :
+   n, v, d, b meilleure serie, s serie en cours, r 10 dernieres (V D N), el elements en %, tops 5 dk / cb / mv. */
+function resumeModes(l){const o={};PF_MODES.forEach(([m])=>{const D=pfStats(l,m,'',0);if(!D.n)return;
+  const x={n:D.n,v:D.v,d:D.d,b:Math.max(0,D.best|0),s:D.serie|0,r:D.der.join('')};
+  if(D.els.length){x.el={};D.els.forEach(([e,p])=>{x.el[e]=p})}
+  if(D.dk.length)x.dk=D.dk.map(y=>({nom:String(y.nom).slice(0,40),e:(y.els||[]).join(','),n:y.n,v:y.v}));
+  if(D.cb.length)x.cb=D.cb.filter(y=>/^[0-9]{3}e?$/.test(y.c)).map(y=>({c:y.c,n:y.n,v:y.v}));
+  if(D.mv.length)x.mv=D.mv.filter(y=>/^[0-9]{3}e?$/.test(y.c)).map(y=>({c:y.c,n:y.n}));
+  o[m]=x});return o}
+/* Lecture du resume par mode d'un autre joueur -> meme forme que pfStats ; null si absent. */
+function pfStatsMode(pm,mode){const x=pm&&pm[mode];if(!x)return null;const ls=v=>Array.isArray(v)?v:Object.values(v||{});
+  const els=Object.entries(x.el||{}).map(([e,p])=>[e,p|0]).sort((a,b)=>b[1]-a[1]);
+  return {n:x.n|0,v:x.v|0,d:x.d|0,best:x.b|0,serie:x.s|0,der:String(x.r||'').split('').filter(Boolean),els,
+    dk:ls(x.dk).map(y=>({nom:String(y.nom||'Deck'),els:String(y.e||'').split(',').filter(Boolean),n:y.n|0,v:y.v|0})),cb:ls(x.cb).map(y=>({c:y.c,n:y.n|0,v:y.v|0})),mv:ls(x.mv).map(y=>({c:y.c,n:y.n|0}))}}
+/* 0.6 : statistiques de l'instantane de fin de saison (commun/classe.js, service.profil) : parties de l'historique jouees pendant la saison id. */
+async function pfInstantane(id){
+  const sa=await pfLit('classe/saisons/'+id)||{},de=+sa.debut||0,fi=+sa.fin||Infinity;
+  let h=[];try{h=(room.compte.donnees().historique||[]).filter(x=>(+x.date||0)>=de&&(+x.date||0)<=fi)}catch(e){}
+  const modes={},dern=[];let tops={golems:[],terrains:[],decks:[],mvp:[]},els={};
+  PF_MODES.forEach(([m])=>{const D=pfStats(h,m,'',0);if(!D.n)return;modes[m]={parties:D.n,v:D.v,d:D.d,best:Math.max(0,D.best|0),serie:D.serie|0};
+    if(m==='classee'){tops={golems:D.cb.map(y=>({id:y.c,n:y.n,v:y.v})),terrains:[],decks:D.dk.map(y=>({nom:String(y.nom).slice(0,40),e:(y.els||[]).join(','),n:y.n,v:y.v})),mvp:D.mv.map(y=>({id:String(y.c).slice(0,12),n:y.n}))};
+      D.els.forEach(([e,p])=>{if(/^[a-z]{1,12}$/.test(e))els[e]={n:p,v:0}})}});
+  h.filter(x=>x.res==='Victoire'||x.res==='Défaite').sort((a,b)=>(+a.date||0)-(+b.date||0)).slice(-10).forEach(x=>dern.push({mode:pfModeDe(x),gagne:x.res==='Victoire',adv:String(x.adv||'').slice(0,40),t:+x.date||0}));
+  return {modes,dernieres:dern,tops,elements:els};
+}
 /* Cumuls du compte connecte (avec les parties de l'historique pas encore comptees), sinon ceux de l'historique de l'appareil. */
 function monCumul(){
   if(compteCo()){const d=room.compte.donnees(),c=d.cumul&&typeof d.cumul==='object'?d.cumul:null;return cumulAjoute(c,d.historique)||c}
@@ -142,7 +167,7 @@ async function ouvreProfil(autre){
   if(autre&&!autre.uid)autre=null;
   if(autre&&compteCo()&&autre.uid===room.compte.uid())autre=null;
   const CL=window.GolemsClasse,E=(t,c,x)=>{const e=el(t,c||'');if(x!=null)e.textContent=x;return e};
-  const co=compteCo(),moi=!autre;let uid='',nom,cree='',prive=false,histo=[],resume=null;
+  const co=compteCo(),moi=!autre;let uid='',nom,cree='',prive=false,histo=[],resume=null,pmAutre=null;
   if(moi){nom=co?pseudo:'Invité';try{if(co)uid=room.compte.uid()}catch(e){}
     try{const c=co&&room.compte.donnees().cree;if(c)cree='Compte créé le '+new Date(c).toLocaleDateString('fr-FR',{dateStyle:'long'})}catch(e){}
     if(!co)cree='Sans compte : historique de cet appareil';
@@ -150,7 +175,7 @@ async function ouvreProfil(autre){
   else{nom=autre.p;uid=autre.uid;
     const r=room&&room.compte.profilDe?await room.compte.profilDe(autre.uid):null;if($('profilJoueur'))return;
     if(r){nom=r.p||nom;if(+r.cr>0)cree='Compte créé le '+new Date(+r.cr).toLocaleDateString('fr-FR',{dateStyle:'long'})}
-    if(r&&r.m===true){prive=true;resume={n:r.n|0,v:r.v|0,d:r.d|0,best:0,serie:0,der:[],els:[],dk:[],cb:[],mv:[],global:true}}else if(r)resume=pfStatsResume(resumeLu(r));
+    if(r&&r.pm)pmAutre=r.pm;if(r&&r.m===true){prive=true;resume={n:r.n|0,v:r.v|0,d:r.d|0,best:0,serie:0,der:[],els:[],dk:[],cb:[],mv:[],global:true}}else if(r)resume=pfStatsResume(resumeLu(r));
     else resume={n:autre.n|0,v:autre.v|0,d:(autre.n|0)-(autre.v|0),best:0,serie:0,der:[],els:[],dk:[],cb:[],mv:[],global:true}}
   /* Classe (lectures publiques ; rien si hors ligne ou invite). */
   const [sa,sas,jo,cla,ecs]=uid?await Promise.all([pfLit('classe/saison'),pfLit('classe/saisons'),pfLit('classe/joueurs/'+uid),pfLit('classe/classement'),pfLit('classe/ecussons/'+uid)]):[null,null,null,null,null];
@@ -185,15 +210,16 @@ async function ouvreProfil(autre){
     if(nx){const lo=Number.isFinite(a.rang.min)?a.rang.min:nx.min-100,p=Math.max(0,Math.min(100,100*(jo.elo-lo)/(nx.min-lo)));jg.hidden=false;
       const bar=E('div','pr-bar'),f=el('i');f.style.width=p+'%';bar.append(f);const sm=E('small'),s2=E('span');s2.append(E('b','',Math.ceil(nx.min-jo.elo)+' pts'),' avant '+nx.nom);sm.append(E('span','','Prochain rang'),s2);jg.append(bar,sm)}};
   /* Ecussons : une case par saison terminee (classe/ecussons), puis la saison en cours. Clic = la partie droite passe sur cette saison. */
+  /* Regle du 9 nov. : medaille ronde de la saison (placement fini, Saison 0 = Pionnier) + ecu pour un top 10 (or 1, argent 2-3, bronze 4-10). */
   const ecu=Object.values(ecs||{}).filter(x=>x&&Number.isInteger(x.saison)&&x.saison!==idCours).sort((a,b)=>a.saison-b.saison);
   zr.append(E('div','pr-sep'),E('div','pr-et','Badges'));const bd=E('div','pr-bd');zr.append(bd);
   let sais=idCours,mode=0,dif=0;const inst={};
-  const palierTxt={top10:'Top 10',podium:'Podium',champion:'Champion'};
-  const badge=(x,cours)=>{const q=E('button','bd'+(cours?' cours':x.saison===0?' pio':x.palier&&x.palier!=='base'?' top':''));q.type='button';
-    const im=el('img');im.alt='';im.src=cours?PF_EMB+(jo&&CL&&Number.isFinite(jo.elo)&&!CL.enPlacement(jo)?CL.rang(jo.elo).id:'placement')+'.png':String(x.image||'');
-    im.onerror=()=>{im.src=PF_EMB+(x&&x.rang&&x.rang!=='pionnier'?x.rang:'diamant')+'.png';im.onerror=()=>{im.style.visibility='hidden'}};
-    const nm=x&&x.rang?(x.rang==='pionnier'?'Pionnier':((CL&&CL.RANGS.find(r=>r.id===x.rang)||{}).nom||x.rang)):'';
-    q.append(im,E('b','',nomSaison(cours?idCours:x.saison)),E('span','',cours?'en cours':nm+(palierTxt[x.palier]?' - '+palierTxt[x.palier]:'')));
+  const metalTxt={or:'Écu d’or',argent:'Écu d’argent',bronze:'Écu de bronze'},repli=im=>{im.onerror=()=>{im.onerror=null;im.src=PF_EMB+'placement.png'}};
+  const badge=(x,cours)=>{const q=E('button','bd'+(cours?' cours':x.saison===0?' pio':x.ecu?' top':''));q.type='button';
+    const im=el('img');im.alt='';repli(im);im.src=cours?PF_EMB+(jo&&CL&&Number.isFinite(jo.elo)&&!CL.enPlacement(jo)?CL.rang(jo.elo).id:'placement')+'.png':imgV(CL.imageMedaille(x.saison,56));
+    q.append(im);
+    if(!cours&&x.ecu&&Number.isInteger(x.place)){const e2=el('img','bd-ecu');e2.alt=metalTxt[x.ecu]||'';repli(e2);e2.src=imgV(CL.imageEcu(x.place,56));q.append(e2)}
+    q.append(E('b','',nomSaison(cours?idCours:x.saison)),E('span','',cours?'en cours':CL.nomMedaille(x.saison)+(x.ecu?' - '+x.place+(x.place>1?'e':'re'):'')));
     const s=cours?idCours:x.saison;q.dataset.tip='Voir la saison '+s;q.setAttribute('aria-label','Voir la saison '+s);q.onclick=()=>{sais=s;rend()};bd.append(q)};
   ecu.forEach(x=>badge(x,false));badge(null,true);
   const bas=E('div','pr-bas');id.append(bas);
@@ -216,7 +242,7 @@ async function ouvreProfil(autre){
     const sb=E('div','pr-sb');sb.append(E('b','',nomSaison(sais)+(cours?' - en cours':' - terminée')));
     if(!cours){const rb=E('button','sc-btn sc-secondaire','Revenir à la saison en cours');rb.type='button';rb.onclick=()=>{sais=idCours;rend()};sb.append(rb)}
     dr.append(sb);
-    const glob=!!(resume&&resume.global)&&cours,off=prive||glob;
+    const glob=!!(resume&&resume.global)&&cours&&!pmAutre,off=prive||glob;
     const h=E('div','pr-h'),s=E('div','pr-seg s3'+(off?' pr-off':''));s.style.setProperty('--p',mode);
     if(glob)s.title='Détail par mode bientôt disponible pour les autres joueurs';
     PF_MODES.forEach(([,n],i)=>{const x=E('button','',n);x.type='button';x.setAttribute('aria-pressed',String(!off&&i===mode));x.onclick=()=>{mode=i;rend()};s.append(x)});
@@ -226,7 +252,7 @@ async function ouvreProfil(autre){
     ['Tous','Facile','Normal','Difficile'].forEach((n,i)=>{const x=E('button','',n);x.type='button';x.setAttribute('aria-pressed',String(i===dif));x.onclick=()=>{dif=i;rend()};s2.append(x)});
     h.append(s2);dr.append(h);
     const MO=PF_MODES[mode][0];
-    const D=resume?resume:I?pfStatsInstantane(I,MO):cours?pfStats(histo,MO,mode===2?PF_DIF[dif]:'',debut):{n:0,v:0,d:0,best:0,serie:0,der:[],els:[],dk:[],cb:[],mv:[]};
+    const D=pmAutre&&cours&&!prive?(pfStatsMode(pmAutre,MO)||{n:0,v:0,d:0,best:0,serie:0,der:[],els:[],dk:[],cb:[],mv:[]}):resume&&cours?resume:I?pfStatsInstantane(I,MO):cours?pfStats(histo,MO,mode===2?PF_DIF[dif]:'',debut):{n:0,v:0,d:0,best:0,serie:0,der:[],els:[],dk:[],cb:[],mv:[]};
     const P=prive?resume:D;
     /* Bilan */
     const hr=E('div','pr-hr'),gc=E('div','pr-gc'),gn=E('div','pr-gn');
@@ -264,7 +290,7 @@ async function ouvreProfil(autre){
       const vi=c[1].indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',vi<0?c[1]:c[1].slice(0,vi)));if(vi>=0){const ti=el('span','dl-titre',c[1].slice(vi+2));ti.style.color=coulT(c);nm.append(ti)}
       if(estAnimal(c)||C.animal){fo.className='dl-force dl-mot';fo.textContent='Animal';q.append(co2,fo,nm)}else q.append(co2,fo,ee,nm);const src=imgV('cartes/'+c[0]+'.jpg');q.onclick=()=>{cacheApercu();zoom(src,c[1])};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
       const w=E('div','pr-it');w.append(q,lab);return w};
-    const top=resume?3:5;
+    const top=resume&&!pmAutre?3:5;
     pan('Meilleurs decks',D.dk.slice(0,top).map(deckL),D.global?'':I?'Non conservé pour les saisons terminées.':'Un deck apparaît après 5 parties.');
     pan('Meilleures cartes',D.cb.slice(0,top).map(x=>carteL(x.c,st(x.n,x))),D.global?'':'Une carte apparaît après 5 parties.');
     pan('Cartes le plus souvent MVP',D.mv.slice(0,top).map(x=>{const s=E('div','pr-st');s.append(E('span','pr-mvp','MVP'),E('b','',String(x.n)),' fois MVP');return carteL(x.c,s)}),D.global?'':I?'Non conservé pour les saisons terminées.':'Pas encore assez de parties.');

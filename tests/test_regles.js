@@ -133,6 +133,8 @@ async function scenario(P) {
   await attendu(ici('invité lit pseudos/<clé>'), true, req(G, 'GET', P + 'pseudos/' + pA.toLowerCase()));
   await attendu(ici('invité lit nouveautes/epingles'), true, req(G, 'GET', P + 'nouveautes/epingles'));
   await attendu(ici('invité entre dans un salon'), false, req(G, 'PUT', S + '/joueurs/' + G.uid, { pseudo: 'Invite', t: HEURE }));
+  await attendu(ici('resume classé (cl)'), true, req(A, 'PUT', P + 'resume/8-' + t, { ...resume, cl: true }));
+  await attendu(ici('resume, cl non booléen'), false, req(A, 'PUT', P + 'resume/81-' + t, { ...resume, cl: 'oui' }));
   await attendu(ici('invité écrit un resume'), false, req(G, 'PUT', P + 'resume/7-' + t, resume));
 
   return { A, B, X, G, pA, pB, pX, code, resume, t };
@@ -251,6 +253,7 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('robot : jour inventé'), false, req(X, 'PATCH', '', appR({ elo: 1020, parties: 1, partiesTotal: 1, v: 1 }, { jour: '2026-11-08', j: jour - 1, n: 1 })));
   await attendu(ici('robot : sans compteur du jour'), false, req(X, 'PATCH', '', appR({ elo: 1020, parties: 1, partiesTotal: 1, v: 1 })));
   await attendu(ici('robot : victoire appliquée'), true, req(X, 'PATCH', '', appR({ elo: 1020, parties: 1, partiesTotal: 1, v: 1 }, { jour: '2026-11-09', j: jour, n: 1 })));
+  await attendu(ici('partie robot nulle créée'), true, req(X, 'PUT', CL + 'parties/' + rid + 'n', { ...pr, gagnant: 'nul', deltaA: 0, eloA: 1020 }));
   await attendu(ici('bandeau robot retiré par son auteur'), true, req(X, 'DELETE', S3 + '/robot'));
   await req('admin', 'PATCH', J(X), { robots: { jour: '2026-11-09', j: jour, n: 5 } });
   await attendu(ici('bandeau robot après 5 classées du jour'), false, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));
@@ -262,7 +265,9 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('nouvelle saison par Romain'), true, req(R, 'PUT', CL + 'saison', { id: 1, nom: 'Saison 1', debut: t }));
   await attendu(ici('saison terminée par Romain'), true, req(R, 'PUT', CL + 'saisons/0', { nom: 'Bêta', debut: t, fin: t }));
   await attendu(ici('remise sans instantané (placement fini)'), false, req(A, 'PUT', J(A), profil({ elo: 1016, partiesTotal: 1, saison: 1 })));
-  const ins = { saison: 0, elo: 1032, rang: 'topaze', placementFini: true, modes: { classee: { parties: 5, v: 1, d: 0 } } };
+  const ins = { saison: 0, elo: 1032, rang: 'topaze', placementFini: true, modes: { classee: { parties: 5, v: 1, d: 0, best: 1, serie: 1 } },
+    tops: { decks: { 0: { nom: 'Montée', e: 'brume,roche', n: 5, v: 1 } }, mvp: { 0: { id: '001', n: 2 } }, golems: { 0: { id: '001', n: 5, v: 1 } } } };
+  await attendu(ici('instantané, top inconnu'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { ...ins, tops: { pires: { 0: { id: '001', n: 1 } } } }));
   await attendu(ici('instantané avec sa place'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { ...ins, place: 1 }));
   await attendu(ici('instantané, Elo faux'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { ...ins, elo: 1500, rang: 'diamant' }));
   await attendu(ici('instantané d\'un autre'), false, req(X, 'PUT', CL + 'instantanes/0/' + A.uid, ins));
@@ -270,18 +275,35 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('instantané réécrit'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, ins));
   await attendu(ici('place posée par un joueur'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid + '/place', 1));
   await attendu(ici('place posée par Romain'), true, req(R, 'PUT', CL + 'instantanes/0/' + A.uid + '/place', 2));
-  const ec = { saison: 0, rang: 'topaze', palier: 'podium', image: 'ecussons/s0-topaze-podium.png' };
-  await attendu(ici('écusson Champion pour la 2e place'), false, req(A, 'PUT', CL + 'ecussons/' + A.uid + '/0', { ...ec, palier: 'champion' }));
-  await attendu(ici('écusson d\'un autre rang'), false, req(A, 'PUT', CL + 'ecussons/' + A.uid + '/0', { ...ec, rang: 'diamant' }));
-  await attendu(ici('écusson posé pour un autre'), false, req(X, 'PUT', CL + 'ecussons/' + A.uid + '/0', ec));
-  await attendu(ici('écusson sans instantané'), false, req(B, 'PUT', CL + 'ecussons/' + B.uid + '/0', { ...ec, rang: 'amethyste', palier: 'base' }));
-  await attendu(ici('écusson Podium'), true, req(A, 'PUT', CL + 'ecussons/' + A.uid + '/0', ec));
-  await attendu(ici('écusson Pionnier (saison 0)'), true, req(A, 'PUT', CL + 'ecussons/' + A.uid + '/0', { ...ec, rang: 'pionnier' }));
-  await attendu(ici('invité lit les écussons'), true, req(G, 'GET', CL + 'ecussons/' + A.uid));
+  // Récompenses (règle du 9 nov.) : médaille de saison pour tout placement fini, écu en plus pour le top 10 (place posée par Romain).
+  const EC = CL + 'ecussons/' + A.uid + '/0';
+  await attendu(ici('récompense : écu or pour la 2e place'), false, req(A, 'PUT', EC, { saison: 0, place: 2, ecu: 'or' }));
+  await attendu(ici('récompense : place différente de celle de Romain'), false, req(A, 'PUT', EC, { saison: 0, place: 1, ecu: 'or' }));
+  await attendu(ici('récompense : écu sans place'), false, req(A, 'PUT', EC, { saison: 0, ecu: 'argent' }));
+  await attendu(ici('récompense : ancien format (palier)'), false, req(A, 'PUT', EC, { saison: 0, rang: 'topaze', palier: 'podium', image: 'x.png' }));
+  await attendu(ici('récompense posée pour un autre'), false, req(X, 'PUT', EC, { saison: 0 }));
+  await attendu(ici('récompense sans instantané'), false, req(B, 'PUT', CL + 'ecussons/' + B.uid + '/0', { saison: 0 }));
+  await attendu(ici('récompense : médaille seule'), true, req(A, 'PUT', EC, { saison: 0 }));
+  await attendu(ici('récompense : médaille + écu argent (2e)'), true, req(A, 'PUT', EC, { saison: 0, place: 2, ecu: 'argent' }));
+  await req(R, 'PUT', CL + 'instantanes/0/' + A.uid + '/place', 12);
+  await attendu(ici('récompense : écu hors top 10'), false, req(A, 'PUT', EC, { saison: 0, place: 12, ecu: 'bronze' }));
+  await req(R, 'PUT', CL + 'instantanes/0/' + A.uid + '/place', 7);
+  await attendu(ici('récompense : écu bronze (7e)'), true, req(A, 'PUT', EC, { saison: 0, place: 7, ecu: 'bronze' }));
+  await attendu(ici('invité lit les récompenses'), true, req(G, 'GET', CL + 'ecussons/' + A.uid));
   await attendu(ici('remise, Elo non réduit'), false, req(A, 'PUT', J(A), profil({ elo: 1032, partiesTotal: 1, saison: 1 })));
   await attendu(ici('remise, partiesTotal remis à 0'), false, req(A, 'PUT', J(A), profil({ elo: 1016, partiesTotal: 0, saison: 1 })));
   await attendu(ici('remise à mi-chemin de 1000'), true, req(A, 'PUT', J(A), profil({ elo: 1016, partiesTotal: 1, saison: 1 })));
   await attendu(ici('classement retiré après la remise'), true, req(B, 'DELETE', CL + 'classement/' + A.uid));
+
+  // Résumé public par mode (pm).
+  const pm = { classee: { n: 5, v: 3, d: 2, b: 2, s: -1, r: 'VVDVD', el: { brume: 60, roche: 40 }, dk: { 0: { nom: 'Montée', e: 'brume', n: 5, v: 3 } }, cb: { 0: { c: '001', n: 5, v: 3 } }, mv: { 0: { c: '001', n: 2 } } } };
+  await attendu(ici('profil, résumé par mode'), true, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pm }));
+  await attendu(ici('profil, mode inconnu'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pm: { tournoi: pm.classee } }));
+  await attendu(ici('profil, 10 dernières invalides'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pm: { classee: { ...pm.classee, r: 'VVVVVVVVVVV' } } }));
+  await attendu(ici('profil privé avec résumé par mode'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, m: true, pm }));
+  // Mon image gardée : marqueurs __img et __init.
+  await attendu(ici('avatar : mon image active (__img)'), true, req(A, 'PUT', P + 'joueurs/' + A.uid + '/avatarId', '__img'));
+  await attendu(ici('avatar : initiale, image gardée (__init)'), true, req(A, 'PUT', P + 'joueurs/' + A.uid + '/avatarId', '__init'));
 
   // Guides.
   const gv = P + 'guides/bien-debuter/votes/';

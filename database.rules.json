@@ -421,7 +421,7 @@
       ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
       "$uid": {
         ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
-        ".validate": "(root.child('classement').child($uid).exists() ? newData.child('n').val() === root.child('classement').child($uid).child('n').val() && newData.child('v').val() === root.child('classement').child($uid).child('v').val() : newData.child('n').val() === 0) && newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))",
+        ".validate": "(root.child('classement').child($uid).exists() ? newData.child('n').val() === root.child('classement').child($uid).child('n').val() && newData.child('v').val() === root.child('classement').child($uid).child('v').val() : newData.child('n').val() === 0) && newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv') || newData.hasChild('pm')))",
         "p": {
           ".validate": "newData.isString() && newData.val() === root.child('joueurs').child($uid).child('pseudo').val()"
         },
@@ -589,6 +589,88 @@
             }
           }
         },
+        "pm": {
+          "$m": {
+            ".validate": "$m.matches(/^(classee|amicale|entrainement)$/) && newData.hasChildren(['n', 'v', 'd'])",
+            "n": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+            },
+            "v": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000 && newData.val() <= newData.parent().child('n').val()"
+            },
+            "d": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000 && newData.val() <= newData.parent().child('n').val()"
+            },
+            "b": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+            },
+            "s": {
+              ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -1000 && newData.val() <= 1000"
+            },
+            "r": {
+              ".validate": "newData.isString() && newData.val().matches(/^[VDN]{0,10}$/)"
+            },
+            "el": {
+              "$e": {
+                ".validate": "$e.matches(/^[a-z]{1,12}$/) && newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+              }
+            },
+            "dk": {
+              "$i": {
+                ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['nom', 'n', 'v'])",
+                "nom": {
+                  ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+                },
+                "e": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)"
+                },
+                "n": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+                },
+                "v": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+                },
+                "$autre": {
+                  ".validate": false
+                }
+              }
+            },
+            "cb": {
+              "$i": {
+                ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['c', 'n', 'v'])",
+                "c": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
+                },
+                "n": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+                },
+                "v": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+                },
+                "$autre": {
+                  ".validate": false
+                }
+              }
+            },
+            "mv": {
+              "$i": {
+                ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['c', 'n'])",
+                "c": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
+                },
+                "n": {
+                  ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+                },
+                "$autre": {
+                  ".validate": false
+                }
+              }
+            },
+            "$autre": {
+              ".validate": false
+            }
+          }
+        },
         "$autre": {
           ".validate": false
         }
@@ -640,6 +722,9 @@
         },
         "mvp": {
           ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "cl": {
+          ".validate": "newData.isBoolean()"
         },
         "dr": {
           ".validate": "newData.hasChildren()",
@@ -797,7 +882,7 @@
       "parties": {
         ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
         "$id": {
-          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && newData.exists() && !data.exists() && newData.child('saison').val() === root.child('classe').child('saison').child('id').val() && newData.child('t').val() === now && root.child('salons').child(newData.child('sa').val()).child('cl').val() === true && ((newData.child('robot').val() === true && newData.child('a').val() === auth.uid && newData.child('eloB').val() === (newData.child('b').val() === 'robot-facile' ? 750 : newData.child('b').val() === 'robot-normal' ? 1100 : newData.child('b').val() === 'robot-difficile' ? 1200 : -1) && newData.child('eloA').val() === root.child('classe').child('joueurs').child(newData.child('a').val()).child('elo').val() && root.child('classe').child('joueurs').child(newData.child('a').val()).child('saison').val() === root.child('classe').child('saison').child('id').val() && root.child('salons').child(newData.child('sa').val()).child('robot').child('u').val() === auth.uid && !newData.hasChild('deltaB') && (newData.child('gagnant').val() === newData.child('a').val() || newData.child('gagnant').val() === newData.child('b').val())) || (newData.child('robot').val() === false && $id === newData.child('sa').val() + '-' + newData.child('gr').val() && (newData.child('a').val() === auth.uid || newData.child('b').val() === auth.uid) && newData.child('a').val() !== newData.child('b').val() && root.child('salons').child(newData.child('sa').val()).child('engages').hasChild(newData.child('a').val()) && root.child('salons').child(newData.child('sa').val()).child('engages').hasChild(newData.child('b').val()) && newData.child('eloA').val() === root.child('classe').child('joueurs').child(newData.child('a').val()).child('elo').val() && newData.child('eloB').val() === root.child('classe').child('joueurs').child(newData.child('b').val()).child('elo').val() && root.child('classe').child('joueurs').child(newData.child('a').val()).child('saison').val() === root.child('classe').child('saison').child('id').val() && root.child('classe').child('joueurs').child(newData.child('b').val()).child('saison').val() === root.child('classe').child('saison').child('id').val() && newData.hasChild('deltaB') && (newData.child('gagnant').val() === newData.child('a').val() || newData.child('gagnant').val() === newData.child('b').val() || newData.child('gagnant').val() === 'nul')))",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && newData.exists() && !data.exists() && newData.child('saison').val() === root.child('classe').child('saison').child('id').val() && newData.child('t').val() === now && root.child('salons').child(newData.child('sa').val()).child('cl').val() === true && ((newData.child('robot').val() === true && newData.child('a').val() === auth.uid && newData.child('eloB').val() === (newData.child('b').val() === 'robot-facile' ? 750 : newData.child('b').val() === 'robot-normal' ? 1100 : newData.child('b').val() === 'robot-difficile' ? 1200 : -1) && newData.child('eloA').val() === root.child('classe').child('joueurs').child(newData.child('a').val()).child('elo').val() && root.child('classe').child('joueurs').child(newData.child('a').val()).child('saison').val() === root.child('classe').child('saison').child('id').val() && root.child('salons').child(newData.child('sa').val()).child('robot').child('u').val() === auth.uid && !newData.hasChild('deltaB') && (newData.child('gagnant').val() === newData.child('a').val() || newData.child('gagnant').val() === newData.child('b').val() || newData.child('gagnant').val() === 'nul')) || (newData.child('robot').val() === false && $id === newData.child('sa').val() + '-' + newData.child('gr').val() && (newData.child('a').val() === auth.uid || newData.child('b').val() === auth.uid) && newData.child('a').val() !== newData.child('b').val() && root.child('salons').child(newData.child('sa').val()).child('engages').hasChild(newData.child('a').val()) && root.child('salons').child(newData.child('sa').val()).child('engages').hasChild(newData.child('b').val()) && newData.child('eloA').val() === root.child('classe').child('joueurs').child(newData.child('a').val()).child('elo').val() && newData.child('eloB').val() === root.child('classe').child('joueurs').child(newData.child('b').val()).child('elo').val() && root.child('classe').child('joueurs').child(newData.child('a').val()).child('saison').val() === root.child('classe').child('saison').child('id').val() && root.child('classe').child('joueurs').child(newData.child('b').val()).child('saison').val() === root.child('classe').child('saison').child('id').val() && newData.hasChild('deltaB') && (newData.child('gagnant').val() === newData.child('a').val() || newData.child('gagnant').val() === newData.child('b').val() || newData.child('gagnant').val() === 'nul')))",
           ".validate": "$id.matches(/^[a-z0-9-]{3,60}$/) && newData.hasChildren(['a', 'b', 'gagnant', 'eloA', 'eloB', 'deltaA', 'robot', 'saison', 't', 'sa', 'gr'])",
           "a": {
             ".validate": "newData.isString() && newData.val().length <= 128"
@@ -910,6 +995,12 @@
                 "d": {
                   ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
                 },
+                "best": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
+                },
+                "serie": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -1000 && newData.val() <= 1000"
+                },
                 "$autre": {
                   ".validate": false
                 }
@@ -937,11 +1028,17 @@
             },
             "tops": {
               "$k": {
-                ".validate": "$k.matches(/^(golems|terrains)$/)",
+                ".validate": "$k.matches(/^(golems|terrains|decks|mvp)$/)",
                 "$i": {
-                  ".validate": "$i.matches(/^[0-4]$/)",
+                  ".validate": "$i.matches(/^[0-4]$/) && newData.hasChild('n')",
                   "id": {
                     ".validate": "newData.isString() && newData.val().length <= 12"
+                  },
+                  "nom": {
+                    ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+                  },
+                  "e": {
+                    ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)"
                   },
                   "n": {
                     ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
@@ -969,23 +1066,6 @@
                 }
               }
             },
-            "ecusson": {
-              "saison": {
-                ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
-              },
-              "rang": {
-                ".validate": "newData.isString() && newData.val().length <= 20"
-              },
-              "palier": {
-                ".validate": "newData.isString() && newData.val().matches(/^(base|top10|podium|champion)$/)"
-              },
-              "image": {
-                ".validate": "newData.isString() && newData.val().length <= 120"
-              },
-              "$autre": {
-                ".validate": false
-              }
-            },
             "$autre": {
               ".validate": false
             }
@@ -997,18 +1077,15 @@
         "$uid": {
           "$s": {
             ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1' || (auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && newData.exists())",
-            ".validate": "newData.hasChildren(['saison', 'rang', 'palier', 'image']) && newData.child('saison').val() + '' === $s && root.child('classe').child('instantanes').child($s).child($uid).child('placementFini').val() === true && (newData.child('rang').val() === root.child('classe').child('instantanes').child($s).child($uid).child('rang').val() || ($s === '0' && newData.child('rang').val() === 'pionnier')) && (newData.child('palier').val() === 'base' || (newData.child('palier').val() === 'top10' && root.child('classe').child('instantanes').child($s).child($uid).child('place').val() <= 10) || (newData.child('palier').val() === 'podium' && root.child('classe').child('instantanes').child($s).child($uid).child('place').val() <= 3) || (newData.child('palier').val() === 'champion' && root.child('classe').child('instantanes').child($s).child($uid).child('place').val() === 1))",
+            ".validate": "newData.hasChild('saison') && newData.child('saison').val() + '' === $s && root.child('classe').child('instantanes').child($s).child($uid).child('placementFini').val() === true && (newData.hasChild('place') === newData.hasChild('ecu')) && (!newData.hasChild('place') || (newData.child('place').val() === root.child('classe').child('instantanes').child($s).child($uid).child('place').val() && newData.child('ecu').val() === (newData.child('place').val() === 1 ? 'or' : newData.child('place').val() <= 3 ? 'argent' : 'bronze')))",
             "saison": {
               ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
             },
-            "rang": {
-              ".validate": "newData.isString() && newData.val().matches(/^[a-z]{1,20}$/)"
+            "place": {
+              ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() >= 1 && newData.val() <= 10"
             },
-            "palier": {
-              ".validate": "newData.isString()"
-            },
-            "image": {
-              ".validate": "newData.isString() && newData.val().length <= 120 && newData.val().matches(/^[a-zA-Z0-9_\\/.-]+$/)"
+            "ecu": {
+              ".validate": "newData.isString() && newData.val().matches(/^(or|argent|bronze)$/)"
             },
             "$autre": {
               ".validate": false
@@ -1455,7 +1532,7 @@
         ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
         "$uid": {
           ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'password' && newData.exists()",
-          ".validate": "(root.child('essai').child('classement').child($uid).exists() ? newData.child('n').val() === root.child('essai').child('classement').child($uid).child('n').val() && newData.child('v').val() === root.child('essai').child('classement').child($uid).child('v').val() : newData.child('n').val() === 0) && newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv')))",
+          ".validate": "(root.child('essai').child('classement').child($uid).exists() ? newData.child('n').val() === root.child('essai').child('classement').child($uid).child('n').val() && newData.child('v').val() === root.child('essai').child('classement').child($uid).child('v').val() : newData.child('n').val() === 0) && newData.hasChildren(['p', 'm', 'n', 'v', 'd', 't']) && newData.child('v').val() + newData.child('d').val() <= newData.child('n').val() && (newData.child('m').val() === false || !(newData.hasChild('s') || newData.hasChild('dk') || newData.hasChild('cb') || newData.hasChild('cm') || newData.hasChild('mv') || newData.hasChild('o') || newData.hasChild('jo') || newData.hasChild('pv') || newData.hasChild('pm')))",
           "p": {
             ".validate": "newData.isString() && newData.val() === root.child('essai').child('joueurs').child($uid).child('pseudo').val()"
           },
@@ -1623,6 +1700,88 @@
               }
             }
           },
+          "pm": {
+            "$m": {
+              ".validate": "$m.matches(/^(classee|amicale|entrainement)$/) && newData.hasChildren(['n', 'v', 'd'])",
+              "n": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+              },
+              "v": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000 && newData.val() <= newData.parent().child('n').val()"
+              },
+              "d": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000 && newData.val() <= newData.parent().child('n').val()"
+              },
+              "b": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+              },
+              "s": {
+                ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -1000 && newData.val() <= 1000"
+              },
+              "r": {
+                ".validate": "newData.isString() && newData.val().matches(/^[VDN]{0,10}$/)"
+              },
+              "el": {
+                "$e": {
+                  ".validate": "$e.matches(/^[a-z]{1,12}$/) && newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+                }
+              },
+              "dk": {
+                "$i": {
+                  ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['nom', 'n', 'v'])",
+                  "nom": {
+                    ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+                  },
+                  "e": {
+                    ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)"
+                  },
+                  "n": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+                  },
+                  "v": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+                  },
+                  "$autre": {
+                    ".validate": false
+                  }
+                }
+              },
+              "cb": {
+                "$i": {
+                  ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['c', 'n', 'v'])",
+                  "c": {
+                    ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
+                  },
+                  "n": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+                  },
+                  "v": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+                  },
+                  "$autre": {
+                    ".validate": false
+                  }
+                }
+              },
+              "mv": {
+                "$i": {
+                  ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['c', 'n'])",
+                  "c": {
+                    ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
+                  },
+                  "n": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+                  },
+                  "$autre": {
+                    ".validate": false
+                  }
+                }
+              },
+              "$autre": {
+                ".validate": false
+              }
+            }
+          },
           "$autre": {
             ".validate": false
           }
@@ -1674,6 +1833,9 @@
           },
           "mvp": {
             ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "cl": {
+            ".validate": "newData.isBoolean()"
           },
           "dr": {
             ".validate": "newData.hasChildren()",
@@ -1831,7 +1993,7 @@
         "parties": {
           ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
           "$id": {
-            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && newData.exists() && !data.exists() && newData.child('saison').val() === root.child('essai').child('classe').child('saison').child('id').val() && newData.child('t').val() === now && root.child('essai').child('salons').child(newData.child('sa').val()).child('cl').val() === true && ((newData.child('robot').val() === true && newData.child('a').val() === auth.uid && newData.child('eloB').val() === (newData.child('b').val() === 'robot-facile' ? 750 : newData.child('b').val() === 'robot-normal' ? 1100 : newData.child('b').val() === 'robot-difficile' ? 1200 : -1) && newData.child('eloA').val() === root.child('essai').child('classe').child('joueurs').child(newData.child('a').val()).child('elo').val() && root.child('essai').child('classe').child('joueurs').child(newData.child('a').val()).child('saison').val() === root.child('essai').child('classe').child('saison').child('id').val() && root.child('essai').child('salons').child(newData.child('sa').val()).child('robot').child('u').val() === auth.uid && !newData.hasChild('deltaB') && (newData.child('gagnant').val() === newData.child('a').val() || newData.child('gagnant').val() === newData.child('b').val())) || (newData.child('robot').val() === false && $id === newData.child('sa').val() + '-' + newData.child('gr').val() && (newData.child('a').val() === auth.uid || newData.child('b').val() === auth.uid) && newData.child('a').val() !== newData.child('b').val() && root.child('essai').child('salons').child(newData.child('sa').val()).child('engages').hasChild(newData.child('a').val()) && root.child('essai').child('salons').child(newData.child('sa').val()).child('engages').hasChild(newData.child('b').val()) && newData.child('eloA').val() === root.child('essai').child('classe').child('joueurs').child(newData.child('a').val()).child('elo').val() && newData.child('eloB').val() === root.child('essai').child('classe').child('joueurs').child(newData.child('b').val()).child('elo').val() && root.child('essai').child('classe').child('joueurs').child(newData.child('a').val()).child('saison').val() === root.child('essai').child('classe').child('saison').child('id').val() && root.child('essai').child('classe').child('joueurs').child(newData.child('b').val()).child('saison').val() === root.child('essai').child('classe').child('saison').child('id').val() && newData.hasChild('deltaB') && (newData.child('gagnant').val() === newData.child('a').val() || newData.child('gagnant').val() === newData.child('b').val() || newData.child('gagnant').val() === 'nul')))",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && newData.exists() && !data.exists() && newData.child('saison').val() === root.child('essai').child('classe').child('saison').child('id').val() && newData.child('t').val() === now && root.child('essai').child('salons').child(newData.child('sa').val()).child('cl').val() === true && ((newData.child('robot').val() === true && newData.child('a').val() === auth.uid && newData.child('eloB').val() === (newData.child('b').val() === 'robot-facile' ? 750 : newData.child('b').val() === 'robot-normal' ? 1100 : newData.child('b').val() === 'robot-difficile' ? 1200 : -1) && newData.child('eloA').val() === root.child('essai').child('classe').child('joueurs').child(newData.child('a').val()).child('elo').val() && root.child('essai').child('classe').child('joueurs').child(newData.child('a').val()).child('saison').val() === root.child('essai').child('classe').child('saison').child('id').val() && root.child('essai').child('salons').child(newData.child('sa').val()).child('robot').child('u').val() === auth.uid && !newData.hasChild('deltaB') && (newData.child('gagnant').val() === newData.child('a').val() || newData.child('gagnant').val() === newData.child('b').val() || newData.child('gagnant').val() === 'nul')) || (newData.child('robot').val() === false && $id === newData.child('sa').val() + '-' + newData.child('gr').val() && (newData.child('a').val() === auth.uid || newData.child('b').val() === auth.uid) && newData.child('a').val() !== newData.child('b').val() && root.child('essai').child('salons').child(newData.child('sa').val()).child('engages').hasChild(newData.child('a').val()) && root.child('essai').child('salons').child(newData.child('sa').val()).child('engages').hasChild(newData.child('b').val()) && newData.child('eloA').val() === root.child('essai').child('classe').child('joueurs').child(newData.child('a').val()).child('elo').val() && newData.child('eloB').val() === root.child('essai').child('classe').child('joueurs').child(newData.child('b').val()).child('elo').val() && root.child('essai').child('classe').child('joueurs').child(newData.child('a').val()).child('saison').val() === root.child('essai').child('classe').child('saison').child('id').val() && root.child('essai').child('classe').child('joueurs').child(newData.child('b').val()).child('saison').val() === root.child('essai').child('classe').child('saison').child('id').val() && newData.hasChild('deltaB') && (newData.child('gagnant').val() === newData.child('a').val() || newData.child('gagnant').val() === newData.child('b').val() || newData.child('gagnant').val() === 'nul')))",
             ".validate": "$id.matches(/^[a-z0-9-]{3,60}$/) && newData.hasChildren(['a', 'b', 'gagnant', 'eloA', 'eloB', 'deltaA', 'robot', 'saison', 't', 'sa', 'gr'])",
             "a": {
               ".validate": "newData.isString() && newData.val().length <= 128"
@@ -1944,6 +2106,12 @@
                   "d": {
                     ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
                   },
+                  "best": {
+                    ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
+                  },
+                  "serie": {
+                    ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -1000 && newData.val() <= 1000"
+                  },
                   "$autre": {
                     ".validate": false
                   }
@@ -1971,11 +2139,17 @@
               },
               "tops": {
                 "$k": {
-                  ".validate": "$k.matches(/^(golems|terrains)$/)",
+                  ".validate": "$k.matches(/^(golems|terrains|decks|mvp)$/)",
                   "$i": {
-                    ".validate": "$i.matches(/^[0-4]$/)",
+                    ".validate": "$i.matches(/^[0-4]$/) && newData.hasChild('n')",
                     "id": {
                       ".validate": "newData.isString() && newData.val().length <= 12"
+                    },
+                    "nom": {
+                      ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+                    },
+                    "e": {
+                      ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)"
                     },
                     "n": {
                       ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
@@ -2003,23 +2177,6 @@
                   }
                 }
               },
-              "ecusson": {
-                "saison": {
-                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
-                },
-                "rang": {
-                  ".validate": "newData.isString() && newData.val().length <= 20"
-                },
-                "palier": {
-                  ".validate": "newData.isString() && newData.val().matches(/^(base|top10|podium|champion)$/)"
-                },
-                "image": {
-                  ".validate": "newData.isString() && newData.val().length <= 120"
-                },
-                "$autre": {
-                  ".validate": false
-                }
-              },
               "$autre": {
                 ".validate": false
               }
@@ -2031,18 +2188,15 @@
           "$uid": {
             "$s": {
               ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1' || (auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && newData.exists())",
-              ".validate": "newData.hasChildren(['saison', 'rang', 'palier', 'image']) && newData.child('saison').val() + '' === $s && root.child('essai').child('classe').child('instantanes').child($s).child($uid).child('placementFini').val() === true && (newData.child('rang').val() === root.child('essai').child('classe').child('instantanes').child($s).child($uid).child('rang').val() || ($s === '0' && newData.child('rang').val() === 'pionnier')) && (newData.child('palier').val() === 'base' || (newData.child('palier').val() === 'top10' && root.child('essai').child('classe').child('instantanes').child($s).child($uid).child('place').val() <= 10) || (newData.child('palier').val() === 'podium' && root.child('essai').child('classe').child('instantanes').child($s).child($uid).child('place').val() <= 3) || (newData.child('palier').val() === 'champion' && root.child('essai').child('classe').child('instantanes').child($s).child($uid).child('place').val() === 1))",
+              ".validate": "newData.hasChild('saison') && newData.child('saison').val() + '' === $s && root.child('essai').child('classe').child('instantanes').child($s).child($uid).child('placementFini').val() === true && (newData.hasChild('place') === newData.hasChild('ecu')) && (!newData.hasChild('place') || (newData.child('place').val() === root.child('essai').child('classe').child('instantanes').child($s).child($uid).child('place').val() && newData.child('ecu').val() === (newData.child('place').val() === 1 ? 'or' : newData.child('place').val() <= 3 ? 'argent' : 'bronze')))",
               "saison": {
                 ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
               },
-              "rang": {
-                ".validate": "newData.isString() && newData.val().matches(/^[a-z]{1,20}$/)"
+              "place": {
+                ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() >= 1 && newData.val() <= 10"
               },
-              "palier": {
-                ".validate": "newData.isString()"
-              },
-              "image": {
-                ".validate": "newData.isString() && newData.val().length <= 120 && newData.val().matches(/^[a-zA-Z0-9_\\/.-]+$/)"
+              "ecu": {
+                ".validate": "newData.isString() && newData.val().matches(/^(or|argent|bronze)$/)"
               },
               "$autre": {
                 ".validate": false

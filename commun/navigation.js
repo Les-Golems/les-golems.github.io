@@ -71,11 +71,9 @@ function menuAff(o){const m=$('menuAffichage'),b=$('btnAffichage');m.hidden=!o;b
 $('btnAffichage').onclick=e=>{e.stopPropagation();menuAff($('menuAffichage').hidden)};
 document.addEventListener('click',e=>{if(!$('menuAffichage').hidden&&!e.target.closest('.bd-affw'))menuAff(false)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('menuAffichage').hidden){menuAff(false);$('btnAffichage').focus()}});
-/* Pastille « N en ligne » : comptes presents dans hall/ (presence Firebase existante, room.peers). Affichage seul, non cliquable.
-   TODO : invites compris. Les regles autorisent maintenant enligne/<uid> (rules/60-guides.js) ; reste a l'ecrire dans salon-firebase.js
-   (set heure serveur + onDisconnect().remove(), a refaire a chaque reconnexion et changement d'uid invite/compte, miroir essai/) et a compter
-   enligne/ ici au lieu de room.peers(). Pas branche dans l'integration : a tester sur l'emulateur avec deux visiteurs. */
+/* Pastille « N en ligne » : visiteurs de enligne/ (invites compris), ecrits par salon-firebase.js. Affichage seul, non cliquable.
+   Repli (ancienne base sans enligne/) : comptes presents dans hall/ (room.peers). */
 function majEnLigne(){const p=$('enLigne');let n=0;
-  try{n=room&&room.peers?room.peers().length:0}catch(e){n=0}
-  p.hidden=!n;$('enLigneN').textContent=String(n);p.title=n+(n>1?' joueurs connectés':' joueur connecté')+' au site'}
-{const t=setInterval(()=>{try{if(typeof room!=='undefined'&&room&&room.onPeers){clearInterval(t);room.onPeers(majEnLigne,majEnLigne);majEnLigne()}}catch(e){}},400)}
+  try{n=room&&room.enLigneN?room.enLigneN():0;if(!n&&room&&room.peers)n=room.peers().length}catch(e){n=0}
+  p.hidden=!n;$('enLigneN').textContent=String(n);p.title=n+(n>1?' visiteurs en ligne':' visiteur en ligne')+' sur le site'}
+{const t=setInterval(()=>{try{if(typeof room!=='undefined'&&room&&room.onPeers){clearInterval(t);room.onPeers(majEnLigne,majEnLigne);if(room.onEnLigne)room.onEnLigne(majEnLigne);majEnLigne()}}catch(e){}},400)}
