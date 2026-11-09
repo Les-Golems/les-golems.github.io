@@ -77,7 +77,7 @@ function majSalon(){
   {const d=l.slice(0,MAX),o=d.find(p=>!p.sameTab);vxEcart=!partie&&!!maV&&d.length>=MAX&&!!o&&!vEg(vDe(o),maV);vxRouge=vxEcart?(vAncienne(vDe(o))?o.peer:'moi'):'';
    if(vxEcart&&jePret){jePret=false;pub({pret:null,deck:null});majChoixDeck()}
    if(vxRouge==='moi')vJeSuisAncien()}
-  const u=$('joueurs'),specUI=!!(window.SPEC&&window.SPEC_UI&&SPEC.etatSalon().actif); /* mode spectateur : sieges peints par spectateur-ui.js */
+  const u=$('joueurs'),specUI=!!(window.SPEC&&window.SPEC_UI&&SPEC.etatSalon().actif&&SPEC.estSpectateur()); /* spectateur : sieges peints par spectateur-ui.js ; joueur assis : sieges d'ici (maquette 23, refonte2) */
   if(!specUI)u.textContent='';
   const sieges=l.slice(0,MAX).map(siegeSalon);
   while(sieges.length<MAX){const v=el('div','sl-j sl-libre'),a=el('div','avatar','?'),t=el('div','cd-tuile');
@@ -85,7 +85,8 @@ function majSalon(){
     const e=etiquetteV(maV,false);e.classList.add('sl-vide');
     v.append(a,(()=>{const n=el('div','sl-nom'),w=el('span','sl-pw');w.append(el('span','sl-pn','Place libre'));n.append(w);return n})(),el('span','sl-etat',"En attente d'un adversaire"),e,t);sieges.push(v)}
   if(l.length)sieges[0].append(el('span','sl-role','Créateur'));
-  if(!specUI)u.append(sieges[0],el('div','sl-vs','VS'),sieges[1]);
+  /* charte : chacun se voit toujours a gauche (l'etiquette Createur reste sur le siege du createur) */
+  if(!specUI){const g=l.length>1&&l[1].sameTab?[sieges[1],sieges[0]]:sieges;u.append(g[0],el('div','sl-vs','VS'),g[1]);calePseudos()}
   majSpecs();
   const adv=l.slice(0,MAX).find(p=>!p.sameTab);majFace(adv?nomDe(adv):'');
   if(!partie&&l.some(p=>!p.sameTab&&Number.isInteger(p.presence.jg)&&typeof p.presence.adv==='string'&&p.presence.adv!==sid&&p.presence.sid!==sid)&&Date.now()-entree>1500){sortie('Salon impossible : salon complet. Rejoins un autre salon.');return}
@@ -96,7 +97,7 @@ function majSalon(){
   /* Pret toujours visible sous les deux joueurs : grise tant qu'on est seul, ou si les versions different. */
   $('pret').hidden=!!partie;$('pret').disabled=vxEcart||!(libre||jePret);
   $('pret').textContent=vxEcart?'Versions différentes':jePret?'Pas prêt':!c?'En attente d\'un adversaire':'Prêt';$('pret').classList.toggle('sc-secondaire',jePret);
-  $('slDeck').hidden=!!partie;$('slDeck').disabled=jePret;$('slDeck').title=jePret?'Retire ton Prêt pour changer de deck':'';
+  $('slDeck').hidden=!!partie||specUI;$('slDeck').disabled=jePret;$('slDeck').title=jePret?'Retire ton Prêt pour changer de deck':'';
   majAnnonce(l);
   $('attente').textContent=vxEcart?'Salon impossible : ton adversaire n\'a pas la même version du site. Recharge la page.':compteFin?texteCompte():!c?notice||'':jePret?'Salon : ton adversaire n\'est pas prêt. Patiente un instant.':duo.some(estPret)?'Salon : ton adversaire est prêt. Clique sur Prêt.':'Salon : deux joueurs présents. Clique sur Prêt.';
   $('attente').classList.toggle('pret',c&&!vxEcart);
@@ -128,6 +129,17 @@ function nomSiege(p,nom,moi){
     if(salonClasse&&!A.placement)w.append(el('span','sl-elo',String(Math.round(A.elo))))}
   return n;
 }
+/* Pseudo d'un siege : centre sur l'avatar tant qu'il tient ; trop long, le groupe embleme + pseudo + « toi » glisse et le pseudo
+   n'est coupe qu'au bord de l'encadre du deck (charte, Rang et joueur). Embleme 48 px + 20 px a gauche, « toi » + 6 px a droite. */
+function calePseudos(){
+  document.querySelectorAll('#joueurs .sl-j .sl-pw').forEach(w=>{
+    const W=w.parentNode.clientWidth;if(!W)return;
+    const t=w.querySelector(':scope>em'),Rt=t?t.offsetWidth+6:0,Le=w.querySelector(':scope>.sl-emb')?68:0;
+    w.style.transform='';w.style.maxWidth=Math.max(40,W-Le-Rt)+'px';
+    const m=(W-w.offsetWidth)/2,d=Math.max(0,Le-m)-Math.max(0,Rt-m);if(d)w.style.transform='translateX('+Math.round(d)+'px)';
+  });
+}
+if(window.ResizeObserver&&$('joueurs'))new ResizeObserver(()=>calePseudos()).observe($('joueurs'));if(document.fonts)document.fonts.ready.then(calePseudos); /* largeur changee, salon affiche, police chargee */
 /* Ligne de contexte de la fenetre de deck dans le salon. */
 const ctxSalon=()=>(salonClasse?'Partie classée':'Partie amicale')+' - salon '+String(code||'').toUpperCase();
 function siegeSalon(p){
@@ -595,6 +607,6 @@ function majSpecs(){
   const u=el('ul');l.slice(0,l.length>5?4:5).forEach(x=>{const nm=nettoie(x.pseudo||'')||'Joueur',li=el('li',x.moi?'moi':'');li.append(avatarUid(nm,x.uid,x.avatar),el('b','',nm));u.append(li)});
   if(l.length>5)u.append(el('li','plus','+'+(l.length-4)+' autres'));z.append(u);
 }
-if(window.SPEC&&SPEC.onChange)SPEC.onChange(()=>{if(!$('salon').hidden)majSpecs()});
+if(window.SPEC&&SPEC.onChange)SPEC.onChange(()=>{if(!$('salon').hidden)majSpecs();if(SPEC.estSpectateur())$('slDeck').hidden=true}); /* spectateur : pas de deck a changer */
 /* Premier affichage (invite, ou avant la connexion) : tuiles et liste peintes des que decks.js et vue/partie.js sont charges. */
 (function t(){if(typeof deckChoisi==='function'&&typeof lesParties==='function'&&typeof teinte==='function')peintListe();else setTimeout(t,50)})();

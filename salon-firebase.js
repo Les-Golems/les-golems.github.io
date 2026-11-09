@@ -546,15 +546,27 @@ async function ouvre() {
       async journalFrais(sid, g) { await relitCoups(); return journal(sid, g); },
       // Verrou de partie : les deux uid engagés (sans effet s'il existe déjà).
       // 0.6.1 : g = graine de la partie (salon classé : obligatoire ; nouvelle graine = ancien verrou levé d'abord, permis une fois sa partie écrite).
-      async engage(uids, g) {
+      // Revanche : avant = écriture de la partie précédente (classée) ; le verrou de l'ancienne graine n'est levé qu'une fois
+      // cette partie écrite (règle engages), d'où l'attente puis de nouveaux essais (2 s, 90 s au plus). Même graine déjà posée
+      // (reprise après rechargement) : rien à écrire.
+      async engage(uids, g, avant) {
         const o = {}; uids.forEach(u => { if (typeof u === "string") o[u] = true; });
-        if (!o[uid] || Object.keys(o).length !== 2) return;
+        if (!o[uid] || Object.keys(o).length !== 2) return false;
         if (Number.isInteger(g)) o.g = String(g);
-        try {
-          const e = (await get(ref(db, base + "/engages"))).val();
-          if (e && o.g && e.g !== o.g && e[uid]) await remove(ref(db, base + "/engages"));
-          await set(ref(db, base + "/engages"), o);
-        } catch (e) {}
+        try { if (avant) await avant; } catch (e) {}
+        for (let k = 0; k < 45 && !fini; k++) {
+          try {
+            const e = (await get(ref(db, base + "/engages"))).val();
+            if (e && o.g && e.g === o.g && e[uid]) return true;
+            if (e && !e[uid]) return false;
+            // salon classé : partie de l'ancienne graine pas encore écrite = verrou pas encore levable, on attend sans essayer
+            if (e && e.g && (await get(ref(db, base + "/cl"))).val() === true && !(await get(ref(db, P + "classe/parties/" + code + "-" + e.g))).exists()) throw 0;
+            if (e) await remove(ref(db, base + "/engages"));
+            await set(ref(db, base + "/engages"), o);
+            return true;
+          } catch (e) { await new Promise(r => setTimeout(r, 2000)); }
+        }
+        return false;
       },
       chat: () => chat,
       onChat(f) { ecouteChat.push(f); f(chat); },

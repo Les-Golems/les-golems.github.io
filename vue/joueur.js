@@ -96,6 +96,8 @@ function majPartie(){
   if(!partie&&maV&&l.some(p=>!vEg(vDe(p),maV)))return; /* versions differentes : aucune partie neuve (moteurs differents) */
   const moi=partie?partie.moi:l.findIndex(p=>p.sameTab);if(moi<0||moi>1)return;
   const g=l[0].presence.graine,lui=l[1-moi];
+  /* Revanche : souhait de l'adversaire (veut = graine de la partie finie) suivi a l'ecran de fin */
+  if(partie&&partie.etat&&partie.etat.fin&&!partie.local){const lv=lui.presence.veut===partie.graine;if(!!partie.luiVeut!==lv){partie.luiVeut=lv;affiche()}}
   const rejouer=partie&&g===partie.graine&&partie.etat&&partie.etat.fin&&partie.veut&&lui.presence.veut===g;
   /* Salon neuf : la graine attend les deux Pret (voir ticCompte). Rejouer et reprise ne passent pas par la. */
   const neuf=!partie&&!l.some(p=>Number.isInteger(p.presence.jg));
@@ -108,13 +110,15 @@ function majPartie(){
     const mien=partie?{texte:partie.decks[partie.moi]||'',nom:partie.deckNom}:deckPret,sien=typeof lui.presence.deck==='string'?lui.presence.deck:'';
     const dks=['',''];dks[moi]=mien.texte||'';dks[1-moi]=sien;
     if(!partie&&M.erreurElements)[0,1].forEach(p=>{const o=M.lisDeck(dks[p]);if(o&&(M.erreurElements(o)||(M.erreurEvolutions&&M.erreurEvolutions(o))))dks[p]=''}); /* 0.4a : deck a 5 elements = deck par defaut, des deux cotes ; 0.5 : idem evolution sans sa base */
-    if(moi===0&&r&&r.engage)r.engage([l[0].peer,l[1].peer],g); /* 0.6.1 : graine dans le verrou (regles du classe) */
+    if(moi===0&&r&&r.engage)r.engage([l[0].peer,l[1].peer],g,partie&&partie.classe&&partie.classe.envoi); /* 0.6.1 : graine dans le verrou (regles du classe) ; revanche : nouveau verrou une fois la partie precedente ecrite */
     lancer(g,moi,typeof lui.presence.sid==='string'?lui.presence.sid:'',{mien:[],sien:[],decks:dks,deckNom:mien.texte?mien.nom:'',classe:salonClasse?{sa:code,a:l[0].peer,b:l[1].peer}:null});if(partie.classe)prepareClasse(partie.classe);sauve();return} /* 0.6 : classee entre joueurs (uids des places 0 et 1) */
   if(partie.advNom!==nomDe(lui)){partie.advNom=nomDe(lui);sauve()}
   if(lui.presence.jg!==g||typeof lui.presence.j!=='string')return;
   let liste;try{liste=M.litJournal(lui.presence.j)}catch(e){return}
   if(liste.length>partie.sien.length){partie.sien=liste;sel=null;calcule()}
 }
+/* Revanche annulee avant la reponse de l'adversaire : le souhait est retire de la presence */
+function annuleRevanche(){if(!partie||partie.local||!partie.veut)return;partie.veut=false;sauve();pub({veut:null});affiche()}
 function joue(a){
   if(!partie||partie.rejeu)return;
   if(window.SPEC&&SPEC.estSpectateur())return; /* spectateur : aucun coup */
