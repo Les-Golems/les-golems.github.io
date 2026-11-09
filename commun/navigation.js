@@ -1,9 +1,10 @@
 /* Navigation : onglets, version vue (point des Nouveautes), lignes qui tiennent sans defilement. */
 /* Onglets */
-const noms=['nouveautes','jouer','decks','historique','stats','cartes','regles'].concat(GUIDES.length?['guides']:[]);
+const noms=['nouveautes','jouer','decks','historique','stats','cartes','regles'];
 function onglet(n){
+  if(n==='guides'){onglet('regles');if(typeof cjVue==='function')cjVue('guides');return} /* ancien onglet Guides : Comment jouer > Guides */
   noms.forEach(x=>{$(x).hidden=x!==n;$('t-'+x).setAttribute('aria-selected',x===n)});
-  if(n==='decks')peintDecks();if(n==='historique')ajusteHisto();if(n==='stats')peintStats();if(n==='guides')ajusteGuides();if(n==='nouveautes'){proposeGuide();ajusteNotes()}
+  if(n==='decks')peintDecks();if(n==='historique')ajusteHisto();if(n==='stats')peintStats();if(n==='nouveautes'){proposeGuide();ajusteNotes()}
   ecrire('golems.onglet',n);
   if(n==='nouveautes'&&!versionVue())ecrire('golems.versionVue',M.VERSION);majPointNv();
 }
@@ -26,20 +27,20 @@ function ajustePage(sec,grille,set,peint,defaut){
   let r=12;set(r*cols);peint();
   while(r>1&&deborde()){r--;set(r*cols);peint()}
 }
-function ajusteGuides(){if(typeof peintGuides!=="function")return;ajustePage('guides',()=>$('gdBlocs'),v=>GD.par=v,peintGuides,6)}
 function ajusteNotes(){if(typeof peintNotes!=="function")return;ajustePage('nouveautes',()=>$('notes'),v=>NV.par=v,peintNotes,6)}
 function ajusteHisto(){if(typeof peintHisto!=="function")return;ajustePage('historique',()=>document.querySelector('#histo .h-grille')||(peintHisto(),document.querySelector('#histo .h-grille')),v=>lignesPage=v,peintHisto,14)}
-{let t=0;const tout=()=>{clearTimeout(t);t=setTimeout(()=>{ajusteGuides();ajusteNotes();ajusteHisto()},120)};addEventListener('resize',tout);
-  ['guides','nouveautes','historique'].forEach(x=>$(x).addEventListener('load',e=>{if(e.target.tagName==='IMG'&&!document.querySelector('#gdBlocs [data-joue="1"]'))tout()},true));document.fonts?.ready.then(tout);addEventListener('load',tout)}
+{let t=0;const tout=()=>{clearTimeout(t);t=setTimeout(()=>{ajusteNotes();ajusteHisto()},120)};addEventListener('resize',tout);
+  ['nouveautes','historique'].forEach(x=>$(x).addEventListener('load',e=>{if(e.target.tagName==='IMG'&&!document.querySelector('#gdBlocs [data-joue="1"]'))tout()},true));document.fonts?.ready.then(tout);addEventListener('load',tout)}
 
-/* Deux colonnes : une section ouverte de chaque côté pour les équilibrer. */
-if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
+/* Lien #guides : ouvre Comment jouer > Guides. */
+function lienGuides(){if(location.hash==='#guides')onglet('guides')}
+addEventListener('hashchange',lienGuides);addEventListener('load',()=>setTimeout(lienGuides,0));
 
 
 /* 0.6 : onglets de la refonte (maquette 32, B3) : Nouveautes, Jouer, Decks, Statistiques, Comment jouer, etires sur toute la largeur.
    TODO vagues suivantes : Historique dans Jouer (Jouer / Mes parties), Cartes dans Decks (Decks / Cartes), Guides dans Comment jouer
    (Regles / Guides). En attendant, leurs boutons restent masques ; les sections restent ouvrables par onglet('historique') etc. */
-['t-historique','t-cartes','t-guides'].forEach(i=>{const b=$(i);if(b)b.hidden=true});
+['t-historique','t-cartes'].forEach(i=>{const b=$(i);if(b)b.hidden=true});
 
 /* 0.6 : bandeau superieur B3 (maquette 32 - Bandeau superieur). Pastille « N en ligne » (affichage seul), capsule du compte
    (clic = profil, ou connexion pour un invite : commun/compte.js), menu Affichage (theme + couleurs), porte de deconnexion. */
@@ -70,7 +71,9 @@ $('btnAffichage').onclick=e=>{e.stopPropagation();menuAff($('menuAffichage').hid
 document.addEventListener('click',e=>{if(!$('menuAffichage').hidden&&!e.target.closest('.bd-affw'))menuAff(false)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('menuAffichage').hidden){menuAff(false);$('btnAffichage').focus()}});
 /* Pastille « N en ligne » : comptes presents dans hall/ (presence Firebase existante, room.peers). Affichage seul, non cliquable.
-   TODO : invites compris. Les regles actuelles (hall lisible par les comptes seulement) ne le permettent pas : la pastille reste cachee pour un invite. */
+   TODO : invites compris. Les regles autorisent maintenant enligne/<uid> (rules/60-guides.js) ; reste a l'ecrire dans salon-firebase.js
+   (set heure serveur + onDisconnect().remove(), a refaire a chaque reconnexion et changement d'uid invite/compte, miroir essai/) et a compter
+   enligne/ ici au lieu de room.peers(). Pas branche dans l'integration : a tester sur l'emulateur avec deux visiteurs. */
 function majEnLigne(){const p=$('enLigne');let n=0;
   try{n=room&&room.peers?room.peers().length:0}catch(e){n=0}
   p.hidden=!n;$('enLigneN').textContent=String(n);p.title=n+(n>1?' joueurs connectés':' joueur connecté')+' au site'}

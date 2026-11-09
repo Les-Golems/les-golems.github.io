@@ -2,8 +2,7 @@
    Guides : liste a gauche (tri « Les mieux notés | Les plus récents », pagination « 1/2 »), guide ouvert a droite (auteur, date, votes en Lilita (audit 34, D08),
    « Copier le lien » entre les votes et « Voir sur YouTube », bandeau « Guide : lien copié. Colle-le sur Discord. », bande du deck a importer, video ou texte).
    Lien partage : ?guide=<id> ouvre Comment jouer > Guides sur ce guide.
-   TODO (agent du bandeau) : l'onglet « Comment jouer » remplace « Règles » et « Guides » dans la navigation. Renommer le bouton t-regles en « Comment jouer »,
-   retirer le bouton t-guides, la section #guides (reste vide ici) et 'guides' / ajusteGuides de commun/navigation.js. En attendant, #guides vide renvoie sur Comment jouer > Guides.
+   Ancien onglet Guides retire : onglet('guides') et le lien #guides ouvrent Comment jouer > Guides (commun/navigation.js).
    TODO (Firebase, plus tard) : votes partages. Pour l'instant chaque joueur ne voit que son propre vote (stockage local), aucun ecriture en ligne. */
 /* yt : identifiant YouTube ; titre, auteur et date releves a la main (aucune requete a YouTube au chargement) ; decks : liens ?deck= du site.
    texte : guide ecrit (HTML simple, noms de cartes reconnus et cliquables) ; officiel : guide de l'equipe (etiquette « Officiel »). */
@@ -157,8 +156,6 @@ function cjInit(){
   addEventListener('resize',cjHauteur);
   /* Sortie de l'onglet : la video s'arrete ; entree : hauteur recalculee. */
   new MutationObserver(()=>{if($('regles').hidden)gdArrete();else requestAnimationFrame(cjHauteur)}).observe($('regles'),{attributes:true,attributeFilter:['hidden']});
-  /* Ancien onglet Guides (golems.onglet = guides, ou bouton encore present) : renvoi vers Comment jouer > Guides */
-  if($('guides'))new MutationObserver(()=>{if(!$('guides').hidden&&typeof onglet==='function'){onglet('regles');cjVue('guides')}}).observe($('guides'),{attributes:true,attributeFilter:['hidden']});
   cjVue('regles');
   /* Lien partage ?guide=<id> : ouvre ce guide dans Comment jouer > Guides (apres le demarrage du site, qui choisit l'onglet). */
   const id=new URLSearchParams(location.search).get('guide');
