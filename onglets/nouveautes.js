@@ -3,9 +3,9 @@
 /* Date de publication de la 0.5 : A REMPLACER LE JOUR J (ex. '8 novembre 2026'), sert au bloc de version et au bloc video. */
 const DATE_V05='7 novembre 2026';
 /* Date de publication de la 0.6 : A REMPLACER LE JOUR J (ex. '10 novembre 2026'), bloc de version et Details. */
-const DATE_V06='À venir';
+const DATE_V06='9 novembre 2026';
 const NOUVEAUTES=[
- {version:'Version 0.6',date:DATE_V06,notes:["Nouvelle interface","Parties classées (6 rangs, saison 0)","Nouveau Golem : {{Elccino}} (Brume, Cristal)","Nouvel animal : {{Uki}}, l'animal de Shifukuro (Roche)","6 decks conseillés","Nouveau mot-clé : Récupérer"]},
+ {version:'Version 0.6',date:DATE_V06,notes:["Nouvelle interface","Parties classées (6 rangs, saison 0)","Récompenses : médaille Pionnier, écus du top 10","Nouveau Golem : {{Elccino}} (Brume, Cristal)","Nouvel animal : {{Uki}}, l'animal de Shifukuro (Roche)","6 decks conseillés, un par archétype","Le Golem adverse joue l'un d'eux au hasard","Nouveau mot-clé : Récupérer"]},
  {version:'Version 0.5a',date:'8 novembre 2026',notes:["Sur ordinateur, les piles Deck, Forge et Défausse s'ouvrent de nouveau","Sur téléphone, les compteurs des bandeaux affichent les cartes","Ton deck se consulte trié par nom, avec le nombre d'exemplaires","Le deck adverse n'est plus consultable, seul son nombre de cartes s'affiche"]},
  {version:'Version 0.5',date:DATE_V05,notes:["Nouvel écran de partie","6 nouveaux terrains","Animaux de compagnie retravaillés","Nouvelle règle : 4 éléments différents au plus par deck","Decks conseillés retravaillés","État de la connexion et reprise de la partie","Mode daltonien","Nouvel onglet Guides","Diverses améliorations de confort"]},
  {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","Rework de Le Q : Brume et Magma, nouveaux effets","Nouvelle règle : deck vide, 1 point à l'adversaire par carte à piocher","Bug de Jacen et Jaina corrigé"]},
@@ -30,7 +30,7 @@ const DETAILS_VERSIONS={
     "{{Elccino, Life happens, coffee helps}} (3/1) - Café du matin : à la pose et à chaque début de manche, regarde les 2 premières cartes de ton deck, prends-en 1 et remets l'autre sous ton deck. Puis un Golem allié gagne +1 de Force.",
     "Évolution {{Elccino, Agent double SOLAEGIS ★}} (4/2) - La taupe : à la pose, regarde la main adverse et choisis-en 1 : ton adversaire la défausse. Un Golem allié gagne +2 de Force."]},
    "Nouvel animal : {{Uki, Le chien de Shifukuro}} (A-015, coût 0) - Meilleur ami : tu comptes comme un Golem allié au-dessus de ton maître.",
-   "Decks conseillés de la v0.6 : 6 nouveaux decks de 30 cartes, Montée en puissance, Attaque rapide, Meule, Contrôle, Soutien et Combo. Ils remplacent les anciens, et les robots jouent désormais l'un d'eux, tiré au hasard.",
+   "Decks conseillés de la v0.6 : 6 nouveaux decks de 30 cartes, un par archétype : Montée en puissance, Attaque rapide, Meule, Contrôle, Soutien et Combo. Ils remplacent les anciens, et les robots jouent désormais l'un d'eux, tiré au hasard.",
    "Zoom des cartes : le texte des terrains s'affiche sous l'image, comme pour les Golems. Coût, Force, éléments et points en pictos.",
    "Étiquette de version sur les decks."],
   corrections:[
