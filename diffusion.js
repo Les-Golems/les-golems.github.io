@@ -495,8 +495,16 @@ function ouvrePop(type,m){
   else if(type==='abandon')popAbandon(E.etat,m,pp);
   else{popPartie(E.etat,pp);suivi.vu={type,m,log:E.etat.log.length,rv:revSig()};suivi.rvVu=suivi.vu.rv;if(src==='joueur')boutonsFin(pp)}
   if(!(type==='partie'&&src==='joueur')){const fe=mk('button','pp-fermer','Fermer');fe.type='button';fe.onclick=fermePop;pp.append(fe)} /* J06 : fin de partie du joueur sans petit Fermer */
-  v.append(pp);scene.append(v);suivi.pop=v;
+  v.append(pp);scene.append(v);suivi.pop=v;ajustePop(pp);
   if(type==='pile'&&haut){const g=pp.querySelector('.pp-pile');if(g)g.scrollTop=haut}
+}
+/* Pseudos des recapitulatifs : la police se reduit (28 -> 20 px dans les lignes de terrain, 22 -> 16 px dans « X marque n points ») avant toute coupure « ... » */
+function ajustePop(pp){
+  /* meme taille pour toutes les lignes d'un meme role (la plus petite necessaire) */
+  const cale=(L,el,f0,fmin)=>{let f=f0;const trop=()=>L.some(x=>{const n=el(x);return n&&n.scrollWidth>n.clientWidth+1});
+    while(f>fmin&&trop()){f--;L.forEach(x=>x.style.fontSize=f+'px')}};
+  cale([...pp.querySelectorAll('.pp-l>span:not(.avatar)')],x=>x,28,20);
+  cale([...pp.querySelectorAll('.pp-rl')],x=>x.querySelector(':scope>b'),22,16);
 }
 /* vue spectateur : fin par abandon (deconnexion), ecran neutre : Vainqueur / Abandon, score */
 function popAbandon(s,perdant,pp){
@@ -531,8 +539,9 @@ function boutonsFin(pp){
 /* Echap ferme la fenetre d'une pile (apres le zoom d'une carte s'il est ouvert) */
 document.addEventListener('keydown',e=>{if(e.key!=='Escape'||!D||!suivi)return;const z=document.getElementById('vue');if(z&&!z.hidden)return;
   if(suivi.pile)fermePop();else if(chat.el)chat.ferme()},true);
-function score(sm,a,b){
-  const t=mk('div','pp-tot'),d=mk('div'),x=mk('b','',String(a)),y=mk('b','',String(b));x.style.color=COL[0];y.style.color=COL[1];
+/* sc = scores par place ; vue joueur : le sien d'abord, comme le bandeau du haut (BAS) */
+function score(sm,sc){
+  const o=BAS(),t=mk('div','pp-tot'),d=mk('div'),x=mk('b','',String(sc[o])),y=mk('b','',String(sc[1-o]));x.style.color=COL[o];y.style.color=COL[1-o];
   d.append(U().ico('coupe'),x,mk('span','','-'),y);t.append(mk('small','',sm),d);return t;
 }
 function popManche(s,m,pp){
@@ -559,10 +568,10 @@ function popManche(s,m,pp){
   const pm=ptsManche(s,m)||[0,0],tot=[0,0];for(let k=1;k<=m;k++){const x=ptsManche(s,k);if(x){tot[0]+=x[0];tot[1]+=x[1]}}
   const bas=mk('div','pp-bas');
   const bo=bonusManche(s,m);
-  [0,1].forEach(p=>{const w=mk('div','pp-gc'),x=mk('div','pp-gain'),n=mk('span','',nom(p)),i=mk('i','','+'+pm[p]);n.style.color=i.style.color=COL[p];x.append(avatar(p),n,i,u.ico('coupe'));w.append(x);
+  [BAS(),1-BAS()].forEach((p,rg)=>{const w=mk('div','pp-gc'),x=mk('div','pp-gain'),n=mk('span','',nom(p)),i=mk('i','','+'+pm[p]);n.style.color=i.style.color=COL[p];x.append(avatar(p),n,i,u.ico('coupe'));w.append(x);
     /* points hors terrains (Roi du Karaoke...) : petite ligne sous le gain, deja compris dans le +n */
     if(bo[p].length)w.append(mk('div','pp-bonus',bo[p].join(' - ')));bas.append(w);
-    if(p===0)bas.append(score('Score',tot[0],tot[1]))});
+    if(rg===0)bas.append(score('Score',tot))});
   pp.append(bas);
 }
 function popPartie(s,pp){
@@ -576,10 +585,10 @@ function popPartie(s,pp){
   if(F.abandon!==undefined)vic.append(mk('p','pp-sous',nom(F.abandon)+(F.quitte?' a quitté la partie':' a abandonné')));
   else if(F.deckVide!==undefined)vic.append(mk('p','pp-sous','Victoire par deck vide : '+nom(F.deckVide)+' n\'avait plus de carte à piocher')); /* 0.4 */
   else if(F.departage&&F.scores[0]===F.scores[1])vic.append(mk('p','pp-sous','Égalité de points : départage à la Force'));
-  vic.append(score('Score final',F.scores[0],F.scores[1]));pp.append(vic);
+  vic.append(score('Score final',F.scores));pp.append(vic);
   const tb=mk('table','pp-tab'),hr=mk('tr');['','Manche 1','Manche 2','Manche 3','Total'].forEach(x=>hr.append(mk('th','',x)));tb.append(hr);
   const P=[1,2,3].map(m=>ptsManche(s,m));
-  [0,1].forEach(p=>{const tr=mk('tr',w===p?'gagne':''),n=mk('td'),nm=mk('div','nm'),sp=mk('span','',nom(p));tr.style.setProperty('--c',COL[p]);sp.style.color=COL[p];nm.append(avatar(p),sp);n.append(nm);tr.append(n);
+  [BAS(),1-BAS()].forEach(p=>{const tr=mk('tr',w===p?'gagne':''),n=mk('td'),nm=mk('div','nm'),sp=mk('span','',nom(p));tr.style.setProperty('--c',COL[p]);sp.style.color=COL[p];nm.append(avatar(p),sp);n.append(nm);tr.append(n);
     P.forEach(x=>{const g=x&&x[p]>x[1-p],td=mk('td',g?'mg':'',x?String(x[p]):'-');td.style.color=g?COL[p]:'var(--texte)';tr.append(td)});
     const tt=mk('td','',String(F.scores[p]));tt.style.color=COL[p];tr.append(tt);tb.append(tr)});
   pp.append(tb);
