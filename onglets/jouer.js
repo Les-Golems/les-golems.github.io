@@ -365,7 +365,7 @@ async function entre(c,opt){
   occupe=true;majEtat();$('erreurJeu').textContent='';jePret=false;nbSalon=0;
   const sv=chargeSalon(c);
   try{
-    if(window.SPEC&&!specAnn){specAnn=true;SPEC.onChange(()=>{if(r)majAnnonce(ordre(r.peers()))})} /* spectateurs comptes dans l'annonce */
+    if(window.SPEC&&!specAnn){specAnn=true;SPEC.onChange(()=>{if(r)majAnnonce(ordre(r.peers()));if(!$('salon').hidden)majSpecs()})} /* 0.6 : compteur de spectateurs a jour (SPEC n'existe pas encore au chargement de ce fichier) */ /* spectateurs comptes dans l'annonce */
     if(window.SPEC){const rl=await SPEC.entrer(c,{createur,observer:!!(opt&&opt.observer)});if(rl==='spec'){specBranche();r=null;code=c;$('codeSalon').textContent=c.toUpperCase();$('accueil').hidden=true;$('salon').hidden=false;occupe=false;majEtat();return}}
     const s=await room.join(c);
     r=s;code=c;entree=Date.now();

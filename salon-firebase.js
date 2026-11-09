@@ -563,8 +563,10 @@ async function ouvre() {
             for (const k of ["a", "d", "e", "v", "w", "q", "n", "g", "m", "k", "f", "cl", "el"]) if (!(k in maj)) maj[k] = null;
             try { await update(annRef, maj); return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
           }
-          if (!annonceOn) await onDisconnect(annRef).remove();
+          // onDisconnect posé APRÈS l'écriture : la règle de retrait (u = moi) est alors vraie (sinon PERMISSION_DENIED).
+          const pose = !annonceOn;
           await set(annRef, v); annonceOn = true;
+          if (pose) await onDisconnect(annRef).remove();
         } else {
           // Le créateur ou un joueur présent peut retirer l'annonce (salon complet).
           const v = annonceOn ? true : (await get(annRef).catch(() => null));
