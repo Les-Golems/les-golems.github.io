@@ -553,6 +553,8 @@ async function ouvre() {
       //       n: nombre de spectateurs } pour publier, null pour retirer. L'annonce reste tant que la partie n'a pas commencé.
       // Une fois publiée, elle est mise à jour sans toucher à t (heure de création).
       async annonce(o) {
+        // Salon quitté (robot lancé, sortie) : plus d'annonce, la règle la refuserait (joueur absent du salon).
+        if (o && fini) return;
         if (o) {
           const v = { u: uid, p: donnees && donnees.pseudo || "", a: donnees && donnees.avatarId || "", d: String(o.d || "").slice(0, 24), e: String(o.e || "").slice(0, 60), t: serverTimestamp() };
           if (!v.a) delete v.a; if (!v.d) delete v.d; if (!v.e) delete v.e;

@@ -420,14 +420,17 @@ $('voirClassement').onclick=()=>onglet('stats');
 /* 0.6 : profil classe du joueur, lu dans Firebase (classe/joueurs/<uid>) par le service de commun/classe.js :
    cree s'il manque, remis a la nouvelle saison (instantane d'abord), classement et recompenses tenus a jour.
    classeMoi = derniere copie lue (affichage seulement ; chaque ecriture relit Firebase). */
-let classeMoi=null,classeCharge=null;
+let classeMoi=null,classeCharge=null,classeChargeU='';
 function serviceClasse(){return compteCo()&&room&&room.classeBase&&window.GolemsClasse?GolemsClasse.service(room.classeBase()):null}
 function profilClasse(){return classeMoi&&Number.isFinite(classeMoi.elo)?classeMoi:GolemsClasse.nouveauJoueur(0)}
 function chargeClasse(){
   const S=serviceClasse();if(!S){classeMoi=null;majRangBandeau();return Promise.resolve(null)}
   const u=room.compte.uid();
+  /* un seul chargement a la fois par compte : deux creations simultanees du profil, la seconde est refusee (PERMISSION_DENIED) */
+  if(classeCharge&&classeChargeU===u)return classeCharge;classeChargeU=u;
+  const fin=()=>{if(classeChargeU===u){classeCharge=null;classeChargeU=''}};
   return classeCharge=S.profil({stats:id=>typeof pfInstantane==='function'?pfInstantane(id):{}}).then(j=>{if(compteCo()&&room.compte.uid()===u){classeMoi=j;majRangBandeau();majTuiles()}return j},
-    e=>{console.warn('classe',e);return null});
+    e=>{console.warn('classe',e);return null}).finally(fin);
 }
 /* Capsule du bandeau (commun/compte.js, majRangMoi) : embleme + Elo, placement fini seulement ; pendant le placement, rien. */
 function majRangBandeau(){
