@@ -30,7 +30,25 @@
 window.GOLEMS_VERSION=x&&x.build?{v:String(x.v||''),build:String(x.build),type:String(x.type||'version')}:null;
 window.IMG_V=window.GOLEMS_VERSION?window.GOLEMS_VERSION.build:String(Date.now());
 const a=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
-window.golemsCharge=l=>document.write(l.map(([t,u,m])=>t==='css'?'<link rel="stylesheet" href="'+a(u)+'">':'<script'+(m?' '+m:'')+' src="'+a(u)+'"><\/script>').join(''));})();
+/* Repli de chargement (0.6) : un script qui echoue (reseau) ou dont le symbole cle manque apres chargement est recharge une fois
+   avec ?r= unique (XHR synchrone puis script en ligne : l'ordre est garde) ; sinon la page est rechargee UNE seule fois
+   (garde-fou sessionStorage golems.secours, efface quand tout est la). */
+const S='golems.secours',SYMB={'cartes/donnees/interface.js':'GolemsDonnees','commun/etat.js':'tuto','commun/outils.js':'ETOILE_G','commun/alertes.js':'copieManuelle','commun/classe.js':'GolemsClasse','commun/compte.js':'surCompte','commun/navigation.js':'onglet','commun/profil.js':'majAvatarProfil','commun/raccords.js':'memo','commun/demarrage.js':'aReprendre','moteur.js':'GolemsMoteur','onglets/guides.js':'cjInit','onglets/nouveautes.js':'basculeEpingle','onglets/cartes.js':'boutonLienCarte','onglets/jouer.js':'bulleReac','vue/partie.js':'lancer','onglets/statistiques.js':'fenSaisonSt','onglets/historique.js':'peintHisto','onglets/decks.js':'peintDecks','vue/joueur.js':'affiche','onglets/tutoriel.js':'lanceGuide','onglets/regles.js':'golemsRegles','commun/version.js':'nouvelleVersion','versions-cartes.js':'VERSIONS_CARTES'};
+const r=u=>u+'?r='+Date.now().toString(36)+Math.random().toString(36).slice(2,8)+'&v='+encodeURIComponent(window.IMG_V);
+window.golemsManque=s=>{try{return new Function('return typeof '+s)()==='undefined'}catch(e){return false}}; /* zone morte (script parti puis arrete) : present */
+window.golemsSecours=pourquoi=>{let n=0;try{n=+sessionStorage.getItem(S)||0}catch(e){}
+  console.error('Chargement : '+pourquoi+(n?' ; deja recharge une fois, arret.':' ; rechargement de la page.'));
+  if(n)return;try{sessionStorage.setItem(S,'1')}catch(e){return}location.reload()};
+window.golemsRepare=(e,u,m)=>{if(e.dataset.r)return;e.dataset.r='1';
+  if(m){const x=document.createElement('script');if(/module/.test(m))x.type='module';x.src=r(u);x.dataset.r='1';x.onerror=()=>golemsSecours(u+' introuvable');document.head.append(x);return}
+  try{const q=new XMLHttpRequest();q.open('GET',r(u),false);q.send();if(q.status!==200)throw new Error('HTTP '+q.status);
+    const x=document.createElement('script');x.dataset.r='1';x.text=q.responseText+'\n//# sourceURL='+u;document.head.append(x);
+    if(SYMB[u]&&golemsManque(SYMB[u]))throw new Error(SYMB[u]+' absent');console.warn('Chargement : '+u+' recharge (?r=).')}catch(x){golemsSecours(u+' en echec'+(x&&x.message?' ('+x.message+')':''))}};
+window.golemsVerifie=(e,u,m)=>{if(!m&&SYMB[u]&&golemsManque(SYMB[u]))golemsRepare(e,u,m)};
+window.golemsFin=()=>{const k=['$','ETOILE_G','M','onglet','lancer','affiche','lanceGuide','peintDecks'].filter(golemsManque);
+  if(k.length)golemsSecours('symboles absents : '+k.join(', '));else try{sessionStorage.removeItem(S)}catch(e){}};
+const h=(u,m)=>'(this,\''+u+'\',\''+(m||'').replace(/"/g,'')+'\')'; /* attributs : sans guillemets doubles (type="module") */
+window.golemsCharge=l=>document.write(l.map(([t,u,m])=>t==='css'?'<link rel="stylesheet" href="'+a(u)+'">':'<script'+(m?' '+m:'')+' src="'+a(u)+'"'+(/module/.test(m||'')?'':' onerror="golemsRepare'+h(u,m)+'" onload="golemsVerifie'+h(u,m)+'"')+'><\/script>').join(''));})();
 window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
 document.documentElement.style.setProperty('--verso','url("'+imgV('cartes/verso.jpg')+'")');
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[data-src]').forEach(i=>{i.src=imgV(i.dataset.src)}));</script>
@@ -241,4 +259,5 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 <script>(function(){ /* Crochet des outils de test (cdp.py, captures.py inserent __g juste avant la fin) ; le code du site est dans commun/, onglets/ et vue/. */
 })();
 </script>
+<script>golemsFin()</script>
 <script>window.__golemsPret&&window.__golemsPret()</script>
