@@ -5,7 +5,12 @@
    Hors historique, profil et sauvegarde (voir calcule et sauve). */
 const GUIDE={graine:19445,deck:'0013001e30023002e300430073007e30183'};
 const gJ=()=>partie.etat.j[partie.moi],gG=(l,k)=>gJ().grille[l][k],gId=(l,k)=>gG(l,k)&&M.carte(gG(l,k).c).id;
-const gSlot=c=>'.p-slot[data-c="'+c+'"]';
+/* 0.6 : sur ordinateur, la vue joueur (#dif, diffusion.js) remplace l'ecran #partie (cache) ; la main y est redessinee
+   (boutons .d-main [data-c]) et les boutons d'action y sont deplaces (.mq-btns). Les cibles listent les deux ecrans : on garde la premiere visible. */
+const gSlot=c=>'#dif .d-main button[data-c="'+c+'"],.p-slot[data-c="'+c+'"]';
+/* visible : a une taille, et n'est pas reste dans #partie sous la vue joueur ouverte */
+const gVis=x=>!!x&&x.getClientRects().length>0&&x.getBoundingClientRect().width>0&&!($('dif')&&x.closest('#partie'));
+function gCible(c){const l=[...document.querySelectorAll(c)];return l.find(gVis)||null}
 const gMull=s=>s.phase==='mulligan'&&!s.mull[partie.moi];
 const gTour=s=>s.phase==='jeu'&&!s.fin&&!s.attente&&!s.fil&&s.joueur===partie.moi;
 const gForge=(t,m)=>s=>gTour(s)&&s.manche===(m||1)&&s.tour===t&&gJ().etapeForge;
@@ -15,12 +20,12 @@ const ETAPES=[
  {q:gMull,t:"Bienvenue ! Cette partie guidée t'apprend les bases contre un Golem Facile. Lis chaque bulle, puis fais ce qu'elle demande.",suiv:1},
  {q:gMull,c:'.p-grille.mienne',t:"Voici ta grille : 3 lignes et 3 colonnes. Celle du Golem est de l'autre côté, en miroir.",suiv:1},
  {q:gMull,c:'.p-terrains',t:"Chaque colonne correspond à un <b>terrain</b>. À la fin de chaque manche, le plus fort de la colonne conquiert le terrain et marque ses points.",suiv:1},
- {q:gMull,c:'.p-main',t:"Voici ta <b>main</b> : 5 cartes. Au départ, tu peux en remplacer jusqu'à 3. Ici, ta main est bonne.",suiv:1},
- {q:gMull,c:'.p-poste .p-btns .btn',t:"Touche <b>Garder ma main</b>.",f:s=>s.mull[partie.moi]},
+ {q:gMull,c:'#dif .d-main,.p-poste>.p-main',t:"Voici ta <b>main</b> : 5 cartes. Au départ, tu peux en remplacer jusqu'à 3. Ici, ta main est bonne.",suiv:1},
+ {q:gMull,c:'#dif .mq-btns .btn,.p-poste>.p-btns .btn',t:"Touche <b>Garder ma main</b>.",f:s=>s.mull[partie.moi]},
  {q:gForge(1),c:'.pile.deck',t:"Ton tour commence par la <b>pioche</b> : tu prends 2 cartes de ton deck. Tu as maintenant 7 cartes en main.",suiv:1},
  {q:gForge(1),c:gSlot(28),t:"Étape 1, la <b>Forge</b>. Touche <b>Roi du Mobile</b> pour le forger.",f:()=>sel===28||gJ().forge.length>=1},
  {q:gForge(1),c:'#forger',t:"Une carte forgée reste face cachée pour toujours et donne 1 énergie à chaque tour, dès ce tour. La Forge est ta seule source d'énergie. Touche <b>Forger</b>.",f:gForgee(1)},
- {q:gAct(1),c:'.p-camp.toi .c-enclume',t:"Tu as 1 <b>énergie</b>. Elle sert à payer le coût de tes cartes.",suiv:1},
+ {q:gAct(1),c:'#dif .d-j.toi .d-ener,.p-camp.toi .c-enclume',t:"Tu as 1 <b>énergie</b>. Elle sert à payer le coût de tes cartes.",suiv:1},
  {q:gAct(1),c:gSlot(0),t:"Pose un Golem : touche <b>KaTarN</b>, il coûte 1.",f:()=>sel===0||!!gG(1,1)},
  {q:gAct(1),c:caseDe(0,1,1),t:"Les cases dorées montrent où le poser. Touche celle du milieu.",f:()=>!!gG(1,1)},
  {q:gAct(1),c:caseDe(0,1,1),t:"Le grand chiffre est sa <b>Force</b> : 8. Touche KaTarN pour voir le détail.",f:()=>!$('vue').hidden},
@@ -40,10 +45,10 @@ const ETAPES=[
  {q:gAct(3),c:caseDe(0,0,2),t:"Pose-le <b>en face</b> de Trigas : même terrain, même ligne.",f:()=>!!gG(0,2)},
  {q:gAct(3),c:caseDe(0,0,2),t:"C'est le <b>cercle</b> : +1 si le Golem en face a un élément que le tien domine. Jamais plus de +1, sauf effet de carte. Elessar passe de 2 à 3.",suiv:1},
  {q:gAct(3),c:'#finTour',t:"Touche <b>Fin du tour</b>. Le Golem joue son dernier tour, puis la manche se termine.",f:s=>s.manche>1||s.tour>3||s.joueur!==partie.moi},
- {recap:1,c:'#recap .r-terrain',t:"<b>Décompte</b> : dans chaque colonne, on additionne la Force de tous ses Golems.",suiv:1},
- {recap:1,c:'#recap .r-terrain .gagne',t:"Le plus fort <b>conquiert le terrain</b> et marque ses points. En cas d'égalité, personne ne le marque.",suiv:1},
- {recap:1,c:'#continuer',t:"Les cartes et les dégâts restent en place pour la manche suivante. Touche <b>Continuer</b>.",f:s=>$('recap').hidden&&s.manche>1},
- {q:gForge(1,2),c:'.p-trois .p-info',t:"<b>Manche 2</b> : le premier joueur change, le Golem a commencé. En second, tu ne pioches qu'1 carte à ton premier tour.",suiv:1},
+ {recap:1,c:'#dif .pp .pp-ters,#recap .r-terrain',t:"<b>Décompte</b> : dans chaque colonne, on additionne la Force de tous ses Golems.",suiv:1},
+ {recap:1,c:'#dif .pp .pp-l.gagne,#recap .r-terrain .gagne',t:"Le plus fort <b>conquiert le terrain</b> et marque ses points. En cas d'égalité, personne ne le marque.",suiv:1},
+ {recap:1,c:'#dif .pp .pp-fermer,#continuer',t:"Les cartes et les dégâts restent en place pour la manche suivante. Touche <b>Continuer</b>.",f:s=>$('recap').hidden&&s.manche>1},
+ {q:gForge(1,2),c:'#dif .d-mid .d-cote,.p-trois .p-info',t:"<b>Manche 2</b> : le premier joueur change, le Golem a commencé. En second, tu ne pioches qu'1 carte à ton premier tour.",suiv:1},
  {q:gForge(1,2),c:caseDe(0,1,1),t:"À chaque fin de manche, KaTarN perd 4 de Force. Ce sont des dégâts : ils restent.",suiv:1},
  {q:gForge(1,2),c:gSlot(18),t:"Forge <b>Le Q</b> : tu auras 4 énergies.",f:()=>sel===18||gJ().forge.length>=4},
  {q:gForge(1,2),c:'#forger',t:"Touche <b>Forger</b>.",f:gForgee(4)},
@@ -51,9 +56,9 @@ const ETAPES=[
  {q:gAct(1,2),c:caseDe(0,1,1),t:"Touche le KaTarN du milieu pour l'<b>améliorer</b>.",f:()=>gId(1,1)==='001e'},
  {q:gAct(1,2),c:caseDe(0,1,1),t:"KaTarN part à la défausse et ses dégâts disparaissent. À la pose, Slim K inflige 1 dégât à chaque Golem de la ligne adverse.",suiv:1},
  {q:gAct(1,2),c:'#finTour',t:"Tu connais l'essentiel ! Termine ton tour, puis joue la suite de la partie comme tu veux.",suiv:'Compris',libre:1},
- {libre:1,q:s=>!!s.fin,c:'.p-fin h3',fin:1,t:"Partie terminée, bravo ! Les <b>Règles</b> détaillent tout le reste, comme les effets des terrains."}
+ {libre:1,q:s=>!!s.fin,c:'#dif .pp .pp-vic,.p-fin h3',fin:1,t:"Partie terminée, bravo ! Les <b>Règles</b> détaillent tout le reste, comme les effets des terrains."}
 ];
-const G_LIBRES='.p-outils button,.p-pied button,.oeil';
+const G_LIBRES='.p-outils button,.p-pied button,.oeil,#dif .mq-outils button,#dif .d-chat';
 function lanceGuide(){
   if(r){alerte('erreurJeu','Salon en cours : partie guidée indisponible dans un salon. Quitte le salon d\'abord.');onglet('jouer');return}
   if(partie)finPartie();
@@ -79,9 +84,11 @@ function tickGuide(){
   while(e&&e.f&&e.f(s)){tuto.i++;e=etapeG()}
   if(!e){arreteGuide();return}
   const b=tuto.b,a=tuto.a,f=tuto.f;
-  const calme=(e.fin||!animCours&&!verrou&&!desActif&&!fileA.length)&&$('vue').hidden===!e.vue&&$('recap').hidden===!e.recap&&$('vueTas').hidden&&$('aide').hidden;
-  const z=e&&calme&&(!e.q||e.q(s))&&!$('jouer').hidden?(e.c?document.querySelector(e.c):document.body):null;
-  if(!z){b.hidden=a.hidden=f.hidden=true;return}
+  const calme=(e.fin||!animCours&&!verrou&&!desActif&&!fileA.length)&&$('vue').hidden===!e.vue&&(e.fin||$('recap').hidden===!e.recap)&&$('vueTas').hidden&&$('aide').hidden;
+  if(!(e&&calme&&(!e.q||e.q(s))&&!$('jouer').hidden)){b.hidden=a.hidden=f.hidden=true;return}
+  /* Cible introuvable : la bulle se place au centre de l'ecran (sans anneau) au lieu de disparaitre, avec un avertissement en console. */
+  let z=e.c?gCible(e.c):document.body,perdue=false;
+  if(!z){z=document.body;perdue=true;if(tuto.perdue!==tuto.i){tuto.perdue=tuto.i;console.warn("Partie guidée : cible introuvable à l'étape "+(tuto.i+1)+' ('+e.c+'), bulle au centre.')}}
   if(tuto.vu!==tuto.i){
     tuto.vu=tuto.i;b.textContent='';
     const p=el('p');p.innerHTML=e.t;b.append(p);
@@ -95,9 +102,9 @@ function tickGuide(){
     if(pied.childNodes.length)b.append(pied);
     b.hidden=false;
     const r0=z.getBoundingClientRect();
-    if(e.c&&(r0.top<60||r0.bottom>innerHeight-40))z.scrollIntoView({block:'center'});
+    if(e.c&&!perdue&&(r0.top<60||r0.bottom>innerHeight-40))z.scrollIntoView({block:'center'});
   }
-  b.hidden=false;placeGuide(z,!e.c);
+  b.hidden=false;placeGuide(z,!e.c||perdue);
 }
 function placeGuide(z,centre){
   const b=tuto.b,a=tuto.a,f=tuto.f,vw=document.documentElement.clientWidth,vh=innerHeight,bw=b.offsetWidth,bh=b.offsetHeight;
@@ -109,7 +116,7 @@ function placeGuide(z,centre){
   const C=(!centre&&z.closest('.p-grille,.p-main,.p-piles,.p-trois,.p-terrains,.p-camp,.boite'))||null,Q=C&&C!==z?C.getBoundingClientRect():null;
   if(Q)cands.push([Q.right+14,cy,''],[Q.left-bw-14,cy,''],[cx,Q.bottom+14,'haut'],[cx,Q.top-bh-14,'bas'],[Q.right+14,cl(Q.top,8,vh-bh-8),''],[Q.left-bw-14,cl(Q.top,8,vh-bh-8),'']);
   for(let gy=8;gy<=vh-bh-8;gy+=24)for(let gx=8;gx<=vw-bw-8;gx+=24)cands.push([gx,gy,'']); /* balayage : place libre la plus proche */
-  const zones=[...document.querySelectorAll(G_GENE)].filter(x=>x.offsetParent||x.id==='gPasser').map(x=>x.getBoundingClientRect()).filter(q=>q.width&&q.height);
+  const zones=[...document.querySelectorAll(G_GENE)].filter(x=>(x.offsetParent||x.id==='gPasser')&&!($('dif')&&x.closest('#partie'))).map(x=>x.getBoundingClientRect()).filter(q=>q.width&&q.height);
   const rec=(x,y,q)=>Math.max(0,Math.min(x+bw,q.right)-Math.max(x,q.left))*Math.max(0,Math.min(y+bh,q.bottom)-Math.max(y,q.top));
   let best=null;
   cands.forEach(([x,y,s],i)=>{
@@ -125,11 +132,11 @@ function placeGuide(z,centre){
   f.hidden=!sens;f.className='g-fleche '+sens;
   if(sens){f.style.left=Math.max(left+12,Math.min(left+bw-30,r.left+r.width/2-9))+'px';f.style.top=(sens==='haut'?top-18:top+bh)+'px'}
 }
-const G_GENE='#partie .p-info,#partie button,#partie .p-case,#partie .pile,#partie .p-slot,#partie .p-trois,#partie .p-tourde,#partie .p-terrains,#recap button,#gPasser,nav';
+const G_GENE='#partie .p-info,#partie button,#partie .p-case,#partie .pile,#partie .p-slot,#partie .p-trois,#partie .p-tourde,#partie .p-terrains,#recap button,#gPasser,nav,#dif .d-main button,#dif .mq-btns .btn,#dif .mq-piles .pile,#dif .mq-outils button,#dif .p-case,#dif .p-terrain,#dif .pp-ter,#dif .pp-ecran,#dif .pp-bas,#dif .pp-fermer';
 /* Pendant le guidage, seul l'element vise repond sur le plateau et dans le bilan de manche. */
 document.addEventListener('click',e=>{
   const st=etapeG();if(!st||st.libre||!partie||!partie.tuto)return;
-  const t=e.target;if(!t.closest||!t.closest('#partie,#recap'))return;
+  const t=e.target;if(!t.closest||!t.closest('#partie,#recap,#dif'))return;
   if(t.closest(G_LIBRES))return;
   if(!st.suiv&&st.c&&t.closest(st.c))return;
   e.preventDefault();e.stopPropagation();
