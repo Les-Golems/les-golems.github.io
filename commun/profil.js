@@ -343,7 +343,8 @@ async function ouvreProfil(autre){
       D.els.forEach(x=>{const l=C*x[1]/100;sv+='<circle r="'+R0+'" cx="68" cy="68" fill="none" stroke="var(--fm-'+x[0]+')" stroke-width="20" stroke-dasharray="'+Math.max(l-3,0)+' '+C+'" stroke-dashoffset="'+(-o)+'" transform="rotate(-90 68 68)"></circle>';o+=l});
       ar.innerHTML='<svg viewBox="0 0 136 136">'+sv+'</svg>';const lg=E('div','pr-lg');
       D.els.forEach(x=>{const r=E('div');try{r.append(picto(x[0]))}catch(e){}r.append(E('span','',x[0].charAt(0).toUpperCase()+x[0].slice(1)),E('b','',x[1]+' %'));lg.append(r)});ar.append(lg);an.append(ar)}
-    else an.append(E('div','pr-anv',prive?'Masqué (profil privé)':D.attente?'Pas encore publié':avant?AV:'Aucune partie'));
+    else if(avant&&!prive&&!D.attente)an.append(E('div','pr-ins',AV)); /* meme encadre d'information que les panneaux du bas */
+    else an.append(E('div','pr-anv',prive?'Masqué (profil privé)':D.attente?'Pas encore publié':'Aucune partie'));
     hr.append(an);dr.append(hr);
     const p3=E('div','pr-p3');dr.append(p3);
     if(prive){const pn=E('div','pr-pn pr-pv');pn.append(E('div','pr-ins','Profil privé : ce joueur ne partage que son rang et son bilan.'));p3.append(pn);return}
