@@ -327,10 +327,9 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('invité signale un autre'), false, req(G, 'PUT', P + 'enligne/' + A.uid, HEURE));
   await attendu(ici('invité lit en ligne'), true, req(G, 'GET', P + 'enligne'));
 
-  // Nouveautés : message de Romain.
+  // 0.6 : nouveautes/message retiré des règles (aucun code ne le lit) : refusé à tous, Romain compris.
   await attendu(ici('message des Nouveautés par un joueur'), false, req(A, 'PUT', P + 'nouveautes/message', { t: 'Saison 1', d: t }));
-  await attendu(ici('message des Nouveautés par Romain'), true, req(R, 'PUT', P + 'nouveautes/message', { t: 'Saison 1', d: t }));
-  await attendu(ici('invité lit le message'), true, req(G, 'GET', P + 'nouveautes/message'));
+  await attendu(ici('message des Nouveautés par Romain'), false, req(R, 'PUT', P + 'nouveautes/message', { t: 'Saison 1', d: t }));
 
   // Historique 0.6 et 12 decks.
   const h = '6-' + t;

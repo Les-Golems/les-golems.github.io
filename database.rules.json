@@ -774,20 +774,6 @@
         "$i": {
           ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)"
         }
-      },
-      "message": {
-        ".read": true,
-        ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
-        ".validate": "newData.hasChildren(['t', 'd'])",
-        "t": {
-          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 600"
-        },
-        "d": {
-          ".validate": "newData.isNumber()"
-        },
-        "$autre": {
-          ".validate": false
-        }
       }
     },
     "classe": {
@@ -1884,20 +1870,6 @@
           ".validate": "newData.hasChildren()",
           "$i": {
             ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)"
-          }
-        },
-        "message": {
-          ".read": true,
-          ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
-          ".validate": "newData.hasChildren(['t', 'd'])",
-          "t": {
-            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 600"
-          },
-          "d": {
-            ".validate": "newData.isNumber()"
-          },
-          "$autre": {
-            ".validate": false
           }
         }
       },
