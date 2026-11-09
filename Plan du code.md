@@ -86,3 +86,18 @@ Un nouveau fichier JS ou CSS doit être ajouté à la liste `golemsCharge` d'ind
 - `tests/test_ids_moteur.js`, `tests/test_ids_interface.js` : aucun code ni nom de carte en dur.
 - `tests/test_moteur.js`, `test_animaux.js`, `test_leq.js`, `test_terrains.js`, `test_encodage.js` : règles du moteur.
 - Hors dépôt (`6 - Outils et simulations\1 - Outils\3 - Tests du site`) : harnais Chrome headless (`cdp.py`, `t_moteur.py` ; variable `GOLEMS_SITE` pour tester un autre dossier que « 4 - Site GitHub »).
+
+## 6. Socle commun 0.6 (css/base.css, commun/outils.js)
+
+Composants de la charte graphique, préfixe `sc-`, à utiliser par tous les écrans refaits. Les anciennes classes (`.pastille`, `.btn`...) restent valides tant que les écrans ne sont pas adaptés. Démonstration : `_tmp/socle_demo.html`.
+
+| Nom | Usage |
+|---|---|
+| Variables `--rouge` #ff4d4f, `--rouge-texte` #ffd0ca, `--adverse` #ee6a2c, `--ambre`, `--vert`, `--gris-taux`, `--info-bord` | Rouge d'erreur unique (remplace #ff6b5e, encore écrit en dur dans `css/partie.css`, `css/reprises.css`, `css/onglets/jouer-salon.css`, `css/onglets/decks-historique.css`, `onglets/decks.js` : à passer en `var(--rouge)` à l'adaptation des écrans) ; orange de l'adversaire ; couleurs des taux. |
+| États communs : `.sc-etat`, `.sc-selectionne`, `.sc-desactive`, `.sc-tuile` | Survol brightness 1,08 (souris seulement), clic, focus 2 px bleu, désactivé .45, sélectionné bleu ; déjà inclus dans `.sc-btn` et `.sc-sel`. Tuile : bordure bleue au survol, contour 3 px sélectionnée. |
+| `.sc-sel` (+ `.sc-petit`, `.sc-large`) | Sélecteur unique à 2, 3 ou 4 options (`<button aria-pressed>`). 46 px (options 38 px, 14,5 px) pour vue/mode ; `.sc-petit` 34 px pour les filtres d'un bloc. Remplace tout interrupteur oui/non. |
+| `.sc-btn` (+ `.sc-secondaire`, `.sc-tertiaire`), `.sc-rangee`, `.sc-pousse` | Bouton principal bleu / secondaire gris, 46 px, Lilita 18 px ; tertiaire 30 px 14 px ; rangée à 12 px d'écart ; `.sc-pousse` cale à droite. |
+| `.sc-fenetre`, `.sc-fen-titre`, `.sc-fen-actions` | Fenêtre : titre 800 18 px police du texte, bandeau éventuel juste dessous, rangée [action] à gauche, [Annuler/Fermer] (`.sc-secondaire` en dernier ou `.sc-pousse`) à droite, 24 px sous la rangée. |
+| `.sc-alerte.sc-erreur` / `.sc-alerte.sc-info` (+ `.sc-une-ligne` 40 px, `.sc-deux-lignes` 56 px) | Bandeau d'alerte : `<i></i>` (icône « ! » ou « i » mise par le CSS), `<span>` texte (2 lignes max), bouton `.sc-btn.sc-tertiaire` éventuel à droite ; empilés à 8 px. |
+| `.sc-titre-bloc` | Titre de bloc commun (Lilita 22 px, une ligne, 12 px dessous) : même place dans tous les blocs (défaut J02). |
+| `couleurTaux(taux, parties, {neutre})` (commun/outils.js) et `.sc-taux-*` | Rend la classe : vert >= 50 %, ambre 40-49 %, rouge < 40 %, gris si moins de 5 parties ; `neutre:true` = blanc (classement des joueurs). `couleurTaux.valeur(...)` rend la couleur CSS. Taux en pourcentage 0-100. |

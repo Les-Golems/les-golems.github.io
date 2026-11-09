@@ -25,3 +25,16 @@ const effetDe=(id,type,f)=>effetsCarte(id).find(r=>r.type===type&&(!f||f(r)))||n
 const idsAvecEffet=(type,f)=>Object.keys(window.GolemsDonnees.CARTES).filter(id=>effetDe(id,type,f));
 const effetTerrain=(T,type)=>{const x=T&&window.GolemsDonnees.terrains.liste.find(z=>z.nom===T.nom);return x&&[].concat(x.effet||[]).find(r=>r.type===type)||null};
 const indexTerrainEffet=(s,type)=>s.terrains.findIndex(T=>effetTerrain(T,type));
+
+/* Couleur d'un taux (victoires, etc.), regle unique du site : vert >= 50 %, ambre 40-49 %, rouge < 40 %, gris si moins de 5 parties (donnees insuffisantes).
+   taux : en pourcentage 0-100 ; parties : nombre de parties derriere le taux ; opts.neutre : blanc partout (classement des joueurs).
+   Rend la classe CSS (sc-taux-vert / ambre / rouge / gris / neutre) ; couleurTaux.valeur(...) rend la couleur CSS (var(--...)). */
+function couleurTaux(taux,parties,opts){
+  if(opts&&opts.neutre)return 'sc-taux-neutre';
+  if(parties!=null&&parties<5)return 'sc-taux-gris';
+  if(taux==null||isNaN(taux))return 'sc-taux-gris';
+  const r=Math.round(taux*10)/10;
+  return r>=50?'sc-taux-vert':r>=40?'sc-taux-ambre':'sc-taux-rouge';
+}
+couleurTaux.valeur=(taux,parties,opts)=>({'sc-taux-vert':'var(--vert)','sc-taux-ambre':'var(--ambre)','sc-taux-rouge':'var(--rouge)','sc-taux-gris':'var(--gris-taux)','sc-taux-neutre':'#fff'})[couleurTaux(taux,parties,opts)];
+if(typeof module!=='undefined'&&module.exports)module.exports.couleurTaux=couleurTaux;
