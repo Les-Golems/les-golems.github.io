@@ -288,8 +288,14 @@ async function ouvre() {
       if (donnees.cree) o.cr = donnees.cree;
       if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv", "pm"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
       // 0.6 : Elo classé affiché (placement fini seulement, règle profils/el).
-      try { const j = (await get(ref(db, P + "classe/joueurs/" + moi))).val(); if (j && j.parties >= 5 && Number.isFinite(j.elo)) o.el = j.elo; } catch (e) {}
-      try { await set(ref(db, P + "profils/" + moi), o); return true; } catch (e) { console.warn("profil", e); return false; }
+      const lisEl = async () => { delete o.el; try { const j = (await get(ref(db, P + "classe/joueurs/" + moi))).val(); if (j && j.parties >= 5 && Number.isFinite(j.elo)) o.el = j.elo; } catch (e) {} };
+      await lisEl();
+      try { await set(ref(db, P + "profils/" + moi), o); return true; } catch (e) {
+        // el doit égaler classe/joueurs/<uid>/elo au moment de l'écriture : une fin de classée (finRobot, finJoueurs) peut
+        // l'avoir changé entre la lecture et l'écriture. Nouvelle lecture, puis un second essai.
+        await new Promise(f => setTimeout(f, 800)); await lisEl();
+        try { await set(ref(db, P + "profils/" + moi), o); return true; } catch (e2) { console.warn("profil", e2); return false; }
+      }
     },
     async masquerProfil(b) {
       if (!compte.connecte()) return;

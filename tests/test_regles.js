@@ -255,6 +255,12 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('robot : sans compteur du jour'), false, req(X, 'PATCH', '', appR({ elo: 1020, parties: 1, partiesTotal: 1, v: 1 })));
   await attendu(ici('robot : victoire appliquée'), true, req(X, 'PATCH', '', appR({ elo: 1020, parties: 1, partiesTotal: 1, v: 1 }, { jour: '2026-11-09', j: jour, n: 1 })));
   await attendu(ici('partie robot sans gagnant (nul)'), false, req(X, 'PUT', CL + 'parties/' + rid + 'n', { ...pr, gagnant: 'nul', deltaA: 0, eloA: 1020 }));
+  // Point 3 (tests en ligne du 9 nov.) : une fin de classée change l'Elo entre la lecture et l'écriture du profil public.
+  // L'ancien Elo est refusé ; le site relit classe/joueurs puis réécrit (salon-firebase.js, publieProfil) : accepté.
+  await req('admin', 'PATCH', J(A), { elo: 1048 });
+  await attendu(ici('profil après une classée, Elo affiché périmé'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, el: 1032 }));
+  await attendu(ici('profil après une classée, Elo affiché relu'), true, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, el: 1048 }));
+  await req('admin', 'PATCH', J(A), { elo: 1032 });
   await attendu(ici('bandeau robot retiré par son auteur'), true, req(X, 'DELETE', S3 + '/robot'));
   await req('admin', 'PATCH', J(X), { robots: { jour: '2026-11-09', j: jour, n: 5 } });
   await attendu(ici('bandeau robot après 5 classées du jour'), false, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));
