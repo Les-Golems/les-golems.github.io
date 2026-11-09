@@ -34,8 +34,21 @@ function gardeDecks(l){
   l.forEach(x=>{if(x&&!x.v)x.v=V_DECK_ANCIEN}); /* 0.6 : un deck sans v date d'avant la 0.6 (jamais M.VERSION sur un deck non modifie) */
   if(!compteCo()){ecrire('golems.decks',JSON.stringify(l));majChoixDeck();return}
   room.compte.donnees().decks=l.map(d=>({...d,cartes:{...d.cartes}}));majChoixDeck();
-  clearTimeout(decksT);decksT=setTimeout(()=>{decksT=0;decksVol++;room.compte.ecritDecks(room.compte.donnees().decks).catch(e=>console.warn(e)).finally(()=>decksVol--)},600);
+  clearTimeout(decksT);decksT=setTimeout(()=>{ecritDecksMaintenant().catch(()=>{})},600);
 }
+/* 0.6 : ecriture immediate des decks (minuterie annulee), rend la promesse (rejetee en cas d'echec).
+   Echec : bandeau d'erreur de la charte au-dessus des decks, nouvel essai a la reconnexion. */
+let decksEchec=false;
+function zoneAlerteDecks(){let z=$('decksAlerte');if(!z){z=el('div','');z.id='decksAlerte';const L=$('listeDecks');if(L)L.before(z)}return z}
+function ecritDecksMaintenant(){
+  clearTimeout(decksT);decksT=0;
+  if(!compteCo()||!room||!room.compte)return Promise.resolve();
+  decksVol++;
+  return room.compte.ecritDecks(room.compte.donnees().decks)
+    .then(()=>{if(decksEchec){decksEchec=false;alerte(zoneAlerteDecks(),'')}},e=>{console.warn(e);decksEchec=true;alerte(zoneAlerteDecks(),'Decks : enregistrement impossible. Réessaie dans un instant.');throw e})
+    .finally(()=>decksVol--);
+}
+if(window.golemsSalon)Promise.resolve(window.golemsSalon).then(x=>{if(x&&x.onConnection)x.onConnection(()=>{if(decksEchec&&x.connected()&&compteCo())ecritDecksMaintenant().catch(()=>{})})}).catch(()=>{});
 /* Choix du deck avant Pret et contre le robot : paquet de test ou deck complet (24 a 30 cartes). */
 function decksJouables(){return lesDecks().filter(d=>{const o=Object.fromEntries(Object.entries(d.cartes).filter(([,n])=>+n>0).map(([k,n])=>[k,+n]));return !M.erreurDeck(o)&&!(M.erreurElements&&M.erreurElements(o))&&!(M.erreurEvolutions&&M.erreurEvolutions(o))})}
 function deckChoisi(){
