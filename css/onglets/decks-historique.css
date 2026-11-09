@@ -271,7 +271,7 @@ main:has(#historique:not([hidden])){padding-bottom:24px}
 .hl-mvpe{flex:none;font:800 11px/1 var(--corps);letter-spacing:.05em;padding:3px 6px;border-radius:999px;background:var(--or);color:var(--encre)}
 .hl-date{display:flex;flex-direction:column;gap:2px;font-size:13.5px;color:var(--texte);white-space:nowrap;line-height:1.1}
 .hl-date small{font-size:12px;color:var(--doux)}
-.hl-ver{justify-self:start;white-space:nowrap;padding:1px 7px;font-size:11px;line-height:15px}
+.hl-ver{justify-self:start;white-space:nowrap;padding:1px 7px;font-size:11px;line-height:15px;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .hl-fl{font:800 22px/1 var(--corps);color:var(--doux);text-align:right}
 @media (max-width:699px){
   .hl-l{grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-areas:"res etq sp sc" "adv adv adv date";height:auto;row-gap:6px;padding:8px 10px}

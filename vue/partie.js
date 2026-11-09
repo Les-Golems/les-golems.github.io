@@ -783,7 +783,7 @@ function deHisto(x){
     mode:robot?'robot':'ligne',
     decks:[x.deck&&typeof x.deck.nom==='string'?{nom:x.deck.nom==='Test'?'Deck par défaut':x.deck.nom,els:els(x.deck.els)}:{nom:'',els:[]},robot?{nom:'Deck par défaut',els:els(elsTexte(DECK_TEST_TXT))}:{nom:'',els:[]}],
     manches,mvp:x.mvp?{carte:nomComplet(x.mvp),p:g,score:q?+q[1]:null,force:q?+q[2]:null,bonus:q?+q[3]:null,degats:q?+q[4]:null,morts:q?+q[5]:null}:null,
-    chiffres,version:versionAff(x),nomsCourts:[ps,advCourt]};
+    chiffres,version:(v=>v==='v ?'?'inconnue':v)(versionAff(x)),nomsCourts:[ps,advCourt]};
 }
 
 /* ---------- Morceaux communs ---------- */
