@@ -465,3 +465,27 @@ body.daltonien .dk-tuile.inv::after{content:'!';position:absolute;right:8px;bott
 .dk-fen.dk-test .bac{margin:0;padding:0;border:0;background:none}
 .dk-q button.dk-gris{opacity:.45;cursor:not-allowed}
 .voile.dk-voile{z-index:19} /* sous la carte en grand (#vue, 20) : zoom de carte et de terrain depuis le bac */
+
+/* 0.6 : selecteur Decks | Cartes en haut a gauche, meme place et memes dimensions que Parties | Historique et Regles | Guides (46 px, 1/4 de la largeur) */
+.dk-barre{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:center;min-height:46px;margin-bottom:16px}
+.dk-vue{display:grid;width:100%;margin:0}
+/* Etiquette de version (maquette 25\version) */
+.etq-v{border:1px solid #066680;border-radius:999px;background:#02a6ce;color:#0a121a;font-family:var(--corps);font-weight:800;letter-spacing:.02em}
+.vx-etq{display:inline-block;padding:0 8px;font-size:11.5px;line-height:16px;white-space:nowrap;cursor:default}
+.vx-etq.vx-diff{background:var(--rouge);border-color:var(--rouge)}
+.dk-tuile .pi{align-items:center}.dk-tuile .pi .vx-etq{margin-left:8px}
+/* Fenetres sc-fenetre de l'onglet */
+.dk-fen>.sc-alerte{margin:0 0 12px}.dk-fen>.sc-alerte+.sc-alerte{margin-top:-4px}
+.dk-fen-lib{margin:0 0 6px;color:var(--doux);font:700 13px var(--corps)}
+.dk-fen .pp-dc{margin:0 0 10px}.dk-fen .pp-lien{margin:0 0 10px;word-break:break-all;color:var(--doux);font-size:12.5px}
+.dk-fen-l{width:600px}
+.dk-fen-c{width:720px;max-height:calc(100vh - 32px);overflow-y:auto}.dk-fen-c .dc-liste{margin-top:14px}
+.dk-code{width:100%;margin:12px 0 0;min-height:80px;border-radius:9px;border:1px solid var(--trait);background:var(--encre);color:var(--texte);font:600 14px var(--corps);padding:10px 12px;resize:vertical}
+.dk-fen-lien{width:640px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden}
+.vd-bd{display:flex;align-items:center;gap:12px;margin:-20px -24px 16px;padding:16px 24px;border-radius:14px 14px 0 0;flex:none}
+.vd-bd .sc-fen-titre{margin:0;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.vd-bd .pi{display:flex;gap:4px;flex:none}.vd-bd .pi img{width:24px;height:24px}
+.vd-bd .ct{margin-left:auto;font:800 14px var(--corps);background:rgba(0,0,0,.35);color:#fff;border-radius:999px;padding:5px 11px;flex:none}.vd-bd .ct.ko{color:var(--rouge)}
+.vd-co{min-height:0;flex:1 1 auto;overflow:hidden}.vd-co .dl-liste{max-height:420px}
+.dk-fen-lien .vd-m:empty{display:none}
+.dk-fen-lien .sc-fen-actions .sc-btn:disabled{opacity:.45;cursor:not-allowed}

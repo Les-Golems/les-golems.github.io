@@ -3,7 +3,7 @@ const aReprendre=salonRepris();
 window.GolemsDonnees.interface.elements.ordre.forEach(x=>{new Image().src=imgV('cartes/'+x+'.png')});
 majChoixDeck();
 if(deckLien!==null){onglet('decks');ouvreDeckLien(deckLien)}
-else{const v=new URLSearchParams(location.search).get('carte');if(v!==null){onglet('cartes');const o=carteDeLien(v),b=o&&o.id&&$('grille').querySelector('[data-id="'+o.id+'"]');if(b)b.click();else if(o&&o.T)ouvreTerrainGalerie(o.T);else retireCarteLien()}}
+else{const v=new URLSearchParams(location.search).get('carte');if(v!==null){onglet('cartes');const o=carteDeLien(v); /* 0.6 : Decks > Cartes, puis le zoom */if(o&&o.id){dernier=null;zoom(imgV('cartes/'+o.id+'.jpg'),window.GolemsDonnees.nomLong(o.id),[...statZoomCarte(o.id),boutonLienCarte(idLienCarte(o.id))])}else if(o&&o.T)ouvreTerrainGalerie(o.T);else retireCarteLien()}}
 (async()=>{
   try{room=await window.golemsSalon}catch(e){room=null}
   compteCharge=true;majVueDeck();

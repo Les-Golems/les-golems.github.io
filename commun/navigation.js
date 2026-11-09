@@ -2,6 +2,7 @@
 /* Onglets */
 const noms=['nouveautes','jouer','decks','historique','stats','cartes','regles'];
 function onglet(n){
+  if(n==='cartes'){if(typeof vueDk!=='undefined'){vueDk='cartes';pageDk=0}n='decks'} /* 0.6 : l'onglet Cartes vit dans Decks (selecteur Decks | Cartes) */
   if(n==='guides'){onglet('regles');if(typeof cjVue==='function')cjVue('guides');return} /* ancien onglet Guides : Comment jouer > Guides */
   noms.forEach(x=>{$(x).hidden=x!==n;$('t-'+x).setAttribute('aria-selected',x===n)});
   if(n==='decks')peintDecks();if(n==='historique')ajusteHisto();if(n==='stats')peintStats();if(n==='nouveautes'){proposeGuide();ajusteNotes()}
