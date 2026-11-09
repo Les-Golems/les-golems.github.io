@@ -455,6 +455,8 @@ html.dif-joueur .dk-btns .btn{width:100%}
 #dif .mini:not(.animal) .nom{right:80px}
 /* vue spectateur : ligne de la largeur de « Dernieres actions » : interrupteur a gauche, Quitter a droite */
 #dif:not(.jr) .d-coin:has(.dal-inter) .d-bas{flex-wrap:nowrap;justify-content:space-between;align-items:center;width:380px;row-gap:0}
+/* Daltonien + Chat + « Quitter la partie » (420 px) : la rangee deborde a gauche, jamais a droite ; bord droit = bord droit de la colonne (24 px de l'ecran) */
+#dif:not(.jr) .d-coin:has(.dal-inter) .d-bas{width:auto;align-self:flex-end;justify-content:flex-end}
 #dif.jr .mq-choix{overflow:hidden}
 #dif.jr .mq-choix .p-main{flex:1;min-height:0;align-items:center;justify-content:center;gap:16px}
 #dif.jr .mq-choix .p-slot{max-height:none}
