@@ -517,6 +517,13 @@ function popManche(s,m,pp){
     const de=deManche(s,m,t.terrain);if(de)r.append(mk('div','pp-rde',de));
     c.append(r);g.append(c)});
   pp.append(g);
+  /* vue joueur : L'Ecran du MJ gagne a la derniere manche jouee, main adverse revelee (comme l'ancien bilan #recap) */
+  const ec=s.dernier&&s.dernier.ecran;
+  if(src==='joueur'&&ec&&ec.p===E.moi&&ec.main&&m===Math.max(...s.stats.t.map(t=>t.manche))){
+    const z=mk('div','pp-ecran'),l=mk('div','pp-ecran-l'),ad=1-E.moi,t=mk('p'),b=mk('b','',nom(ad));b.style.color=COL[ad];
+    t.append("L'Écran du MJ : main de ",b,ec.main.length?'.':' : vide.');z.append(t);
+    ec.main.forEach(c=>{const C=M().carte(c),i=mk('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;l.append(i)});
+    if(ec.main.length)z.append(l);pp.append(z)}
   const pm=ptsManche(s,m)||[0,0],tot=[0,0];for(let k=1;k<=m;k++){const x=ptsManche(s,k);if(x){tot[0]+=x[0];tot[1]+=x[1]}}
   const bas=mk('div','pp-bas');
   const bo=bonusManche(s,m);
