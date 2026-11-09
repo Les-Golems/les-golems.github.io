@@ -84,7 +84,8 @@ function tickGuide(){
   while(e&&e.f&&e.f(s)){tuto.i++;e=etapeG()}
   if(!e){arreteGuide();return}
   const b=tuto.b,a=tuto.a,f=tuto.f;
-  const calme=(e.fin||!animCours&&!verrou&&!desActif&&!fileA.length)&&$('vue').hidden===!e.vue&&(e.fin||$('recap').hidden===!e.recap)&&$('vueTas').hidden&&$('aide').hidden;
+  /* fin : la bulle attend aussi la fin de l'animation de fin de partie (le bouton Passer de l'animation a alors disparu) */
+  const calme=!animCours&&!verrou&&!desActif&&!fileA.length&&$('vue').hidden===!e.vue&&(e.fin||$('recap').hidden===!e.recap)&&$('vueTas').hidden&&$('aide').hidden;
   if(!(e&&calme&&(!e.q||e.q(s))&&!$('jouer').hidden)){b.hidden=a.hidden=f.hidden=true;return}
   /* Cible introuvable : la bulle se place au centre de l'ecran (sans anneau) au lieu de disparaitre, avec un avertissement en console. */
   let z=e.c?gCible(e.c):document.body,perdue=false;
@@ -97,13 +98,14 @@ function tickGuide(){
     if(e.suiv){const x=bouton(e.suiv===1?'Suivant':e.suiv,()=>{tuto.i++;tickGuide()});x.dataset.act='';pied.append(x)}
     if(e.fin){
       const x=bouton('Lire les Règles',()=>{sortie();onglet('regles');scrollTo(0,0)}),y=bouton('Fermer',()=>arreteGuide(),true);
-      x.dataset.act=y.dataset.act='';pied.append(y,x);
+      x.dataset.act=y.dataset.act='';pied.append(x,y); /* charte : action principale a gauche, Fermer a droite */
     }
     if(pied.childNodes.length)b.append(pied);
     b.hidden=false;
     const r0=z.getBoundingClientRect();
     if(e.c&&!perdue&&(r0.top<60||r0.bottom>innerHeight-40))z.scrollIntoView({block:'center'});
   }
+  if(e.fin)$('gPasser').hidden=true; /* fin du guide : plus rien a passer */
   b.hidden=false;placeGuide(z,!e.c||perdue);
 }
 function placeGuide(z,centre){
@@ -132,7 +134,7 @@ function placeGuide(z,centre){
   f.hidden=!sens;f.className='g-fleche '+sens;
   if(sens){f.style.left=Math.max(left+12,Math.min(left+bw-30,r.left+r.width/2-9))+'px';f.style.top=(sens==='haut'?top-18:top+bh)+'px'}
 }
-const G_GENE='#partie .p-info,#partie button,#partie .p-case,#partie .pile,#partie .p-slot,#partie .p-trois,#partie .p-tourde,#partie .p-terrains,#recap button,#gPasser,nav,#dif .d-main button,#dif .mq-btns .btn,#dif .mq-piles .pile,#dif .mq-outils button,#dif .p-case,#dif .p-terrain,#dif .pp-ter,#dif .pp-ecran,#dif .pp-bas,#dif .pp-fermer';
+const G_GENE='#partie .p-info,#partie button,#partie .p-case,#partie .pile,#partie .p-slot,#partie .p-trois,#partie .p-tourde,#partie .p-terrains,#recap button,#gPasser,nav,#dif .d-main button,#dif .mq-btns .btn,#dif .mq-piles .pile,#dif .mq-outils button,#dif .p-case,#dif .p-terrain,#dif .pp-ter,#dif .pp-ecran,#dif .pp-bas,#dif .pp-fermer,#dif .pp-titre,#dif .pp h2,#dif .pp-tab,#dif .pp-vic';
 /* Pendant le guidage, seul l'element vise repond sur le plateau et dans le bilan de manche. */
 document.addEventListener('click',e=>{
   const st=etapeG();if(!st||st.libre||!partie||!partie.tuto)return;
