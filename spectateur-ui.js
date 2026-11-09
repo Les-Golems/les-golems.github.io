@@ -109,6 +109,8 @@ function peindreSalon(etat){
   if(!lie())return;
   const u=q('joueurs');if(!u||!etat)return;
   const S=SPECobj(),moi=etat.moi,j1=etat.j1||{},adv=etat.adv||null,spec=Array.isArray(etat.spectateurs)?etat.spectateurs:[];
+  /* 0.6 : un joueur assis voit le salon refait de jouer.js (siegeSalon, colonne des spectateurs, rangee du bas) ; seul le spectateur garde cette vue */
+  if(moi!=='spec'){bandeauPromotion(etat.promotion||null);u.classList.remove('sp-3col');document.body.classList.remove('sp-spectateur');document.querySelectorAll('#salon .sp-trib').forEach(x=>x.remove());return}
   u.textContent='';
   /* Siege du createur : Changer de deck s'il est a moi (comme siegeSalon) */
   const s1=siege(j1,moi==='j1',moi==='j1'?[boutonChangerDeck(j1)]:[],!!etat.j1);
