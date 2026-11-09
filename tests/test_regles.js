@@ -135,13 +135,194 @@ async function scenario(P) {
   await attendu(ici('invité entre dans un salon'), false, req(G, 'PUT', S + '/joueurs/' + G.uid, { pseudo: 'Invite', t: HEURE }));
   await attendu(ici('invité écrit un resume'), false, req(G, 'PUT', P + 'resume/7-' + t, resume));
 
-  return { A, code, resume, t };
+  return { A, B, X, G, pA, pB, pX, code, resume, t };
+}
+
+
+// Compte de Romain dans l'émulateur : jeton personnalisé non signé (accepté par l'émulateur seulement).
+const UID_ROMAIN = 'doSJZ1I6ixVUFejD842Jz2JrkFs1';
+async function compteRomain() {
+  const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
+  const maint = Math.floor(Date.now() / 1000);
+  const jeton = b64({ alg: 'none', typ: 'JWT' }) + '.' + b64({ iss: 'demo', sub: 'demo', aud: 'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit', iat: maint, exp: maint + 3600, uid: UID_ROMAIN }) + '.';
+  const r = await fetch('http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=demo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: jeton, returnSecureToken: true }) });
+  const j = await r.json();
+  if (!j.idToken) throw new Error('Auth Romain : ' + JSON.stringify(j));
+  return { uid: j.localId, jeton: j.idToken };
+}
+
+// 0.6 : parties classées, saisons, écussons, guides, en ligne, Nouveautés, failles corrigées.
+async function scenarioClasse(P, c, R) {
+  const { A, B, X, G, pA, pB, pX, t } = c;
+  const tag = P ? 'essai' : 'public';
+  const ici = n => `[${tag}] 0.6 ${n}`;
+  const CL = P + 'classe/';
+  const J = u => CL + 'joueurs/' + u.uid;
+  const jour = Math.floor((Date.now() + 3600000) / 86400000);
+  const profil = (o) => ({ elo: 1000, parties: 0, partiesTotal: 0, v: 0, d: 0, saison: 0, maj: HEURE, ...o });
+
+  // Saison.
+  await attendu(ici('saison écrite par un joueur'), false, req(X, 'PUT', CL + 'saison', { id: 0, nom: 'Bêta', debut: t }));
+  await attendu(ici('saison écrite par Romain'), true, req(R, 'PUT', CL + 'saison', { id: 0, nom: 'Bêta', debut: t }));
+  await attendu(ici('invité lit la saison'), true, req(G, 'GET', CL + 'saison'));
+  await attendu(ici('saisons terminées écrites par un joueur'), false, req(X, 'PUT', CL + 'saisons/0', { nom: 'Bêta', debut: t }));
+
+  // Profils classés.
+  await attendu(ici('profil classé créé à 1500'), false, req(A, 'PUT', J(A), profil({ elo: 1500 })));
+  await attendu(ici('profil classé d\'un autre'), false, req(X, 'PUT', J(A), profil()));
+  for (const u of [A, B, X]) await attendu(ici('profil classé de départ'), true, req(u, 'PUT', J(u), profil()));
+  await attendu(ici('invité lit les profils classés'), false, req(G, 'GET', CL + 'joueurs'));
+  await attendu(ici('compte lit les profils classés'), true, req(X, 'GET', CL + 'joueurs'));
+  await attendu(ici('profil classé effacé'), false, req(A, 'DELETE', J(A)));
+
+  // Salon classé.
+  const code2 = 'c' + (t % 1000000).toString(36), S2 = P + 'salons/' + code2;
+  await attendu(ici('A entre dans le salon classé'), true, req(A, 'PUT', S2 + '/joueurs/' + A.uid, { pseudo: pA, sid: 'sa', t: HEURE }));
+  await attendu(ici('salon classé (cl) par un absent'), false, req(X, 'PUT', S2 + '/cl', true));
+  await attendu(ici('salon classé (cl) par le créateur'), true, req(A, 'PUT', S2 + '/cl', true));
+  await attendu(ici('ouverture du salon (cree)'), true, req(A, 'PUT', S2 + '/cree', HEURE));
+  await attendu(ici('ouverture réécrite'), false, req(A, 'PUT', S2 + '/cree', HEURE));
+  await attendu(ici('faille siège : le créateur prend le siège'), false, req(A, 'PUT', S2 + '/siege', A.uid));
+  await attendu(ici('B prend le siège du salon classé'), true, req(B, 'PUT', S2 + '/siege', B.uid));
+  await attendu(ici('B entre dans le salon classé'), true, req(B, 'PUT', S2 + '/joueurs/' + B.uid, { pseudo: pB, sid: 'sb', t: HEURE }));
+  await attendu(ici('engagement classé'), true, req(A, 'PUT', S2 + '/engages', { [A.uid]: true, [B.uid]: true }));
+  await attendu(ici('cl changé après engagement'), false, req(A, 'PUT', S2 + '/cl', false));
+  await attendu(ici('bandeau robot avec adversaire engagé'), false, req(A, 'PUT', S2 + '/robot', { u: A.uid, n: 'normal', t: HEURE }));
+
+  // Partie classée entre joueurs.
+  const id = code2 + '-77';
+  const partie = { a: A.uid, b: B.uid, gagnant: A.uid, eloA: 1000, eloB: 1000, deltaA: 32, deltaB: -32, robot: false, saison: 0, t: HEURE, sa: code2, gr: '77' };
+  await attendu(ici('partie classée par un tiers'), false, req(X, 'PUT', CL + 'parties/' + id, partie));
+  await attendu(ici('partie classée, Elo de départ faux'), false, req(A, 'PUT', CL + 'parties/' + id, { ...partie, eloA: 1200 }));
+  await attendu(ici('partie classée, id sans graine'), false, req(A, 'PUT', CL + 'parties/' + code2 + '-78', partie));
+  await attendu(ici('partie classée hors salon classé'), false, req(A, 'PUT', CL + 'parties/' + c.code + '-77', { ...partie, sa: c.code }));
+  await attendu(ici('partie classée créée'), true, req(A, 'PUT', CL + 'parties/' + id, partie));
+  await attendu(ici('partie classée réécrite'), false, req(A, 'PUT', CL + 'parties/' + id, { ...partie, gagnant: B.uid }));
+  const appli = (u, o) => ({ [J(u)]: { ...profil(o), dern: id }, [CL + 'parties/' + id + '/fait/' + u.uid]: true });
+  await attendu(ici('victoire sans confirmation du perdant'), false, req(A, 'PATCH', '', appli(A, { elo: 1032, parties: 1, partiesTotal: 1, v: 1 })));
+  await attendu(ici('confirmation au nom de l\'adversaire'), false, req(A, 'PUT', CL + 'parties/' + id + '/ok/' + B.uid, true));
+  await attendu(ici('confirmation du perdant'), true, req(B, 'PUT', CL + 'parties/' + id + '/ok/' + B.uid, true));
+  await attendu(ici('confirmation réécrite'), false, req(B, 'PUT', CL + 'parties/' + id + '/ok/' + B.uid, true));
+  await attendu(ici('Elo gonflé (+100)'), false, req(A, 'PATCH', '', appli(A, { elo: 1100, parties: 1, partiesTotal: 1, v: 1 })));
+  await attendu(ici('victoire sans compter la partie'), false, req(A, 'PATCH', '', appli(A, { elo: 1032, parties: 0, partiesTotal: 1, v: 1 })));
+  await attendu(ici('victoire sans le témoin fait/'), false, req(A, 'PUT', J(A), { ...profil({ elo: 1032, parties: 1, partiesTotal: 1, v: 1 }), dern: id }));
+  await attendu(ici('victoire appliquée'), true, req(A, 'PATCH', '', appli(A, { elo: 1032, parties: 1, partiesTotal: 1, v: 1 })));
+  await attendu(ici('victoire appliquée deux fois'), false, req(A, 'PATCH', '', appli(A, { elo: 1064, parties: 2, partiesTotal: 2, v: 2 })));
+  await attendu(ici('défaite de B appliquée par un tiers'), false, req(X, 'PATCH', '', appli(B, { elo: 968, parties: 1, partiesTotal: 1, d: 1 })));
+  await attendu(ici('défaite de B changée en victoire'), false, req(B, 'PATCH', '', appli(B, { elo: 1032, parties: 1, partiesTotal: 1, v: 1 })));
+  await attendu(ici('défaite de B appliquée par le gagnant'), true, req(A, 'PATCH', '', appli(B, { elo: 968, parties: 1, partiesTotal: 1, d: 1 })));
+
+  // Classement (copie exacte, placement fini) et Elo affiché.
+  const ligne = { pseudo: pA, elo: 1032, rang: 'topaze', v: 1, d: 0 };
+  await attendu(ici('classement pendant le placement'), false, req(A, 'PUT', CL + 'classement/' + A.uid, ligne));
+  await req('admin', 'PATCH', J(A), { parties: 5 });
+  await attendu(ici('classement, rang faux'), false, req(X, 'PUT', CL + 'classement/' + A.uid, { ...ligne, rang: 'diamant' }));
+  await attendu(ici('classement, Elo faux'), false, req(A, 'PUT', CL + 'classement/' + A.uid, { ...ligne, elo: 1500, rang: 'diamant' }));
+  await attendu(ici('classement, pseudo usurpé'), false, req(X, 'PUT', CL + 'classement/' + A.uid, { ...ligne, pseudo: pX }));
+  await attendu(ici('classement, copie exacte par un tiers'), true, req(X, 'PUT', CL + 'classement/' + A.uid, ligne));
+  await attendu(ici('classement effacé (placement fini)'), false, req(X, 'DELETE', CL + 'classement/' + A.uid));
+  await attendu(ici('invité lit le classement classé'), true, req(G, 'GET', CL + 'classement'));
+  await attendu(ici('compte lit le classement classé'), true, req(B, 'GET', CL + 'classement'));
+  const prof = { p: pA, m: false, n: 14, v: 5, d: 0, t: HEURE };
+  await attendu(ici('profil, Elo affiché faux'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, el: 1500 }));
+  await attendu(ici('profil, Elo affiché'), true, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, el: 1032 }));
+  await attendu(ici('profil, Elo affiché pendant le placement'), false, req(B, 'PUT', P + 'profils/' + B.uid, { p: pB, m: false, n: 0, v: 0, d: 0, t: HEURE, el: 968 }));
+  await attendu(ici('annonce classée avec Elo'), true, req(A, 'PUT', P + 'annonces/' + code2, { u: A.uid, p: pA, t: HEURE, cl: true, el: 1032 }));
+  await attendu(ici('annonce classée, Elo faux'), false, req(A, 'PUT', P + 'annonces/' + code2, { u: A.uid, p: pA, t: HEURE, cl: true, el: 1400 }));
+
+  // Classée contre un robot.
+  const code3 = 'r' + (t % 1000000).toString(36), S3 = P + 'salons/' + code3;
+  // Ordre du site : entrer, puis cl et cree (ils exigent un joueur déjà présent).
+  await attendu(ici('X ouvre un salon classé'), true, req(X, 'PUT', S3 + '/joueurs/' + X.uid, { pseudo: pX, sid: 'sx', t: HEURE }));
+  await attendu(ici('X le rend classé'), true, req(X, 'PATCH', S3, { cl: true, cree: HEURE }));
+  await attendu(ici('bandeau robot avant 2 min'), false, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));
+  await req('admin', 'PUT', S3 + '/cree', Date.now() - 200000);
+  await attendu(ici('bandeau robot, niveau hors tranche'), false, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'difficile', t: HEURE }));
+  await attendu(ici('bandeau robot par un absent'), false, req(B, 'PUT', S3 + '/robot', { u: B.uid, n: 'normal', t: HEURE }));
+  await attendu(ici('bandeau robot'), true, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));
+  const rid = 'r-' + code3 + '-5';
+  const pr = { a: X.uid, b: 'robot-normal', gagnant: X.uid, eloA: 1000, eloB: 1100, deltaA: 20, robot: true, saison: 0, t: HEURE, sa: code3, gr: '5' };
+  await attendu(ici('partie robot, Elo du robot faux'), false, req(X, 'PUT', CL + 'parties/' + rid, { ...pr, eloB: 500 }));
+  await attendu(ici('partie robot par un autre joueur'), false, req(A, 'PUT', CL + 'parties/' + rid, { ...pr, a: A.uid, gagnant: A.uid, eloA: 1032 }));
+  await attendu(ici('partie robot créée'), true, req(X, 'PUT', CL + 'parties/' + rid, pr));
+  const appR = (o, rob) => ({ [J(X)]: { ...profil(o), dern: rid, robots: rob }, [CL + 'parties/' + rid + '/fait/' + X.uid]: true });
+  await attendu(ici('robot : gain au-delà de K/2'), false, req(X, 'PATCH', '', appR({ elo: 1040, parties: 1, partiesTotal: 1, v: 1 }, { jour: '2026-11-09', j: jour, n: 1 })));
+  await attendu(ici('robot : compteur du jour faux (2)'), false, req(X, 'PATCH', '', appR({ elo: 1020, parties: 1, partiesTotal: 1, v: 1 }, { jour: '2026-11-09', j: jour, n: 2 })));
+  await attendu(ici('robot : jour inventé'), false, req(X, 'PATCH', '', appR({ elo: 1020, parties: 1, partiesTotal: 1, v: 1 }, { jour: '2026-11-08', j: jour - 1, n: 1 })));
+  await attendu(ici('robot : sans compteur du jour'), false, req(X, 'PATCH', '', appR({ elo: 1020, parties: 1, partiesTotal: 1, v: 1 })));
+  await attendu(ici('robot : victoire appliquée'), true, req(X, 'PATCH', '', appR({ elo: 1020, parties: 1, partiesTotal: 1, v: 1 }, { jour: '2026-11-09', j: jour, n: 1 })));
+  await attendu(ici('bandeau robot retiré par son auteur'), true, req(X, 'DELETE', S3 + '/robot'));
+  await req('admin', 'PATCH', J(X), { robots: { jour: '2026-11-09', j: jour, n: 5 } });
+  await attendu(ici('bandeau robot après 5 classées du jour'), false, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));
+  await req('admin', 'PATCH', J(X), { robots: { jour: '2026-11-08', j: jour - 1, n: 5 } });
+  await attendu(ici('bandeau robot le lendemain'), true, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));
+
+  // Fin de saison : instantané, écusson, remise à mi-chemin.
+  await attendu(ici('instantané avant la fin de la saison'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { saison: 0, elo: 1032, rang: 'topaze', placementFini: true }));
+  await attendu(ici('nouvelle saison par Romain'), true, req(R, 'PUT', CL + 'saison', { id: 1, nom: 'Saison 1', debut: t }));
+  await attendu(ici('saison terminée par Romain'), true, req(R, 'PUT', CL + 'saisons/0', { nom: 'Bêta', debut: t, fin: t }));
+  await attendu(ici('remise sans instantané (placement fini)'), false, req(A, 'PUT', J(A), profil({ elo: 1016, partiesTotal: 1, saison: 1 })));
+  const ins = { saison: 0, elo: 1032, rang: 'topaze', placementFini: true, modes: { classee: { parties: 5, v: 1, d: 0 } } };
+  await attendu(ici('instantané avec sa place'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { ...ins, place: 1 }));
+  await attendu(ici('instantané, Elo faux'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { ...ins, elo: 1500, rang: 'diamant' }));
+  await attendu(ici('instantané d\'un autre'), false, req(X, 'PUT', CL + 'instantanes/0/' + A.uid, ins));
+  await attendu(ici('instantané de fin de saison'), true, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, ins));
+  await attendu(ici('instantané réécrit'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, ins));
+  await attendu(ici('place posée par un joueur'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid + '/place', 1));
+  await attendu(ici('place posée par Romain'), true, req(R, 'PUT', CL + 'instantanes/0/' + A.uid + '/place', 2));
+  const ec = { saison: 0, rang: 'topaze', palier: 'podium', image: 'ecussons/s0-topaze-podium.png' };
+  await attendu(ici('écusson Champion pour la 2e place'), false, req(A, 'PUT', CL + 'ecussons/' + A.uid + '/0', { ...ec, palier: 'champion' }));
+  await attendu(ici('écusson d\'un autre rang'), false, req(A, 'PUT', CL + 'ecussons/' + A.uid + '/0', { ...ec, rang: 'diamant' }));
+  await attendu(ici('écusson posé pour un autre'), false, req(X, 'PUT', CL + 'ecussons/' + A.uid + '/0', ec));
+  await attendu(ici('écusson sans instantané'), false, req(B, 'PUT', CL + 'ecussons/' + B.uid + '/0', { ...ec, rang: 'amethyste', palier: 'base' }));
+  await attendu(ici('écusson Podium'), true, req(A, 'PUT', CL + 'ecussons/' + A.uid + '/0', ec));
+  await attendu(ici('écusson Pionnier (saison 0)'), true, req(A, 'PUT', CL + 'ecussons/' + A.uid + '/0', { ...ec, rang: 'pionnier' }));
+  await attendu(ici('invité lit les écussons'), true, req(G, 'GET', CL + 'ecussons/' + A.uid));
+  await attendu(ici('remise, Elo non réduit'), false, req(A, 'PUT', J(A), profil({ elo: 1032, partiesTotal: 1, saison: 1 })));
+  await attendu(ici('remise, partiesTotal remis à 0'), false, req(A, 'PUT', J(A), profil({ elo: 1016, partiesTotal: 0, saison: 1 })));
+  await attendu(ici('remise à mi-chemin de 1000'), true, req(A, 'PUT', J(A), profil({ elo: 1016, partiesTotal: 1, saison: 1 })));
+  await attendu(ici('classement retiré après la remise'), true, req(B, 'DELETE', CL + 'classement/' + A.uid));
+
+  // Guides.
+  const gv = P + 'guides/bien-debuter/votes/';
+  await attendu(ici('invité lit les guides (lien partagé)'), true, req(G, 'GET', P + 'guides/bien-debuter'));
+  await attendu(ici('vote pour'), true, req(A, 'PUT', gv + A.uid, 1));
+  await attendu(ici('vote changé'), true, req(A, 'PUT', gv + A.uid, -1));
+  await attendu(ici('vote de 5'), false, req(A, 'PUT', gv + A.uid, 5));
+  await attendu(ici('vote au nom d\'un autre'), false, req(A, 'PUT', gv + B.uid, 1));
+  await attendu(ici('vote d\'un invité'), false, req(G, 'PUT', gv + G.uid, 1));
+  await attendu(ici('vote retiré'), true, req(A, 'DELETE', gv + A.uid));
+
+  // En ligne (invités compris).
+  await attendu(ici('invité se signale en ligne'), true, req(G, 'PUT', P + 'enligne/' + G.uid, HEURE));
+  await attendu(ici('invité signale un autre'), false, req(G, 'PUT', P + 'enligne/' + A.uid, HEURE));
+  await attendu(ici('invité lit en ligne'), true, req(G, 'GET', P + 'enligne'));
+
+  // Nouveautés : message de Romain.
+  await attendu(ici('message des Nouveautés par un joueur'), false, req(A, 'PUT', P + 'nouveautes/message', { t: 'Saison 1', d: t }));
+  await attendu(ici('message des Nouveautés par Romain'), true, req(R, 'PUT', P + 'nouveautes/message', { t: 'Saison 1', d: t }));
+  await attendu(ici('invité lit le message'), true, req(G, 'GET', P + 'nouveautes/message'));
+
+  // Historique 0.6 et 12 decks.
+  const h = '6-' + t;
+  await attendu(ici('historique classé (c, de, ro)'), true, req(A, 'PATCH', P + 'joueurs/' + A.uid + '/historique', { [h]: { d: t, x: '{}', c: true, de: -12, ro: 'normal' } }));
+  await attendu(ici('historique, variation d\'Elo de 100'), false, req(A, 'PATCH', P + 'joueurs/' + A.uid + '/historique', { [h]: { d: t, x: '{}', de: 100 } }));
+  await attendu(ici('12e deck (emplacement 11)'), true, req(A, 'PUT', P + 'joueurs/' + A.uid + '/decks/11', { id: 'd12', nom: 'Douze' }));
+  await attendu(ici('13e deck (emplacement 12)'), false, req(A, 'PUT', P + 'joueurs/' + A.uid + '/decks/12', { id: 'd13', nom: 'Treize' }));
+
+  // Faille : pseudo libéré alors que le compte le porte encore.
+  await attendu(ici('faille pseudo : libérer le pseudo porté'), false, req(X, 'DELETE', P + 'pseudos/' + pX.toLowerCase()));
+  const pX2 = pX + 'b';
+  await attendu(ici('changement de pseudo (libère l\'ancien)'), true, req(X, 'PATCH', '', { [P + 'pseudos/' + pX2.toLowerCase()]: X.uid, [P + 'joueurs/' + X.uid + '/pseudo']: pX2, [P + 'pseudos/' + pX.toLowerCase()]: null }));
 }
 
 (async () => {
   try { await fetch(`${DB}/.json?${NS}`); } catch (e) { console.error('Émulateur absent : lancer lancer_emulateur.ps1'); process.exit(2); }
+  const R = await compteRomain();
   for (const P of ['', 'essai/']) {
-    const { A, resume, t } = await scenario(P);
+    const c = await scenario(P);
+    const { A, resume, t } = c;
+    await scenarioClasse(P, c, R);
     // Garde-fou NON appliqué (voir rapport) : resume sans salon reste accepté, les parties contre le robot n'ont pas de salon.
     const permis = await req(A, 'PUT', P + 'resume/9-' + t, { ...resume, m: 'golem-normal' });
     console.log(`[${P ? 'essai' : 'public'}] info : resume sans salon ${permis ? 'accepté (garde-fou non appliqué, voulu)' : 'refusé'}`);

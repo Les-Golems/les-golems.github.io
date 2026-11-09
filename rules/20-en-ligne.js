@@ -1,6 +1,7 @@
 // Jeu en ligne : accueil, activité des salons, annonces, salons.
 // r = racine des données ("root" ou "root.child('essai')"), voir 00-communs.js.
 const { COMPTE, MAINTENANT, CODE, SEPT_JOURS, pseudoReel } = require('./00-communs');
+const { aujourdhui } = require('./50-classe');
 
 module.exports = r => ({
   // Accueil : qui est connecté, et départs volontaires (quitte). Comptes seulement.
@@ -53,6 +54,9 @@ module.exports = r => ({
       "m": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 9" },
       "k": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,2}-[0-9]{1,2}$/)" },
       "f": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,60}$/)" },
+      // 0.6 : salon classé (cl) et Elo du créateur (el, celui de son profil classé, absent pendant le placement).
+      "cl": { ".validate": "newData.isBoolean()" },
+      "el": { ".validate": `newData.isNumber() && newData.val() === ${r}.child('classe').child('joueurs').child(auth.uid).child('elo').val() && ${r}.child('classe').child('joueurs').child(auth.uid).child('parties').val() >= 5` },
       "t": { ".validate": `${MAINTENANT}` },
       "$autre": { ".validate": false }
     }
@@ -154,7 +158,7 @@ module.exports = r => ({
       // Mode spectateur (0.3). siege = uid de l'adversaire, pris par transaction s'il est libre, rendu par son seul détenteur.
       "siege": {
         // Prise seulement dans un salon ouvert (un joueur y est présent) et, partie commencée, par un engagé.
-        ".write": `${COMPTE} && ((!data.exists() && newData.val() === auth.uid && ${r}.child('salons').child($code).child('joueurs').exists() && (!${r}.child('salons').child($code).child('engages').exists() || ${r}.child('salons').child($code).child('engages').hasChild(auth.uid))) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))`,
+        ".write": `${COMPTE} && ((!data.exists() && newData.val() === auth.uid && ${r}.child('salons').child($code).child('joueurs').exists() && (${r}.child('salons').child($code).child('engages').exists() ? ${r}.child('salons').child($code).child('engages').hasChild(auth.uid) : !${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid))) || (data.val() === auth.uid && (!newData.exists() || newData.val() === auth.uid)))`,
         ".validate": "newData.isString() && newData.val().length <= 128"
       },
       // Spectateurs présents : chacun n'écrit que sous son uid, pseudo de son compte et heure serveur.
@@ -166,6 +170,28 @@ module.exports = r => ({
           "t": { ".validate": `${MAINTENANT}` },
           "$autre": { ".validate": false }
         }
+      },
+
+      // 0.6 : salon CLASSÉ (cl = true), posé ou retiré par un joueur présent avant le début de la partie ; jamais changé ensuite.
+      "cl": {
+        ".write": `${COMPTE} && ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) && !${r}.child('salons').child($code).child('engages').exists()`,
+        ".validate": "newData.isBoolean()"
+      },
+      // 0.6 : ouverture du salon (heure serveur), posée une fois par un joueur présent : sert au délai du bandeau robot.
+      "cree": {
+        ".write": `${COMPTE} && !data.exists() && ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid)`,
+        ".validate": `${MAINTENANT}`
+      },
+      // 0.6 : bandeau « Affronter un Golem » d'un salon classé : 2 min après l'ouverture, sans adversaire engagé,
+      // par un joueur présent ayant fini son placement ou non, 5 classées contre un robot par jour au plus ;
+      // niveau imposé par son Elo (< 900 facile, 900-1149 normal, >= 1150 difficile). Retiré par lui seul.
+      "robot": {
+        ".write": `${COMPTE} && ((!data.exists() && newData.child('u').val() === auth.uid && ${r}.child('salons').child($code).child('cl').val() === true && ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) && !${r}.child('salons').child($code).child('engages').exists() && ${r}.child('salons').child($code).child('cree').val() <= now - 120000 && ${r}.child('classe').child('joueurs').child(auth.uid).exists() && (!${r}.child('classe').child('joueurs').child(auth.uid).child('robots').exists() || !${aujourdhui(r + ".child('classe').child('joueurs').child(auth.uid)" + ".child('robots').child('j').val()")} || ${r}.child('classe').child('joueurs').child(auth.uid).child('robots').child('n').val() < 5)) || (data.child('u').val() === auth.uid && !newData.exists()))`,
+        ".validate": `newData.hasChildren(['u', 'n', 't']) && newData.child('n').val() === (${r}.child('classe').child('joueurs').child(auth.uid).child('elo').val() < 900 ? 'facile' : ${r}.child('classe').child('joueurs').child(auth.uid).child('elo').val() < 1150 ? 'normal' : 'difficile')`,
+        "u": { ".validate": "newData.isString()" },
+        "n": { ".validate": "newData.isString()" },
+        "t": { ".validate": `${MAINTENANT}` },
+        "$autre": { ".validate": false }
       },
 
       // Rien d'autre dans un salon.

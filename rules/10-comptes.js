@@ -9,7 +9,9 @@ module.exports = r => ({
   "pseudos": {
     "$cle": {
       ".read": "auth != null",
-      ".write": `${COMPTE} && (!data.exists() || data.val() === auth.uid)`,
+      // Effacement (changement de pseudo) seulement si joueurs/{uid}/pseudo ne le porte plus après l'écriture :
+      // sinon un autre compte pourrait le réserver et s'afficher sous le nom encore porté.
+      ".write": `${COMPTE} && (!data.exists() || data.val() === auth.uid) && (newData.exists() || !${racineApres(2)}.child('joueurs').child(auth.uid).child('pseudo').exists() || ${racineApres(2)}.child('joueurs').child(auth.uid).child('pseudo').val().toLowerCase() !== $cle)`,
       ".validate": "$cle.length >= 3 && $cle.length <= 20 && $cle === $cle.toLowerCase() && newData.isString() && newData.val() === auth.uid"
     }
   },
@@ -50,7 +52,12 @@ module.exports = r => ({
         "$h": {
           ".validate": "$h.matches(/^-?[0-9]{1,12}-[0-9]{10,14}$/) && newData.hasChildren(['d', 'x'])",
           "d": { ".validate": "newData.isNumber()" },
-          "x": { ".validate": "newData.isString() && newData.val().length <= 12000" },
+          // 0.6 : x porte aussi les Forces par terrain, le deck adverse et le lien animal-maître (20 000 caractères au plus).
+          "x": { ".validate": "newData.isString() && newData.val().length <= 20000" },
+          // 0.6 : partie classée (c), variation d'Elo (de, -64 à 64), robot affronté (ro : facile, normal, difficile).
+          "c": { ".validate": "newData.isBoolean()" },
+          "de": { ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -64 && newData.val() <= 64" },
+          "ro": { ".validate": "newData.isString() && newData.val().matches(/^(facile|normal|difficile)$/)" },
           "$autre": { ".validate": false }
         }
       },
