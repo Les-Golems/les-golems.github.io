@@ -67,19 +67,19 @@ $('galerieAvatar').onclick=e=>{if(e.target.id==='galerieAvatar')fermeGalerie()};
 $('galerieAvatar').onkeydown=e=>{if(e.key==='Escape')fermeGalerie()};
 /* Import d'avatar : fichier image, cadrage rond (glisser, molette, pincement, curseur), 256 x 256 en WebP (repli JPEG) sous 140 000 caracteres. */
 const CAD={img:null,z:1,zMin:1,x:0,y:0,T:240,pts:new Map(),d0:0,z0:1};
-function cadMsg(t){$('cadMsg').textContent=t||''}
+function cadMsg(t){alerte('cadMsg',t)}
 function cadBorne(){const c=CAD,w=c.img.naturalWidth*c.z,h=c.img.naturalHeight*c.z;c.x=Math.min(0,Math.max(c.T-w,c.x));c.y=Math.min(0,Math.max(c.T-h,c.y))}
 function cadDessine(){const c=CAD,i=$('cadImg');cadBorne();i.style.width=c.img.naturalWidth*c.z+'px';i.style.transform='translate('+c.x+'px,'+c.y+'px)';$('cadZoom').value=String(Math.round(Math.log(c.z/c.zMin)/Math.log(4)*100))}
 function cadZoome(nz,px,py){const c=CAD;nz=Math.max(c.zMin,Math.min(c.zMin*4,nz));if(px==null){px=c.T/2;py=c.T/2}c.x=px-(px-c.x)*nz/c.z;c.y=py-(py-c.y)*nz/c.z;c.z=nz;cadDessine()}
 $('avFichier').onchange=e=>{
   const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
-  const err=t=>{$('galMsg').textContent=t};err('');
-  if(!/^image\//.test(f.type)){err("Ce fichier n'est pas une image. Choisis un fichier JPEG, PNG, WebP ou GIF.");return}
-  if(f.size>15*1024*1024){err('Image trop lourde (15 Mo au plus).');return}
+  const err=t=>{alerte('galMsg',t)};err('');
+  if(!/^image\//.test(f.type)){err("Avatar : ce fichier n'est pas une image. Choisis un JPEG, PNG, WebP ou GIF.");return}
+  if(f.size>15*1024*1024){err('Avatar : image trop lourde, 15 Mo au plus. Choisis une image plus légère.');return}
   const u=URL.createObjectURL(f),im=new Image();
   im.onload=()=>{const c=CAD;c.img=im;$('cadImg').src=u;$('cadre').hidden=false;c.T=$('cadVue').clientWidth||240;
     c.zMin=c.T/Math.min(im.naturalWidth,im.naturalHeight);c.z=c.zMin;c.x=(c.T-im.naturalWidth*c.z)/2;c.y=(c.T-im.naturalHeight*c.z)/2;cadMsg('');cadDessine();$('cadOk').focus()};
-  im.onerror=()=>{URL.revokeObjectURL(u);err("Image illisible. Essaie un autre fichier (JPEG, PNG ou WebP).")};im.src=u;
+  im.onerror=()=>{URL.revokeObjectURL(u);err("Avatar : image illisible. Essaie un autre fichier (JPEG, PNG, WebP ou GIF).")};im.src=u;
 };
 (()=>{const v=$('cadVue'),c=CAD;
   const pos=e=>{const r=v.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
@@ -100,12 +100,12 @@ $('cadOk').onclick=async()=>{
   g.drawImage(c.img,c.x*k,c.y*k,c.img.naturalWidth*c.z*k,c.img.naturalHeight*c.z*k);
   let url='';
   for(const t of ['image/webp','image/jpeg']){for(let q=0.92;q>=0.3;q-=0.1){const u=cv.toDataURL(t,q);if(u.indexOf('data:'+t+';base64,')!==0)break;if(u.length<=140000){url=u;break}}if(url)break}
-  if(!url){cadMsg("Image trop détaillée pour être enregistrée. Essaie de zoomer ou choisis une autre image.");return}
-  if(!/^data:image\/(jpeg|webp);base64,/.test(url)||url.length>140000){cadMsg("Image impossible à préparer sur cet appareil. Essaie une autre image.");return}
+  if(!url){cadMsg("Avatar : image trop détaillée. Zoome ou choisis une autre image.");return}
+  if(!/^data:image\/(jpeg|webp);base64,/.test(url)||url.length>140000){cadMsg("Avatar : image impossible à préparer sur cet appareil. Essaie une autre image.");return}
   if(compteCo()){try{await room.compte.choisirImage(url)}catch(e){
     const m=String(e&&(e.code||e.message)||'').toLowerCase();console.warn('avatarImg',e,url.slice(0,30),url.length);
-    cadMsg(/permission/.test(m)?"Enregistrement refusé par le serveur (permission refusée, image "+Math.round(url.length/1000)+" k caractères). Préviens Romain.":/too|size|large|limit/.test(m)?"Image trop lourde pour le serveur. Zoome ou choisis une autre image.":/network|disconnect|offline|unavailable/.test(m)?"Enregistrement impossible. Vérifie ta connexion puis réessaie.":"Enregistrement impossible ("+(e&&(e.code||e.message)||'erreur inconnue')+").");return}}
-  else{try{localStorage.setItem(LS('golems-avatar-img'),url)}catch(e){cadMsg("Image impossible à garder sur cet appareil (stockage plein).");return}}
+    cadMsg(/permission/.test(m)?"Avatar : enregistrement refusé par le serveur. Préviens KaTarN (Romain).":/too|size|large|limit/.test(m)?"Avatar : image trop lourde pour le serveur. Zoome ou choisis une autre image.":/network|disconnect|offline|unavailable/.test(m)?"Avatar : connexion perdue. Vérifie ta connexion puis réessaie.":"Avatar : enregistrement impossible ("+(e&&(e.code||e.message)||'erreur inconnue')+"). Réessaie ou préviens KaTarN (Romain).");return}}
+  else{try{localStorage.setItem(LS('golems-avatar-img'),url)}catch(e){cadMsg("Avatar : stockage de l'appareil plein. Libère de la place ou crée un compte.");return}}
   cadFerme();fermeGalerie();majMoi();avatarChange();
 };
 /* Avatar change en salon : mon siege redessine, presence reecrite pour que l'adversaire redessine (et relise l'avatar). */
@@ -119,10 +119,10 @@ function modeCompte(c){
   $('basculeCompte').textContent=c?"J'ai déjà un compte":'Créer un compte';
   $('codeSecret').autocomplete=c?'new-password':'current-password';
   $('aideCompte').textContent=c?"Pseudo de 3 à 20 caractères, unique. Code secret de 6 caractères minimum, tout caractère accepté. Garde-le bien : en cas d'oubli, seul Romain peut réinitialiser le compte.":'Un compte garde tes decks et ton historique, et permet de jouer en ligne.';
-  $('erreurPseudo').textContent='';
+  alerte('erreurPseudo','');
 }
 function ouvrePseudo(){
-  if(r){$('erreurJeu').textContent='Quitte le salon avant de changer de compte.';return}
+  if(r){alerte('erreurJeu','Salon en cours : changement de compte indisponible dans un salon. Quitte le salon d\'abord.');return}
   modeCompte(false);$('pseudo').value=lire('golems.pseudo')||'';$('codeSecret').value='';
   $('popPseudo').hidden=false;$('pseudo').focus();
 }
@@ -132,7 +132,7 @@ $('capsuleMoi').addEventListener('click',e=>{e.stopPropagation();e.preventDefaul
 function fermeDeco(){$('fenDeco').hidden=true;$('modifierPseudo').focus()}
 $('modifierPseudo').onclick=()=>{
   if(!compteCo()){ouvrePseudo();return}
-  if(r){$('erreurJeu').textContent='Quitte le salon avant de te déconnecter.';onglet('jouer');return}
+  if(r){alerte('erreurJeu','Salon en cours : déconnexion indisponible dans un salon. Quitte le salon d\'abord.');onglet('jouer');return}
   $('fenDeco').hidden=false;$('decoOui').focus();
 };
 $('decoNon').onclick=fermeDeco;
@@ -144,14 +144,14 @@ $('plusTard').onclick=()=>{ecrire('golems.invite','1');$('popPseudo').hidden=tru
 $('formPseudo').onsubmit=async e=>{
   e.preventDefault();
   const p=$('pseudo').value,c=$('codeSecret').value,err=$('erreurPseudo');
-  if(!room||!room.compte){err.textContent='Connexion au serveur impossible pour le moment.';return}
+  if(!room||!room.compte){alerte(err,'Compte : serveur injoignable pour le moment. Réessaie plus tard.');return}
   const x=room.compte.erreurPseudo(p);
-  if(modeCreer&&x){err.textContent=x;return}
-  if(modeCreer&&c.length<6){err.textContent='Le code doit faire au moins 6 caractères.';return}
-  if(!c){err.textContent='Entre ton code secret.';return}
-  $('entrer').disabled=true;err.textContent=modeCreer?'Création du compte...':'Connexion...';
+  if(modeCreer&&x){alerte(err,x);return}
+  if(modeCreer&&c.length<6){alerte(err,'Compte : code trop court, 6 caractères au moins. Allonge ton code secret.');return}
+  if(!c){alerte(err,'Compte : code secret vide. Entre ton code secret.');return}
+  $('entrer').disabled=true;alerteInfo(err,modeCreer?'Connexion : création du compte en cours. Patiente un instant.':'Connexion : connexion au compte en cours. Patiente un instant.');
   const m=modeCreer?await room.compte.creer(p,c):await room.compte.connecter(p,c);
-  $('entrer').disabled=false;err.textContent=m;
+  $('entrer').disabled=false;alerte(err,m);
   if(!m){$('popPseudo').hidden=true;$('codeSecret').value='';ecrire('golems.pseudo',room.compte.pseudo())}
 };
 /* Apres chaque changement de compte : pseudo, decks, historique, proposition d'import. */

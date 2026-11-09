@@ -401,8 +401,8 @@ const chat={el:null,ul:null,in:null,inf:null,vus:0,branche:false,dernier:0,
     i.type='text';i.maxLength=200;i.placeholder='Écrire un message';i.setAttribute('aria-label','Message');i.autocomplete='off';
     h.append(mk('span','d-h','Chat'),fe);f.append(i,ok);w.append(h,ul,f,inf);
     f.onsubmit=e=>{e.preventDefault();const m=i.value.replace(/\s+/g,' ').trim().slice(0,200);if(!m||!window.SPEC||!SPEC.dit)return;
-      const t=Date.now();if(t-this.dernier<1000){inf.textContent='Un message par seconde au plus.';return}
-      this.dernier=t;inf.textContent='';i.value='';Promise.resolve(SPEC.dit(m)).catch(()=>{inf.textContent='Message non envoyé.';i.value=m})};
+      const t=Date.now();if(t-this.dernier<1000){alerte(inf,'Chat : un message par seconde au plus. Patiente un instant.');return}
+      this.dernier=t;inf.textContent='';i.value='';Promise.resolve(SPEC.dit(m)).catch(()=>{alerte(inf,'Chat : message non envoyé. Réessaie.');i.value=m})};
     this.el=w;this.ul=ul;this.in=i;this.inf=inf;scene.append(w);this.peint();
     const b=scene.querySelector('.d-coin');if(b)b.replaceWith(coin());i.focus();
   },
@@ -650,7 +650,7 @@ function decoJoueur(){
   centrePastilles();
   if(e.lui==='off'&&e.reste!=null&&et){
     const m=mk('div','dk-et'),tx=mk('div','t'),br=mk('div','barre'),i=mk('i');m.setAttribute('role','status');
-    tx.append(mk('b','',(e.nomLui||nom(1-E.moi))+" s'est déconnecté"),mk('span','',"S'il ne revient pas à temps, tu gagnes la partie par abandon."));
+    tx.append(mk('b','','Partie : '+(e.nomLui||nom(1-E.moi))+" s'est déconnecté."),mk('span','','Sans retour à temps, tu gagnes par abandon.'));
     i.style.width=(100*e.reste/(e.total||60000))+'%';br.append(i);m.append(tx,mk('div','n',mnS(e.reste)),br);
     et.hidden=true;scene.append(m);
   }
@@ -678,7 +678,7 @@ function decoSpec(){
     if(F){suivi.abandon=1;scene.querySelectorAll('.dk-et').forEach(x=>x.remove());ouvrePop('abandon',E.uids.indexOf(F.u));return}}
   if(suivi.abandon)return;
   if(minu){const m=mk('div','dk-et dk-spec'),tx=mk('div','t'),br=mk('div','barre'),i=mk('i');m.setAttribute('role','status');
-    tx.append(mk('b','',nom(minu.p)+" s'est déconnecté"),mk('span','',"Sans retour à temps, défaite par abandon."));
+    tx.append(mk('b','','Partie : '+nom(minu.p)+" s'est déconnecté."),mk('span','','Sans retour à temps, il perd par abandon.'));
     i.style.width=(100*minu.reste/60000)+'%';br.append(i);m.append(tx,mk('div','n',mnS(minu.reste)),br);scene.append(m)}
 }
 setInterval(decoSpec,1000);

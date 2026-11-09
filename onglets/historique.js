@@ -123,14 +123,14 @@ function detailHisto(x){
   const z=el('div','sc-fen-actions hd-act'),esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc)};
   const bt=(txt,cl)=>{const b=el('button','sc-btn'+(cl?' '+cl:''),txt);b.type='button';z.append(b);return b};
   const ok=rejeuPossible(x.rejeu),q=bt('','hd-rj');q.append(el('span','hd-rj-i','▶'),'Replay');
-  if(ok)q.onclick=()=>{ferme();lanceRejeu(x)};else{q.disabled=true;q.title=x.rejeu?'Replay indisponible : moteur de la version '+x.rejeu.v+' non archivé':'Replay indisponible : partie enregistrée sans ses journaux'}
+  if(ok)q.onclick=()=>{ferme();lanceRejeu(x)};else{q.disabled=true;q.title=x.rejeu?'Replay impossible : partie d\'une ancienne version, plus relisible.':'Replay impossible : partie enregistrée sans ses journaux.'}
   const sh=bt('Partager le résumé','sc-secondaire');sh.id='partageHisto';sh.onclick=()=>partageFin(sh,texteHisto(x));
   /* Copier les donnees : meme format que l'ancien bouton de fin de partie (donneesHisto). Calcul lance a l'ouverture : la copie reste dans le clic. Repli : zone de texte. */
-  const cd=bt('Copier les données','sc-secondaire'),msg=el('p','hd-msg'),rp=el('textarea','r-repli');
+  const cd=bt('Copier les données','sc-secondaire'),msg=el('div','hd-msg'),rp=el('textarea','r-repli');
   cd.id='copieDonneesHisto';msg.hidden=rp.hidden=true;msg.setAttribute('role','status');rp.readOnly=true;rp.setAttribute('aria-label','Données à copier');
   let pret=null;const dh=donneesHisto(x).then(o=>pret=o);
   const copieD=o=>{copie(o.txt,cd,'Copier les données',()=>{rp.value=o.txt;rp.hidden=false;rp.focus();rp.select()});
-    if(o.brut){msg.textContent='Replay impossible ('+o.brut+') : données brutes de la partie copiées.';msg.hidden=false}};
+    if(o.brut){alerteInfo(msg,'Copie : données brutes de la partie copiées ('+o.brut+'). Colle-les à KaTarN (Romain).');msg.hidden=false}};
   cd.onclick=()=>{if(pret)copieD(pret);else dh.then(copieD)};
   const f=bt('Fermer','sc-secondaire fermer');f.onclick=ferme;
   v.onclick=e=>{if(e.target===v)ferme()};addEventListener('keydown',esc);
@@ -209,14 +209,14 @@ function ordreRejeu(R,j){
   return seq;
 }
 async function lanceRejeu(x){
-  const R=x.rejeu,err=t=>{onglet('historique');alert(t)};
-  if(r){err('Quitte le salon avant de regarder un replay.');return}
-  if(!R){err('Replay impossible : cette partie a été enregistrée sans ses journaux.');return}
-  if(!rejeuPossible(R)){err('Replay impossible : le moteur de la version '+R.v+' n’est pas archivé.');return}
-  let Mr;try{Mr=await chargeMoteur(R.v)}catch(e){err('Replay impossible : moteur de la version '+R.v+' introuvable.');return}
+  const R=x.rejeu,err=t=>{onglet('historique');alerte('histoAlerte',t);$('histoAlerte').scrollIntoView({block:'nearest'})};alerte('histoAlerte','');
+  if(r){err('Salon en cours : replay indisponible dans un salon. Quitte le salon d\'abord.');return}
+  if(!R){err('Replay impossible : partie enregistrée sans ses journaux. Choisis une autre partie.');return}
+  if(!rejeuPossible(R)){err('Replay impossible : partie d\'une ancienne version, plus relisible. Choisis une autre partie.');return}
+  let Mr;try{Mr=await chargeMoteur(R.v)}catch(e){err('Replay impossible : moteur de la version '+R.v+' introuvable. Recharge la page puis réessaie.');return}
   if(partie)finPartie();
   M=Mr;
-  let j,seq;try{j=R.j.map(M.litJournal);seq=ordreRejeu(R,j)}catch(e){M=M0;err('Replay impossible : partie illisible.');return}
+  let j,seq;try{j=R.j.map(M.litJournal);seq=ordreRejeu(R,j)}catch(e){M=M0;err('Replay impossible : partie illisible. Choisis une autre partie.');return}
   onglet('jouer');
   lancer(R.graine,R.moi===1?1:0,'',{mien:[],sien:[],decks:Array.isArray(R.decks)?R.decks:['',''],advNom:x.advNom||String(x.adv||'Adversaire'),local:true,
     rejeu:{seq,j,pos:0,n:[0,0],lecture:true,vitesse:1}});
@@ -250,18 +250,9 @@ function pasRejeu(){
 }
 function finRejeu(){clearTimeout(rejeuT);rejeuT=0;finPartie();const b=$('barreRejeu');if(b)b.remove();$('accueil').hidden=false;onglet('historique')}
 window.__golemsRejeu=()=>partie&&partie.rejeu?{pos:partie.rejeu.pos,total:partie.rejeu.seq.length,fin:!!(partie.etat&&partie.etat.fin)}:null;
-function confirmeAbandon(msg,oui,titre,bouton){
-  const v=el('div','voile'),d=el('div','boite'),z=el('div','p-btns ab-btns'),n=el('button','btn danger',bouton||'Abandonner'),a=el('button','btn sec','Annuler');n.type=a.type='button';
-  v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','abTitre');v.id='popAbandon';
-  const esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc)};
-  a.onclick=ferme;n.onclick=()=>{ferme();oui()};v.onclick=e=>{if(e.target===v)ferme()};addEventListener('keydown',esc);
-  const h=el('h2','',titre||'Abandonner la partie ?');h.id='abTitre';z.append(n,a);d.append(h,el('p','',msg),z);v.append(d);document.body.append(v);a.focus();
-}
-function confirmePage(box,msg,oui){
-  box.textContent='';const n=el('button','btn danger','Confirmer'),a=el('button','btn sec','Annuler');n.type=a.type='button';
-  n.onclick=oui;a.onclick=()=>{peintDecks();peintHisto()};
-  const z=el('div','p-btns');z.append(n,a);box.append(el('p','o-conf',msg),z);
-}
+/* Confirmations au modele de la deconnexion (commun/alertes.js, confirmeFen) : titre en question, phrase, [Action] [Annuler]. */
+function confirmeAbandon(msg,oui,titre,bouton){confirmeFen({titre:titre||'Abandonner la partie ?',texte:msg,action:bouton||'Abandonner'}).then(v=>{if(v)oui()})}
+function confirmePage(box,titre,oui,texte,bouton){confirmeFen({titre,texte,action:bouton||'Supprimer'}).then(v=>{if(v)oui()})}
 /* ----- Liste : filtres (selecteur sc-sel), lignes, pagination a place fixe en bas a droite.
    Grand ecran : le bloc descend jusqu'au bas de l'ecran, autant de lignes qu'il en tient (14 au plus) ; telephone : 14 par page. */
 const PAS_HISTO=50;

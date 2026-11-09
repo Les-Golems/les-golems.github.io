@@ -55,7 +55,7 @@ const ETAPES=[
 ];
 const G_LIBRES='.p-outils button,.p-pied button,.oeil';
 function lanceGuide(){
-  if(r){$('erreurJeu').textContent='Quitte le salon avant de lancer la partie guidée.';onglet('jouer');return}
+  if(r){alerte('erreurJeu','Salon en cours : partie guidée indisponible dans un salon. Quitte le salon d\'abord.');onglet('jouer');return}
   if(partie)finPartie();
   $('premierePartie').hidden=true;
   $('erreurJeu').textContent='';onglet('jouer');

@@ -120,8 +120,11 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 
 /* Bandeau d'alerte : erreur (rouge) ou information (bleu), 40 px mini (1 ligne) ou .sc-deux-lignes 56 px ; bouton tertiaire eventuel a droite ; empiles a 8 px.
    HTML : <div class="sc-alerte sc-erreur" role="alert"><i></i><span>Deck invalide : ...</span><button class="sc-btn sc-tertiaire">Retirer</button></div> */
-.sc-alerte{display:flex;align-items:center;gap:10px;min-height:40px;padding:6px 8px 6px 10px;border-radius:9px;border:1px solid;font:700 14px/1.3 var(--corps)}
+.sc-alerte{text-align:left;display:flex;align-items:center;gap:10px;min-height:40px;padding:6px 8px 6px 10px;border-radius:9px;border:1px solid;font:700 14px/1.3 var(--corps)}
 .sc-alerte+.sc-alerte{margin-top:8px}
+.sc-fen-texte{margin:0 0 4px;font:400 15px/1.4 var(--corps);color:var(--texte)}
+.boite .sc-alerte>span,.galBoite .sc-alerte>span,.bd-fen .sc-alerte>span{-webkit-line-clamp:4} /* fenetres etroites : texte valide entier */
+.sc-copie{display:block;width:100%;box-sizing:border-box;margin-top:8px;font:13px/1.35 monospace;background:var(--encre);color:var(--texte);border:1px solid var(--trait);border-radius:8px;padding:6px 8px;resize:vertical}
 .sc-alerte>i{flex:none;width:20px;height:20px;border-radius:50%;font:800 13px/20px var(--corps);font-style:normal;text-align:center;color:var(--encre)}
 .sc-alerte>span{flex:1;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .sc-alerte>.sc-btn{flex:none}

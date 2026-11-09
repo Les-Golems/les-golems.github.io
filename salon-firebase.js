@@ -53,9 +53,9 @@ function filtre(p, champs) {
 export function nettoiePseudo(s) { return String(s || "").normalize("NFKC").replace(/\s+/g, " ").trim(); }
 export function erreurPseudo(s) {
   const v = nettoiePseudo(s);
-  if (v.length < 3) return "Le pseudo doit faire au moins 3 caractères.";
-  if (v.length > 20) return "Le pseudo doit faire au plus 20 caractères.";
-  if (!/^[\p{L}\p{N} _'-]+$/u.test(v)) return "Le pseudo ne peut contenir que des lettres, des chiffres, des espaces et _ - '.";
+  if (v.length < 3) return "Compte : pseudo trop court, 3 caractères au moins. Allonge ton pseudo.";
+  if (v.length > 20) return "Compte : pseudo trop long, 20 caractères au plus. Raccourcis ton pseudo.";
+  if (!/^[\p{L}\p{N} _'-]+$/u.test(v)) return "Compte : caractère refusé dans le pseudo. Utilise des lettres, des chiffres, des espaces et _ - '.";
   return "";
 }
 export const clePseudo = s => nettoiePseudo(s).toLowerCase();
@@ -65,15 +65,15 @@ async function adresse(pseudo) {
 }
 function messageErreur(e) {
   const c = e && e.code || "";
-  if (c === "auth/email-already-in-use") return "Ce pseudo est déjà pris.";
-  if (c === "auth/weak-password") return "Le code doit faire au moins 6 caractères.";
-  if (c === "auth/invalid-credential" || c === "auth/wrong-password" || c === "auth/user-not-found" || c === "auth/invalid-login-credentials") return "Pseudo ou code incorrect.";
-  if (c === "auth/too-many-requests") return "Trop d'essais. Réessaie dans quelques minutes.";
-  if (c === "auth/network-request-failed") return "Pas de connexion internet.";
-  if (c === "auth/operation-not-allowed") return "Les comptes ne sont pas encore ouverts.";
-  if (c === "auth/user-disabled") return "Ce compte est désactivé.";
-  if (e && /PERMISSION_DENIED/i.test(String(e.message || e.code))) return "Accès refusé par le serveur.";
-  return "Erreur inattendue, réessaie.";
+  if (c === "auth/email-already-in-use") return "Compte : pseudo déjà pris. Choisis-en un autre.";
+  if (c === "auth/weak-password") return "Compte : code trop court, 6 caractères au moins. Allonge ton code secret.";
+  if (c === "auth/invalid-credential" || c === "auth/wrong-password" || c === "auth/user-not-found" || c === "auth/invalid-login-credentials") return "Compte : pseudo ou code incorrect. Vérifie-les puis réessaie.";
+  if (c === "auth/too-many-requests") return "Compte : trop d'essais. Réessaie dans quelques minutes.";
+  if (c === "auth/network-request-failed") return "Compte : pas de connexion internet. Vérifie ta connexion puis réessaie.";
+  if (c === "auth/operation-not-allowed") return "Compte : création de comptes fermée pour le moment. Joue sans compte en attendant.";
+  if (c === "auth/user-disabled") return "Compte : compte désactivé. Demande à KaTarN (Romain).";
+  if (e && /PERMISSION_DENIED/i.test(String(e.message || e.code))) return "Compte : accès refusé par le serveur. Préviens KaTarN (Romain).";
+  return "Compte : erreur inattendue. Réessaie.";
 }
 
 async function ouvre() {
@@ -269,10 +269,10 @@ async function ouvre() {
     onChange(f) { ecouteCompte.push(f); },
     async creer(pseudo, code) {
       const e = erreurPseudo(pseudo); if (e) return e;
-      if (typeof code !== "string" || code.length < 6) return "Le code doit faire au moins 6 caractères.";
+      if (typeof code !== "string" || code.length < 6) return "Compte : code trop court, 6 caractères au moins. Allonge ton code secret.";
       const nom = nettoiePseudo(pseudo), cle = clePseudo(pseudo);
       try {
-        if ((await get(ref(db, P + "pseudos/" + cle))).exists()) return "Ce pseudo est déjà pris.";
+        if ((await get(ref(db, P + "pseudos/" + cle))).exists()) return "Compte : pseudo déjà pris. Choisis-en un autre.";
         const mail = await adresse(nom);
         await bascule(async () => {
           const u = (await createUserWithEmailAndPassword(auth, mail, code)).user;
@@ -290,8 +290,8 @@ async function ouvre() {
       } catch (x) { console.warn(x); return messageErreur(x); }
     },
     async connecter(pseudo, code) {
-      const e = erreurPseudo(pseudo); if (e) return "Pseudo ou code incorrect.";
-      if (typeof code !== "string" || !code) return "Entre ton code secret.";
+      const e = erreurPseudo(pseudo); if (e) return "Compte : pseudo ou code incorrect. Vérifie-les puis réessaie.";
+      if (typeof code !== "string" || !code) return "Compte : code secret vide. Entre ton code secret.";
       try {
         let refus = "";
         await bascule(async () => {
@@ -301,7 +301,7 @@ async function ouvre() {
           try { await repare(pseudo); }
           catch (x) {
             if (x.code !== "golems/pris") throw x;
-            refus = "Ce pseudo appartient à un autre compte. Demande à Romain.";
+            refus = "Compte : pseudo lié à un autre compte. Demande à KaTarN (Romain).";
             await signOut(auth); await setPersistence(auth, browserSessionPersistence); await signInAnonymously(auth);
             return;
           }

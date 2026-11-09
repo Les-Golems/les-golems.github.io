@@ -48,7 +48,7 @@
 .galGrille button:hover,.galGrille button[aria-pressed="true"]{background:var(--panneau2)}
 .galGrille button[aria-pressed="true"] .avatar{box-shadow:0 0 0 3px var(--bleu)}
 .galImp .avatar{background:var(--panneau2);color:var(--texte);border:2px dashed var(--trait)}
-.galMsg{margin:0;color:#ff8a7a;font-size:14px}.galMsg:empty{display:none}
+.galMsg{margin:0}.galMsg:empty{display:none}
 .cadAv{z-index:61}.cadBoite{max-width:340px;justify-items:center;text-align:center}
 .cadVue{position:relative;width:240px;height:240px;border-radius:50%;overflow:hidden;background:#000;touch-action:none;cursor:grab;user-select:none;box-shadow:0 0 0 3px var(--bleu)}
 .cadVue:active{cursor:grabbing}

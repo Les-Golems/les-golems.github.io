@@ -365,9 +365,8 @@ html.tel-joueur #vueTas,html.tel-joueur #vue{z-index:60} /* telephone : au-dessu
 #absence{position:fixed;z-index:12;left:50%;transform:translateX(-50%);max-width:calc(100vw - 32px);width:max-content;pointer-events:none;border-radius:12px 8px 13px 7px;text-align:center}
 #absence{bottom:6px;margin:0;color:var(--doux);font-size:13px;line-height:1.2}
 /* Partie non enregistree (echec d'ecriture) : visible dans tous les onglets, au-dessus des fenetres */
-#nonEnr{position:fixed;z-index:40;left:50%;bottom:16px;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);display:flex;align-items:center;gap:12px;margin:0;background:var(--panneau2);border:1px solid var(--erreur);color:var(--texte);padding:10px 12px 10px 16px;border-radius:12px 8px 13px 7px;font-size:15px;line-height:1.35;box-shadow:0 6px 18px rgba(0,0,0,.55)}
-#nonEnr b{color:var(--erreur)}
-#nonEnr .btn{flex:none;padding:6px 14px}
+#nonEnr{position:fixed;z-index:40;left:50%;bottom:16px;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);margin:0;background:#2a1b20;box-shadow:0 6px 18px rgba(0,0,0,.55)} /* bandeau sc-alerte sc-erreur (Partie : resultat non enregistre) */
+#nonEnr[hidden]{display:none}
 #des{position:fixed;z-index:14;left:50%;top:50%;transform:translate(-50%,-50%);width:min(300px,calc(100vw - 32px));pointer-events:none;background:var(--panneau);border:2px solid var(--or);border-radius:16px 11px 17px 10px;padding:14px 16px;text-align:center;box-shadow:0 12px 34px rgba(0,0,0,.7)}
 #des .faces{display:flex;justify-content:center;gap:14px;margin:8px 0}
 #des svg{display:block;width:84px;height:84px}

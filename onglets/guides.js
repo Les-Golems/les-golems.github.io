@@ -45,7 +45,7 @@ const gdJour=g=>{const m=/(\d+) (\S+?)\.? (\d{4})/.exec(g.date)||[];return new D
 /* Deck d'un guide, decode depuis son code ?deck= avec les fonctions du site : elements (nombre de cartes de chacun), total, version. */
 function gdDeck(d){
   const c=(/[?&]deck=([A-Za-z0-9_-]+)/.exec(d.lien)||[])[1]||'',o=litCodeDeck(c);
-  if(o.err||!o.cartes)return {code:c,err:o.err||'Deck illisible.'};
+  if(o.err||!o.cartes)return {code:c,err:o.err||'Import impossible : deck illisible. Préviens KaTarN (Romain).'};
   const dd={cartes:o.cartes},E=elsOrdre(dd),r=raisonsDeck(dd);
   return {code:c,els:E.map(e=>[e,Object.keys(o.cartes).filter(k=>(M.CARTES[k]?.el||[]).includes(e)).reduce((t,k)=>t+o.cartes[k],0)]),n:totalDeck(dd),ok:!r.length,raisons:r};
 }
