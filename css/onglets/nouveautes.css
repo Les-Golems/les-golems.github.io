@@ -87,3 +87,6 @@ main:has(#nouveautes:not([hidden])){padding-bottom:24px}
 /* Fenetre Details : rangee du bas au modele sc-fenetre (Fermer 46 px Lilita 18 a droite, 24 px dessous) */
 :is(.dv-pied,#f#f#f#f){justify-content:flex-end;padding:16px 24px 24px}
 :is(.dv-pied .sc-btn,#f#f#f#f){flex:0 0 auto;margin:0;min-height:46px;height:46px;padding:0 20px;font:400 18px/1 var(--titre)}
+
+/* 0.6 : noms de cartes cites (charte du 9 nov.) : couleur du type (en ligne), gras, cliquables */
+.nv-lien{font:inherit;font-weight:700;background:none;border:0;padding:0;margin:0;cursor:pointer;white-space:nowrap}b.nv-lien{cursor:default}button.nv-lien:hover{text-decoration:underline}
