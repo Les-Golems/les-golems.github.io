@@ -38,7 +38,9 @@ const DETAILS_VERSIONS={
   regles:[
    "Nouveau mot-clé : Récupérer X : ton Golem regagne jusqu'à X de Force perdue après des dégâts, sans jamais dépasser sa Force de base. Un Golem sans dégâts ne récupère rien.",
    "{{K-Chan, L'attachiante ★}} : « Love inconditionnel : une fois par manche, à ton tour, un Golem allié récupère 1. »",
-   "{{Le Camp}} : « Fin de manche : tous les Golems ici récupèrent 1. »"]
+   "{{Le Camp}} : « Fin de manche : tous les Golems ici récupèrent 1. »"],
+  avenir:[
+   "Rejeu des parties : il s'affiche encore avec l'ancien écran de partie. Il passera sur la nouvelle interface dans une prochaine version."]
  },
  'Version 0.5a':{
   nouveautes:[
@@ -350,14 +352,14 @@ function texteNv(s,parens){
   const f=document.createDocumentFragment();String(s).split(/\{\{([^}]+)\}\}/).forEach((x,i)=>{if(i%2)f.append(lienNv(x));else if(x)f.append(textePictos(x,parens))});return f;
 }
 /* Fenetre « Détails » : note de patch complete d'une version, en trois rubriques. Fermer, Echap ou clic dehors. */
-const RUBRIQUES_VERSION=[['nouveautes','Nouveautés'],['corrections','Corrections'],['regles','Équilibrage et règles']];
+const RUBRIQUES_VERSION=[['nouveautes','Nouveautés'],['corrections','Corrections'],['regles','Équilibrage et règles'],['avenir','À venir']];
 function ouvreDetailsVersion(n,bouton){
   $('popDetailsVersion')?.remove();
   const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
   const D=DETAILS_VERSIONS[n.version],v=mk('div','voile'),x=mk('div','boite dv-boite'),te=mk('div','dv-tete'),h=mk('h2','',n.version),co=mk('div','dv-corps'),pb=mk('div','p-btns dv-pied'),fe=mk('button','sc-btn sc-secondaire fermer','Fermer');
   v.id='popDetailsVersion';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','dvTitre');h.id='dvTitre';fe.type='button';
   const fr=s=>s.replace(/« /g,'«\u00a0').replace(/ (»|:)/g,'\u00a0$1'),liste=L=>{const u=mk('ul');L.forEach(y=>{const li=mk('li');li.append(texteNv(fr(typeof y==='string'?y:y.t),true));if(y.l)li.append(liste(y.l));u.append(li)});return u};
-  RUBRIQUES_VERSION.forEach(([k,titre])=>{const L=D[k]||[];co.append(mk('h3','',titre),L.length?liste(L):mk('p','dv-vide',k==='corrections'&&n===NOUVEAUTES[NOUVEAUTES.length-1]?'Première version du jeu.':'Rien pour cette version.'))});
+  RUBRIQUES_VERSION.forEach(([k,titre])=>{const L=D[k]||[];if(k==='avenir'&&!L.length)return;co.append(mk('h3','',titre),L.length?liste(L):mk('p','dv-vide',k==='corrections'&&n===NOUVEAUTES[NOUVEAUTES.length-1]?'Première version du jeu.':'Rien pour cette version.'))});
   const esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc);bouton?.focus()};addEventListener('keydown',esc);
   fe.onclick=ferme;v.onclick=e=>{if(e.target===v)ferme()};
   te.append(h,mk('time','',n.date));pb.append(fe);x.append(te,co,pb);v.append(x);document.body.append(v);fe.focus({preventScroll:true});
