@@ -3,7 +3,7 @@
    « Copier le lien » entre les votes et « Voir sur YouTube », bandeau « Guide : lien copié. Colle-le sur Discord. », bande du deck a importer, video ou texte).
    Lien partage : ?guide=<id> ouvre Comment jouer > Guides sur ce guide.
    Ancien onglet Guides retire : onglet('guides') et le lien #guides ouvrent Comment jouer > Guides (commun/navigation.js).
-   TODO (Firebase, plus tard) : votes partages. Pour l'instant chaque joueur ne voit que son propre vote (stockage local), aucun ecriture en ligne. */
+   Votes partages (0.6) : guides/<id>/votes/<uid> en ligne (salon-firebase.js, room.guides ; regle rules/60-guides.js). Invite : son vote reste sur l'appareil. */
 /* yt : identifiant YouTube ; titre, auteur et date releves a la main (aucune requete a YouTube au chargement) ; decks : liens ?deck= du site.
    texte : guide ecrit (HTML simple, noms de cartes reconnus et cliquables) ; officiel : guide de l'equipe (etiquette « Officiel »). */
 const GUIDES=[
@@ -32,7 +32,7 @@ const GUIDES=[
   decks:[{nom:'26 Foudre et 4 Apo',lien:'https://les-golems.github.io/?deck=GOL2-KgcAD4DCvAIAMAAAMjYgRm91ZHJlIGV0IDQgQXBvCkJlbGxvY2s'}]}
 ];
 GUIDES.forEach((g,i)=>{if(!g.id)g.id=g.yt||('g'+i);g.i=i;g.dk=0});
-const GD={tri:'notes',type:'tous',els:new Set(),q:'',page:0,par:8,cur:null,fait:false};
+const GD={votes:null,room:null,tri:'notes',type:'tous',els:new Set(),q:'',page:0,par:8,cur:null,fait:false};
 const CJ={vue:'regles'};
 const SVG_LECTURE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>';
 const SVG_POUCE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 21h4V9H2v12zm20-11a2 2 0 0 0-2-2h-6.3l1-4.6v-.3c0-.4-.2-.8-.4-1.1L13.2 1 6.6 7.6C6.2 8 6 8.5 6 9v10a2 2 0 0 0 2 2h9c.8 0 1.5-.5 1.8-1.2l3-7.1.2-.7v-2z"/></svg>';
@@ -51,11 +51,26 @@ function gdDeck(d){
 }
 const gdInfo=g=>g._d||(g._d=(g.decks||[]).map(gdDeck));
 const gdEls=g=>new Set(gdInfo(g).flatMap(d=>(d.els||[]).map(x=>x[0])));
-/* Votes : stockage local seulement (voir TODO en tete). +1, -1 ou 0 par guide. */
-const gdVotes=()=>{try{return JSON.parse(lire('golems.votesGuides')||'{}')||{}}catch(e){return {}}};
-const gdVote=g=>gdVotes()[g.id]||0;
-const gdScore=g=>(g.haut||0)-(g.bas||0)+gdVote(g);
-function gdVoter(g,v){const o=gdVotes();o[g.id]=o[g.id]===v?0:v;ecrire('golems.votesGuides',JSON.stringify(o));peintGuidesCJ()}
+/* Votes (0.6) : GD.votes = { id du guide: { uid: 1 | -1 } } lu en ligne (tous les joueurs). Compte connecte : son vote est en ligne ;
+   invite : vote sur l'appareil (golems.votesGuides), ajoute a ceux des autres. gdComptes(g) : {haut,bas,mien}, mien compris. */
+const gdVotesLocaux=()=>{try{return JSON.parse(lire('golems.votesGuides')||'{}')||{}}catch(e){return {}}};
+const gdUid=()=>GD.room&&GD.room.guides&&compteCo()?GD.room.guides.uid():null;
+function gdComptes(g){
+  const w=(GD.votes&&GD.votes[g.id])||{},u=gdUid();let haut=g.haut||0,bas=g.bas||0;
+  for(const k in w)if(k!==u){if(w[k]===1)haut++;else if(w[k]===-1)bas++}
+  const mien=u?(w[u]||0):(gdVotesLocaux()[g.id]||0);if(mien===1)haut++;else if(mien===-1)bas++;
+  return {haut,bas,mien};
+}
+const gdVote=g=>gdComptes(g).mien;
+const gdScore=g=>{const c=gdComptes(g);return c.haut-c.bas};
+function gdVoter(g,v){
+  const u=gdUid(),n=gdVote(g)===v?0:v;
+  if(!u){const o=gdVotesLocaux();o[g.id]=n;ecrire('golems.votesGuides',JSON.stringify(o));peintGuidesCJ();return}
+  GD.votes=GD.votes||{};const w=GD.votes[g.id]=Object.assign({},GD.votes[g.id]);if(n)w[u]=n;else delete w[u];peintGuidesCJ(); /* affichage immediat, l'ecoute corrige */
+  GD.room.guides.vote(g.id,n).catch(e=>console.warn('vote guide',e));
+}
+if(window.golemsSalon)Promise.resolve(window.golemsSalon).then(r=>{if(!r||!r.guides)return;GD.room=r;
+  r.guides.ecoute(v=>{GD.votes=v;peintGuidesCJ()});if(r.compte&&r.compte.onChange)r.compte.onChange(()=>peintGuidesCJ())}).catch(()=>{});
 /* Filtres, tri, liste */
 function gdListe(){
   let L=GUIDES.filter(g=>(GD.type==='tous'||(GD.type==='texte')===!!g.texte)&&(!GD.q||gdNorm(g.titre+' '+g.auteur).includes(GD.q))
@@ -91,8 +106,8 @@ function gdDetail(g){
   const r2=gdMk('div','gd-r2'),me=gdMk('div','gd-meta'),av=gdMk('i','gd-av',g.officiel?'':g.auteur[0]);
   if(g.officiel){const im=gdMk('img');im.src=imgV('cartes/logo.png');im.alt='';av.append(im)}
   me.append(av,gdMk('b','gd-aut',g.auteur),gdMk('span','','-'),gdMk('span','gd-date',g.date));if(g.texte)me.append(gdMk('span','','-'),gdMk('span','',g.min+' min de lecture'));
-  const ac=gdMk('div','gd-act'),vo=gdMk('div','gd-vo'),v=gdVote(g);
-  [[1,'Guide utile',(g.haut||0)+(v===1?1:0)],[-1,'Guide peu utile',(g.bas||0)+(v===-1?1:0)]].forEach(([s,t,n])=>{
+  const ac=gdMk('div','gd-act'),vo=gdMk('div','gd-vo'),C=gdComptes(g),v=C.mien;
+  [[1,'Guide utile',C.haut],[-1,'Guide peu utile',C.bas]].forEach(([s,t,n])=>{
     const b=gdMk('button','sc-btn sc-tertiaire gd-vb'+(v===s?' on':''));b.type='button';b.title=t;b.setAttribute('aria-label',t+' ('+n+')');b.setAttribute('aria-pressed',String(v===s));
     b.innerHTML=s>0?SVG_POUCE:'<span class="gd-bas">'+SVG_POUCE+'</span>';b.append(String(n));b.onclick=()=>gdVoter(g,s);vo.append(b)});
   const cp=gdMk('button','sc-btn sc-secondaire gd-cp','Copier le lien ');cp.type='button';cp.insertAdjacentHTML('beforeend',SVG_LIEN);cp.onclick=()=>gdCopie(g);
@@ -162,3 +177,79 @@ function cjInit(){
   if(id){const g=GUIDES.find(x=>x.id===id);const ouvre=()=>{if(typeof onglet==='function')onglet('regles');if(g){GD.cur=g;GD.fait=false}cjVue('guides');scrollTo(0,0)};
     if(document.readyState==='complete')setTimeout(ouvre,0);else addEventListener('load',()=>setTimeout(ouvre,0))}
 }
+/* ----- 0.6 : « Proposer un guide » (maquette 31\Guides, B3 compte et B4 invite ; choix du deck B6 = fenetre de deck unique choisirDeck).
+   Bouton sous la pagination de la liste ; invite : bouton secondaire au cadenas, fenetre floutee + « Se connecter » / « Créer un compte ».
+   Envoi : room.guides.propose (propositionsGuides, rules/60-guides.js), relu par l'equipe avant publication. */
+const SVG_CADENAS='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10.5" width="16" height="11" rx="2.5" fill="currentColor"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>';
+function gdMajProp(){const b=$('gdProp');if(!b)return;const co=compteCo();b.className='sc-btn gd-prop'+(co?'':' sc-secondaire');b.innerHTML=(co?'':'<span class="gd-pcad">'+SVG_CADENAS+'</span>')+'Proposer un guide'}
+const gdYt=u=>{u=String(u||'').trim();const m=/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/|\/live\/)([A-Za-z0-9_-]{11})/.exec(u)||/^([A-Za-z0-9_-]{11})$/.exec(u);return m?m[1]:''};
+function gdTuileDeck(d){
+  const t=gdMk('div','gd-strip dg gd-tf'),E=elsOrdre(d);t.style.background=fondDeck(E);
+  const n=gdMk('div','gd-dn');n.append(gdMk('small','','Deck'),gdMk('b','',d.nom));n.lastChild.title=d.nom;
+  const pe=gdMk('div','gd-els');
+  E.forEach(e=>{const s=gdMk('span','gd-el'),q=Object.keys(d.cartes).filter(k=>+d.cartes[k]>0&&(M.CARTES[k]?.el||[]).includes(e)).reduce((x,k)=>x+(+d.cartes[k]),0);
+    s.title=nomEl(e);s.append(picto(e),gdMk('b','',String(q)));pe.append(s)});
+  t.append(n,pe,gdMk('span','gd-ct',totalDeck(d)+'/30'),etqVersionDeck(d.v||V_DECK_ANCIEN,d.cartes));return t;
+}
+function ouvrePropGuide(){
+  $('gdPFen')?.remove();
+  const co=compteCo(),v=gdMk('div','voile gd-pvoile'),f=gdMk('div','sc-fenetre gd-pfen');
+  v.id='gdPFen';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','gdPT');
+  const h=gdMk('h3','sc-fen-titre','Proposer un guide');h.id='gdPT';const msg=gdMk('div','gd-pmsg');f.append(h,msg);
+  const ferme=()=>{v.remove();$('gdProp')?.focus()};v.onclick=e=>{if(e.target===v)ferme()};v.onkeydown=e=>{if(e.key==='Escape'&&!$('popDeck'))ferme()};
+  const choisi=()=>{const id=lire('golems.deckChoisi')||'';return lesDecks().find(x=>x.id===id)||null};
+  const P={ty:'v',d1:co?choisi():null,d2:null};
+  const corps=gdMk('div','gd-pcorps'),info=gdMk('div','gd-pinfo');
+  alerteInfo(info,'L\'équipe relit chaque guide avant de le publier.').classList.add('sc-une-ligne');
+  const fl=gdMk('div','gd-fl'),lab=(t,s)=>{const l=gdMk('label','',t);if(s)l.append(gdMk('small','',s));return l};
+  const ty=gdMk('div','sc-sel gd-pty');ty.setAttribute('role','group');ty.setAttribute('aria-label','Type de guide');
+  [['v','Vidéo'],['t','Texte']].forEach(([k,t])=>{const b=gdMk('button','',t);b.type='button';b.dataset.k=k;b.onclick=()=>{P.ty=k;maj()};ty.append(b)});
+  const ti=gdMk('input','gd-ch');ti.maxLength=80;ti.placeholder='Titre de ton guide';ti.setAttribute('aria-label','Titre');
+  const yt=gdMk('input','gd-ch');yt.placeholder='https://www.youtube.com/watch?v=...';yt.setAttribute('aria-label','Lien YouTube');
+  const tx=gdMk('textarea','gd-ch');tx.maxLength=4000;tx.placeholder='Explique ton plan de jeu, tes choix de cartes, les terrains que tu vises...';tx.setAttribute('aria-label','Texte');
+  const lYt=lab('Lien YouTube'),lTx=lab('Texte'),d1=gdMk('div','gd-ldk'),d2=gdMk('div','gd-ldk');
+  /* Choix d'un deck : fenetre de deck unique (B6) ; le deck choisi pour jouer est remis tel quel ensuite. */
+  const prend=k=>{const av=lire('golems.deckChoisi')||'';
+    choisirDeck(()=>{const d=choisi();ecrire('golems.deckChoisi',av);if(typeof majChoixDeck==='function')majChoixDeck();if(d)P[k]=d;maj()},'Choisir ce deck','Deck à importer avec ton guide');
+    const pd=$('popDeck');if(pd)pd.style.zIndex=60};
+  const ligneDk=(z,k)=>{z.replaceChildren();const d=P[k];
+    if(d)z.append(gdTuileDeck(d));
+    else{const t=gdMk('div','gd-strip gd-tf'),n=gdMk('div','gd-dn vide');n.append(gdMk('small','','Deck'),gdMk('b','',k==='d1'?'Aucun deck choisi':'Aucune 2e version'));t.append(n);z.append(t)}
+    const b=gdMk('button','sc-btn sc-secondaire',k==='d2'&&d?'Retirer':d?'Changer':'Choisir');b.type='button';b.onclick=()=>{if(k==='d2'&&d){P.d2=null;maj()}else prend(k)};z.append(b)};
+  fl.append(lab('Type'),ty,lab('Titre'),ti,lYt,yt,lab('Deck à importer','version 1'),d1,lab('2e version','facultative'),d2,lTx,tx);
+  const rg=gdMk('div','sc-fen-actions'),ok=gdMk('button','sc-btn','Envoyer pour relecture'),an=gdMk('button','sc-btn sc-secondaire','Annuler');
+  ok.type=an.type='button';an.onclick=ferme;rg.append(ok,an);
+  function maj(){
+    ty.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===P.ty)));
+    const vid=P.ty==='v';lYt.hidden=yt.hidden=!vid;
+    lTx.replaceChildren('Texte');if(vid)lTx.append(gdMk('small','','facultatif pour une vidéo'));
+    ligneDk(d1,'d1');ligneDk(d2,'d2');
+  }
+  ok.onclick=async()=>{
+    const titre=ti.value.trim(),id=gdYt(yt.value),texte=tx.value.trim(),vid=P.ty==='v';
+    const e=titre.length<3?'Guide : titre manquant. Donne un titre de 3 caractères au moins.'
+      :vid&&!id?'Guide : lien YouTube invalide. Colle le lien de ta vidéo.'
+      :!vid&&!texte?'Guide : texte manquant. Écris ton guide.'
+      :!P.d1?'Guide : aucun deck choisi. Choisis le deck à importer.':'';
+    if(e){alerte(msg,e);return}
+    if(!GD.room||!GD.room.guides||!GD.room.guides.propose){alerte(msg,'Guide : serveur injoignable. Réessaie dans un instant.');return}
+    ok.disabled=true;alerte(msg,'');
+    const ps=GD.room.compte&&GD.room.compte.pseudo?GD.room.compte.pseudo():'';
+    try{await GD.room.guides.propose({ty:P.ty,ti:titre,yt:vid?id:'',tx:texte,d1:codeDeck2(P.d1,ps),d2:P.d2?codeDeck2(P.d2,ps):''})}
+    catch(x){console.warn('proposition de guide',x);ok.disabled=false;alerte(msg,'Guide : envoi impossible. Réessaie dans un instant.');return}
+    ferme();alerteInfo('gdAlq','Guide : proposition envoyée. L\'équipe la relit avant de la publier.');
+  };
+  corps.append(info,fl,rg);
+  if(co)f.append(corps);
+  else{
+    const w=gdMk('div','gd-verrou');corps.classList.add('gd-flou');corps.setAttribute('aria-hidden','true');corps.inert=true;
+    const c=gdMk('div','gd-cad'),ic=gdMk('span','gd-cadi');ic.innerHTML=SVG_CADENAS;
+    const r=gdMk('div','sc-rangee'),a=gdMk('button','sc-btn','Se connecter'),b=gdMk('button','sc-btn sc-secondaire','Créer un compte');a.type=b.type='button';
+    a.onclick=()=>{ferme();ouvrePseudo()};b.onclick=()=>{ferme();ouvrePseudo();modeCompte(true)};r.append(a,b);
+    c.append(ic,gdMk('b','','Un compte est nécessaire pour proposer un guide'),gdMk('span','','Connecte-toi pour envoyer une vidéo ou un texte à l\'équipe.'),r);
+    w.append(corps,c);f.append(w);
+  }
+  maj();v.append(f);document.body.append(v);(co?ti:f.querySelector('.gd-cad .sc-btn')).focus();
+}
+if($('gdProp')){$('gdProp').onclick=ouvrePropGuide;gdMajProp();
+  if(window.golemsSalon)Promise.resolve(window.golemsSalon).then(r=>{if(r&&r.compte&&r.compte.onChange)r.compte.onChange(gdMajProp);gdMajProp()}).catch(()=>{})}

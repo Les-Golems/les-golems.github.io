@@ -784,20 +784,6 @@
         "$i": {
           ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)"
         }
-      },
-      "message": {
-        ".read": true,
-        ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
-        ".validate": "newData.hasChildren(['t', 'd'])",
-        "t": {
-          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 600"
-        },
-        "d": {
-          ".validate": "newData.isNumber()"
-        },
-        "$autre": {
-          ".validate": false
-        }
       }
     },
     "classe": {
@@ -1110,12 +1096,49 @@
     "guides": {
       ".read": true,
       "$g": {
-        ".validate": "$g.matches(/^[a-z0-9-]{1,40}$/)",
+        ".validate": "($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k')",
         "votes": {
           "$uid": {
-            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && ($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k')",
             ".validate": "newData.isNumber() && (newData.val() === 1 || newData.val() === -1)"
           }
+        },
+        "$autre": {
+          ".validate": false
+        }
+      }
+    },
+    "propositionsGuides": {
+      ".read": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
+      "$id": {
+        ".write": "(auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('u').val() === auth.uid) || (auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1' && !newData.exists())",
+        ".validate": "newData.hasChildren(['u', 'p', 'ty', 'ti', 'd1', 't']) && (newData.child('ty').val() === 'v' ? newData.hasChild('yt') : newData.hasChild('tx'))",
+        "u": {
+          ".validate": "newData.isString()"
+        },
+        "p": {
+          ".validate": "newData.val() === root.child('joueurs').child(auth.uid).child('pseudo').val()"
+        },
+        "ty": {
+          ".validate": "newData.val() === 'v' || newData.val() === 't'"
+        },
+        "ti": {
+          ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 80"
+        },
+        "yt": {
+          ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{11}$/)"
+        },
+        "tx": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 4000"
+        },
+        "d1": {
+          ".validate": "newData.isString() && newData.val().matches(/^GOL[12]-[A-Za-z0-9_-]{4,200}$/)"
+        },
+        "d2": {
+          ".validate": "newData.isString() && newData.val().matches(/^GOL[12]-[A-Za-z0-9_-]{4,200}$/)"
+        },
+        "t": {
+          ".validate": "newData.val() === now"
         },
         "$autre": {
           ".validate": false
@@ -1908,20 +1931,6 @@
           "$i": {
             ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)"
           }
-        },
-        "message": {
-          ".read": true,
-          ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
-          ".validate": "newData.hasChildren(['t', 'd'])",
-          "t": {
-            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 600"
-          },
-          "d": {
-            ".validate": "newData.isNumber()"
-          },
-          "$autre": {
-            ".validate": false
-          }
         }
       },
       "classe": {
@@ -2234,12 +2243,49 @@
       "guides": {
         ".read": true,
         "$g": {
-          ".validate": "$g.matches(/^[a-z0-9-]{1,40}$/)",
+          ".validate": "($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k')",
           "votes": {
             "$uid": {
-              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid",
+              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && ($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k')",
               ".validate": "newData.isNumber() && (newData.val() === 1 || newData.val() === -1)"
             }
+          },
+          "$autre": {
+            ".validate": false
+          }
+        }
+      },
+      "propositionsGuides": {
+        ".read": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
+        "$id": {
+          ".write": "(auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('u').val() === auth.uid) || (auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1' && !newData.exists())",
+          ".validate": "newData.hasChildren(['u', 'p', 'ty', 'ti', 'd1', 't']) && (newData.child('ty').val() === 'v' ? newData.hasChild('yt') : newData.hasChild('tx'))",
+          "u": {
+            ".validate": "newData.isString()"
+          },
+          "p": {
+            ".validate": "newData.val() === root.child('essai').child('joueurs').child(auth.uid).child('pseudo').val()"
+          },
+          "ty": {
+            ".validate": "newData.val() === 'v' || newData.val() === 't'"
+          },
+          "ti": {
+            ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 80"
+          },
+          "yt": {
+            ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{11}$/)"
+          },
+          "tx": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 4000"
+          },
+          "d1": {
+            ".validate": "newData.isString() && newData.val().matches(/^GOL[12]-[A-Za-z0-9_-]{4,200}$/)"
+          },
+          "d2": {
+            ".validate": "newData.isString() && newData.val().matches(/^GOL[12]-[A-Za-z0-9_-]{4,200}$/)"
+          },
+          "t": {
+            ".validate": "newData.val() === now"
           },
           "$autre": {
             ".validate": false
