@@ -140,7 +140,8 @@ function miniVue(s,p,l,k){
   return m;
 }
 /* Detail de Force d'un Golem : lecture seule de l'etat du moteur. */
-const NOMS_EL={magma:'Magma',cristal:'Cristal',foudre:'Foudre',brume:'Brume',roche:'Roche'};
+/* Elements : modele unique cartes/donnees/interface.js (elements) */
+const ELEMENTS=window.GolemsDonnees.interface.elements,COUL_CARTE=window.GolemsDonnees.interface.couleursCarte,NOMS_EL=Object.fromEntries(ELEMENTS.ordre.map(e=>[e,ELEMENTS[e].nom]));
 function signe(n){return (n>=0?'+':'')+n}
 function lg(t,v,cl){const d=el('div','lg'+(cl?' '+cl:''));d.append(el('span','',t),el('b','',v));return d}
 /* Identifiant d'effet : le Maitre du deguisement (029e) et Le chansonnier (041e) portent l'effet copie. Anciens moteurs (rejeu) : celui de la carte. */
@@ -254,10 +255,9 @@ function detailMaitreAnimal(g){
   d.append(x,im(C),im(A),t);document.body.append(f,d);x.focus({preventScroll:true});
 }
 /* Nom d'effet en couleur, comme sur la carte (generer_cartes.py / generer_animaux.py) : evolution en or, base = teinte claire de l'element 1 (TEXTE_ELT), animal = VERT_CLAIR */
-const TEXTE_EL={magma:'#ffb52a',cristal:'#ffa8d6',foudre:'#ffe36e',brume:'#c9b6f2',roche:'#ecbc8c'};
 /* Fonction commune a tous les panneaux de detail et zooms (vue joueur, vue spectateur, diffusion) : GOLEMS_UI.effetCouleur */
 function effetCouleur(C,tag,cls){const d=el(tag||'div',cls===undefined?'e':cls),x=C.texte||'',i=x.indexOf(' :');if(i<0){d.textContent=x;return d}
-  const b=el('b','',x.slice(0,i+2));b.style.color=C.animal?'#c8f58a':C.base?'#ffd23a':TEXTE_EL[C.el[0]]||'#fff';d.append(b,x.slice(i+2));return d}
+  const b=el('b','',x.slice(0,i+2));b.style.color=C.animal?COUL_CARTE.animal:C.base?COUL_CARTE.evoEffet:(ELEMENTS[C.el[0]]||{}).texte||'#fff';d.append(b,x.slice(i+2));return d}
 function fermeDetailAnimal(){document.querySelectorAll('#aniDet,.ani-fond').forEach(x=>x.remove())}
 addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('aniDet'))fermeDetailAnimal()});
 function detailAnimal(C){const a=el('section');a.append(el('h3','','Animal de compagnie'),lg('Maître',M.CARTES[C.maitre].nom),lg('Force','aucune'),effetCouleur(C,'p',''));return [a]}
@@ -349,22 +349,29 @@ function camp(s,p,moi){
   return d;
 }
 const SURVOL=matchMedia('(hover:hover) and (min-width:900px)');
-/* Journal : noms de cartes et de terrains cliquables. Nom detaille et evolution d'abord, pour ouvrir la bonne carte. */
-const NOMS_LOG=(()=>{const m=new Map();
-  Object.values(M.CARTES).forEach(C=>{m.set(M.nomDetail(C),{C});m.set(C.nom,{C})});
-  M.TERRAINS.forEach(T=>m.set(T.nom,{T}));
+/* Noms cites (journal, bulles d'aide, zooms ; charte du 9 nov.) : cartes, terrains et noms d'effet cliquables (zoom de la carte).
+   Libelle = nom exact avec son titre (nomLong), evolution suivie de ★ ; couleur de son type (couleursTexte, cartes/donnees/interface.js), sans gras.
+   Cles reconnues : nom detaille « Base (Evolution) », nom long, nom seul, terrain, nom d'effet (texte avant « : ») ; la plus longue d'abord. */
+const NOMS_LOG=(()=>{const m=new Map(),D=window.GolemsDonnees,cs=Object.values(M.CARTES),mets=(k,o)=>{if(k&&k.length>1&&!m.has(k))m.set(k,o)},av=x=>{const i=(x.texte||'').indexOf(' :');return i>0?x.texte.slice(0,i):''};
+  cs.forEach(C=>{mets(M.nomDetail(C),{C});mets(D.nomLong(C.id),{C})});cs.forEach(C=>mets(C.nom,{C}));
+  M.TERRAINS.forEach(T=>mets(T.nom,{T}));
+  cs.forEach(C=>mets(av(C),{E:C}));M.TERRAINS.forEach(T=>{const n=av(T);if(n.length<40)mets(n,{ET:T})});
   const e=[...m.keys()].sort((a,b)=>b.length-a.length).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
   return {m,re:new RegExp('(?<![\\p{L}\\p{N}])('+e.join('|')+')(?![\\p{L}\\p{N}])','gu')}})();
 function lienLog(nom){
-  const o=NOMS_LOG.m.get(nom),b=el('button','j-lien'+(o.C&&o.C.base?' j-evo':''),nom);b.type='button';
-  if(o.T){b.onclick=()=>zoomTerrain(o.T);b.onmouseenter=()=>montreApercu(b,srcTerrain(o.T))}
-  else{const src=imgV('cartes/'+o.C.id+'.jpg');b.onclick=()=>{cacheApercu();dernier=null;zoom(src,o.C.nom)};b.onmouseenter=()=>montreApercu(b,src)}
+  const o=NOMS_LOG.m.get(nom),K=window.GolemsDonnees.interface.couleursTexte,C=o.C||o.E,T=o.T||o.ET;
+  const lib=o.C?window.GolemsDonnees.nomLong(C.id)+(C.base?' ★':''):o.T?T.nom:nom;
+  const b=el('button','j-lien'+(o.C&&C.base?' j-evo':''),lib);b.type='button';
+  b.style.color=o.E||o.ET?K.effet:T?K.terrain:C.animal?K.animal:C.base?K.evolution:K.golem;
+  if(T){b.onclick=()=>zoomTerrain(T);b.onmouseenter=()=>montreApercu(b,srcTerrain(T))}
+  else{const src=imgV('cartes/'+C.id+'.jpg');b.onclick=()=>{cacheApercu();dernier=null;zoom(src,C.nom)};b.onmouseenter=()=>montreApercu(b,src)}
   b.onmouseleave=cacheApercu;return b;
 }
-function texteLog(x){
+/* sauf(o) : vrai pour un nom a laisser en texte (zoom : la carte zoomee elle-meme) */
+function texteLog(x,sauf){
   const s=el('span','');let d=0;
   /* Ponctuation qui suit un lien (point, virgule...) collee a lui : un bouton laisse sinon le navigateur couper la ligne juste avant. */
-  for(const m of x.matchAll(NOMS_LOG.re)){s.append(x.slice(d,m.index));d=m.index+m[0].length;
+  for(const m of x.matchAll(NOMS_LOG.re)){if(sauf&&sauf(NOMS_LOG.m.get(m[0])))continue;s.append(x.slice(d,m.index));d=m.index+m[0].length;
     const p=/^[.,;:!?)…]+/.exec(x.slice(d)),b=lienLog(m[0]);
     if(p){const n=el('span','j-colle');n.append(b,p[0]);s.append(n);d+=p[0].length}else s.append(b)}
   s.append(x.slice(d));return s;
@@ -396,7 +403,7 @@ function zoomTerrainJeu(s,k,me){
   const pan=p=>{const moi=p===me,coul=moi?'var(--bleu)':'var(--magma)',a=el('section','zt-camp '+(moi?'toi':'lui')),h=el('h3','',nomJ(p)+(moi?' (toi)':'')),ol=el('ol','zt-l');h.style.color=coul;a.append(h);
     for(let l=0;l<3;l++){const g=s.j[p].grille[l][k],li=el('li');
       if(!g){li.className='zt-vide';li.append(el('span','','Case vide'))}
-      else{const v=M.valeurDecompte(s,p,l,k),f=el('span','zt-v','Force '),fb=el('b','',String(v));fb.style.color=coul;f.append(fb);
+      else{const v=M.valeurDecompte(s,p,l,k),f=el('span','zt-v'),fb=el('b','',String(v));fb.style.color=coul;f.append(ico('force'),fb);f.setAttribute('role','img');f.setAttribute('aria-label','Force '+v);
         if(g.hors===s.manche&&!M.carte(g.c).animal)f.title='Ne compte pas au décompte de cette manche';li.append(ligneZt(g.c),f)}
       ol.append(li)}
     const o=cc[1-p],n=cc[p],tt=el('div','zt-tot'),b=el('b','',String(n));b.style.color=coul;tt.append('Total : ',b);
@@ -822,7 +829,7 @@ let svgCercleJeu=null,cercleOuvert=false;
 function cercleJeu(){
   const d=el('details','p-cercle'),su=el('summary','','Cercle des éléments'),w=el('div','p-cw');
   if(!svgCercleJeu){
-    const E5=['magma','cristal','foudre','brume','roche'],IM=68,ey=(188-IM)/1.809,ex=(350-IM)/1.902,DEG=Math.PI/180,P=a=>[ex*Math.cos(a*DEG),ey*Math.sin(a*DEG)];
+    const E5=ELEMENTS.ordre,IM=68,ey=(188-IM)/1.809,ex=(350-IM)/1.902,DEG=Math.PI/180,P=a=>[ex*Math.cos(a*DEG),ey*Math.sin(a*DEG)];
     const pos=E5.map((e,i)=>P(-90+72*i)),libre=a=>{const[x,y]=P(a);return !pos.some(([X,Y])=>Math.hypot(x-X,y-Y)<IM/2+5)};
     let g='<defs><marker id="flJeu" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" style="fill:var(--bleu)"/></marker></defs>';
     for(let i=0;i<5;i++){const a0=-90+72*i;let best=[0,0],cur=null;for(let a=a0;a<=a0+72;a+=.25){if(libre(a)){if(cur===null)cur=a;if(a-cur>best[1]-best[0])best=[cur,a]}else cur=null}

@@ -270,4 +270,9 @@ const R0={liste:null,force:null,cirque:'tarte'},regle=o=>Object.assign(M.REGLAGE
   eq(n2,0,'jamais 2 Golems d un joueur au Versus');ok(np>100,'poses au Versus : '+np);regle();
   res.push('Versus ('+np+' poses en parties)');
 }
+{ // soin plafonne : Recuperer 2 sur un Golem a 1 degat finit a 0 degat et a sa Force de base
+  const s=nouv(['Le Camp','La Boutique','L\'École']);s.terrains[0].effet={type:'soin',n:2};pose(s,0,AL,6,0,0,{d:1});eq(M.forceDe(s,0,0,0),5,'1 degat');
+  fm(s);eq(s.j[0].grille[0][0].d,0,'jamais sous 0 degat');eq(M.forceDe(s,0,0,0),6,'Force de base, pas au-dela');
+  res.push('soin plafonne');
+}
 console.log('Terrains OK : '+nv+' verifications ('+res.join(', ')+')');

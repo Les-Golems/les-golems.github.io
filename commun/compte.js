@@ -1,6 +1,6 @@
 /* Compte et avatars : avatar, galerie, import et cadrage d'image, fenetre pseudo et code secret. */
 /* Avatar : rond avec initiale sur une couleur tiree du pseudo. avatarId (futur choix en galerie, a stocker plus tard dans la presence ou Firebase) : si fourni, image avatars/<id>.png a la place. */
-const AVATAR_COULEURS=["--fm-magma","--fm-cristal","--fm-foudre","--fm-brume","--fm-roche"];
+const AVATAR_COULEURS=window.GolemsDonnees.interface.elements.ordre.map(e=>"--fm-"+e); /* modele des elements : cartes/donnees/interface.js */
 function avatarDe(nom,avatarId){
   const n=String(nom||"").trim()||"?",a=el("span","avatar");a.setAttribute("aria-hidden","true");
   let h=0;for(const c of n.toLowerCase())h=(h*31+c.codePointAt(0))>>>0;

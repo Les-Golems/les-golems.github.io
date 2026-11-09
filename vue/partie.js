@@ -711,9 +711,9 @@ function resultat(D){
   if(D.deckVide!==undefined)return {titre:N(D,a)+' gagne par deck vide',vainq:a,perd:b}; /* 0.4 */
   return {titre:N(D,a)+' bat '+N(D,b)+', '+D.scores[a]+' à '+D.scores[b],vainq:a,perd:b};
 }
-const contexte=D=>(D.mode==='robot'?"Contre l'ordinateur":'Partie en ligne')+' · version '+esc(D.version);
+const contexte=D=>(D.mode==='robot'?"Contre l'ordinateur":'Partie en ligne')+' - version '+esc(D.version);
 const elsAff=l=>l.length===5?'les 5 éléments':l.join(', ');
-const ligneDeck=(D,p)=>'**'+N(D,p)+'**'+(D.decks[p].nom?' · *'+esc(D.decks[p].nom)+'*':'')+(D.decks[p].els.length?' · '+elsAff(D.decks[p].els):'');
+const ligneDeck=(D,p)=>'**'+N(D,p)+'**'+(D.decks[p].nom?' - *'+esc(D.decks[p].nom)+'*':'')+(D.decks[p].els.length?' - '+elsAff(D.decks[p].els):'');
 const scoreManche=(D,o)=>C(D,0)+' '+o.pts[0]+', '+C(D,1)+' '+o.pts[1];
 function detailCamp(D,o,p){
   const l=o.terrains.filter(t=>t.p===p).map(t=>esc(t.nom)+' +'+t.pts+(t.forces?' ('+t.forces[0]+' contre '+t.forces[1]+')':''));
@@ -725,7 +725,7 @@ function ligneMvpD(m){
   if(m.score===null)return '';
   const l=[];if(m.force)l.push('Force '+m.force+' sur terrains gagnés');if(m.bonus)l.push(pl(m.bonus,'bonus donné'));
   if(m.degats)l.push(pl(m.degats,'dégât'));if(m.morts)l.push(pl(m.morts,'Golem')+' détruit'+(m.morts>1?'s':''));
-  return 'Score '+m.score+(l.length?' · '+l.join(', '):'');
+  return 'Score '+m.score+(l.length?' - '+l.join(', '):'');
 }
 const abandonTxt=D=>D.abandon!==undefined?N(D,D.abandon)+' a abandonné à '+D.scores[D.abandon]+' contre '+D.scores[1-D.abandon]:'';
 function chiffres(D){
@@ -741,16 +741,16 @@ function chiffres(D){
 /* ---------- A (sans emoji) et B (quelques emoji) : meme fiche ---------- */
 function fiche(D,niv,emo){
   const R=resultat(D),l=[],e=(x,y)=>emo?x+' ':(y||'');
-  l.push('## '+(emo?(R.vainq===null?'\u{1F91D} ':'\u{1F3C6} '):'Les Golems · ')+R.titre);
-  l.push('-# '+(emo?'Les Golems · ':'')+contexte(D)+(D.departage?' · '+esc(D.departage):'')+(D.abandon!==undefined?' · '+e('\u{1F3F3}️')+abandonTxt(D):''));
+  l.push('## '+(emo?(R.vainq===null?'\u{1F91D} ':'\u{1F3C6} '):'Les Golems - ')+R.titre);
+  l.push('-# '+(emo?'Les Golems - ':'')+contexte(D)+(D.departage?' - '+esc(D.departage):'')+(D.abandon!==undefined?' - '+e('\u{1F3F3}️')+abandonTxt(D):''));
   l.push((emo?'> ':'')+ligneDeck(D,0),(emo?'> ':'')+ligneDeck(D,1));
   l.push('### '+e('⚔️')+'Manche par manche');
   if(!D.manches.length)l.push('*Aucune manche décomptée*');
   D.manches.forEach((o,i)=>{
-    l.push('**Manche '+(i+1)+'** · '+scoreManche(D,o));
-    if(niv<1){const d=[0,1].map(p=>{const x=detailCamp(D,o,p);return x?C(D,p)+' : '+x:''}).filter(Boolean);if(d.length)l.push('-# '+d.join(' · '))}
+    l.push('**Manche '+(i+1)+'** - '+scoreManche(D,o));
+    if(niv<1){const d=[0,1].map(p=>{const x=detailCamp(D,o,p);return x?C(D,p)+' : '+x:''}).filter(Boolean);if(d.length)l.push('-# '+d.join(' - '))}
   });
-  if(D.mvp){l.push('### '+e('⭐')+'MVP · '+esc(D.mvp.carte));const q=ligneMvpD(D.mvp);if(q&&niv<2)l.push('-# '+q)}
+  if(D.mvp){l.push('### '+e('⭐')+'MVP - '+esc(D.mvp.carte));const q=ligneMvpD(D.mvp);if(q&&niv<2)l.push('-# '+q)}
   if(niv<2){const c=chiffres(D);if(c.length)l.push('### '+e('\u{1F4CA}')+'Chiffres clés',...c,'')} /* ligne vide : ferme la liste pour Discord */
   l.push('-# '+e('\u{1F517}')+'[Jouer aux Golems]('+LIEN+')');
   return l.join('\n');
@@ -760,12 +760,12 @@ const formeA=(D,n)=>fiche(D,n,false),formeB=(D,n)=>fiche(D,n,true);
 /* ---------- C : compacte (aussi le dernier repli si A ou B depasse 2000) ---------- */
 function formeC(D,emo){
   const R=resultat(D),l=[];
-  l.push((emo?(R.vainq===null?'\u{1F91D} ':'\u{1F3C6} '):'')+'**Les Golems** · '+R.titre+(D.abandon!==undefined?' *('+abandonTxt(D)+')*':''));
-  const m=D.manches.map((o,i)=>'M'+(i+1)+' **'+o.pts[0]+'-'+o.pts[1]+'**').join(' · ');
+  l.push((emo?(R.vainq===null?'\u{1F91D} ':'\u{1F3C6} '):'')+'**Les Golems** - '+R.titre+(D.abandon!==undefined?' *('+abandonTxt(D)+')*':''));
+  const m=D.manches.map((o,i)=>'M'+(i+1)+' **'+o.pts[0]+'-'+o.pts[1]+'**').join(' - ');
   if(m)l.push('> '+(emo?'⚔️ ':'')+'Manches, '+C(D,0)+' contre '+C(D,1)+' : '+m);
   if(D.mvp)l.push('> '+(emo?'⭐ ':'')+'MVP : **'+esc(D.mvp.carte)+'**'+(D.mvp.score!==null?' (score '+D.mvp.score+')':''));
   const dk=[0,1].map(p=>D.decks[p].els.length?C(D,p)+' ('+(D.decks[p].els.length===5?'5 éléments':D.decks[p].els.join(', '))+')':'').filter(Boolean).join(' contre ');
-  l.push('-# '+(dk?dk+' · ':'')+'version '+esc(D.version)+' · [les-golems.github.io]('+LIEN+')');
+  l.push('-# '+(dk?dk+' - ':'')+'version '+esc(D.version)+' - [les-golems.github.io]('+LIEN+')');
   return l.join('\n');
 }
 

@@ -24,9 +24,21 @@
 
 /* --- Texte de la carte en tete du panneau de detail --- */
 #vueDetail .aide-carte .aide-nom{font:400 20px/1.15 var(--titre);color:var(--texte);margin:0}
-#vueDetail .aide-carte .aide-sous{margin:2px 0 8px;color:var(--doux);font-size:13.5px}
+#vueDetail .aide-carte .aide-titre{margin:1px 0 0;font:italic 700 14.5px/1.25 var(--corps);color:var(--texte)}
+#vueDetail .aide-carte .aide-fil{margin:2px 0 0;color:var(--doux);font-size:13.5px}
+/* Zoom avec texte de carte : panneau de largeur FIXE, identique pour Golems, evolutions, animaux et terrains (pictos, cout et Force sur une ligne) */
+@media (min-width:761px){.grand.avecDetail:has(.aide-carte):not(:has(.zt-camp)){grid-template-columns:minmax(0,462px) 360px}}
+#vueDetail:has(.aide-carte) .btnLienCarte{margin-top:12px} /* ecart standard de la charte entre texte et bouton */
+#vueDetail .aide-carte .aide-sous{margin:2px 0 8px;color:var(--doux);font-size:13.5px;display:flex;flex-wrap:nowrap;white-space:nowrap;align-items:center;gap:4px 12px}
+#vueDetail .aide-carte .aide-pz{display:inline-flex;align-items:center;gap:4px;font:400 17px var(--titre);color:#fff}
+#vueDetail .aide-carte .aide-pz .ico{font-size:19px}
+#vueDetail .aide-carte .aide-pz img{width:20px;height:20px}
 #vueDetail .aide-carte .aide-txt{margin:0;font-size:15.5px;line-height:1.5}
 #vueDetail .aide-carte .aide-txt b{font-family:var(--titre);font-weight:400;color:var(--bleu)}
+/* Zoom d'un terrain en partie ou en spectateur : le panneau n'a pas de fond (deux blocs de camps) ; le texte du terrain prend
+   le meme cadre que les blocs, en tete, a sa hauteur naturelle (les deux camps gardent des hauteurs egales). */
+#vueDetail:has(.zt-camp) .aide-carte,#vueDetail:has(.dz-camp) .aide-carte{background:var(--panneau);border:1px solid var(--trait);border-radius:12px 9px 14px 8px;padding:12px 14px}
+#vueDetail:has(.zt-camp):has(.aide-carte){grid-template-rows:auto;grid-auto-rows:1fr}
 
 /* --- Onglet Regles : bandeau collant (recherche + pastilles des sections) --- */
 #regles [hidden]{display:none!important}

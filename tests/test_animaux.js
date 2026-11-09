@@ -131,4 +131,67 @@ const ATT={cout:1,element:false,kiwiApres:true,attache:true};
   ok(poses>30,'animaux attaches poses : '+poses);regle(ANC);
   res.push('animal attache ('+poses+' poses en parties)');
 }
+{ // 7. Uki (903, A-015) : chien de Shifukuro, attache, +1 ; Meilleur ami : compte comme un Golem allie au-dessus de son maitre (KEKWait de Shifukuro de base seulement)
+  const SH=84,MO=87,UK=126;regle(DEF);
+  eq(M.carte(UK).id,'903');eq(M.CARTES['903'].maitre,'025');eq(M.CARTES['903'].cout,0);ok(M.estAnimal(UK));
+  let s=nouv();pose(s,0,SH,1,2,0);eq(M.forceDe(s,0,2,0),1,'Shifukuro seul : 1');
+  s.j[0].main=[UK];deq(M.legales(s,0).filter(a=>a.t==='p'),[{t:'p',c:UK,l:2,k:0}],'Uki : seulement sous son maitre');
+  M.applique(s,0,{t:'p',c:UK,l:2,k:0});deq(s.j[0].grille[2][0].ani,{c:UK},'Uki attache');eq(M.forceDe(s,0,2,0),1+2,'Shifukuro de base : +2 (attache +1, Meilleur ami +1)');
+  s=nouv();pose(s,0,SH,1,1,0,{ani:{c:UK}});pose(s,0,KA,8,0,0);eq(M.forceDe(s,0,1,0),1+1+2,'KEKWait : KaTarN au-dessus +1, Uki +2');
+  s=nouv();pose(s,0,MO,4,1,1,{ani:{c:UK}});eq(M.forceDe(s,0,1,1),4+1,'Le moderateur : Uki ne donne que +1');
+  s=nouv();pose(s,0,SH,1,2,0,{ani:{c:UK}});s.j[0].main=[MO];s.j[0].energie=5;M.applique(s,0,{t:'p',c:MO,l:2,k:0});
+  deq(s.j[0].grille[2][0].ani,{c:UK},'evolution : Uki reste');s.attente=null;eq(M.forceDe(s,0,2,0),4+1,'evolue : +1 seulement');
+  s=nouv();pose(s,0,KA,8,2,0,{ani:{c:JJ}});eq(M.forceDe(s,0,2,0),8+1,'autre animal : pas de Meilleur ami');
+  s=nouv();pose(s,0,SH,1,1,0,{ani:{c:UK}});pose(s,0,SH+1,1,2,0);eq(M.forceDe(s,0,2,0),1+1+2,'autre Shifukuro dessous : KEKWait +1 (le Golem, pas Uki), Trait +2');
+  // bilan : Meilleur ami note comme bonus KEKWait donne par Uki
+  s=nouv();s.manche=3;pose(s,0,SH,1,1,0,{ani:{c:UK}});pose(s,1,KA,1,2,2);fm(s);
+  { const b=M.bilan(s),U=b.joueurs[0].cartes.find(c=>c.c===UK||c.id==='903');ok(!U||!U.mvp,'Uki jamais MVP') }
+  // meandyou : jamais Uki seul (aucune case d'animal) ; Shifukuro de base avec Uki deplace par Le moderateur : Uki suit
+  s=nouv();pose(s,0,SH,1,0,1,{ani:{c:UK}});pose(s,0,KA,8,0,0);pose(s,0,SH+1,1,1,1);s.j[0].main=[MO];s.j[0].energie=5;M.applique(s,0,{t:'p',c:MO,l:1,k:1});
+  eq(s.attente&&s.attente.t,'u','meandyou propose');
+  const ech=M.legales(s,0).filter(a=>a.t==='e');ok(ech.length>0);ok(ech.every(a=>[a.a,a.b].every(([x,y])=>s.j[0].grille[x][y]&&!M.carte(s.j[0].grille[x][y].c).animal)),'meandyou : Golems seulement, jamais Uki seul');
+  const e1=ech.find(a=>(a.a[0]===0&&a.a[1]===1&&a.b[0]===0&&a.b[1]===0)||(a.b[0]===0&&a.b[1]===1&&a.a[0]===0&&a.a[1]===0));ok(e1,'echange Shifukuro / KaTarN');
+  M.applique(s,0,e1);eq(s.j[0].grille[0][0].c,SH);deq(s.j[0].grille[0][0].ani,{c:UK},'Uki suit son maitre');ok(!s.j[0].grille[0][1].ani,'rien ne reste derriere');
+  // Shifukuro + Uki sous Le moderateur (Moderateur au-dessus) : Shifukuro echange avec Le moderateur, Uki suit
+  s=nouv();pose(s,0,SH,1,1,1,{ani:{c:UK}});pose(s,0,SH+1,1,2,1);s.j[0].main=[MO];s.j[0].energie=5;M.applique(s,0,{t:'p',c:MO,l:2,k:1});
+  const e2=M.legales(s,0).find(a=>a.t==='e'&&((a.a[0]===1&&a.b[0]===2)||(a.a[0]===2&&a.b[0]===1))&&a.a[1]===1&&a.b[1]===1);ok(e2,'echange Shifukuro / Le moderateur');
+  M.applique(s,0,e2);eq(s.j[0].grille[2][1].c,SH);deq(s.j[0].grille[2][1].ani,{c:UK},'Uki suit Shifukuro');eq(M.forceDe(s,0,2,1),1+1+2+2,'Le moderateur au-dessus : KEKWait +1, Uki +2, Trait +2');
+  // maitre detruit : Uki a la defausse
+  s=nouv();pose(s,0,SH,1,0,0,{ani:{c:UK}});M.retire(s,0,0,0);ok(s.j[0].defausse.includes(UK),'Uki a la defausse avec son maitre');
+  // parties completes avec Uki : rejeu identique, cartes conservees
+  const DU=[M.deckTexte({"025":3,"025e":3,"903":1,"009":3,"009e":3,"029":3,"029e":2,"001":3,"001e":3,"018":3,"018e":3}),M.deckTexte({"007":3,"007e":3,"026":3,"026e":3,"901":1,"041":2,"041e":2,"018":3,"018e":2,"036":2,"036e":2,"035":3,"035e":1})];
+  let pu=0;const nv2=['aleatoire','facile','normal','difficile'];
+  for(let g=1;g<=80;g++){const dk=g%2?DU:[DU[1],DU[0]],u=M.nouvelle(g,dk),j=[[],[]];let pas=0,h=g|1;const hz=n=>{h=(Math.imul(h,1103515245)+12345)|0;return (h>>>8)%n};
+    while(!u.fin){assert(++pas<3000);const p=M.attendus(u)[0];let x;if(g%4===0){const l=M.legales(u,p);x=l[hz(l.length)]}else x=M.robot(u,p,nv2[g%4]);
+      if(x.t==='p'&&x.c===UK)pu++;M.applique(u,p,x);j[p].push(M.code(x));
+      u.j.forEach((J,q)=>{const vu=[...J.deck,...J.main,...J.defausse,...J.forge];J.grille.forEach(L=>L.forEach(z=>{if(z){vu.push(z.c);if(z.ani)vu.push(z.ani.c)}}));const n=Object.values(M.lisDeck(dk[q])).reduce((a,b)=>a+b,0);if(new Set(vu).size!==n||vu.length!==n)throw new Error('cartes Uki '+g)})}
+    const r=M.rejoue(g,j,dk);eq(r.erreur,null);eq(JSON.stringify(r.etat),JSON.stringify(u),'rejeu Uki');M.bilan(u)}
+  ok(pu>10,'Uki pose en parties : '+pu);regle(ANC);
+  res.push('Uki ('+pu+' poses en parties)');
+}
+{ // 8. Uki : cas repris du prototype (6 - Outils et simulations\2 - Simulations\Animaux\tests\test_uki.js), avec le code de partie de la structure reorg (126)
+  const SH=84,SH2=85,MO=87,UK=126,GL=39,lg=(s,re)=>s.log.some(x=>re.test(x[1]));regle(DEF);
+  eq(M.TYPES.indexOf('903'),42,'en fin de TYPES');eq(M.TYPES.indexOf('902'),41,'rangs precedents inchanges');deq(M.decode(M.code({t:'p',c:UK,l:1,k:2})),{t:'p',c:UK,l:1,k:2});
+  const D={'025':3,'025e':3,'903':1,'037':3,'037e':3,'042':3,'042e':3,'020':3,'020e':3,'003':3};eq(M.erreurDeck(D),'');deq(M.lisDeck(M.deckTexte(D)),D);
+  ok(M.erreurDeck({...D,'903':2}),'un seul exemplaire');{const E={...D};delete E['025'];delete E['025e'];E['002']=3;E['002e']=3;ok(M.erreurDeck(E),'maitre obligatoire')}
+  let s=nouv();pose(s,0,MO,4,0,0);s.j[0].main=[UK];eq(M.legales(s,0).filter(a=>a.t==='p').length,1,'sous Le moderateur aussi');
+  s=nouv();pose(s,0,SH,1,0,0,{ani:{c:UK}});pose(s,0,SH2,1,1,1);s.j[0].main=[KI];eq(M.legales(s,0).filter(a=>a.t==='p').length,0,'Kiwi n est pas l animal de Shifukuro');
+  s=nouv();pose(s,0,SH,1,2,0,{ani:{c:UK}});pose(s,0,KA,8,1,0);eq(M.kekwait(s.j[0].grille,2,0),1,'kekwait : seulement les vrais Golems');
+  s.stats.ev=[];M.noteBonus(s);eq(s.stats.ev.filter(e=>e.t==='b'&&e.y==='kekwait'&&e.r===SH).length,2,'bilan : KEKWait de KaTarN et d Uki');ok(s.stats.ev.some(e=>e.y==='kekwait'&&e.d===UK));
+  s=nouv(['Le Karaoké','L\'Écran du MJ','Le Camp']);pose(s,0,SH,1,2,0,{ani:{c:UK}});eq(M.golemsIci(s,0,0),1,'pas un Golem (Karaoke)');
+  // Maitre du deguisement copiant Shifukuro : pas son maitre
+  s=nouv();pose(s,0,48,3,2,0,{cp:'025'});s.j[0].main=[UK];eq(M.legales(s,0).filter(a=>a.t==='p').length,0,'copie de Shifukuro : pas un maitre');
+  // mort, remplacement
+  s=nouv();pose(s,0,SH,1,2,0,{ani:{c:UK}});M.blesse(s,0,2,0,3,{p:1,c:AL,lib:'test'});M.nettoie(s);ok(!s.j[0].grille[2][0]&&s.j[0].defausse.includes(UK),'Uki part avec son maitre');ok(lg(s,/Uki part à la défausse : son maître a quitté le jeu\./));
+  s=nouv();pose(s,0,SH,1,2,0,{ani:{c:UK}});s.j[0].main=[AL];s.j[0].energie=3;M.applique(s,0,{t:'p',c:AL,l:2,k:0});ok(s.j[0].defausse.includes(UK)&&!s.j[0].grille[2][0].ani,'remplace : Uki part');
+  // Slam, La Faille, Le Vaisseau : Uki suit
+  s=nouv(['La Faille','Le Vaisseau','Le Camp']);pose(s,0,SH,1,1,1,{ani:{c:UK}});pose(s,0,AL,3,2,1);M.applique(s,0,{t:'y',l:1,k:1,d:0});deq(s.j[0].grille[0][0].ani,{c:UK},'La Faille');
+  s=nouv(['La Faille','Le Vaisseau','Le Camp']);pose(s,0,SH,1,0,1,{ani:{c:UK}});pose(s,0,AL,3,2,1);M.applique(s,0,{t:'w',k:1,a:0,b:2});deq(s.j[0].grille[2][1].ani,{c:UK},'Le Vaisseau');
+  s=nouv();pose(s,1,SH,3,1,1,{ani:{c:UK}});s.j[0].main=[GL];s.j[0].energie=2;M.applique(s,0,{t:'p',c:GL,l:0,k:0});
+  {const mv=M.legales(s,0).find(a=>a.t==='h'&&a.l===1&&a.k===1&&(a.m!==1||a.n!==1));M.applique(s,0,mv);deq(s.j[1].grille[mv.m][mv.n].ani,{c:UK},'Slam')}
+  // robot : pose Uki sous Shifukuro
+  s=nouv();pose(s,0,SH,1,2,0);pose(s,0,AL,3,0,1);pose(s,0,AL,3,2,2);pose(s,1,AL,2,2,0);pose(s,1,AL,3,0,1);pose(s,1,AL,3,2,2);s.j[0].main=[UK];s.j[0].deck=Array.from({length:12},(_,i)=>60+i);
+  deq(M.robot(s,0,'difficile'),{t:'p',c:UK,l:2,k:0},'robot : Uki sous Shifukuro');
+  regle(ANC);res.push('Uki, cas du prototype');
+}
 console.log('Animaux OK : '+nv+' verifications ('+res.join(', ')+')');

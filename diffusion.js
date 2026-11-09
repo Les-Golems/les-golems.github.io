@@ -25,8 +25,8 @@ function noms(){
 }
 const nb=x=>{const f=document.createDocumentFragment();x.split(/(\S+-\S+)/).forEach((m,i)=>{if(!m)return;f.append(i%2?mk('span','d-nw',m):m)});return f};
 const nbEvo=x=>{const f=document.createDocumentFragment();x.split(noms().reEvo).forEach((m,i)=>{if(!m)return;f.append(i%2?mk('span','d-evo d-nw',m):nb(m))});return f};
-/* noms de cartes et de terrains en gras (blanc), evolutions en dore */
-const nbCartes=x=>{const N=noms(),f=document.createDocumentFragment();x.split(N.re).forEach((m,i)=>{if(!m)return;if(i%2)f.append(mk('b',N.evo.has(m)?'d-ca d-evo d-nw':'d-ca d-nw',m));else f.append(m)});return f};
+/* Journal (charte, 9 nov.) : noms de cartes, terrains et effets en couleur de leur type, sans gras, cliquables (zoom) : texteLog commun (vue/joueur.js) */
+const nbCartes=x=>{const u=U();if(u&&u.texteLog)return u.texteLog(x);const f=document.createDocumentFragment();f.append(x);return f};
 
 /* ---------- Etat de la vue ---------- */
 let D=null,scene=null,src=null,E=null; /* src : 'spec' ou 'demo' ; E : {etat, noms, avatars, uids} */
@@ -254,7 +254,7 @@ function zoomTerrainDif(s,k){
   const pan=p=>{const a=mk('section','dz-camp'),h=mk('h3','',nom(p)),ol=mk('ol','dz-l');h.style.color=COLZ[p];a.append(h);
     for(let l=0;l<3;l++){const g=s.j[p].grille[l][k],li=mk('li');
       if(!g){li.className='dz-vide';li.append(mk('span','','Case vide'),mk('span'))}
-      else{const v=Mo.valeurDecompte(s,p,l,k),f=mk('span','dz-v','Force '),fb=mk('b','',String(v));fb.style.color=COLZ[p];f.append(fb);
+      else{const v=Mo.valeurDecompte(s,p,l,k),f=mk('span','dz-v'),fb=mk('b','',String(v));fb.style.color=COLZ[p];f.append(u.ico('force'),fb);f.setAttribute('role','img');f.setAttribute('aria-label','Force '+v);
         if(g.hors===s.manche&&!(M().carte(g.c).animal))f.title='Ne compte pas au décompte de cette manche';li.append(lignePile(g.c),f)}
       ol.append(li)}
     const o=cc[1-p],n=cc[p],tt=mk('div','dz-tot'),b=mk('b','',String(n));b.style.color=COLZ[p];tt.append('Total : ',b);
@@ -300,7 +300,7 @@ let SVG=null;
 function cercle(){
   const z=mk('div','d-z d-bloc d-cer'),cw=mk('div','d-cw');
   if(!SVG){
-    const E5=['magma','cristal','foudre','brume','roche'],IM=68,ey=(188-IM)/1.809,ex=(350-IM)/1.902,DEG=Math.PI/180,P=a=>[ex*Math.cos(a*DEG),ey*Math.sin(a*DEG)];
+    const E5=window.GolemsDonnees.interface.elements.ordre,IM=68,ey=(188-IM)/1.809,ex=(350-IM)/1.902,DEG=Math.PI/180,P=a=>[ex*Math.cos(a*DEG),ey*Math.sin(a*DEG)];
     const pos=E5.map((e,i)=>P(-90+72*i)),libre=a=>{const[x,y]=P(a);return !pos.some(([X,Y])=>Math.hypot(x-X,y-Y)<IM/2+5)};
     let g='<defs><marker id="dFl" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" style="fill:var(--bleu)"/></marker></defs>';
     for(let i=0;i<5;i++){const a0=-90+72*i;let best=[0,0],cur=null;for(let a=a0;a<=a0+72;a+=.25){if(libre(a)){if(cur===null)cur=a;if(a-cur>best[1]-best[0])best=[cur,a]}else cur=null}
@@ -327,8 +327,9 @@ function derniere(s){
   const pe=mk('p','d-phr'),t=C.texte||'',i=t.indexOf(' : ');
   if(i>0){const sg=mk('strong','',t.slice(0,i));if(u.effetCouleur)sg.style.color=u.effetCouleur(C).firstChild.style.color;pe.append(sg,nb(t.slice(i)))}else if(t)pe.append(nb(t));
   const ch=mk('div','d-chips'),cc=mk('span'),cf=mk('span'),ce=mk('span');
-  cc.append(u.ico('enclume'),'Coût ');cc.append(mk('b','',String(C.cout)));
-  cf.append(u.ico('force'),'Force ');cf.append(mk('b','',C.force==null?'au dé':String(C.force)));
+  /* Charte : pictos seuls pour les donnees, libelles en mots pour les lecteurs d'ecran */
+  cc.append(u.ico('enclume'),mk('b','',String(C.cout)));cc.setAttribute('role','img');cc.setAttribute('aria-label','Coût '+C.cout);
+  cf.append(u.ico('force'),mk('b','',C.force==null?'au dé':String(C.force)));cf.setAttribute('role','img');cf.setAttribute('aria-label',C.force==null?'Force au dé':'Force '+C.force);
   (C.el||[]).forEach(e=>{const im2=mk('img');im2.src=imgV('cartes/'+e+'.png');im2.alt=e;ce.append(im2)});
   ch.append(cc,cf);if(C.el&&C.el.length)ch.append(ce);
   tx.append(ph);if(t)tx.append(pe);
@@ -521,7 +522,7 @@ function popManche(s,m,pp){
   const bo=bonusManche(s,m);
   [0,1].forEach(p=>{const w=mk('div','pp-gc'),x=mk('div','pp-gain'),n=mk('span','',nom(p)),i=mk('i','','+'+pm[p]);n.style.color=i.style.color=COL[p];x.append(avatar(p),n,i,u.ico('coupe'));w.append(x);
     /* points hors terrains (Roi du Karaoke...) : petite ligne sous le gain, deja compris dans le +n */
-    if(bo[p].length)w.append(mk('div','pp-bonus',bo[p].join(' · ')));bas.append(w);
+    if(bo[p].length)w.append(mk('div','pp-bonus',bo[p].join(' - ')));bas.append(w);
     if(p===0)bas.append(score('Score',tot[0],tot[1]))});
   pp.append(bas);
 }
@@ -559,7 +560,7 @@ function pourquoiMvp(m){
   const pl=(n,w)=>n+' '+w+(n>1?'s':''),l=[];
   if(m.force)l.push('Force '+m.force+' sur terrains gagnés');if(m.bonus)l.push(pl(m.bonus,'bonus donné'));
   if(m.degats)l.push(pl(m.degats,'dégât'));if(m.morts)l.push(pl(m.morts,'Golem')+' détruit'+(m.morts>1?'s':''));
-  return 'Score '+m.score+(l.length?' · '+l.join(', '):'');
+  return 'Score '+m.score+(l.length?' - '+l.join(', '):'');
 }
 
 /* ---------- Ouverture et fermeture ---------- */
@@ -721,7 +722,7 @@ function telephone(P){
     const b=mk('div','mqa-b'),fe=mk('button','mqb-b','Fermer');fe.type='button';fe.onclick=()=>o.remove();
     if(x.dataset.act&&!x.classList.contains('grisee')){const okb=mk('button','mqb-b plein',forge?'Forger':'Jouer');okb.type='button';okb.onclick=()=>{o.remove();x.click()};b.append(fe,okb)}else b.append(fe);
     const sl=x.parentNode,oe=sl&&sl.querySelector('.oeil');if(oe){const z2=mk('button','mqb-b','Détails');z2.type='button';z2.onclick=()=>{o.remove();oe.click()};b.prepend(z2)}
-    const ra=x.querySelector('.raison');o.append(im,mk('p','','Carte '+(i+1)+' sur '+cartes.length+(x.classList.contains('surtaxe')?' · surcoût':'')+(ra?' · '+ra.textContent:'')),b);
+    const ra=x.querySelector('.raison');o.append(im,mk('p','','Carte '+(i+1)+' sur '+cartes.length+(x.classList.contains('surtaxe')?' - surcoût':'')+(ra?' - '+ra.textContent:'')),b);
     o.onclick=ev=>{if(ev.target===o)o.remove()};document.body.append(o);r.querySelectorAll('button').forEach(y=>y.classList.remove('choisi'));if(r.children[i])r.children[i].classList.add('choisi')};
   cartes.forEach((x,i)=>{const b=mk('button');b.type='button';if(x.classList.contains('surtaxe'))b.className='surtaxe';if(x.classList.contains('grisee'))b.classList.add('grisee');const im=mk('img');im.src=x.querySelector('img').src;im.alt=x.querySelector('img').alt||'';b.append(im);
     {const sl=x.parentNode,cc=sl&&sl.dataset.c,C=cc!=null&&M().carte(+cc);if(C&&C.base){const st=mk('span','evs','★');st.setAttribute('aria-hidden','true');b.append(st)}} /* evolution : etoile a cote du cout */

@@ -210,14 +210,14 @@ function retire(s,p,l,k,rem){
   const J=s.j[p],g=J.grille[l][k];
   J.defausse.push(g.c);
   J.grille[l][k]=null;
-  if(golem(g))orphelins(s,p,g.c,rem);
-  if(g.ani){const A=carte(g.ani.c);J.defausse.push(g.ani.c);if(!rem)animalHook(A,'maitreDetruit',s,p);dire(s,p,A.nom+' part à la défausse : son maître a quitté le jeu.')} /* animal attache */
+  if(golem(g))orphelins(s,p,g.c,rem,g.ani);
 }
 /* Un animal part a la defausse quand son maitre quitte le jeu (mort, remplace, detruit). Deplace ou evolue, le maitre le garde (agit suit l'evolution). */
-function orphelins(s,p,c,rem){ /* rem : remplacement par son joueur, pas une destruction (Jacen et Jaina) */
+function orphelins(s,p,c,rem,ani){ /* rem : remplacement par son joueur, pas une destruction (Jacen et Jaina) ; ani : animal attache sous le maitre parti (g.ani), a passer par tout code qui vide une case lui-meme (Il suffit) */
   const J=s.j[p];
   /* 0.4 : les chats quittent la grille avant de piocher ; journal dans le meme ordre */
   J.grille.forEach(L=>L.forEach((h,k)=>{if(animal(h)&&h.maitre===c){J.defausse.push(h.c);L[k]=null;if(!rem)animalHook(carte(h.c),'maitreDetruit',s,p);dire(s,p,carte(h.c).nom+' part à la défausse : son maître a quitté le jeu.')}}));
+  if(ani){const A=carte(ani.c);J.defausse.push(ani.c);if(!rem)animalHook(A,'maitreDetruit',s,p);dire(s,p,A.nom+' part à la défausse : son maître a quitté le jeu.')} /* animal attache (0.6 : Il suffit le perdait) */
 }
 /* Effets d'un animal (fiche C) : poseAnimal, maitreDetruit (Jacen et Jaina : pioche 1 carte, cartes/effets/animaux.js) */
 function animalHook(C,h,s,p){for(const e of effs(C.id))if(e.T[h])e.T[h](e.r,s,p)}

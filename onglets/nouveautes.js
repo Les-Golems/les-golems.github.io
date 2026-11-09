@@ -3,6 +3,7 @@
 /* Date de publication de la 0.5 : A REMPLACER LE JOUR J (ex. '8 novembre 2026'), sert au bloc de version et au bloc video. */
 const DATE_V05='7 novembre 2026';
 const NOUVEAUTES=[
+ {version:'Version 0.5a',date:'8 novembre 2026',notes:["Sur ordinateur, les piles Deck, Forge et Défausse s'ouvrent de nouveau","Sur téléphone, les compteurs des bandeaux affichent les cartes","Ton deck se consulte trié par nom, avec le nombre d'exemplaires","Le deck adverse n'est plus consultable, seul son nombre de cartes s'affiche"]},
  {version:'Version 0.5',date:DATE_V05,notes:["Nouvel écran de partie","6 nouveaux terrains","Animaux de compagnie retravaillés","Nouvelle règle : 4 éléments différents au plus par deck","Decks conseillés retravaillés","État de la connexion et reprise de la partie","Mode daltonien","Nouvel onglet Guides","Diverses améliorations de confort"]},
  {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","Rework de Le Q : Brume et Magma, nouveaux effets","Nouvelle règle : deck vide, 1 point à l'adversaire par carte à piocher","Bug de Jacen et Jaina corrigé"]},
  {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
@@ -15,6 +16,15 @@ const NOUVEAUTES=[
    Une ligne = une phrase courte pour les joueurs. Sous-liste : {t:"titre :",l:[...]}. Rubrique vide : [] (message neutre affiché).
    Nouvelle version : ajouter son entree en tete, comme dans NOUVEAUTES. */
 const DETAILS_VERSIONS={
+ 'Version 0.5a':{
+  nouveautes:[
+   "Ton deck se consulte trié par nom, avec le nombre d'exemplaires (ex. « Glad x2 »), et plus dans l'ordre de pioche.",
+   "Le deck adverse n'est plus consultable : seul son nombre de cartes s'affiche.",
+   "Forge et Défausse restent consultables des deux côtés."],
+  corrections:[
+   "Sur ordinateur, les piles Deck, Forge et Défausse de l'écran de partie s'ouvrent de nouveau (merci à Bellock).",
+   "Sur téléphone, les compteurs Deck, Défausse et Forge des bandeaux se touchent pour voir les cartes."],
+  regles:[]},
  'Version 0.5':{
   nouveautes:[
    "Nouvel écran de partie : la mise en page de la vue spectateur, le plateau en grand, les deux mains, la dernière carte jouée et les dernières actions. Il s'ouvre en plein écran ; « Quitter » demande confirmation.",
@@ -394,7 +404,9 @@ function peintNotes(){
   /* Feuille de route desepinglee : premier bloc de la liste (Romain peut la reepingler) */
   const U=[...(ep.includes('feuille-de-route')?[]:[[fdr]]),...unitesNotes()].map(u=>u.filter(a=>!ep.includes(a.dataset.id))).filter(u=>u.length);
   const pages=[[]];let n=ep.length;
-  U.forEach(u=>{if(n+u.length>NV.par&&n>0){pages.push([]);n=0}pages[pages.length-1].push(...u);n+=u.length});
+  /* 0.5a.1 (decision de Romain) : ordre chronologique strict, chaque page remplie au maximum. Un couple version + video
+     peut etre coupe en fin de page : la video passe en haut de la page suivante. Aucun bloc plus ancien ne remonte. */
+  U.flat().forEach(a=>{if(n>=NV.par&&n>0){pages.push([]);n=0}pages[pages.length-1].push(a);n++});
   if(pages.length>1&&!pages[0].length&&!ep.length)pages.shift(); /* 0.5.2 : epingles seuls en page 1 s il ne reste pas de place */
   NV.page=Math.max(0,Math.min(NV.page,pages.length-1));
   const ordre=[...ep.map(par),...pages.flat()],vus=new Set([...(NV.page===0?ep.map(par):[]),...pages[NV.page]]);

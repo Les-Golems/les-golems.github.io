@@ -75,7 +75,7 @@ function encartZoom(lignes){
   return {b,montre};
 }
 function statZoomCarte(id){
-  const pl=n=>n+(n>1?' parties':' partie'),f=o=>o&&o.n?pl(o.n)+' · '+Math.round(100*o.v/o.n)+' % de victoires':'';
+  const pl=n=>n+(n>1?' parties':' partie'),f=o=>o&&o.n?pl(o.n)+' - '+Math.round(100*o.v/o.n)+' % de victoires':'';
   const L=[{nom:'Toi',v:f(statsCartes().get(id))},{nom:'Communauté',v:''}],E=encartZoom(L);E.montre();
   agregZoom().then(a=>{if(!a)return;L[1].v=f(a.cartes.get(id));E.montre()});
   return [E.b];
@@ -84,7 +84,7 @@ function statZoomTerrain(T){
   const L=[{nom:'Communauté',v:''}],E=encartZoom(L);
   agregZoom().then(a=>{const o=a&&a.terr.get(T.nom);if(!o||!o.n)return;
     const pc=(v,n)=>n?Math.round(100*v/n)+' %':'-';
-    L[0].v='Victoire du conquérant '+pc(o.cv,o.c)+' · '+String(Math.round(10*o.q/o.n)/10).replace('.',',')+' pts en moyenne · '+pc(o.e,o.m)+' d’égalités · '+o.m+(o.m>1?' manches':' manche');E.montre()});
+    L[0].v='Victoire du conquérant '+pc(o.cv,o.c)+' - '+String(Math.round(10*o.q/o.n)/10).replace('.',',')+' pts en moyenne - '+pc(o.e,o.m)+' d’égalités - '+o.m+(o.m>1?' manches':' manche');E.montre()});
   return [E.b];
 }
 /* Grille des Statistiques : 4 colonnes de meme largeur (2 de 641 a 1499 px, 1 au telephone).
@@ -200,7 +200,7 @@ function dessineStats(RT){
     if(estAnimal(c)){fo.className='dl-force dl-mot';fo.textContent='Animal';q.append(co,fo,nm)}else q.append(co,fo,e,nm);q.setAttribute('aria-label',c[1]+', '+pl2(n,'partie')+(p===null?'':', '+p+' % de victoires'));
     q.onclick=()=>{cacheApercu();dernier=q;zoom(src,c[1])};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
     const s=el('div','pf-dst'),t=el('b','pf-dt',txt(p));t.style.color=coul(p);
-    if(x.rang)s.append(el('span','pf-dk st-rg',rangTx(x.rang)+' · '));s.append(t,el('span','pf-dk',' de victoires · '+pl2(n,'partie')));if(x.peu)s.append(el('span','pf-peu','moins de '+MIN_CARTES+' parties'));
+    if(x.rang)s.append(el('span','pf-dk st-rg',rangTx(x.rang)+' - '));s.append(t,el('span','pf-dk',' de victoires - '+pl2(n,'partie')));if(x.peu)s.append(el('span','pf-peu','moins de '+MIN_CARTES+' parties'));
     li.append(q,s);return li};
   const MIN_CARTES=10; /* 0.4a : seuil des cartes (Meilleures cartes), distinct des joueurs (5) */
   const lc=[...cartes].map(([id,o])=>{const c=CARTES.find(y=>y[0]===id);return {id,n:o.n,p:pc(o.v,o.n),cle:c?c[1]:id}});
@@ -220,7 +220,7 @@ function dessineStats(RT){
    l.slice().sort((a,b)=>b.p-a.p||b.n-a.n).forEach(x=>c.append(barre(NOMS_EL[x.e],x.n,x.p,[x.e])));
    sous(c,'Duos les plus joués');
    const d=[...duos].sort((a,b)=>b[1].n-a[1].n).slice(0,10);if(!d.length)vide(c);
-   const u2=el('ul','pf-liste st-liste');d.forEach(([k,o])=>{const [a,b]=k.split('+'),li=el('li'),s=el('span','st-bn'),p=pc(o.v,o.n),t=el('b','',txt(p)+' · '+pl2(o.n,'partie'));
+   const u2=el('ul','pf-liste st-liste');d.forEach(([k,o])=>{const [a,b]=k.split('+'),li=el('li'),s=el('span','st-bn'),p=pc(o.v,o.n),t=el('b','',txt(p)+' - '+pl2(o.n,'partie'));
      s.append(picto(a),picto(b),NOMS_EL[a]+' et '+NOMS_EL[b]);li.append(s,t);u2.append(li)});if(d.length)c.append(u2);}
   /* Bandeau Parties : barre de filtres (Patch, Adversaires) puis chiffres cles en tuiles */
   const ban=el('div','bloc st-bandeau');ban.append(el('h3','st-h','Parties'));

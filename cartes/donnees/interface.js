@@ -6,7 +6,7 @@
    Golem à venir : absent de la table, aucun numéro affiché. Prochain jouable : 18. */
 numeroAffiche:{'001':1,'002':2,'003':3,'004':4,'007':5,'008':6,'013':7,'009':8,'029':9,'037':10,'026':11,'036':12,'018':13,'041':14,'025':15,'015':16,'016':17,'035':18,'042':19,'020':20},
 /* Animaux de compagnie : numero affiche A-0NN, table a part (codes internes 9xx). */
-numeroAnimal:{'901':11,'902':1},
+numeroAnimal:{'901':11,'902':1,'903':15},
 /* Cartes à venir, hors moteur : retirer la ligne d'un membre quand sa carte arrive, les numéros restent fixes. */
 aVenir:[
  ['005','Driscop'],['006','Falys'],['010','Orotembu'],
@@ -56,6 +56,7 @@ bacNotes:{
  '036e':'Survolté compté : +1 par Golem Foudre de ta grille.',
  '901':'Animal : pas de Force. Mignonitude (hasard, fin de manche) non comptée.',
  '902':'Animal : pas de Force. zqrinohbqzroihg (pioche) : sans effet sur la Force.',
+ '903':'Animal : pas de Force. Meilleur ami compté : +1 au KEKWait de Shifukuro.',
  '018':'Réalisation de l\'âge (coût adverse) : sans effet sur la Force.',
  '018e':'Extinction du feu vise les Golems adverses : non compté.',
  '041':'Graine de Golem (pioche) : sans effet sur la Force.',
@@ -74,6 +75,16 @@ bacNotes:{
  '020e':"Bonus d'adjacence compté : +1 par voisin allié."
 },
 /* Bac a sable : valeurs des des par defaut, selon le nombre de des de l'effet forceAuDe (Alrevan 4 ; KEKWRevan 3 et 4). */
-bacDes:{1:[4],2:[3,4]}
+bacDes:{1:[4],2:[3,4]},
+/* MODELE DES ELEMENTS (source unique, lue par tout le code d'interface : aide.js, vue/joueur.js, diffusion.js, commun/compte.js, commun/profil.js, commun/demarrage.js).
+   ordre = ordre du cercle ; nom = libelle affiche ; texte = teinte du titre et du nom d'effet sur la carte imprimee (TEXTE_ELT de generer_cartes.py) ;
+   image cartes/<id>.png ; couleur de fond CSS var(--fm-<id>). couleursCarte : autres couleurs des cartes imprimees (generer_cartes.py, generer_animaux.py, generer_terrains.py). */
+elements:{
+ ordre:['magma','cristal','foudre','brume','roche'],
+ magma:{nom:'Magma',texte:'#ffb52a'},cristal:{nom:'Cristal',texte:'#ffa8d6'},foudre:{nom:'Foudre',texte:'#ffe36e'},brume:{nom:'Brume',texte:'#c9b6f2'},roche:{nom:'Roche',texte:'#ecbc8c'}
+},
+couleursCarte:{evoNom:'#ffd23a',evoTitre:'#fff0b8',evoEffet:'#ffd23a',evoEncart:'#ffd23a',animal:'#c8f58a',terrain:'#a9e6f7'},
+/* Noms cites dans un texte (charte, 9 nov.) : couleur de leur type dans le journal, les bulles d'aide, les zooms, les Regles (lue par vue/joueur.js : lienLog, texteLog). */
+couleursTexte:{golem:'var(--or)',evolution:'var(--or)',animal:'#7be07f',terrain:'#a9e6f7',effet:'#c9b6f2'}
 };
 })(typeof window!=='undefined'?window:globalThis);

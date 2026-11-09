@@ -1,6 +1,6 @@
 /* Demarrage : reprise de salon, liens directs, connexion au salon Firebase, ponts GOLEMS_PONT et GOLEMS_UI. */
 const aReprendre=salonRepris();
-['brume','cristal','foudre','magma','roche'].forEach(x=>{new Image().src=imgV('cartes/'+x+'.png')});
+window.GolemsDonnees.interface.elements.ordre.forEach(x=>{new Image().src=imgV('cartes/'+x+'.png')});
 majChoixDeck();
 if(deckLien!==null){onglet('decks');ouvreDeckLien(deckLien)}
 else{const v=new URLSearchParams(location.search).get('carte');if(v!==null){onglet('cartes');const o=carteDeLien(v),b=o&&o.id&&$('grille').querySelector('[data-id="'+o.id+'"]');if(b)b.click();else if(o&&o.T)ouvreTerrainGalerie(o.T);else retireCarteLien()}}
@@ -13,7 +13,7 @@ else{const v=new URLSearchParams(location.search).get('carte');if(v!==null){ongl
   room.onPeers(()=>{majEtat();if(partie)majPartie()},fin);
   room.onConnection(majEtat,fin);
   /* Annonces : ecoute relancee a chaque changement de compte (les regles refusent la lecture aux invites). */
-  let stopAnn=null;const ecouteAnnonces=()=>{if(!room.annonces)return;if(typeof stopAnn==="function")stopAnn();annoncesL=[];stopAnn=room.annonces(l=>{annoncesL=l;peintListe()})};
+  let stopAnn=null;const ecouteAnnonces=()=>{if(!room.annonces)return;if(typeof stopAnn==="function")stopAnn();annoncesL=[];stopAnn=null;if(!compteCo()){peintListe();return}stopAnn=room.annonces(l=>{annoncesL=l;peintListe()})};
   ecouteAnnonces();
   if(room.compte.resumeur){if(room.compte.cumuleur)room.compte.cumuleur(cumulAjoute);room.compte.resumeur(resumeProfil);if(compteCo())profilPublie=room.compte.publieProfil()}
   room.compte.onChange(()=>{ecouteAnnonces();surCompte();majVueDeck();if(compteCo()&&room.compte.publieProfil)profilPublie=room.compte.publieProfil();if(compteCo()){room.presence({pseudo:pseudo}).catch(()=>{});if(invit)suitInvit();reessaie()}});
@@ -31,4 +31,4 @@ else{const v=new URLSearchParams(location.search).get('carte');if(v!==null){ongl
     jouerA(){if(!partie||partie.etat&&partie.etat.fin)return;partie.mien.push(M.code({t:'a'}));sel=null;sauve();pub({j:M.ecritJournal(partie.mien)});calcule()}, /* ma defaite par abandon (hors ligne trop longtemps) */
     forfaitAdv(){if(!partie||partie.etat&&partie.etat.fin)return;partie.sien=[...partie.sien,M.code({t:'a'})];sel=null;calcule();sauve()}, /* abandon de l'adversaire hors ligne */
     lache(msg){const a=r;r=null;code='';finPartie();$('salon').hidden=true;$('accueil').hidden=false;$('erreurJeu').textContent=msg||'';if(a&&a.lache)a.lache();majEtat();majReprise()}}; /* autre appareil du meme compte */
-  window.GOLEMS_UI={el,effetCouleur,partageFin,texteResume,donneesPartie,copie,nomJ,uidJ,monAvatar,quitteAvecConfirmation,get partie(){return partie},avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,ligneDeckVide,piocheImpossible,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};
+  window.GOLEMS_UI={el,effetCouleur,partageFin,texteResume,donneesPartie,copie,nomJ,uidJ,monAvatar,quitteAvecConfirmation,get partie(){return partie},avatarDe,avatarUid,etiquetteV,enteteDeck,infoDeck,compteNb,pastilleInconnue,texteTaux,choisirDeck,grilleVue,zoom,zoomTerrain,montreApercu,cacheApercu,srcTerrain,srcC,ico,info,points,compteur,lg,detailAnimal,quiJoue,outils,pagesLog,genreLog,causesLog,texteLog,lienLog,ligneDeckVide,piocheImpossible,NOMS_LOG,LARGE,SURVOL,quitteBouton,peintChat,chatBox,onglet,nomComplet,teinte,get M(){return M},get maV(){return maV},get chatOuvert(){return chatOuvert}};

@@ -15,7 +15,7 @@ const PTS=M.POINT_DECK_VIDE!==undefined,videPerdu=(s,q)=>PTS?(!s.fin&&s.j[1-q].s
   const A=M.CARTES['004'],B=M.CARTES['004e'];
   deq(A.el,['brume','magma']);eq(A.cout,2);eq(A.force,1);ok(/^Jour de pêche : à la pose, regarde les 2 premières cartes du deck adverse\. Défausses-en 1 et replace l'autre dessus\.$/.test(A.texte));
   deq(B.el,['brume','magma']);eq(B.cout,7);eq(B.force,1);eq(B.nom,'Seul contre tous');eq(B.base,'004');ok(/^Il suffit : à la pose, détruis toutes tes cartes et toutes les cartes adverses posées en plusieurs exemplaires, toi compris\.$/.test(B.texte));
-  eq(M.carte(18).id,'004');eq(M.carte(23).id,'004e');eq(M.TYPES.length,42);res.push('cartes');
+  eq(M.carte(18).id,'004');eq(M.carte(23).id,'004e');eq(M.TYPES.length,43);res.push('cartes');
 }
 { // 1. Jour de peche, deck adverse a 2 cartes ou plus : choix, la carte choisie a la defausse adverse, l'autre reste dessus
   const s=nouv();s.j[1].deck=[60,61,62];s.j[0].deck=[70,71];joue(s,Q,1,1);
@@ -105,5 +105,14 @@ const PTS=M.POINT_DECK_VIDE!==undefined,videPerdu=(s,q)=>PTS?(!s.fin&&s.j[1-q].s
     const r=M.rejoue(gr,j,dk);ok(!r.erreur,r.erreur);eq(JSON.stringify(r.etat),JSON.stringify(s),'rejeu');M.bilan(s);
     nIS+=s.log.filter(x=>/ : Il suffit/.test(x[1])).length;nJP+=s.log.filter(x=>/Jour de pêche/.test(x[1])).length;if(s.fin.deckVide!==undefined)nf++}
   ok(nIS>0&&nJP>0);res.push('300 parties robot ('+nIS+' Il suffit, '+nJP+' lignes Jour de peche, '+nf+' fins par deck vide), rejeux identiques');
+}
+{ // 0.6 : Il suffit detruit un Golem qui porte un animal attache : l'animal va a la defausse (robust.js i=570, graine 788581627)
+  const TI=57,KI=69;let s=nouv();s.j[1].deck=[90,91,92];
+  pose(s,0,Q,1,1,1);pose(s,0,TI,1,0,0,{ani:{c:KI}});pose(s,0,TI+1,1,0,2);pose(s,1,KA,5,0,0,{ani:{c:JJ}});pose(s,1,KA+1,5,2,2);joue(s,QE,1,1);
+  deq(ids(s,0),[QE],'les 2 Titom76 detruits');deq(ids(s,1),[],'les 2 KaTarN detruits');
+  ok(s.j[0].defausse.includes(KI),'Kiwi attache a la defausse');ok(s.j[1].defausse.includes(JJ),'Jacen et Jaina attaches a la defausse');
+  eq(s.j[1].main.length,1,'Jacen et Jaina : pioche, maitre detruit');ok(log(s,/Kiwi part à la défausse/)&&log(s,/Jacen et Jaina part à la défausse/));
+  s.j.forEach(J=>{const vu=[...J.deck,...J.main,...J.defausse,...J.grille.flat().filter(Boolean).flatMap(g=>g.ani?[g.c,g.ani.c]:[g.c])];eq(new Set(vu).size,vu.length)});
+  res.push('animaux attaches a la defausse');
 }
 console.log('Le Q OK : '+nv+' verifications. '+res.join(' ; '));

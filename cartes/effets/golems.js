@@ -63,8 +63,8 @@ function ilSuffit(s,p,g){
   if(!T.length&&!pr.length){dire(s,p,n+', aucune carte posée en plusieurs exemplaires.');return}
   dire(s,p,n+(T.length?', détruit '+nm(T):'')+(pr.length?(T.length?' ; ':', ')+nm(pr)+(pr.length>1?' sont protégés':' est protégé')+' (Mode Avion)':'')+'.');
   T.forEach(x=>M.note(s,'m',1,{p,c:g.c,lib:'À la pose'},x.q,x.c));
-  T.forEach(x=>{const J=s.j[x.q];J.defausse.push(x.c);J.grille[x.l][x.k]=null});
-  T.forEach(x=>M.orphelins(s,x.q,x.c));
+  T.forEach(x=>{const J=s.j[x.q];x.ani=J.grille[x.l][x.k].ani;J.defausse.push(x.c);J.grille[x.l][x.k]=null});
+  T.forEach(x=>M.orphelins(s,x.q,x.c,false,x.ani)); /* 0.6 : l'animal attache (Kiwi, Jacen et Jaina) va aussi a la defausse */
 }
 /* Elessar : Extinction du feu (Le pomplard, 018e, ou Maitre du deguisement qui l'a copiee), a la pose : chaque Golem adverse en jeu
    qui a l'element r.el perd r.degats, comme une blessure. Mode Avion protege (ciblable), Menfou palu aussi (blesse). Les morts : nettoie, apres. */
@@ -277,7 +277,7 @@ function loves(s,p){const r=[],G=s.j[p].grille,bl=[];for(let l=0;l<3;l++)for(let
 const REGLAGE_KC={risque:.3};
 function choixLove(s,p,l){
   const r=l.filter(a=>a.t==='r');if(!r.length)return null;let m=null,v=-Infinity;
-  r.forEach(a=>{const f=M.forceDe(s,p,a.m,a.n),w=M.valeur(M.simule(s,d=>{d.j[p].grille[a.m][a.n].d--}),p)+REGLAGE_KC.risque*(f<=1?1:f<=2?.5:0);if(w>v){v=w;m=a}});
+  r.forEach(a=>{const f=M.forceDe(s,p,a.m,a.n),w=M.valeur(M.simule(s,d=>{const h=d.j[p].grille[a.m][a.n];h.d=Math.max(0,h.d-1)}),p)+REGLAGE_KC.risque*(f<=1?1:f<=2?.5:0);if(w>v){v=w;m=a}});
   return m;
 }
 /* ---- Caramel a volonte (Titom76, 026e) : une fois par manche et par carte, a son tour apres la Forge, +1 energie. */
@@ -361,8 +361,8 @@ const types={
   /* +1 de Force par Golem compte (compte : 'element' de la grille, lui compris ; 'dessus' : allies au-dessus sur son terrain ; 'voisins' : voisins allies).
      apres:true : ajoute apres les auras de colonne (ordre historique). note : nom du bonus dans les statistiques. */
   forceParGolem:{
-    force:(r,s,p,l,k,g,G,vs)=>r.apres?0:compte(r,G,l,k,vs),
-    forceFin:(r,s,p,l,k,g,G,vs)=>r.apres?compte(r,G,l,k,vs):0,
+    force:(r,s,p,l,k,g,G,vs)=>r.apres?0:compte(r,G,l,k,vs,g),
+    forceFin:(r,s,p,l,k,g,G,vs)=>r.apres?compte(r,G,l,k,vs,g):0,
     note:(r,s,p,l,k,g,G,vs,el,b)=>{if(!r.apres)noteCompte(r,p,l,k,g,G,vs,b)},
     noteFin:(r,s,p,l,k,g,G,vs,el,b)=>{if(r.apres)noteCompte(r,p,l,k,g,G,vs,b)}},
   /* Full synergie (037e) : +1 par element partage par au moins un voisin, en plus du Trait (+2 maximum : 2 elements) */
@@ -551,7 +551,7 @@ function annonceSurtaxe(s,p,C,sur){M.declenche(s,'Réalisation de l\'âge','Coû
 const actions={
   /* 'r' : Love inconditionnel, 1 degat retire, une fois par manche et par exemplaire */
   r:{applique:(s,p,a,J)=>{
-    const g=J.grille[a.l][a.k],h=J.grille[a.m][a.n];g.love=s.manche;h.d--;
+    const g=J.grille[a.l][a.k],h=J.grille[a.m][a.n];g.love=s.manche;h.d=Math.max(0,h.d-1);
     s.stats.ev.push({t:'r',cp:p,cc:h.c,n:1,y:'love',sp:p,sc:g.c,m:s.manche});M.declenche(s,'Love inconditionnel','Soigne '+nomDetail(carte(h.c)));
     dire(s,p,nomDetail(carte(g.c))+' : Love inconditionnel, '+nomDetail(carte(h.c))+' récupère 1 de Force.');
   }},
@@ -569,10 +569,12 @@ const actions={
     M.forgee(s,p,a.c,true);
   }}
 };
-function compte(r,G,l,k,vs){return r.compte==='element'?compteElement(G,r.el):r.compte==='dessus'?kekwait(G,l,k):vs.length}
+/* animal attache dont l'effet compte comme un Golem allie au-dessus de son maitre (Uki : Meilleur ami) */
+const aniDessus=g=>!!(g&&g.ani&&M.effs(carte(g.ani.c).id).some(e=>e.T.compteDessus));
+function compte(r,G,l,k,vs,g){return r.compte==='element'?compteElement(G,r.el):r.compte==='dessus'?kekwait(G,l,k)+(aniDessus(g)?1:0):vs.length}
 function noteCompte(r,p,l,k,g,G,vs,b){
   if(r.compte==='element')G.forEach(L=>L.forEach(n=>{if(n&&carte(n.c).el.includes(r.el))b(r.note,p,g.c,p,n.c)}));
-  else if(r.compte==='dessus'){for(let a=0;a<l;a++){const n=G[a][k];if(golem(n))b(r.note,p,g.c,p,n.c)}}
+  else if(r.compte==='dessus'){for(let a=0;a<l;a++){const n=G[a][k];if(golem(n))b(r.note,p,g.c,p,n.c)}if(aniDessus(g))b(r.note,p,g.c,p,g.ani.c)}
   else vs.forEach(n=>b(r.note,p,g.c,p,n.c));
 }
 return {types,actions,attentes,fonctions:{partenaires,forgeUtile,REGLAGE_JJ,jjBonus,ciblesJJ,choisitFavori,slams,echangesMeandyou,loves,choixLove,REGLAGE_KC,caramels,choixPeche,choixJJ,choixFavori,annonceSurtaxe,foudres,kekwait,REGLAGE_DUO,duoManches,duoVoisin,doubleUp,elessars,graines,spoms,jourDePeche,doublons,ilSuffit}};

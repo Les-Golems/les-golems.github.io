@@ -18,7 +18,7 @@ const vAncienne=v=>!v||(v.split('|')[1]||'')<=(maV.split('|')[1]||'');
 function etiquetteV(v,rouge){
   const e=el('span','etq-v vx-etq'+(rouge?' vx-diff':''));
   /* Sans champ v : site d'avant ce controle, donc 0.2b. Texte : version du site (champ v de version.json) ; v… tant qu'elle n'est pas lue. */
-  e.textContent=rouge?'v'+(v?vNom(v):'0.2b')+' · page à recharger':v?'v'+vNom(v):'v…';
+  e.textContent=rouge?'v'+(v?vNom(v):'0.2b')+' - page à recharger':v?'v'+vNom(v):'v…';
   return e;
 }
 /* Ma page est la plus ancienne : petit encadre Nouvelle version de l'en-tete. */
@@ -60,7 +60,7 @@ function ordre(l){
 }
 /* Adversaire arrive dans ma partie en attente, onglet cache : le titre alterne « Adversaire arrivé ! · Les Golems » et le titre normal
    jusqu'au retour sur l'onglet (repris de signal-tour.js, retire a l'etape 8 : son signal « À toi ! » ne marchait pas, une etiquette le remplace). */
-(()=>{const ARRIVEE='Adversaire arrivé ! · Les Golems';let normal=null,minuteur=0,bascule=false,arrivee=false;
+(()=>{const ARRIVEE='Adversaire arrivé ! - Les Golems';let normal=null,minuteur=0,bascule=false,arrivee=false;
   const arrete=()=>{if(minuteur){clearInterval(minuteur);minuteur=0}if(normal!==null){document.title=normal;normal=null}};
   const verifie=()=>{if(!document.hidden)arrivee=false;
     if(document.hidden&&arrivee){if(!minuteur){normal=document.title;bascule=false;minuteur=setInterval(()=>{bascule=!bascule;document.title=bascule?(arrivee?ARRIVEE:normal):normal},1000);document.title=ARRIVEE;bascule=true}}
@@ -253,7 +253,7 @@ function peintListe(){
     u.append(g);
   }
 }
-function tauxCourt(s){return s&&s.n?Math.round(100*s.v/s.n)+' % de victoires · '+s.n+' partie'+(s.n>1?'s':''):s===false?'…':'Aucune partie jouée'}
+function tauxCourt(s){return s&&s.n?Math.round(100*s.v/s.n)+' % de victoires - '+s.n+' partie'+(s.n>1?'s':''):s===false?'…':'Aucune partie jouée'}
 function colTaux(z,s){if(!s||!s.n)return;const p=100*s.v/s.n;z.style.color=p>=55?'#6fd08c':p>=45?'var(--or)':'#ef7a6c'}
 setInterval(()=>{if(!$('jouer').hidden&&!r)peintListe()},30000);
 function estPret(p){return p.sameTab?jePret:p.presence.pret===true}

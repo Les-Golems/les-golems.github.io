@@ -49,7 +49,7 @@ function peintGuides(){
     const gdOk=d=>{const o=litCodeDeck((/[?&]deck=([A-Za-z0-9_-]+)/.exec(d.lien)||[])[1]||'');return !!(o&&o.cartes&&!o.err&&!raisonsDeck({cartes:o.cartes}).length)};
     const ordre=GUIDES.map((g,i)=>({g,i,ok:(g.decks||[]).map(gdOk)})).sort((x,y)=>(y.ok.includes(true)-x.ok.includes(true))||x.i-y.i);
     ordre.forEach(({g,i,ok})=>{const j0=Math.max(0,ok.indexOf(true));const a=mk('article','note gd-bloc'),h=mk('h3','',g.titre),pa=mk('p','gd-par','par '+g.auteur);
-      if(g.date){pa.append(' · ');pa.append(mk('time','',g.date))}
+      if(g.date){pa.append(' - ');pa.append(mk('time','',g.date))}
       const z=mk('button','gd-vid');z.type='button';z.dataset.i=i;z.setAttribute('aria-label','Lire la vidéo « '+g.titre+' »');gdMiniature(z,g);
       z.onclick=()=>{if(z.dataset.joue==='1')return;gdArrete();const f=document.createElement('iframe');
         f.src='https://www.youtube-nocookie.com/embed/'+g.yt+'?autoplay=1&rel=0';f.title=g.titre;f.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';f.allowFullscreen=true;

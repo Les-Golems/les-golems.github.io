@@ -6,9 +6,9 @@
 (function(r){'use strict';
 const donnees={type:'terrain',liste:[
  {"nom": "Le Buzzer", "pts": 1, "texte": "Fin de manche : le gagnant regarde ses 3 prochaines cartes et les remet dans l'ordre de son choix.", "cit": "Je l'avais sur le bout de la langue !", "effet": {type:'reordonne',n:3}},
- {"nom": "Le Camp", "pts": 1, "texte": "Fin de manche : tous les Golems ici récupèrent 1 de Force.", "cit": "On fait un repos long ?", "effet": {type:'soin',n:1}},
+ {"nom": "Le Camp", "pts": 1, "texte": "Fin de manche : tous les Golems ici récupèrent 1.", "cit": "On fait un repos long ?", "effet": {type:'soin',n:1}},
  {"nom": "L'Écran du MJ", "pts": 1, "texte": "Fin de manche : le gagnant regarde la main adverse.", "cit": "Fais-moi un jet... discrètement.", "effet": {type:'regardeMain'}},
- {"nom": "La Boutique", "pts": 2, "texte": "Jouer un Golem ici coûte 1 de moins.", "cit": "Promis, un dernier reroll et j'arrête.", "effet": {type:'reduction',cout:1}},
+ {"nom": "La Boutique", "pts": 2, "texte": "Poser un Golem ici coûte 1 de moins.", "cit": "Promis, un dernier reroll et j'arrête.", "effet": {type:'reduction',cout:1}},
  {"nom": "La Faille", "pts": 2, "texte": "Une fois par manche : déplace un de tes Golems d'un autre terrain vers une case libre ici.", "cit": "Je vais gank sa daronne", "effet": {type:'deplacement'}},
  {"nom": "La Nuit au Village", "pts": 2, "texte": "Fin de manche : le Golem le plus faible ici est détruit.", "cit": "Le village s'endort...", "effet": {type:'detruitFaible'}},
  {"nom": "Le Plateau de Jeu", "pts": 2, "texte": "Fin de manche : lance 1 dé. Sur 5 ou 6, le gagnant marque 1 point de plus.", "cit": "C'est à qui de jouer ?", "effet": {type:'dePoint',min:5,points:1}},

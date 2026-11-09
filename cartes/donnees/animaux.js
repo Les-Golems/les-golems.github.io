@@ -8,7 +8,8 @@ const donnees={type:'animal',cartes:{
  /* Animaux de compagnie : animal:true, maitre = code du Golem de base (son evolution compte aussi). Ni Force ni element, jamais d'evolution.
     Codes 9xx, hors des numeros de membres ; 1 exemplaire par deck (ANIMAL_MAX). */
  '901':{id:'901',effet:{type:'horsDecompte'},nom:'Kiwi',titre:'Le lapin de Titom76',el:[],cout:0,force:null,animal:true,maitre:'026',texte:'Mignonitude : à la fin de la manche, un Golem au hasard de chaque joueur ne compte pas au décompte (il reste en jeu). Puis tu pars à la défausse.'},
- '902':{id:'902',effet:{type:'piocheAnimal',n:1},nom:'Jacen et Jaina',titre:'Les chats de KaTarN',el:[],cout:0,force:null,animal:true,maitre:'001',texte:'zqrinohbqzroihg : à la pose, pioche 1 carte. Quand ton maître est détruit, pioche 1 carte.'} /* Jacen et Jaina : animal de KaTarN */
+ '902':{id:'902',effet:{type:'piocheAnimal',n:1},nom:'Jacen et Jaina',titre:'Les chats de KaTarN',el:[],cout:0,force:null,animal:true,maitre:'001',texte:'zqrinohbqzroihg : à la pose, pioche 1 carte. Quand ton maître est détruit, pioche 1 carte.'}, /* Jacen et Jaina : animal de KaTarN */
+ '903':{id:'903',effet:{type:'golemAuDessus'},nom:'Uki',titre:'Le chien de Shifukuro',el:[],cout:0,force:null,animal:true,maitre:'025',texte:'Meilleur ami : tu comptes comme un Golem allié au-dessus de ton maître.'} /* Uki (A-015) : chien de Shifukuro, « wouf are wouf » */
 },
 reglage:{cout:0,element:false,kiwiApres:true,attache:true} /* kiwiApres : Kiwi part apres le decompte ; attache : animal sous son maitre (g.ani), +1 de Force */
 };

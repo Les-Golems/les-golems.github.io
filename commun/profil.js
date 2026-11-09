@@ -27,7 +27,7 @@ function cumulAjoute(c,l){
     /* Serie signee : +k victoires ou -k defaites d'affilee ; une partie arrivee en retard (plus ancienne) ne la change pas. */
     {const dt=+x.date||0;if(dt>=o.sd){o.sd=dt;o.s=w?(o.s>0?o.s+1:1):x.res==='Défaite'?(o.s<0?o.s-1:-1):0}}
     const add=(k,cle,pos)=>{let e=T[k].get(cle);if(!e){e=[cle,0,0,0];T[k].set(cle,e)}e[1]++;if(w)e[2]++;e[3]=q+999-pos;return e};
-    if(d&&typeof d.nom==='string'&&d.nom)add('dk',d.nom.slice(0,24),0)[4]=(Array.isArray(d.els)?d.els:[]).filter(y=>/^(magma|cristal|foudre|brume|roche)$/.test(y)).slice(0,5).join(',');
+    if(d&&typeof d.nom==='string'&&d.nom)add('dk',d.nom.slice(0,24),0)[4]=(Array.isArray(d.els)?d.els:[]).filter(y=>window.GolemsDonnees.interface.elements.ordre.includes(y)).slice(0,5).join(',');
     /* Cartes : liste du deck notee dans la partie ; paquet de test (deck note "Test" sans liste) : ses cartes (30 depuis 0.3). */
     {let t=d&&typeof d.cartes==='string'?d.cartes:'';if(!t&&d&&d.nom==='Test')t=deckDefautTxt(vPartie(x)); /* composition de la version de la partie (33 cartes jusqu'a 0.2c) */
      const ids=new Set(),re=/([0-9]{3}e?)[1-3]/g;let r;while((r=re.exec(t)))ids.add(r[1]);[...ids].forEach((id,i)=>add('c',id,Math.min(i,999)))}
@@ -139,7 +139,7 @@ async function ouvreProfil(autre){
   if(prive||absent){d.append(el('p','pf-prive',prive?'Profil privé : ce joueur ne partage que son bilan.':'Le profil détaillé de ce joueur sera visible après sa prochaine connexion.'));fin();return}
   const toi=!autre;
   /* Ligne discrete commune : N parties · X % de victoires (+ peu de parties) */
-  const stat=o=>{const p=pc(o),s=el('div','pf-dst'),t=el('b','pf-dt',p===null?'-':p+' %');t.style.color=coul(p);s.append(el('span','pf-dk',pl(o.n)+' · '),t,el('span','pf-dk',' de victoires'));if(o.peu)s.append(el('span','pf-peu','peu de parties'));return s};
+  const stat=o=>{const p=pc(o),s=el('div','pf-dst'),t=el('b','pf-dt',p===null?'-':p+' %');t.style.color=coul(p);s.append(el('span','pf-dk',pl(o.n)+' - '),t,el('span','pf-dk',' de victoires'));if(o.peu)s.append(el('span','pf-peu','peu de parties'));return s};
   /* Ligne de carte compacte : apercu au survol, carte en grand au clic. */
   const ligneCarte=(x,lab)=>{const C=M.CARTES[x.c],c=C&&CARTES.find(y=>y[0]===C.id);if(!c)return null;
     const li=el('div','pf-item pf-mvps pf-slot'),q=el('button','dl-ligne'),fo=el('span','dl-force'),e=el('span','dl-els'),src=imgV('cartes/'+c[0]+'.jpg');q.type='button';
@@ -153,11 +153,11 @@ async function ouvreProfil(autre){
   /* Ligne commune ordinateur / joueurs : pastille ou avatar, nom, jauge, taux ; dessous : parties et victoires. */
   const ligne=(avt,nm,o)=>{const p=pc(o),s=el('div','pf-slot'),r=el('div','pf-bl'),j=el('span','pf-jauge'),f=el('i'),b=el('b','',p===null?'-':p+' %');
     f.style.width=(p||0)+'%';f.style.background=coul(p);j.append(f);b.style.color=coul(p);r.append(avt,Object.assign(el('span','pf-an',nm),{title:nm}),j,b);
-    s.append(r,el('div','pf-dst pf-dk',pl(o.n)+' · '+pl2(o.v||0,'victoire')));return s};
+    s.append(r,el('div','pf-dst pf-dk',pl(o.n)+' - '+pl2(o.v||0,'victoire')));return s};
   const grille=el('div','pf-blocs'),bloc=(k,t,vide,items)=>{const b=el('section','pf-bloc');b.dataset.nom=k;b.append(el('h3','pf-h',t));
     const l=items.filter(Boolean);if(l.length)b.append(...l);else b.append(el('p','pf-vide pf-bvide',vide));grille.append(b)};
   bloc('dk','Meilleurs decks','Aucune donnée.',R.dk.map(x=>{const z=el('div','pf-deck pf-item pf-slot'),bd=bandeauDeck({nom:String(x.nom||'Deck'),els:String(x.e||'').split(',')}),ps=el('span','pf-dp');
-    String(x.e||'').split(',').filter(y=>/^(magma|cristal|foudre|brume|roche)$/.test(y)).forEach(y=>ps.append(picto(y)));bd.append(ps);z.append(bd,stat(x));return z}));
+    String(x.e||'').split(',').filter(y=>window.GolemsDonnees.interface.elements.ordre.includes(y)).forEach(y=>ps.append(picto(y)));bd.append(ps);z.append(bd,stat(x));return z}));
   bloc('cb','Meilleures cartes','Aucune donnée.',R.cb.map(x=>ligneCarte(x,pc(x)+' % de victoires')));
   bloc('cm','Cartes les moins bonnes','Il faut au moins 3 parties par carte.',R.cm.map(x=>ligneCarte(x,pc(x)+' % de victoires')));
   bloc('mv','Cartes les plus souvent MVP','Aucune donnée.',R.mv.map(x=>ligneCarte(x,x.n+' fois MVP')));

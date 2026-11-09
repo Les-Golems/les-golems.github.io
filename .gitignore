@@ -1,2 +1,4 @@
 *-debug.log
 database-debug.log
+*_avant.*
+_tmp/

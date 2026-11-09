@@ -329,6 +329,7 @@ html.tel-joueur #vueTas,html.tel-joueur #vue{z-index:60} /* telephone : au-dessu
 #vueDetail .zt-l .dl-titre{flex:1;min-width:0;font-size:13px}
 #vueDetail .zt-v{font:700 15px/1 var(--corps);text-align:right;white-space:nowrap;color:#fff}
 #vueDetail .zt-v b{font:400 24px/1 var(--titre)}
+#vueDetail .zt-v{display:inline-flex;align-items:center;justify-content:flex-end;gap:4px}#vueDetail .zt-v .ico{font-size:20px}
 #vueDetail .zt-vide>span{grid-column:1/-1;height:40px;padding:0 10px;border:1px dashed var(--trait);border-radius:7px 5px 8px 4px;color:var(--doux);font-size:14px;line-height:38px;opacity:.7}
 #vueDetail .zt-tot{display:flex;align-items:baseline;justify-content:flex-end;gap:8px;margin:auto 0 0;padding:8px 0 0;border-top:1px solid var(--trait);font:700 16px/1 var(--corps);color:var(--doux)}
 #vueDetail .zt-l+.zt-tot{margin-top:10px}
