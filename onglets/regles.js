@@ -73,6 +73,8 @@ function norm0(x){return String(x).normalize('NFD').replace(/[̀-ͯ]/g,'').toLow
 MOTS.sort((a,b)=>norm0(a[0]).localeCompare(norm0(b[0])));MOTS.forEach(([m,d])=>DEF[norm0(m)]=d);
 const PREC=[
  ["Menfou palu","Effet","Il reste ciblable : un effet adverse le vise, mais ne lui fait pas perdre de Force. Le Versus lui en fait perdre quand même (une perte de terrain n'est pas un effet adverse)."],
+ ["Café du matin","Effet","Joue à la pose, puis au début des manches 2 et 3, avant le premier tour (premier joueur de la manche d'abord). Une seule carte dans le deck : prise d'office. Deck vide : rien à prendre, regarder n'est pas piocher, et le +1 est quand même donné. Le Golem allié choisi, lui compris, garde son +1 jusqu'à la fin de la partie, même déplacé ou amélioré ; il le perd s'il est remplacé. Après l'amélioration, Café du matin ne joue plus."],
+ ["La taupe","Effet","Main adverse vide : rien à défausser, le +2 est quand même donné. Ce n'est pas un ciblage : Mode Avion n'y change rien. Un seul Golem allié : il reçoit le bonus d'office."],
  ["Chance du débutant","Effet","Une seule fois par partie. Ne protège pas contre Le Versus."],
  ["Il suffit","Effet","Une base et son évolution comptent comme deux cartes différentes ; chaque grille est comptée à part. La destruction a lieu avant les morts en chaîne."],
  ["Jour de pêche","Effet","Deck adverse vide : rien, et regarder n'est pas piocher. Une seule carte : elle est défaussée d'office."],
