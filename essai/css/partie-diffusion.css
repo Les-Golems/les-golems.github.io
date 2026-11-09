@@ -1,0 +1,104 @@
+/* Ecran de partie au style de la diffusion (0.4a) et disposition ordinateur. */
+/* ===== 0.4a : ecran de partie au style de la diffusion (maquettes validees, Ressources/7 - Maquettes et audits/1 - Ecran de jeu style diffusion) ===== */
+/* 1. Bandeau : losanges dores (passes fonces, en cours lumineux), survol dore discret du score */
+#partie .p-pts i.fait{background:color-mix(in srgb,var(--or) 45%,var(--encre))}
+#partie .p-pts i.on{background:var(--or);box-shadow:0 0 10px var(--or)}
+#partie .p-info.score .p-score{border-radius:14px 9px 15px 8px;padding:4px 10px;margin:-4px -10px;transition:background .15s}
+#partie .p-info.score .p-score:hover{background:color-mix(in srgb,var(--or) 10%,transparent)}
+/* 2. Terrains (variante B) : total adverse en haut, nom et « etoile N pts » au milieu, ton total en bas ; contour 3 px du joueur qui mene */
+#partie .p-terrain{display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:2px;padding:3px 4px 4px;border:3px solid var(--trait)}
+#partie .p-terrain.m-moi{border-color:var(--moi)}
+#partie .p-terrain.m-lui{border-color:var(--lui)}
+#partie .p-tot{font:400 24px/1 var(--titre)}
+#partie .p-tot.a{color:var(--lui)}#partie .p-tot.m{color:var(--moi)}
+#partie .p-tot{opacity:.6}#partie .p-tot.tete{opacity:1;text-shadow:0 0 12px currentColor}
+#partie .p-tmil{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+#partie .p-terrain .p-valeur{position:static;display:inline-flex;align-items:center;gap:4px;font:400 14px/18px var(--titre);padding:0 7px;white-space:nowrap}
+#partie .p-valeur .ico{font-size:13px;color:var(--encre)}
+@media (min-width:900px){#partie .p-tmil{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:2px 6px}}
+@media (max-width:899px){#partie .p-tot{font-size:22px}}
+/* 3. Journal : ligne a la couleur du joueur, nom en gras, noms de cartes en blanc (evolutions en dore), souligne au survol seulement */
+#partie .p-lignes div.j-moi{box-shadow:inset 3px 0 0 var(--moi);padding-left:7px}
+#partie .p-lignes div.j-lui{box-shadow:inset 3px 0 0 var(--lui);padding-left:7px}
+#partie .p-lignes .j-qui{font-family:var(--titre);font-weight:400}
+#partie .j-moi .j-qui{color:var(--moi)}#partie .j-lui .j-qui{color:var(--lui)}
+#partie .p-lignes .j-lien{font-family:var(--titre);font-weight:400;color:#fff;text-decoration:none}
+#partie .p-lignes .j-lien.j-evo{color:var(--or)}
+#partie .p-lignes .j-lien:hover{text-decoration:underline}
+/* 5. Plus d'oeil en jeu : curseur main et leger eclaircissement au survol de tout ce qui s'ouvre */
+#partie .p-terrain,#partie .pile.clic,#partie .p-carte,#partie .p-case:not(:disabled){cursor:pointer}
+#partie .p-terrain,#partie .pile.clic,#partie .p-case:not(:disabled){transition:filter .12s,box-shadow .12s}
+@media (hover:hover){#partie .p-terrain:hover,#partie .pile.clic:hover,#partie .p-case:not(:disabled):hover{filter:brightness(1.12);box-shadow:0 0 0 1px rgba(255,255,255,.35)}}
+#partie .pile.clic:focus-visible,#partie .p-terrain:focus-visible{outline:2px solid #fff;outline-offset:2px}
+/* 6. Forge pendant le tour adverse : chiffre neutre */
+#partie .p-info.energie.forge .p-ener{color:var(--texte)}
+/* 7. Bandeaux des joueurs : cadre 2 px, compteurs #C9D4E2 dans un groupe de largeur fixe cale a droite (alignes au pixel entre les deux bandeaux), etiquette JOUE */
+#partie .p-camp{flex-wrap:nowrap;border:2px solid var(--trait);background:linear-gradient(180deg,var(--panneau2),var(--panneau));padding:1px 8px;gap:6px}
+#partie .p-camp>b{margin-right:0;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+#partie .p-camp.joue{animation:none;box-shadow:none}
+#partie .p-camp.toi.joue{border-color:var(--moi)}#partie .p-camp.lui.joue{border-color:var(--lui)}
+#partie .p-joue{flex:none;margin:0;font:400 13px/1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--encre);padding:4px 7px;border-radius:8px 6px 9px 5px}
+#partie .p-camp.toi .p-joue{background:var(--moi)}#partie .p-camp.lui .p-joue{background:var(--lui)}
+#partie .p-comptes{flex:none;margin-left:auto;display:grid;grid-template-columns:58px 64px 86px 62px;gap:4px}
+#partie .p-compteur{background:transparent;color:#c9d4e2;font-weight:700;font-size:12.5px;padding:2px 0;white-space:nowrap}
+#partie .p-compteur .ico{color:#c9d4e2;font-size:14px}
+#partie .p-compteur b{color:#fff;font-size:17px}
+@media (max-width:899px){
+  #partie .p-camp{flex-wrap:wrap;row-gap:0}
+  #partie .p-comptes{flex:1 0 100%;margin-left:0;grid-template-columns:repeat(4,auto);justify-content:space-between}
+  #partie .p-comptes{grid-template-columns:62px 68px 90px 66px}
+}
+/* 8. Cercle des elements permanent (pictos, style diffusion) ; telephone : repliable */
+#partie .p-cercle{background:var(--panneau);border:1px solid var(--trait);border-radius:12px 9px 14px 8px/9px 13px 8px 14px;flex:none}
+#partie .p-cercle summary{padding:10px 14px 10px 34px;font-family:var(--titre);font-size:18px;color:var(--bleu);cursor:pointer}
+#partie .p-cw{display:grid;place-items:center;padding:6px 8px}
+#partie .p-cw svg{display:block;width:min(100%,260px);height:auto;overflow:visible}
+#partie .p-cw svg .arc{fill:none;stroke:var(--bleu);stroke-width:3;stroke-linecap:round}
+@media (min-width:900px){#partie .p-cercle summary{display:none}}
+/* 9. Chat des parties en ligne : bouton discret avec pastille en bas de la colonne du journal ; fenetre fermee par defaut */
+.chat.flottant.replie{display:none}
+#partie .p-chat{position:relative;flex:none;align-self:stretch;background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 17px/1 var(--titre);padding:7px 14px;opacity:.75;cursor:pointer;min-height:34px}
+#partie .p-chat:hover{opacity:1;color:#fff}
+#partie .p-chat-nb{position:absolute;right:-7px;top:-8px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--magma);color:#fff;font:400 13px/20px var(--titre);text-align:center}
+#partie .p-chat-nb:empty{display:none}
+/* 0.5.1 : point sur l'onglet Nouveautes tant que la version actuelle n'a pas ete vue (couleur de la pastille du chat) */
+.onglets button#t-nouveautes{position:relative}
+.o-nvpt{position:absolute;top:4px;right:6px;width:11px;height:11px;border-radius:50%;background:var(--magma);box-shadow:0 0 0 2px var(--encre);pointer-events:none}
+/* 10. Survols neutres (blanc) partout en jeu, sauf le score */
+#partie .j-lien:hover{color:#fff}
+/* Main : place de 7 cartes au moins, au-dela elles se resserrent ; consigne de place au tour adverse */
+#partie .p-main{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (min-width:900px){#partie .p-main{grid-template-columns:repeat(var(--n,7),minmax(0,1fr));gap:6px}#partie .p-carte .raison{font-size:10.5px;padding:2px}#partie .p-carte{border-width:2px}}
+#partie .p-cale{visibility:hidden}#partie .p-btns.p-cale{height:34px}
+@media (max-width:899px){#partie .p-cale{display:none}}
+/* Ordinateur (1200 px et plus) : derniere carte jouee en haut, ta main, tes piles et le bouton d'action en bas ; colonne de droite etiree, bas du journal et du chat alignes */
+@media (min-width:1200px){
+  #partie .p-poste>.p-signal{order:0}#partie .p-poste>.p-consigne{order:0}
+  #partie .p-poste>.p-apercu{order:1}
+  #partie .p-poste>.p-main{order:3}
+  #partie .p-poste>.p-piles{order:4}
+  #partie .p-poste>.p-btns{order:5}
+  #partie .p-poste>.p-consigne{min-height:0;height:62px;overflow:auto;padding:6px 12px}
+  #partie .p-cote{display:flex;flex-direction:column}
+  #partie .p-cote>.p-journal{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+  #partie .p-cote>.p-journal>.p-lignes{flex:1 1 0;height:auto;min-height:0}
+  /* Zone « Derniere carte jouee » (variante A) : carte a gauche, texte a droite */
+  #partie .p-poste>.p-apercu{flex-direction:row;gap:14px;padding:10px;border:1px solid var(--trait);border-style:solid;background:linear-gradient(180deg,var(--panneau2),var(--panneau));min-height:200px;overflow:hidden}
+  #partie .p-apercu .p-ap-img{flex:0 0 auto;height:100%;aspect-ratio:5/7;max-width:46%}
+  #partie .p-apercu.vide .p-ap-img{display:block;border:1px dashed var(--trait);border-radius:5.07%/3.62%}
+  #partie .p-apercu .p-ap-img img{width:100%;height:auto;max-height:100%}
+  #partie .p-ap-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;overflow:hidden;font-size:15px;line-height:1.35;color:var(--texte)}
+  #partie .p-apercu .p-ap-leg{margin:0;text-align:left;font:400 15px/1.1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--or)}
+  #partie .p-ap-ph{margin:0;font-weight:700}
+  #partie .p-apercu.vide .p-ap-ph{color:var(--doux);font-weight:400}
+  #partie .p-ap-qui{font:400 22px/1.15 var(--titre);color:var(--lui)}
+  #partie .p-ap-nom{font:400 30px/1.1 var(--titre);color:#fff}
+  #partie .p-ap-nom.evo{color:var(--or)}
+  #partie .p-ap-ef{margin:0;color:var(--doux);font-weight:700}
+  #partie .p-ap-ef b{font-family:var(--titre);font-weight:400;color:#fff}
+  #partie .p-ap-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding:2px}
+  #partie .p-ap-chips>span{display:inline-flex;align-items:center;gap:5px;background:var(--encre);border:1px solid var(--trait);border-radius:10px 7px 11px 6px;padding:4px 8px;font:700 13px/1 var(--corps);color:var(--doux);white-space:nowrap}
+  #partie .p-ap-chips b{font:400 17px/1 var(--titre);color:var(--texte)}
+  #partie .p-ap-chips img{width:20px;height:20px}
+}
+@media (min-width:1200px) and (max-height:799px){#partie .p-ap-nom{font-size:24px}#partie .p-ap-qui{font-size:18px}#partie .p-ap-txt{font-size:14px;gap:5px}}

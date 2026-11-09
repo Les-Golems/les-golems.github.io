@@ -1,0 +1,94 @@
+/* Onglet Nouveautes : notes de version, feuille de route, fenetre des details. */
+/* Nouveautes */
+@media (max-width:440px){.onglets button{font-size:15.5px;padding:12px 2px}}
+.note{background:var(--panneau);border:1px solid var(--trait);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.note h3{font-size:19px;color:var(--bleu)}
+.note time{display:block;color:var(--doux);font-size:14px;margin-bottom:6px}
+.note ul{margin:0;padding-left:20px}
+.nv-ligne{margin-top:4px}
+.note .nv-video{display:block;width:50%;height:auto;aspect-ratio:16/9;border-radius:8px;background:#0b111a}
+@media (max-width:520px){.note .nv-video{width:100%}}
+.note p{margin:0}
+/* Blocs : etiquette de version (etq-v) en haut a droite, bouton « Détails » gris en bas a droite, tous deux hors du flux.
+   Places reservees par deux cales invisibles : un flottant au debut du titre (sous 360 px : l'etiquette flotte a droite de la date), un espace a la fin de la derniere note.
+   Taille du bloc inchangee tant que ces lignes ont la place (sinon le mot de trop passe a la ligne, jamais de chevauchement). */
+.note{position:relative}.note>h3::before{content:'';float:right;width:60px;height:1px}
+.nv-etq{position:absolute;top:15px;right:16px;padding:1px 9px;font-size:12px;line-height:1.25;white-space:nowrap}
+.note.a-det>ul>li:last-child::after{content:'';display:inline-block;width:56px}
+@media (max-width:359px){.note>h3::before{display:none}.nv-etq{position:static;float:right;margin:1px 0 0 8px}}
+/* Nouveautes 0.4 : epingles (epingle doree dans le titre), Feuille de route (lisere dore, frise verticale, pastilles d'etat), tuile de pagination,
+   epingle de Romain (son compte seulement) en haut a droite, l'etiquette de version se decale a sa gauche. */
+.note .nv-pin{display:inline-block;width:.9em;height:.9em;margin-right:6px;vertical-align:-.08em;color:var(--or)}
+.note .nv-pin svg,.nv-epingler svg{display:block;width:100%;height:100%;fill:currentColor}
+.note.nv-fdr{border-left:4px solid var(--or);padding-left:14px}
+.nv-fdr h3{color:var(--or)}.nv-fdr>h3::before{display:none}
+.nv-fdr .fdr-sous{color:var(--doux);font-size:14px;margin:0 0 10px}
+.fdr-l{list-style:none;margin:0;padding:0}
+.fdr-l li{position:relative;display:flex;align-items:center;gap:10px;padding:5px 0 5px 26px;min-height:36px}
+.fdr-l li::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:2px;background:#2a3f50}
+.fdr-l li:first-child::before{top:50%}.fdr-l li:last-child::before{bottom:50%}
+.fdr-pt{position:absolute;left:1px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:#3d4e5d;border:2px solid var(--panneau);box-shadow:0 0 0 2px #3d4e5d}
+.fdr-proche .fdr-pt{background:var(--panneau);border-color:var(--bleu);box-shadow:0 0 0 2px var(--bleu),0 0 8px rgba(1,193,240,.6)}
+.fdr-prevu .fdr-pt{background:var(--or);box-shadow:0 0 0 2px var(--or)}
+.fdr-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
+.fdr-t small{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--doux)}
+.fdr-t b{font-size:15.5px;color:var(--texte)}
+.fdr-tard .fdr-t b{color:#c9d6de}
+.fdr-etat{flex:none;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:800;line-height:1.35;white-space:nowrap;background:#3a4b59;color:#dfe8ee}
+.fdr-proche .fdr-etat{background:var(--bleu);color:var(--encre)}
+.fdr-prevu .fdr-etat{background:var(--or);color:var(--encre)}
+/* Version actuelle : pastille pleine verte, etiquette verte pleine */
+.fdr-actuelle .fdr-pt{background:#3ee86a;border-color:#3ee86a;box-shadow:0 0 0 2px #3ee86a,0 0 8px rgba(62,232,106,.55)}
+.fdr-actuelle .fdr-etat{background:#3ee86a;color:var(--encre)}
+.nv-epingler{position:absolute;top:12px;right:10px;width:26px;height:26px;padding:4px;border:1px solid var(--trait);border-radius:8px 6px 9px 5px;background:var(--panneau2);color:var(--doux);cursor:pointer;opacity:.75}
+.nv-epingler:hover,.nv-epingler:focus-visible{opacity:1;color:var(--texte)}
+.nv-epingler.on{color:var(--or);border-color:var(--or);opacity:1}
+.nv-epingler.refus{border-color:var(--erreur);color:var(--erreur);opacity:1}
+#notes.nv-romain .nv-etq{right:44px}
+#notes.nv-romain .note>h3::before{width:92px}
+#notes.nv-romain .nv-fdr>h3{padding-right:32px}
+.nv-pages{display:flex;align-items:center;gap:6px;margin:0;font:400 15px/1 var(--titre);color:var(--texte);flex:none}
+.nv-pages[hidden]{display:none}
+.nv-pages .nv-num{padding:0 4px}
+#nouveautes>.intro.va,#historique>.intro.va{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:none}
+:is(.note>.btn.nv-det,#f#f#f#f){position:absolute;right:12px;bottom:11px;margin:0;min-height:24px;height:24px;padding:0 8px;font-size:13px;line-height:24px;border-radius:7px;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 0 var(--bord),0 3px 6px rgba(0,0,0,.3)}
+/* Fenetre des details d'une version : en-tete fixe, rubriques qui defilent, Fermer en bas. */
+.dv-boite{max-width:620px;width:calc(100vw - 32px);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);padding:0;overflow:hidden;display:flex;flex-direction:column;text-align:left}
+.dv-tete{flex:none;padding:16px 20px 10px;border-bottom:1px solid var(--trait)}
+.dv-tete h2{margin:0;color:var(--bleu);font-size:26px}.dv-tete time{display:block;color:var(--doux);font-size:14px}
+.dv-corps{flex:1;min-height:0;overflow-y:auto;padding:12px 20px 8px;scrollbar-width:thin;scrollbar-color:#3d4e5d transparent}
+.dv-corps h3{font-size:19px;color:var(--or);margin:14px 0 6px}.dv-corps h3:first-child{margin-top:2px}
+.dv-corps ul{margin:0;padding-left:20px}.dv-corps li{margin:4px 0;font-size:15.5px;line-height:1.4;overflow-wrap:anywhere}.dv-corps li ul{margin:4px 0 2px}
+.dv-vide{margin:0;color:var(--doux);font-size:15px}
+.dv-pied{flex:none;justify-content:center;padding:10px 20px 14px;border-top:1px solid var(--trait)}
+:is(.dv-pied .btn,#f#f#f#f){flex:0 0 auto;margin:0;min-height:36px;padding:4px 22px;font-size:15px}
+@media (max-width:520px){.dv-tete{padding:12px 14px 8px}.dv-tete h2{font-size:23px}.dv-corps{padding:10px 14px 6px}.dv-corps li{font-size:15px}.dv-pied{padding:8px 14px 12px}}
+/* Nouveautes B4 (maquette 16 - Nouveautés trois lignes\apresB4, validee le 8 nov.) : pas de phrase d'intro, blocs de hauteur fixe (297 px, 3 rangees
+   en 1683x1180), un bloc par version (video a gauche, puces a droite), Details en haut a droite (tertiaire), etiquette de version a sa gauche,
+   pagination sous les blocs calee en bas a droite, a place fixe. */
+@media (min-width:700px){#nouveautes>#notes{grid-auto-rows:var(--h-bloc,297px);column-gap:16px;row-gap:16px}#nouveautes>#notes>.note{overflow:hidden;margin:0}}
+#notes>.note li.coupe{display:none!important}
+#nouveautes>.nv-pages.bas{max-width:none;justify-content:flex-end;margin-top:16px}
+#notes>.note{padding:16px}#notes>.note>:last-child,#notes>.note>.nv-det~*:last-child{margin-bottom:0}
+#notes .nv-etq{top:17px}
+.note>.sc-btn.nv-det{position:absolute;right:16px;top:12px;margin:0}
+.note.a-det>.nv-etq{right:94px}
+.note.a-det>h3::before{width:150px}
+.note.a-det>ul>li:last-child::after{display:none}
+@media (max-width:359px){.note.a-det>.nv-etq{position:static;float:right;margin:1px 64px 0 8px}}
+#notes .fdr-l li{padding:3px 0 3px 26px;min-height:31px}
+#notes .nv-fdr .fdr-sous{margin-bottom:9px}
+#notes .nv-etq.gd-ver{padding:1px 7px .6px;font-size:11px;line-height:15px;top:19px}
+.nv-pages .j-btn:disabled{opacity:.45}
+#nouveautes>#premierePartie{margin-bottom:16px}
+main:has(#nouveautes:not([hidden])){padding-bottom:24px}
+@media (min-width:700px){.note.nv-avid>.nv-corps{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start;margin-top:4px}.note.nv-avid .nv-video{width:100%}}
+@media (min-width:1200px){#nouveautes>#notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-width:none}#nouveautes>#notes>.note{margin-bottom:0}}
+/* Fenetre Details : rangee du bas au modele sc-fenetre (Fermer 46 px Lilita 18 a droite, 24 px dessous) */
+:is(.dv-pied,#f#f#f#f){justify-content:flex-end;padding:16px 24px 24px}
+:is(.dv-pied .sc-btn,#f#f#f#f){flex:0 0 auto;margin:0;min-height:46px;height:46px;padding:0 20px;font:400 18px/1 var(--titre)}
+
+/* 0.6 : noms de cartes cites (charte du 9 nov.) : couleur du type (en ligne), gras, cliquables */
+.nv-lien{font:inherit;font-weight:700;background:none;border:0;padding:0;margin:0;cursor:pointer;white-space:nowrap}b.nv-lien{cursor:default}button.nv-lien:hover{text-decoration:underline}
+/* 0.6 (Romain) : etapes espacees regulierement, la derniere finit au bord inferieur de la video du bloc voisin */
+@media (min-width:700px){#notes>.note.nv-fdr{display:flex;flex-direction:column}#notes .nv-fdr .fdr-l{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding-bottom:var(--fdr-bas,3.66px)}#notes .nv-fdr .fdr-l li:not(:last-child)::before{bottom:-20px}}

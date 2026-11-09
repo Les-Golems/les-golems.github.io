@@ -24,7 +24,8 @@ const MC={
   decompte:{t:'Décompte',d:'À la fin de chaque manche, on additionne la Force de tes Golems dans chaque colonne. Le plus fort remporte le terrain et marque ses points. En cas d\'égalité, personne ne marque.',va:['taligne']},
   animal:{t:'Animal de compagnie / Maître',d:'Un animal n\'est pas un Golem : il coûte 0, n\'a ni Force ni élément et ne prend pas de case : il se glisse sous son maître déjà en jeu et lui donne +1 de Force. Un seul animal par maître. Il suit son maître quand il est déplacé, reste s\'il évolue et part à la défausse quand son maître quitte le jeu.',va:['detruit']},
   favori:{t:'Favori',d:'Le Golem allié que tu choisis à la pose d\'Indra. Il gagne +1 de Force tant qu\'Indra est en jeu (+2 avec La Fan enflammée), et il le reste si l\'un des deux est amélioré.',va:['ameliorer']},
-  defausse:{t:'Défausse',d:'La pile des cartes qui quittent le jeu : Golems détruits ou remplacés, base d\'un Golem amélioré, animal qui part, cartes défaussées de ta main. Une carte en défausse ne revient jamais en jeu.',va:['detruit','remplacer']}
+  defausse:{t:'Défausse',d:'La pile des cartes qui quittent le jeu : Golems détruits ou remplacés, base d\'un Golem amélioré, animal qui part, cartes défaussées de ta main. Une carte en défausse ne revient jamais en jeu.',va:['detruit','remplacer']},
+  recuperer:{t:'Récupérer',d:'Récupérer X : ton Golem regagne jusqu\'à X de Force perdue après des dégâts, sans jamais dépasser sa Force de base. Un Golem sans dégâts ne récupère rien.',va:['degats']}
 };
 /* Formes reconnues (mot entier, sans tenir compte de la casse) : pluriels et formes conjuguees */
 const FORMES={
@@ -43,7 +44,8 @@ const FORMES={
   remplacer:'rempla(?:ce|ces|cent|cer|cez|cé|cée|cés|cées|cement|cements|çant)',
   decompte:'décomptes?',
   favori:'favori(?:s|te|tes)?',
-  defausse:'défauss(?:e|es|ent|er|ez|é|ée|és|ées)'
+  defausse:'défauss(?:e|es|ent|er|ez|é|ée|és|ées)',
+  recuperer:'récup[èé]r(?:e|es|ent|er|ez|é|ée|és|ées|ant)'
 };
 const CLES=Object.keys(FORMES);
 const RE_MOTS=new RegExp('(?<![\\p{L}\\p{N}-])(?:'+CLES.map(k=>'('+FORMES[k]+')').join('|')+')(?![\\p{L}\\p{N}-])','giu');
@@ -55,8 +57,6 @@ function nomsProteges(){
   const G=window.GolemsMoteur,S=new Set();
   if(G){Object.values(G.CARTES||{}).forEach(C=>{if(C.nom)S.add(C.nom);const i=(C.texte||'').indexOf(' :');if(i>0)S.add(C.texte.slice(0,i))});
     (G.TERRAINS||[]).forEach(T=>{if(T.nom)S.add(T.nom);const i=(T.texte||'').indexOf(' :');if(i>0&&i<40)S.add(T.texte.slice(0,i))})}
-  /* 0.5 : noms des decks conseilles proteges (« Forge rapide » n'est pas le mot-cle Forge) */
-  try{if(typeof DECKS_CONSEILLES!=='undefined')DECKS_CONSEILLES.forEach(d=>d.nom&&S.add(d.nom))}catch(e){}
   const L=[...S].filter(n=>n&&n.length>1).sort((a,b)=>b.length-a.length).map(n=>n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
   RE_NOMS=L.length?new RegExp('(?<![\\p{L}\\p{N}])(?:'+L.join('|')+')(?![\\p{L}\\p{N}])','gu'):/$^/g;
   return RE_NOMS;
@@ -86,15 +86,19 @@ function decore(racine){
   });
 }
 
+/* Noms cites (charte, 9 nov.) : cartes, terrains, effets en couleur de leur type, sans gras, cliquables (zoom) ; texteLog commun (vue/joueur.js).
+   sauf : nom laisse en texte (zoom : la carte zoomee elle-meme). Clic dans la bulle : la bulle se ferme, le zoom s'ouvre. */
+function citeTexte(p,x,sauf){const U=window.GOLEMS_UI;if(U&&U.texteLog)p.append(...U.texteLog(x,sauf).childNodes);else p.append(x);return p}
 /* ===== Bulle ===== */
 const tactile=matchMedia('(hover:none)');
-const ib=h('div','ib');ib.hidden=true;ib.setAttribute('role','dialog');ib.setAttribute('aria-live','polite');
+const fermeSurLien=e=>{if(e.target.closest&&e.target.closest('.j-lien'))setTimeout(ferme,0)};
+const ib=h('div','ib');ib.hidden=true;ib.addEventListener('click',fermeSurLien);ib.setAttribute('role','dialog');ib.setAttribute('aria-live','polite');
 let mot=null,pile=[];
 function cercleHtml(){const p=h('p','ib-cercle');[['Magma','m'],['Cristal','c'],['Foudre','f'],['Brume','b'],['Roche','r'],['Magma','m']].forEach(([n,k],i)=>{if(i)p.append(' > ');p.append(h('span','el-'+k,n))});return p}
 function remplit(){
   const k=pile[pile.length-1],m=MC[k],prec=pile.length>1?MC[pile[pile.length-2]]:null;ib.textContent='';
   if(prec){const r=h('button','ib-ret','< Retour : '+prec.t);r.type='button';r.onclick=()=>{pile.pop();remplit();place(true)};ib.append(r)}
-  const t=h('h4','',m.t);t.id='ibTitre';ib.setAttribute('aria-labelledby','ibTitre');ib.append(t,h('p','ib-def',m.d));
+  const t=h('h4','',m.t);t.id='ibTitre';ib.setAttribute('aria-labelledby','ibTitre');ib.append(t,citeTexte(h('p','ib-def'),m.d));
   if(m.cercle)ib.append(cercleHtml());
   const va=h('p','ib-va','Voir aussi : ');m.va.forEach((x,i)=>{if(i)va.append(', ');const b=h('button','ib-lien',MC[x].t);b.type='button';b.onclick=()=>{pile.push(x);remplit();place(true)};va.append(b)});
   ib.append(va);
@@ -173,25 +177,59 @@ addEventListener('scroll',()=>{if(!ib.hidden)place()},true);
 addEventListener('resize',()=>{if(!ib.hidden)place()});
 
 /* ===== Texte de la carte en tete du panneau de detail (zoom) ===== */
-const NOMS_EL={magma:'Magma',cristal:'Cristal',foudre:'Foudre',brume:'Brume',roche:'Roche'};
+/* Elements et couleurs des cartes : modele unique cartes/donnees/interface.js (elements, couleursCarte) */
+const ELS=()=>window.GolemsDonnees.interface.elements,CC=()=>window.GolemsDonnees.interface.couleursCarte,nomEl=e=>(ELS()[e]||{}).nom||e;
+/* Sous-titre du zoom : [texte] en mots, ou [picto, valeur, libelle] ; picto 'els' = images des elements (valeur = liste) */
+function pictosSous(L){
+  const p=h('p','aide-sous'),U=window.GOLEMS_UI,ic=U&&U.ico||window.ico,iv=window.imgV||(u=>u);
+  L.forEach(([k,v,lib])=>{
+    if(v==null){p.append(h('span','aide-mot',k));return}
+    const e=h('span','aide-pz');e.setAttribute('role','img');e.setAttribute('aria-label',lib);
+    if(k==='els')v.forEach(x=>{const i=h('img');i.src=iv('cartes/'+x+'.png');i.alt='';e.append(i)});
+    else{if(ic)e.append(ic(k));e.append(h('span','',v))}
+    p.append(e)});
+  return p}
 function texteCarte(){
   const d=$('vueDetail'),img=$('vueImg'),G=window.GolemsMoteur;
   if(window.golemsAide&&window.golemsAide.sansTexteCarte)return; /* reglage de comparaison (captures avant/apres) */
   if(!d||!img||!G||d.querySelector('.aide-carte')||!$('vue')||$('vue').hidden)return;
   if($('vueTerrain')&&!$('vueTerrain').hidden)return;
+  /* Terrain (cartes/tNNN.jpg, rang dans G.TERRAINS) : meme bloc, nom, points et texte de la regle */
+  const ft=/cartes\/t([0-9]{3})\.jpg/.exec(img.getAttribute('src')||''),T=ft&&(G.TERRAINS||[])[+ft[1]-1];
+  if(ft){if(!T||!T.texte)return;
+    const s=h('section','aide-carte'),t=h('p','aide-txt'),i=T.texte.indexOf(' :');
+    const pasT=o=>!!o&&(o.T===T||o.ET===T); /* son propre nom jamais cliquable */
+    if(i>0&&i<40){t.append(h('b','',T.texte.slice(0,i)+' :'));citeTexte(t,T.texte.slice(i+2),pasT)}else citeTexte(t,T.texte,pasT);
+    const pq=T.effet&&T.effet.type==='pointsManche'?'1 à 3 pts':T.pts+(T.pts>1?' pts':' pt');
+    const ps=pictosSous([['Terrain'],['coupe',pq,'Points : '+pq]]),ct=CC().terrain; /* couleurs de la carte imprimee (generer_terrains.py) : nom blanc, sous-titre et nom d'effet */
+    ps.querySelector('.aide-mot').style.color=ct;const tb=t.querySelector('b');if(tb)tb.style.color=ct;
+    s.append(h('h3','aide-nom',T.nom),ps,t);d.prepend(s);
+    if(d.hidden){d.hidden=false;$('vueGrand')&&$('vueGrand').classList.add('avecDetail')}
+    return}
   /* alt = nom, ou « nom, sous-titre » dans l'onglet Cartes */
   /* Base et evolution portent le meme nom : la carte est d'abord reconnue par son image (cartes/<id>.jpg), le nom ne sert qu'en secours */
   const fi=/cartes\/([0-9]+e?)\.jpg/.exec(img.getAttribute('src')||''),parImg=fi&&Object.values(G.CARTES).find(c=>c.id===fi[1]);
   const alt=img.alt||'',C=parImg||Object.values(G.CARTES).filter(c=>c.nom&&(alt===c.nom||alt.startsWith(c.nom+', '))).sort((a,b)=>b.nom.length-a.nom.length)[0];
-  if(!C||C.animal||!C.texte)return;
+  if(!C||!C.texte)return;
   const s=h('section','aide-carte'),sous=[],v=alt.indexOf(', '),st=(alt.startsWith(C.nom+', ')?alt.slice(C.nom.length+2):v>0?alt.slice(v+2):'').trim();
-  if(st&&st!==C.nom)sous.push(st);
-  if(C.base&&G.CARTES[C.base])sous.push('Évolution de '+G.CARTES[C.base].nom);
-  if(C.el&&C.el.length)sous.push(C.el.map(e=>NOMS_EL[e]||e).join(', '));
-  sous.push('coût '+C.cout);sous.push(C.force==null?'Force au dé':'Force '+C.force);
+  /* Couleurs de la carte imprimee (generer_cartes.py / generer_animaux.py) : valeurs dans couleursCarte et elements (cartes/donnees/interface.js) */
+  const B=C.base&&G.CARTES[C.base],nomC=B?B.nom:C.nom,titreC=C.titre||(st&&st!==C.nom?st:'');
+  const coulT=C.animal?CC().animal:B?CC().evoTitre:(ELS()[(C.el||[])[0]]||{}).texte||'';
+  /* Ligne de filiation, a part des pictos : « Évolution » (mot-cle a bulle) + carte de base dans l'or de l'encart d'evolution ; animal : « Animal de compagnie de X » */
+  let fil=null;
+  /* Charte (9 nov.) : les AUTRES cartes citees sont cliquables et remplacent le zoom ; la carte zoomee elle-meme jamais */
+  const pasC=o=>!!o&&(o.C||o.E)===C,nl=window.GolemsDonnees.nomLong;
+  if(B)fil=citeTexte(h('p','aide-fil','Évolution de '),nl(B.id),pasC);
+  else if(C.animal&&G.CARTES[C.maitre])fil=citeTexte(h('p','aide-fil','Animal de compagnie de '),nl(C.maitre),pasC);
+  /* Charte : pictos seuls pour les donnees (elements, enclume + cout, bouclier + Force), libelles en mots pour les lecteurs d'ecran */
+  if(C.el&&C.el.length)sous.push(['els',C.el,'Éléments : '+C.el.map(nomEl).join(', ')]);
+  sous.push(['enclume',String(C.cout),'Coût '+C.cout]);
+  if(!C.animal)sous.push(['force',C.force==null?'au dé':String(C.force),C.force==null?'Force au dé':'Force '+C.force]);
   const t=h('p','aide-txt'),i=C.texte.indexOf(' :');
-  if(i>0){const b=h('b','',C.texte.slice(0,i)+' :'),U=window.GOLEMS_UI;if(U&&U.effetCouleur)b.style.color=U.effetCouleur(C).firstChild.style.color;t.append(b,C.texte.slice(i+2))} /* couleur de la carte : fonction commune effetCouleur (index.html) */else t.append(C.texte);
-  s.append(h('h3','aide-nom',C.nom),h('p','aide-sous',sous.join(' · ')),t);
+  if(i>0){const b=h('b','',C.texte.slice(0,i)+' :'),U=window.GOLEMS_UI;if(U&&U.effetCouleur)b.style.color=U.effetCouleur(C).firstChild.style.color;t.append(b);citeTexte(t,C.texte.slice(i+2),pasC)} /* couleur de la carte : fonction commune effetCouleur (index.html) */else citeTexte(t,C.texte,pasC);
+  const hn=h('h3','aide-nom',nomC);if(B)hn.style.color=CC().evoNom;s.append(hn);
+  if(titreC&&titreC!==nomC){const pt=h('p','aide-titre',titreC);if(coulT)pt.style.color=coulT;s.append(pt)}
+  if(fil)s.append(fil);s.append(pictosSous(sous),t);
   d.prepend(s);
   /* Panneau cache (pas de statistiques, invite) : on l'affiche pour le texte de la carte */
   if(d.hidden){d.hidden=false;$('vueGrand')&&$('vueGrand').classList.add('avecDetail')}

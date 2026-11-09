@@ -53,9 +53,9 @@ function filtre(p, champs) {
 export function nettoiePseudo(s) { return String(s || "").normalize("NFKC").replace(/\s+/g, " ").trim(); }
 export function erreurPseudo(s) {
   const v = nettoiePseudo(s);
-  if (v.length < 3) return "Le pseudo doit faire au moins 3 caractères.";
-  if (v.length > 20) return "Le pseudo doit faire au plus 20 caractères.";
-  if (!/^[\p{L}\p{N} _'-]+$/u.test(v)) return "Le pseudo ne peut contenir que des lettres, des chiffres, des espaces et _ - '.";
+  if (v.length < 3) return "Compte : pseudo trop court, 3 caractères au moins. Allonge ton pseudo.";
+  if (v.length > 20) return "Compte : pseudo trop long, 20 caractères au plus. Raccourcis ton pseudo.";
+  if (!/^[\p{L}\p{N} _'-]+$/u.test(v)) return "Compte : caractère refusé dans le pseudo. Utilise des lettres, des chiffres, des espaces et _ - '.";
   return "";
 }
 export const clePseudo = s => nettoiePseudo(s).toLowerCase();
@@ -65,15 +65,15 @@ async function adresse(pseudo) {
 }
 function messageErreur(e) {
   const c = e && e.code || "";
-  if (c === "auth/email-already-in-use") return "Ce pseudo est déjà pris.";
-  if (c === "auth/weak-password") return "Le code doit faire au moins 6 caractères.";
-  if (c === "auth/invalid-credential" || c === "auth/wrong-password" || c === "auth/user-not-found" || c === "auth/invalid-login-credentials") return "Pseudo ou code incorrect.";
-  if (c === "auth/too-many-requests") return "Trop d'essais. Réessaie dans quelques minutes.";
-  if (c === "auth/network-request-failed") return "Pas de connexion internet.";
-  if (c === "auth/operation-not-allowed") return "Les comptes ne sont pas encore ouverts.";
-  if (c === "auth/user-disabled") return "Ce compte est désactivé.";
-  if (e && /PERMISSION_DENIED/i.test(String(e.message || e.code))) return "Accès refusé par le serveur.";
-  return "Erreur inattendue, réessaie.";
+  if (c === "auth/email-already-in-use") return "Compte : pseudo déjà pris. Choisis-en un autre.";
+  if (c === "auth/weak-password") return "Compte : code trop court, 6 caractères au moins. Allonge ton code secret.";
+  if (c === "auth/invalid-credential" || c === "auth/wrong-password" || c === "auth/user-not-found" || c === "auth/invalid-login-credentials") return "Compte : pseudo ou code incorrect. Vérifie-les puis réessaie.";
+  if (c === "auth/too-many-requests") return "Compte : trop d'essais. Réessaie dans quelques minutes.";
+  if (c === "auth/network-request-failed") return "Compte : pas de connexion internet. Vérifie ta connexion puis réessaie.";
+  if (c === "auth/operation-not-allowed") return "Compte : création de comptes fermée pour le moment. Joue sans compte en attendant.";
+  if (c === "auth/user-disabled") return "Compte : compte désactivé. Demande à KaTarN (Romain).";
+  if (e && /PERMISSION_DENIED/i.test(String(e.message || e.code))) return "Compte : accès refusé par le serveur. Préviens KaTarN (Romain).";
+  return "Compte : erreur inattendue. Réessaie.";
 }
 
 async function ouvre() {
@@ -90,6 +90,7 @@ async function ouvre() {
   const estCompte = () => !!auth.currentUser && !auth.currentUser.isAnonymous;
   let moi = auth.currentUser.uid;
   let donnees = null, resumeur = null, cumuleur = null;        // copie de joueurs/{uid} pour un compte
+  const imageActive = () => !!donnees && !!donnees.avatarImg && (!donnees.avatarId || donnees.avatarId === "__img");
   const ecouteCompte = [];
   const signale = () => ecouteCompte.forEach(f => { try { f(); } catch (e) {} });
 
@@ -134,6 +135,22 @@ async function ouvre() {
   // Après une reconnexion, la présence effacée par onDisconnect est réécrite.
   ecouteCo.push(() => { if (enLigne && hallRef) { onDisconnect(hallRef).remove(); ecritHall().catch(() => {}); } });
 
+  // 0.6 : pastille « N en ligne », invités compris : enligne/<uid> = heure serveur, posée par chaque visiteur pour lui seul,
+  // effacée à sa déconnexion (rules/60-guides.js). Retirée avant chaque changement de compte (l'ancien uid ne pourra plus l'effacer).
+  let enligneRef = null, enligneN = 0;
+  const ecouteEnligne = [];
+  async function majEnligne() {
+    const r = ref(db, P + "enligne/" + moi); enligneRef = r;
+    try { await onDisconnect(r).remove(); await set(r, serverTimestamp()); } catch (e) {}
+  }
+  async function quitteEnligne() {
+    const r = enligneRef; enligneRef = null; if (!r) return;
+    try { await onDisconnect(r).cancel(); await remove(r); } catch (e) {}
+  }
+  onValue(ref(db, P + "enligne"), s => { enligneN = Object.keys(s.val() || {}).length; ecouteEnligne.forEach(f => { try { f(); } catch (e) {} }); }, () => {});
+  ecouteCo.push(() => { if (enLigne && enligneRef) majEnligne(); });
+  majEnligne();
+
   // Données du compte
   function versListe(o) { return Object.values(o || {}).filter(Boolean); }
   function lisCumul(t) { if (typeof t !== "string") return null; try { const c = JSON.parse(t); return c && typeof c === "object" ? c : null; } catch (e) { return null; } }
@@ -146,7 +163,7 @@ async function ouvre() {
       avatarImg: typeof v.avatarImg === "string" ? v.avatarImg : "",
       importe: !!v.importe,
       cree: +v.cree || 0,
-      decks: versListe(v.decks).map(d => ({ id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0 })),
+      decks: versListe(v.decks).map(d => ({ id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0, ...(d.v ? { v: d.v } : {}) })),
       historique: Object.keys(v.historique || {}).map(k => { try { return JSON.parse(v.historique[k].x); } catch (e) { return null; } })
         .filter(x => x && x.id).sort((a, b) => b.date - a.date),
       cumul: lisCumul(v.cumul),
@@ -167,8 +184,10 @@ async function ouvre() {
   }
   async function bascule(f) {
     await arreteHall();
+    await quitteEnligne();
     await f();
     moi = auth.currentUser.uid;
+    majEnligne();
     await chargeDonnees();
     demarreHall();
     signale();
@@ -194,32 +213,50 @@ async function ouvre() {
     return (fileCumul = fileCumul.then(f, f));
   }
 
+  // 0.6 : marque classée de l'historique (rules/10-comptes.js) : c = classée, de = variation d'Elo, ro = robot affronté.
+  function marqueClassee(e, x) {
+    const c = x && x.classe; if (!(x && (x.mode === "classee" || c))) return;
+    e.c = true;
+    if (c && Number.isInteger(c.delta) && Math.abs(c.delta) <= 64) e.de = c.delta;
+    if (c && /^(facile|normal|difficile)$/.test(c.niveau || "")) e.ro = c.niveau;
+  }
   const compte = {
     erreurPseudo, nettoiePseudo,
     connecte: () => estCompte() && !!donnees,
     uid: () => moi,
     pseudo: () => donnees ? donnees.pseudo : "",
-    avatarId: () => donnees ? donnees.avatarId : "",
-    // Avatar choisi en galerie ("" = initiale) : joueurs/{uid}/avatarId.
+    // 0.6 : « Mon image » n'est plus effacée quand on choisit un autre avatar. avatarId = "__img" : image importée active ;
+    // "__init" : initiale alors qu'une image est gardée ; absent : image si elle existe (anciens comptes), sinon initiale.
+    avatarId: () => donnees && !/^__(img|init)$/.test(donnees.avatarId) && !imageActive() ? donnees.avatarId : "",
+    // Avatar choisi en galerie ("" = initiale, "__img" = mon image) : joueurs/{uid}/avatarId ; l'image importée reste.
     async choisirAvatar(id) {
       if (!estCompte() || !donnees) return;
-      // Un avatar de galerie (ou l'initiale) efface l'image importée.
-      await update(ref(db, P + "joueurs/" + moi), { avatarId: id || null, avatarImg: null });
-      donnees.avatarId = id || ""; donnees.avatarImg = "";
+      const v = id === "__img" ? (donnees.avatarImg ? "__img" : "") : id || (donnees.avatarImg ? "__init" : "");
+      await update(ref(db, P + "joueurs/" + moi), { avatarId: v || null });
+      donnees.avatarId = v;
     },
-    avatarImg: () => donnees ? donnees.avatarImg : "",
-    // Image importée (data:image/webp|jpeg;base64, 140 000 caractères au plus) : joueurs/{uid}/avatarImg.
+    // Image active (affichée) ; imageGardee : image enregistrée, active ou non (case « Mon image » de la galerie).
+    avatarImg: () => imageActive() ? donnees.avatarImg : "",
+    imageGardee: () => donnees ? donnees.avatarImg : "",
+    // Image importée (data:image/webp|jpeg;base64, 140 000 caractères au plus) : joueurs/{uid}/avatarImg, et elle devient active.
     async choisirImage(url) {
       if (!estCompte() || !donnees) return;
-      await set(ref(db, P + "joueurs/" + moi + "/avatarImg"), url);
-      donnees.avatarImg = url;
+      await update(ref(db, P + "joueurs/" + moi), { avatarImg: url, avatarId: "__img" });
+      donnees.avatarImg = url; donnees.avatarId = "__img";
+    },
+    // 0.6 : profil classé d'un autre compte (classe/joueurs/{uid}, lisible par tout compte : rules/50-classe.js) ; null si absent.
+    async classeDe(uid) {
+      if (!estCompte() || typeof uid !== "string" || !uid) return null;
+      try { const j = (await get(ref(db, P + "classe/joueurs/" + uid))).val(); return j && typeof j === "object" ? j : null; } catch (e) { return null; }
     },
     // Avatar d'un autre compte (lisible par tout connecté, aucune règle à changer).
     async avatarDe(uid) {
       if (typeof uid !== "string" || !uid) return "";
-      // Image importée en priorité, sinon avatar de galerie.
-      try { const i = (await get(ref(db, P + "joueurs/" + uid + "/avatarImg"))).val(); if (typeof i === "string" && i) return i; } catch (e) {}
-      try { const v = (await get(ref(db, P + "joueurs/" + uid + "/avatarId"))).val(); return typeof v === "string" ? v : ""; } catch (e) { return ""; }
+      let v = "";
+      try { v = (await get(ref(db, P + "joueurs/" + uid + "/avatarId"))).val(); v = typeof v === "string" ? v : ""; } catch (e) {}
+      if (v === "__init") return "";
+      if (!v || v === "__img") { try { const i = (await get(ref(db, P + "joueurs/" + uid + "/avatarImg"))).val(); if (typeof i === "string" && i) return i; } catch (e) {} return ""; }
+      return v;
     },
     // Résumé public des parties (joueurs/{uid}/stats = { v: victoires, n: parties }) et classement, sur toutes les parties
     // (cumuls), après ajout au cumul des parties qui viennent d'être écrites (extra). Sans la page : l'historique seul.
@@ -249,7 +286,9 @@ async function ouvre() {
       }
       const o = { p: donnees.pseudo, m: !!donnees.masque, n: r.n, v: r.v, d: r.d, t: serverTimestamp() };
       if (donnees.cree) o.cr = donnees.cree;
-      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
+      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv", "pm"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
+      // 0.6 : Elo classé affiché (placement fini seulement, règle profils/el).
+      try { const j = (await get(ref(db, P + "classe/joueurs/" + moi))).val(); if (j && j.parties >= 5 && Number.isFinite(j.elo)) o.el = j.elo; } catch (e) {}
       try { await set(ref(db, P + "profils/" + moi), o); return true; } catch (e) { console.warn("profil", e); return false; }
     },
     async masquerProfil(b) {
@@ -269,10 +308,10 @@ async function ouvre() {
     onChange(f) { ecouteCompte.push(f); },
     async creer(pseudo, code) {
       const e = erreurPseudo(pseudo); if (e) return e;
-      if (typeof code !== "string" || code.length < 6) return "Le code doit faire au moins 6 caractères.";
+      if (typeof code !== "string" || code.length < 6) return "Compte : code trop court, 6 caractères au moins. Allonge ton code secret.";
       const nom = nettoiePseudo(pseudo), cle = clePseudo(pseudo);
       try {
-        if ((await get(ref(db, P + "pseudos/" + cle))).exists()) return "Ce pseudo est déjà pris.";
+        if ((await get(ref(db, P + "pseudos/" + cle))).exists()) return "Compte : pseudo déjà pris. Choisis-en un autre.";
         const mail = await adresse(nom);
         await bascule(async () => {
           const u = (await createUserWithEmailAndPassword(auth, mail, code)).user;
@@ -290,8 +329,8 @@ async function ouvre() {
       } catch (x) { console.warn(x); return messageErreur(x); }
     },
     async connecter(pseudo, code) {
-      const e = erreurPseudo(pseudo); if (e) return "Pseudo ou code incorrect.";
-      if (typeof code !== "string" || !code) return "Entre ton code secret.";
+      const e = erreurPseudo(pseudo); if (e) return "Compte : pseudo ou code incorrect. Vérifie-les puis réessaie.";
+      if (typeof code !== "string" || !code) return "Compte : code secret vide. Entre ton code secret.";
       try {
         let refus = "";
         await bascule(async () => {
@@ -301,7 +340,7 @@ async function ouvre() {
           try { await repare(pseudo); }
           catch (x) {
             if (x.code !== "golems/pris") throw x;
-            refus = "Ce pseudo appartient à un autre compte. Demande à Romain.";
+            refus = "Compte : pseudo lié à un autre compte. Demande à KaTarN (Romain).";
             await signOut(auth); await setPersistence(auth, browserSessionPersistence); await signInAnonymously(auth);
             return;
           }
@@ -328,6 +367,7 @@ async function ouvre() {
       l.slice(0, MAX_DECKS).forEach((d, i) => {
         const c = {}; for (const k in d.cartes || {}) if (+d.cartes[k] > 0) c[k] = +d.cartes[k];
         o[i] = { id: String(d.id), nom: String(d.nom).slice(0, 24) || "Deck", cartes: c, t: Date.now() };
+        if (typeof d.v === "string" && /^[0-9a-z.]{1,10}$/.test(d.v)) o[i].v = d.v;
       });
       donnees.decks = l.slice(0, MAX_DECKS);
       await set(ref(db, P + "joueurs/" + moi + "/decks"), o);
@@ -341,7 +381,7 @@ async function ouvre() {
       // En dernier recours, l'essentiel seulement (résultat, score, adversaire) : la partie compte toujours.
       const texte = x => { let t = JSON.stringify(x); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [], rejeu: null }); if (t.length > 12000) t = JSON.stringify({ id: x.id, date: x.date, adv: x.adv, res: x.res, abandon: x.abandon, score: x.score, mvp: x.mvp, pseudo: x.pseudo, advNom: x.advNom, moteur: x.moteur }); return t.length > 12000 ? null : t; };
       const trop = [];
-      entrees.forEach(x => { const t = x && x.id && texte(x); if (x && x.id && !t) trop.push(x.id); if (t && !donnees.historique.some(y => y.id === x.id)) { donnees.historique.push(x); ajoutes.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; } });
+      entrees.forEach(x => { const t = x && x.id && texte(x); if (x && x.id && !t) trop.push(x.id); if (t && !donnees.historique.some(y => y.id === x.id)) { donnees.historique.push(x); ajoutes.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; marqueClassee(maj[x.id], x); } });
       donnees.historique.sort((a, b) => b.date - a.date);
       donnees.historique.splice(MAX_HISTO).forEach(x => { maj[x.id] = null; });
       for (const k in maj) if (maj[k] && !donnees.historique.some(y => y.id === k)) delete maj[k];
@@ -487,6 +527,11 @@ async function ouvre() {
         await set(push(ref(db, base + "/chat")), { a: uid, p: donnees.pseudo, t: serverTimestamp(), m });
       },
       async libere() { try { await remove(ref(db, base + "/engages")); } catch (e) {} },
+      // 0.6 : salon classé. marqueClasse : cl = true et heure d'ouverture (cree, une fois) ; estClasse : lecture de cl ;
+      // poseRobot(o) : bandeau « Affronter un Golem » (o = GolemsClasse.salonRobot), à poser avant de quitter le salon.
+      async marqueClasse() { await set(ref(db, base + "/cl"), true); try { await set(ref(db, base + "/cree"), serverTimestamp()); } catch (e) {} },
+      async estClasse() { try { return (await get(ref(db, base + "/cl"))).val() === true; } catch (e) { return false; } },
+      poseRobot(o) { return set(ref(db, base + "/robot"), o); },
       async presence(p) {
         const { j, ...reste } = p;
         if ("pseudo" in reste) reste.pseudo = donnees && donnees.pseudo || null;
@@ -508,15 +553,20 @@ async function ouvre() {
           if (typeof o.v === "string" && VERSION_OK.test(o.v)) v.v = o.v;
           if (typeof o.w === "string" && o.w) { v.w = o.w; v.q = String(o.q || "").slice(0, 24); }
           if (Number.isInteger(o.n) && o.n > 0) v.n = Math.min(o.n, 999);
+          // 0.6 : salon classé (cl) et Elo du créateur hors placement (el, vérifié par les règles).
+          if (o.cl === true) v.cl = true;
+          if (Number.isFinite(o.el)) v.el = o.el;
           // Partie en cours : g, manche m, score k ("a-b").
           if (o.g === true) { v.g = true; if (typeof o.f === "string" && /^[a-z,]{0,60}$/.test(o.f) && o.f) v.f = o.f; if (Number.isInteger(o.m)) v.m = Math.min(Math.max(o.m, 1), 9); if (typeof o.k === "string" && /^\d{1,2}-\d{1,2}$/.test(o.k)) v.k = o.k; }
           if (annonceOn) {
             const { t, ...maj } = v;
-            for (const k of ["a", "d", "e", "v", "w", "q", "n", "g", "m", "k", "f"]) if (!(k in maj)) maj[k] = null;
+            for (const k of ["a", "d", "e", "v", "w", "q", "n", "g", "m", "k", "f", "cl", "el"]) if (!(k in maj)) maj[k] = null;
             try { await update(annRef, maj); return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
           }
-          if (!annonceOn) await onDisconnect(annRef).remove();
+          // onDisconnect posé APRÈS l'écriture : la règle de retrait (u = moi) est alors vraie (sinon PERMISSION_DENIED).
+          const pose = !annonceOn;
           await set(annRef, v); annonceOn = true;
+          if (pose) await onDisconnect(annRef).remove();
         } else {
           // Le créateur ou un joueur présent peut retirer l'annonce (salon complet).
           const v = annonceOn ? true : (await get(annRef).catch(() => null));
@@ -549,6 +599,16 @@ async function ouvre() {
       uid: () => moi
     },
     peers: () => hallPeers,
+    // 0.6 : visiteurs en ligne (enligne/, invités compris) et écoute de ce nombre.
+    enLigneN: () => enligneN,
+    onEnLigne(f) { ecouteEnligne.push(f); },
+    // 0.6 : base du service classé (commun/classe.js, GolemsClasse.service) : lecture et écriture multi-chemins sous le préfixe.
+    classeBase: () => ({
+      uid: () => moi,
+      pseudo: () => donnees ? donnees.pseudo : "",
+      lit: p => get(ref(db, P + p)).then(s => s.val()),
+      ecrit: m => { const o = {}; for (const k in m) o[P + k] = m[k]; return update(ref(db), o); }
+    }),
     onPeers(f, g) { ecouteHall.push(f); if (g) { hallPerdu.push(g); if (hallErreur) setTimeout(g, 0); } },
     onConnection(f, g) { ecouteCo.push(f); },
     async presence(p) {
