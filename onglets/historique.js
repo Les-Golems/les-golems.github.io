@@ -84,8 +84,10 @@ function mvpHisto(nom){
   if(C&&elCarte(C))b.style.color='var(--'+elCarte(C)+')';if(C&&C.base)b.title=C.nom+' (évolution de '+M0.CARTES[C.base].nom+')';else b.title=b.textContent;
   z.append(b);return z;
 }
-const dateH=t=>new Date(t).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
-const heureH=t=>new Date(t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+/* 0.6 : partie sans date (ou date illisible) : « - » et non « Invalid Date » */
+const dateOk=t=>t!=null&&t!==''&&Number.isFinite(new Date(t).getTime());
+const dateH=t=>dateOk(t)?new Date(t).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}):'-';
+const heureH=t=>dateOk(t)?new Date(t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
 function verHisto(x){const w=versionAff(x);return el('span','etq-v hl-ver',/^[0-9]/.test(w)?'v'+w:w)}
 
 /* ----- Fenetre de detail ----- */
@@ -97,7 +99,7 @@ function detailHisto(x){
   /* Titre : resultat, etiquettes, mention ; date et version a droite */
   const t=el('h2','sc-fen-titre hd-tete');t.id='hdTitre';t.append(resHisto(x),etqHisto(x));
   if(x.abandon||x.deckVide)t.append(el('span','hd-ment',x.abandon?(x.abandon==='adv'?'abandon adverse':'abandon'):'deck vide'));
-  t.append(el('span','hd-sp'),el('span','hd-date',dateH(x.date)+' - '+heureH(x.date)),verHisto(x));d.append(t);
+  t.append(el('span','hd-sp'),el('span','hd-date',dateOk(x.date)?dateH(x.date)+' - '+heureH(x.date):'-'),verHisto(x));d.append(t);
   /* Face a face : moi | score | adversaire */
   const ff=el('div','hd-ff'),g=el('div','hd-j g'),c=el('div','hd-s'),dr=el('div','hd-j d');
   const moi=el('span','hl-adv');
@@ -268,7 +270,7 @@ function ligneHisto(x){
   if(e.length){const cm=(c,a)=>'color-mix(in srgb,var(--fm-'+c+') '+a+'%,transparent)';li.style.background='linear-gradient(90deg,'+cm(e[0],30)+' 0%,'+cm(e[1]||e[0],14)+' 20%,transparent 40%),var(--panneau2)'}
   const dk=el('span','hl-deck'),dn=el('span','hl-dn',nomDeckH(x.deck));dn.title=dn.textContent;dk.append(pictosH(e),dn);
   const sc=el('span','hl-scz');sc.append(scoreHisto(x));const dl=deltaHisto(x);if(dl)sc.append(dl);
-  const dt=el('span','hl-date',dateH(x.date));dt.append(el('small','',heureH(x.date)));
+  const dt=el('span','hl-date',dateH(x.date));if(dateOk(x.date))dt.append(el('small','',heureH(x.date)));
   const res=resHisto(x);if(x.abandon||x.deckVide)res.title=x.res+(x.abandon?' (abandon)':' (deck vide)');
   li.append(res,etqHisto(x),dk,el('span','hl-vs','contre'),advHisto(x),sc,mvpHisto(x.mvp),dt,verHisto(x),el('span','hl-fl','›'));
   li.lastChild.setAttribute('aria-hidden','true');

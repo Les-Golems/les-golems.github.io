@@ -165,7 +165,7 @@ async function ouvre() {
       cree: +v.cree || 0,
       decks: versListe(v.decks).map(d => ({ id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0, ...(d.v ? { v: d.v } : {}) })),
       historique: Object.keys(v.historique || {}).map(k => { try { return JSON.parse(v.historique[k].x); } catch (e) { return null; } })
-        .filter(x => x && x.id).sort((a, b) => b.date - a.date),
+        .filter(x => x && x.id).sort((a, b) => (+b.date || 0) - (+a.date || 0)),
       cumul: lisCumul(v.cumul),
       masque: false
     };
