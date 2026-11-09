@@ -22,12 +22,20 @@ function avatarUid(nom,uid,repli){
       document.querySelectorAll('.avatar[data-av]').forEach(x=>{if(x.dataset.av===uid)x.replaceWith(avatarUid(x.dataset.nom,uid))})})}
   const a=avatarDe(nom,avCache[uid]||repli);a.dataset.av=uid;a.dataset.nom=nom;return a;
 }
+/* 0.6 : capsule du bandeau B3 (maquette 32). Connecte : [embleme + Elo |] pseudo | avatar, clic = mon profil, porte de deconnexion visible.
+   Invite (I2) : « Invité » + « Se connecter » dessous, avatar « ? », clic = fenetre de connexion, pas de porte.
+   Rang : TODO quand le classement 0.6 sera branche (commun/classe.js) : appeler majRangMoi({img, nom, elo}) ; d'ici la, embleme et Elo
+   restent masques et la capsule montre le pseudo et l'avatar seulement. */
+function majRangMoi(r){const g=$('rangMoi'),sep=g.nextElementSibling,ok=!!(r&&r.img&&Number.isFinite(r.elo));
+  g.hidden=sep.hidden=!ok;if(ok){g.querySelector('img').src=r.img;g.querySelector('img').alt=r.nom||'';$('rangElo').textContent=Math.round(r.elo).toLocaleString('fr-FR')}}
 function majMoi(){
-  const co=compteCo();
-  $("pseudoAffiche").textContent=co?pseudo:'Invité';
+  const co=compteCo(),c=$('capsuleMoi');
+  $("pseudoAffiche").textContent=co?pseudo:'Invité';$('sousConnexion').hidden=co;
+  {const p=$('pseudoAffiche');p.removeAttribute('role');p.removeAttribute('tabindex');p.removeAttribute('title');p.classList.remove('pf-lien')}
   $("avatarMoi").replaceWith(Object.assign(avatarDe(co?pseudo:"?",monAvatar()),{id:"avatarMoi"}));
-  const b=$('modifierPseudo'),t=co?'Se déconnecter':'Se connecter';b.querySelector('.txt').textContent=t;
-  b.classList.toggle('deco',co);if(co){b.title=t;b.setAttribute('aria-label',t)}else{b.removeAttribute('title');b.removeAttribute('aria-label')}
+  c.title=co?'Mon profil':'Se connecter';c.setAttribute('aria-label',co?'Mon profil ('+pseudo+')':'Invité : se connecter');c.classList.toggle('bd-invite',!co);
+  $('modifierPseudo').hidden=!co;if(!co)majRangMoi(null);
+  if(typeof majEnLigne==='function')majEnLigne();
 }
 /* Galerie d'avatars : avatars/avatars.json (id, nom), l'initiale en premier. */
 let listeAvatars=null;
@@ -51,8 +59,9 @@ async function ouvreGalerie(){
   {const f=g.querySelector('[aria-pressed="true"]')||g.firstChild;f.focus({preventScroll:true});
    const a=g.getBoundingClientRect(),b=f.getBoundingClientRect();if(b.bottom>a.bottom)g.scrollTop+=b.bottom-a.bottom+8}
 }
-function fermeGalerie(){$('galerieAvatar').hidden=true;document.documentElement.classList.remove('galOuverte');$('choixAvatar').focus()}
-$('choixAvatar').onclick=ouvreGalerie;
+/* 0.6 : « Changer d'avatar » passe dans le profil (refonte du profil, vague suivante : TODO y appeler ouvreGalerie()). */
+function fermeGalerie(){$('galerieAvatar').hidden=true;document.documentElement.classList.remove('galOuverte');($('choixAvatar')||$('capsuleMoi')).focus()}
+if($('choixAvatar'))$('choixAvatar').onclick=ouvreGalerie;
 $('galFermer').onclick=fermeGalerie;
 $('galerieAvatar').onclick=e=>{if(e.target.id==='galerieAvatar')fermeGalerie()};
 $('galerieAvatar').onkeydown=e=>{if(e.key==='Escape')fermeGalerie()};
@@ -117,13 +126,19 @@ function ouvrePseudo(){
   modeCompte(false);$('pseudo').value=lire('golems.pseudo')||'';$('codeSecret').value='';
   $('popPseudo').hidden=false;$('pseudo').focus();
 }
-$('modifierPseudo').onclick=async()=>{
+/* Capsule : mon profil (connecte) ou connexion (invite). Ecoute en capture : le pseudo n'est plus un bouton a part (role=button pose par profil.js, retire dans majMoi). */
+$('capsuleMoi').addEventListener('click',e=>{e.stopPropagation();e.preventDefault();if(compteCo()){if(typeof ouvreProfil==='function')ouvreProfil()}else ouvrePseudo()},true);
+/* Porte de deconnexion : fenetre de confirmation [Se déconnecter] [Annuler] (sc-fenetre). */
+function fermeDeco(){$('fenDeco').hidden=true;$('modifierPseudo').focus()}
+$('modifierPseudo').onclick=()=>{
   if(!compteCo()){ouvrePseudo();return}
   if(r){$('erreurJeu').textContent='Quitte le salon avant de te déconnecter.';onglet('jouer');return}
-  const b=$('modifierPseudo');b.disabled=true;
-  try{await room.compte.deconnecter()}catch(e){}
-  b.disabled=false;
+  $('fenDeco').hidden=false;$('decoOui').focus();
 };
+$('decoNon').onclick=fermeDeco;
+$('fenDeco').onclick=e=>{if(e.target.id==='fenDeco')fermeDeco()};
+$('fenDeco').onkeydown=e=>{if(e.key==='Escape')fermeDeco()};
+$('decoOui').onclick=async()=>{const b=$('decoOui');b.disabled=true;try{await room.compte.deconnecter()}catch(e){}b.disabled=false;$('fenDeco').hidden=true};
 $('basculeCompte').onclick=()=>modeCompte(!modeCreer);
 $('plusTard').onclick=()=>{ecrire('golems.invite','1');$('popPseudo').hidden=true};
 $('formPseudo').onsubmit=async e=>{
