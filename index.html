@@ -115,46 +115,58 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
   <p class="absent" id="absent" hidden>Le salon en ligne n'est pas disponible pour le moment. Le jeu contre les Golems reste possible.</p>
   <div class="jeu"><div>
     <p class="erreur" id="erreurJeu" role="alert"></p>
+    <div class="sc-sel j-vue" id="jVue" role="group" aria-label="Vue de l'onglet Jouer"><button type="button" data-v="parties" aria-pressed="true">Parties</button><button type="button" data-v="historique" aria-pressed="false">Historique</button></div>
     <div id="accueil">
-      <div class="bloc" id="blocCreer">
-        <h3>Créer une partie</h3>
-        <label class="pf-inter caseSalon" title="Privé : la partie n'apparaît pas dans les parties publiques, seul son code permet de la rejoindre."><span class="pf-itx" id="salonPublicTxt">Salon public</span><input type="checkbox" id="salonPublicCase" role="switch" checked><span class="pf-glis"></span></label>
-        <button class="btn plein" id="creer" disabled>Créer une partie</button>
+      <div class="j-tuiles">
+      <div class="bloc j-tuile" id="blocClasse">
+        <h3 class="sc-titre-bloc">Classée</h3>
+        <div class="j-encart" id="encartRang"></div>
+        <div class="j-actions">
+          <div class="j-rangee"><button class="sc-btn" id="creerClasse" type="button" disabled>Créer une partie classée</button><div class="sc-sel j-pub" id="pubClasse" role="group" aria-label="Partie classée publique ou privée"><button type="button" aria-pressed="true">Publique</button><button type="button" aria-pressed="false">Privée</button></div></div>
+          <button class="sc-btn sc-secondaire" id="voirClassement" type="button">Voir le classement</button>
+        </div>
       </div>
-      <div class="bloc" id="blocRejoindre">
-        <h3>Rejoindre une partie privée</h3>
-        <form class="ligne" id="formCode">
-          <div><label for="champCode">Code du salon</label><input type="text" id="champCode" maxlength="8" autocomplete="off" autocapitalize="characters"></div>
-          <button class="btn" id="rejoindre" disabled>Rejoindre</button>
-        </form>
+      <div class="bloc j-tuile" id="blocCreer">
+        <h3 class="sc-titre-bloc">Amicale</h3>
+        <div class="j-encart" id="encartAmicale"></div>
+        <input type="checkbox" id="salonPublicCase" checked hidden><span id="salonPublicTxt" hidden>Salon public</span>
+        <div class="j-actions">
+          <div class="j-rangee"><button class="sc-btn" id="creer" type="button" disabled>Créer une partie amicale</button><div class="sc-sel j-pub" id="pubAmicale" role="group" aria-label="Partie amicale publique ou privée"><button type="button" aria-pressed="true">Publique</button><button type="button" aria-pressed="false">Privée</button></div></div>
+          <form class="j-rangee" id="formCode"><button class="sc-btn sc-secondaire" id="rejoindre" disabled>Rejoindre</button><input type="text" id="champCode" class="j-code" maxlength="8" autocomplete="off" autocapitalize="characters" placeholder="Code" aria-label="Code du salon"></form>
+        </div>
       </div>
-      <div class="bloc" id="blocRobot">
-        <h3>Apprendre et s'entraîner</h3>
-        <div class="choixDeck"><label for="deckRobot">Ton deck</label><select id="deckRobot" class="selDeck"></select></div>
-        <div class="p-btns"><div class="niveaux" role="group" aria-label="Tutoriel ou niveau du Golem"><button class="btn plein" id="lanceGuide" type="button">Tutoriel</button><button class="btn niv-f" data-niveau="facile" type="button">Facile</button><button class="btn niv-n" data-niveau="normal" type="button">Normal</button><button class="btn niv-d" data-niveau="difficile" type="button">Difficile</button></div><button class="btn sec" id="repriseRobot" type="button" hidden>Reprendre l'entraînement</button></div>
+      <div class="bloc j-tuile" id="blocRobot">
+        <h3 class="sc-titre-bloc">Entraînement</h3>
+        <div class="j-encart" id="encartEntrainement"></div>
+        <div class="choixDeck" hidden><label for="deckRobot">Ton deck</label><select id="deckRobot" class="selDeck"></select></div>
+        <div class="j-actions">
+          <div class="j-rangee"><button class="sc-btn" id="lanceGuide" type="button">Tutoriel</button><button class="j-pil" id="jDeck" type="button" title="Changer de deck"><span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v16M4 16l4 4 4-4M16 20V4M12 8l4-4 4 4"/></svg></button></div>
+          <div class="niveaux" role="group" aria-label="Niveau du Golem"><button class="sc-btn niv-f" data-niveau="facile" type="button">Facile</button><button class="sc-btn niv-n" data-niveau="normal" type="button">Normal</button><button class="sc-btn niv-d" data-niveau="difficile" type="button">Difficile</button></div>
+          <button class="sc-btn sc-secondaire" id="repriseRobot" type="button" hidden>Reprendre l'entraînement</button>
+        </div>
       </div>
-      <div class="bloc" id="blocListe">
-        <h3>Parties ouvertes</h3>
-        <div id="listeSalons" aria-live="polite"></div>
-      </div>
-      <div class="bloc" id="blocEnCours">
-        <h3>Parties en cours</h3>
-        <div id="listeEnCours" aria-live="polite"></div>
       </div>
       <div class="bloc" id="reprise" hidden>
-        <h3>Partie en cours</h3>
+        <h3 class="sc-titre-bloc">Partie en cours</h3>
         <div class="code" id="repriseCode"></div>
-        <div class="p-btns"><button class="btn" id="reprendre">Reprendre</button><button class="btn sec" id="oublier">Abandonner</button></div>
+        <div class="sc-rangee"><button class="sc-btn" id="reprendre" type="button">Reprendre</button><button class="sc-btn sc-secondaire" id="oublier" type="button">Abandonner</button></div>
+      </div>
+      <div class="bloc" id="blocListe">
+        <div class="j-tete"><h3 class="sc-titre-bloc">Parties en ligne</h3><div class="sc-sel sc-petit j-filtres" id="jFiltres" role="group" aria-label="Filtrer les parties"></div></div>
+        <div id="listeSalons" aria-live="polite"></div>
+        <div id="listeEnCours" hidden></div>
+        <div class="j-pages nv-pages" id="jPages" role="navigation" aria-label="Pages des parties en ligne"><button class="j-btn nv-prec" type="button" aria-label="Page précédente">&lt;</button><span class="nv-num"></span><button class="j-btn nv-suiv" type="button" aria-label="Page suivante">&gt;</button></div>
       </div>
     </div>
     <div class="bloc" id="salon" hidden>
-      <div class="sl-haut"><div><small>Code du salon</small><div class="code" id="codeSalon"></div></div><div class="sl-copies"><button class="btn btnCode" id="copieCode" type="button">Copier le code</button><button class="btn btnCode" id="copieLien" type="button">Copier le lien</button></div></div>
-      <div class="sl-scene"><div id="joueurs" class="sl-duo"></div><div class="sl-compte" id="slCompte" aria-hidden="true" hidden></div></div>
-      <p class="sl-face" id="faceAFace" hidden></p>
+      <div class="sl-haut"><div><small>Code du salon</small><div class="j-codeL"><div class="code" id="codeSalon"></div><span class="j-tag cl" id="salonClasseTag" hidden>Classée</span></div></div><div class="sl-copies"><button class="btn btnCode" id="copieCode" type="button">Copier le code</button><button class="btn btnCode" id="copieLien" type="button">Copier le lien</button></div></div>
+      <div class="sc-alerte sc-info sc-une-ligne j-robot" id="bandeauRobot" hidden><i></i><span></span><button class="sc-btn sc-tertiaire" id="affronterGolem" type="button" hidden>Affronter un Golem</button></div>
+      <div class="sl-cadre"><div class="sl-scene"><div id="joueurs" class="sl-duo"></div><div class="sl-compte" id="slCompte" aria-hidden="true" hidden></div></div>
+      <div class="sl-specs" id="slSpecs"></div></div>
+      <div class="sl-bas"><p class="sl-face" id="faceAFace" hidden></p>
       <p id="attente" role="status"></p>
-      <button class="btn plein" id="pret">Prêt</button>
+      <div class="sl-rangee"><button class="sc-btn sc-secondaire" id="slDeck" type="button">Changer de deck</button><button class="sc-btn" id="pret">Prêt</button><button class="sc-btn sc-secondaire sl-quitter" id="quitter" type="button">Quitter le salon</button></div></div>
       <div id="chatPlace"></div>
-      <button class="btn sec sl-quitter" id="quitter" type="button">Quitter le salon</button>
     </div>
     <div id="partie" hidden></div>
   </div></div>

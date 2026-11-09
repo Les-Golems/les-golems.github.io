@@ -79,7 +79,7 @@
 .sl-dep{font-size:13px;color:var(--doux)}
 /* Version du site de chaque joueur : etiquette arrondie sous En attente (siege) ou sous En attente il y a N min (parties publiques) ; rouge = page a recharger. */
 .vx-etq{display:inline-block;max-width:100%;padding:2px 10px;font-size:12.5px;line-height:1.35;text-align:center;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}
-.vx-etq.vx-diff{background:#ff6b5e;border-color:#ff6b5e;color:var(--encre)}
+.vx-etq.vx-diff{background:var(--rouge);border-color:var(--rouge);color:var(--encre)}
 .sl-liste li.sl-carte .vx-etq{margin-top:-2px}
 .sl-carte .btn{margin-top:auto!important;width:100%;font-size:18px!important;min-height:46px!important}
 .sl-att{margin-top:auto;font-size:13px;color:var(--doux);font-style:italic;min-height:46px;display:flex;align-items:center}
@@ -187,3 +187,42 @@ b[class^="chat-"][title]{cursor:help}
 }
 .absent{background:var(--panneau2);border-left:3px solid var(--or);padding:10px 14px;border-radius:6px;margin:0 0 14px}
 
+/* 0.6 : salon refait (maquette 23, refonte2_*) : sieges identiques, colonne des spectateurs, rangee [Changer de deck][Pret][Quitter] centree sous le duo. */
+#salon{max-width:1180px;text-align:left}
+#salon .sl-haut{padding:16px}
+.sl-cadre{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:stretch}
+.sl-duo{grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr);gap:16px;margin:0}
+.sl-vs{text-align:center}
+.sl-duo>.sl-j{position:relative;border-width:1px;padding:16px}
+.sl-j.pret{box-shadow:inset 0 0 0 1px #3fcf6e}
+.sl-j.sl-libre{background:transparent}
+.sl-j>.btn{display:none}
+.sl-role{position:absolute;top:12px;right:12px;padding:2px 10px;border-radius:999px;font:800 12px/1.3 var(--corps);color:var(--or);box-shadow:inset 0 0 0 1px rgba(241,195,90,.55)}
+.sl-specs{display:flex;flex-direction:column;gap:10px;min-width:0;background:var(--panneau2);border:1px solid var(--trait);border-radius:12px;padding:16px;box-sizing:border-box}
+.sl-st{display:flex;align-items:center;justify-content:space-between;height:24px;color:var(--doux);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.sl-st span{display:flex;align-items:center;gap:8px}.sl-st svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+.sl-st b{min-width:24px;padding:0 8px;border-radius:999px;background:var(--panneau);color:#fff;text-align:center;line-height:22px;box-shadow:inset 0 0 0 1px var(--trait)}
+.sl-specs ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.sl-specs li{display:flex;align-items:center;gap:10px;height:40px;padding:0 10px 0 6px;border-radius:10px;background:var(--panneau);border:1px solid var(--trait);min-width:0}
+.sl-specs li.moi{border-color:var(--bleu)}
+.sl-specs li .avatar{width:28px;height:28px;font-size:14px;flex:none;margin:0}
+.sl-specs li b{font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-specs li.plus{justify-content:center;color:var(--doux);font-weight:800;font-size:14px}
+.sl-aucun{flex:1;display:flex;align-items:center;justify-content:center;color:var(--doux);font-size:14px;font-weight:700}
+.sl-bas{width:calc(100% - 316px);display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:16px}
+.sl-bas #attente{margin:0;min-height:22px;font-weight:800;font-size:16px;color:var(--doux)}.sl-bas #attente.pret{color:var(--or)}
+.sl-rangee{display:grid;grid-template-columns:200px 340px 200px;gap:16px}
+#salon .sl-rangee .sc-btn{width:100%;margin:0}
+#salon .sl-rangee #pret{max-width:none;min-height:46px;font-size:18px}
+#salon .sl-rangee .sl-quitter{min-height:46px;font-size:18px;padding:0 12px}
+#salon .sl-rangee [hidden]{display:inline-flex;visibility:hidden}
+#salon #chatPlace{margin-top:16px}
+#salon .j-robot{margin:0 0 16px}
+#salon .j-robot>span{-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis}
+@media (max-width:1079px){.sl-cadre{grid-template-columns:minmax(0,1fr)}.sl-bas{width:100%}.sl-rangee{grid-template-columns:1fr 1.6fr 1fr;width:100%}}
+#salon .sl-rangee #pret{display:inline-flex;margin:0}
+#salon .j-tag{font-size:14px;padding:3px 12px}
+#joueurs .vx-etq:not(.vx-diff){display:none}
+#salon .sl-copies{gap:12px}
+#salon .sl-haut .btnCode{width:180px;min-height:46px;--bord:#26323c;background:#3b4b59;color:var(--texte);box-shadow:0 2px 0 #26323c}
+#salon .sl-haut .btnCode{font-size:17px}.sl-cadre .sl-scene,.sl-cadre .sl-duo{height:100%}

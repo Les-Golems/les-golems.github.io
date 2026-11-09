@@ -475,7 +475,7 @@ function ouvrePop(type,m){
   else if(type==='pile'){pp.classList.add('pp-p');popPile(m,pp);suivi.pile={p:m.p,k:m.k,sig:sigPile(m)};v.onclick=e=>{if(e.target===v)fermePop()}}
   else if(type==='abandon')popAbandon(E.etat,m,pp);
   else{popPartie(E.etat,pp);suivi.vu={type,m,log:E.etat.log.length};if(src==='joueur')boutonsFin(pp)}
-  const fe=mk('button','pp-fermer','Fermer');fe.type='button';fe.onclick=fermePop;pp.append(fe);
+  if(!(type==='partie'&&src==='joueur')){const fe=mk('button','pp-fermer','Fermer');fe.type='button';fe.onclick=fermePop;pp.append(fe)} /* J06 : fin de partie du joueur sans petit Fermer */
   v.append(pp);scene.append(v);suivi.pop=v;
   if(type==='pile'&&haut){const g=pp.querySelector('.pp-pile');if(g)g.scrollTop=haut}
 }
@@ -489,8 +489,16 @@ function popAbandon(s,perdant,pp){
 /* vue joueur : boutons du bilan de fin (Rejouer, Partager le resume, Copier les donnees, Retour a l'accueil) */
 function boutonsFin(pp){
   const u=U(),s=E.etat,z=mk('div','pp-fbtns'),b=(t,cl,f)=>{const x=mk('button','btn'+(cl?' '+cl:''),t);x.type='button';x.onclick=()=>f(x);z.append(x);return x};
-  const rj=document.getElementById('rejouer');
-  if(rj){const x=b(rj.textContent,'plein',()=>{fermePop();rj.click()});x.disabled=rj.disabled}
+  const rj=document.getElementById('rejouer'),P=u.partie;
+  if(rj){const rv=mk('div','pp-rev'),moiP=P?P.moi:0,j=p=>{const d=mk('div','pp-rj'+(p===moiP?'':' lui')),n=mk('b','',nom(p));n.style.color=COL[p];d.append(avatar(p),n);return d};
+    const x=mk('button','sc-btn pp-revb',P&&P.veut?'En attente de l\'adversaire':'Revanche');x.type='button';x.disabled=rj.disabled;
+    /* classee contre un Golem : la revanche relance une classee contre le Golem choisi par l'Elo (limite du jour comprise) */
+    const cl=P&&P.classe&&P.classe.robot&&typeof lanceClasseRobot==='function'&&typeof profilClasse==='function';
+    if(cl&&!GolemsClasse.peutAffronterRobot(profilClasse().robots)){x.disabled=true;x.textContent='Limite du jour atteinte'}
+    x.onclick=()=>{fermePop();if(cl)lanceClasseRobot(profilClasse(),P.classe.sa);else rj.click()};
+    const c=mk('div','pp-revc');c.append(x,mk('small','',P&&P.local?(cl?'Nouvelle classée contre un Golem':'Nouvelle partie contre le Golem'):P&&P.veut?'Tu as choisi la revanche':'Personne n\'a encore choisi'));
+    rv.append(j(moiP),c,j(1-moiP));pp.append(rv)}
+  b('Changer de deck','sec',()=>{if(typeof u.choisirDeck==='function')u.choisirDeck(()=>{},'Choisir')});
   b('Partager le résumé','sec',x=>u.partageFin(x,u.texteResume(s)));
   b('Copier les données','sec',x=>u.copie(u.donneesPartie(s),x,'Copier les données'));
   b("Retour à l'accueil",'sec',()=>{fermePop();u.quitteBouton()});
@@ -539,8 +547,8 @@ function popPartie(s,pp){
   if(src==='spec'&&F.abandon!==undefined&&(w===0||w===1)){vic.append(mk('h2','pp-neutre','Fin par abandon'));const duo=mk('div','pp-duo');
     [w,1-w].forEach(p=>{const j=mk('div','pp-dj'+(p===w?' g':'')),n=mk('span','pp-dn',nom(p)),a=avatar(p);if(p!==w)a.classList.add('dk-gris');n.style.color=COL[p];
       j.append(a,n,mk('span','dk-tag '+(p===w?'v':'d'),p===w?'Vainqueur':'Abandon'));duo.append(j)});vic.append(duo)}
-  else if(w===0||w===1){vic.style.setProperty('--c',COL[w]);const h=mk('h2','','Victoire '+d_(nom(w))+nom(w));h.style.color=COL[w];vic.append(avatar(w),h)}
-  else vic.append(mk('h2','','Match nul'));
+  else if(w===0||w===1){vic.style.setProperty('--c',COL[w]);const h=mk('h2','','Victoire '+d_(nom(w))+nom(w));h.style.color=COL[w];vic.append(avatar(w),titreFin(h))}
+  else vic.append(titreFin(mk('h2','','Match nul')));
   if(F.abandon!==undefined)vic.append(mk('p','pp-sous',nom(F.abandon)+(F.quitte?' a quitté la partie':' a abandonné')));
   else if(F.deckVide!==undefined)vic.append(mk('p','pp-sous','Victoire par deck vide : '+nom(F.deckVide)+' n\'avait plus de carte à piocher')); /* 0.4 */
   else if(F.departage&&F.scores[0]===F.scores[1])vic.append(mk('p','pp-sous','Égalité de points : départage à la Force'));
@@ -560,6 +568,23 @@ function popPartie(s,pp){
     col.append(l1);const pq=pourquoiMvp(x);if(pq)col.append(mk('div','pp-mvp-pq',pq));
     mv.append(mk('span','pp-mvp-e','MVP'),col);
     pp.append(mv)}
+  rangFin(pp);
+}
+/* 0.6 : partie classee (vue joueur) : pastille « Classée » (J05) a cote du titre, encart de rang sous le MVP (maquette 21, classe a-e). */
+const classeFin=()=>{const u=U(),P=src==='joueur'&&u?u.partie:null;return P&&P.classe?P.classe:null};
+function titreFin(h){if(!classeFin())return h;const z=mk('div','pp-titre');z.append(h,mk('span','pp-cl','Classée'));return z}
+function rangFin(pp){
+  const c=classeFin(),C=window.GolemsClasse;if(!c||!c.res||!C)return;
+  const x=c.res,A=C.affichage(x.profil),R=A.placement?A.estime:A.rang,i=C.RANGS.indexOf(R),suiv=C.RANGS[i+1],b=mk('div','pp-rang'),im=mk('img','pp-remb');
+  im.src=imgV('images/rangs/'+(A.placement?'placement':R.id)+'.png');im.alt=R.nom;
+  const mid=mk('div','pp-rmid'),l1=mk('div','pp-rl1'),nm=mk('b','pp-rnom',A.placement?'Placement '+A.n+'/'+A.sur:R.nom),el=mk('span','pp-relo');
+  el.append(mk('small','','ELO'),' '+Math.round(x.avant)+' -> '+Math.round(x.apres));l1.append(nm);if(!A.placement)l1.append(el);
+  const br=mk('div','pp-rbar'),bas=Number.isFinite(R.min)?R.min:(suiv?suiv.min-100:0),haut=suiv?suiv.min:bas+100,pct=e=>Math.max(0,Math.min(100,100*(e-bas)/(haut-bas)));
+  const a=mk('i','pp-ra'),d=mk('i','pp-rd '+(x.delta>=0?'up':'down'));a.style.width=pct(Math.min(x.avant,x.apres))+'%';d.style.left=pct(Math.min(x.avant,x.apres))+'%';d.style.width=Math.abs(pct(x.apres)-pct(x.avant))+'%';br.append(a,d);
+  const l3=mk('div','pp-rl3');l3.append(mk('span','',A.placement?'Rang révélé après '+A.sur+' parties':R.nom+' dès '+(Number.isFinite(R.min)?R.min:0)),mk('span','',suiv&&!A.placement?Math.ceil(suiv.min-x.apres)+' pts avant '+suiv.nom:''));
+  mid.append(l1);if(!A.placement)mid.append(br);mid.append(l3);
+  const pts=mk('div','pp-rpts '+(x.delta>=0?'up':'down'));pts.append(mk('b','',(x.delta>=0?'+':'')+x.delta),mk('small','',c.robot?'POINTS / 2':'POINTS'));
+  b.append(im,mid,pts);pp.append(b);
 }
 /* Pourquoi MVP : meme formulation que ligneMvpD d'index.html (export Discord de l'Historique), valeurs nulles omises */
 function pourquoiMvp(m){

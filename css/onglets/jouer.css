@@ -1,36 +1,76 @@
 /* Onglet Jouer : disposition des blocs Creer, Rejoindre, Apprendre ; passe animations. */
-/* Onglet Jouer des 1080 px (Rejoindre un peu plus large de 1080 a 1199 px pour garder titre et code sur une ligne) : Creer, Rejoindre et Apprendre et s'entrainer sur une ligne ; boutons poses en bas de chaque bloc,
-   donc meme haut, meme hauteur et meme bas dans les trois blocs (0.4). */
-@media (min-width:1080px){
-  #accueil{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:16px}
-  #accueil>.bloc{display:flex;flex-direction:column;padding:16px}
-  #accueil>.bloc>.btn,#accueil>.bloc>form,#accueil>.bloc>.p-btns{margin-top:auto}
-  #accueil>.bloc>form{margin-bottom:0}
-  #premierePartie{grid-area:1/1/auto/-1}
-  #blocCreer{grid-area:2/1}
-  #blocRejoindre{grid-area:2/2}
-  #blocRobot{grid-area:2/3/auto/span 2}
-  #reprise{grid-area:3/1/auto/-1}
-  #blocListe{grid-area:4/1/auto/-1}
-  #blocEnCours{grid-area:5/1/auto/-1}
-  #accueil>.erreur{grid-area:6/1/auto/-1}
-  #blocRobot .niveaux{grid-template-columns:repeat(4,minmax(0,1fr))}
-}
-@media (min-width:1080px) and (max-width:1199px){#accueil{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr)}}
-/* Onglet Jouer : bandeau Premiere partie, 3 blocs (Creer, Rejoindre, Apprendre et s'entrainer en pleine largeur) sur tablette, colonne sur telephone. */
-@media (min-width:700px) and (max-width:1079px){
-  #accueil{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px}
-  #accueil>.bloc{display:flex;flex-direction:column}
-  #accueil>.bloc>.btn,#accueil>.bloc>form,#accueil>.bloc>.p-btns{margin-top:auto}
-  #reprise,#blocListe,#blocEnCours,#accueil>.erreur,#premierePartie,#blocRobot{grid-column:1/-1}
-  #blocRobot .niveaux{grid-template-columns:repeat(4,minmax(0,1fr))}
-}
-/* Telephone : Tutoriel sur toute la largeur, les 3 niveaux dessous */
-@media (max-width:699px){#blocRobot .niveaux #lanceGuide{grid-column:1/-1}}
-#formCode #champCode{width:8.5ch;text-transform:uppercase}
-#formCode{flex-wrap:nowrap}#formCode>div{flex:0 1 auto}
-:is(#rejoindre,.niveaux .btn,#accueil #creer,#lanceGuide){height:46px;min-height:46px;padding-top:0;padding-bottom:0;font-size:16px}
-#rejoindre{width:96px;padding-left:4px;padding-right:4px;flex:0 0 auto}
+/* Onglet Jouer 0.6 (maquettes 18 v7/v9 final, 26, 36 variante B ; audit 34 J01, J09, J10, J13). */
+#jouer>.intro,#jouer>.etat{display:none}
+.j-vue{margin:0 0 16px}
+#jouer.enJeu .j-vue,#jouer:has(#salon:not([hidden])) .j-vue{display:none}
+#jouer.j-histo #accueil,#jouer.j-histo>.absent{display:none}
+#jouer>#historique{margin-top:0}
+.j-tuiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:0 0 16px}
+#accueil .bloc{margin:0}
+.j-tuile{display:flex;flex-direction:column;padding:18px;min-width:0}
+.j-tuile>.sc-titre-bloc,#blocListe .sc-titre-bloc{color:var(--bleu)}
+.j-encart{display:flex;align-items:center;min-height:104px;box-sizing:border-box;padding:12px 8px;border-radius:10px;background:var(--panneau2);border:1px solid var(--trait)}
+.j-c3{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;padding:0 6px;white-space:nowrap;text-align:center}
+.j-c3 i{font:800 11.5px/1.2 var(--corps);font-style:normal;text-transform:uppercase;letter-spacing:.05em;color:#c3ccd3}
+.j-c3 b{font:400 24px/1.1 var(--titre);color:var(--texte);max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.j-c3 small{font-size:13px;line-height:1.2;color:var(--doux);max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.j-c3 b.rg{color:var(--bleu)}
+.j-emb{flex:none;width:56px;height:56px;object-fit:contain;margin:0 4px 0 6px}
+.j-barre{display:block;width:100%;height:4px;margin-top:6px;border-radius:2px;background:#0a121a;overflow:hidden}
+.j-barre>u{display:block;height:100%;background:#d4dde4}
+.j-actions{display:flex;flex-direction:column;gap:12px;margin-top:auto;padding-top:14px}
+.j-rangee{display:flex;align-items:center;gap:12px;margin:0;min-width:0}
+.j-rangee>.sc-btn{flex:1;min-width:0}
+.j-actions>.sc-btn{width:100%}
+.j-pub{flex:none;width:184px}
+.j-code{flex:none;width:184px;height:46px;margin:0;box-sizing:border-box;text-transform:uppercase;letter-spacing:.08em}
+.j-code::placeholder{text-transform:none;letter-spacing:0;color:#6d808d}
+.j-pil{flex:none;width:184px;height:46px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 10px 0 14px;border:0;border-radius:10px;cursor:pointer;color:#fff;font:800 15px/1 var(--corps);background:var(--j-teinte,linear-gradient(90deg,#4a5a68,#26323d));box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.j-pil:hover{filter:brightness(1.08)}
+.j-pil:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
+.j-pil span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.j-pil svg{flex:none;width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+#blocRobot .niveaux{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+#blocRobot .niveaux .sc-btn{color:var(--encre)}
+.sc-btn.niv-f{background:#5cc46e;box-shadow:0 2px 0 #2f7d3c}.sc-btn.niv-n{background:#f0c94a;box-shadow:0 2px 0 #9d7c16}.sc-btn.niv-d{background:#e25d55;box-shadow:0 2px 0 #8e2c26}
+/* Parties en ligne : J01 bas du bloc a 24 px */
+#blocListe{padding:18px 18px 24px}
+.j-tete{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+.j-tete .sc-titre-bloc{margin:0}
+.j-liste{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.j-p{display:grid;grid-template-columns:96px 84px minmax(0,1fr) 150px 44px 132px;align-items:center;gap:12px;height:48px;box-sizing:border-box;padding:0 6px 0 14px;border:1px solid var(--trait);border-radius:10px;background:var(--j-teinte,var(--panneau2))}
+.j-p.mien{border-color:var(--bleu)}
+.j-et{font:800 13px/1 var(--corps);text-transform:uppercase;letter-spacing:.05em;color:#6fd08c}
+.j-et.c{color:var(--ambre)}.j-et.e{color:var(--doux)}
+.j-tag{justify-self:start;display:inline-block;padding:3px 9px;border-radius:999px;font:800 12px/1.2 var(--corps);background:#5a6773;color:#fff}
+.j-tag.cl{background:var(--or);color:var(--encre)}
+.j-duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:14px;min-width:0}
+.j-duo .vs{color:var(--doux);font-weight:700;font-size:14px}
+.j-j{display:flex;align-items:center;gap:8px;min-width:0;font-weight:800;white-space:nowrap}
+.j-j.g{justify-content:flex-end}
+.j-j b{overflow:hidden;text-overflow:ellipsis}
+.j-j .avatar{flex:none;width:30px;height:30px;font-size:15px}
+.j-j .lib{color:var(--doux);font-weight:700;font-size:14px;font-style:italic}
+.j-j .elo{font-size:13px;color:var(--doux);font-weight:700}
+.j-els{display:inline-flex;gap:4px;flex:none}.j-els img{width:16px;height:16px}
+.j-inf{font-size:14px;color:var(--doux);white-space:nowrap;text-align:right}
+.j-inf b{color:var(--texte);font:400 18px/1 var(--titre);margin-left:6px}
+.j-spec{display:flex;align-items:center;gap:5px;font-size:14px;color:var(--doux)}
+.j-spec svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2}
+.j-p .sc-btn{height:36px;font-size:16px;padding:0 10px;width:100%}
+.j-vide{padding:18px 4px;color:var(--doux);font-style:italic}
+.j-pages{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin:12px 0 0}
+.j-pages[hidden]{display:none}
+.j-pages .nv-num{font:400 17px/1 var(--titre);min-width:44px;text-align:center}
+/* Fenetre de choix du deck (B2a) : J09 titre au modele sc-fenetre, J10 deck invalide contour rouge 2 px */
+#popDeck .cd-boite>h2{font:800 18px/1.2 var(--corps);margin:0 0 14px;color:var(--texte)}
+#popDeck .cd-tuile.cd-off{box-shadow:0 0 0 2px var(--rouge);border-color:var(--rouge)}
+/* Salon classe : etiquette a cote du code, bandeau du Golem (36 variante B) */
+.j-codeL{display:flex;align-items:center;gap:14px}
+.j-robot{margin:0 0 16px}
+.j-robot[hidden]{display:none}
+@media (max-width:1079px){.j-tuiles{grid-template-columns:minmax(0,1fr)}.j-p{grid-template-columns:90px 80px minmax(0,1fr) 120px}.j-p .j-spec{display:none}.j-p .sc-btn{grid-column:4}}
+@media (max-width:699px){.j-p{grid-template-columns:minmax(0,1fr) auto;height:auto;padding:10px}.j-p .j-duo{grid-column:1/-1}.j-p .j-inf{display:none}.j-pub,.j-code,.j-pil{width:150px}}
 /* Passe animations */
 #scene{position:fixed;inset:0;z-index:16;pointer-events:none;overflow:hidden}
 #scene svg{position:absolute;inset:0;width:100%;height:100%}
@@ -68,3 +108,27 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
   .fx-secoue,.p-camp.joue{animation:none}
   .p-terrain{transition:none}
 }
+/* 0.6 : chat (J03), filtres, invite, petits emblemes */
+b.chat-moi{color:var(--bleu)}b.chat-adv{color:var(--adverse)}
+.j-filtres .j-nb{display:inline-block;min-width:18px;margin-left:6px;padding:2px 5px;border-radius:6px;background:rgba(0,0,0,.35);font:800 11.5px/1.2 var(--corps);color:inherit}
+.j-mini{width:24px;height:24px;object-fit:contain;flex:none}
+.j-tag.j-moi{justify-self:stretch;text-align:center;background:none;color:var(--bleu);box-shadow:inset 0 0 0 1px var(--bleu)}
+#accueil.j-invite :is(#blocClasse,#blocCreer)>:not(.sc-titre-bloc):not(.j-verrou),#accueil.j-invite #blocListe>:not(.j-tete):not(.j-verrou),#accueil.j-invite #jFiltres{filter:blur(5px);opacity:.55;pointer-events:none;user-select:none}
+#accueil.j-invite :is(#blocClasse,#blocCreer,#blocListe){position:relative}
+.j-verrou{position:absolute;left:18px;right:18px;top:62px;height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center}
+.j-verrou>b{font:400 19px/1.15 var(--titre);color:#fff}
+.j-verrou>small{font-size:14px;color:var(--doux)}
+.j-cadenas svg{width:28px;height:28px;fill:none;stroke:var(--bleu);stroke-width:2.2}
+.j-verrou .j-vbtns{position:absolute;left:0;right:0;top:118px;display:flex;gap:12px}
+.j-verrou .j-vbtns .sc-btn{flex:1}
+.j-verrou.j-vliste{top:60px;bottom:24px;height:auto}
+.j-verrou.j-vliste .j-vbtns{position:static;justify-content:center;margin-top:12px}
+.j-verrou.j-vliste .j-vbtns .sc-btn{flex:none;width:200px}
+.j-pub>button{padding:0 8px}
+#formCode #champCode{flex:0 0 184px;width:184px;min-width:0}
+#formCode #rejoindre{flex:1;width:auto}
+.j-robot>span{text-align:left}
+#formCode#formCode.j-rangee{display:flex;gap:12px}#formCode#formCode #rejoindre{flex:1;width:auto;min-height:46px;padding:0 20px;font-size:18px}#formCode#formCode #champCode{flex:0 0 184px;width:184px;height:46px}
+#popDeck .cd-boite{width:min(700px,calc(100vw - 32px));max-width:none;text-align:left}#popDeck .cd-boite>h2{text-align:left}
+#formCode#formCode#formCode #champCode{min-width:0;width:184px;flex:0 0 184px}#formCode#formCode#formCode #rejoindre{flex:1 1 auto;min-width:0}
+#accueil.j-invite #blocListe{min-height:470px;box-sizing:border-box}
