@@ -1232,7 +1232,7 @@ duel('facile','normal');duel('normal','difficile');
   for(const niv of ['normal','difficile']){
     s=gagne(7);eq(M.code(M.robot(s,0,niv)),'p~o10',niv+' : pose le moderateur');pose(s,MO,1,0);deq(codes(s),['e0001','e0010','v']);
     eq(M.code(M.robot(s,0,niv)),'e0001',niv+' : echange gagnant');eq(M.code(M.robot(s,0,niv)),'e0001','deterministe');
-    s=gagne(15);pose(s,MO,1,0);eq(M.robot(s,0,niv).t,'v',niv+' : echange inutile, passe');
+    s=gagne(niv==='difficile'?30:15); /* 0.6 : Difficile, ecart borne a 12 et part sigmoide : un echange qui rapproche de 15 a 8 vaut un peu */pose(s,MO,1,0);eq(M.robot(s,0,niv).t,'v',niv+' : echange inutile, passe');
     s=prep([MO]);moi(s,TR,1,0,1);moi(s,SH,1,1,1);pose(s,MO,1,1);eq(M.robot(s,0,niv).t,'v',niv+' : rien a gagner, passe');
   }
   for(let r=1;r<30;r++){s=prep([MO],r);moi(s,TR,r%4,0,1);moi(s,KC,1+r%3,0,r%2*2);moi(s,SH,1,1+r%2,1);if(r%3)adv(s,TR,r%5+1,r%3,r%3);pose(s,MO,1+r%2,1);

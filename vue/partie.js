@@ -91,9 +91,15 @@ function oublieLocal(){try{localStorage.removeItem(LS('golems.local'))}catch(e){
 function lanceLocal(v){
   if(partie)finPartie();
   $('erreurJeu').textContent='';
-  const dc=deckChoisi();
-  lancer(v?v.graine:nouvelleGraine(),0,'',{mien:v?v.mien:[],sien:v?v.sien:[],advNom:'Golem',niveau:v?v.niveau:niveauChoisi,recapVu:v?v.recapVu:0,debut:v&&v.debut,local:true,
-    decks:v&&Array.isArray(v.decks)?v.decks:[dc.texte,''],deckNom:v?v.deckNom:dc.nom});
+  const dc=deckChoisi(),g=v?v.graine:nouvelleGraine();
+  lancer(g,0,'',{mien:v?v.mien:[],sien:v?v.sien:[],advNom:'Golem',niveau:v?v.niveau:niveauChoisi,recapVu:v?v.recapVu:0,debut:v&&v.debut,local:true,
+    decks:v&&Array.isArray(v.decks)?v.decks:[dc.texte,deckRobot(g)],deckNom:v?v.deckNom:dc.nom});
+}
+/* 0.6 : deck du Golem tire dans la reserve (decks conseilles) a partir de la graine de la partie : meme graine = meme deck, rejeux exacts (le deck est aussi garde dans partie.decks). Partie guidee : deck fixe (onglets/tutoriel.js). */
+function deckRobot(g){
+  const R=(window.GolemsDonnees.interface.decksConseilles)||[];if(!R.length)return '';
+  let h=Math.imul((g|0)^0x9E3779B9,2654435761);h^=h>>>15;h=Math.imul(h,0x85EBCA6B);h^=h>>>13;
+  return M.deckTexte(R[(h>>>0)%R.length].cartes);
 }
 function suiteRobot(){
   clearTimeout(robotT);robotT=0;

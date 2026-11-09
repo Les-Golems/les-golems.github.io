@@ -133,7 +133,7 @@ const R0={liste:null,force:null,cirque:'tarte'},regle=o=>Object.assign(M.REGLAGE
   s=nouv(['Le Cirque','L\'Écran du MJ','La Boutique']);eq(M.ecart(s,[0,0],0,0),0);pose(s,0,AL,3,0,0);eq(M.ecart(s,[3,0],0,0),3);eq(M.ecart(s,[3,0],0,1),-3);pose(s,1,AL,5,0,0);eq(M.ecart(s,[3,5],0,0),2);eq(M.ecart(s,[3,5],0,1),-2);
   eq(M.ecart(s,[3,5],1,0),-2,'autre terrain : ecart normal');
   // robot : contre un Golem adverse de 5 au Cirque, pose Cyrdan (1) ici ; KaTarN (8) jamais ici
-  s=nouv(['Le Cirque','La Faille','La Boutique']);s.j[0].energie=9;s.j[0].main=[KA,CY];pose(s,1,AL,5,0,0);
+  s=nouv(['Le Cirque','La Faille','La Boutique']);s.j[0].energie=9;s.j[0].main=[CY];pose(s,1,AL,5,0,0); /* 0.6 : le Difficile (anticipation) peut preferer KaTarN ailleurs ; on teste Cyrdan seul */
   let a=M.robot(s,0,'difficile');ok(a.t==='p'&&a.k===0&&a.c===CY,'robot : Cyrdan (1) au Cirque, '+JSON.stringify(a));
   s.j[0].main=[KA];a=M.robot(s,0,'difficile');ok(a.t==='p'&&a.c===KA&&a.k!==0,'robot : KaTarN (8) ailleurs, '+JSON.stringify(a));
   // variantes de departage (reglage, jamais par defaut) : V1 le moins de Golems ici, V2 le premier a poser un Golem ici dans la manche
@@ -159,7 +159,7 @@ const R0={liste:null,force:null,cirque:'tarte'},regle=o=>Object.assign(M.REGLAGE
   s=nouv(['Le Tournoi','La Boutique','La Faille'],3);pose(s,0,RK,2,0,0);fm(s);eq(s.j[0].score,3,'manche 3 : le Tournoi (3) ne rapporte plus le moins');
   s=nouv(['Le Tournoi','La Boutique','Le Camp'],2);pose(s,0,RK,2,0,0);fm(s);eq(s.j[0].score,2,'manche 2 : 2 contre Le Camp (1) : pas de Palmares');
   s=nouv(['Le Tournoi','L\'Écran du MJ','La Boutique']);eq(M.ptsRobot(s,0),1);s.manche=3;eq(M.ptsRobot(s,0),3);pose(s,0,AL,5,0,0);s.fort=true;
-  const v3=M.valeur(s,0);s.manche=1;ok(v3-M.valeur(s,0)>1.9,'robot : le Tournoi vaut 3 a la manche 3');
+  const v3=M.valeur(s,0);s.manche=1;ok(v3-M.valeur(s,0)>1.2, /* 0.6 : part du terrain selon l'ecart (sigmoide), 2 points x 0,63 a +5 au tour 1 */'robot : le Tournoi vaut 3 a la manche 3');
   res.push('Tournoi');
 }
 { // 7. robot et L'Ecole : point de deck vide

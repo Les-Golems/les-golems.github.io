@@ -663,11 +663,13 @@ const ecoleVide=(s,p,k,d)=>{const e=effsT(s,k).find(e=>e.T.robotBonus);return e?
 /* Actions de terrain du robot en fin de tour (Les Pronos : mise). */
 function pronoRobot(s,p,l){for(const T of TYPES_AVEC('robotFin')){const a=T.robotFin(s,p,l);if(a)return a}return null}
 function valeurForte(s,p){
-  const J=s.j[p];let v=0;
+  let v=0;
   colonnes(s).forEach((c,k)=>{
-    const T=s.terrains[k],d=ecart(s,c,k,p),reste=3-s.manche;
+    const d=ecart(s,c,k,p);
     const e=effsT(s,k).find(e=>e.T.ptsFort),pts=e?e.T.ptsFort(e.r,s):ptsRobot(s,k); /* La Salle Verrouillee */
-    v+=pts*(d>0?1:d===0?.3:0)+.15*Math.max(-7,Math.min(7,d))+ecoleVide(s,p,k,d);
+    const ro=(3-s.tour)+(s.joueur===s.premier&&p===s.joueur?1:0); /* 0.6 : tours adverses restants dans la manche */
+    const u=3*ro+.5,w=1/(1+Math.exp(-d/u)); /* 0.6 : part du terrain selon l'ecart (sigmoide), plus douce tot dans la manche */
+    v+=pts*w+.15*Math.max(-12,Math.min(12,d))+ecoleVide(s,p,k,d);
   });
   return v;
 }
@@ -841,7 +843,7 @@ function robotFort(s,p,l,t){
   if(t==='v')return l[0];
   if(t==='e')return meilleur(F,p,l).a;
   if(t==='f'||t==='n'||t==='j'){ /* 'j' */
-    const cible=Math.min(6,(s.manche-1)*3+s.tour);
+    const cible=Math.min(5,(s.manche-1)*3+s.tour+2); /* 0.6 : plus d'energie tot, plafond plus bas */
     const du=J.main.length>1?forgePreferee(s,p):null; /* forge la carte du duo, meme au-dela de la cible */
     return !J.aForge&&J.main.length>1&&(du!==null||J.forge.length<cible||forgeEncore(s,p))?{t:'f',c:du!==null?du:forgeForte(s,p)}:eclairRobot(s,p,l)||{t:'n'};
   }

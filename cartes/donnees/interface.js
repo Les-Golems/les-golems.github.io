@@ -15,18 +15,20 @@ aVenir:[
  ['023','Kun_Mamba'],['024','MrTitou'],['027','Merser'],['028','Nadzu'],
  ['030','Cyd'],['031','Obsess'],['032','Marech'],['033','Greeny'],['034','Harentros'],
  ['038','TortueGourmande'],['039','TortueVéloce'],['040','PoulpeHome']],
-/* Decks de depart conseilles (0.4) : decks valides de 30 cartes, copies dans les decks du joueur (invite compris). */
+/* Decks conseilles (0.6) : 6 archetypes valides de 30 cartes, copies dans les decks du joueur (invite compris) ; aussi la reserve des robots (tirage au hasard). */
 decksConseilles:[
- {nom:"Tempête",cartes:{"007":3,"007e":3,"026":3,"026e":3,"901":1,"041":3,"041e":3,"018":3,"018e":3,"036":3,"036e":2}, /* 0.4a, 4 elements au plus : JackJoy 3 et Drafteur 1 remplaces par Spom, Velnen, Le chansonnier, Le pomplard +1 */ /* Le Q (refonte) : Le Q 3 et Seul contre tous 3 remplaces par Velnen 2, Le chansonnier 2, Elessar +1, JackJoy +1 */
-  txt:"Forge tôt, pioche beaucoup avec Trigas, Titom76 et Velnen, puis améliore tes Golems en Roi du Mobile et Maître du bilig pour finir fort."},
- {nom:"Forge rapide",cartes:{"007":3,"007e":3,"029":3,"036":3,"009":3,"009e":2,"018":3,"015":3,"026":3,"001":3,"902":1}, /* 0.4a, 4 elements au plus : JackJoy 3 et K-Chan 3 remplaces par KaTarN +2, Titom76 +1, Roi du Mobile +1, GymRat 2 */ /* Le Q (refonte) : Le Q 2 remplace par Titom76 2 */
-  txt:"Pose 2 Golems pas chers par tour, remplis la grille avant l'adversaire et serre tes Golems pour profiter du Trait."},
- {nom:"Gros Golems",cartes:{"016":3,"016e":3,"015":3,"015e":3,"002":3,"002e":3,"041":3,"041e":3,"007e":3,"007":3}, /* Le Q (refonte) : Le Q 3 et Seul contre tous 2 remplaces par Le Ace de Aiges 3, Aiges Captain +1, Trigas +1 */
-  txt:"Ne te presse pas : garde ton énergie pour Loxim, Le chansonnier et Roi du Mobile, et forge Bellock pour aller chercher Loxim."},
- {nom:"Roche et Magma",cartes:{"009":3,"009e":3,"029":3,"029e":2,"001":3,"001e":3,"018":3,"018e":3,"036":2,"036e":2,"002":2,"902":1},
-  txt:"Fais baisser la Force des Golems d'en face avec Apo, Glad et Slim K, et pose KaTarN dès la manche 1."},
- {nom:"Marée bretonne",cartes:{"004":3,"004e":1,"026":3,"026e":2,"901":1,"007":3,"007e":3,"001":3,"001e":3,"036":3,"018":3,"018e":2}, /* deck meule autour du nouveau Le Q (0.4a) */
-  txt:"Vide le deck adverse avec Le Q et La Bretagne de Titom76, tiens la grille avec KaTarN et Elessar, et laisse chaque pioche impossible marquer pour toi."}
+ {nom:"Montée en puissance",cartes:{"007":3,"007e":3,"026":1,"026e":2,"041":2,"041e":1,"015":3,"016":3,"016e":3,"002":3,"002e":3,"015e":3},
+  txt:"Pioche avec Trigas, Titom76 et Velnen, prends de l'énergie avec Maître du bilig, puis pose tes gros Golems (KEKWRevan, Loxim, Le Ace de Aiges, Aiges Captain) pour finir fort."},
+ {nom:"Attaque rapide",cartes:{"903":1,"001":3,"029":3,"009":3,"009e":2,"025":3,"020":3,"020e":3,"018":3,"035":3,"037":3},
+  txt:"Pose KaTarN, Apo et Glad dès la manche 1, serre tes Golems autour de GénéralBrioche et Shifukuro, et renforce-les en forgeant JackJoy."},
+ {nom:"Meule",cartes:{"901":1,"004":3,"004e":2,"026":3,"026e":2,"007":3,"007e":3,"001":3,"001e":2,"018":3,"018e":2,"036":3},
+  txt:"Vide le deck adverse avec Le Q et Titom76, tiens la grille avec KaTarN et Elessar, et laisse chaque pioche impossible marquer pour toi."},
+ {nom:"Contrôle",cartes:{"001":3,"001e":3,"009":3,"009e":2,"018":3,"018e":2,"013":3,"013e":3,"008":3,"036":3,"029":2},
+  txt:"Affaiblis les Golems d'en face avec Slim K, Glad, Apo, La Fan enflammée et Le pomplard, et freine leurs évolutions avec Elessar."},
+ {nom:"Soutien",cartes:{"903":1,"003":3,"003e":3,"020":3,"020e":1,"013":3,"013e":3,"042":3,"025":3,"037":2,"008":2,"008e":3},
+  txt:"Groupe tes Golems Cristal et Roche : Cyrdan, GénéralBrioche, Indra et Vic222 renforcent leurs voisins, et L'attachiante soigne les blessés."},
+ {nom:"Combo",cartes:{"015":3,"015e":2,"016":2,"016e":3,"036":3,"036e":2,"035":3,"035e":3,"007":3,"007e":2,"026":1,"026e":1,"013":2},
+  txt:"Forge Bellock et Loxim pour qu'ils se cherchent l'un l'autre, nourris ta Forge avec Trigas et Spom, et fais grandir tes Golems avec JackJoy et le Drafteur."}
 ],
 /* Bac a sable : ce qui est compte ou non pour chaque carte posee (code -> texte). */
 bacNotes:{
