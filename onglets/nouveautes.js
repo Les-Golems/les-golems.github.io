@@ -40,7 +40,12 @@ const DETAILS_VERSIONS={
    "{{K-Chan, L'attachiante ★}} : « Love inconditionnel : une fois par manche, à ton tour, un Golem allié récupère 1. »",
    "{{Le Camp}} : « Fin de manche : tous les Golems ici récupèrent 1. »"],
   avenir:[
-   "Rejeu des parties : il s'affiche encore avec l'ancien écran de partie. Il passera sur la nouvelle interface dans une prochaine version."]
+   {t:"Prochaine version (v0.6a) :",l:[
+    "Rejeu des parties : il s'affiche encore avec l'ancien écran de partie. Il passera sur la nouvelle interface.",
+    "Nouveaux guides : une pastille signalera chaque nouveau guide publié.",
+    "Équilibrage des cartes et des éléments.",
+    "Mode clair."]},
+   "Version ultérieure : la nouvelle interface sera adaptée à la tablette et au téléphone."]
  },
  'Version 0.5a':{
   nouveautes:[
