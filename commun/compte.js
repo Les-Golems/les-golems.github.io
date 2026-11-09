@@ -37,36 +37,58 @@ function majMoi(){
   $('modifierPseudo').hidden=!co;if(!co)majRangMoi(null);
   if(typeof majEnLigne==='function')majEnLigne();
 }
-/* Galerie d'avatars : avatars/avatars.json (id, nom), l'initiale en premier. */
+/* 0.6 : fenetre « Changer d'avatar » (maquette 33, variante A), ouverte par le gros avatar du profil (au-dessus du profil).
+   A gauche : apercu en grand du choix + « ACTUEL », ou recadrage d'une image importee. A droite : grille de 6 colonnes,
+   Initiale, « Mon image » (si une image est enregistree : un seul emplacement), avatars de avatars/avatars.json, puis
+   « Importer » / « Remplacer mon image ». [Choisir cet avatar] enregistre, ferme et met a jour profil + capsule ; [Annuler] ferme sans rien changer. */
 let listeAvatars=null;
-async function ouvreGalerie(){
-  const g=$('galGrille');$('galMsg').textContent='';
-  if(!listeAvatars){try{listeAvatars=await (await fetch('avatars/avatars.json',{cache:'no-cache'})).json()}catch(e){listeAvatars=[]}}
-  const cur=monAvatar(),nom=compteCo()?pseudo:'?';g.textContent='';
-  [{id:'',nom:'Initiale'}].concat(listeAvatars.filter(x=>x&&/^[a-z0-9_-]{1,40}$/.test(x.id))).forEach(x=>{
-    const b=el('button');b.type='button';b.setAttribute('aria-pressed',String(x.id===cur));
-    b.append(avatarDe(nom,x.id),el('span','',x.nom));
-    b.onclick=async()=>{
-      if(compteCo()){try{await room.compte.choisirAvatar(x.id)}catch(e){return}}else{ecrire('golems-avatar',x.id);try{localStorage.removeItem(LS('golems-avatar-img'))}catch(e){}}
-      fermeGalerie();majMoi();avatarChange();
-    };g.append(b);
-  });
-  const imp=el('button');imp.type='button';imp.className='galImp';
-  const ia=el('span','avatar','+');ia.setAttribute('aria-hidden','true');imp.append(ia,el('span','','Importer'));
-  if(/^data:/.test(cur)){imp.setAttribute('aria-pressed','true');ia.textContent='';const i=document.createElement('img');i.alt='';i.src=cur;ia.append(i)}
-  imp.onclick=()=>$('avFichier').click();g.append(imp);
-  $('galerieAvatar').hidden=false;document.documentElement.classList.add('galOuverte');g.scrollTop=0;
-  {const f=g.querySelector('[aria-pressed="true"]')||g.firstChild;f.focus({preventScroll:true});
-   const a=g.getBoundingClientRect(),b=f.getBoundingClientRect();if(b.bottom>a.bottom)g.scrollTop+=b.bottom-a.bottom+8}
+const GAL={choix:'',actuel:'',imp:false,img:''};
+const galNom=()=>compteCo()?pseudo:'?';
+function galListe(){const L=[{id:'',nom:'Initiale'}];if(GAL.img)L.push({id:'__img',nom:'Mon image'});
+  return L.concat((listeAvatars||[]).filter(x=>x&&/^[a-z0-9_-]{1,40}$/.test(x.id)))}
+function galAv(id,t){const a=avatarDe(galNom(),id==='__img'?GAL.img:id);if(t){a.style.width=a.style.height=t+'px';a.style.fontSize=Math.round(t*.45)+'px'}return a}
+function galPeint(){
+  const g=$('galGrille'),L=galListe();g.textContent='';
+  L.forEach(x=>{const b=el('button','av-tu');b.type='button';b.title=x.nom;b.setAttribute('aria-pressed',String(!GAL.imp&&x.id===GAL.choix));
+    b.append(galAv(x.id),el('span','n',x.nom));b.onclick=()=>{GAL.imp=false;GAL.choix=x.id;cadFerme();galPeint()};g.append(b)});
+  const t=el('button','av-tu imp');t.type='button';t.setAttribute('aria-pressed',String(GAL.imp));
+  t.title=GAL.img?"Remplacer mon image (la nouvelle image remplace l'ancienne)":'Importer une image';
+  const p=el('span','avatar','+');p.setAttribute('aria-hidden','true');t.append(p,el('span','n',GAL.img?'Remplacer mon image':'Importer'));
+  t.onclick=()=>$('avFichier').click();g.append(t);
+  /* Panneau de gauche */
+  $('cadNote').textContent="Glisse l'image pour la placer."+(GAL.img?'\nElle remplacera ton image actuelle.':'');
+  $('avApercu').hidden=GAL.imp;$('avCadrage').hidden=!GAL.imp;
+  if(!GAL.imp){const x=L.find(y=>y.id===GAL.choix)||L[0],a=$('avGrand');a.textContent='';a.append(galAv(x.id,160),el('div','av-gnom',x.nom));
+    const ac=L.find(y=>y.id===GAL.actuel)||L[0],r=$('avActuel');r.textContent='';r.append(el('span','av-actu','Actuel'),galAv(ac.id,28),el('span','av-anom',ac.nom))}
+  $('galOk').disabled=!GAL.imp&&GAL.choix===GAL.actuel;
 }
-/* 0.6 : « Changer d'avatar » passe dans le profil (refonte du profil, vague suivante : TODO y appeler ouvreGalerie()). */
-function fermeGalerie(){$('galerieAvatar').hidden=true;document.documentElement.classList.remove('galOuverte');($('choixAvatar')||$('capsuleMoi')).focus()}
-if($('choixAvatar'))$('choixAvatar').onclick=ouvreGalerie;
+async function ouvreGalerie(){
+  $('galMsg').textContent='';cadMsg('');
+  if(!listeAvatars){try{listeAvatars=await (await fetch('avatars/avatars.json',{cache:'no-cache'})).json()}catch(e){listeAvatars=[]}}
+  const cur=monAvatar();GAL.img=/^data:/.test(cur)?cur:'';GAL.actuel=GAL.img?'__img':cur;GAL.choix=GAL.actuel;GAL.imp=false;
+  galPeint();
+  $('galerieAvatar').hidden=false;document.documentElement.classList.add('galOuverte');
+  const g=$('galGrille');g.scrollTop=0;(g.querySelector('[aria-pressed="true"]')||g.firstChild).focus({preventScroll:true});
+}
+function fermeGalerie(){cadFerme();GAL.imp=false;$('galerieAvatar').hidden=true;document.documentElement.classList.remove('galOuverte');
+  const a=document.querySelector('#profilJoueur .pr-av');(a||$('capsuleMoi')).focus()}
+/* Apres un choix enregistre : capsule du bandeau (majMoi), profil ouvert, salon. */
+function galApplique(){fermeGalerie();majMoi();if(typeof majAvatarProfil==='function')majAvatarProfil();avatarChange()}
 $('galFermer').onclick=fermeGalerie;
 $('galerieAvatar').onclick=e=>{if(e.target.id==='galerieAvatar')fermeGalerie()};
-$('galerieAvatar').onkeydown=e=>{if(e.key==='Escape')fermeGalerie()};
-/* Import d'avatar : fichier image, cadrage rond (glisser, molette, pincement, curseur), 256 x 256 en WebP (repli JPEG) sous 140 000 caracteres. */
-const CAD={img:null,z:1,zMin:1,x:0,y:0,T:240,pts:new Map(),d0:0,z0:1};
+$('galerieAvatar').onkeydown=e=>{if(e.key==='Escape'){e.stopPropagation();fermeGalerie()}};
+$('cadChanger').onclick=()=>$('avFichier').click();
+$('galOk').onclick=async()=>{
+  if(GAL.imp){await cadValide();return}
+  const id=GAL.choix;if(id===GAL.actuel){fermeGalerie();return}
+  if(id==='__img'){galApplique();return} /* image deja enregistree (cas d'un invite qui revient a son image) */
+  if(compteCo()){try{await room.compte.choisirAvatar(id)}catch(e){$('galMsg').textContent='Enregistrement impossible. Vérifie ta connexion puis réessaie.';return}}
+  else{ecrire('golems-avatar',id);try{localStorage.removeItem(LS('golems-avatar-img'))}catch(e){}}
+  galApplique();
+};
+/* Import d'avatar : fichier image, recadrage rond dans le panneau de gauche (glisser, molette, pincement, curseur),
+   256 x 256 en WebP (repli JPEG) sous 140 000 caracteres. */
+const CAD={img:null,z:1,zMin:1,x:0,y:0,T:196,pts:new Map(),d0:0,z0:1};
 function cadMsg(t){$('cadMsg').textContent=t||''}
 function cadBorne(){const c=CAD,w=c.img.naturalWidth*c.z,h=c.img.naturalHeight*c.z;c.x=Math.min(0,Math.max(c.T-w,c.x));c.y=Math.min(0,Math.max(c.T-h,c.y))}
 function cadDessine(){const c=CAD,i=$('cadImg');cadBorne();i.style.width=c.img.naturalWidth*c.z+'px';i.style.transform='translate('+c.x+'px,'+c.y+'px)';$('cadZoom').value=String(Math.round(Math.log(c.z/c.zMin)/Math.log(4)*100))}
@@ -77,8 +99,8 @@ $('avFichier').onchange=e=>{
   if(!/^image\//.test(f.type)){err("Ce fichier n'est pas une image. Choisis un fichier JPEG, PNG, WebP ou GIF.");return}
   if(f.size>15*1024*1024){err('Image trop lourde (15 Mo au plus).');return}
   const u=URL.createObjectURL(f),im=new Image();
-  im.onload=()=>{const c=CAD;c.img=im;$('cadImg').src=u;$('cadre').hidden=false;c.T=$('cadVue').clientWidth||240;
-    c.zMin=c.T/Math.min(im.naturalWidth,im.naturalHeight);c.z=c.zMin;c.x=(c.T-im.naturalWidth*c.z)/2;c.y=(c.T-im.naturalHeight*c.z)/2;cadMsg('');cadDessine();$('cadOk').focus()};
+  im.onload=()=>{if(CAD.img)URL.revokeObjectURL(CAD.img.src);const c=CAD;c.img=im;$('cadImg').src=u;GAL.imp=true;galPeint();c.T=$('cadVue').clientWidth||196;
+    c.zMin=c.T/Math.min(im.naturalWidth,im.naturalHeight);c.z=c.zMin;c.x=(c.T-im.naturalWidth*c.z)/2;c.y=(c.T-im.naturalHeight*c.z)/2;cadMsg('');cadDessine();$('galOk').focus()};
   im.onerror=()=>{URL.revokeObjectURL(u);err("Image illisible. Essaie un autre fichier (JPEG, PNG ou WebP).")};im.src=u;
 };
 (()=>{const v=$('cadVue'),c=CAD;
@@ -89,12 +111,10 @@ $('avFichier').onchange=e=>{
     else if(c.pts.size===2&&c.d0){const[a,b]=[...c.pts.values()];cadZoome(c.z0*Math.hypot(a[0]-b[0],a[1]-b[1])/c.d0,(a[0]+b[0])/2,(a[1]+b[1])/2)}};
   v.onpointerup=v.onpointercancel=e=>{c.pts.delete(e.pointerId);if(c.pts.size<2)c.d0=0};
   v.onwheel=e=>{if(!c.img)return;e.preventDefault();const p=pos(e);cadZoome(c.z*Math.exp(-e.deltaY*0.0015),p[0],p[1])};
-  $('cadZoom').oninput=e=>cadZoome(c.zMin*Math.pow(4,+e.target.value/100));
+  $('cadZoom').oninput=e=>{if(c.img)cadZoome(c.zMin*Math.pow(4,+e.target.value/100))};
 })();
-function cadFerme(){$('cadre').hidden=true;if(CAD.img){URL.revokeObjectURL(CAD.img.src);CAD.img=null}$('cadImg').removeAttribute('src')}
-$('cadAnnuler').onclick=cadFerme;
-$('cadre').onkeydown=e=>{if(e.key==='Escape'){e.stopPropagation();cadFerme()}};
-$('cadOk').onclick=async()=>{
+function cadFerme(){if(CAD.img){URL.revokeObjectURL(CAD.img.src);CAD.img=null}$('cadImg').removeAttribute('src');cadMsg('')}
+async function cadValide(){
   const c=CAD;if(!c.img)return;const cv=document.createElement('canvas');cv.width=cv.height=256;const g=cv.getContext('2d');
   g.imageSmoothingQuality='high';const k=256/c.T;g.fillStyle='#fff';g.fillRect(0,0,256,256);
   g.drawImage(c.img,c.x*k,c.y*k,c.img.naturalWidth*c.z*k,c.img.naturalHeight*c.z*k);
@@ -106,9 +126,8 @@ $('cadOk').onclick=async()=>{
     const m=String(e&&(e.code||e.message)||'').toLowerCase();console.warn('avatarImg',e,url.slice(0,30),url.length);
     cadMsg(/permission/.test(m)?"Enregistrement refusé par le serveur (permission refusée, image "+Math.round(url.length/1000)+" k caractères). Préviens Romain.":/too|size|large|limit/.test(m)?"Image trop lourde pour le serveur. Zoome ou choisis une autre image.":/network|disconnect|offline|unavailable/.test(m)?"Enregistrement impossible. Vérifie ta connexion puis réessaie.":"Enregistrement impossible ("+(e&&(e.code||e.message)||'erreur inconnue')+").");return}}
   else{try{localStorage.setItem(LS('golems-avatar-img'),url)}catch(e){cadMsg("Image impossible à garder sur cet appareil (stockage plein).");return}}
-  cadFerme();fermeGalerie();majMoi();avatarChange();
-};
-/* Avatar change en salon : mon siege redessine, presence reecrite pour que l'adversaire redessine (et relise l'avatar). */
+  galApplique();
+}
 function avatarChange(){if(!r)return;try{majSalon()}catch(e){}r.presence({pseudo:pseudo}).catch(()=>{})}
 /* Compte : pseudo reserve + code secret (Firebase). Sans compte : invite, robot seulement, donnees sur l'appareil. */
 const compteCo=()=>{try{return !!(room&&room.compte&&room.compte.connecte())}catch(e){return false}}; /* room est declare plus bas */
