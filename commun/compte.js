@@ -132,7 +132,7 @@ async function cadValide(){
 }
 function avatarChange(){if(!r)return;try{majSalon()}catch(e){}r.presence({pseudo:pseudo}).catch(()=>{})}
 /* Compte : pseudo reserve + code secret (Firebase). Sans compte : invite, robot seulement, donnees sur l'appareil. */
-const compteCo=()=>{try{return !!(room&&room.compte&&room.compte.connecte())}catch(e){return false}}; /* room est declare plus bas */
+/* compteCo : declare dans commun/etat.js (charge en premier). */
 function nettoie(s,n=20){return String(s||'').replace(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu,'').trim().slice(0,n)}
 function modeCompte(c){
   modeCreer=c;$('titrePop').textContent=c?'Créer un compte':'Se connecter';
