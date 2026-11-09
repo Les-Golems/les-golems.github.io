@@ -357,7 +357,7 @@ function texteNv(s,parens){
   const f=document.createDocumentFragment();String(s).split(/\{\{([^}]+)\}\}/).forEach((x,i)=>{if(i%2)f.append(lienNv(x));else if(x)f.append(textePictos(x,parens))});return f;
 }
 /* Fenetre « Détails » : note de patch complete d'une version, en trois rubriques. Fermer, Echap ou clic dehors. */
-const RUBRIQUES_VERSION=[['nouveautes','Nouveautés'],['corrections','Corrections'],['regles','Équilibrage et règles'],['avenir','À venir']];
+const RUBRIQUES_VERSION=[['nouveautes','Nouveautés'],['regles','Équilibrage et règles'],['corrections','Corrections'],['avenir','À venir']];
 function ouvreDetailsVersion(n,bouton){
   $('popDetailsVersion')?.remove();
   const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
