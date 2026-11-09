@@ -589,9 +589,12 @@
             }
           }
         },
+        "pmf": {
+          ".validate": "newData.isNumber() && newData.val() === 2"
+        },
         "pm": {
           "$m": {
-            ".validate": "$m.matches(/^(classee|amicale|entrainement)$/) && newData.hasChildren(['n', 'v', 'd'])",
+            ".validate": "$m.matches(/^(classee|amicale|entrainement|facile|normal|difficile)$/) && newData.hasChildren(['n', 'v', 'd'])",
             "n": {
               ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
             },
@@ -1700,9 +1703,12 @@
               }
             }
           },
+          "pmf": {
+            ".validate": "newData.isNumber() && newData.val() === 2"
+          },
           "pm": {
             "$m": {
-              ".validate": "$m.matches(/^(classee|amicale|entrainement)$/) && newData.hasChildren(['n', 'v', 'd'])",
+              ".validate": "$m.matches(/^(classee|amicale|entrainement|facile|normal|difficile)$/) && newData.hasChildren(['n', 'v', 'd'])",
               "n": {
                 ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
               },

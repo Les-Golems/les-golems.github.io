@@ -54,9 +54,11 @@ module.exports = r => ({
       "pv": { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^[0-9]$/) && newData.hasChildren(['p', 'n', 'v'])", "p": { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "o": { "$niv": { ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])", "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } }, "$autre": { ".validate": false } } },
       // 0.6 : résumé public PAR MODE (classee, amicale, entrainement), 50 dernières parties du compte : n, v, d, b meilleure série,
       // s série en cours (signée), r 10 dernières (V, D, N), el part des éléments en %, tops 5 : dk decks, cb cartes, mv MVP.
+      // 0.6.2 : pmf = 2 : pm tiré des compteurs complets (toutes les parties) ; pm porte aussi facile, normal, difficile (entraînement par niveau).
+      "pmf": { ".validate": "newData.isNumber() && newData.val() === 2" },
       "pm": {
         "$m": {
-          ".validate": "$m.matches(/^(classee|amicale|entrainement)$/) && newData.hasChildren(['n', 'v', 'd'])",
+          ".validate": "$m.matches(/^(classee|amicale|entrainement|facile|normal|difficile)$/) && newData.hasChildren(['n', 'v', 'd'])",
           "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000" },
           "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000 && newData.val() <= newData.parent().child('n').val()" },
           "d": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000 && newData.val() <= newData.parent().child('n').val()" },

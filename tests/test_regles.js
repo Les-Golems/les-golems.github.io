@@ -308,6 +308,13 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('profil, mode inconnu'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pm: { tournoi: pm.classee } }));
   await attendu(ici('profil, 10 dernières invalides'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pm: { classee: { ...pm.classee, r: 'VVVVVVVVVVV' } } }));
   await attendu(ici('profil privé avec résumé par mode'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, m: true, pm }));
+  // 0.6.2 : compteurs complets (pmf = 2) et entraînement par niveau.
+  const pm2 = { ...pm, entrainement: { n: 9, v: 5, d: 4 }, facile: { n: 6, v: 4, d: 2, b: 3, s: 1, r: 'VVD' }, normal: { n: 2, v: 1, d: 1 }, difficile: { n: 1, v: 0, d: 1 } };
+  await attendu(ici('profil, compteurs par niveau (pmf 2)'), true, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pmf: 2, pm: pm2 }));
+  await attendu(ici('profil 0.6, sans pmf'), true, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pm }));
+  await attendu(ici('profil, pmf inconnu'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pmf: 3, pm: pm2 }));
+  await attendu(ici('profil, niveau inconnu'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pmf: 2, pm: { expert: pm2.facile } }));
+  await attendu(ici('profil, niveau v > n'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pmf: 2, pm: { facile: { n: 1, v: 2, d: 0 } } }));
   // Mon image gardée : marqueurs __img et __init.
   await attendu(ici('avatar : mon image active (__img)'), true, req(A, 'PUT', P + 'joueurs/' + A.uid + '/avatarId', '__img'));
   await attendu(ici('avatar : initiale, image gardée (__init)'), true, req(A, 'PUT', P + 'joueurs/' + A.uid + '/avatarId', '__init'));

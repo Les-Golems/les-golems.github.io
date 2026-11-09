@@ -204,8 +204,23 @@ async function ouvre() {
       if (!compte.connecte() || !cumuleur) return false;
       const qui = moi, l = (extra || []).concat(donnees.historique);
       try { if (!cumuleur(donnees.cumul, l)) return false; } catch (e) { console.warn("cumul", e); return false; }
+      // 0.6.2 : compteurs par mode à (re)construire (md absent ou en retard) : profil classé et, si l'historique ne contient
+      // plus toutes les classées, classées contre le robot lues dans classe/parties (lecture seule).
+      let ctx = null; const c0 = donnees.cumul;
+      if (c0 && c0.f === 1 && (+c0.k || 0) > 0 && !(c0.md && c0.md.k === c0.k)) {
+        ctx = {};
+        try { const j = (await get(ref(db, P + "classe/joueurs/" + qui))).val(); if (j && Number.isFinite(j.v) && Number.isFinite(j.d)) ctx.cl = { v: j.v, d: j.d }; } catch (e) {}
+        const nh = donnees.historique.filter(x => x && (x.mode === "classee" || x.cl === true)).length;
+        if (ctx.cl && ctx.cl.v + ctx.cl.d > nh) {
+          try {
+            const ps = (await get(ref(db, P + "classe/parties"))).val() || {}, rob = { facile: { n: 0, v: 0 }, normal: { n: 0, v: 0 }, difficile: { n: 0, v: 0 } };
+            for (const k in ps) { const p = ps[k]; const m = p && p.robot === true && p.a === qui && /^robot-(facile|normal|difficile)$/.exec(String(p.b)); if (m) { rob[m[1]].n++; if (p.gagnant === qui) rob[m[1]].v++; } }
+            ctx.rob = rob;
+          } catch (e) { console.warn("cumul", e); return false; }
+        }
+      }
       try {
-        const r = await runTransaction(ref(db, P + "joueurs/" + qui + "/cumul"), t => { const c = cumuleur(lisCumul(t), l); return c ? JSON.stringify(c) : undefined; });
+        const r = await runTransaction(ref(db, P + "joueurs/" + qui + "/cumul"), t => { const c = cumuleur(lisCumul(t), l, ctx); return c ? JSON.stringify(c) : undefined; });
         if (qui === moi && donnees) donnees.cumul = lisCumul(r.snapshot.val()) || donnees.cumul;
         return r.committed;
       } catch (e) { console.warn("cumul", e); return false; }
@@ -286,7 +301,7 @@ async function ouvre() {
       }
       const o = { p: donnees.pseudo, m: !!donnees.masque, n: r.n, v: r.v, d: r.d, t: serverTimestamp() };
       if (donnees.cree) o.cr = donnees.cree;
-      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv", "pm"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
+      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv", "pm", "pmf"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
       // 0.6 : Elo classé affiché (placement fini seulement, règle profils/el).
       const lisEl = async () => { delete o.el; try { const j = (await get(ref(db, P + "classe/joueurs/" + moi))).val(); if (j && j.parties >= 5 && Number.isFinite(j.elo)) o.el = j.elo; } catch (e) {} };
       await lisEl();
