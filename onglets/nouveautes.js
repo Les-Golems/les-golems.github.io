@@ -15,6 +15,16 @@ const NOUVEAUTES=[
  {version:'Version 0.2a',date:'3 novembre 2026',notes:["Jeu en ligne sur le site, avec comptes (pseudo et code)","Parties publiques et privées, avec discussion","Apprendre à jouer (tutoriel) et entraînement contre les Golems","Decks, historique, rejeu et profil","Avatars personnalisables"]},
  {version:'Version 0.1',date:'2 novembre 2026',notes:["Création du jeu de cartes communautaire Les Golems","Premières cartes Golem jouables avec leurs évolutions, et 10 terrains","Règles disponibles sur le site","Parties contre les Golems en 3 niveaux et jeu en ligne à deux","Decks personnalisés et historique des parties"]}
 ];
+/* 0.6.1 : calendrier des sorties, tire de NOUVEAUTES (version et date de chaque bloc) ; heure de mise en ligne des builds connus
+   (journal de main) pour departager deux versions du meme jour. Sert a l'Historique : version deduite de la date d'une partie ancienne. */
+const HEURES_SORTIE={'0.2a':'09:40','0.2b':'09:45','0.2c':'11:01','0.3':'18:40','0.4':'10:09','0.5':'14:48','0.5a':'12:52','0.6':'19:46'};
+const MOIS_FR=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+function sortiesVersions(){
+  return NOUVEAUTES.map(n=>{const v=String(n.version).replace(/^Version /,''),m=/^(\d{1,2}) (\S+) (\d{4})$/.exec(String(n.date||'')),mo=m?MOIS_FR.indexOf(m[2]):-1;if(mo<0)return null;
+    const h=(HEURES_SORTIE[v]||'00:00').split(':');return {v,t:new Date(+m[3],mo,+m[1],+h[0],+h[1]).getTime()}}).filter(Boolean).sort((a,b)=>a.t-b.t);
+}
+/* Version en ligne a la date t (ms), ou '' si avant la premiere sortie. */
+function versionALaDate(t){if(!(t>0))return '';let v='';sortiesVersions().forEach(x=>{if(x.t<=t)v=x.v});return v}
 /* Details des versions (bouton « Détails » des blocs de version) : trois rubriques par version, cle = titre du bloc dans NOUVEAUTES.
    Une ligne = une phrase courte pour les joueurs. Sous-liste : {t:"titre :",l:[...]}. Rubrique vide : [] (message neutre affiché).
    Nouvelle version : ajouter son entree en tete, comme dans NOUVEAUTES. */

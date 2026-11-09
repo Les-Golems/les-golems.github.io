@@ -13,8 +13,8 @@ function bandeauDeck(d){
 /* Version du jeu de la partie (moteur), "version inconnue" pour les anciennes entrees. */
 function versionHisto(x){const v=x&&(x.moteur||(x.rejeu&&x.rejeu.v));return typeof v==='string'&&v?'v'+v:'version inconnue'}
 /* Affichage : version du site (table PATCH_MOTEUR des Statistiques) et niveau du Golem avec majuscule. */
-/* 0.6.1 : version inconnue (anciennes entrees) affichee « v ? », texte complet en title (verHisto). */
-function versionAff(x){const v=x&&(x.moteur||(x.rejeu&&x.rejeu.v));return typeof v==='string'&&v?patchSite(v):'v ?'}
+/* 0.6.1 : partie sans moteur ni rejeu.v : version deduite de sa date (calendrier des sorties, onglets/nouveautes.js) ; sans date : « v? » (gris, « Version inconnue » au survol). */
+function versionAff(x){const v=x&&(x.moteur||(x.rejeu&&x.rejeu.v));if(typeof v==='string'&&v)return patchSite(v);const d=x&&typeof versionALaDate==='function'?versionALaDate(+x.date):'';return d||'v?'}
 function advAff(a){const m=/^Golem \((.+)\)$/.exec(a||'');return m?'Golem ('+m[1].charAt(0).toUpperCase()+m[1].slice(1)+')':String(a||'')}
 /* Carte du detail : pictos d'elements puis pseudo (★ si evolution) et titre en dessous, comme la liste condensee des decks. */
 /* Nom complet comme sur la carte (« K-Chan, Reine du tilt »), d'apres CARTES. */
@@ -87,7 +87,7 @@ function mvpHisto(nom){
 }
 const dateH=t=>new Date(t).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
 const heureH=t=>new Date(t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-function verHisto(x){const w=versionAff(x),t=/^[0-9]/.test(w)?'v'+w:w,e=el('span','etq-v hl-ver',t);e.title=w==='v ?'?'version inconnue':'version '+t;return e}
+function verHisto(x){const w=versionAff(x),t=/^[0-9]/.test(w)?'v'+w:w,e=el('span','etq-v hl-ver'+(w==='v?'?' hl-ver-inc':''),t);if(w==='v?')e.title='Version inconnue';return e}
 
 /* ----- Fenetre de detail ----- */
 function detailHisto(x){
