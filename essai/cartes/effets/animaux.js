@@ -9,6 +9,9 @@ const {carte,golem,dire,nomDetail}=M;
 /* Jacen et Jaina (902) : pioche 1 carte. Deck vide : 1 point pour l'adversaire (evenement 'jj' seulement si une carte est piochee). */
 function chatsPioche(s,p,pq){const v=!s.j[p].deck.length&&!s.deckLibre;dire(s,p,'Jacen et Jaina : '+pq+', pioche 1 carte.');M.pioche(s,p,1);if(!v)s.stats.ev.push({t:'jj',cp:p,y:pq})} /* journal : l'effet, puis le point si le deck est vide */
 const types={
+  /* Uki (903) : Meilleur ami, compte comme un Golem allie au-dessus de son maitre. Lu par le compte 'dessus' de forceParGolem (KEKWait de Shifukuro de base) ;
+     sans effet sur un maitre qui ne compte pas les Golems au-dessus (Le moderateur : seulement le +1 de l'animal attache). Attache, donc jamais deplace seul (meandyou). */
+  golemAuDessus:{compteDessus:true},
   /* Jacen et Jaina (902) : a la pose, pioche r.n carte ; quand son maitre est detruit, pioche r.n carte. */
   piocheAnimal:{
     poseAnimal:(r,s,p)=>chatsPioche(s,p,'à la pose'),

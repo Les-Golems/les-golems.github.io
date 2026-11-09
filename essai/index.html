@@ -13,7 +13,7 @@
 <meta property="og:image" content="https://les-golems.github.io/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Les Golems · Jeu de cartes communautaire">
+<meta property="og:image:alt" content="Les Golems - Jeu de cartes communautaire">
 <meta property="og:locale" content="fr_FR">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Les Golems">
@@ -30,7 +30,25 @@
 window.GOLEMS_VERSION=x&&x.build?{v:String(x.v||''),build:String(x.build),type:String(x.type||'version')}:null;
 window.IMG_V=window.GOLEMS_VERSION?window.GOLEMS_VERSION.build:String(Date.now());
 const a=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
-window.golemsCharge=l=>document.write(l.map(([t,u,m])=>t==='css'?'<link rel="stylesheet" href="'+a(u)+'">':'<script'+(m?' '+m:'')+' src="'+a(u)+'"><\/script>').join(''));})();
+/* Repli de chargement (0.6) : un script qui echoue (reseau) ou dont le symbole cle manque apres chargement est recharge une fois
+   avec ?r= unique (XHR synchrone puis script en ligne : l'ordre est garde) ; sinon la page est rechargee UNE seule fois
+   (garde-fou sessionStorage golems.secours, efface quand tout est la). */
+const S='golems.secours',SYMB={'cartes/donnees/interface.js':'GolemsDonnees','commun/etat.js':'tuto','commun/outils.js':'ETOILE_G','commun/alertes.js':'copieManuelle','commun/classe.js':'GolemsClasse','commun/compte.js':'surCompte','commun/navigation.js':'onglet','commun/profil.js':'majAvatarProfil','commun/raccords.js':'memo','commun/demarrage.js':'aReprendre','moteur.js':'GolemsMoteur','onglets/guides.js':'cjInit','onglets/nouveautes.js':'basculeEpingle','onglets/cartes.js':'boutonLienCarte','onglets/jouer.js':'bulleReac','vue/partie.js':'lancer','onglets/statistiques.js':'fenSaisonSt','onglets/historique.js':'peintHisto','onglets/decks.js':'peintDecks','vue/joueur.js':'affiche','onglets/tutoriel.js':'lanceGuide','onglets/regles.js':'golemsRegles','commun/version.js':'nouvelleVersion','versions-cartes.js':'VERSIONS_CARTES'};
+const r=u=>u+'?r='+Date.now().toString(36)+Math.random().toString(36).slice(2,8)+'&v='+encodeURIComponent(window.IMG_V);
+window.golemsManque=s=>{try{return new Function('return typeof '+s)()==='undefined'}catch(e){return false}}; /* zone morte (script parti puis arrete) : present */
+window.golemsSecours=pourquoi=>{let n=0;try{n=+sessionStorage.getItem(S)||0}catch(e){}
+  console.error('Chargement : '+pourquoi+(n?' ; deja recharge une fois, arret.':' ; rechargement de la page.'));
+  if(n)return;try{sessionStorage.setItem(S,'1')}catch(e){return}location.reload()};
+window.golemsRepare=(e,u,m)=>{if(e.dataset.r)return;e.dataset.r='1';
+  if(m){const x=document.createElement('script');if(/module/.test(m))x.type='module';x.src=r(u);x.dataset.r='1';x.onerror=()=>golemsSecours(u+' introuvable');document.head.append(x);return}
+  try{const q=new XMLHttpRequest();q.open('GET',r(u),false);q.send();if(q.status!==200)throw new Error('HTTP '+q.status);
+    const x=document.createElement('script');x.dataset.r='1';x.text=q.responseText+'\n//# sourceURL='+u;document.head.append(x);
+    if(SYMB[u]&&golemsManque(SYMB[u]))throw new Error(SYMB[u]+' absent');console.warn('Chargement : '+u+' recharge (?r=).')}catch(x){golemsSecours(u+' en echec'+(x&&x.message?' ('+x.message+')':''))}};
+window.golemsVerifie=(e,u,m)=>{if(!m&&SYMB[u]&&golemsManque(SYMB[u]))golemsRepare(e,u,m)};
+window.golemsFin=()=>{const k=['$','ETOILE_G','M','onglet','lancer','affiche','lanceGuide','peintDecks'].filter(golemsManque);
+  if(k.length)golemsSecours('symboles absents : '+k.join(', '));else try{sessionStorage.removeItem(S)}catch(e){}};
+const h=(u,m)=>'(this,\''+u+'\',\''+(m||'').replace(/"/g,'')+'\')'; /* attributs : sans guillemets doubles (type="module") */
+window.golemsCharge=l=>document.write(l.map(([t,u,m])=>t==='css'?'<link rel="stylesheet" href="'+a(u)+'">':'<script'+(m?' '+m:'')+' src="'+a(u)+'"'+(/module/.test(m||'')?'':' onerror="golemsRepare'+h(u,m)+'" onload="golemsVerifie'+h(u,m)+'"')+'><\/script>').join(''));})();
 window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
 document.documentElement.style.setProperty('--verso','url("'+imgV('cartes/verso.jpg')+'")');
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[data-src]').forEach(i=>{i.src=imgV(i.dataset.src)}));</script>
@@ -45,136 +63,57 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 <header><div class="large haut">
   <img data-src="cartes/logo.png" alt="">
   <h1>Les Golems<span class="st-ligne"><small class="sous-titre">Jeu de cartes communautaire</small> <button class="etq-v ver-etq ve-charge" id="verEtq" type="button" tabindex="-1" aria-busy="true" title="Version en cours de chargement">v…</button></span></h1>
-  <div class="majDispo" id="majDispo" role="status" hidden><span title="La page se recharge seule dès que tu as fini (partie, salon, saisie)">Nouvelle version disponible</span><button class="btn" id="majRecharger" type="button">Recharger la page</button></div>
-  <div class="moi"><label class="pf-inter dal-inter" title="Ajoute des repères en plus des couleurs : flèches sur la Force modifiée, « ! » sur une carte fautive, mot « Animal » dans les listes."><span class="pf-itx">Mode daltonien</span><input type="checkbox" id="daltonienCase" class="dal-case" role="switch"><span class="pf-glis"></span></label><span class="qui"><button class="avatarBtn" id="choixAvatar" type="button" aria-label="Choisir mon avatar" title="Choisir mon avatar"><span class="avatar" id="avatarMoi" aria-hidden="true"></span></button><b id="pseudoAffiche"></b></span><button class="modif" id="modifierPseudo" type="button"><span class="txt">Modifier</span><svg class="pic" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></svg></button></div>
-<div id="galerieAvatar" class="galAv" hidden><div class="galBoite" role="dialog" aria-modal="true" aria-labelledby="galTitre"><h2 id="galTitre">Choisis ton avatar</h2><div class="galGrille" id="galGrille"></div><p class="galMsg" id="galMsg" role="alert"></p><input type="file" id="avFichier" accept="image/*" hidden><button class="btn plein fermer" id="galFermer" type="button">Fermer</button></div></div>
-<div id="cadre" class="galAv cadAv" hidden><div class="galBoite cadBoite" role="dialog" aria-modal="true" aria-labelledby="cadTitre"><h2 id="cadTitre">Cadre ton avatar</h2><div class="cadVue" id="cadVue"><img id="cadImg" alt="" draggable="false"></div><label class="cadZ"><span>Zoom</span><input type="range" id="cadZoom" min="0" max="100" value="0" aria-label="Zoom"></label><p class="galMsg" id="cadMsg" role="alert"></p><div class="cadBtns"><button class="modif" id="cadAnnuler" type="button">Annuler</button><button class="btn plein" id="cadOk" type="button">Valider</button></div></div></div>
+  <div class="majDispo" id="majDispo" role="status" hidden><i>i</i><span>Nouvelle version disponible</span><span class="etq-v" id="majV" hidden></span><button class="sc-btn sc-tertiaire" id="majRecharger" type="button">Recharger</button></div>
+  <div class="moi bd-zone" id="bandeauMoi">
+    <span class="bd-enl" id="enLigne" hidden><i></i><b id="enLigneN">0</b><span>en ligne</span></span>
+    <button class="bd-capsule" id="capsuleMoi" type="button"><span class="bd-rg" id="rangMoi" hidden><img alt="" width="32" height="32"><span id="rangElo"></span></span><span class="bd-sep" hidden></span><span class="bd-id"><b id="pseudoAffiche"></b><span class="bd-sc" id="sousConnexion" hidden>Se connecter</span></span><span class="avatar" id="avatarMoi" aria-hidden="true"></span></button>
+    <span class="bd-affw"><button class="bd-b bd-carre" id="btnAffichage" type="button" title="Affichage" aria-label="Affichage" aria-expanded="false" aria-controls="menuAffichage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      <div class="bd-menu" id="menuAffichage" role="dialog" aria-label="Affichage" hidden><h4>Affichage</h4>
+        <div class="bd-lig bd-lig-theme" hidden><span class="bd-et">Thème</span><div class="sc-sel sc-large bd-sel" id="selTheme" role="group" aria-label="Thème"><button type="button" aria-pressed="true" data-v="sombre">Sombre</button><button type="button" aria-pressed="false" data-v="clair" hidden>Clair</button></div></div>
+        <div class="bd-lig"><span class="bd-et">Couleurs</span><div class="sc-sel sc-large bd-sel" id="selCouleurs" role="group" aria-label="Couleurs"></div></div>
+      </div></span>
+    <button class="bd-b bd-carre" id="modifierPseudo" type="button" title="Se déconnecter" aria-label="Se déconnecter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></svg></button>
+    <input type="checkbox" id="daltonienCase" class="dal-case" hidden tabindex="-1" aria-hidden="true">
+  </div>
+<div id="fenDeco" class="bd-fond" hidden><div class="sc-fenetre bd-fen" role="dialog" aria-modal="true" aria-labelledby="fenDecoT"><h3 class="sc-fen-titre" id="fenDecoT">Se déconnecter ?</h3><div class="sc-fen-actions"><button class="sc-btn" id="decoOui" type="button">Se déconnecter</button><button class="sc-btn sc-secondaire" id="decoNon" type="button">Annuler</button></div></div></div>
+<div id="galerieAvatar" class="galAv av-fond" hidden><div class="av-fen" role="dialog" aria-modal="true" aria-labelledby="galTitre"><h2 id="galTitre">Changer d'avatar</h2><div class="av-corps"><div class="av-g"><div id="avApercu" class="av-apercu"><div class="av-grand" id="avGrand"></div><div class="av-actuel" id="avActuel"></div></div><div id="avCadrage" class="av-cadrage" hidden><div class="av-cadh"><div class="cadVue av-cad" id="cadVue"><img id="cadImg" alt="" draggable="false"></div><p class="av-doux" id="cadNote">Glisse l'image pour la placer.</p><label class="av-zoom"><span>Zoom</span><input type="range" id="cadZoom" min="0" max="100" value="0" aria-label="Zoom"></label><div class="galMsg" id="cadMsg"></div></div><button class="sc-btn sc-tertiaire av-ter" id="cadChanger" type="button">Changer d'image</button></div></div><div class="av-grille" id="galGrille"></div></div><div class="galMsg" id="galMsg"></div><input type="file" id="avFichier" accept="image/*" hidden><div class="av-rg"><button class="sc-btn" id="galOk" type="button">Choisir cet avatar</button><button class="sc-btn sc-secondaire" id="galFermer" type="button">Annuler</button></div></div></div>
 </div></header>
 <nav><div class="large onglets" role="tablist">
   <button role="tab" id="t-nouveautes" aria-controls="nouveautes" aria-selected="true" aria-label="Nouveautés"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span class="o-lg">Nouveautés</span><span class="o-ct">Infos</span></button>
   <button role="tab" id="t-jouer" aria-controls="jouer" aria-selected="false" aria-label="Jouer"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg><span class="o-lg">Jouer</span><span class="o-ct">Jouer</span></button>
   <button role="tab" id="t-decks" aria-controls="decks" aria-selected="false" aria-label="Decks"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="12" height="16" rx="2"/><rect x="4" y="6" width="12" height="16" rx="2"/></svg><span class="o-lg">Decks</span><span class="o-ct">Decks</span></button>
-  <button role="tab" id="t-historique" aria-controls="historique" aria-selected="false" aria-label="Historique"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.5l3.5 2"/></svg><span class="o-lg">Historique</span><span class="o-ct">Parties</span></button>
+  <!-- TODO vague suivante : Historique passe dans Jouer (sélecteur Jouer / Mes parties) ; bouton masqué en attendant. -->
+  <button role="tab" id="t-historique" aria-controls="historique" aria-selected="false" aria-label="Historique" hidden><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.5l3.5 2"/></svg><span class="o-lg">Historique</span><span class="o-ct">Parties</span></button>
   <button role="tab" id="t-stats" aria-controls="stats" aria-selected="false" aria-label="Statistiques"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M6.5 20v-6M11 20V6M15.5 20v-9M20 20v-4"/></svg><span class="o-lg">Statistiques</span><span class="o-ct">Stats</span></button>
-  <button role="tab" id="t-cartes" aria-controls="cartes" aria-selected="false" aria-label="Cartes"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 9h6M9 13h6"/></svg><span class="o-lg">Cartes</span><span class="o-ct">Cartes</span></button>
-  <button role="tab" id="t-regles" aria-controls="regles" aria-selected="false" aria-label="Règles"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5c3-1.5 5.5-1.5 8 0v15c-2.5-1.5-5-1.5-8 0zM20 5c-3-1.5-5.5-1.5-8 0v15c2.5-1.5 5-1.5 8 0z"/></svg><span class="o-lg">Règles</span><span class="o-ct">Règles</span></button>
-  <button role="tab" id="t-guides" aria-controls="guides" aria-selected="false" aria-label="Guides" hidden><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.2v5.6l4.6-2.8z"/></svg><span class="o-lg">Guides</span><span class="o-ct">Guides</span></button>
+  <!-- TODO vague suivante : Cartes passe dans Decks (sélecteur Decks / Cartes) ; bouton masqué en attendant. -->
+  <button role="tab" id="t-cartes" aria-controls="cartes" aria-selected="false" aria-label="Cartes" hidden><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 9h6M9 13h6"/></svg><span class="o-lg">Cartes</span><span class="o-ct">Cartes</span></button>
+  <button role="tab" id="t-regles" aria-controls="regles" aria-selected="false" aria-label="Comment jouer"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5c3-1.5 5.5-1.5 8 0v15c-2.5-1.5-5-1.5-8 0zM20 5c-3-1.5-5.5-1.5-8 0v15c2.5-1.5 5-1.5 8 0z"/></svg><span class="o-lg">Comment jouer</span><span class="o-ct">Apprendre</span></button>
 </div></nav>
 
 <main class="large">
 <section id="regles" role="tabpanel" aria-labelledby="t-regles">
-  <p class="intro">Les règles complètes du jeu pour apprendre à jouer.</p>
-
-  <div class="colonnes"><div>
-  <details open><summary><h3>La partie</h3></summary><div class="corps"><ul>
-    <li>3 terrains sont tirés au hasard parmi 16 et placés aléatoirement. Chacun rapporte les points imprimés dessus.</li>
-    <li>Les joueurs sont face à face. Chacun a une grille 3 x 3, en miroir de l'autre et une colonne correspond à un terrain.</li>
-    <li>Les cartes ne citent jamais de numéro de ligne ou de colonne : elles désignent les cases par le terrain, la case en face ou la ligne adverse.</li>
-    <li><b>En face :</b> même terrain, même ligne.</li>
-    <li><b>Ligne adverse :</b> les 3 cases adverses de la même ligne.</li>
-    <li><b>Voisin :</b> Golem allié sur une case adjacente, sans diagonale.</li>
-    <li><b>En jeu :</b> une carte posée sur une grille.</li>
-    <li>La partie dure 3 manches de 3 tours par joueur. Le premier joueur est tiré au sort, puis il change à chaque manche.</li>
-    <li>Quitter une partie en cours compte comme un abandon.</li>
-    <li>Si un joueur perd la connexion, la partie l'attend : il apparaît « Reconnexion » pendant 10 secondes. Au-delà, il passe « Hors ligne » et un minuteur de 60 secondes démarre ; s'il ne revient pas à temps, il perd par abandon. S'il revient avant, la partie reprend où elle en était. Si les deux joueurs sont déconnectés, personne ne gagne : le minuteur repart au retour du premier. Connecté à ton compte, tu retrouves ta partie sur n'importe quel appareil. Contre les Golems, pas de minuteur.</li>
-  </ul></div></details>
-
-  <details><summary><h3>Mise en place</h3></summary><div class="corps">
-    <p>5 cartes en main. Mulligan de 3 cartes maximum : elles retournent dans le deck, on mélange, puis on repioche.</p>
-  </div></details>
-
-  <details><summary><h3>Le tour</h3></summary><div class="corps">
-    <ol class="etapes" aria-label="Les 4 étapes du tour"><li><b>Pioche</b>2 cartes (1 au premier tour du second)</li><li><b>Forge</b>0 ou 1 carte</li><li><b>Actions</b>Poser, remplacer, améliorer</li><li><b>Fin du tour</b>Énergie perdue, 7 cartes max</li></ol>
-    <ol>
-      <li><b>Pioche :</b> 2 cartes. À chaque manche, le joueur qui joue en second ne pioche qu'une carte à son premier tour de la manche. Deck vide : si ton deck est vide, chaque carte que tu dois piocher donne 1 point à ton adversaire. Toutes les pioches comptent, y compris celles des effets de cartes.</li>
-      <li><b>Forge :</b> toujours en premier, après la pioche. Place 0 ou 1 carte de ta main, face cachée, définitivement, avant toute action et avant les effets gratuits de certains terrains. Chaque carte en Forge donne 1 énergie par tour, dès ce tour. La Forge est ta seule source d'énergie.</li>
-      <li><b>Actions :</b> paie en énergie, puis passe quand tu ne veux ou ne peux plus agir.
-        <figure class="annote" id="lireCarte" aria-label="Lire une carte"></figure>
-        <ul>
-          <li><b>Poser :</b> paie le coût de la carte.</li>
-          <li><b>Remplacer :</b> paie le coût de la nouvelle carte ; l'ancienne va à la défausse. Tu ne remplaces que tes propres Golems.</li>
-          <li><b>Améliorer :</b> paie le coût de l'évolution, possible dès le tour de la pose. Il faut avoir déjà posé la version de base du Golem.</li>
-        </ul></li>
-      <li><b>Fin du tour :</b> l'énergie restante est perdue, défausse jusqu'à 7 cartes.</li>
-    </ol>
-  </div></details>
-
-  <details><summary><h3>Fin de manche</h3></summary><div class="corps">
-    <ol>
-      <li><b>Décompte :</b> on additionne la Force actuelle de chacun de tes Golems dans chaque colonne. Une colonne vide vaut 0.</li>
-      <li>Le plus fort conquiert le terrain et marque ses points. En cas d'égalité, personne ne le marque.</li>
-      <li><b>Effets de fin de manche :</b> pour chaque joueur, en commençant par le premier joueur de la manche, ses Golems d'abord, puis ses terrains de gauche à droite vus du premier joueur.</li>
-      <li>Les cartes et les dégâts restent, le premier joueur change.</li>
-    </ol>
-    <div class="note"><p><b>Exemples</b></p><ul>
-      <li>KaTarN (carte) compte 8, puis 4, puis 0 sans bonus, et est détruit à la fin de la manche 2.</li>
-      <li>Le Buzzer est toujours résolu en dernier.</li>
-      <li>La Nuit au Village se résout avec le premier joueur.</li>
-    </ul></div>
-    <p><b>Deck vide :</b> si ton deck est vide, chaque carte que tu dois piocher donne 1 point à ton adversaire.</p>
-    <p><b>Fin de partie :</b> le plus de points après la manche 3, effets compris. En cas d'égalité, la plus grande Force totale (somme des trois colonnes) au dernier décompte l'emporte. Si elle est aussi égale, l'emporte celui qui a conquis le plus de terrains sur toute la partie, puis, en dernier recours, celui qui jouait en second à la manche 3. Il n'y a jamais de match nul.</p>
-  </div></details>
-
-  </div><div>
-  <details id="dTerrains"><summary><h3>Terrains</h3></summary><div class="corps"><figure class="annote" id="lireTerrain" aria-label="Lire un terrain"></figure><ul>
-    <li>Un effet de terrain s'applique aux deux joueurs, sauf mention contraire.</li>
-    <li>Un terrain est actif toute la partie, et son résultat est définitif pour chaque manche.</li>
-    <li><b>Valeur variable :</b> un terrain marqué « ? » change de valeur selon la manche. Le Tournoi vaut 1 point à la manche 1, 2 points à la manche 2 et 3 points à la manche 3.</li>
-    <li><b>Mise :</b> Les Pronos. Une fois par manche, pendant tes actions, tu peux miser 1 énergie ici (bouton « Miser »). En fin de manche, celui qui conquiert le terrain marque 1 point de plus par mise des deux joueurs. Les mises de la manche sont perdues si personne ne le conquiert.</li>
-    <li><b>Tarte :</b> Le Cirque. Une fois par manche, pendant tes actions, tu peux infliger 1 dégât gratuit à un Golem adverse de cette colonne. Mode Avion en protège.</li>
-    <li><b>Un seul Golem :</b> Le Versus. Tu ne peux pas y poser un 2e Golem, seulement remplacer le tien ou le faire évoluer. À chaque pose ici, le Golem adverse ici perd 1 de Force (dégât). Mode Avion en protège. Un animal n'est pas un Golem : il ne compte pas et ne déclenche rien.</li>
-    <li><b>Pioche de fin de manche :</b> L'École. Le joueur qui perd ce terrain pioche 1 carte, personne en cas d'égalité. Deck vide : 1 point pour l'adversaire, comme pour toute pioche.</li>
-    <li><b>Exactement 2 :</b> Le Karaoké donne +2 de Force à chacun de tes Golems ici seulement si tu en as exactement 2.</li>
-  </ul></div></details>
-
-  <details><summary><h3>Force et dégâts</h3></summary><div class="corps"><ul>
-    <li><b>Force actuelle</b> = Force de la carte + bonus de capacités + Trait + cercle - dégâts subis.</li>
-    <li>Les dégâts sont conservés entre les manches. Perdre de la Force, c'est subir des dégâts.</li>
-    <li>À 0 ou moins, le Golem est détruit et part aussitôt à la défausse. Tous ceux à 0 ou moins meurent en même temps, puis on recalcule, et ainsi de suite. Tuer ne rapporte rien.</li>
-    <li>On n'attaque que par les effets de cartes.</li>
-    <li><b>Évolution :</b> se pose sur sa base et prend sa place ; la base part aussitôt à la défausse. Tous les dégâts de la base sont annulés : l'évolution a sa propre Force et ses propres effets, ceux de la base sont perdus.</li>
-  </ul></div></details>
-
-  <details><summary><h3>Effets</h3></summary><div class="corps"><ul>
-    <li><b>À la pose :</b> à chaque arrivée sur la grille (Poser, Remplacer, Améliorer), après paiement. Échanger ou déplacer n'est pas une pose et garde les dégâts.</li>
-    <li><b>En jeu :</b> tant que la carte est sur la grille.</li>
-    <li>Un effet s'applique en entier. Sans cible, il ne se passe rien.</li>
-    <li>La carte prime sur la règle.</li>
-    <li><b>Copie :</b> un Golem qui copie un effet ne prend que l'effet, ni le nom, ni la Force, ni les éléments. Copier un Golem qui a lui-même copié donne l'effet qu'il a copié.</li>
-  </ul></div></details>
-
-  <details><summary><h3>Éléments</h3></summary><div class="corps">
-    <p>Magma (attaque), Cristal (soutien), Foudre (énergie), Brume (pioche), Roche (terrain).</p>
-    <div id="cercleEl"></div>
-    <p>Chaque flèche part de l'élément qui domine vers l'élément dominé.</p>
-    <div class="face"><figure><img data-src="cartes/001.jpg" alt="KaTarN" loading="lazy" width="600" height="840">+1 de Force</figure><span>face à face</span><figure><img data-src="cartes/003.jpg" alt="Cyrdan" loading="lazy" width="600" height="840">+1 de Force</figure></div>
-    <p><b>Exemple :</b> KaTarN (Magma, Foudre) fait face à Cyrdan (Cristal, Roche). Magma domine Cristal : KaTarN gagne +1. Roche domine Magma : Cyrdan gagne +1 aussi.</p>
-    <ul>
-      <li><b>Cercle :</b> +1 si le Golem en face (la case adverse sur le même terrain et la même ligne) a un élément que le tien domine. Jamais plus de +1, sauf effet de carte.</li>
-      <li>Comme chaque Golem a deux éléments, les deux Golems face à face peuvent chacun dominer l'autre : par exemple Magma + Foudre face à Roche + Brume (Roche domine Magma, Foudre domine Brume) : les deux gagnent +1.</li>
-      <li><b>Trait :</b> pour chacun de ses 2 éléments, +1 par voisin allié qui partage cet élément. Les voisins se cumulent, sans plafond. Exemple avec KaTarN (Magma, Foudre) : deux voisins Foudre +2, un seul voisin Magma et Foudre +2 à lui seul.</li>
-      <li>Les effets de cartes peuvent donner plus. Le Trait s'ajoute au cercle, qui reste à +1 au maximum, sauf effet de carte.</li>
-      <li>Trait et cercle sont toujours actifs : perdre un voisin ou un Golem en face peut détruire un Golem, en chaîne.</li>
-    </ul>
-  </div></details>
-
-  <details><summary><h3>Cartes et decks</h3></summary><div class="corps"><ul>
-    <li>Deck de 24 à 30 cartes, 3 exemplaires maximum de chaque carte, 1 seul par animal. Une base et son évolution sont deux cartes différentes, comptées à part.</li>
-    <li>4 éléments différents au maximum par deck : un Golem à 2 éléments compte les deux, un animal n'en a aucun.</li>
-    <li>Pas d'évolution sans sa base : pour mettre une évolution dans ton deck, ajoute au moins un exemplaire de sa carte de base.</li>
-  </ul></div></details>
-
-  <details><summary><h3>Animaux de compagnie</h3></summary><div class="corps"><ul>
-    <li><b>Pose :</b> coût 0. L'animal se glisse sous son maître, qui doit déjà être en jeu, et lui donne +1 de Force. Il ne prend pas de case. Un seul animal par maître.</li>
-    <li><b>Pas un Golem :</b> ni élément ni Force à lui, jamais d'évolution. Aucun effet ne le concerne : ni cible, ni bonus, ni favori, ni copie ; il ne compte pas pour le Trait, ni pour le cercle, ni pour un terrain.</li>
-    <li><b>Deck :</b> 1 exemplaire par animal, et seulement avec au moins un exemplaire de la base de son maître. Plusieurs animaux différents sont permis.</li>
-    <li><b>Son maître :</b> s'il quitte le jeu (détruit, remplacé, La Nuit au Village), l'animal part à la défausse. S'il évolue, l'animal reste. S'il est déplacé (La Faille, Le Vaisseau, Slam), l'animal le suit. Un Golem qui copie son effet n'est pas son maître.</li>
-    <li><b>Kiwi :</b> la Mignonitude se résout en fin de manche, puis vient le décompte, et juste après Kiwi part à la défausse. Deux Kiwi : celui du premier joueur d'abord, jamais deux fois le même Golem.</li>
-    <li><b>Jacen et Jaina :</b> les chats de KaTarN (ou Slim K). À la pose, pioche 1 carte. Si leur maître est détruit, pioche 1 carte, puis les chats partent à la défausse. Si tu remplaces toi-même leur maître, pas de pioche. Deck vide : chaque carte que tu dois piocher donne 1 point à ton adversaire.</li>
-    <li><b>Hors décompte :</b> le Golem tiré par Kiwi reste en jeu avec ses bonus ; seule sa Force sort de sa colonne. Les effets de fin de manche le concernent toujours (La Nuit au Village, KaTarN).</li>
-    <li>Un animal n'est jamais MVP.</li>
-  </ul></div></details>
-  </div></div>
+  <!-- Comment jouer (0.6) : Regles + Guides derriere un selecteur (onglets/regles.js, onglets/guides.js, css/onglets/guides.css). -->
+  <div class="cj-barre">
+    <div class="sc-sel cj-sel" id="cjSel" role="group" aria-label="Comment jouer"><button type="button" data-v="regles" aria-pressed="true">Règles</button><button type="button" data-v="guides" aria-pressed="false">Guides</button></div>
+    <div class="cj-filtres" id="gdFiltres" hidden>
+      <span class="cj-lib">Éléments</span><div class="gd-e3s" id="gdEls" role="group" aria-label="Éléments du deck"></div>
+      <span class="cj-lib">Afficher</span><div class="sc-sel sc-petit" id="gdType" role="group" aria-label="Type de guide"><button type="button" data-t="tous" aria-pressed="true">Tous</button><button type="button" data-t="video" aria-pressed="false">Vidéo</button><button type="button" data-t="texte" aria-pressed="false">Texte</button></div>
+    </div>
+    <label class="cj-rech"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6" fill="none" stroke="#a6bac6" stroke-width="2.2"/><path d="M13 13l5 5" stroke="#a6bac6" stroke-width="2.2" stroke-linecap="round"/></svg><input id="cjRech" type="search" placeholder="Chercher dans les règles" aria-label="Chercher dans les règles" autocomplete="off"></label>
+  </div>
+  <div class="g4 cj-vue" id="rgVue">
+    <section class="p" aria-labelledby="rgSomT"><div class="ph"><h3 id="rgSomT">Sommaire <span class="etq-v">v0.6</span></h3><small id="rgNb"></small></div><ol class="som" id="rgSom"></ol></section>
+    <section class="p" id="rgSec" aria-labelledby="rgTitre"><div class="ph"><h3 id="rgTitre"></h3><small id="rgPos"></small></div><div id="rgInfo"></div><div class="rg-corps" id="rgCorps"></div>
+      <div class="pied"><button class="sc-btn sc-secondaire" id="rgPrec" type="button">‹ Section précédente</button><button class="sc-btn" id="rgSuiv" type="button">Section suivante ›</button></div></section>
+  </div>
+  <div class="cj-vue gd-g4" id="gdVue" hidden>
+    <section class="gd-p" aria-labelledby="gdListeT"><div class="gd-ph"><h3 id="gdListeT">Guides</h3><small id="gdNb"></small></div>
+      <div class="gd-tri"><span class="cj-lib">Trier</span><div class="sc-sel sc-petit" id="gdTri" role="group" aria-label="Trier les guides"><button type="button" data-t="notes" aria-pressed="true">Les mieux notés</button><button type="button" data-t="recents" aria-pressed="false">Les plus récents</button></div></div>
+      <ol class="gd-lst" id="gdLst"></ol>
+      <div class="gd-pag" role="navigation" aria-label="Pages des guides"><button type="button" id="gdPrec" title="Page précédente" aria-label="Page précédente">‹</button><span id="gdNum">1/1</span><button type="button" id="gdSuiv" title="Page suivante" aria-label="Page suivante">›</button></div>
+    </section>
+    <section class="gd-p" id="gdDet" aria-live="polite"></section>
+  </div>
 </section>
 
 <section id="cartes" role="tabpanel" aria-labelledby="t-cartes" hidden>
@@ -189,81 +128,89 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 
 <section id="jouer" role="tabpanel" aria-labelledby="t-jouer" hidden>
   <p class="intro">Affronte un membre de la communauté ou un Golem.</p>
-  <p class="etat" id="etat"><i></i><span id="etatTexte">Connexion au salon en ligne...</span></p>
+  <p class="etat" id="etat"><i></i><span id="etatTexte">Connexion : serveur en cours de connexion. Patiente un instant.</span></p>
   <p class="absent" id="absent" hidden>Le salon en ligne n'est pas disponible pour le moment. Le jeu contre les Golems reste possible.</p>
   <div class="jeu"><div>
-    <p class="erreur" id="erreurJeu" role="alert"></p>
+    <div class="erreur" id="erreurJeu"></div>
+    <div class="sc-sel j-vue" id="jVue" role="group" aria-label="Vue de l'onglet Jouer"><button type="button" data-v="parties" aria-pressed="true">Parties</button><button type="button" data-v="historique" aria-pressed="false">Historique</button></div>
     <div id="accueil">
-      <div class="bloc" id="blocCreer">
-        <h3>Créer une partie</h3>
-        <label class="pf-inter caseSalon" title="Privé : la partie n'apparaît pas dans les parties publiques, seul son code permet de la rejoindre."><span class="pf-itx" id="salonPublicTxt">Salon public</span><input type="checkbox" id="salonPublicCase" role="switch" checked><span class="pf-glis"></span></label>
-        <button class="btn plein" id="creer" disabled>Créer une partie</button>
+      <div class="j-tuiles">
+      <div class="bloc j-tuile" id="blocClasse">
+        <h3 class="sc-titre-bloc">Classée</h3>
+        <div class="j-encart" id="encartRang"></div>
+        <div class="j-actions">
+          <div class="j-rangee"><button class="sc-btn" id="creerClasse" type="button" disabled>Créer une partie classée</button><div class="sc-sel j-pub" id="pubClasse" role="group" aria-label="Partie classée publique ou privée"><button type="button" aria-pressed="true">Publique</button><button type="button" aria-pressed="false">Privée</button></div></div>
+          <button class="sc-btn sc-secondaire" id="voirClassement" type="button">Voir le classement</button>
+        </div>
       </div>
-      <div class="bloc" id="blocRejoindre">
-        <h3>Rejoindre une partie privée</h3>
-        <form class="ligne" id="formCode">
-          <div><label for="champCode">Code du salon</label><input type="text" id="champCode" maxlength="8" autocomplete="off" autocapitalize="characters"></div>
-          <button class="btn" id="rejoindre" disabled>Rejoindre</button>
-        </form>
+      <div class="bloc j-tuile" id="blocCreer">
+        <h3 class="sc-titre-bloc">Amicale</h3>
+        <div class="j-encart" id="encartAmicale"></div>
+        <input type="checkbox" id="salonPublicCase" checked hidden><span id="salonPublicTxt" hidden>Salon public</span>
+        <div class="j-actions">
+          <div class="j-rangee"><button class="sc-btn" id="creer" type="button" disabled>Créer une partie amicale</button><div class="sc-sel j-pub" id="pubAmicale" role="group" aria-label="Partie amicale publique ou privée"><button type="button" aria-pressed="true">Publique</button><button type="button" aria-pressed="false">Privée</button></div></div>
+          <form class="j-rangee" id="formCode"><button class="sc-btn sc-secondaire" id="rejoindre" disabled>Rejoindre</button><input type="text" id="champCode" class="j-code" maxlength="8" autocomplete="off" autocapitalize="characters" placeholder="Code" aria-label="Code du salon"></form>
+        </div>
       </div>
-      <div class="bloc" id="blocRobot">
-        <h3>Apprendre et s'entraîner</h3>
-        <div class="choixDeck"><label for="deckRobot">Ton deck</label><select id="deckRobot" class="selDeck"></select></div>
-        <div class="p-btns"><div class="niveaux" role="group" aria-label="Tutoriel ou niveau du Golem"><button class="btn plein" id="lanceGuide" type="button">Tutoriel</button><button class="btn niv-f" data-niveau="facile" type="button">Facile</button><button class="btn niv-n" data-niveau="normal" type="button">Normal</button><button class="btn niv-d" data-niveau="difficile" type="button">Difficile</button></div><button class="btn sec" id="repriseRobot" type="button" hidden>Reprendre l'entraînement</button></div>
+      <div class="bloc j-tuile" id="blocRobot">
+        <h3 class="sc-titre-bloc">Entraînement</h3>
+        <div class="j-encart" id="encartEntrainement"></div>
+        <div class="choixDeck" hidden><label for="deckRobot">Ton deck</label><select id="deckRobot" class="selDeck"></select></div>
+        <div class="j-actions">
+          <div class="j-rangee"><button class="sc-btn" id="lanceGuide" type="button">Tutoriel</button><button class="j-pil" id="jDeck" type="button" title="Changer de deck"><span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v16M4 16l4 4 4-4M16 20V4M12 8l4-4 4 4"/></svg></button></div>
+          <div class="niveaux" role="group" aria-label="Niveau du Golem"><button class="sc-btn niv-f" data-niveau="facile" type="button">Facile</button><button class="sc-btn niv-n" data-niveau="normal" type="button">Normal</button><button class="sc-btn niv-d" data-niveau="difficile" type="button">Difficile</button></div>
+          <button class="sc-btn sc-secondaire" id="repriseRobot" type="button" hidden>Reprendre l'entraînement</button>
+        </div>
       </div>
-      <div class="bloc" id="blocListe">
-        <h3>Parties ouvertes</h3>
-        <div id="listeSalons" aria-live="polite"></div>
-      </div>
-      <div class="bloc" id="blocEnCours">
-        <h3>Parties en cours</h3>
-        <div id="listeEnCours" aria-live="polite"></div>
       </div>
       <div class="bloc" id="reprise" hidden>
-        <h3>Partie en cours</h3>
+        <h3 class="sc-titre-bloc">Partie en cours</h3>
         <div class="code" id="repriseCode"></div>
-        <div class="p-btns"><button class="btn" id="reprendre">Reprendre</button><button class="btn sec" id="oublier">Abandonner</button></div>
+        <div class="sc-rangee"><button class="sc-btn" id="reprendre" type="button">Reprendre</button><button class="sc-btn sc-secondaire" id="oublier" type="button">Abandonner</button></div>
+      </div>
+      <div class="bloc" id="blocListe">
+        <div class="j-tete"><h3 class="sc-titre-bloc">Parties en ligne</h3><div class="sc-sel sc-petit j-filtres" id="jFiltres" role="group" aria-label="Filtrer les parties"></div></div>
+        <div id="listeSalons" aria-live="polite"></div>
+        <div id="listeEnCours" hidden></div>
+        <div class="j-pages nv-pages" id="jPages" role="navigation" aria-label="Pages des parties en ligne"><button class="j-btn nv-prec" type="button" aria-label="Page précédente">&lt;</button><span class="nv-num"></span><button class="j-btn nv-suiv" type="button" aria-label="Page suivante">&gt;</button></div>
       </div>
     </div>
     <div class="bloc" id="salon" hidden>
-      <div class="sl-haut"><div><small>Code du salon</small><div class="code" id="codeSalon"></div></div><div class="sl-copies"><button class="btn btnCode" id="copieCode" type="button">Copier le code</button><button class="btn btnCode" id="copieLien" type="button">Copier le lien</button></div></div>
-      <div class="sl-scene"><div id="joueurs" class="sl-duo"></div><div class="sl-compte" id="slCompte" aria-hidden="true" hidden></div></div>
-      <p class="sl-face" id="faceAFace" hidden></p>
+      <div class="sl-haut"><div><small>Code du salon</small><div class="j-codeL"><div class="code" id="codeSalon"></div><span class="j-tag cl" id="salonClasseTag" hidden>Classée</span></div></div><div class="sl-copies"><button class="btn btnCode" id="copieCode" type="button">Copier le code</button><button class="btn btnCode" id="copieLien" type="button">Copier le lien</button></div></div>
+      <div class="sc-alerte sc-info sc-une-ligne j-robot" id="bandeauRobot" hidden><i></i><span></span><button class="sc-btn sc-tertiaire" id="affronterGolem" type="button" hidden>Affronter un Golem</button></div>
+      <div class="sl-cadre"><div class="sl-scene"><div id="joueurs" class="sl-duo"></div><div class="sl-compte" id="slCompte" aria-hidden="true" hidden></div></div>
+      <div class="sl-specs" id="slSpecs"></div></div>
+      <div class="sl-bas"><p class="sl-face" id="faceAFace" hidden></p>
       <p id="attente" role="status"></p>
-      <button class="btn plein" id="pret">Prêt</button>
+      <div class="sl-rangee"><button class="sc-btn sc-secondaire" id="slDeck" type="button">Changer de deck</button><button class="sc-btn" id="pret">Prêt</button><button class="sc-btn sc-secondaire sl-quitter" id="quitter" type="button">Quitter le salon</button></div></div>
       <div id="chatPlace"></div>
-      <button class="btn sec sl-quitter" id="quitter" type="button">Quitter le salon</button>
     </div>
     <div id="partie" hidden></div>
   </div></div>
 </section>
 
 <section id="decks" role="tabpanel" aria-labelledby="t-decks" hidden>
-  <p class="intro">De 24 à 30 cartes, 3 exemplaires maximum par carte, base et évolution comptées à part. Animal de compagnie : 1 exemplaire, avec au moins un exemplaire de la base de son maître.</p>
   <div id="listeDecks"></div>
 </section>
 
 <section id="historique" role="tabpanel" aria-labelledby="t-historique" hidden>
-  <p class="intro">Consulte tes 50 dernières parties.</p>
-  <div id="histo"></div>
+  <div class="bloc h-bloc">
+    <div class="h-tete"><h2 class="sc-titre-bloc">Historique</h2><div class="sc-sel sc-petit h-filtres" id="hFiltres" role="group" aria-label="Filtrer les parties"></div></div><div class="h-alerte" id="histoAlerte"></div>
+    <div id="histo"></div>
+    <div class="h-pied"><p class="h-taux" id="hTaux"></p><div class="nv-pages" role="navigation" aria-label="Pages de l’historique"><button class="j-btn nv-prec" type="button" title="Page précédente" aria-label="Page précédente">&lt;</button><span class="nv-num"></span><button class="j-btn nv-suiv" type="button" title="Page suivante" aria-label="Page suivante">&gt;</button></div></div>
+  </div>
 </section>
 
 <section id="stats" role="tabpanel" aria-labelledby="t-stats" hidden>
-  <p class="intro">Les statistiques de toutes les parties de la communauté, calculées en direct.</p>
   <div id="statsCorps"></div>
 </section>
 
 <section id="nouveautes" role="tabpanel" aria-labelledby="t-nouveautes" hidden>
-  <p class="intro">Les dernières nouvelles du jeu : annonces, mises à jour et notes de patch.</p>
       <div class="bloc" id="premierePartie" role="region" aria-labelledby="propTitre" hidden>
         <div class="pp-tx"><b id="propTitre">Première partie ?</b><span>Joue une partie guidée contre un Golem Facile pour apprendre les bases.</span></div>
         <div class="pp-btns"><button class="btn plein" id="propOui" type="button">Lancer la partie guidée</button><button class="btn sec" id="propNon" type="button">Plus tard</button></div>
       </div>
   <div id="notes"></div>
-</section>
-<section id="guides" role="tabpanel" aria-labelledby="t-guides" hidden>
-  <p class="intro">Des vidéos de joueurs pour apprendre à jouer un deck, avec le deck à importer en un clic.</p>
-  <div id="gdBlocs"></div>
 </section>
 </main>
 
@@ -276,7 +223,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
     <input type="text" id="pseudo" maxlength="20" autocomplete="username" autocapitalize="off" spellcheck="false">
     <label for="codeSecret">Ton code secret</label>
     <input type="password" id="codeSecret" maxlength="128" autocomplete="current-password">
-    <p class="erreur" id="erreurPseudo" role="alert"></p>
+    <div class="erreur" id="erreurPseudo"></div>
     <button class="btn plein" id="entrer">Se connecter</button>
     <button class="btn sec" id="basculeCompte" type="button">Créer un compte</button>
     <button class="btn sec" id="plusTard" type="button">Jouer en invité</button>
@@ -285,7 +232,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 <img id="apercu" alt="" hidden>
 <div class="voile" id="recap" role="dialog" aria-modal="true" aria-labelledby="recapTitre" hidden></div>
 <p id="absence" role="status" hidden></p>
-<div id="nonEnr" role="alert" hidden><span><b>Partie non enregistrée.</b> Nouvel essai automatique au prochain chargement.</span><button class="btn sec" id="nonEnrOk" type="button">OK</button></div>
+<div id="nonEnr" class="sc-alerte sc-erreur" role="alert" hidden><i></i><span>Partie : résultat non enregistré. Nouvel essai automatique au prochain chargement.</span><button class="sc-btn sc-tertiaire" id="nonEnrOk" type="button">OK</button></div>
 <div id="des" role="status" hidden></div>
 <div id="scene" aria-hidden="true"></div>
 <button id="passer" class="btn sec" type="button" hidden>Passer</button>
@@ -308,8 +255,9 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 <button class="btn sec" id="gPasser" type="button" hidden>Passer le tutoriel</button>
 <script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
 <script>golemsCharge([['js','salon-firebase.js','type="module"'],['js','spectateur.js','type="module"'],['js','spectateur-ui.js','defer'],['js','diffusion.js','defer'],['js','aide.js','defer'],['js','cartes/donnees/golems.js'],['js','cartes/donnees/animaux.js'],['js','cartes/donnees/terrains.js'],['js','cartes/donnees/index.js'],['js','cartes/effets/golems.js'],['js','cartes/effets/animaux.js'],['js','cartes/effets/terrains.js'],['js','cartes/effets/index.js'],['js','moteur.js'],['js','presence.js','defer']])</script><!-- 0.5 déconnexion (window.DECO) : presence.js -->
-<script>golemsCharge([['js','cartes/donnees/interface.js'],['js','commun/etat.js'],['js','commun/outils.js'],['js','commun/compte.js'],['js','onglets/guides.js'],['js','commun/navigation.js'],['js','onglets/nouveautes.js'],['js','onglets/cartes.js'],['js','onglets/jouer.js'],['js','vue/partie.js'],['js','onglets/statistiques.js'],['js','onglets/historique.js'],['js','commun/profil.js'],['js','onglets/decks.js'],['js','vue/joueur.js'],['js','onglets/tutoriel.js'],['js','commun/raccords.js'],['js','onglets/regles.js'],['js','commun/version.js'],['js','commun/demarrage.js']])</script>
+<script>golemsCharge([['js','cartes/donnees/interface.js'],['js','versions-cartes.js'],['js','commun/etat.js'],['js','commun/outils.js'],['js','commun/alertes.js'],['js','commun/classe.js'],['js','commun/compte.js'],['js','onglets/guides.js'],['js','commun/navigation.js'],['js','onglets/nouveautes.js'],['js','onglets/cartes.js'],['js','onglets/jouer.js'],['js','vue/partie.js'],['js','onglets/statistiques.js'],['js','onglets/historique.js'],['js','commun/profil.js'],['js','onglets/decks.js'],['js','vue/joueur.js'],['js','onglets/tutoriel.js'],['js','commun/raccords.js'],['js','onglets/regles.js'],['js','commun/version.js'],['js','commun/demarrage.js']])</script>
 <script>(function(){ /* Crochet des outils de test (cdp.py, captures.py inserent __g juste avant la fin) ; le code du site est dans commun/, onglets/ et vue/. */
 })();
 </script>
+<script>golemsFin()</script>
 <script>window.__golemsPret&&window.__golemsPret()</script>

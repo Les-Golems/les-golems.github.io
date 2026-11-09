@@ -25,8 +25,8 @@ function noms(){
 }
 const nb=x=>{const f=document.createDocumentFragment();x.split(/(\S+-\S+)/).forEach((m,i)=>{if(!m)return;f.append(i%2?mk('span','d-nw',m):m)});return f};
 const nbEvo=x=>{const f=document.createDocumentFragment();x.split(noms().reEvo).forEach((m,i)=>{if(!m)return;f.append(i%2?mk('span','d-evo d-nw',m):nb(m))});return f};
-/* noms de cartes et de terrains en gras (blanc), evolutions en dore */
-const nbCartes=x=>{const N=noms(),f=document.createDocumentFragment();x.split(N.re).forEach((m,i)=>{if(!m)return;if(i%2)f.append(mk('b',N.evo.has(m)?'d-ca d-evo d-nw':'d-ca d-nw',m));else f.append(m)});return f};
+/* Journal (charte, 9 nov.) : noms de cartes, terrains et effets en couleur de leur type, sans gras, cliquables (zoom) : texteLog commun (vue/joueur.js) */
+const nbCartes=x=>{const u=U();if(u&&u.texteLog)return u.texteLog(x);const f=document.createDocumentFragment();f.append(x);return f};
 
 /* ---------- Etat de la vue ---------- */
 let D=null,scene=null,src=null,E=null; /* src : 'spec' ou 'demo' ; E : {etat, noms, avatars, uids} */
@@ -51,8 +51,11 @@ function prepareAnims(s,premier,nev0){
   const ev=s.stats.ev;let pose=null;const morts=[];
   for(let i=Math.max(0,nev0);i<ev.length;i++){const e=ev[i];if(e.t==='p')pose=e;else if(e.t==='m')morts.push(e)}
   let t0=t; /* debut des effets de cette action : a l'arrivee de la carte posee */
+  /* Choix a faire tout de suite par ce joueur (Elccino : Cafe du matin, La taupe) : pas de vol, la tuile est deja en place pendant le choix */
+  const A=s.attente,choix=src==='joueur'&&A&&A.p===E.moi&&(A.t==='cafe'||A.t==='taupe');
+  if(choix&&suivi.vol){suivi.vol=null;if(couche)couche.querySelectorAll('.d-vole').forEach(i=>i.remove())}
   if(pose&&scene){const x=chercheCarte(s,pose.cp,pose.cc);
-    if(x&&!REDUIT.matches){
+    if(x&&!REDUIT.matches&&!choix){
       const b=scene.querySelector('.d-col[data-p="'+pose.cp+'"] button[data-c="'+pose.cc+'"]'),zm=scene.querySelector('.d-col[data-p="'+pose.cp+'"] .d-main');
       let de=b?rectScene(b):zm?rectScene(zm):null;
       if(de&&!b)de={x:de.x+de.w/2-51,y:de.y,w:103,h:144};
@@ -202,7 +205,7 @@ function bandeau(s,qui){
   const u=U(),ban=mk('div','d-z d-ban');
   const cpt=(n,lib,v)=>{const x=mk('span');x.append(u.ico(n),lib+' ');x.append(mk('b','',String(v)));return x};
   /* Deck, Defausse, Forge (et Energie, qui prend la place de la Forge chez le joueur actif) : ouvrent la pile en grand */
-  const pile=(x,p,k,lib)=>{x.classList.add('d-pile');x.setAttribute('role','button');x.tabIndex=0;x.setAttribute('aria-label','Voir '+lib+' '+d_(nom(p))+nom(p));
+  const pile=(x,p,k,lib)=>{if(!pileOuverte(p,k))return x;x.classList.add('d-pile');x.setAttribute('role','button');x.tabIndex=0;x.setAttribute('aria-label','Voir '+lib+' '+d_(nom(p))+nom(p));
     x.onclick=()=>ouvrePop('pile',{p,k});x.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvrePop('pile',{p,k})}};return x};
   const bloc=(p,dr)=>{
     const J=s.j[p],b=mk('div','d-j '+(p===BAS()?'toi':'lui')+(dr?' dr':'')+(qui===p?' actif':'')),id=mk('div','d-id'),c=mk('div','d-cpt'),l1=mk('div','d-l1');
@@ -254,7 +257,7 @@ function zoomTerrainDif(s,k){
   const pan=p=>{const a=mk('section','dz-camp'),h=mk('h3','',nom(p)),ol=mk('ol','dz-l');h.style.color=COLZ[p];a.append(h);
     for(let l=0;l<3;l++){const g=s.j[p].grille[l][k],li=mk('li');
       if(!g){li.className='dz-vide';li.append(mk('span','','Case vide'),mk('span'))}
-      else{const v=Mo.valeurDecompte(s,p,l,k),f=mk('span','dz-v','Force '),fb=mk('b','',String(v));fb.style.color=COLZ[p];f.append(fb);
+      else{const v=Mo.valeurDecompte(s,p,l,k),f=mk('span','dz-v'),fb=mk('b','',String(v));fb.style.color=COLZ[p];f.append(u.ico('force'),fb);f.setAttribute('role','img');f.setAttribute('aria-label','Force '+v);
         if(g.hors===s.manche&&!(M().carte(g.c).animal))f.title='Ne compte pas au décompte de cette manche';li.append(lignePile(g.c),f)}
       ol.append(li)}
     const o=cc[1-p],n=cc[p],tt=mk('div','dz-tot'),b=mk('b','',String(n));b.style.color=COLZ[p];tt.append('Total : ',b);
@@ -300,7 +303,7 @@ let SVG=null;
 function cercle(){
   const z=mk('div','d-z d-bloc d-cer'),cw=mk('div','d-cw');
   if(!SVG){
-    const E5=['magma','cristal','foudre','brume','roche'],IM=68,ey=(188-IM)/1.809,ex=(350-IM)/1.902,DEG=Math.PI/180,P=a=>[ex*Math.cos(a*DEG),ey*Math.sin(a*DEG)];
+    const E5=window.GolemsDonnees.interface.elements.ordre,IM=68,ey=(188-IM)/1.809,ex=(350-IM)/1.902,DEG=Math.PI/180,P=a=>[ex*Math.cos(a*DEG),ey*Math.sin(a*DEG)];
     const pos=E5.map((e,i)=>P(-90+72*i)),libre=a=>{const[x,y]=P(a);return !pos.some(([X,Y])=>Math.hypot(x-X,y-Y)<IM/2+5)};
     let g='<defs><marker id="dFl" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" style="fill:var(--bleu)"/></marker></defs>';
     for(let i=0;i<5;i++){const a0=-90+72*i;let best=[0,0],cur=null;for(let a=a0;a<=a0+72;a+=.25){if(libre(a)){if(cur===null)cur=a;if(a-cur>best[1]-best[0])best=[cur,a]}else cur=null}
@@ -313,6 +316,17 @@ function cercle(){
 }
 function derniere(s){
   const u=U(),Mo=M(),z=mk('div','d-z d-bloc d-der'),tx=mk('div','d-txt'),d=suivi.der;
+  /* vue joueur, choix de carte a faire (Cafe du matin, La taupe) : « Choisis une carte » a la place de la derniere carte jouee ; le clic passe par la vraie vue (.p-choix) */
+  const A0=s.attente;
+  if(src==='joueur'&&A0&&A0.p===E.moi&&(A0.t==='cafe'||A0.t==='taupe')){
+    z.classList.add('d-choix');tx.append(mk('div','d-h','Choisis une carte'));const r=mk('div','d-main');
+    /* cartes a 103 x 144 (taille de la main) sur toute la largeur de la zone (755 px utiles) ; trop nombreuses : chevauchement, jamais reduites */
+    const nO=A0.options.length,ec=nO>1?Math.min(8,Math.floor((755-103*nO)/(nO-1))):0;
+    A0.options.forEach((c,k)=>{const C=Mo.carte(c),b=mk('button'),im=mk('img');b.type='button';im.src=imgV('cartes/'+C.id+'.jpg');im.alt=C.nom;b.setAttribute('aria-label','Choisir '+Mo.nomDetail(C));
+      b.style.width='103px';b.style.height='144px';if(k)b.style.marginLeft=ec+'px';b.append(im);
+      b.onclick=()=>{const v=document.querySelector('#partie .p-choix .p-slot[data-c="'+c+'"]>.p-carte');if(v)v.click()};r.append(b)});
+    tx.append(r);z.append(tx);return z;
+  }
   tx.append(mk('div','d-h','Dernière carte jouée'));
   if(!d){z.classList.add('vide');tx.append(mk('p','d-phr d-rien','Aucune carte jouée pour le moment.'));z.append(tx);return z}
   const C=Mo.carte(d.c),bt=mk('button'),im=mk('img');bt.type='button';im.src=imgV('cartes/'+C.id+'.jpg');im.alt=C.nom;bt.setAttribute('aria-label','Agrandir '+Mo.nomDetail(C));bt.append(im);
@@ -327,8 +341,9 @@ function derniere(s){
   const pe=mk('p','d-phr'),t=C.texte||'',i=t.indexOf(' : ');
   if(i>0){const sg=mk('strong','',t.slice(0,i));if(u.effetCouleur)sg.style.color=u.effetCouleur(C).firstChild.style.color;pe.append(sg,nb(t.slice(i)))}else if(t)pe.append(nb(t));
   const ch=mk('div','d-chips'),cc=mk('span'),cf=mk('span'),ce=mk('span');
-  cc.append(u.ico('enclume'),'Coût ');cc.append(mk('b','',String(C.cout)));
-  cf.append(u.ico('force'),'Force ');cf.append(mk('b','',C.force==null?'au dé':String(C.force)));
+  /* Charte : pictos seuls pour les donnees, libelles en mots pour les lecteurs d'ecran */
+  cc.append(u.ico('enclume'),mk('b','',String(C.cout)));cc.setAttribute('role','img');cc.setAttribute('aria-label','Coût '+C.cout);
+  cf.append(u.ico('force'),mk('b','',C.force==null?'au dé':String(C.force)));cf.setAttribute('role','img');cf.setAttribute('aria-label',C.force==null?'Force au dé':'Force '+C.force);
   (C.el||[]).forEach(e=>{const im2=mk('img');im2.src=imgV('cartes/'+e+'.png');im2.alt=e;ce.append(im2)});
   ch.append(cc,cf);if(C.el&&C.el.length)ch.append(ce);
   tx.append(ph);if(t)tx.append(pe);
@@ -400,8 +415,8 @@ const chat={el:null,ul:null,in:null,inf:null,vus:0,branche:false,dernier:0,
     i.type='text';i.maxLength=200;i.placeholder='Écrire un message';i.setAttribute('aria-label','Message');i.autocomplete='off';
     h.append(mk('span','d-h','Chat'),fe);f.append(i,ok);w.append(h,ul,f,inf);
     f.onsubmit=e=>{e.preventDefault();const m=i.value.replace(/\s+/g,' ').trim().slice(0,200);if(!m||!window.SPEC||!SPEC.dit)return;
-      const t=Date.now();if(t-this.dernier<1000){inf.textContent='Un message par seconde au plus.';return}
-      this.dernier=t;inf.textContent='';i.value='';Promise.resolve(SPEC.dit(m)).catch(()=>{inf.textContent='Message non envoyé.';i.value=m})};
+      const t=Date.now();if(t-this.dernier<1000){alerte(inf,'Chat : un message par seconde au plus. Patiente un instant.');return}
+      this.dernier=t;inf.textContent='';i.value='';Promise.resolve(SPEC.dit(m)).catch(()=>{alerte(inf,'Chat : message non envoyé. Réessaie.');i.value=m})};
     this.el=w;this.ul=ul;this.in=i;this.inf=inf;scene.append(w);this.peint();
     const b=scene.querySelector('.d-coin');if(b)b.replaceWith(coin());i.focus();
   },
@@ -430,11 +445,20 @@ if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi.pop=null;s
 /* Piles (Deck, Defausse, Forge) : ordre de pioche (1 = prochaine carte), defausse de la plus recente a la plus ancienne, forge dans l'ordre */
 const PILES={deck:'Deck',defausse:'Défausse',forge:'Forge'};
 function cartesPile(o){const L=(E.etat.j[o.p][o.k]||[]).slice();return o.k==='defausse'?L.reverse():L}
+/* vue joueur (correctif 0.5a) : le deck adverse ne s'ouvre pas ; son propre deck : trie par nom et regroupe, jamais l'ordre de pioche.
+   Vue spectateur et demonstration : inchange (ordre de pioche). */
+function pileOuverte(p,k){return !(src==='joueur'&&k==='deck'&&p!==E.moi)}
+function deckGroupe(o){return src==='joueur'&&o.k==='deck'}
 function sigPile(o){return o.p+o.k+':'+cartesPile(o).join()}
 function popPile(o,pp){
-  const L=cartesPile(o),n=L.length,h=mk('h2'),b=mk('span','',nom(o.p));b.style.color=COL[o.p];
+  const L=cartesPile(o),n=L.length,h=mk('h2'),b=mk('span','',nom(o.p)),gr=deckGroupe(o);b.style.color=COL[o.p];
   h.append(PILES[o.k]+' '+d_(nom(o.p)),b,' ('+n+(n>1?' cartes':' carte')+')');pp.append(h);
   if(!n){pp.append(mk('p','pp-sous pp-vide','Aucune carte.'));return}
+  if(gr){const m=new Map();L.forEach(c=>m.set(c,(m.get(c)||0)+1));
+    const G=[...m].map(([c,k])=>({c,k,nm:M().nomDetail(M().carte(c))})).sort((a,b)=>a.nm.localeCompare(b.nm,'fr'));
+    pp.append(mk('p','pp-sous','Cartes restantes, triées par nom.'));
+    const nc=G.length<=12?1:G.length<=36?2:3,g=mk('ul','pp-pile pp-groupe');g.style.setProperty('--nc',nc);g.style.gridTemplateRows='repeat('+Math.ceil(G.length/nc)+',auto)';
+    G.forEach(x=>{const li=mk('li');li.append(mk('span','pp-num','x'+x.k),lignePile(x.c));g.append(li)});pp.append(g);return}
   /* lignes condensees comme le panneau de l'onglet Decks ; 1 colonne jusqu'a 12 cartes, 2 jusqu'a 36, 3 au-dela ; lecture colonne par colonne */
   const nc=n<=12?1:n<=36?2:3,g=mk('ol','pp-pile');g.style.setProperty('--nc',nc);g.style.gridTemplateRows='repeat('+Math.ceil(n/nc)+',auto)';
   L.forEach((c,i)=>{const li=mk('li');li.append(mk('span','pp-num',String(i+1)),lignePile(c));g.append(li)});
@@ -465,7 +489,7 @@ function ouvrePop(type,m){
   else if(type==='pile'){pp.classList.add('pp-p');popPile(m,pp);suivi.pile={p:m.p,k:m.k,sig:sigPile(m)};v.onclick=e=>{if(e.target===v)fermePop()}}
   else if(type==='abandon')popAbandon(E.etat,m,pp);
   else{popPartie(E.etat,pp);suivi.vu={type,m,log:E.etat.log.length};if(src==='joueur')boutonsFin(pp)}
-  const fe=mk('button','pp-fermer','Fermer');fe.type='button';fe.onclick=fermePop;pp.append(fe);
+  if(!(type==='partie'&&src==='joueur')){const fe=mk('button','pp-fermer','Fermer');fe.type='button';fe.onclick=fermePop;pp.append(fe)} /* J06 : fin de partie du joueur sans petit Fermer */
   v.append(pp);scene.append(v);suivi.pop=v;
   if(type==='pile'&&haut){const g=pp.querySelector('.pp-pile');if(g)g.scrollTop=haut}
 }
@@ -479,8 +503,16 @@ function popAbandon(s,perdant,pp){
 /* vue joueur : boutons du bilan de fin (Rejouer, Partager le resume, Copier les donnees, Retour a l'accueil) */
 function boutonsFin(pp){
   const u=U(),s=E.etat,z=mk('div','pp-fbtns'),b=(t,cl,f)=>{const x=mk('button','btn'+(cl?' '+cl:''),t);x.type='button';x.onclick=()=>f(x);z.append(x);return x};
-  const rj=document.getElementById('rejouer');
-  if(rj){const x=b(rj.textContent,'plein',()=>{fermePop();rj.click()});x.disabled=rj.disabled}
+  const rj=document.getElementById('rejouer'),P=u.partie;
+  if(rj){const rv=mk('div','pp-rev'),moiP=P?P.moi:0,j=p=>{const d=mk('div','pp-rj'+(p===moiP?'':' lui')),n=mk('b','',nom(p));n.style.color=COL[p];d.append(avatar(p),n);return d};
+    const x=mk('button','sc-btn pp-revb',P&&P.veut?'En attente de l\'adversaire':'Revanche');x.type='button';x.disabled=rj.disabled;
+    /* classee contre un Golem : la revanche relance une classee contre le Golem choisi par l'Elo (limite du jour comprise) */
+    const cl=P&&P.classe&&P.classe.robot&&typeof lanceClasseRobot==='function'&&typeof profilClasse==='function';
+    if(cl&&!GolemsClasse.peutAffronterRobot(profilClasse().robots)){x.disabled=true;x.textContent='Limite du jour atteinte'}
+    x.onclick=()=>{fermePop();if(cl)lanceClasseRobot(profilClasse(),P.classe.sa);else rj.click()};
+    const c=mk('div','pp-revc');c.append(x,mk('small','',P&&P.local?(cl?'Nouvelle classée contre un Golem':'Nouvelle partie contre le Golem'):P&&P.veut?'Tu as choisi la revanche':'Personne n\'a encore choisi'));
+    rv.append(j(moiP),c,j(1-moiP));pp.append(rv)}
+  b('Changer de deck','sec',()=>{if(typeof u.choisirDeck==='function')u.choisirDeck(()=>{},'Choisir')});
   b('Partager le résumé','sec',x=>u.partageFin(x,u.texteResume(s)));
   b('Copier les données','sec',x=>u.copie(u.donneesPartie(s),x,'Copier les données'));
   b("Retour à l'accueil",'sec',()=>{fermePop();u.quitteBouton()});
@@ -507,12 +539,19 @@ function popManche(s,m,pp){
     const de=deManche(s,m,t.terrain);if(de)r.append(mk('div','pp-rde',de));
     c.append(r);g.append(c)});
   pp.append(g);
+  /* vue joueur : L'Ecran du MJ gagne a la derniere manche jouee, main adverse revelee (comme l'ancien bilan #recap) */
+  const ec=s.dernier&&s.dernier.ecran;
+  if(src==='joueur'&&ec&&ec.p===E.moi&&ec.main&&m===Math.max(...s.stats.t.map(t=>t.manche))){
+    const z=mk('div','pp-ecran'),l=mk('div','pp-ecran-l'),ad=1-E.moi,t=mk('p'),b=mk('b','',nom(ad));b.style.color=COL[ad];
+    t.append("L'Écran du MJ : main de ",b,ec.main.length?'.':' : vide.');z.append(t);
+    ec.main.forEach(c=>{const C=M().carte(c),i=mk('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;l.append(i)});
+    if(ec.main.length)z.append(l);pp.append(z)}
   const pm=ptsManche(s,m)||[0,0],tot=[0,0];for(let k=1;k<=m;k++){const x=ptsManche(s,k);if(x){tot[0]+=x[0];tot[1]+=x[1]}}
   const bas=mk('div','pp-bas');
   const bo=bonusManche(s,m);
   [0,1].forEach(p=>{const w=mk('div','pp-gc'),x=mk('div','pp-gain'),n=mk('span','',nom(p)),i=mk('i','','+'+pm[p]);n.style.color=i.style.color=COL[p];x.append(avatar(p),n,i,u.ico('coupe'));w.append(x);
     /* points hors terrains (Roi du Karaoke...) : petite ligne sous le gain, deja compris dans le +n */
-    if(bo[p].length)w.append(mk('div','pp-bonus',bo[p].join(' · ')));bas.append(w);
+    if(bo[p].length)w.append(mk('div','pp-bonus',bo[p].join(' - ')));bas.append(w);
     if(p===0)bas.append(score('Score',tot[0],tot[1]))});
   pp.append(bas);
 }
@@ -522,8 +561,8 @@ function popPartie(s,pp){
   if(src==='spec'&&F.abandon!==undefined&&(w===0||w===1)){vic.append(mk('h2','pp-neutre','Fin par abandon'));const duo=mk('div','pp-duo');
     [w,1-w].forEach(p=>{const j=mk('div','pp-dj'+(p===w?' g':'')),n=mk('span','pp-dn',nom(p)),a=avatar(p);if(p!==w)a.classList.add('dk-gris');n.style.color=COL[p];
       j.append(a,n,mk('span','dk-tag '+(p===w?'v':'d'),p===w?'Vainqueur':'Abandon'));duo.append(j)});vic.append(duo)}
-  else if(w===0||w===1){vic.style.setProperty('--c',COL[w]);const h=mk('h2','','Victoire '+d_(nom(w))+nom(w));h.style.color=COL[w];vic.append(avatar(w),h)}
-  else vic.append(mk('h2','','Match nul'));
+  else if(w===0||w===1){vic.style.setProperty('--c',COL[w]);const h=mk('h2','','Victoire '+d_(nom(w))+nom(w));h.style.color=COL[w];vic.append(avatar(w),titreFin(h))}
+  else vic.append(titreFin(mk('h2','','Match nul')));
   if(F.abandon!==undefined)vic.append(mk('p','pp-sous',nom(F.abandon)+(F.quitte?' a quitté la partie':' a abandonné')));
   else if(F.deckVide!==undefined)vic.append(mk('p','pp-sous','Victoire par deck vide : '+nom(F.deckVide)+' n\'avait plus de carte à piocher')); /* 0.4 */
   else if(F.departage&&F.scores[0]===F.scores[1])vic.append(mk('p','pp-sous','Égalité de points : départage à la Force'));
@@ -543,6 +582,23 @@ function popPartie(s,pp){
     col.append(l1);const pq=pourquoiMvp(x);if(pq)col.append(mk('div','pp-mvp-pq',pq));
     mv.append(mk('span','pp-mvp-e','MVP'),col);
     pp.append(mv)}
+  rangFin(pp);
+}
+/* 0.6 : partie classee (vue joueur) : pastille « Classée » (J05) a cote du titre, encart de rang sous le MVP (maquette 21, classe a-e). */
+const classeFin=()=>{const u=U(),P=src==='joueur'&&u?u.partie:null;return P&&P.classe?P.classe:null};
+function titreFin(h){if(!classeFin())return h;const z=mk('div','pp-titre');z.append(h,mk('span','pp-cl','Classée'));return z}
+function rangFin(pp){
+  const c=classeFin(),C=window.GolemsClasse;if(!c||!c.res||!C)return;
+  const x=c.res,A=C.affichage(x.profil),R=A.placement?A.estime:A.rang,i=C.RANGS.indexOf(R),suiv=C.RANGS[i+1],b=mk('div','pp-rang'),im=mk('img','pp-remb');
+  im.src=imgV('images/rangs/'+(A.placement?'placement':R.id)+'.png');im.alt=R.nom;
+  const mid=mk('div','pp-rmid'),l1=mk('div','pp-rl1'),nm=mk('b','pp-rnom',A.placement?'Placement '+A.n+'/'+A.sur:R.nom),el=mk('span','pp-relo');
+  el.append(mk('small','','ELO'),' '+Math.round(x.avant)+' -> '+Math.round(x.apres));l1.append(nm);if(!A.placement)l1.append(el);
+  const br=mk('div','pp-rbar'),bas=Number.isFinite(R.min)?R.min:(suiv?suiv.min-100:0),haut=suiv?suiv.min:bas+100,pct=e=>Math.max(0,Math.min(100,100*(e-bas)/(haut-bas)));
+  const a=mk('i','pp-ra'),d=mk('i','pp-rd '+(x.delta>=0?'up':'down'));a.style.width=pct(Math.min(x.avant,x.apres))+'%';d.style.left=pct(Math.min(x.avant,x.apres))+'%';d.style.width=Math.abs(pct(x.apres)-pct(x.avant))+'%';br.append(a,d);
+  const l3=mk('div','pp-rl3');l3.append(mk('span','',A.placement?'Rang révélé après '+A.sur+' parties':R.nom+' dès '+(Number.isFinite(R.min)?R.min:0)),mk('span','',suiv&&!A.placement?Math.ceil(suiv.min-x.apres)+' pts avant '+suiv.nom:''));
+  mid.append(l1);if(!A.placement)mid.append(br);mid.append(l3);
+  const pts=mk('div','pp-rpts '+(x.delta>=0?'up':'down'));pts.append(mk('b','',(x.delta>=0?'+':'')+x.delta),mk('small','',c.robot?'POINTS / 2':'POINTS'));
+  b.append(im,mid,pts);pp.append(b);
 }
 /* Pourquoi MVP : meme formulation que ligneMvpD d'index.html (export Discord de l'Historique), valeurs nulles omises */
 function pourquoiMvp(m){
@@ -550,7 +606,7 @@ function pourquoiMvp(m){
   const pl=(n,w)=>n+' '+w+(n>1?'s':''),l=[];
   if(m.force)l.push('Force '+m.force+' sur terrains gagnés');if(m.bonus)l.push(pl(m.bonus,'bonus donné'));
   if(m.degats)l.push(pl(m.degats,'dégât'));if(m.morts)l.push(pl(m.morts,'Golem')+' détruit'+(m.morts>1?'s':''));
-  return 'Score '+m.score+(l.length?' · '+l.join(', '):'');
+  return 'Score '+m.score+(l.length?' - '+l.join(', '):'');
 }
 
 /* ---------- Ouverture et fermeture ---------- */
@@ -597,6 +653,11 @@ function peindreJoueur(s,qui){
     sl.forEach(x=>{x.style.width=w+'px';x.style.height=Math.round(w*7/5)+'px';x.style.flex='none'})}else scene.append(derniere(s));
   const bt=po&&po.querySelector(':scope>.p-btns:not(.p-cale)');if(bt){const b=mk('div','mq-btns');b.append(bt);scene.append(b)}
   const pl=mk('div','mq-piles');if(po)po.querySelectorAll('.p-piles>.pile').forEach(x=>pl.append(x));scene.append(pl);
+  /* correctif 0.5a : ces piles ouvraient la fenetre de l'ancien ecran (#vueTas), cachee sous la vue joueur ; elles ouvrent maintenant la fenetre de la vue */
+  pl.querySelectorAll('.pile').forEach(x=>{const k=['deck','forge','defausse'].find(c=>x.classList.contains(c)),n=k?E.etat.j[E.moi][k].length:0;
+    if(!n){x.classList.remove('clic');x.onclick=x.onkeydown=null;x.removeAttribute('role');x.removeAttribute('tabindex');return}
+    const f=()=>ouvrePop('pile',{p:E.moi,k});x.classList.add('clic');x.tabIndex=0;x.setAttribute('role','button');x.setAttribute('aria-label','Voir '+PILES[k]+' : '+n);
+    x.onclick=f;x.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}});
   /* outils : Chat (parties en ligne), Daltonien, ?, son, Quitter (confirmation) */
   const ou=mk('div','mq-outils p-outils'),o=typeof u.outils==='function'?u.outils():null;
   if(o){const v=o.querySelector('#btnVitesse');if(v)v.remove();const x=o.querySelector('.dal-inter .pf-itx');if(x)x.textContent='Daltonien';ou.append(...o.children)}
@@ -635,7 +696,7 @@ function decoJoueur(){
   centrePastilles();
   if(e.lui==='off'&&e.reste!=null&&et){
     const m=mk('div','dk-et'),tx=mk('div','t'),br=mk('div','barre'),i=mk('i');m.setAttribute('role','status');
-    tx.append(mk('b','',(e.nomLui||nom(1-E.moi))+" s'est déconnecté"),mk('span','',"S'il ne revient pas à temps, tu gagnes la partie par abandon."));
+    tx.append(mk('b','','Partie : '+(e.nomLui||nom(1-E.moi))+" s'est déconnecté."),mk('span','','Sans retour à temps, tu gagnes par abandon.'));
     i.style.width=(100*e.reste/(e.total||60000))+'%';br.append(i);m.append(tx,mk('div','n',mnS(e.reste)),br);
     et.hidden=true;scene.append(m);
   }
@@ -663,7 +724,7 @@ function decoSpec(){
     if(F){suivi.abandon=1;scene.querySelectorAll('.dk-et').forEach(x=>x.remove());ouvrePop('abandon',E.uids.indexOf(F.u));return}}
   if(suivi.abandon)return;
   if(minu){const m=mk('div','dk-et dk-spec'),tx=mk('div','t'),br=mk('div','barre'),i=mk('i');m.setAttribute('role','status');
-    tx.append(mk('b','',nom(minu.p)+" s'est déconnecté"),mk('span','',"Sans retour à temps, défaite par abandon."));
+    tx.append(mk('b','','Partie : '+nom(minu.p)+" s'est déconnecté."),mk('span','','Sans retour à temps, il perd par abandon.'));
     i.style.width=(100*minu.reste/60000)+'%';br.append(i);m.append(tx,mk('div','n',mnS(minu.reste)),br);scene.append(m)}
 }
 setInterval(decoSpec,1000);
@@ -707,7 +768,7 @@ function telephone(P){
     const b=mk('div','mqa-b'),fe=mk('button','mqb-b','Fermer');fe.type='button';fe.onclick=()=>o.remove();
     if(x.dataset.act&&!x.classList.contains('grisee')){const okb=mk('button','mqb-b plein',forge?'Forger':'Jouer');okb.type='button';okb.onclick=()=>{o.remove();x.click()};b.append(fe,okb)}else b.append(fe);
     const sl=x.parentNode,oe=sl&&sl.querySelector('.oeil');if(oe){const z2=mk('button','mqb-b','Détails');z2.type='button';z2.onclick=()=>{o.remove();oe.click()};b.prepend(z2)}
-    const ra=x.querySelector('.raison');o.append(im,mk('p','','Carte '+(i+1)+' sur '+cartes.length+(x.classList.contains('surtaxe')?' · surcoût':'')+(ra?' · '+ra.textContent:'')),b);
+    const ra=x.querySelector('.raison');o.append(im,mk('p','','Carte '+(i+1)+' sur '+cartes.length+(x.classList.contains('surtaxe')?' - surcoût':'')+(ra?' - '+ra.textContent:'')),b);
     o.onclick=ev=>{if(ev.target===o)o.remove()};document.body.append(o);r.querySelectorAll('button').forEach(y=>y.classList.remove('choisi'));if(r.children[i])r.children[i].classList.add('choisi')};
   cartes.forEach((x,i)=>{const b=mk('button');b.type='button';if(x.classList.contains('surtaxe'))b.className='surtaxe';if(x.classList.contains('grisee'))b.classList.add('grisee');const im=mk('img');im.src=x.querySelector('img').src;im.alt=x.querySelector('img').alt||'';b.append(im);
     {const sl=x.parentNode,cc=sl&&sl.dataset.c,C=cc!=null&&M().carte(+cc);if(C&&C.base){const st=mk('span','evs','★');st.setAttribute('aria-hidden','true');b.append(st)}} /* evolution : etoile a cote du cout */

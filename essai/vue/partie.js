@@ -3,7 +3,7 @@
 /* M : moteur en service. Le rejeu le remplace le temps de la partie par le moteur archive de sa version (moteurs/moteur-<v>.js). */
 const M0=window.GolemsMoteur;let M=M0;
 /* Versions archivees dans moteurs/ : en ajouter une a chaque nouvelle version du moteur (voir README). */
-const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c','0.3','0.4'];
+const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c','0.3','0.4','0.5'];
 const versionMoteur=v=>v==='0.2a'?'0.2':v;
 const rejeuPossible=R=>!!(R&&typeof R.v==='string'&&Number.isInteger(R.graine)&&Array.isArray(R.j)&&(versionMoteur(R.v)===M0.VERSION||MOTEURS_ARCHIVES.includes(versionMoteur(R.v))));
 const moteursCharges={};
@@ -57,9 +57,9 @@ function cleSalon(c){return 'golems.partie.'+c}
 function oublie(c){notePublic(c,false);try{localStorage.removeItem(LS(cleSalon(c)));if(lire('golems.derniere')===c)localStorage.removeItem(LS('golems.derniere'))}catch(e){}}
 function sauve(){
   if(partie&&(partie.rejeu||partie.tuto))return; /* partie guidee : ni reprise ni sauvegarde */
-  if(partie&&partie.local){ecrire('golems.local',JSON.stringify({version:M.VERSION,niveau:partie.niveau,debut:partie.debut,graine:partie.graine,mien:partie.mien,sien:partie.sien,decks:partie.decks,deckNom:partie.deckNom,recapVu:partie.recapVu,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));return}
+  if(partie&&partie.local){ecrire('golems.local',JSON.stringify({version:M.VERSION,niveau:partie.niveau,debut:partie.debut,graine:partie.graine,mien:partie.mien,sien:partie.sien,decks:partie.decks,deckNom:partie.deckNom,recapVu:partie.recapVu,classe:partie.classe||null,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));return}
   if(!partie||!code)return;
-  ecrire(cleSalon(code),JSON.stringify({version:M.VERSION,debut:partie.debut,pseudo:pseudo,decks:partie.decks,deckNom:partie.deckNom,graine:partie.graine,mien:partie.mien,sien:partie.sien,place:partie.moi,arrivee:arrivee,sid:sid,adv:partie.adv,advNom:partie.advNom,recapVu:partie.recapVu,veut:partie.veut,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));
+  ecrire(cleSalon(code),JSON.stringify({version:M.VERSION,debut:partie.debut,pseudo:pseudo,decks:partie.decks,deckNom:partie.deckNom,graine:partie.graine,mien:partie.mien,sien:partie.sien,place:partie.moi,arrivee:arrivee,sid:sid,adv:partie.adv,advNom:partie.advNom,recapVu:partie.recapVu,veut:partie.veut,classe:partie.classe||null,fin:!!(partie.etat&&partie.etat.fin),t:Date.now()}));
   ecrire('golems.derniere',code);
 }
 function chargeSalon(c){
@@ -91,9 +91,77 @@ function oublieLocal(){try{localStorage.removeItem(LS('golems.local'))}catch(e){
 function lanceLocal(v){
   if(partie)finPartie();
   $('erreurJeu').textContent='';
-  const dc=deckChoisi();
-  lancer(v?v.graine:nouvelleGraine(),0,'',{mien:v?v.mien:[],sien:v?v.sien:[],advNom:'Golem',niveau:v?v.niveau:niveauChoisi,recapVu:v?v.recapVu:0,debut:v&&v.debut,local:true,
-    decks:v&&Array.isArray(v.decks)?v.decks:[dc.texte,''],deckNom:v?v.deckNom:dc.nom});
+  const dc=deckChoisi(),g=v?v.graine:nouvelleGraine();
+  lancer(g,0,'',{mien:v?v.mien:[],sien:v?v.sien:[],advNom:'Golem',niveau:v?v.niveau:niveauChoisi,recapVu:v?v.recapVu:0,debut:v&&v.debut,local:true,
+    decks:v&&Array.isArray(v.decks)?v.decks:[dc.texte,deckRobot(g)],deckNom:v?v.deckNom:dc.nom,classe:v?v.classe||null:classeEnAttente});
+  classeEnAttente=null;
+}
+/* 0.6 : classee contre un Golem (bouton « Affronter un Golem » du salon classe, onglets/jouer.js). Le robot est choisi par l'Elo (GolemsClasse.niveauRobot),
+   son deck tire par deckRobot(graine) comme a l'entrainement. partie.classe = { robot: 'facile|normal|difficile', eloAdv, profil (avant), sa: code du salon } ;
+   salons/<sa>/robot a ete pose juste avant (onglets/jouer.js), sinon les regles refusent la partie. */
+let classeEnAttente=null;
+function lanceClasseRobot(profil,sa){
+  const C=window.GolemsClasse,n=C.niveauRobot(profil.elo),R=C.ROBOTS?C.ROBOTS[n]:null;
+  classeEnAttente={robot:n,eloAdv:R?R.elo:profil.elo,profil:{elo:profil.elo,parties:profil.parties||0,partiesTotal:profil.partiesTotal||0,v:profil.v||0,d:profil.d||0,robots:profil.robots||null},sa:sa||''};
+  niveauChoisi=n;oublieLocal();lanceLocal(null);
+}
+/* 0.6 : classee entre joueurs. partie.classe = { sa: code du salon, a, b : uids des places 0 et 1, profil (le mien avant), eloAdv } ;
+   les deux profils classes sont lus des le lancement (ecran de fin) puis relus par le service au moment d'ecrire. */
+function prepareClasse(c){
+  const S=typeof serviceClasse==='function'?serviceClasse():null;if(!S||!c||c.robot)return;
+  const B=room.classeBase(),u=room.compte.uid(),adv=c.a===u?c.b:c.a;
+  Promise.all([B.lit('classe/joueurs/'+u),B.lit('classe/joueurs/'+adv)]).then(([m,o])=>{
+    if(partie&&partie.classe===c&&!c.res&&m&&o){c.profil={elo:m.elo,parties:m.parties||0,partiesTotal:m.partiesTotal||0,v:m.v||0,d:m.d||0};c.eloAdv=o.elo;sauve();if(partie.etat&&partie.etat.fin)finClasse(partie.etat)}
+  },e=>console.warn('classe',e));
+}
+/* Fin d'une classee (robot ou joueur) : variation estimee tout de suite par commun/classe.js pour l'ecran de fin (partie.classe.res),
+   puis ecriture Firebase par le service (classe/parties/<id>, confirmation, profil, classement) ; la valeur ecrite remplace l'estimation.
+   Partie pas encore appliquee (adversaire qui n'a pas confirme, coupure) : gardee en attente, nouvel essai au chargement. */
+function finClasse(s){
+  const c=partie&&partie.classe;if(!c||c.res||!c.profil||!s||!s.fin)return;
+  const C=window.GolemsClasse,w=s.fin.gagnant,g=w===null||w===undefined?'nul':w===partie.moi,A=C.appliquePartie(c.profil,c.eloAdv,g,{robot:!!c.robot}),apres=A.joueur;
+  c.res={gagne:g,avant:c.profil.elo,apres:apres.elo,delta:A.delta,placement:C.enPlacement(c.profil),profil:apres};
+  envoieClasse(c,w,partie.graine);
+}
+/* Classee entre joueurs : UN SEUL cote ecrit, le perdant (commun/classe.js finJoueurs) ; le gagnant n'ecrit rien et ecoute son profil
+   (S.attends) puis met a jour son ecran de fin, sa capsule (chargeClasse -> majRangMoi) et son historique avec la valeur ecrite.
+   Le perdant garde sa fin sur l'appareil (FINS_CL) tant qu'elle n'est pas ecrite : coupure avant l'ecriture = nouvel essai au chargement (reessaie). */
+async function envoieClasse(c,w,gr){
+  const S=typeof serviceClasse==='function'?serviceClasse():null;if(!S)return;
+  const C=window.GolemsClasse,u=room.compte.uid(),id=c.robot?C.creePartieRobot({sa:c.sa,gr,a:'',profilA:c.profil,niveau:c.robot,gagne:false,saison:0}).id:C.idPartie(c.sa,gr);
+  attenteClasse(id,true);
+  try{
+    let j=null;
+    if(c.robot){const r=await S.finRobot({sa:c.sa,gr,niveau:c.robot,gagne:w===partie.moi});if(r.fait)j=await room.classeBase().lit('classe/joueurs/'+u)}
+    else{
+      const o={sa:c.sa,gr,a:c.a,b:c.b,gagnant:w===0?c.a:w===1?c.b:null};
+      if(o.gagnant===u)j=await S.attends(id);
+      else{finEnAttente(u,o,true);const r=await S.finJoueurs(o);if(r.fait){finEnAttente(u,o,false);j=await room.classeBase().lit('classe/joueurs/'+u)}}
+    }
+    if(j){attenteClasse(id,false);
+      if(c.res&&j.dern===id){c.res.delta=Math.round(j.elo-c.res.avant);c.res.apres=j.elo;c.res.profil=j;c.res.ecrit=true;sauve();histoClasse(partie.graine+'-'+partie.debut,c.res.delta)}}
+  }catch(e){console.warn('classe',e)}
+  if(typeof chargeClasse==='function')chargeClasse();
+}
+/* Variation ecrite reportee sur l'entree d'historique de la partie (en memoire et dans l'envoi en attente). */
+function histoClasse(hid,delta){
+  const f=x=>{if(x&&x.classe&&x.classe.delta!==delta){x.classe.delta=delta;return true}return false};
+  try{if(compteCo())(room.compte.donnees().historique||[]).filter(x=>x&&x.id===hid).forEach(f)}catch(e){}
+  if(typeof majAttente==='function'&&litListe(ATTENTE).some(y=>y&&y.id===hid&&y.h))majAttente(hid,y=>f(y.h));
+}
+/* Fins de classees du perdant pas encore ecrites (coupure avant ou pendant l'ecriture) : rejouees au chargement. */
+const FINS_CL='golems.classeFins';
+function finEnAttente(u,o,on){const id=GolemsClasse.idPartie(o.sa,o.gr),l=litListe(FINS_CL).filter(x=>x&&x.id!==id);if(on)l.unshift({id,u,o});ecrire(FINS_CL,JSON.stringify(l.slice(0,20)))}
+async function reprendFins(){
+  const S=typeof serviceClasse==='function'?serviceClasse():null;if(!S)return;const u=room.compte.uid();
+  for(const x of litListe(FINS_CL).filter(y=>y&&y.u===u&&y.o))
+    try{const r=await S.finJoueurs(x.o);if(r.fait){finEnAttente(u,x.o,false);if(typeof attenteClasse==='function')attenteClasse(r.id,false)}}catch(e){console.warn('classe',e)}
+}
+/* 0.6 : deck du Golem tire dans la reserve (decks conseilles) a partir de la graine de la partie : meme graine = meme deck, rejeux exacts (le deck est aussi garde dans partie.decks). Partie guidee : deck fixe (onglets/tutoriel.js). */
+function deckRobot(g){
+  const R=(window.GolemsDonnees.interface.decksConseilles)||[];if(!R.length)return '';
+  let h=Math.imul((g|0)^0x9E3779B9,2654435761);h^=h>>>15;h=Math.imul(h,0x85EBCA6B);h^=h>>>13;
+  return M.deckTexte(R[(h>>>0)%R.length].cartes);
 }
 function suiteRobot(){
   clearTimeout(robotT);robotT=0;
@@ -111,7 +179,7 @@ document.querySelectorAll('[data-niveau]').forEach(b=>{b.onclick=()=>choisirDeck
 $('repriseRobot').onclick=()=>{const v=chargeLocal();if(v)lanceLocal(v)};
 function lancer(g,moi,adv,sv){
   const dks=sv&&Array.isArray(sv.decks)&&sv.decks.length===2?sv.decks.map(t=>typeof t==='string'?t:''):['',''];
-  partie={decks:dks,deckNom:sv&&typeof sv.deckNom==='string'?sv.deckNom:'',rejeu:sv&&sv.rejeu||null,debut:sv&&+sv.debut||Date.now(),local:!!(sv&&sv.local),tuto:!!(sv&&sv.tuto),niveau:sv&&sv.niveau||'normal',graine:g,moi:moi,mien:sv?sv.mien:[],sien:sv?sv.sien:[],etat:null,erreur:null,veut:!!(sv&&sv.veut),adv:adv||'',advNom:sv&&typeof sv.advNom==='string'?nettoie(sv.advNom):'',recapVu:sv?+sv.recapVu||0:0};
+  partie={classe:sv&&sv.classe||null,decks:dks,deckNom:sv&&typeof sv.deckNom==='string'?sv.deckNom:'',rejeu:sv&&sv.rejeu||null,debut:sv&&+sv.debut||Date.now(),local:!!(sv&&sv.local),tuto:!!(sv&&sv.tuto),niveau:sv&&sv.niveau||'normal',graine:g,moi:moi,mien:sv?sv.mien:[],sien:sv?sv.sien:[],etat:null,erreur:null,veut:!!(sv&&sv.veut),adv:adv||'',advNom:sv&&typeof sv.advNom==='string'?nettoie(sv.advNom):'',recapVu:sv?+sv.recapVu||0:0};
   CARTES.forEach(c=>{new Image().src=imgV('cartes/'+c[0]+'.jpg')});M.TERRAINS.forEach(T=>{new Image().src=srcTerrain(T)});new Image().src=DOS;
   notice='';sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;modeLove=false;modeTarte=false;fx=[];journalPage=null;journalReperes=0;
   stopCompte();jePret=false;
@@ -137,6 +205,7 @@ function calcule(){
     });
   }
   partie.etat=x.etat;partie.erreur=x.erreur;
+  if(x.etat&&x.etat.fin&&!partie.rejeu&&!partie.tuto&&partie.classe)finClasse(x.etat);
   if(x.etat&&x.etat.fin&&!partie.rejeu&&!partie.tuto)enregistrePartie(x.etat); /* partie guidee : hors historique et profil */
   if(x.etat&&x.etat.fin&&!partie.local&&!partie.rejeu&&!partie.tuto)grainesFinies.add(partie.graine);
   affiche();
@@ -586,7 +655,7 @@ function copie(txt,b,lib,selectionne,surOk){
   let fait=false;try{fait=document.execCommand('copy')}catch(e){}
   s.remove();try{b.focus()}catch(e){}
   if(fait){reussi();return}
-  const echec=()=>{if(selectionne){selectionne();ok('Sélectionné : Ctrl+C')}else{ok('Copie impossible');window.prompt('Copie ce texte :',txt)}};
+  const echec=()=>{const P=b.parentNode;let z=P&&P.nextElementSibling;if(P&&!(z&&z.classList.contains('copie-alerte'))){z=document.createElement('div');z.className='copie-alerte';P.after(z)}if(selectionne){selectionne();ok('Sélectionné : Ctrl+C');if(z)alerte(z,'Action impossible : presse-papiers bloqué. Texte sélectionné, appuie sur Ctrl+C.')}else{ok('Copie impossible');if(z)copieManuelle(z,txt)}};
   try{if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(txt).then(reussi,echec);else echec()}catch(e){echec()}
 }
 /* Fin de partie : tout vient du journal, le moteur ne garde que la derniere manche. */
@@ -711,9 +780,9 @@ function resultat(D){
   if(D.deckVide!==undefined)return {titre:N(D,a)+' gagne par deck vide',vainq:a,perd:b}; /* 0.4 */
   return {titre:N(D,a)+' bat '+N(D,b)+', '+D.scores[a]+' à '+D.scores[b],vainq:a,perd:b};
 }
-const contexte=D=>(D.mode==='robot'?"Contre l'ordinateur":'Partie en ligne')+' · version '+esc(D.version);
+const contexte=D=>(D.mode==='robot'?"Contre l'ordinateur":'Partie en ligne')+' - version '+esc(D.version);
 const elsAff=l=>l.length===5?'les 5 éléments':l.join(', ');
-const ligneDeck=(D,p)=>'**'+N(D,p)+'**'+(D.decks[p].nom?' · *'+esc(D.decks[p].nom)+'*':'')+(D.decks[p].els.length?' · '+elsAff(D.decks[p].els):'');
+const ligneDeck=(D,p)=>'**'+N(D,p)+'**'+(D.decks[p].nom?' - *'+esc(D.decks[p].nom)+'*':'')+(D.decks[p].els.length?' - '+elsAff(D.decks[p].els):'');
 const scoreManche=(D,o)=>C(D,0)+' '+o.pts[0]+', '+C(D,1)+' '+o.pts[1];
 function detailCamp(D,o,p){
   const l=o.terrains.filter(t=>t.p===p).map(t=>esc(t.nom)+' +'+t.pts+(t.forces?' ('+t.forces[0]+' contre '+t.forces[1]+')':''));
@@ -725,7 +794,7 @@ function ligneMvpD(m){
   if(m.score===null)return '';
   const l=[];if(m.force)l.push('Force '+m.force+' sur terrains gagnés');if(m.bonus)l.push(pl(m.bonus,'bonus donné'));
   if(m.degats)l.push(pl(m.degats,'dégât'));if(m.morts)l.push(pl(m.morts,'Golem')+' détruit'+(m.morts>1?'s':''));
-  return 'Score '+m.score+(l.length?' · '+l.join(', '):'');
+  return 'Score '+m.score+(l.length?' - '+l.join(', '):'');
 }
 const abandonTxt=D=>D.abandon!==undefined?N(D,D.abandon)+' a abandonné à '+D.scores[D.abandon]+' contre '+D.scores[1-D.abandon]:'';
 function chiffres(D){
@@ -741,16 +810,16 @@ function chiffres(D){
 /* ---------- A (sans emoji) et B (quelques emoji) : meme fiche ---------- */
 function fiche(D,niv,emo){
   const R=resultat(D),l=[],e=(x,y)=>emo?x+' ':(y||'');
-  l.push('## '+(emo?(R.vainq===null?'\u{1F91D} ':'\u{1F3C6} '):'Les Golems · ')+R.titre);
-  l.push('-# '+(emo?'Les Golems · ':'')+contexte(D)+(D.departage?' · '+esc(D.departage):'')+(D.abandon!==undefined?' · '+e('\u{1F3F3}️')+abandonTxt(D):''));
+  l.push('## '+(emo?(R.vainq===null?'\u{1F91D} ':'\u{1F3C6} '):'Les Golems - ')+R.titre);
+  l.push('-# '+(emo?'Les Golems - ':'')+contexte(D)+(D.departage?' - '+esc(D.departage):'')+(D.abandon!==undefined?' - '+e('\u{1F3F3}️')+abandonTxt(D):''));
   l.push((emo?'> ':'')+ligneDeck(D,0),(emo?'> ':'')+ligneDeck(D,1));
   l.push('### '+e('⚔️')+'Manche par manche');
   if(!D.manches.length)l.push('*Aucune manche décomptée*');
   D.manches.forEach((o,i)=>{
-    l.push('**Manche '+(i+1)+'** · '+scoreManche(D,o));
-    if(niv<1){const d=[0,1].map(p=>{const x=detailCamp(D,o,p);return x?C(D,p)+' : '+x:''}).filter(Boolean);if(d.length)l.push('-# '+d.join(' · '))}
+    l.push('**Manche '+(i+1)+'** - '+scoreManche(D,o));
+    if(niv<1){const d=[0,1].map(p=>{const x=detailCamp(D,o,p);return x?C(D,p)+' : '+x:''}).filter(Boolean);if(d.length)l.push('-# '+d.join(' - '))}
   });
-  if(D.mvp){l.push('### '+e('⭐')+'MVP · '+esc(D.mvp.carte));const q=ligneMvpD(D.mvp);if(q&&niv<2)l.push('-# '+q)}
+  if(D.mvp){l.push('### '+e('⭐')+'MVP - '+esc(D.mvp.carte));const q=ligneMvpD(D.mvp);if(q&&niv<2)l.push('-# '+q)}
   if(niv<2){const c=chiffres(D);if(c.length)l.push('### '+e('\u{1F4CA}')+'Chiffres clés',...c,'')} /* ligne vide : ferme la liste pour Discord */
   l.push('-# '+e('\u{1F517}')+'[Jouer aux Golems]('+LIEN+')');
   return l.join('\n');
@@ -760,12 +829,12 @@ const formeA=(D,n)=>fiche(D,n,false),formeB=(D,n)=>fiche(D,n,true);
 /* ---------- C : compacte (aussi le dernier repli si A ou B depasse 2000) ---------- */
 function formeC(D,emo){
   const R=resultat(D),l=[];
-  l.push((emo?(R.vainq===null?'\u{1F91D} ':'\u{1F3C6} '):'')+'**Les Golems** · '+R.titre+(D.abandon!==undefined?' *('+abandonTxt(D)+')*':''));
-  const m=D.manches.map((o,i)=>'M'+(i+1)+' **'+o.pts[0]+'-'+o.pts[1]+'**').join(' · ');
+  l.push((emo?(R.vainq===null?'\u{1F91D} ':'\u{1F3C6} '):'')+'**Les Golems** - '+R.titre+(D.abandon!==undefined?' *('+abandonTxt(D)+')*':''));
+  const m=D.manches.map((o,i)=>'M'+(i+1)+' **'+o.pts[0]+'-'+o.pts[1]+'**').join(' - ');
   if(m)l.push('> '+(emo?'⚔️ ':'')+'Manches, '+C(D,0)+' contre '+C(D,1)+' : '+m);
   if(D.mvp)l.push('> '+(emo?'⭐ ':'')+'MVP : **'+esc(D.mvp.carte)+'**'+(D.mvp.score!==null?' (score '+D.mvp.score+')':''));
   const dk=[0,1].map(p=>D.decks[p].els.length?C(D,p)+' ('+(D.decks[p].els.length===5?'5 éléments':D.decks[p].els.join(', '))+')':'').filter(Boolean).join(' contre ');
-  l.push('-# '+(dk?dk+' · ':'')+'version '+esc(D.version)+' · [les-golems.github.io]('+LIEN+')');
+  l.push('-# '+(dk?dk+' - ':'')+'version '+esc(D.version)+' - [les-golems.github.io]('+LIEN+')');
   return l.join('\n');
 }
 
@@ -939,6 +1008,7 @@ function enregistrePartie(s){
   if(l.some(x=>x.id===id))return;
   const o=archiveResume(s,id);
   enregistreDans(l,s,id);
+  {const c=partie.classe&&partie.classe.res;if(c&&l[0]&&l[0].id===id){const k=partie.classe;l[0].mode='classee';l[0].classe={elo:c.avant,delta:c.delta,eloAdv:k.eloAdv,robot:!!k.robot};if(k.robot)l[0].classe.niveau=k.robot}} /* 0.6 : etiquette Classee (+ Golem) de l'Historique ; c, de, ro dans Firebase (salon-firebase.js) */
   if(compteCo()){const x={id,u:room.compte.uid(),h:l[0]};if(o)x.r=o;majAttente(id,y=>Object.assign(y,x));envoieAttente(id);return}
   ecrire('golems.historique',JSON.stringify(l.slice(0,50)));
 }
@@ -961,6 +1031,7 @@ function envoieAttente(id){
 }
 /* Au chargement (compte connecte) : nouvel essai des parties restees en attente. */
 async function reessaie(){
+  if(compteCo()&&!reprendFins.cours){reprendFins.cours=true;reprendFins().finally(()=>{reprendFins.cours=false;if(typeof chargeClasse==='function')chargeClasse()})} /* 0.6 : classees du perdant pas encore ecrites */
   if(reessai||!compteCo())return;const u=room.compte.uid(),l=litListe(ATTENTE).filter(x=>x&&x.u===u&&typeof x.id==='string');if(!l.length)return;
   reessai=true;try{for(const x of l)await envoieAttente(x.id)}finally{reessai=false}
   if(!$('historique').hidden)peintHisto();
@@ -972,7 +1043,7 @@ function archiveResume(s,id){
   const w=s.fin.gagnant,p0=s.premier^((s.manche-1)&1),B=M.bilan(s),st=(s.stats&&s.stats.t)||[];
   const t={};s.terrains.forEach((T,k)=>{const e=st.filter(x=>x.k===k);
     t[k]={n:String(T.nom).slice(0,40),r:e.map(x=>x.gagnant===0||x.gagnant===1?String(x.gagnant):(r=>!!r&&x.manche<r.manche)(effetTerrain(T,'derniereManche'))?'-':x.forces[0]===x.forces[1]?'=':'-').join('').slice(0,3)||'-',q:Math.min(20,e.reduce((a,x)=>a+(+x.points||0),0))}});
-  const o={v:String(M.VERSION).slice(0,12),m:partie.local?'golem-'+partie.niveau:'ligne',g:w===0||w===1?w:-1,pg:w===p0,a:s.fin.abandon!==undefined,
+  const o={v:String(M.VERSION).slice(0,12),m:partie.local?'golem-'+partie.niveau:'ligne',...(partie.classe?{cl:true}:{}),g:w===0||w===1?w:-1,pg:w===p0,a:s.fin.abandon!==undefined,
     s0:Math.min(30,s.j[0].score),s1:Math.min(30,s.j[1].score),mvp:B.mvp?String(B.mvp.carte).slice(0,40):'',t};
   [0,1].forEach(p=>{const k=M.lisDeck(s.decks[p])?s.decks[p]:'';o['k'+p]=k;o['e'+p]=elsTexte(k).join(',')});
   /* Partie contre un Golem : le robot joue le deck par defaut, enregistre sous son texte (30 cartes depuis 0.3, 33 avant ; camp ignore par agregeStats). */

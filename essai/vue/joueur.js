@@ -23,13 +23,13 @@ function quittePartie(envoi){
 function quitteAvecConfirmation(){
   if(!partie||partie.rejeu||!partie.etat||partie.etat.fin||partie.tuto){quitteBouton();return}
   if(!partie.local&&r){quitteBouton();return}
-  confirmeAbandon('La partie en cours sera perdue.',()=>{if(partie)quitteBouton()});
+  confirmeAbandon('La partie en cours sera perdue.',()=>{if(partie)quitteBouton()},'Quitter la partie ?','Quitter');
 }
 function quitteBouton(){
   const enCours=()=>partie&&!partie.local&&!partie.rejeu&&!partie.tuto&&r&&partie.etat&&!partie.etat.fin&&M.VERSION===M0.VERSION;
   /* 0.5.1 : retour a l'accueil apres une partie terminee (hors replay) : Nouveautes si la version n'est pas encore vue */
   if(!enCours()){const fini=partie&&!partie.rejeu&&partie.etat&&partie.etat.fin;quittePartie();if(fini&&!versionVue())onglet('nouveautes');return}
-  confirmeAbandon('Quitter maintenant compte comme un abandon.',()=>{
+  confirmeAbandon('Partir maintenant compte comme un abandon.',()=>{
     if(!enCours()){quittePartie();return}
     partie.mien.push(M.code({t:'a'}));sel=null;
     const envoi=r.presence({j:M.ecritJournal(partie.mien)});
@@ -58,7 +58,7 @@ function majPartie(){
     rattrape();if(partie.relDep===1||relit('relDep',majPartie))return;
     const ab=partie.etat&&partie.etat.fin&&partie.etat.fin.abandon===1-partie.moi;
     grainesFinies.add(partie.graine);
-    oublie(code);finPartie();notice=ab?'Ton adversaire a abandonné la partie.':'Ton adversaire a quitté la partie.';if(r.libere)r.libere();
+    oublie(code);finPartie();notice=ab?'Partie : ton adversaire a abandonné. Tu es de retour dans le salon.':'Partie : ton adversaire a quitté la partie. Tu es de retour dans le salon.';if(r.libere)r.libere();
     pub({graine:null,jg:null,j:null,veut:null,adv:null});
     $('salon').hidden=false;majSalon();return;
   }
@@ -91,7 +91,7 @@ function majPartie(){
     const dks=['',''];dks[moi]=mien.texte||'';dks[1-moi]=sien;
     if(!partie&&M.erreurElements)[0,1].forEach(p=>{const o=M.lisDeck(dks[p]);if(o&&(M.erreurElements(o)||(M.erreurEvolutions&&M.erreurEvolutions(o))))dks[p]=''}); /* 0.4a : deck a 5 elements = deck par defaut, des deux cotes ; 0.5 : idem evolution sans sa base */
     if(moi===0&&r&&r.engage)r.engage([l[0].peer,l[1].peer]);
-    lancer(g,moi,typeof lui.presence.sid==='string'?lui.presence.sid:'',{mien:[],sien:[],decks:dks,deckNom:mien.texte?mien.nom:''});sauve();return}
+    lancer(g,moi,typeof lui.presence.sid==='string'?lui.presence.sid:'',{mien:[],sien:[],decks:dks,deckNom:mien.texte?mien.nom:'',classe:salonClasse?{sa:code,a:l[0].peer,b:l[1].peer}:null});if(partie.classe)prepareClasse(partie.classe);sauve();return} /* 0.6 : classee entre joueurs (uids des places 0 et 1) */
   if(partie.advNom!==nomDe(lui)){partie.advNom=nomDe(lui);sauve()}
   if(lui.presence.jg!==g||typeof lui.presence.j!=='string')return;
   let liste;try{liste=M.litJournal(lui.presence.j)}catch(e){return}
@@ -140,7 +140,8 @@ function miniVue(s,p,l,k){
   return m;
 }
 /* Detail de Force d'un Golem : lecture seule de l'etat du moteur. */
-const NOMS_EL={magma:'Magma',cristal:'Cristal',foudre:'Foudre',brume:'Brume',roche:'Roche'};
+/* Elements : modele unique cartes/donnees/interface.js (elements) */
+const ELEMENTS=window.GolemsDonnees.interface.elements,COUL_CARTE=window.GolemsDonnees.interface.couleursCarte,NOMS_EL=Object.fromEntries(ELEMENTS.ordre.map(e=>[e,ELEMENTS[e].nom]));
 function signe(n){return (n>=0?'+':'')+n}
 function lg(t,v,cl){const d=el('div','lg'+(cl?' '+cl:''));d.append(el('span','',t),el('b','',v));return d}
 /* Identifiant d'effet : le Maitre du deguisement (029e) et Le chansonnier (041e) portent l'effet copie. Anciens moteurs (rejeu) : celui de la carte. */
@@ -254,18 +255,31 @@ function detailMaitreAnimal(g){
   d.append(x,im(C),im(A),t);document.body.append(f,d);x.focus({preventScroll:true});
 }
 /* Nom d'effet en couleur, comme sur la carte (generer_cartes.py / generer_animaux.py) : evolution en or, base = teinte claire de l'element 1 (TEXTE_ELT), animal = VERT_CLAIR */
-const TEXTE_EL={magma:'#ffb52a',cristal:'#ffa8d6',foudre:'#ffe36e',brume:'#c9b6f2',roche:'#ecbc8c'};
 /* Fonction commune a tous les panneaux de detail et zooms (vue joueur, vue spectateur, diffusion) : GOLEMS_UI.effetCouleur */
 function effetCouleur(C,tag,cls){const d=el(tag||'div',cls===undefined?'e':cls),x=C.texte||'',i=x.indexOf(' :');if(i<0){d.textContent=x;return d}
-  const b=el('b','',x.slice(0,i+2));b.style.color=C.animal?'#c8f58a':C.base?'#ffd23a':TEXTE_EL[C.el[0]]||'#fff';d.append(b,x.slice(i+2));return d}
+  const b=el('b','',x.slice(0,i+2));b.style.color=C.animal?COUL_CARTE.animal:C.base?COUL_CARTE.evoEffet:(ELEMENTS[C.el[0]]||{}).texte||'#fff';d.append(b,x.slice(i+2));return d}
 function fermeDetailAnimal(){document.querySelectorAll('#aniDet,.ani-fond').forEach(x=>x.remove())}
 addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('aniDet'))fermeDetailAnimal()});
 function detailAnimal(C){const a=el('section');a.append(el('h3','','Animal de compagnie'),lg('Maître',M.CARTES[C.maitre].nom),lg('Force','aucune'),effetCouleur(C,'p',''));return [a]}
 function ouvreTas(titre,ids){
   const b=$('tasCartes');b.textContent='';$('tasTitre').textContent=titre;$('tasVide').hidden=ids.length>0;
-  ids.forEach(c=>{const C=M.carte(c),i=el('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;b.append(i)});
+  /* entree {c,n} : deck du joueur trie par nom et regroupe (« Glad x2 ») */
+  ids.forEach(x=>{const g=typeof x==='object',c=g?x.c:x,C=M.carte(c),i=el('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;
+    if(g){const f=el('figure','tas-g');f.append(i,el('figcaption','',M.nomDetail(C)+' x'+x.n));b.append(f)}else b.append(i)});
   $('vueTas').hidden=false;$('tasFermer').focus();
 }
+/* Piles d'un joueur (correctif 0.5a) : Forge et Defausse consultables des deux cotes ; Deck : le sien seulement, trie par nom
+   et regroupe (jamais l'ordre de pioche) ; deck adverse : nombre seul. Rejeu et spectateurs : deck jamais ouvert ici (inchange). */
+function tasPile(p,k){if(!partie||!partie.etat)return null;const J=partie.etat.j[p];
+  if(k==='forge')return J.forge.slice();if(k==='defausse')return J.defausse.slice().reverse();
+  if(k!=='deck'||p!==partie.moi||partie.rejeu||window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur())return null;
+  const m=new Map();J.deck.forEach(c=>{const k=M.nomDetail(M.carte(c)),x=m.get(k);if(x)x.n++;else m.set(k,{c,n:1,nom:k})}); /* exemplaires d'une meme carte (codes differents) regroupes par nom */
+  return [...m.values()].sort((a,b)=>a.nom.localeCompare(b.nom,'fr'))}
+const LIB_PILE={deck:'Deck',forge:'Forge',defausse:'Défausse'};
+function voirPile(p,k){const t=tasPile(p,k);if(t)ouvreTas(LIB_PILE[k]+(p===partie.moi?'':' de '+nomJ(p))+(k==='deck'?' (trié par nom)':''),t)}
+/* compteur du bandeau d'un camp (Deck, Defausse, Forge ou Energie) : ouvre la pile, comme les piles de la vue joueur */
+function compteurPile(x,p,k){if(partie.rejeu||!tasPile(p,k))return x;x.classList.add('clic');x.tabIndex=0;x.setAttribute('role','button');x.setAttribute('aria-label','Voir '+LIB_PILE[k]+(p===partie.moi?'':' de '+nomJ(p)));
+  x.onclick=()=>voirPile(p,k);x.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();voirPile(p,k)}};return x}
 let uidN=0;
 /* Enclume B : Ressources/9 - Pictos points/Enclume relief.svg, sans le chiffre. Ids uniques : un doublon masque casserait le rendu. */
 function enclumeB(){const n=++uidN,P='M50 14L170 14L170 52L140 58Q130 78 136 100L158 114L158 148L42 148L42 114L64 100Q70 78 60 58L52 56Q20 50 6 16Z';
@@ -331,26 +345,33 @@ function camp(s,p,moi){
   if(actif){d.classList.add('joue');l1.append(el('span','p-joue','Joue'))}
   /* Forge, ou Énergie (étiquette dorée de la diffusion) pendant le tour de ce joueur : même case de largeur fixe, aucun compteur ne bouge */
   const cz=el('span','p-comptes'),fo=actif&&s.phase==='jeu'?compteur('enclume','Énergie',J.energie,'energie'):compteur('enclume','Forge',J.forge.length);
-  cz.append(compteur('main','Main',J.main.length),compteur('deck','Deck',J.deck.length),compteur('defausse','Défausse',J.defausse.length),fo);d.append(cz);
+  cz.append(compteur('main','Main',J.main.length),compteurPile(compteur('deck','Deck',J.deck.length),p,'deck'),compteurPile(compteur('defausse','Défausse',J.defausse.length),p,'defausse'),compteurPile(fo,p,'forge'));d.append(cz);
   return d;
 }
 const SURVOL=matchMedia('(hover:hover) and (min-width:900px)');
-/* Journal : noms de cartes et de terrains cliquables. Nom detaille et evolution d'abord, pour ouvrir la bonne carte. */
-const NOMS_LOG=(()=>{const m=new Map();
-  Object.values(M.CARTES).forEach(C=>{m.set(M.nomDetail(C),{C});m.set(C.nom,{C})});
-  M.TERRAINS.forEach(T=>m.set(T.nom,{T}));
+/* Noms cites (journal, bulles d'aide, zooms ; charte du 9 nov.) : cartes, terrains et noms d'effet cliquables (zoom de la carte).
+   Libelle = nom exact avec son titre (nomLong), evolution suivie de ★ ; couleur de son type (couleursTexte, cartes/donnees/interface.js), sans gras.
+   Cles reconnues : nom detaille « Base (Evolution) », nom long, nom seul, terrain, nom d'effet (texte avant « : ») ; la plus longue d'abord. */
+const NOMS_LOG=(()=>{const m=new Map(),D=window.GolemsDonnees,cs=Object.values(M.CARTES),mets=(k,o)=>{if(k&&k.length>1&&!m.has(k))m.set(k,o)},av=x=>{const i=(x.texte||'').indexOf(' :');return i>0?x.texte.slice(0,i):''};
+  cs.forEach(C=>{mets(M.nomDetail(C),{C});mets(D.nomLong(C.id),{C})});cs.forEach(C=>mets(C.nom,{C}));
+  M.TERRAINS.forEach(T=>mets(T.nom,{T}));
+  cs.forEach(C=>mets(av(C),{E:C}));M.TERRAINS.forEach(T=>{const n=av(T);if(n.length<40)mets(n,{ET:T})});
   const e=[...m.keys()].sort((a,b)=>b.length-a.length).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
   return {m,re:new RegExp('(?<![\\p{L}\\p{N}])('+e.join('|')+')(?![\\p{L}\\p{N}])','gu')}})();
 function lienLog(nom){
-  const o=NOMS_LOG.m.get(nom),b=el('button','j-lien'+(o.C&&o.C.base?' j-evo':''),nom);b.type='button';
-  if(o.T){b.onclick=()=>zoomTerrain(o.T);b.onmouseenter=()=>montreApercu(b,srcTerrain(o.T))}
-  else{const src=imgV('cartes/'+o.C.id+'.jpg');b.onclick=()=>{cacheApercu();dernier=null;zoom(src,o.C.nom)};b.onmouseenter=()=>montreApercu(b,src)}
+  const o=NOMS_LOG.m.get(nom),K=window.GolemsDonnees.interface.couleursTexte,C=o.C||o.E,T=o.T||o.ET;
+  const lib=o.C?window.GolemsDonnees.nomLong(C.id)+(C.base?' ★':''):o.T?T.nom:nom;
+  const b=el('button','j-lien'+(o.C&&C.base?' j-evo':''),lib);b.type='button';
+  b.style.color=o.E||o.ET?K.effet:T?K.terrain:C.animal?K.animal:C.base?K.evolution:K.golem;
+  if(T){b.onclick=()=>zoomTerrain(T);b.onmouseenter=()=>montreApercu(b,srcTerrain(T))}
+  else{const src=imgV('cartes/'+C.id+'.jpg');b.onclick=()=>{cacheApercu();dernier=null;zoom(src,C.nom)};b.onmouseenter=()=>montreApercu(b,src)}
   b.onmouseleave=cacheApercu;return b;
 }
-function texteLog(x){
+/* sauf(o) : vrai pour un nom a laisser en texte (zoom : la carte zoomee elle-meme) */
+function texteLog(x,sauf){
   const s=el('span','');let d=0;
   /* Ponctuation qui suit un lien (point, virgule...) collee a lui : un bouton laisse sinon le navigateur couper la ligne juste avant. */
-  for(const m of x.matchAll(NOMS_LOG.re)){s.append(x.slice(d,m.index));d=m.index+m[0].length;
+  for(const m of x.matchAll(NOMS_LOG.re)){if(sauf&&sauf(NOMS_LOG.m.get(m[0])))continue;s.append(x.slice(d,m.index));d=m.index+m[0].length;
     const p=/^[.,;:!?)…]+/.exec(x.slice(d)),b=lienLog(m[0]);
     if(p){const n=el('span','j-colle');n.append(b,p[0]);s.append(n);d+=p[0].length}else s.append(b)}
   s.append(x.slice(d));return s;
@@ -382,7 +403,7 @@ function zoomTerrainJeu(s,k,me){
   const pan=p=>{const moi=p===me,coul=moi?'var(--bleu)':'var(--magma)',a=el('section','zt-camp '+(moi?'toi':'lui')),h=el('h3','',nomJ(p)+(moi?' (toi)':'')),ol=el('ol','zt-l');h.style.color=coul;a.append(h);
     for(let l=0;l<3;l++){const g=s.j[p].grille[l][k],li=el('li');
       if(!g){li.className='zt-vide';li.append(el('span','','Case vide'))}
-      else{const v=M.valeurDecompte(s,p,l,k),f=el('span','zt-v','Force '),fb=el('b','',String(v));fb.style.color=coul;f.append(fb);
+      else{const v=M.valeurDecompte(s,p,l,k),f=el('span','zt-v'),fb=el('b','',String(v));fb.style.color=coul;f.append(ico('force'),fb);f.setAttribute('role','img');f.setAttribute('aria-label','Force '+v);
         if(g.hors===s.manche&&!M.carte(g.c).animal)f.title='Ne compte pas au décompte de cette manche';li.append(ligneZt(g.c),f)}
       ol.append(li)}
     const o=cc[1-p],n=cc[p],tt=el('div','zt-tot'),b=el('b','',String(n));b.style.color=coul;tt.append('Total : ',b);
@@ -526,6 +547,8 @@ function affiche(){
     cible=(l,k)=>{const a=leg.find(x=>x.t==='g'&&x.l===l&&x.k===k);return a?{texte:'Favori',fait:()=>joue(a)}:null};
   }else if(att&&att.t==='l'){ /* JackJoy : Sub offert (035) ou Draft diff (035e), Golem allie qui recoit +1, cases dorees, pas de bouton passer */
     cible=(l,k)=>{const a=leg.find(x=>x.t==='l'&&x.l===l&&x.k===k);return a?{texte:'+1',fait:()=>joue(a)}:null};
+  }else if(att&&att.t==='boost'){ /* Elccino : Cafe du matin (+1) ou La taupe (+2), Golem allie qui recoit le bonus, cases dorees */
+    cible=(l,k)=>{const a=leg.find(x=>x.t==='q'&&x.l===l&&x.k===k);return a?{texte:'+'+att.n,fait:()=>joue(a)}:null};
   }else if(att&&att.t==='k'){ /* Deguisement d'Apo (029e) : voisin dont il copie l'effet, cases dorees */
     cible=(l,k)=>{const a=leg.find(x=>x.t==='k'&&x.l===l&&x.k===k);return a?{texte:'Copier',fait:()=>joue(a)}:null};
   }else if(att&&att.t==='i'){ /* Imitation du chansonnier (041e) : le Golem adverse en face, case doree sur la grille adverse ; refus par le bouton Ne pas copier */
@@ -597,6 +620,7 @@ function affiche(){
     pl.append(f);
   }
   const con=x=>pl.append(el('div','p-consigne',x));
+  let choixCartes=null; /* Elccino : cartes a choisir (Cafe du matin, La taupe), montrees dans la zone « Choisis une carte » a la place de « Derniere carte jouee » */
   if(s.fin)pl.append(mainVue(J.main,{}));
   else if(s.phase==='mulligan'){
     if(s.mull[me]){con("En attente de l'adversaire.");pl.append(mainVue(J.main,{}))}
@@ -616,6 +640,15 @@ function affiche(){
   }else if(att&&att.t==='q'){ /* ancien Le Q (Analyse, son propre deck) : replays des versions archivees */
     con('Le Q : choisis 1 carte, les autres restent sur le deck.');
     pl.append(mainVue(att.options,{clic:c=>joue({t:'c',c})}),mainVue(J.main,{}));
+  }else if(att&&(att.t==='cafe'||att.t==='taupe')){
+    const N=M.nomDetail(M.carte(att.src));
+    con(att.t==='cafe'?N+' (Café du matin) : touche la carte à prendre parmi les 2 premières de ton deck. L\'autre va sous ton deck.'
+      :N+' (La taupe) : touche la carte de la main adverse que ton adversaire défausse.');
+    choixCartes=mainVue(att.options,{p:att.t==='taupe'?lui:me,clic:c=>joue({t:'u',c})});
+    pl.append(mainVue(J.main,{}));
+  }else if(att&&att.t==='boost'){
+    con(M.nomDetail(M.carte(att.src))+' ('+att.nom+') : touche une case dorée pour choisir le Golem allié qui gagne +'+att.n+" de Force jusqu'à la fin de la partie.");
+    pl.append(mainVue(J.main,{}));
   }else if(att&&att.t==='b'){
     const n=att.options.length;
     con('Le Buzzer : fin de manche, touche '+(n>1?'tes '+n+" prochaines cartes dans l'ordre où tu veux les piocher, la première en premier.":'ta prochaine carte pour continuer.')+(selMull.length?' Ordre : '+selMull.map(c=>M.nomDetail(M.carte(c))).join(', puis ')+'.':''));
@@ -748,9 +781,11 @@ function affiche(){
     pl.append(mainVue(J.main,{}));
   }
   const piles=el('div','p-piles');
-  piles.append(pile('deck','Deck',J.deck.length),pile('forge','Forge',J.forge.length,J.forge.slice()),pile('defausse','Défausse',J.defausse.length,J.defausse.slice().reverse()));
+  piles.append(pile('deck','Deck',J.deck.length,tasPile(me,'deck')),pile('forge','Forge',J.forge.length,J.forge.slice()),pile('defausse','Défausse',J.defausse.length,J.defausse.slice().reverse()));
+  {const d=piles.firstChild;if(d.classList.contains('clic')){const f=()=>voirPile(me,'deck');d.onclick=f;d.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}}}
   pl.append(piles);
-  if(ZONE.matches&&!s.fin){const ap=el('div','p-apercu'),fi=el('div','p-ap-img'),im=el('img'),tx=el('div','p-ap-txt');im.alt='';fi.append(im);
+  if(choixCartes){const z=el('div','p-choix');z.append(el('p','p-ap-leg','Choisis une carte'),choixCartes);pl.append(z)}
+  else if(ZONE.matches&&!s.fin){const ap=el('div','p-apercu'),fi=el('div','p-ap-img'),im=el('img'),tx=el('div','p-ap-txt');im.alt='';fi.append(im);
     /* 0.4a (variante A, style diffusion) : carte a gauche ; a droite titre, « X pose Y sur Z. », effet, Cout / Force / elements */
     tx.append(el('p','p-ap-leg'),el('p','p-ap-ph'),el('p','p-ap-ef'),el('div','p-ap-chips'));ap.append(fi,tx);pl.append(ap);
     /* Clic sur la zone : la carte montree en grand (comme l'oeil de la main). */
@@ -775,7 +810,7 @@ function affiche(){
   else if(btnRejouer){pied.classList.add('duo','trio');pied.append(btnPartage,btnRejouer)}
   /* Abandon (moteur 0.2.2) : coup 'a' dans le journal, victoire a l'adversaire, chez les deux joueurs. */
   else if(!s.fin&&!partie.rejeu&&!partie.tuto&&M.VERSION===M0.VERSION){const ab=el('button','btn danger plein p-abandon-btn','Abandonner');ab.type='button';ab.id='abandonner';
-    ab.onclick=()=>{if(!partie||partie.rejeu||!partie.etat||partie.etat.fin)return;confirmeAbandon(partie.local?'Elle comptera comme une défaite.':nomJ(1-partie.moi)+' gagnera, et la défaite sera enregistrée.',()=>{if(!partie||partie.rejeu||!partie.etat||partie.etat.fin)return;joue({t:'a'})})};
+    ab.onclick=()=>{if(!partie||partie.rejeu||!partie.etat||partie.etat.fin)return;confirmeAbandon(partie.local?'La partie comptera comme une défaite.':nomJ(1-partie.moi)+' gagne et ta défaite est enregistrée.',()=>{if(!partie||partie.rejeu||!partie.etat||partie.etat.fin)return;joue({t:'a'})})};
     pied.classList.add('duo');pied.append(ab)}
   const cote=el('div','p-cote');if(!partie.local&&!partie.rejeu&&r&&!s.fin)cote.append(reactions()); /* fin de partie (abandon compris) : plus de reactions */cote.append(pied,cercleJeu(),jo);
   /* 0.4a : chat des parties en ligne, bouton discret en bas de la colonne du journal (pastille des messages non lus), fenetre fermee par defaut ; contre le robot, rien. */
@@ -807,7 +842,7 @@ let svgCercleJeu=null,cercleOuvert=false;
 function cercleJeu(){
   const d=el('details','p-cercle'),su=el('summary','','Cercle des éléments'),w=el('div','p-cw');
   if(!svgCercleJeu){
-    const E5=['magma','cristal','foudre','brume','roche'],IM=68,ey=(188-IM)/1.809,ex=(350-IM)/1.902,DEG=Math.PI/180,P=a=>[ex*Math.cos(a*DEG),ey*Math.sin(a*DEG)];
+    const E5=ELEMENTS.ordre,IM=68,ey=(188-IM)/1.809,ex=(350-IM)/1.902,DEG=Math.PI/180,P=a=>[ex*Math.cos(a*DEG),ey*Math.sin(a*DEG)];
     const pos=E5.map((e,i)=>P(-90+72*i)),libre=a=>{const[x,y]=P(a);return !pos.some(([X,Y])=>Math.hypot(x-X,y-Y)<IM/2+5)};
     let g='<defs><marker id="flJeu" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" style="fill:var(--bleu)"/></marker></defs>';
     for(let i=0;i<5;i++){const a0=-90+72*i;let best=[0,0],cur=null;for(let a=a0;a<=a0+72;a+=.25){if(libre(a)){if(cur===null)cur=a;if(a-cur>best[1]-best[0])best=[cur,a]}else cur=null}

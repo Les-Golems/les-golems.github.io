@@ -52,9 +52,10 @@ function etiquette(o){
 /* Design B (0.4) : sieges a teinte neutre avant la partie (aucun deck revele). */
 function teinteSiege(){const g=window.GOLEMS_UI;return g&&g.teinte?g.teinte([]):''}
 function siege(o,moi,btns,createur){
-  const s=mk('div','sl-j b-teinte'+(o.pret?' pret':'')+(moi?' sl-moi':'')),n=mk('div','sl-nom',nomP(o));
+  const s=mk('div','sl-j b-teinte'+(o.pret?' pret':'')+(moi?' sl-moi':''));
+  /* 0.6 : embleme et Elo comme les sieges de jouer.js (nomSiege) ; repli sur le pseudo seul */
+  let n;if(typeof window.nomSiege==='function'&&o.uid)n=window.nomSiege({peer:o.uid,sameTab:!!moi},nomP(o),!!moi);else{n=mk('div','sl-nom',nomP(o));if(moi)n.append(mk('em','','toi'))}
   const t=teinteSiege(o,moi);if(t)s.style.setProperty('--tinte',t);
-  if(moi)n.append(mk('em','','toi'));
   s.append(av(o),n);if(createur)s.append(mk('span','sp-role','Créateur'));
   s.append(mk('span','sl-etat',o.pret?'Prêt':'En attente'),etiquette(o),tuileDeck(o,moi));
   const tx=tauxDe(o);if(tx)s.append(mk('span','sl-taux',tx));
@@ -96,9 +97,9 @@ function bandeauPromotion(p){
   if(!w){w=mk('div','sp-promo');w.setAttribute('role','status');const h=document.querySelector('#salon .sl-haut');if(h)h.after(w);else return}
   w.textContent='';
   const i=mk('span','sp-promo-i','i');i.setAttribute('aria-hidden','true');
-  const t=mk('div','sp-promo-t');t.append(mk('b','',p.ancien+' a quitté le salon.'));
-  t.append(mk('span','',p.moi?"Tu deviens le créateur. La place d'adversaire est libre : un spectateur ou un nouvel arrivant peut la prendre."
-    :(p.nouveau||'Ton adversaire')+" devient le créateur. La place d'adversaire est libre."));
+  const t=mk('div','sp-promo-t');t.append(mk('b','','Salon : '+p.ancien+' est parti, '+(p.moi?'tu deviens le créateur.':(p.nouveau||'ton adversaire')+' devient le créateur.')));
+  t.append(mk('span','',p.moi?'Attends un nouvel adversaire.'
+    :'Prends la place libre pour jouer.'));
   const x=mk('button','sp-promo-x','×');x.type='button';x.setAttribute('aria-label','Fermer');
   x.onclick=()=>{const S=SPECobj();if(S&&S.fermerPromotion)S.fermerPromotion();else w.remove()};
   w.append(i,t,x);
@@ -139,7 +140,7 @@ function peindreSalon(etat){
   /* Spectateur : pas de Pret, une phrase d'etat a la place */
   if(moi==='spec'){
     const p=q('pret'),a=q('attente');if(p)p.hidden=true;
-    if(a&&!enCours){a.textContent=adv?'Tu regardes ce salon en spectateur.':"La place d'adversaire est libre.";a.classList.toggle('pret',!adv)}
+    if(a&&!enCours){a.textContent=adv?'Salon : tu regardes ce salon en spectateur. Prends une place libre pour jouer.':"Salon : place d'adversaire libre. Prends-la pour jouer.";a.classList.toggle('pret',!adv)}
   }
 }
 
@@ -308,9 +309,9 @@ function brancherChat(){
   f.onsubmit=e=>{
     if(!estSpec())return orig&&orig.call(f,e);
     e.preventDefault();const m=i.value.replace(/\s+/g,' ').trim().slice(0,200);if(!m||!S.dit)return;
-    const t=Date.now();if(t-chatDernier<1000){chatBox.inf.textContent='Un message par seconde au plus.';return}
+    const t=Date.now();if(t-chatDernier<1000){alerte(chatBox.inf,'Chat : un message par seconde au plus. Patiente un instant.');return}
     chatDernier=t;chatBox.inf.textContent='';i.value='';
-    Promise.resolve(S.dit(m)).catch(()=>{chatBox.inf.textContent="Message non envoyé.";i.value=m});
+    Promise.resolve(S.dit(m)).catch(()=>{alerte(chatBox.inf,'Chat : message non envoyé. Réessaie.');i.value=m});
   };
 }
 function apresPeinture(){brancherChat();placerChat()}

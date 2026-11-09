@@ -5,6 +5,8 @@ let compteCharge=false;
 /* Salon en ligne (onglet Jouer) : room = salon Firebase (window.golemsSalon), r = salon rejoint, code = son code, occupe = entree en cours ;
    maV = ma version v|build, ecart de version ; salon public et createur ; annonces des parties ouvertes ; chat. */
 let room=null,r=null,code='',entree=0,nbSalon=0,occupe=false,attenteLobby=0,jePret=false,compteFin=0,compteT=0;
+/* Compte connecte (pas invite). Declare ici et non dans commun/compte.js : lesDecks (onglets/decks.js), appelee au demarrage, ne depend plus du chargement de compte.js (ReferenceError intermittente). */
+const compteCo=()=>{try{return !!(room&&room.compte&&room.compte.connecte())}catch(e){return false}};
 let maV='',vxEcart=false,vxRouge='';
 let salonPublic=false,createur=false,annonceVue='',specAnn=false;
 let annoncesL=[];

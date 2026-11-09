@@ -97,7 +97,7 @@ const types={
   /* Le Camp : fin de manche, tous les Golems ici recuperent r.n de Force (degats). */
   soin:{finManche:(r,s,p,k,gagnants,J)=>{
     const nom=s.terrains[k].nom,soin=[0,1,2].map(l=>J.grille[l][k]).filter(g=>golem(g)&&g.d>0);
-    soin.forEach(g=>{g.d-=r.n;s.stats.ev.push({t:'r',cp:p,cc:g.c,n:r.n,y:'camp'});declenche(s,nom,'Soigne '+nomDetail(carte(g.c)))});
+    soin.forEach(g=>{g.d=Math.max(0,g.d-r.n);s.stats.ev.push({t:'r',cp:p,cc:g.c,n:r.n,y:'camp'});declenche(s,nom,'Soigne '+nomDetail(carte(g.c)))});
     if(soin.length)dire(s,p,'Le Camp : '+soin.map(g=>nomDetail(carte(g.c))).join(' et ')+(soin.length>1?' récupèrent':' récupère')+' 1 de Force.');
   }},
   /* L'Ecran du MJ : fin de manche, le gagnant regarde la main adverse (s.dernier.ecran, remplie a la fin des effets). */

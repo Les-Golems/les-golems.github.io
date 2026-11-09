@@ -15,7 +15,7 @@ $('formCode').onsubmit=e=>{
   e.preventDefault();
   if(!room||$('rejoindre').disabled)return;
   const c=$('champCode').value.trim().toLowerCase();
-  if(!/^[a-z0-9]{3,8}$/.test(c)){$('erreurJeu').textContent='Code invalide.';return}
+  if(!/^[a-z0-9]{3,8}$/.test(c)){alerte('erreurJeu','Salon impossible : code invalide. Vérifie le code du salon.');return}
   if(!compteCo()){msgInvite();return}
   choisirDeck(()=>{$('champCode').value='';createur=false;salonPublic=false;entre(c)});
 };

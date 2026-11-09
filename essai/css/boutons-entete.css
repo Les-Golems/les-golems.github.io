@@ -59,3 +59,62 @@ html.essai header{box-shadow:inset 0 5px 0 #ff7a1a}
 /* Historique : version de la partie apres le score, et dans le detail d'une partie. */
 .h-ver-l.etq-v{padding:1px 7px .6px;font-size:11px;line-height:15px}
 .h-dver-v{display:inline-block;padding:0 7px;font-size:11.5px;line-height:1.3;vertical-align:1px}
+/* ===== 0.6 : bandeau superieur B3 (maquette 32 - Bandeau superieur, captures FINAL_*.png). Fond bleu ciel inchange. ===== */
+header .haut{min-height:76px;padding-block:12px;gap:16px}
+header .haut .moi.bd-zone{display:flex;align-items:center;gap:16px;flex:none;min-width:0;position:relative;margin-left:auto}
+.bd-enl{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:999px;background:var(--encre);color:#fff;font:800 14.5px/1 var(--corps);white-space:nowrap;cursor:default;user-select:none}
+.bd-enl[hidden]{display:none}
+.bd-enl i{width:10px;height:10px;border-radius:50%;background:#3ddc6a;box-shadow:0 0 0 3px rgba(61,220,106,.25)}
+header .haut .bd-enl b{font-weight:800;color:#fff;max-width:none}.bd-enl span{color:var(--doux);font-weight:700}
+/* Capsule : [embleme + Elo |] pseudo | avatar ; largeur selon le pseudo (s'allonge vers la gauche). */
+.bd-capsule{display:flex;align-items:center;gap:16px;height:60px;padding:0 6px 0 16px;border:0;border-radius:999px;background:var(--encre);color:#fff;font:inherit;cursor:pointer;box-shadow:0 3px 0 #08708c;transition:translate .1s,filter .1s,box-shadow .1s}
+@media (hover:hover){.bd-capsule:hover{filter:brightness(1.15);translate:0 -1px;box-shadow:inset 0 0 0 2px #7fe3ff,0 3px 0 #08708c}}
+.bd-capsule:active{translate:0 2px;box-shadow:0 1px 0 #08708c}
+.bd-capsule:focus-visible{outline:2px solid var(--encre);outline-offset:2px}
+.bd-rg{display:flex;align-items:center;gap:4px;font:800 15px/1 var(--corps);color:var(--doux)}
+.bd-rg[hidden],.bd-sep[hidden],.bd-sc[hidden]{display:none}
+header .haut .bd-rg img{width:32px;height:32px;filter:none}
+.bd-sep{width:1px;height:30px;background:var(--trait)}
+.bd-id{display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:0}
+header .haut .bd-capsule #pseudoAffiche{font:800 16px/1.2 var(--corps);color:#fff;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bd-sc{font:700 13px/1 var(--corps);color:#7fe3ff}
+header .haut .bd-capsule #avatarMoi{width:48px;height:48px;font-size:22px;box-shadow:none;flex:none}
+header .haut .bd-capsule #avatarMoi img{width:48px;height:48px;filter:none}
+/* Petits boutons carres a icone (Affichage, deconnexion) */
+.bd-affw{display:inline-flex}
+.bd-b{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:0;border-radius:8px;cursor:pointer;--bord:#08708c;background:var(--encre);color:var(--bleu);box-shadow:inset 0 0 0 2px var(--encre),0 3px 0 var(--bord);transition:translate .1s,filter .1s}
+.bd-b[hidden]{display:none}
+.bd-b svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bd-b[aria-expanded=true]{background:#1a2a38;color:#7fe3ff;box-shadow:inset 0 0 0 2px #7fe3ff,0 3px 0 var(--bord)}
+@media (hover:hover){.bd-b:hover{filter:brightness(1.08);translate:0 -1px}}
+.bd-b:active{translate:0 2px;box-shadow:inset 0 0 0 2px var(--encre),0 1px 0 var(--bord)}
+.bd-b:focus-visible{outline:2px solid var(--encre);outline-offset:2px}
+/* Menu Affichage : par-dessus, cale sur le bord droit du contenu (bandeau .bd-zone), jamais hors de l'ecran (rien ne bouge a l'ouverture). */
+.bd-menu{position:absolute;top:100%;right:0;max-width:calc(100vw - 32px);z-index:50;width:340px;box-sizing:border-box;padding:18px;border-radius:10px;background:var(--panneau);border:1px solid var(--trait);box-shadow:0 12px 30px rgba(0,0,0,.55);color:var(--texte);text-align:left}
+.bd-menu[hidden]{display:none}
+.bd-menu h4{margin:0 0 14px;font:800 18px/1.2 var(--corps);color:var(--texte)}
+.bd-lig{display:flex;flex-direction:column;gap:8px}
+.bd-lig[hidden]{display:none}
+.bd-lig:not([hidden])~.bd-lig{margin-top:16px;padding-top:16px;border-top:1px solid var(--trait)}
+.bd-et{font:800 12px/1 var(--corps);letter-spacing:.06em;text-transform:uppercase;color:var(--doux)}
+.bd-menu .sc-sel.bd-sel{height:42px;padding:3px;gap:3px;border-radius:10px;background:var(--encre)}
+.bd-menu .sc-sel.bd-sel>button{height:34px;border-radius:7px;font-size:15px}
+.bd-menu .sc-sel.bd-sel>button[hidden]{display:none}
+/* Theme : tant que « Clair » est cache, « Sombre » garde la largeur d'une option sur deux (comme sur la maquette). */
+#selTheme:not(:has(>button:not([hidden]):nth-of-type(2))){grid-template-columns:calc((100% - 3px)/2)}
+/* Fenetre de confirmation de deconnexion (sc-fenetre) */
+.bd-fond{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:rgba(5,10,15,.7)}
+.bd-fond[hidden]{display:none}
+.bd-fen{width:380px;box-sizing:border-box}
+.bd-fen .sc-fen-actions{margin-top:20px}.bd-fen .sc-fen-actions>.sc-btn{flex:1 1 0;margin-left:0} /* maquette : deux boutons de meme largeur */
+/* Selecteur Couleurs dans la barre d'outils de la partie et la diffusion (remplace l'interrupteur) */
+.sc-sel.dal-inter{flex:none;align-self:center;height:34px;width:auto;background:var(--panneau2)}
+/* Etiquette de version V4 : couleurs actuelles (encre / bleu), taille et forme des etiquettes de Nouveautes. */
+header #verEtq.etq-v.ver-etq{margin-left:6px;padding:1px 7px .6px;font-size:11px;line-height:15px;vertical-align:middle;background:var(--encre);color:var(--bleu);border-color:var(--encre)}
+/* Onglets etires sur toute la largeur */
+.onglets button:not(#_x#_x){flex:1 1 0;max-width:none}
+/* Barre d'outils de la partie et diffusion : le selecteur garde l'apparence du socle (les regles des boutons de la barre ne s'y appliquent pas). */
+:is(#partie,#dif) .sc-sel.dal-inter{margin:0;padding:3px;gap:3px;height:36px;box-sizing:border-box;align-self:center}
+:is(#partie,#dif) :is(.p-outils,.mq-outils,.d-bas,.mq-dal) .sc-sel.dal-inter>button{height:28px;min-width:0;width:auto;padding:0 9px;border:0;border-radius:7px;background:none;color:var(--doux);opacity:1;font:700 13px/1 var(--corps);box-shadow:none;translate:none}
+:is(#partie,#dif) :is(.p-outils,.mq-outils,.d-bas,.mq-dal) .sc-sel.dal-inter>button[aria-pressed=true]{background:var(--bleu);color:var(--encre)}
+:is(#partie,#dif) :is(.p-outils,.mq-outils):has(.dal-sel)>*{flex-shrink:0}

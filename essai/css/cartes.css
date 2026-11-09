@@ -103,3 +103,14 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 #attente{font-weight:800;margin:0 0 14px}
 #attente.pret{color:var(--or)}
 #attente:empty{display:none}
+/* 0.6 (audit 34, D02) : Fermer des zooms de carte et de terrain au modele sc-fenetre : 46 px, Lilita 18 px */
+:is(#vueGrand>#fermer,#f#f#f#f){min-height:46px;height:46px;padding:0 24px;font:400 18px/1 var(--titre);border-radius:10px}
+/* D01 : zoom de terrain du bac a sable, ton camp seul : panneau assez large pour la ligne condensee entiere (cout, Force, elements, nom + titre) */
+.grand.avecDetail.zt-bac{grid-template-columns:minmax(0,462px) 520px;max-width:998px}
+#vueDetail:has(.bt-camp){grid-auto-rows:auto;align-content:start}
+#vueDetail .bt-camp .zt-l li{grid-template-columns:minmax(0,1fr) 64px}
+#vueDetail .bt-camp .dl-ligne{grid-template-columns:40px 40px 50px minmax(0,1fr)}
+#vueDetail .bt-camp .dl-nom{min-width:0}
+#vueDetail .bt-camp .dl-titre{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vueDetail .bt-camp .zt-tot{margin-top:10px;align-items:center}
+#vueDetail .bt-camp .zt-tot .ico{font-size:22px}

@@ -2,7 +2,11 @@
 /* Notes de patch : ajouter la nouvelle version en tête de liste. */
 /* Date de publication de la 0.5 : A REMPLACER LE JOUR J (ex. '8 novembre 2026'), sert au bloc de version et au bloc video. */
 const DATE_V05='7 novembre 2026';
+/* Date de publication de la 0.6 : A REMPLACER LE JOUR J (ex. '10 novembre 2026'), bloc de version et Details. */
+const DATE_V06='9 novembre 2026';
 const NOUVEAUTES=[
+ {version:'Version 0.6',date:DATE_V06,notes:["Nouvelle interface","Parties classées (6 rangs, saison 0)","Récompenses : médaille Pionnier, écus du top 10","Nouveau Golem : {{Elccino}} (Brume, Cristal)","Nouvel animal : {{Uki}}, l'animal de Shifukuro (Roche)","6 decks conseillés, un par archétype","Le Golem adverse joue l'un d'eux au hasard","Nouveau mot-clé : Récupérer"]},
+ {version:'Version 0.5a',date:'8 novembre 2026',notes:["Sur ordinateur, les piles Deck, Forge et Défausse s'ouvrent de nouveau","Sur téléphone, les compteurs des bandeaux affichent les cartes","Ton deck se consulte trié par nom, avec le nombre d'exemplaires","Le deck adverse n'est plus consultable, seul son nombre de cartes s'affiche"]},
  {version:'Version 0.5',date:DATE_V05,notes:["Nouvel écran de partie","6 nouveaux terrains","Animaux de compagnie retravaillés","Nouvelle règle : 4 éléments différents au plus par deck","Decks conseillés retravaillés","État de la connexion et reprise de la partie","Mode daltonien","Nouvel onglet Guides","Diverses améliorations de confort"]},
  {version:'Version 0.4',date:'6 novembre 2026',notes:["Nouvelle vue spectateur : pensée pour la diffusion","En spectateur : récaps de manche et de fin de partie","Onglet Jouer : retravaillé","Infobulles sur les mots-clés ajoutées","Onglet Règles : sommaire et recherche","Onglet Decks : 4 decks conseillés","Rework de Le Q : Brume et Magma, nouveaux effets","Nouvelle règle : deck vide, 1 point à l'adversaire par carte à piocher","Bug de Jacen et Jaina corrigé"]},
  {version:'Version 0.3',date:'5 novembre 2026',notes:["Mode spectateur : regarde une partie en direct depuis le salon","Nouveaux Golems : JackJoy, Vic222 et GénéralBrioche, avec leurs évolutions","K-Chan passe en Magma et Cristal et reçoit son évolution L'attachiante","Nouvel animal de compagnie : Jacen et Jaina, les chats de KaTarN","Deck par défaut (ex « Test ») à 30 cartes","Onglet Decks : panneau du deck toujours ouvert pendant la modification","Onglet Decks : renommage au crayon, boutons + et − plus petits","Petites corrections : journal, Historique, copie du lien d'un deck"]},
@@ -15,6 +19,43 @@ const NOUVEAUTES=[
    Une ligne = une phrase courte pour les joueurs. Sous-liste : {t:"titre :",l:[...]}. Rubrique vide : [] (message neutre affiché).
    Nouvelle version : ajouter son entree en tete, comme dans NOUVEAUTES. */
 const DETAILS_VERSIONS={
+ 'Version 0.6':{
+  nouveautes:[
+   "Refonte graphique complète du site : nouveaux onglets Jouer, Decks (Decks et Cartes réunis), Statistiques, Comment jouer (Règles et Guides), Nouveautés et Profil. Nouveau bandeau en haut de page, nouvelles alertes et nouveaux sélecteurs.",
+   "Parties classées : 6 rangs, Améthyste, Topaze, Saphir, Émeraude, Rubis et Diamant. Ton rang se révèle après 5 parties de placement, puis tes points Elo montent ou descendent à chaque partie.",
+   "Robots en classée : quand tu lances une partie classée, un minuteur de 2 minutes démarre. Si personne ne te rejoint, tu peux affronter un Golem robot de la difficulté de ton Elo : Facile sous 900, Normal de 900 à 1149, Difficile à partir de 1150. Points divisés par 2, 5 parties par jour au plus.",
+   "Robot Difficile renforcé : il gagne désormais environ 65 % de ses parties contre le robot Normal.",
+   "Saison 0 - Bêta : la première saison classée commence. Récompenses : la médaille Pionnier pour tout joueur ayant fini son placement, et un écu or, argent ou bronze pour le top 10.",
+   {t:"Nouveau Golem : Elccino (G-021, Brume et Cristal).",l:[
+    "{{Elccino, Life happens, coffee helps}} (3/1) - Café du matin : à la pose et à chaque début de manche, regarde les 2 premières cartes de ton deck, prends-en 1 et remets l'autre sous ton deck. Puis un Golem allié gagne +1 de Force.",
+    "Évolution {{Elccino, Agent double SOLAEGIS ★}} (4/2) - La taupe : à la pose, regarde la main adverse et choisis-en 1 : ton adversaire la défausse. Un Golem allié gagne +2 de Force."]},
+   "Nouvel animal : {{Uki, Le chien de Shifukuro}} (A-015, coût 0) - Meilleur ami : tu comptes comme un Golem allié au-dessus de ton maître.",
+   "Decks conseillés de la v0.6 : 6 nouveaux decks de 30 cartes, un par archétype : Montée en puissance, Attaque rapide, Meule, Contrôle, Soutien et Combo. Ils remplacent les anciens, et les robots jouent désormais l'un d'eux, tiré au hasard.",
+   "Zoom des cartes : le texte des terrains s'affiche sous l'image, comme pour les Golems. Coût, Force, éléments et points en pictos.",
+   "Étiquette de version sur les decks."],
+  corrections:[
+   "Partie guidée : l'étape 5 fonctionne de nouveau et chaque bulle reste visible."],
+  regles:[
+   "Nouveau mot-clé : Récupérer X : ton Golem regagne jusqu'à X de Force perdue après des dégâts, sans jamais dépasser sa Force de base. Un Golem sans dégâts ne récupère rien.",
+   "{{K-Chan, L'attachiante ★}} : « Love inconditionnel : une fois par manche, à ton tour, un Golem allié récupère 1. »",
+   "{{Le Camp}} : « Fin de manche : tous les Golems ici récupèrent 1. »"],
+  avenir:[
+   {t:"Prochaine version (v0.6a) :",l:[
+    "Rejeu des parties : il s'affiche encore avec l'ancien écran de partie. Il passera sur la nouvelle interface.",
+    "Équilibrage des cartes et des éléments.",
+    "Mode clair.",
+    "Nouveaux guides : une pastille signalera chaque nouveau guide publié."]},
+   "Version ultérieure : la nouvelle interface sera adaptée à la tablette et au téléphone."]
+ },
+ 'Version 0.5a':{
+  nouveautes:[
+   "Ton deck se consulte trié par nom, avec le nombre d'exemplaires (ex. « Glad x2 »), et plus dans l'ordre de pioche.",
+   "Le deck adverse n'est plus consultable : seul son nombre de cartes s'affiche.",
+   "Forge et Défausse restent consultables des deux côtés."],
+  corrections:[
+   "Sur ordinateur, les piles Deck, Forge et Défausse de l'écran de partie s'ouvrent de nouveau (merci à Bellock).",
+   "Sur téléphone, les compteurs Deck, Défausse et Forge des bandeaux se touchent pour voir les cartes."],
+  regles:[]},
  'Version 0.5':{
   nouveautes:[
    "Nouvel écran de partie : la mise en page de la vue spectateur, le plateau en grand, les deux mains, la dernière carte jouée et les dernières actions. Il s'ouvre en plein écran ; « Quitter » demande confirmation.",
@@ -300,15 +341,30 @@ function textePictos(s,parens){
   }
   f.append(s.slice(k));return f;
 }
+/* 0.6 : nom de carte cite entre {{ }} (charte du 9 nov.) : cliquable (zoom), couleur de son type, gras.
+   Bloc court : {{Nom}} (nom seul ; evolution : {{Nom ★}}). Details : {{Nom, Titre}} (nom long ; evolution suivie de ★). Terrain : {{Le Camp}}.
+   Carte absente des donnees (pas encore integree) : nom en couleur Golem, non cliquable. */
+function lienNv(cle){
+  const D=window.GolemsDonnees,K=D?.interface?.couleursTexte||{},evo=/ ★$/.test(cle),n=cle.replace(/ ★$/,''),MM=window.GolemsMoteur||{},cs=Object.values(MM.CARTES||{});
+  const C=cs.find(c=>!!c.base===evo&&D?.nomLong&&D.nomLong(c.id)===n)||cs.find(c=>evo?(c.base&&cs.find(b=>b.id===c.base)?.nom===n):(!c.base&&c.nom===n)),
+    T=!C&&(MM.TERRAINS||[]).find(t=>t.nom===n);
+  const b=document.createElement(C||T?'button':'b');b.className='nv-lien';b.textContent=cle;
+  b.style.color=T?K.terrain:C?.animal?K.animal:C?.base?K.evolution:K.golem;
+  if(C||T){b.type='button';b.onclick=()=>{if(T){typeof ouvreTerrainGalerie==='function'&&ouvreTerrainGalerie(T)}else zoom(imgV('cartes/'+C.id+'.jpg'),C.nom)}}
+  return b;
+}
+function texteNv(s,parens){
+  const f=document.createDocumentFragment();String(s).split(/\{\{([^}]+)\}\}/).forEach((x,i)=>{if(i%2)f.append(lienNv(x));else if(x)f.append(textePictos(x,parens))});return f;
+}
 /* Fenetre « Détails » : note de patch complete d'une version, en trois rubriques. Fermer, Echap ou clic dehors. */
-const RUBRIQUES_VERSION=[['nouveautes','Nouveautés'],['corrections','Corrections'],['regles','Équilibrage et règles']];
+const RUBRIQUES_VERSION=[['nouveautes','Nouveautés'],['regles','Équilibrage et règles'],['corrections','Corrections'],['avenir','À venir']];
 function ouvreDetailsVersion(n,bouton){
   $('popDetailsVersion')?.remove();
   const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-  const D=DETAILS_VERSIONS[n.version],v=mk('div','voile'),x=mk('div','boite dv-boite'),te=mk('div','dv-tete'),h=mk('h2','',n.version),co=mk('div','dv-corps'),pb=mk('div','p-btns dv-pied'),fe=mk('button','btn fermer','Fermer');
+  const D=DETAILS_VERSIONS[n.version],v=mk('div','voile'),x=mk('div','boite dv-boite'),te=mk('div','dv-tete'),h=mk('h2','',n.version),co=mk('div','dv-corps'),pb=mk('div','p-btns dv-pied'),fe=mk('button','sc-btn sc-secondaire fermer','Fermer');
   v.id='popDetailsVersion';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','dvTitre');h.id='dvTitre';fe.type='button';
-  const fr=s=>s.replace(/« /g,'«\u00a0').replace(/ (»|:)/g,'\u00a0$1'),liste=L=>{const u=mk('ul');L.forEach(y=>{const li=mk('li');li.append(textePictos(fr(typeof y==='string'?y:y.t),true));if(y.l)li.append(liste(y.l));u.append(li)});return u};
-  RUBRIQUES_VERSION.forEach(([k,titre])=>{const L=D[k]||[];co.append(mk('h3','',titre),L.length?liste(L):mk('p','dv-vide',k==='corrections'&&n===NOUVEAUTES[NOUVEAUTES.length-1]?'Première version du jeu.':'Rien pour cette version.'))});
+  const fr=s=>s.replace(/« /g,'«\u00a0').replace(/ (»|:)/g,'\u00a0$1'),liste=L=>{const u=mk('ul');L.forEach(y=>{const li=mk('li');li.append(texteNv(fr(typeof y==='string'?y:y.t),true));if(y.l)li.append(liste(y.l));u.append(li)});return u};
+  RUBRIQUES_VERSION.forEach(([k,titre])=>{const L=D[k]||[];if(k==='avenir'&&!L.length)return;co.append(mk('h3','',titre),L.length?liste(L):mk('p','dv-vide',k==='corrections'&&n===NOUVEAUTES[NOUVEAUTES.length-1]?'Première version du jeu.':'Rien pour cette version.'))});
   const esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc);bouton?.focus()};addEventListener('keydown',esc);
   fe.onclick=ferme;v.onclick=e=>{if(e.target===v)ferme()};
   te.append(h,mk('time','',n.date));pb.append(fe);x.append(te,co,pb);v.append(x);document.body.append(v);fe.focus({preventScroll:true});
@@ -318,31 +374,34 @@ const etqBloc=v=>{const e=document.createElement('span');e.className='etq-v nv-e
 NOUVEAUTES.forEach(n=>{
   const a=document.createElement('article'),h=document.createElement('h3'),d=document.createElement('time'),u=document.createElement('ul');
   a.className='note';h.textContent=n.version;d.textContent=n.date;
-  n.notes.forEach(x=>{const li=document.createElement('li');li.append(textePictos(x));u.append(li)});
+  n.notes.forEach(x=>{const li=document.createElement('li');li.append(texteNv(x,true));u.append(li)});
   a.append(h,etqBloc(n.version),d,u);$('notes').append(a);
   /* Bouton « Détails » : blocs de version seulement (jamais les blocs video), s'ils ont leurs details. */
-  if(DETAILS_VERSIONS[n.version]){const b=document.createElement('button');b.type='button';b.className='btn sec nv-det';b.textContent='Détails';
+  if(DETAILS_VERSIONS[n.version]){const b=document.createElement('button');b.type='button';b.className='sc-btn sc-tertiaire nv-det';b.textContent='Détails';
     b.setAttribute('aria-haspopup','dialog');b.setAttribute('aria-label','Détails de la '+n.version.toLowerCase());b.onclick=()=>ouvreDetailsVersion(n,b);a.classList.add('a-det');a.append(b)}
 });
 /* Une seule liste du plus récent au plus ancien (grille 2 colonnes, gauche puis droite) : tout nouveau bloc s'insère en tête.
    Blocs vidéo : présentation seule, cadrée à la hauteur du bloc voisin, juste avant le bloc de sa version. Un bloc par entrée, le plus récent en tête. */
 const NOUVEAUX_GOLEMS=[
- {titre:'Nouvel écran de partie. Et plus encore…',date:DATE_V05,version:'Version 0.5',apres:true,
+ {titre:'Version 0.6',date:DATE_V06,version:'Version 0.6',apres:true,
+  video:'videos/patch_06.mp4',affiche:'videos/patch_06.jpg',aria:'Présentation de la version 0.6'},
+ {titre:'Nouvel écran de partie. Et plus encore…',date:DATE_V05,version:'Version 0.5',puces:["Nouvel écran de partie", "6 nouveaux terrains", "Animaux de compagnie retravaillés", "4 éléments différents au plus par deck", "Decks conseillés retravaillés", "Connexion et reprise de la partie", "Mode daltonien", "Nouvel onglet Guides"],apres:true,
   video:'videos/patch_05.mp4',affiche:'videos/patch_05.jpg',aria:'Présentation de la version 0.5'},
- {titre:'Nouveaux Golems disponibles : GénéralBrioche, JackJoy, K-Chan, Vic222.\nEt plus encore…',date:'5 novembre 2026',version:'Version 0.3',apres:true,
+ {titre:'Nouveaux Golems disponibles : GénéralBrioche, JackJoy, K-Chan, Vic222.\nEt plus encore…',date:'5 novembre 2026',version:'Version 0.3',puces:["Mode spectateur depuis le salon", "Golems : JackJoy, Vic222, GénéralBrioche", "K-Chan passe en Magma et Cristal", "Évolution de K-Chan : L'attachiante", "Nouvel animal : Jacen et Jaina", "Deck par défaut à 30 cartes", "Decks : panneau toujours ouvert", "Renommage du deck au crayon"],apres:true,
   video:'videos/nouvelles_cartes_05nov.mp4',affiche:'videos/nouvelles_cartes_05nov.jpg',aria:'Présentation des nouvelles cartes de la version 0.3'},
- {titre:'Nouveaux Golems disponibles : trop nombreux pour les citer',date:'4 novembre 2026',version:'Version 0.2b',
+ {titre:'Nouveaux Golems disponibles : trop nombreux pour les citer',date:'4 novembre 2026',version:'Version 0.2b',puces:["De nombreux nouveaux Golems", "Premier animal : Kiwi, de Titom76", "K-Chan devient Magma + Brume", "Plateau en miroir : ton camp en bas", "Statistiques par patch et adversaire", "Profils publics des joueurs", "Nouveaux filtres et tri des cartes", "Aide : le cercle des éléments"],
   video:'videos/nouvelles_cartes_04nov.mp4',affiche:'videos/nouvelles_cartes_04nov.jpg',aria:'Présentation des nouvelles cartes'},
- {titre:'Nouveaux Golems disponibles : Indra et Glad',date:'3 novembre 2026',version:'Version 0.2a',
+ {titre:'Nouveaux Golems disponibles : Indra et Glad',date:'3 novembre 2026',version:'Version 0.2a',puces:["Jeu en ligne, avec comptes", "Parties publiques et privées", "Discussion pendant la partie", "Tutoriel et entraînement", "Decks et historique des parties", "Rejeu des parties et profil", "Avatars personnalisables"],
   video:'videos/nouveaux_golems.mp4',affiche:'videos/nouveaux_golems.jpg',aria:'Présentation des nouveaux Golems'}
 ];
 NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-  const a=mk('article','note nv-golem'),l=mk('div','nv-ligne'),v=mk('video','nv-video');
+  /* Nouveautes B4 (16 - Nouveautés trois lignespresB4, decision de Romain) : UN SEUL bloc par version ; la video entre dans le bloc de sa version,
+     a gauche, les puces courtes a droite (8 lignes au plus, le reste dans Details). */
+  const a=[...$('notes').children].find(x=>x.querySelector('h3')?.textContent===g.version),l=mk('div','nv-corps'),v=mk('video','nv-video');
   v.src=g.video;v.poster=g.affiche;v.preload='metadata';v.controls=v.playsInline=true;v.volume=0.6;
   v.setAttribute('playsinline','');v.setAttribute('aria-label',g.aria);
-  const ti=mk('h3');g.titre.split('\n').forEach((x,i)=>{if(i)ti.append(document.createElement('br'));ti.append(x)}); /* \n dans le titre : retour a la ligne force */
-  l.append(v);a.append(ti,etqBloc(g.version),mk('time','',g.date),l);
-  {const n=$('notes'),ver=[...n.children].find(x=>x.querySelector('h3')?.textContent===g.version);if(ver)(g.apres?ver.after(a):ver.before(a));else n.prepend(a)} /* apres : juste apres le bloc de sa version (0.3) */
+  if(!a)return;{const u=a.querySelector(':scope>ul');if(g.puces){u.replaceChildren();g.puces.forEach(x=>{const li=document.createElement('li');li.append(texteNv(x,true));u.append(li)})}
+  l.append(v,u)}a.querySelector(':scope>time').after(l);a.classList.add('nv-avid');
   /* Aucune lecture automatique : tu cliques sur lecture (avec le son, volume 0,6). Une seule lecture, pas de boucle. Pause hors de l'onglet. */
   const sec=$('nouveautes');new MutationObserver(()=>{if(sec.hidden)v.pause()}).observe(sec,{attributes:true,attributeFilter:['hidden']});
 });
@@ -353,11 +412,10 @@ NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t)
    page 1 = epingles + recents ; pages suivantes : 6 blocs chacune, sans epingles. Fleches < x / n > a droite de la ligne d'intro
    (alignees sur le bord droit de la grille), masquees s'il n'y a qu'une page ; changer de page remonte en haut de la liste. */
 const FEUILLE_DE_ROUTE=[
- {v:'0.5',nom:'Nouvel écran de partie',etat:'actuelle'},
- {v:'0.6',nom:'Parties classées',etat:'proche'},
+ {v:'0.6',nom:'Nouvelle interface et parties classées',etat:'actuelle'},
  {nom:'Tournois',etat:'tard'},
  {nom:'Nouveau type de carte : Événements',etat:'tard'},
- {nom:'Nouvelle interface',etat:'tard'},
+ {nom:'Équilibrage',etat:'tard'},
  {v:'1.0',nom:'Sortie officielle',etat:'tard'}
 ];
 const ETATS_FDR={actuelle:'Version actuelle',proche:'Prochaine mise à jour',prevu:'Prévu',tard:'Plus tard'};
@@ -388,15 +446,19 @@ function epinglesNotes(){
   const l=['feuille-de-route','v'+String(NOUVEAUTES[0].version).replace(/^Version /,'')];
   return l.filter(x=>ids.has(x));
 }
-function peintNotes(){
+function peintNotes0(){
   const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
   const N=$('notes'),ep=epinglesNotes(),fdr=N.querySelector('.nv-fdr'),par=id=>N.querySelector(':scope>article[data-id="'+id+'"]');
   /* Feuille de route desepinglee : premier bloc de la liste (Romain peut la reepingler) */
   const U=[...(ep.includes('feuille-de-route')?[]:[[fdr]]),...unitesNotes()].map(u=>u.filter(a=>!ep.includes(a.dataset.id))).filter(u=>u.length);
   const pages=[[]];let n=ep.length;
-  U.forEach(u=>{if(n+u.length>NV.par&&n>0){pages.push([]);n=0}pages[pages.length-1].push(...u);n+=u.length});
+  /* 0.5a.1 (decision de Romain) : ordre chronologique strict, chaque page remplie au maximum. Un couple version + video
+     peut etre coupe en fin de page : la video passe en haut de la page suivante. Aucun bloc plus ancien ne remonte. */
+  U.flat().forEach(a=>{if(n>=NV.par&&n>0){pages.push([]);n=0}pages[pages.length-1].push(a);n++});
   if(pages.length>1&&!pages[0].length&&!ep.length)pages.shift(); /* 0.5.2 : epingles seuls en page 1 s il ne reste pas de place */
   NV.page=Math.max(0,Math.min(NV.page,pages.length-1));
+  {const cols=getComputedStyle(N).gridTemplateColumns.split(' ').filter(Boolean).length||1; /* B4 : hauteur d'une page pleine, la pagination reste a sa place */
+   N.style.gridTemplateRows=innerWidth<700?'':'repeat('+Math.ceil(NV.par/cols)+',var(--h-bloc,297px))'}
   const ordre=[...ep.map(par),...pages.flat()],vus=new Set([...(NV.page===0?ep.map(par):[]),...pages[NV.page]]);
   if(ordre.some((a,i)=>N.children[i]!==a))ordre.forEach(a=>N.append(a));
   N.querySelectorAll(':scope>article.note').forEach(a=>{const e=ep.includes(a.dataset.id);a.classList.toggle('nv-epingle',e);a.hidden=!vus.has(a);
@@ -407,25 +469,30 @@ function peintNotes(){
     if(!b){b=mk('button','nv-epingler');b.type='button';b.innerHTML=SVG_EPINGLE;b.onclick=()=>basculeEpingle(a.dataset.id,b);a.append(b)}
     b.classList.toggle('on',e);b.setAttribute('aria-pressed',String(e));b.title=e?'Désépingler ce bloc':'Épingler ce bloc';b.setAttribute('aria-label',b.title)});
   N.classList.toggle('nv-romain',NV.romain);
-  /* Fleches de pagination, a droite de la phrase d'intro (style des fleches du Journal), creees une fois */
+  /* B4 : pagination sous les blocs, calee en bas a droite (un seul composant partout), creee une fois */
   {
     let z=document.querySelector('#nouveautes .nv-pages');
-    if(!z){z=mk('div','nv-pages haut');z.setAttribute('role','navigation');z.setAttribute('aria-label','Pages des nouveautés');
+    if(!z){z=mk('div','nv-pages bas');z.setAttribute('role','navigation');z.setAttribute('aria-label','Pages des nouveautés');
       const p=mk('button','j-btn nv-prec','<'),s=mk('button','j-btn nv-suiv','>');p.type=s.type='button';
       p.title='Page précédente';s.title='Page suivante';p.setAttribute('aria-label',p.title);s.setAttribute('aria-label',s.title);
       p.onclick=()=>pageNotes(-1);s.onclick=()=>pageNotes(1);z.append(p,mk('span','nv-num'),s);
-      const i=document.querySelector('#nouveautes>.intro');i.classList.add('va');i.append(z)}
-    z.hidden=pages.length<2;z.querySelector('.nv-num').textContent=(NV.page+1)+' / '+pages.length;
+      $('notes').after(z)}
+    z.hidden=pages.length<2;z.querySelector('.nv-num').textContent=(NV.page+1)+'/'+pages.length;
     z.querySelector('.nv-prec').disabled=NV.page===0;z.querySelector('.nv-suiv').disabled=NV.page>=pages.length-1}
 }
+/* B4 : coupe propre des blocs trop longs (lignes entieres masquees), le bouton Details donne le reste */
+function peintNotes(){peintNotes0();if(innerWidth<700)return;
+  for(const n of document.querySelectorAll('#notes>.note')){if(!n.offsetParent)continue;n.querySelectorAll('.coupe').forEach(x=>x.classList.remove('coupe'));
+    const lim=n.getBoundingClientRect().bottom-14,li=[...n.querySelectorAll('ul>li,ol>li')];
+    for(let k=li.length-1;k>0&&li[k].getBoundingClientRect().bottom>lim;k--)li[k].classList.add('coupe')}}
 function pageNotes(d){
   NV.page+=d;peintNotes();
-  const h=document.querySelector('#nouveautes .nv-pages.haut'),y=(h&&!h.hidden?h:$('notes')).getBoundingClientRect().top+scrollY-(document.querySelector('body>nav,nav.onglets')?.offsetHeight||0)-12;
+  const y=$('notes').getBoundingClientRect().top+scrollY-(document.querySelector('body>nav,nav.onglets')?.offsetHeight||0)-12;
   if(y<scrollY)scrollTo({top:Math.max(0,y)});
 }
 function basculeEpingle(id,b){
   const l=epinglesNotes(),e=l.includes(id);
-  if(!e&&l.length>=2){b.title='Deux blocs épinglés au plus : désépingle d’abord l’un d’eux.';b.classList.add('refus');setTimeout(()=>b.classList.remove('refus'),900);return}
+  if(!e&&l.length>=2){b.title='Action impossible : 2 blocs épinglés au plus. Désépingle un bloc d\'abord.';b.classList.add('refus');setTimeout(()=>b.classList.remove('refus'),900);return}
   const n=e?l.filter(x=>x!==id):[...l,id];
   NV.epingles=n.length?n:['aucun'];peintNotes();
   NV.room?.epingles?.ecrit(n).catch(x=>console.warn('épingles',x));

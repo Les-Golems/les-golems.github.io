@@ -23,10 +23,18 @@
   ['pointerdown','keydown','wheel','touchstart','input'].forEach(t=>addEventListener(t,()=>{geste=Date.now()},{capture:true,passive:true}));
   const tente=()=>{if((dispo||silencieux)&&!parti&&calme()&&Date.now()-geste>=3000){parti=true;location.reload()}};
   const correctif=()=>{if(dispo||silencieux)return;silencieux=true;setInterval(tente,1000);tente()};
-  const signale=()=>{if(dispo)return;dispo=true;$('majDispo').hidden=false;setInterval(tente,1000);dispatchEvent(new Event('golems:nouvelle-version'));tente()};
-  const verifie=async()=>{const v=await lit();if(!v)return;if(!ref){ref=v;return}if(v===ref)return;if(v.split('|')[0]!==ref.split('|')[0])signale();else correctif()};
+  /* Maquette 41 P1 : etiquette de la nouvelle version (v de version.json) ; titre cale pour que l'encadre soit a 28 px de la pastille. */
+  const cale=()=>{const m=$('majDispo'),h=document.querySelector('.haut h1'),e=$('verEtq');if(!m||m.hidden||!h||!e)return;
+    h.style.width='';m.style.marginLeft='';if(innerWidth<=860)return;
+    /* h1 en conteneur (aucune largeur propre) : largeur = fin de la pastille sur une ligne (276 px au moins, sinon elle passe dessous), puis marge de l'encadre = 28 px depuis la pastille */
+    h.style.width='1000px';h.style.width=Math.max(276,Math.ceil(e.getBoundingClientRect().right-h.getBoundingClientRect().left)+1)+'px';
+    const g=parseFloat(getComputedStyle(m.parentNode).columnGap)||0;m.style.marginLeft=Math.round(e.getBoundingClientRect().right+28-h.getBoundingClientRect().right-g)+'px'};
+  const etiquette=v=>{const x=$('majV');if(!x)return;const n=typeof vNom==='function'?vNom(v):v;if(n){x.textContent='v'+n;x.hidden=false;cale()}};
+  addEventListener('resize',cale);
+  const signale=v=>{if(typeof v==='string'&&v)etiquette(v);if(dispo)return;dispo=true;$('majDispo').hidden=false;cale();if(!(typeof v==='string'&&v))lit().then(x=>{if(x)etiquette(x.split('|')[0])});setInterval(tente,1000);dispatchEvent(new Event('golems:nouvelle-version'));tente()};
+  const verifie=async()=>{const v=await lit();if(!v)return;if(!ref){ref=v;return}if(v===ref)return;if(v.split('|')[0]!==ref.split('|')[0])signale(v.split('|')[0]);else correctif()};
   $('majRecharger').onclick=()=>location.reload();
-  window.nouvelleVersion=signale;document.addEventListener('golems:versionAncienne',signale);
+  window.nouvelleVersion=()=>signale();document.addEventListener('golems:versionAncienne',()=>signale());
   verifie();setInterval(verifie,5*60*1000);
   if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){window.__golemsVersion=verifie;window.__golemsCalme=calme}
 })();
