@@ -321,6 +321,10 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('vote au nom d\'un autre'), false, req(A, 'PUT', gv + B.uid, 1));
   await attendu(ici('vote d\'un invité'), false, req(G, 'PUT', gv + G.uid, 1));
   await attendu(ici('vote retiré'), true, req(A, 'DELETE', gv + A.uid));
+  // 0.6 : seuls les guides de la liste GUIDES (identifiants YouTube compris).
+  await attendu(ici('vote, guide vidéo de la liste'), true, req(A, 'PUT', P + 'guides/l8-g9rcBFnI/votes/' + A.uid, 1));
+  await attendu(ici('vote, guide hors liste'), false, req(A, 'PUT', P + 'guides/guide-invente/votes/' + A.uid, 1));
+  await attendu(ici('vote retiré, guide vidéo'), true, req(A, 'DELETE', P + 'guides/l8-g9rcBFnI/votes/' + A.uid));
 
   // En ligne (invités compris).
   await attendu(ici('invité se signale en ligne'), true, req(G, 'PUT', P + 'enligne/' + G.uid, HEURE));

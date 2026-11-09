@@ -3,7 +3,7 @@
    « Copier le lien » entre les votes et « Voir sur YouTube », bandeau « Guide : lien copié. Colle-le sur Discord. », bande du deck a importer, video ou texte).
    Lien partage : ?guide=<id> ouvre Comment jouer > Guides sur ce guide.
    Ancien onglet Guides retire : onglet('guides') et le lien #guides ouvrent Comment jouer > Guides (commun/navigation.js).
-   TODO (Firebase, plus tard) : votes partages. Pour l'instant chaque joueur ne voit que son propre vote (stockage local), aucun ecriture en ligne. */
+   Votes partages (0.6) : guides/<id>/votes/<uid> en ligne (salon-firebase.js, room.guides ; regle rules/60-guides.js). Invite : son vote reste sur l'appareil. */
 /* yt : identifiant YouTube ; titre, auteur et date releves a la main (aucune requete a YouTube au chargement) ; decks : liens ?deck= du site.
    texte : guide ecrit (HTML simple, noms de cartes reconnus et cliquables) ; officiel : guide de l'equipe (etiquette « Officiel »). */
 const GUIDES=[
@@ -32,7 +32,7 @@ const GUIDES=[
   decks:[{nom:'26 Foudre et 4 Apo',lien:'https://les-golems.github.io/?deck=GOL2-KgcAD4DCvAIAMAAAMjYgRm91ZHJlIGV0IDQgQXBvCkJlbGxvY2s'}]}
 ];
 GUIDES.forEach((g,i)=>{if(!g.id)g.id=g.yt||('g'+i);g.i=i;g.dk=0});
-const GD={tri:'notes',type:'tous',els:new Set(),q:'',page:0,par:8,cur:null,fait:false};
+const GD={votes:null,room:null,tri:'notes',type:'tous',els:new Set(),q:'',page:0,par:8,cur:null,fait:false};
 const CJ={vue:'regles'};
 const SVG_LECTURE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>';
 const SVG_POUCE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 21h4V9H2v12zm20-11a2 2 0 0 0-2-2h-6.3l1-4.6v-.3c0-.4-.2-.8-.4-1.1L13.2 1 6.6 7.6C6.2 8 6 8.5 6 9v10a2 2 0 0 0 2 2h9c.8 0 1.5-.5 1.8-1.2l3-7.1.2-.7v-2z"/></svg>';
@@ -51,11 +51,26 @@ function gdDeck(d){
 }
 const gdInfo=g=>g._d||(g._d=(g.decks||[]).map(gdDeck));
 const gdEls=g=>new Set(gdInfo(g).flatMap(d=>(d.els||[]).map(x=>x[0])));
-/* Votes : stockage local seulement (voir TODO en tete). +1, -1 ou 0 par guide. */
-const gdVotes=()=>{try{return JSON.parse(lire('golems.votesGuides')||'{}')||{}}catch(e){return {}}};
-const gdVote=g=>gdVotes()[g.id]||0;
-const gdScore=g=>(g.haut||0)-(g.bas||0)+gdVote(g);
-function gdVoter(g,v){const o=gdVotes();o[g.id]=o[g.id]===v?0:v;ecrire('golems.votesGuides',JSON.stringify(o));peintGuidesCJ()}
+/* Votes (0.6) : GD.votes = { id du guide: { uid: 1 | -1 } } lu en ligne (tous les joueurs). Compte connecte : son vote est en ligne ;
+   invite : vote sur l'appareil (golems.votesGuides), ajoute a ceux des autres. gdComptes(g) : {haut,bas,mien}, mien compris. */
+const gdVotesLocaux=()=>{try{return JSON.parse(lire('golems.votesGuides')||'{}')||{}}catch(e){return {}}};
+const gdUid=()=>GD.room&&GD.room.guides&&compteCo()?GD.room.guides.uid():null;
+function gdComptes(g){
+  const w=(GD.votes&&GD.votes[g.id])||{},u=gdUid();let haut=g.haut||0,bas=g.bas||0;
+  for(const k in w)if(k!==u){if(w[k]===1)haut++;else if(w[k]===-1)bas++}
+  const mien=u?(w[u]||0):(gdVotesLocaux()[g.id]||0);if(mien===1)haut++;else if(mien===-1)bas++;
+  return {haut,bas,mien};
+}
+const gdVote=g=>gdComptes(g).mien;
+const gdScore=g=>{const c=gdComptes(g);return c.haut-c.bas};
+function gdVoter(g,v){
+  const u=gdUid(),n=gdVote(g)===v?0:v;
+  if(!u){const o=gdVotesLocaux();o[g.id]=n;ecrire('golems.votesGuides',JSON.stringify(o));peintGuidesCJ();return}
+  GD.votes=GD.votes||{};const w=GD.votes[g.id]=Object.assign({},GD.votes[g.id]);if(n)w[u]=n;else delete w[u];peintGuidesCJ(); /* affichage immediat, l'ecoute corrige */
+  GD.room.guides.vote(g.id,n).catch(e=>console.warn('vote guide',e));
+}
+if(window.golemsSalon)Promise.resolve(window.golemsSalon).then(r=>{if(!r||!r.guides)return;GD.room=r;
+  r.guides.ecoute(v=>{GD.votes=v;peintGuidesCJ()});if(r.compte&&r.compte.onChange)r.compte.onChange(()=>peintGuidesCJ())}).catch(()=>{});
 /* Filtres, tri, liste */
 function gdListe(){
   let L=GUIDES.filter(g=>(GD.type==='tous'||(GD.type==='texte')===!!g.texte)&&(!GD.q||gdNorm(g.titre+' '+g.auteur).includes(GD.q))
@@ -91,8 +106,8 @@ function gdDetail(g){
   const r2=gdMk('div','gd-r2'),me=gdMk('div','gd-meta'),av=gdMk('i','gd-av',g.officiel?'':g.auteur[0]);
   if(g.officiel){const im=gdMk('img');im.src=imgV('cartes/logo.png');im.alt='';av.append(im)}
   me.append(av,gdMk('b','gd-aut',g.auteur),gdMk('span','','-'),gdMk('span','gd-date',g.date));if(g.texte)me.append(gdMk('span','','-'),gdMk('span','',g.min+' min de lecture'));
-  const ac=gdMk('div','gd-act'),vo=gdMk('div','gd-vo'),v=gdVote(g);
-  [[1,'Guide utile',(g.haut||0)+(v===1?1:0)],[-1,'Guide peu utile',(g.bas||0)+(v===-1?1:0)]].forEach(([s,t,n])=>{
+  const ac=gdMk('div','gd-act'),vo=gdMk('div','gd-vo'),C=gdComptes(g),v=C.mien;
+  [[1,'Guide utile',C.haut],[-1,'Guide peu utile',C.bas]].forEach(([s,t,n])=>{
     const b=gdMk('button','sc-btn sc-tertiaire gd-vb'+(v===s?' on':''));b.type='button';b.title=t;b.setAttribute('aria-label',t+' ('+n+')');b.setAttribute('aria-pressed',String(v===s));
     b.innerHTML=s>0?SVG_POUCE:'<span class="gd-bas">'+SVG_POUCE+'</span>';b.append(String(n));b.onclick=()=>gdVoter(g,s);vo.append(b)});
   const cp=gdMk('button','sc-btn sc-secondaire gd-cp','Copier le lien ');cp.type='button';cp.insertAdjacentHTML('beforeend',SVG_LIEN);cp.onclick=()=>gdCopie(g);

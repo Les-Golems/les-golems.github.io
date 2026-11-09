@@ -690,6 +690,24 @@ async function ouvre() {
         try { return (await get(ref(db, P + "pseudos/katarn"))).val() === moi; } catch (e) { return false; }
       }
     },
+    // 0.6 : votes des guides (rules/60-guides.js) : guides/<id>/votes/<uid> = 1 ou -1, lus par tous, écrits par un compte pour lui seul.
+    // ecoute(f) : f({ id: { uid: 1 | -1 } }) à chaque changement ({} si illisible) ; vote(id, v) : v = 1, -1, ou 0 pour retirer.
+    // uid() : uid du compte connecté (null en invité).
+    guides: {
+      ecoute(f) {
+        return onValue(ref(db, P + "guides"), s => {
+          const v = s.val() || {}, o = {};
+          for (const g in v) { const w = v[g] && v[g].votes; if (w && typeof w === "object") { o[g] = {}; for (const u in w) if (w[u] === 1 || w[u] === -1) o[g][u] = w[u]; } }
+          f(o);
+        }, () => f({}));
+      },
+      vote(id, v) {
+        if (!estCompte()) return Promise.reject(new Error("compte"));
+        const r = ref(db, P + "guides/" + id + "/votes/" + moi);
+        return v === 1 || v === -1 ? set(r, v) : remove(r);
+      },
+      uid: () => estCompte() ? moi : null
+    },
     // Lecture brute (tests locaux) : soumise aux mêmes règles que le reste.
     lit: p => get(ref(db, P + p)).then(s => s.val()),
     join

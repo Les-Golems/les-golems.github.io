@@ -1083,10 +1083,10 @@
     "guides": {
       ".read": true,
       "$g": {
-        ".validate": "$g.matches(/^[a-z0-9-]{1,40}$/)",
+        ".validate": "($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k')",
         "votes": {
           "$uid": {
-            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && ($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k')",
             ".validate": "newData.isNumber() && (newData.val() === 1 || newData.val() === -1)"
           }
         },
@@ -2180,10 +2180,10 @@
       "guides": {
         ".read": true,
         "$g": {
-          ".validate": "$g.matches(/^[a-z0-9-]{1,40}$/)",
+          ".validate": "($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k')",
           "votes": {
             "$uid": {
-              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid",
+              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && ($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k')",
               ".validate": "newData.isNumber() && (newData.val() === 1 || newData.val() === -1)"
             }
           },
