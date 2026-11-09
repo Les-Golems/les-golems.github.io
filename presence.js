@@ -103,7 +103,7 @@
     if (!v || !b) return;
     if (v.dev && v.dev !== DEV && v.c === b.code && b.partie && !b.partie.local && b.partie.graine === v.g && !(b.partie.etat && b.partie.etat.fin)) {
       lache = true; ecrit = '';
-      b.lache('Ta partie a été reprise sur un autre appareil.');
+      b.lache('Salon impossible : partie reprise sur un autre appareil. Continue-la sur l\'autre appareil.');
       setTimeout(() => { lache = false; }, 1000);
     }
   }
@@ -201,7 +201,7 @@
     zone(box.querySelector('.p-camp.lui'), e.lui, e.lui === 'att' ? 'Reconnexion' : e.lui === 'off' ? 'Hors ligne' : '');
     if (e.lui === 'off' && e.reste != null) {
       const m = el('div', 'dk-minu'); m.setAttribute('role', 'status');
-      const t = el('div', 't'); t.append(el('b', '', e.nomLui + " s'est déconnecté"), el('span', '', "S'il ne revient pas à temps, tu gagnes la partie par abandon."));
+      const t = el('div', 't'); t.append(el('b', '', 'Partie : ' + e.nomLui + " s'est déconnecté."), el('span', '', 'Sans retour à temps, tu gagnes par abandon.'));
       const br = el('div', 'barre'), i = el('i'); i.style.width = (100 * e.reste / MINU) + '%'; br.append(i);
       m.append(t, el('div', 'n', mn(e.reste)), br);
       const barre = box.querySelector('.p-barre');

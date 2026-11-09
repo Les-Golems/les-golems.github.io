@@ -445,7 +445,7 @@ function pageNotes(d){
 }
 function basculeEpingle(id,b){
   const l=epinglesNotes(),e=l.includes(id);
-  if(!e&&l.length>=2){b.title='Deux blocs épinglés au plus : désépingle d’abord l’un d’eux.';b.classList.add('refus');setTimeout(()=>b.classList.remove('refus'),900);return}
+  if(!e&&l.length>=2){b.title='Action impossible : 2 blocs épinglés au plus. Désépingle un bloc d\'abord.';b.classList.add('refus');setTimeout(()=>b.classList.remove('refus'),900);return}
   const n=e?l.filter(x=>x!==id):[...l,id];
   NV.epingles=n.length?n:['aucun'];peintNotes();
   NV.room?.epingles?.ecrit(n).catch(x=>console.warn('épingles',x));

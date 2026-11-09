@@ -611,7 +611,7 @@ function copie(txt,b,lib,selectionne,surOk){
   let fait=false;try{fait=document.execCommand('copy')}catch(e){}
   s.remove();try{b.focus()}catch(e){}
   if(fait){reussi();return}
-  const echec=()=>{if(selectionne){selectionne();ok('Sélectionné : Ctrl+C')}else{ok('Copie impossible');window.prompt('Copie ce texte :',txt)}};
+  const echec=()=>{const P=b.parentNode;let z=P&&P.nextElementSibling;if(P&&!(z&&z.classList.contains('copie-alerte'))){z=document.createElement('div');z.className='copie-alerte';P.after(z)}if(selectionne){selectionne();ok('Sélectionné : Ctrl+C');if(z)alerte(z,'Action impossible : presse-papiers bloqué. Texte sélectionné, appuie sur Ctrl+C.')}else{ok('Copie impossible');if(z)copieManuelle(z,txt)}};
   try{if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(txt).then(reussi,echec);else echec()}catch(e){echec()}
 }
 /* Fin de partie : tout vient du journal, le moteur ne garde que la derniere manche. */

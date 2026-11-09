@@ -39,7 +39,7 @@ function majEtat(){
   const co=room.connected(),n=personnes(room.peers()).length;
   $('etat').classList.toggle('ok',co);
   const cc=compteCo();
-  $('etatTexte').textContent=!co?'Connexion au salon en ligne...':!cc?'Connecte-toi pour jouer en ligne.':n<2?'1 joueur connecté':n+' joueurs connectés';
+  $('etatTexte').textContent=!co?'Connexion : serveur en cours de connexion. Patiente un instant.':!cc?'Connexion : jeu en ligne réservé aux comptes. Connecte-toi pour jouer en ligne.':n<2?'1 joueur connecté':n+' joueurs connectés';
   $('creer').disabled=$('creerClasse').disabled=$('rejoindre').disabled=!co||occupe||!cc;
   $('reprendre').disabled=!cc;
 }
@@ -72,7 +72,7 @@ function majSalon(){
   const l=ordre(r.peers());
   /* Adversaire arrive dans ma partie en attente : son doux et titre de l'onglet (golemsAdversaireArrive ci-dessus). */
   {const n=Math.min(l.length,MAX);if(createur&&!partie&&nbSalon===1&&n===2){joueSons(['arrivee']);if(window.golemsAdversaireArrive)window.golemsAdversaireArrive()}nbSalon=n}
-  if(l.findIndex(p=>p.sameTab)>=MAX&&Date.now()-entree>1500){sortie('Ce salon est complet.');return}
+  if(l.findIndex(p=>p.sameTab)>=MAX&&Date.now()-entree>1500){sortie('Salon impossible : salon complet. Rejoins un autre salon.');return}
   /* Versions differentes avant la partie : Pret retire et bloque, etiquette rouge sur le siege le plus ancien. */
   {const d=l.slice(0,MAX),o=d.find(p=>!p.sameTab);vxEcart=!partie&&!!maV&&d.length>=MAX&&!!o&&!vEg(vDe(o),maV);vxRouge=vxEcart?(vAncienne(vDe(o))?o.peer:'moi'):'';
    if(vxEcart&&jePret){jePret=false;pub({pret:null,deck:null});majChoixDeck()}
@@ -88,7 +88,7 @@ function majSalon(){
   if(!specUI)u.append(sieges[0],el('div','sl-vs','VS'),sieges[1]);
   majSpecs();
   const adv=l.slice(0,MAX).find(p=>!p.sameTab);majFace(adv?nomDe(adv):'');
-  if(!partie&&l.some(p=>!p.sameTab&&Number.isInteger(p.presence.jg)&&typeof p.presence.adv==='string'&&p.presence.adv!==sid&&p.presence.sid!==sid)&&Date.now()-entree>1500){sortie('Ce salon est complet.');return}
+  if(!partie&&l.some(p=>!p.sameTab&&Number.isInteger(p.presence.jg)&&typeof p.presence.adv==='string'&&p.presence.adv!==sid&&p.presence.sid!==sid)&&Date.now()-entree>1500){sortie('Salon impossible : salon complet. Rejoins un autre salon.');return}
   const c=l.length>=MAX;
   const duo=l.slice(0,MAX),libre=!partie&&c&&!vxEcart&&!duo.some(p=>Number.isInteger(p.presence.jg));
   if(libre&&duo.every(estPret))armeCompte();else stopCompte();
@@ -98,7 +98,7 @@ function majSalon(){
   $('pret').textContent=vxEcart?'Versions différentes':jePret?'Pas prêt':!c?'En attente d\'un adversaire':'Prêt';$('pret').classList.toggle('sc-secondaire',jePret);
   $('slDeck').hidden=!!partie;$('slDeck').disabled=jePret;$('slDeck').title=jePret?'Retire ton Prêt pour changer de deck':'';
   majAnnonce(l);
-  $('attente').textContent=vxEcart?'':compteFin?texteCompte():!c?notice||'':jePret?'En attente de ton adversaire':duo.some(estPret)?'Ton adversaire est prêt':'Salon complet, clique sur Prêt';
+  $('attente').textContent=vxEcart?'Salon impossible : ton adversaire n\'a pas la même version du site. Recharge la page.':compteFin?texteCompte():!c?notice||'':jePret?'Salon : ton adversaire n\'est pas prêt. Patiente un instant.':duo.some(estPret)?'Salon : ton adversaire est prêt. Clique sur Prêt.':'Salon : deux joueurs présents. Clique sur Prêt.';
   $('attente').classList.toggle('pret',c&&!vxEcart);
   majPartie();placeChat();majBandeauRobot();
 }
@@ -226,10 +226,9 @@ const deckLien=(()=>{try{const u=new URL(location.href);if(!u.searchParams.has('
 async function suitInvit(){
   if(!invit||!room)return;
   onglet('jouer');
-  if(invit==='!'){invit='';$('erreurJeu').textContent="Lien d'invitation invalide.";return}
+  if(invit==='!'){invit='';alerte('erreurJeu',"Salon impossible : lien d'invitation invalide. Demande un nouveau lien.");return}
   if(!compteCo()){
-    const z=$('erreurJeu'),b=el('button','modif','Se connecter');z.textContent='Connecte-toi pour rejoindre le salon '+invit.toUpperCase()+'. ';
-    b.type='button';b.style.marginLeft='6px';b.onclick=ouvrePseudo;z.append(b);
+    alerte('erreurJeu','Connexion requise : le salon '+invit.toUpperCase()+' demande un compte. Connecte-toi pour le rejoindre.',{bouton:{texte:'Se connecter',action:ouvrePseudo}});
     if($('popPseudo').hidden)ouvrePseudo();return;
   }
   const c=invit;invit='';
@@ -237,8 +236,8 @@ async function suitInvit(){
   const C=c.toUpperCase();let j=null,eng=null;
   try{j=await room.lit('salons/'+c+'/joueurs');eng=await room.lit('salons/'+c+'/engages')}catch(e){}
   const moi=room.compte.uid(),n=j?Object.keys(j).length:0;
-  if(!n){$('erreurJeu').textContent='Salon '+C+" introuvable : la partie est terminée ou son créateur est parti.";return}
-  if(!(j&&j[moi])&&(eng&&!eng[moi]||n>=MAX)){$('erreurJeu').textContent='Le salon '+C+' est complet.';return}
+  if(!n){alerte('erreurJeu','Salon impossible : salon '+C+' fermé. Crée ton salon ou rejoins-en un autre.');return}
+  if(!(j&&j[moi])&&(eng&&!eng[moi]||n>=MAX)){alerte('erreurJeu','Salon impossible : salon '+C+' complet. Rejoins un autre salon.');return}
   $('erreurJeu').textContent='';
   choisirDeck(()=>{createur=false;salonPublic=false;annonceVue='';entre(c)});
 }
@@ -251,7 +250,7 @@ async function sortie(msg,avant){
   let spec=false;
   if(window.SPEC){spec=SPEC.estSpectateur();if(spec&&window.SPEC_UI&&SPEC_UI.quitterVuePartie)try{SPEC_UI.quitterVuePartie()}catch(e){}SPEC.sortir().catch(()=>{})}
   const a=r;r=null;code='';finPartie();annonceVue='';createur=false;salonClasse=false;majBandeauRobot();peintListe();
-  $('salon').hidden=true;$('accueil').hidden=false;$('erreurJeu').textContent=msg||'';
+  $('salon').hidden=true;$('accueil').hidden=false;alerte('erreurJeu',msg||'');
   if(spec)onglet('jouer'); /* spectateur : retour sur l'onglet Jouer, pas sur le dernier onglet memorise */
   if(a)try{if(avant)await avant;await a.leave()}catch(e){}
   if(room)room.presence({salon:null}).catch(()=>{});
@@ -267,9 +266,9 @@ const chatBox=(()=>{
   h.onclick=e=>{if(!c.classList.contains('flottant'))return;chatOuvert=c.classList.contains('replie');c.classList.toggle('replie',!chatOuvert);if(chatOuvert){chatVu=r&&r.chat?r.chat().length:0;nb.textContent='';ul.scrollTop=ul.scrollHeight;i.focus()}{const p=document.querySelector('#partie .p-chat-nb');if(p)p.textContent=nb.textContent}};
   f.onsubmit=async e=>{
     e.preventDefault();const m=i.value.replace(/\s+/g,' ').trim().slice(0,200);if(!m||!r||!r.dit)return;
-    const t=Date.now();if(t-chatDernier<1000){inf.textContent='Un message par seconde au plus.';return}
+    const t=Date.now();if(t-chatDernier<1000){alerte(inf,'Chat : un message par seconde au plus. Patiente un instant.');return}
     chatDernier=t;inf.textContent='';i.value='';
-    try{await r.dit(m)}catch(er){inf.textContent="Message non envoyé.";i.value=m}
+    try{await r.dit(m)}catch(er){alerte(inf,'Chat : message non envoyé. Réessaie.');i.value=m}
   };
   return {c,ul,nb,inf};
 })();
@@ -280,7 +279,7 @@ function reactions(){
   const maj=()=>{const att=Date.now()-reacDernier<3000;z.querySelectorAll('button').forEach(b=>b.disabled=att);if(att){clearTimeout(reacT);reacT=setTimeout(()=>document.querySelectorAll('.p-reac button').forEach(b=>b.disabled=false),3000-(Date.now()-reacDernier))}};
   REACTIONS.forEach(m=>{const b=el('button','',m);b.type='button';b.onclick=async()=>{
     if(!r||!r.dit||Date.now()-reacDernier<3000)return;reacDernier=Date.now();document.querySelectorAll('.p-reac button').forEach(x=>x.disabled=true);maj();
-    try{await r.dit(m)}catch(e){chatBox.inf.textContent='Réaction non envoyée.'}};z.append(b)});
+    try{await r.dit(m)}catch(e){alerte(chatBox.inf,'Chat : réaction non envoyée. Réessaie.')}};z.append(b)});
   maj();return z;
 }
 function bulleReac(x,moi){
@@ -333,8 +332,7 @@ function placeChat(){
   if(c.isConnected&&r&&r.chat)peintChat(r.chat());
 }
 function msgInvite(){
-  const z=$('erreurJeu'),b=el('button','modif','Se connecter');z.textContent='Crée un compte ou connecte-toi pour jouer en ligne. ';
-  b.type='button';b.style.marginLeft='6px';b.onclick=ouvrePseudo;z.append(b);
+  alerte('erreurJeu','Connexion requise : le jeu en ligne demande un compte. Crée un compte ou connecte-toi.',{bouton:{texte:'Se connecter',action:ouvrePseudo}});
 }
 /* Mode spectateur (spectateur.js) : quitter joueurs sans revenir a l'accueil, ou y entrer comme adversaire. */
 window.__golemsSpecQuitte=async()=>{const a=r;r=null;finPartie();if(a)try{await a.leave()}catch(e){}};
@@ -355,7 +353,7 @@ async function entre(c,opt){
     sid=sv?sv.sid:nouveauSid();arrivee=sv?sv.arrivee:entree;
     $('codeSalon').textContent=c.toUpperCase();
     if(sv)lancer(sv.graine,sv.place,sv.adv,sv);
-    s.onPeers(()=>{if(r===s)majSalon()},()=>{if(r===s)sortie('Le salon a été perdu.')});
+    s.onPeers(()=>{if(r===s)majSalon()},()=>{if(r===s)sortie('Salon impossible : connexion au salon coupée. Rejoins-le avec son code.')});
     chatVu=-1;if(s.onChat)s.onChat(l=>{if(r===s)peintChat(l)});
     const pres={pseudo:pseudo,arrivee:arrivee,sid:sid,pret:null};if(maV)pres.v=maV;
     if(sv){pres.deck=Array.isArray(sv.decks)&&sv.decks[sv.place]||null;pres.jg=sv.graine;pres.j=M.ecritJournal(sv.mien);pres.adv=sv.adv;if(sv.place===0)pres.graine=sv.graine;if(sv.veut)pres.veut=sv.graine}
@@ -366,7 +364,7 @@ async function entre(c,opt){
     setTimeout(()=>{if(r===s)majSalon()},1700);
   }catch(e){
     r=null;code='';finPartie();
-    if(e&&e.code==='compte')msgInvite();else $('erreurJeu').textContent=e&&e.code==='complet'?'Ce salon est complet.':e&&e.code==='compte'?'Connecte-toi pour jouer en ligne.':e&&e.code==='limit_reached'?'Trop de salons ouverts, réessaie plus tard.':"Impossible d'entrer dans ce salon.";
+    if(e&&e.code==='compte')msgInvite();else alerte('erreurJeu',e&&e.code==='complet'?'Salon impossible : salon complet. Rejoins un autre salon.':e&&e.code==='compte'?'Connexion requise : le jeu en ligne demande un compte. Crée un compte ou connecte-toi.':e&&e.code==='limit_reached'?'Salon impossible : trop de salons ouverts. Réessaie plus tard.':'Salon impossible : entrée refusée par le serveur. Réessaie.');
     majReprise();
   }
   occupe=false;majEtat();

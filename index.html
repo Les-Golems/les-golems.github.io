@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 <header><div class="large haut">
   <img data-src="cartes/logo.png" alt="">
   <h1>Les Golems<span class="st-ligne"><small class="sous-titre">Jeu de cartes communautaire</small> <button class="etq-v ver-etq ve-charge" id="verEtq" type="button" tabindex="-1" aria-busy="true" title="Version en cours de chargement">v…</button></span></h1>
-  <div class="majDispo" id="majDispo" role="status" hidden><span title="La page se recharge seule dès que tu as fini (partie, salon, saisie)">Nouvelle version disponible</span><button class="btn" id="majRecharger" type="button">Recharger la page</button></div>
+  <div class="majDispo sc-alerte sc-info" id="majDispo" role="status" hidden><i></i><span>Nouvelle version : le site a été mis à jour. Recharge la page, ou elle se rechargera seule quand tu as fini.</span><button class="sc-btn sc-tertiaire" id="majRecharger" type="button">Recharger la page</button></div>
   <div class="moi bd-zone" id="bandeauMoi">
     <span class="bd-enl" id="enLigne" hidden><i></i><b id="enLigneN">0</b><span>en ligne</span></span>
     <button class="bd-capsule" id="capsuleMoi" type="button"><span class="bd-rg" id="rangMoi" hidden><img alt="" width="32" height="32"><span id="rangElo"></span></span><span class="bd-sep" hidden></span><span class="bd-id"><b id="pseudoAffiche"></b><span class="bd-sc" id="sousConnexion" hidden>Se connecter</span></span><span class="avatar" id="avatarMoi" aria-hidden="true"></span></button>
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
     <input type="checkbox" id="daltonienCase" class="dal-case" hidden tabindex="-1" aria-hidden="true">
   </div>
 <div id="fenDeco" class="bd-fond" hidden><div class="sc-fenetre bd-fen" role="dialog" aria-modal="true" aria-labelledby="fenDecoT"><h3 class="sc-fen-titre" id="fenDecoT">Se déconnecter ?</h3><div class="sc-fen-actions"><button class="sc-btn" id="decoOui" type="button">Se déconnecter</button><button class="sc-btn sc-secondaire" id="decoNon" type="button">Annuler</button></div></div></div>
-<div id="galerieAvatar" class="galAv av-fond" hidden><div class="av-fen" role="dialog" aria-modal="true" aria-labelledby="galTitre"><h2 id="galTitre">Changer d'avatar</h2><div class="av-corps"><div class="av-g"><div id="avApercu" class="av-apercu"><div class="av-grand" id="avGrand"></div><div class="av-actuel" id="avActuel"></div></div><div id="avCadrage" class="av-cadrage" hidden><div class="av-cadh"><div class="cadVue av-cad" id="cadVue"><img id="cadImg" alt="" draggable="false"></div><p class="av-doux" id="cadNote">Glisse l'image pour la placer.</p><label class="av-zoom"><span>Zoom</span><input type="range" id="cadZoom" min="0" max="100" value="0" aria-label="Zoom"></label><p class="galMsg" id="cadMsg" role="alert"></p></div><button class="sc-btn sc-tertiaire av-ter" id="cadChanger" type="button">Changer d'image</button></div></div><div class="av-grille" id="galGrille"></div></div><p class="galMsg" id="galMsg" role="alert"></p><input type="file" id="avFichier" accept="image/*" hidden><div class="av-rg"><button class="sc-btn" id="galOk" type="button">Choisir cet avatar</button><button class="sc-btn sc-secondaire" id="galFermer" type="button">Annuler</button></div></div></div>
+<div id="galerieAvatar" class="galAv av-fond" hidden><div class="av-fen" role="dialog" aria-modal="true" aria-labelledby="galTitre"><h2 id="galTitre">Changer d'avatar</h2><div class="av-corps"><div class="av-g"><div id="avApercu" class="av-apercu"><div class="av-grand" id="avGrand"></div><div class="av-actuel" id="avActuel"></div></div><div id="avCadrage" class="av-cadrage" hidden><div class="av-cadh"><div class="cadVue av-cad" id="cadVue"><img id="cadImg" alt="" draggable="false"></div><p class="av-doux" id="cadNote">Glisse l'image pour la placer.</p><label class="av-zoom"><span>Zoom</span><input type="range" id="cadZoom" min="0" max="100" value="0" aria-label="Zoom"></label><div class="galMsg" id="cadMsg"></div></div><button class="sc-btn sc-tertiaire av-ter" id="cadChanger" type="button">Changer d'image</button></div></div><div class="av-grille" id="galGrille"></div></div><div class="galMsg" id="galMsg"></div><input type="file" id="avFichier" accept="image/*" hidden><div class="av-rg"><button class="sc-btn" id="galOk" type="button">Choisir cet avatar</button><button class="sc-btn sc-secondaire" id="galFermer" type="button">Annuler</button></div></div></div>
 </div></header>
 <nav><div class="large onglets" role="tablist">
   <button role="tab" id="t-nouveautes" aria-controls="nouveautes" aria-selected="true" aria-label="Nouveautés"><svg class="o-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span class="o-lg">Nouveautés</span><span class="o-ct">Infos</span></button>
@@ -110,10 +110,10 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 
 <section id="jouer" role="tabpanel" aria-labelledby="t-jouer" hidden>
   <p class="intro">Affronte un membre de la communauté ou un Golem.</p>
-  <p class="etat" id="etat"><i></i><span id="etatTexte">Connexion au salon en ligne...</span></p>
+  <p class="etat" id="etat"><i></i><span id="etatTexte">Connexion : serveur en cours de connexion. Patiente un instant.</span></p>
   <p class="absent" id="absent" hidden>Le salon en ligne n'est pas disponible pour le moment. Le jeu contre les Golems reste possible.</p>
   <div class="jeu"><div>
-    <p class="erreur" id="erreurJeu" role="alert"></p>
+    <div class="erreur" id="erreurJeu"></div>
     <div class="sc-sel j-vue" id="jVue" role="group" aria-label="Vue de l'onglet Jouer"><button type="button" data-v="parties" aria-pressed="true">Parties</button><button type="button" data-v="historique" aria-pressed="false">Historique</button></div>
     <div id="accueil">
       <div class="j-tuiles">
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 
 <section id="historique" role="tabpanel" aria-labelledby="t-historique" hidden>
   <div class="bloc h-bloc">
-    <div class="h-tete"><h2 class="sc-titre-bloc">Historique</h2><div class="sc-sel sc-petit h-filtres" id="hFiltres" role="group" aria-label="Filtrer les parties"></div></div>
+    <div class="h-tete"><h2 class="sc-titre-bloc">Historique</h2><div class="sc-sel sc-petit h-filtres" id="hFiltres" role="group" aria-label="Filtrer les parties"></div></div><div class="h-alerte" id="histoAlerte"></div>
     <div id="histo"></div>
     <div class="h-pied"><p class="h-taux" id="hTaux"></p><div class="nv-pages" role="navigation" aria-label="Pages de l’historique"><button class="j-btn nv-prec" type="button" title="Page précédente" aria-label="Page précédente">&lt;</button><span class="nv-num"></span><button class="j-btn nv-suiv" type="button" title="Page suivante" aria-label="Page suivante">&gt;</button></div></div>
   </div>
@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
     <input type="text" id="pseudo" maxlength="20" autocomplete="username" autocapitalize="off" spellcheck="false">
     <label for="codeSecret">Ton code secret</label>
     <input type="password" id="codeSecret" maxlength="128" autocomplete="current-password">
-    <p class="erreur" id="erreurPseudo" role="alert"></p>
+    <div class="erreur" id="erreurPseudo"></div>
     <button class="btn plein" id="entrer">Se connecter</button>
     <button class="btn sec" id="basculeCompte" type="button">Créer un compte</button>
     <button class="btn sec" id="plusTard" type="button">Jouer en invité</button>
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 <img id="apercu" alt="" hidden>
 <div class="voile" id="recap" role="dialog" aria-modal="true" aria-labelledby="recapTitre" hidden></div>
 <p id="absence" role="status" hidden></p>
-<div id="nonEnr" role="alert" hidden><span><b>Partie non enregistrée.</b> Nouvel essai automatique au prochain chargement.</span><button class="btn sec" id="nonEnrOk" type="button">OK</button></div>
+<div id="nonEnr" class="sc-alerte sc-erreur" role="alert" hidden><i></i><span>Partie : résultat non enregistré. Nouvel essai automatique au prochain chargement.</span><button class="sc-btn sc-tertiaire" id="nonEnrOk" type="button">OK</button></div>
 <div id="des" role="status" hidden></div>
 <div id="scene" aria-hidden="true"></div>
 <button id="passer" class="btn sec" type="button" hidden>Passer</button>
@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 <button class="btn sec" id="gPasser" type="button" hidden>Passer le tutoriel</button>
 <script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
 <script>golemsCharge([['js','salon-firebase.js','type="module"'],['js','spectateur.js','type="module"'],['js','spectateur-ui.js','defer'],['js','diffusion.js','defer'],['js','aide.js','defer'],['js','cartes/donnees/golems.js'],['js','cartes/donnees/animaux.js'],['js','cartes/donnees/terrains.js'],['js','cartes/donnees/index.js'],['js','cartes/effets/golems.js'],['js','cartes/effets/animaux.js'],['js','cartes/effets/terrains.js'],['js','cartes/effets/index.js'],['js','moteur.js'],['js','presence.js','defer']])</script><!-- 0.5 déconnexion (window.DECO) : presence.js -->
-<script>golemsCharge([['js','cartes/donnees/interface.js'],['js','commun/etat.js'],['js','commun/outils.js'],['js','commun/classe.js'],['js','commun/compte.js'],['js','onglets/guides.js'],['js','commun/navigation.js'],['js','onglets/nouveautes.js'],['js','onglets/cartes.js'],['js','onglets/jouer.js'],['js','vue/partie.js'],['js','onglets/statistiques.js'],['js','onglets/historique.js'],['js','commun/profil.js'],['js','onglets/decks.js'],['js','vue/joueur.js'],['js','onglets/tutoriel.js'],['js','commun/raccords.js'],['js','onglets/regles.js'],['js','commun/version.js'],['js','commun/demarrage.js']])</script>
+<script>golemsCharge([['js','cartes/donnees/interface.js'],['js','commun/etat.js'],['js','commun/outils.js'],['js','commun/alertes.js'],['js','commun/classe.js'],['js','commun/compte.js'],['js','onglets/guides.js'],['js','commun/navigation.js'],['js','onglets/nouveautes.js'],['js','onglets/cartes.js'],['js','onglets/jouer.js'],['js','vue/partie.js'],['js','onglets/statistiques.js'],['js','onglets/historique.js'],['js','commun/profil.js'],['js','onglets/decks.js'],['js','vue/joueur.js'],['js','onglets/tutoriel.js'],['js','commun/raccords.js'],['js','onglets/regles.js'],['js','commun/version.js'],['js','commun/demarrage.js']])</script>
 <script>(function(){ /* Crochet des outils de test (cdp.py, captures.py inserent __g juste avant la fin) ; le code du site est dans commun/, onglets/ et vue/. */
 })();
 </script>

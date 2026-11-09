@@ -113,13 +113,13 @@ async function litClasseSt(){
 }
 async function peintStats(){
   const z=$('statsCorps');
-  if(!room||!room.litResumes){z.textContent='';z.append(el('p','pf-vide','Les statistiques ne sont pas disponibles pour le moment.'));return}
-  if(!statsData){z.textContent='';z.append(el('p','pf-vide','Chargement des statistiques...'))}else dessineStats(statsData);
+  if(!room||!room.litResumes){z.textContent='';alerte(z.appendChild(el('div','pf-vide')),'Lecture impossible : statistiques indisponibles pour le moment. Réessaie plus tard.');return}
+  if(!statsData){z.textContent='';alerteInfo(z.appendChild(el('div','pf-vide')),'Connexion : statistiques en cours de lecture. Patiente un instant.')}else dessineStats(statsData);
   try{statsJoueurs=room.litClassement?await room.litClassement().catch(()=>[]):[]}catch(e){statsJoueurs=[]}
   try{statsClasse=await litClasseSt()}catch(e){console.warn(e);statsClasse={liste:[],moi:null,uid:null,saison:null}}
   if(profilPublie&&compteCo())await Promise.race([Promise.resolve(profilPublie).catch(()=>{}),new Promise(r=>setTimeout(r,3000))]);
   try{const pr=await Promise.all(statsJoueurs.filter(x=>x.n>=5).map(x=>room.compte.profilDe?room.compte.profilDe(x.uid).then(r=>[x.uid,r]):[x.uid,null]));statsProfils=Object.fromEntries(pr)}catch(e){statsProfils={}}
-  try{statsData=uneParGraine((await room.litResumes(2000)).filter(r=>r&&typeof r.d==='number'&&(r.g===0||r.g===1||r.g===-1)))}catch(e){console.warn(e);if(!statsData){z.textContent='';z.append(el('p','pf-vide','Lecture impossible pour le moment.'))}return}
+  try{statsData=uneParGraine((await room.litResumes(2000)).filter(r=>r&&typeof r.d==='number'&&(r.g===0||r.g===1||r.g===-1)))}catch(e){console.warn(e);if(!statsData){z.textContent='';alerte(z.appendChild(el('div','pf-vide')),'Lecture impossible : statistiques injoignables. Réessaie plus tard.')}return}
   if(!$('stats').hidden)dessineStats(statsData);
 }
 /* Médaille de saison (provisoire, en attendant l'image finale) : anneau + pièce dorée au numéro de la saison. */

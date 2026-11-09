@@ -23,13 +23,13 @@ function quittePartie(envoi){
 function quitteAvecConfirmation(){
   if(!partie||partie.rejeu||!partie.etat||partie.etat.fin||partie.tuto){quitteBouton();return}
   if(!partie.local&&r){quitteBouton();return}
-  confirmeAbandon('La partie en cours sera perdue.',()=>{if(partie)quitteBouton()});
+  confirmeAbandon('La partie en cours sera perdue.',()=>{if(partie)quitteBouton()},'Quitter la partie ?','Quitter');
 }
 function quitteBouton(){
   const enCours=()=>partie&&!partie.local&&!partie.rejeu&&!partie.tuto&&r&&partie.etat&&!partie.etat.fin&&M.VERSION===M0.VERSION;
   /* 0.5.1 : retour a l'accueil apres une partie terminee (hors replay) : Nouveautes si la version n'est pas encore vue */
   if(!enCours()){const fini=partie&&!partie.rejeu&&partie.etat&&partie.etat.fin;quittePartie();if(fini&&!versionVue())onglet('nouveautes');return}
-  confirmeAbandon('Quitter maintenant compte comme un abandon.',()=>{
+  confirmeAbandon('Partir maintenant compte comme un abandon.',()=>{
     if(!enCours()){quittePartie();return}
     partie.mien.push(M.code({t:'a'}));sel=null;
     const envoi=r.presence({j:M.ecritJournal(partie.mien)});
@@ -58,7 +58,7 @@ function majPartie(){
     rattrape();if(partie.relDep===1||relit('relDep',majPartie))return;
     const ab=partie.etat&&partie.etat.fin&&partie.etat.fin.abandon===1-partie.moi;
     grainesFinies.add(partie.graine);
-    oublie(code);finPartie();notice=ab?'Ton adversaire a abandonné la partie.':'Ton adversaire a quitté la partie.';if(r.libere)r.libere();
+    oublie(code);finPartie();notice=ab?'Partie : ton adversaire a abandonné. Tu es de retour dans le salon.':'Partie : ton adversaire a quitté la partie. Tu es de retour dans le salon.';if(r.libere)r.libere();
     pub({graine:null,jg:null,j:null,veut:null,adv:null});
     $('salon').hidden=false;majSalon();return;
   }
@@ -797,7 +797,7 @@ function affiche(){
   else if(btnRejouer){pied.classList.add('duo','trio');pied.append(btnPartage,btnRejouer)}
   /* Abandon (moteur 0.2.2) : coup 'a' dans le journal, victoire a l'adversaire, chez les deux joueurs. */
   else if(!s.fin&&!partie.rejeu&&!partie.tuto&&M.VERSION===M0.VERSION){const ab=el('button','btn danger plein p-abandon-btn','Abandonner');ab.type='button';ab.id='abandonner';
-    ab.onclick=()=>{if(!partie||partie.rejeu||!partie.etat||partie.etat.fin)return;confirmeAbandon(partie.local?'Elle comptera comme une défaite.':nomJ(1-partie.moi)+' gagnera, et la défaite sera enregistrée.',()=>{if(!partie||partie.rejeu||!partie.etat||partie.etat.fin)return;joue({t:'a'})})};
+    ab.onclick=()=>{if(!partie||partie.rejeu||!partie.etat||partie.etat.fin)return;confirmeAbandon(partie.local?'La partie comptera comme une défaite.':nomJ(1-partie.moi)+' gagne et ta défaite est enregistrée.',()=>{if(!partie||partie.rejeu||!partie.etat||partie.etat.fin)return;joue({t:'a'})})};
     pied.classList.add('duo');pied.append(ab)}
   const cote=el('div','p-cote');if(!partie.local&&!partie.rejeu&&r&&!s.fin)cote.append(reactions()); /* fin de partie (abandon compris) : plus de reactions */cote.append(pied,cercleJeu(),jo);
   /* 0.4a : chat des parties en ligne, bouton discret en bas de la colonne du journal (pastille des messages non lus), fenetre fermee par defaut ; contre le robot, rien. */

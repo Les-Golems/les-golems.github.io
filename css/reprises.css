@@ -65,7 +65,7 @@
 .d-panneau .d-haut.dl-edit .ligne{display:flex;gap:6px;width:100%}
 .d-act .d-code-m{color:#fff;text-shadow:0 0 1px #0a121a,0 0 2px #0a121a,1px 1px 0 #0a121a,-1px -1px 0 #0a121a,1px -1px 0 #0a121a,-1px 1px 0 #0a121a}
 #erreurJeu:empty{display:none}
-#erreurJeu:not(:empty){background:#3b1d20;border:1px solid #d9574a;color:#ffd9d3;border-radius:10px;padding:10px 14px;margin:0 0 14px;font-weight:700}
+#erreurJeu:not(:empty){margin:0 0 14px;min-height:0} /* bandeau sc-alerte (commun/alertes.js) */
 #galTitre{text-align:center}
 @media (max-width:480px){.h-tab .h-crt,.h-tab .h-cnom{align-items:flex-start}#partageHisto,#partageResume{font-size:14px;padding-left:4px;padding-right:4px;white-space:nowrap}}
 /* Fermer : un seul style compact partout, taille d'un bouton secondaire, en bas et centre. */
