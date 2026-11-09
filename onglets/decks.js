@@ -162,7 +162,7 @@ function cartesModifiees(v,cartes){
 }
 /* 0.6 (maquette 43, A) : « KaTarN, Le Q et Spom ont changé en v0.6 » : noms seuls (sans titre), groupes par version, sans point final. */
 function phraseModifiees(m){
-  const parV={};m.forEach(x=>{const n=M.CARTES[x.id]?M.CARTES[x.id].nom:x.id,g=parV[x.v]=parV[x.v]||[];if(!g.includes(n))g.push(n)});
+  const parV={};m.forEach(x=>{const C=M.CARTES[x.id],n=!C?x.id:C.base&&M.CARTES[C.base]?M.CARTES[C.base].nom+' ★':C.nom,g=parV[x.v]=parV[x.v]||[];if(!g.includes(n))g.push(n)});
   const et=l=>l.length>1?l.slice(0,-1).join(', ')+' et '+l[l.length-1]:l[0];
   return Object.keys(parV).sort(cmpVersion).map(w=>et(parV[w])+(parV[w].length>1?' ont changé':' a changé')+' en v'+w).join(' ; ');
 }

@@ -200,7 +200,7 @@ function ouvrePropGuide(){
   const choisi=()=>{const id=lire('golems.deckChoisi')||'';return lesDecks().find(x=>x.id===id)||null};
   const P={ty:'v',d1:co?choisi():null,d2:null};
   const corps=gdMk('div','gd-pcorps'),info=gdMk('div','gd-pinfo');
-  alerteInfo(info,'L\'équipe relit chaque guide avant de le publier. Tu reçois une réponse dans tes notifications.').classList.add('sc-une-ligne');
+  alerteInfo(info,'L\'équipe relit chaque guide avant de le publier.').classList.add('sc-une-ligne');
   const fl=gdMk('div','gd-fl'),lab=(t,s)=>{const l=gdMk('label','',t);if(s)l.append(gdMk('small','',s));return l};
   const ty=gdMk('div','sc-sel gd-pty');ty.setAttribute('role','group');ty.setAttribute('aria-label','Type de guide');
   [['v','Vidéo'],['t','Texte']].forEach(([k,t])=>{const b=gdMk('button','',t);b.type='button';b.dataset.k=k;b.onclick=()=>{P.ty=k;maj()};ty.append(b)});
