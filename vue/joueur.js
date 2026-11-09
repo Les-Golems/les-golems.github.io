@@ -23,9 +23,24 @@ function quittePartie(envoi){
 function quitteAvecConfirmation(){
   if(!partie||partie.rejeu||!partie.etat||partie.etat.fin||partie.tuto){quitteBouton();return}
   if(!partie.local&&r){quitteBouton();return}
+  if(partie.classe){quitteBouton();return} /* 0.6.1 : classee contre le robot : abandon enregistre (quitteBouton) */
   confirmeAbandon('La partie en cours sera perdue.',()=>{if(partie)quitteBouton()},'Quitter la partie ?','Quitter');
 }
 function quitteBouton(){
+  /* 0.6.1 : classee contre le robot en cours : abandon joue (defaite, Elo, historique), ecriture attendue avant de quitter. */
+  const robotCl=()=>partie&&partie.local&&partie.classe&&!partie.rejeu&&!partie.tuto&&partie.etat&&!partie.etat.fin;
+  if(robotCl()){
+    confirmeAbandon('Partir maintenant compte comme une défaite.',async()=>{
+      if(!robotCl()){quittePartie();return}
+      const p=partie,id=p.graine+'-'+p.debut;
+      p.mien.push(M.code({t:'a'}));sel=null;
+      calcule(); /* fin par abandon : finClasse (finRobot gagne:false) et historique */
+      const fin=Promise.all([p.classe&&p.classe.envoi,typeof envoieAttente==='function'&&compteCo()?envoieAttente(id):null]).catch(()=>{});
+      await Promise.race([fin,pause(10000)]);
+      if(partie===p)quittePartie();
+    },'Quitter la partie ?','Quitter');
+    return;
+  }
   const enCours=()=>partie&&!partie.local&&!partie.rejeu&&!partie.tuto&&r&&partie.etat&&!partie.etat.fin&&M.VERSION===M0.VERSION;
   /* 0.5.1 : retour a l'accueil apres une partie terminee (hors replay) : Nouveautes si la version n'est pas encore vue */
   if(!enCours()){const fini=partie&&!partie.rejeu&&partie.etat&&partie.etat.fin;quittePartie();if(fini&&!versionVue())onglet('nouveautes');return}

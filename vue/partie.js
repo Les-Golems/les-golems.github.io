@@ -121,7 +121,8 @@ function finClasse(s){
   const c=partie&&partie.classe;if(!c||c.res||!c.profil||!s||!s.fin)return;
   const C=window.GolemsClasse,w=s.fin.gagnant,g=w===null||w===undefined?'nul':w===partie.moi,A=C.appliquePartie(c.profil,c.eloAdv,g,{robot:!!c.robot}),apres=A.joueur;
   c.res={gagne:g,avant:c.profil.elo,apres:apres.elo,delta:A.delta,placement:C.enPlacement(c.profil),profil:apres};
-  envoieClasse(c,w,partie.graine);
+  const e=envoieClasse(c,w,partie.graine);Object.defineProperty(c,'envoi',{value:e,configurable:true}); /* non enumerable : hors sauvegarde */
+  return e;
 }
 /* Classee entre joueurs : UN SEUL cote ecrit, le perdant (commun/classe.js finJoueurs) ; le gagnant n'ecrit rien et ecoute son profil
    (S.attends) puis met a jour son ecran de fin, sa capsule (chargeClasse -> majRangMoi) et son historique avec la valeur ecrite.
@@ -132,7 +133,7 @@ async function envoieClasse(c,w,gr){
   attenteClasse(id,true);
   try{
     let j=null;
-    if(c.robot){const r=await S.finRobot({sa:c.sa,gr,niveau:c.robot,gagne:w===partie.moi});if(r.fait)j=await room.classeBase().lit('classe/joueurs/'+u)}
+    if(c.robot){const o={sa:c.sa,gr,niveau:c.robot,gagne:w===partie.moi};finRobotAttente(u,o,true);const r=await S.finRobot(o);if(r.fait){finRobotAttente(u,o,false);j=await room.classeBase().lit('classe/joueurs/'+u)}}
     else{
       const o={sa:c.sa,gr,a:c.a,b:c.b,gagnant:w===0?c.a:w===1?c.b:null};
       if(o.gagnant===u)j=await S.attends(id);
@@ -152,10 +153,24 @@ function histoClasse(hid,delta){
 /* Fins de classees du perdant pas encore ecrites (coupure avant ou pendant l'ecriture) : rejouees au chargement. */
 const FINS_CL='golems.classeFins';
 function finEnAttente(u,o,on){const id=GolemsClasse.idPartie(o.sa,o.gr),l=litListe(FINS_CL).filter(x=>x&&x.id!==id);if(on)l.unshift({id,u,o});ecrire(FINS_CL,JSON.stringify(l.slice(0,20)))}
+/* 0.6.1 : classee contre le robot aussi gardee (r = { sa, gr, niveau, gagne }) tant que finRobot n'a pas abouti. */
+function finRobotAttente(u,o,on){const id='r:'+GolemsClasse.idPartie(o.sa,o.gr),l=litListe(FINS_CL).filter(x=>x&&x.id!==id);if(on)l.unshift({id,u,r:o});ecrire(FINS_CL,JSON.stringify(l.slice(0,20)))}
+/* 0.6.1 : classee contre le robot laissee en cours (onglet ferme, rechargement) : comptee comme une defaite (abandon). */
+function abandonLocalClasse(u){
+  let v=null;try{v=JSON.parse(lire('golems.local'))}catch(e){}
+  if(!v||v.fin||!v.classe||!v.classe.robot||!Number.isInteger(v.graine)||(partie&&partie.local&&partie.graine===v.graine))return;
+  if(v.classe.res)return; /* fin deja calculee (ecriture en attente dans FINS_CL) */
+  finRobotAttente(u,{sa:v.classe.sa||'',gr:v.graine,niveau:v.classe.robot,gagne:false},true);oublieLocal();
+  if(typeof majReprise==='function')majReprise();
+}
 async function reprendFins(){
   const S=typeof serviceClasse==='function'?serviceClasse():null;if(!S)return;const u=room.compte.uid();
-  for(const x of litListe(FINS_CL).filter(y=>y&&y.u===u&&y.o))
-    try{const r=await S.finJoueurs(x.o);if(r.fait){finEnAttente(u,x.o,false);if(typeof attenteClasse==='function')attenteClasse(r.id,false)}}catch(e){console.warn('classe',e)}
+  abandonLocalClasse(u);
+  for(const x of litListe(FINS_CL).filter(y=>y&&y.u===u&&(y.o||y.r)))
+    try{
+      if(x.r){const r=await S.finRobot(x.r);if(r.fait){finRobotAttente(u,x.r,false);if(typeof attenteClasse==='function')attenteClasse(r.id,false)}continue}
+      const r=await S.finJoueurs(x.o);if(r.fait){finEnAttente(u,x.o,false);if(typeof attenteClasse==='function')attenteClasse(r.id,false)}
+    }catch(e){console.warn('classe',e)}
 }
 /* 0.6 : deck du Golem tire dans la reserve (decks conseilles) a partir de la graine de la partie : meme graine = meme deck, rejeux exacts (le deck est aussi garde dans partie.decks). Partie guidee : deck fixe (onglets/tutoriel.js). */
 function deckRobot(g){
