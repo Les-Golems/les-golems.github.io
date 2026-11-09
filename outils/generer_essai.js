@@ -10,7 +10,7 @@
 'use strict';
 const fs=require('fs'),path=require('path');
 const RACINE=path.resolve(__dirname,'..'),CIBLE=path.join(RACINE,'essai');
-const DOSSIERS=['css','commun','onglets','vue','cartes','moteurs','avatars'];
+const DOSSIERS=['css','commun','onglets','vue','cartes','moteurs','avatars','images'];
 const EXT_RACINE=/\.(html|js|css|json|png|jpg|ico|webmanifest)$/i;
 const EXCLUS_RACINE=new Set(['database.rules.json','firebase.json']);
 let n=0;
