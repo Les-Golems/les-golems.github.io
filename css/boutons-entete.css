@@ -94,7 +94,8 @@ header .haut .bd-capsule #avatarMoi img{width:48px;height:48px;filter:none}
 .bd-menu[hidden]{display:none}
 .bd-menu h4{margin:0 0 14px;font:800 18px/1.2 var(--corps);color:var(--texte)}
 .bd-lig{display:flex;flex-direction:column;gap:8px}
-.bd-lig+.bd-lig{margin-top:16px;padding-top:16px;border-top:1px solid var(--trait)}
+.bd-lig[hidden]{display:none}
+.bd-lig:not([hidden])~.bd-lig{margin-top:16px;padding-top:16px;border-top:1px solid var(--trait)}
 .bd-et{font:800 12px/1 var(--corps);letter-spacing:.06em;text-transform:uppercase;color:var(--doux)}
 .bd-menu .sc-sel.bd-sel{height:42px;padding:3px;gap:3px;border-radius:10px;background:var(--encre)}
 .bd-menu .sc-sel.bd-sel>button{height:34px;border-radius:7px;font-size:15px}

@@ -64,7 +64,7 @@ remplitSelDal($('selCouleurs'));
 $('daltonienCase').addEventListener('change',e=>choisitDal(e.target.checked));
 addEventListener('storage',e=>{if(e.key===DAL.K)appDal(e.newValue==='1')});
 appDal(DAL.on);
-/* Theme : [Sombre] seul tant que le mode clair n'existe pas (bouton « Clair » cache). TODO mode clair : montrer le bouton, html.clair, golems.theme. */
+/* Theme : [Sombre] seul tant que le mode clair n'existe pas (ligne Thème masquée en 0.6, mode clair en 0.6a). TODO mode clair : montrer le bouton, html.clair, golems.theme. */
 $('selTheme').querySelectorAll('button').forEach(b=>b.onclick=()=>$('selTheme').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b))));
 /* Menu Affichage : s'ouvre par-dessus (position absolue), rien ne bouge ; ferme au clic dehors et sur Echap. */
 function menuAff(o){const m=$('menuAffichage'),b=$('btnAffichage');m.hidden=!o;b.setAttribute('aria-expanded',String(o))}
