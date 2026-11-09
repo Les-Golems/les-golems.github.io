@@ -183,7 +183,7 @@ function majAnnonce(l){
   if(o&&adv){o.w=adv.peer;o.q=nomDe(adv)}
   const cle=o?JSON.stringify(o):'';
   if(cle===annonceVue)return;annonceVue=cle;
-  r.annonce(o).catch(e=>{console.warn(e);annonceVue=''});
+  r.annonce(o).then(ok=>{if(ok===false&&annonceVue===cle)annonceVue=''},e=>{console.warn(e);annonceVue=''});
 }
 /* Design B (0.4) : tuiles teintees. Avant la partie (parties ouvertes, salon) : teinte neutre, rien du deck n'est revele.
    Parties en cours : degrade d'apres les elements des decks des deux joueurs. */

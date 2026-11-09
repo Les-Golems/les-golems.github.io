@@ -472,7 +472,7 @@ async function ouvre() {
     }
     // Annonce publique (annonces/{code}) : effacée à la déconnexion du créateur.
     const annRef = ref(db, P + "annonces/" + code);
-    let annonceOn = false;
+    let annonceOn = false, presOk = false;
     function ecrit() { return update(moiRef, { ...pres, t: serverTimestamp() }); }
     // Présence de connexion (0.5, déconnexion) : salons/{code}/pres/{uid} = { c: connecté, t: heure serveur du dernier changement }.
     // Le serveur écrit c:false lui-même à la coupure (onDisconnect) ; l'adversaire en tire « reconnexion » puis « hors ligne ».
@@ -545,7 +545,7 @@ async function ouvre() {
         for (const k in pres) if (pres[k] === null) delete pres[k];
         // null efface le champ côté base
         const maj = { ...filtre(reste, CHAMPS_SALON), t: serverTimestamp() };
-        await update(moiRef, maj);
+        await update(moiRef, maj); presOk = true;
         touche();
         if (j !== undefined && j !== null) await envoieJournal(j);
       },
@@ -554,7 +554,8 @@ async function ouvre() {
       // Une fois publiée, elle est mise à jour sans toucher à t (heure de création).
       async annonce(o) {
         // Salon quitté (robot lancé, sortie) : plus d'annonce, la règle la refuserait (joueur absent du salon).
-        if (o && fini) return;
+        // Avant l'écriture de joueurs/<uid> : refusée aussi ; majSalon la republie après presence().
+        if (o && (fini || !presOk)) return false; // false : rien d'écrit, l'appelant réessaiera
         if (o) {
           const v = { u: uid, p: donnees && donnees.pseudo || "", a: donnees && donnees.avatarId || "", d: String(o.d || "").slice(0, 24), e: String(o.e || "").slice(0, 60), t: serverTimestamp() };
           if (!v.a) delete v.a; if (!v.d) delete v.d; if (!v.e) delete v.e;
