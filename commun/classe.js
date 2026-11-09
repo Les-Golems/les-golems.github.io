@@ -3,15 +3,20 @@
 
    FORMAT DES DONNÉES FIREBASE (à l'usage de l'agent des règles) :
    classe/saison : { id: 0, nom: "Bêta", debut: <ms>, fin: null }          saison en cours (fin null = sans date de fin)
+   (Champs exigés par rules/50-classe.js, branche v06-regles : joueurs.saison, joueurs.dern, robots.j, parties.sa / gr / ok / fait, salon cl / cree / robot.)
+   salons/<code> (0.6) : cl: true (salon classé), cree: horodatage serveur, robot: { u: uid, n: "facile|normal|difficile", t: horodatage serveur }
    classe/joueurs/<uid> : profil classé de la saison en cours
+     saison: id de la saison du profil ; dern: id de la dernière partie appliquée (absent à la création et après remise)
      elo: nombre (départ 1000, jamais affiché pendant le placement)
      parties: entier >= 0 (classées jouées dans la saison, robots compris)
      partiesTotal: entier >= 0 (classées jouées toutes saisons, sert au K : 32 pendant les 30 premières, puis 20)
      v: entier, d: entier (victoires, défaites de la saison)
-     robots: { jour: "AAAA-MM-JJ" (jour de Paris), n: 0..5 }   classées contre un robot ce jour-là
+     robots: { jour: "AAAA-MM-JJ" (affichage), j: floor((ms + 3600000) / 86400000) (jour de Paris, hiver, vérifié par les règles), n: 0..5 }   classées contre un robot ce jour-là
      maj: <ms> (horodatage serveur de la dernière partie)
    classe/classement/<uid> : { pseudo, elo, rang, v, d }   joueurs ayant fini leur placement seulement (jamais de robot)
-   classe/parties/<idPartie> : { a: uid, b: uid ou "robot-facile|robot-normal|robot-difficile", gagnant: uid ou id robot,
+   classe/parties/<id> : id = sa + "-" + gr entre joueurs (libre contre un robot : [a-z0-9-]) ; + sa: code du salon, gr: graine en texte,
+     ok/<uid>: true (confirmation du résultat), fait/<uid>: true (posé dans la même écriture que le profil) ; gagnant peut valoir "nul" ;
+     { a: uid, b: uid ou "robot-facile|robot-normal|robot-difficile", gagnant: uid ou id robot,
      eloA, eloB (avant), deltaA, deltaB (deltaB absent pour un robot), robot: bool, saison: id, t: <ms> }
    classe/saisons/<id> : { nom, debut, fin }   saisons terminées
    classe/instantanes/<id>/<uid> : instantané complet de fin de saison (voir instantaneSaison) :
@@ -58,9 +63,10 @@
   function attendu(elo, eloAdv) { return 1 / (1 + Math.pow(10, (eloAdv - elo) / 400)); }
 
   /* Variation d'Elo d'un joueur. j = { elo, parties, partiesTotal } ; opts.robot = true contre un robot. */
+  /* gagne : true, false ou 'nul'. */
   function variation(j, eloAdv, gagne, opts) {
     opts = opts || {};
-    var d = facteurK(j.partiesTotal) * ((gagne ? 1 : 0) - attendu(j.elo, eloAdv));
+    var d = facteurK(j.partiesTotal) * ((gagne === 'nul' ? 0.5 : gagne ? 1 : 0) - attendu(j.elo, eloAdv));
     if (enPlacement(j)) d *= 2;
     if (opts.robot) d /= 2;
     return Math.round(d);
@@ -69,16 +75,19 @@
   /* Nouveau profil après une partie (copie, l'original n'est pas modifié). */
   function appliquePartie(j, eloAdv, gagne, opts) {
     opts = opts || {};
-    var delta = variation(j, eloAdv, gagne, opts);
+    var delta = opts.delta != null ? opts.delta : variation(j, eloAdv, gagne, opts), nul = gagne === 'nul';
     var n = {
       elo: j.elo + delta, parties: (j.parties || 0) + 1, partiesTotal: (j.partiesTotal || 0) + 1,
-      v: (j.v || 0) + (gagne ? 1 : 0), d: (j.d || 0) + (gagne ? 0 : 1), robots: j.robots || null
+      v: (j.v || 0) + (gagne === true ? 1 : 0), d: (j.d || 0) + (gagne === false ? 1 : 0)
     };
-    if (opts.robot) n.robots = compteRobot(j.robots, opts.maintenant);
+    if (j.saison != null) n.saison = j.saison;
+    if (opts.idPartie != null) n.dern = opts.idPartie; else if (j.dern != null) n.dern = j.dern;
+    if (opts.robot) n.robots = compteRobot(j.robots, opts.maintenant); else if (j.robots) n.robots = j.robots;
+    if (nul) n.v = j.v || 0;
     return { joueur: n, delta: delta };
   }
 
-  function nouveauJoueur() { return { elo: ELO_DEPART, parties: 0, partiesTotal: 0, v: 0, d: 0, robots: null }; }
+  function nouveauJoueur(idSaison) { return { elo: ELO_DEPART, parties: 0, partiesTotal: 0, v: 0, d: 0, saison: idSaison || 0 }; }
 
   /* Ce qu'on montre : pendant le placement, « Placement N/5 » + rang estimé, sans Elo. */
   function affichage(j) {
@@ -101,15 +110,16 @@
     var o = {}; p.forEach(function (x) { o[x.type] = x.value; });
     return o.year + '-' + o.month + '-' + o.day;
   }
+  /* Numéro du jour de Paris en heure d'hiver, comme les règles Firebase. */
+  function numJour(ms) { return Math.floor(((ms == null ? Date.now() : ms) + 3600000) / 86400000); }
+  function memeJour(robots, ms) { return !!robots && (robots.j != null ? robots.j === numJour(ms) : robots.jour === jourParis(ms)); }
   function robotsRestants(robots, ms) {
-    var jour = jourParis(ms);
-    var n = robots && robots.jour === jour ? robots.n : 0;
+    var n = memeJour(robots, ms) ? robots.n : 0;
     return Math.max(0, ROBOTS_PAR_JOUR - n);
   }
   function peutAffronterRobot(robots, ms) { return robotsRestants(robots, ms) > 0; }
   function compteRobot(robots, ms) {
-    var jour = jourParis(ms);
-    return { jour: jour, n: (robots && robots.jour === jour ? robots.n : 0) + 1 };
+    return { jour: jourParis(ms), j: numJour(ms), n: (memeJour(robots, ms) ? robots.n : 0) + 1 };
   }
 
   /* Classement : joueurs hors placement, jamais de robot, Elo décroissant. liste = [{ uid, elo, parties, ... }] */
@@ -120,7 +130,11 @@
 
   /* Saisons */
   function eloRemise(elo) { return Math.round(ELO_DEPART + (elo - ELO_DEPART) / 2); }
-  function nouvelleSaison(j) { return { elo: eloRemise(j.elo), parties: 0, partiesTotal: j.partiesTotal || 0, v: 0, d: 0, robots: j.robots || null }; }
+  function nouvelleSaison(j, idSaison) {
+    var n = { elo: eloRemise(j.elo), parties: 0, partiesTotal: j.partiesTotal || 0, v: 0, d: 0, saison: idSaison == null ? (j.saison || 0) + 1 : idSaison };
+    if (j.robots) n.robots = j.robots;
+    return n;
+  }
   function saison(id) { for (var i = 0; i < SAISONS.length; i++) if (SAISONS[i].id === id) return SAISONS[i]; return null; }
 
   function palier(place) {
@@ -152,7 +166,40 @@
     };
   }
 
+  /* ----- Objets à écrire dans Firebase ----- */
+  var HORODATAGE = { '.sv': 'timestamp' };
+  function idPartie(sa, gr) { return sa + '-' + String(gr); }
+  /* Partie entre joueurs : o = { sa, gr, a, b, profilA, profilB, gagnant (uid ou 'nul'), saison }. */
+  function creePartie(o) {
+    var nul = o.gagnant === 'nul', ga = nul ? 'nul' : o.gagnant === o.a, gb = nul ? 'nul' : o.gagnant === o.b;
+    return { id: idPartie(o.sa, o.gr), partie: {
+      a: o.a, b: o.b, gagnant: o.gagnant, eloA: o.profilA.elo, eloB: o.profilB.elo,
+      deltaA: variation(o.profilA, o.profilB.elo, ga), deltaB: variation(o.profilB, o.profilA.elo, gb),
+      robot: false, saison: o.saison, t: HORODATAGE, sa: o.sa, gr: String(o.gr) } };
+  }
+  /* Partie contre un robot : o = { sa, gr, a, profilA, niveau ('facile|normal|difficile'), gagne: bool, saison, id (facultatif) }. */
+  function creePartieRobot(o) {
+    var R = ROBOTS[o.niveau];
+    return { id: o.id || (idPartie(o.sa, o.gr) + '-' + R.id).toLowerCase(), partie: {
+      a: o.a, b: R.id, gagnant: o.gagne ? o.a : R.id, eloA: o.profilA.elo, eloB: R.elo,
+      deltaA: variation(o.profilA, R.elo, !!o.gagne, { robot: true }),
+      robot: true, saison: o.saison, t: HORODATAGE, sa: o.sa, gr: String(o.gr) } };
+  }
+  function confirmation(id, uid) { var u = {}; u['classe/parties/' + id + '/ok/' + uid] = true; return u; }
+  /* Application d'une partie au profil de uid (par lui ou par son adversaire) : une seule écriture multi-chemins. */
+  function application(uid, profil, id, partie, ms) {
+    var estA = partie.a === uid, res = partie.gagnant === 'nul' ? 'nul' : partie.gagnant === uid;
+    var n = appliquePartie(profil, estA ? partie.eloB : partie.eloA, res,
+      { delta: estA ? partie.deltaA : partie.deltaB, idPartie: id, robot: partie.robot === true, maintenant: ms }).joueur;
+    var u = {}; u['classe/joueurs/' + uid] = n; u['classe/parties/' + id + '/fait/' + uid] = true; return u;
+  }
+  function salonClasse() { return { cl: true, cree: HORODATAGE }; }
+  function niveauRobot(elo) { return elo < 900 ? 'facile' : elo < 1150 ? 'normal' : 'difficile'; }
+  function salonRobot(uid, elo) { return { u: uid, n: niveauRobot(elo), t: HORODATAGE }; }
+
   var API = {
+    HORODATAGE: HORODATAGE, numJour: numJour, idPartie: idPartie, creePartie: creePartie, creePartieRobot: creePartieRobot,
+    confirmation: confirmation, application: application, salonClasse: salonClasse, niveauRobot: niveauRobot, salonRobot: salonRobot,
     ELO_DEPART: ELO_DEPART, K_DEBUT: K_DEBUT, K_ENSUITE: K_ENSUITE, PARTIES_K_DEBUT: PARTIES_K_DEBUT, PLACEMENT: PLACEMENT,
     ROBOTS_PAR_JOUR: ROBOTS_PAR_JOUR, RANGS: RANGS, ROBOTS: ROBOTS, SAISONS: SAISONS, PALIERS: PALIERS,
     rang: rang, enPlacement: enPlacement, facteurK: facteurK, attendu: attendu, variation: variation, appliquePartie: appliquePartie,

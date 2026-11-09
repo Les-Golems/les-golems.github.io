@@ -45,8 +45,8 @@ const res=[];
   let r=null;eq(C.robotsRestants(r,t1),5);
   for(let i=0;i<5;i++){ok(C.peutAffronterRobot(r,t1));r=C.compteRobot(r,t1);}
   eq(r.n,5);ok(!C.peutAffronterRobot(r,t1));eq(C.robotsRestants(r,t1),0);
-  ok(C.peutAffronterRobot(r,t2));eq(C.robotsRestants(r,t2),5);deq(C.compteRobot(r,t2),{jour:'2026-11-10',n:1});
-  const p=C.appliquePartie({elo:1000,parties:6,partiesTotal:6,robots:{jour:'2026-11-09',n:2}},1100,true,{robot:true,maintenant:t1}).joueur;deq(p.robots,{jour:'2026-11-09',n:3});
+  ok(C.peutAffronterRobot(r,t2));eq(C.robotsRestants(r,t2),5);deq(C.compteRobot(r,t2),{jour:'2026-11-10',j:C.numJour(t2),n:1});eq(C.numJour(t2),C.numJour(t1)+1);eq(r.j,Math.floor((t1+3600000)/86400000));
+  const p=C.appliquePartie({elo:1000,parties:6,partiesTotal:6,robots:{jour:'2026-11-09',j:C.numJour(t1),n:2}},1100,true,{robot:true,maintenant:t1}).joueur;deq(p.robots,{jour:'2026-11-09',j:C.numJour(t1),n:3});
   const q=C.appliquePartie({elo:1000,parties:6,partiesTotal:6,robots:{jour:'2026-11-09',n:2}},1000,true).joueur;deq(q.robots,{jour:'2026-11-09',n:2},'partie humaine : compteur inchangé');
   res.push('jour');
 }
@@ -67,5 +67,26 @@ const res=[];
   eq(s.rang,'rubis');eq(s.place,7);ok(s.placementFini);eq(s.dernieres.length,10);eq(s.dernieres[9].t,13);eq(s.tops.golems.length,5);eq(s.ecusson.palier,'top10');eq(s.elements.feu.v,2);
   const s2=C.instantaneSaison(0,{elo:1100,parties:2},null,{});eq(s2.rang,null);eq(s2.ecusson,null);ok(!s2.placementFini);
   res.push('ecussons');
+}
+{ // objets Firebase exigés par rules/50-classe.js
+  const j0=C.nouveauJoueur(0);deq(j0,{elo:1000,parties:0,partiesTotal:0,v:0,d:0,saison:0});ok(!('dern' in j0)&&!('robots' in j0));
+  const ns=C.nouvelleSaison({elo:1300,parties:9,partiesTotal:9,v:5,d:4,saison:0,dern:'x-1',robots:{jour:'a',j:5,n:2}});eq(ns.saison,1);ok(!('dern' in ns));deq(ns.robots,{jour:'a',j:5,n:2});
+  eq(C.idPartie('ABCD',-123),'ABCD-123'.replace('-123','--123'));
+  const A={elo:1000,parties:0,partiesTotal:0,v:0,d:0,saison:0},B={elo:1100,parties:7,partiesTotal:40,v:4,d:3,saison:0};
+  const {id,partie}=C.creePartie({sa:'abcd',gr:4567,a:'ua',b:'ub',profilA:A,profilB:B,gagnant:'ub',saison:0});
+  eq(id,'abcd-4567');eq(partie.gr,'4567');eq(partie.sa,'abcd');eq(partie.robot,false);deq(partie.t,{'.sv':'timestamp'});eq(partie.eloA,1000);eq(partie.eloB,1100);
+  eq(partie.deltaA,C.variation(A,1100,false));eq(partie.deltaB,C.variation(B,1000,true));ok(partie.deltaA<0&&partie.deltaB>0);
+  deq(C.confirmation(id,'ua'),{'classe/parties/abcd-4567/ok/ua':true});
+  const ua=C.application('ua',A,id,partie,0);eq(ua['classe/parties/abcd-4567/fait/ua'],true);const pa=ua['classe/joueurs/ua'];
+  eq(pa.elo,1000+partie.deltaA);eq(pa.dern,id);eq(pa.saison,0);eq(pa.d,1);eq(pa.v,0);eq(pa.parties,1);ok(!('robots' in pa),'partie humaine : robots inchangés');
+  const pb=C.application('ub',B,id,partie,0)['classe/joueurs/ub'];eq(pb.elo,1100+partie.deltaB);eq(pb.v,5);eq(pb.dern,id);
+  const nul=C.creePartie({sa:'abcd',gr:'9',a:'ua',b:'ub',profilA:A,profilB:B,gagnant:'nul',saison:0}).partie;
+  ok(nul.deltaA>0&&nul.deltaB<0);const pn=C.application('ua',A,'abcd-9',nul,0)['classe/joueurs/ua'];eq(pn.v,0);eq(pn.d,0);eq(pn.parties,1);
+  const t=Date.UTC(2026,10,9,12);const R=C.creePartieRobot({sa:'abcd',gr:12,a:'ua',profilA:B,niveau:'normal',gagne:true,saison:0});
+  ok(/^[a-z0-9-]{3,60}$/.test(R.id));eq(R.partie.b,'robot-normal');eq(R.partie.eloB,1100);ok(!('deltaB' in R.partie));eq(R.partie.deltaA,C.variation(B,1100,true,{robot:true}));
+  const pr=C.application('ua',B,R.id,R.partie,t)['classe/joueurs/ua'];deq(pr.robots,{jour:'2026-11-09',j:C.numJour(t),n:1});eq(pr.elo,1100+R.partie.deltaA);
+  deq(C.salonClasse(),{cl:true,cree:{'.sv':'timestamp'}});deq(C.salonRobot('ua',899),{u:'ua',n:'facile',t:{'.sv':'timestamp'}});
+  eq(C.salonRobot('ua',900).n,'normal');eq(C.salonRobot('ua',1150).n,'difficile');
+  res.push('firebase');
 }
 console.log('test_classe : '+nv+' vérifications OK ('+res.join(', ')+')');
