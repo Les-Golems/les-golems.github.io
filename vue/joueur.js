@@ -292,7 +292,9 @@ function tasPile(p,k){if(!partie||!partie.etat)return null;const J=partie.etat.j
   if(k==='forge')return J.forge.slice();if(k==='defausse')return J.defausse.slice().reverse();
   if(k!=='deck'||p!==partie.moi||partie.rejeu||window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur())return null;
   const m=new Map();J.deck.forEach(c=>{const k=M.nomDetail(M.carte(c)),x=m.get(k);if(x)x.n++;else m.set(k,{c,n:1,nom:k})}); /* exemplaires d'une meme carte (codes differents) regroupes par nom */
-  return [...m.values()].sort((a,b)=>a.nom.localeCompare(b.nom,'fr'))}
+  /* 0.6.1 : meme regle que l'onglet Decks (cmpNomCarte de v06-divers) : cle = nom de la base pour une evolution, animaux meles, base avant son evolution. */
+  const C=M.CARTES,id=x=>(M.carte(x.c)||{}).id,cle=i=>{const y=C[i]||{};return y.base&&C[y.base]?C[y.base].nom:(y.nom||'')};
+  return [...m.values()].sort((a,b)=>{const i=id(a),j=id(b);return cle(i).localeCompare(cle(j),'fr',{sensitivity:'base',numeric:true})||(!!(C[i]||{}).base-!!(C[j]||{}).base)||a.nom.localeCompare(b.nom,'fr')})}
 const LIB_PILE={deck:'Deck',forge:'Forge',defausse:'Défausse'};
 function voirPile(p,k){const t=tasPile(p,k);if(t)ouvreTas(LIB_PILE[k]+(p===partie.moi?'':' de '+nomJ(p))+(k==='deck'?' (trié par nom)':''),t)}
 /* compteur du bandeau d'un camp (Deck, Defausse, Forge ou Energie) : ouvre la pile, comme les piles de la vue joueur */
