@@ -272,7 +272,7 @@ function grilleDk(box,d,l){
     if(fDk.q.trim()){const src=C.texte||'',k=sansAccent(src).indexOf(sansAccent(fDk.q.trim())),ex=el('div','dk-ex');
       if(k>=0){const L=fDk.q.trim().length,a=Math.max(0,k-14),b2=Math.min(src.length,k+L+14);ex.append((a?'…':'')+src.slice(a,k),el('mark','',src.slice(k,k+L)),src.slice(k+L,b2)+(b2<src.length?'…':''))}else ex.append(el('mark','',C.nom));ex.title=src;z.append(ex)}
     g.append(z)});
-  if(!ids.length){const a=alerteDk('Aucun résultat pour ces filtres. Réinitialise les filtres.',1,'sc-une-ligne dk-vide2');a.append(btnDk('Réinitialiser les filtres','sc-tertiaire',()=>{fDk.q='';fDk.inc.clear();fDk.exc.clear();fDk.cout.clear();fDk.ty='';fDk.mode='ou';pageDk=0;peintDecks()}));g.append(a)}
+  if(!ids.length){const a=alerteDk('Aucun résultat : aucune carte pour ces filtres. Réinitialise les filtres.',1,'sc-une-ligne dk-vide2');a.append(btnDk('Réinitialiser les filtres','sc-tertiaire',()=>{fDk.q='';fDk.inc.clear();fDk.exc.clear();fDk.cout.clear();fDk.ty='';fDk.mode='ou';pageDk=0;peintDecks()}));g.append(a)}
   const nb=el('span','nb',ids.length+(fDk.ty==='t'?(ids.length>1?' terrains':' terrain'):ids.length>1?' cartes':' carte')),pg=el('span','dk-pag'),pr=el('button','','‹'),su=el('button','','›');pr.type=su.type='button';
   pr.setAttribute('aria-label','Page précédente');su.setAttribute('aria-label','Page suivante');pr.disabled=pageDk<=0;su.disabled=pageDk>=pages-1;
   pr.onclick=()=>{pageDk--;peintDecks()};su.onclick=()=>{pageDk++;peintDecks()};pg.append(pr,(pageDk+1)+'/'+pages,su);pd.append(nb,pg);
@@ -596,7 +596,7 @@ function importeDeck(b,l){
     const pris=new Set(L.map(d=>d.nom));let nom=o.nom,k=2;while(pris.has(nom)){const s=' ('+k+++')';nom=o.nom.slice(0,24-s.length).trim()+s}
     const d={id:nouveauSid(),nom,cartes:o.cartes,v:M.VERSION};gardeDecks(L.concat(d));deckVu=d.id;ferme();vueDk='decks';
     const n=[];if(o.inc)n.push('Deck : '+o.inc+' carte'+(o.inc>1?'s inconnues ignorées':' inconnue ignorée')+'. Recharge la page pour les retrouver.');if(o.cou)n.push('Deck : quantités ramenées à '+MAX_EX+' exemplaires et '+DECK_MAX+' cartes au plus. Vérifie le deck.');
-    infoDk('Deck « '+nom+' » importé ('+totalDeck(d)+' cartes)'+(n.length?'. '+n.join(', '):'')+'.');
+    infoDk('Deck : « '+nom+' » importé ('+totalDeck(d)+' cartes). Modifie-le comme les autres.'+(n.length?' '+n.join(' '):''));
   };
   ac.append(ok,an);f.append(el('p','dk-fen-p','Colle le lien ou le code reçu (bouton Partager d’un autre joueur).'),t,ac);t.focus();
 }
@@ -622,7 +622,7 @@ function ouvreDeckLien(c){
     const x={id:nouveauSid(),nom,cartes:{...d.cartes},v:M.VERSION};gardeDecks(L.concat(x));return {id:x.id,nom,deja:false}};
   const refus=()=>{const E=M.elementsDeck(d.cartes);if(E.length>M.ELEM_MAX)return 'Deck invalide : '+E.length+' éléments, '+M.ELEM_MAX+' au plus. Retire les cartes d’un élément.';const e=M.erreurEvolutions?M.erreurEvolutions(d.cartes):'';return e?'Deck invalide : '+e+'. Ajoute sa carte de base.':''};
   imp.onclick=()=>{const rf=refus();if(rf)return fenErr(f,rf);const r=ajoute();if(r.err)return fenErr(f,r.err);
-    ferme();deckVu=r.id;vueDk='decks';onglet('decks');infoDk(r.deja?'Déjà dans tes decks : « '+r.nom+' ».':'Deck « '+r.nom+' » importé ('+n+' cartes).')};
+    ferme();deckVu=r.id;vueDk='decks';onglet('decks');infoDk(r.deja?'Deck : « '+r.nom+' » déjà dans tes decks. Ouvre-le dans Mes decks.':'Deck : « '+r.nom+' » importé ('+n+' cartes). Modifie-le comme les autres.')};
   jo.onclick=()=>{const rf=refus();if(rf)return fenErr(f,rf);const r=ajoute();if(r.err)return fenErr(f,r.err);ecrire('golems.deckChoisi',r.id);majChoixDeck();ferme();onglet('jouer');
     $('infoDeckJeu')?.remove();const q=el('div','vd-info');alerteInfo(q,'Deck : « '+r.nom+' » choisi. Lance une partie contre un Golem ou crée un salon.');q.id='infoDeckJeu';$('erreurJeu').before(q)};
   ac.append(imp,jo,fe);f.append(ac,msg);majVueDeck();fe.focus();

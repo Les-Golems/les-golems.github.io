@@ -471,7 +471,7 @@ body.daltonien .dk-tuile.inv::after{content:'!';position:absolute;right:8px;bott
 .vx-etq.vx-diff{background:var(--rouge);border-color:var(--rouge)}
 .dk-tuile .pi{align-items:center}.dk-tuile .pi .vx-etq{margin-left:8px}
 /* Fenetres sc-fenetre de l'onglet */
-.dk-fen>.sc-alerte{margin:0 0 12px}.dk-fen>.sc-alerte+.sc-alerte{margin-top:-4px}
+.dk-fen>.sc-alerte{margin:0 0 12px;justify-content:flex-start;text-align:left}.dk-fen>.sc-alerte>span{flex:1 1 auto;min-width:0;text-align:left}.dk-fen>.sc-alerte+.sc-alerte{margin-top:-4px}
 .dk-fen-lib{margin:0 0 6px;color:var(--doux);font:700 13px var(--corps)}
 .dk-fen .pp-dc{margin:0 0 10px}.dk-fen .pp-lien{margin:0 0 10px;word-break:break-all;color:var(--doux);font-size:12.5px}
 .dk-fen-l{width:600px}
