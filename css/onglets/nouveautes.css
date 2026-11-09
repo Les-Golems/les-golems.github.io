@@ -19,7 +19,7 @@
 /* Nouveautes 0.4 : epingles (epingle doree dans le titre), Feuille de route (lisere dore, frise verticale, pastilles d'etat), tuile de pagination,
    epingle de Romain (son compte seulement) en haut a droite, l'etiquette de version se decale a sa gauche. */
 .note .nv-pin{display:inline-block;width:.9em;height:.9em;margin-right:6px;vertical-align:-.08em;color:var(--or)}
-.note .nv-pin svg,.nv-epingler svg{display:block;width:100%;height:100%;fill:currentColor}
+.note .nv-pin svg{display:block;width:100%;height:100%;fill:currentColor}
 .note.nv-fdr{border-left:4px solid var(--or);padding-left:14px}
 .nv-fdr h3{color:var(--or)}.nv-fdr>h3::before{display:none}
 .nv-fdr .fdr-sous{color:var(--doux);font-size:14px;margin:0 0 10px}
@@ -40,13 +40,6 @@
 /* Version actuelle : pastille pleine verte, etiquette verte pleine */
 .fdr-actuelle .fdr-pt{background:#3ee86a;border-color:#3ee86a;box-shadow:0 0 0 2px #3ee86a,0 0 8px rgba(62,232,106,.55)}
 .fdr-actuelle .fdr-etat{background:#3ee86a;color:var(--encre)}
-.nv-epingler{position:absolute;top:12px;right:10px;width:26px;height:26px;padding:4px;border:1px solid var(--trait);border-radius:8px 6px 9px 5px;background:var(--panneau2);color:var(--doux);cursor:pointer;opacity:.75}
-.nv-epingler:hover,.nv-epingler:focus-visible{opacity:1;color:var(--texte)}
-.nv-epingler.on{color:var(--or);border-color:var(--or);opacity:1}
-.nv-epingler.refus{border-color:var(--erreur);color:var(--erreur);opacity:1}
-#notes.nv-romain .nv-etq{right:44px}
-#notes.nv-romain .note>h3::before{width:92px}
-#notes.nv-romain .nv-fdr>h3{padding-right:32px}
 .nv-pages{display:flex;align-items:center;gap:6px;margin:0;font:400 15px/1 var(--titre);color:var(--texte);flex:none}
 .nv-pages[hidden]{display:none}
 .nv-pages .nv-num{padding:0 4px}

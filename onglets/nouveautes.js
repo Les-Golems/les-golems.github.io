@@ -420,7 +420,7 @@ const FEUILLE_DE_ROUTE=[
 ];
 const ETATS_FDR={actuelle:'Version actuelle',proche:'Prochaine mise à jour',prevu:'Prévu',tard:'Plus tard'};
 const SVG_EPINGLE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.6 2.6l6.8 6.8-1.9.9-3.4 3.4.4 4.6-1.6 1.6-4.2-4.2-5.6 5.6-1.3-1.3 5.6-5.6-4.2-4.2 1.6-1.6 4.6.4 3.4-3.4z"/></svg>';
-const NV={epingles:null,romain:false,page:0,par:6,room:null,blocs:[...$('notes').children]}; /* blocs : ordre d'origine, du plus recent au plus ancien */
+const NV={page:0,par:6,blocs:[...$('notes').children]}; /* blocs : ordre d'origine, du plus recent au plus ancien */
 {
   const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
   const N=$('notes');
@@ -463,12 +463,7 @@ function peintNotes0(){
   if(ordre.some((a,i)=>N.children[i]!==a))ordre.forEach(a=>N.append(a));
   N.querySelectorAll(':scope>article.note').forEach(a=>{const e=ep.includes(a.dataset.id);a.classList.toggle('nv-epingle',e);a.hidden=!vus.has(a);
     a.querySelector('h3>.nv-pin')?.remove();if(e)a.querySelector('h3').prepend(Object.assign(mk('span','nv-pin'),{innerHTML:SVG_EPINGLE}));
-    if(a.hidden)a.querySelector('video')?.pause();
-    let b=a.querySelector(':scope>.nv-epingler');
-    if(!NV.romain){b?.remove();return}
-    if(!b){b=mk('button','nv-epingler');b.type='button';b.innerHTML=SVG_EPINGLE;b.onclick=()=>basculeEpingle(a.dataset.id,b);a.append(b)}
-    b.classList.toggle('on',e);b.setAttribute('aria-pressed',String(e));b.title=e?'Désépingler ce bloc':'Épingler ce bloc';b.setAttribute('aria-label',b.title)});
-  N.classList.toggle('nv-romain',NV.romain);
+    if(a.hidden)a.querySelector('video')?.pause()});
   /* B4 : pagination sous les blocs, calee en bas a droite (un seul composant partout), creee une fois */
   {
     let z=document.querySelector('#nouveautes .nv-pages');
@@ -490,19 +485,6 @@ function pageNotes(d){
   const y=$('notes').getBoundingClientRect().top+scrollY-(document.querySelector('body>nav,nav.onglets')?.offsetHeight||0)-12;
   if(y<scrollY)scrollTo({top:Math.max(0,y)});
 }
-function basculeEpingle(id,b){
-  const l=epinglesNotes(),e=l.includes(id);
-  if(!e&&l.length>=2){b.title='Action impossible : 2 blocs épinglés au plus. Désépingle un bloc d\'abord.';b.classList.add('refus');setTimeout(()=>b.classList.remove('refus'),900);return}
-  const n=e?l.filter(x=>x!==id):[...l,id];
-  NV.epingles=n.length?n:['aucun'];peintNotes();
-  NV.room?.epingles?.ecrit(n).catch(x=>console.warn('épingles',x));
-}
 peintNotes();
-/* 0.5 : epingles automatiques, plus d'ecoute de Firebase ni de bouton d'epingle (code garde ci-dessous, desactive). */
-if(false)window.golemsSalon.then(r=>{
-  if(!r||!r.epingles)return;NV.room=r;
-  r.epingles.ecoute(l=>{NV.epingles=l;peintNotes()});
-  const qui=()=>r.epingles.romain().then(v=>{if(v!==NV.romain){NV.romain=v;peintNotes()}});
-  qui();r.compte.onChange(qui);
-}).catch(()=>{});
+/* 0.6 : epingles automatiques (depuis la 0.5) : bouton Epingler et ecriture dans Firebase retires. */
 
