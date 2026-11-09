@@ -123,18 +123,39 @@ function finClasse(s){
   c.res={gagne:g,avant:c.profil.elo,apres:apres.elo,delta:A.delta,placement:C.enPlacement(c.profil),profil:apres};
   envoieClasse(c,w,partie.graine);
 }
+/* Classee entre joueurs : UN SEUL cote ecrit, le perdant (commun/classe.js finJoueurs) ; le gagnant n'ecrit rien et ecoute son profil
+   (S.attends) puis met a jour son ecran de fin, sa capsule (chargeClasse -> majRangMoi) et son historique avec la valeur ecrite.
+   Le perdant garde sa fin sur l'appareil (FINS_CL) tant qu'elle n'est pas ecrite : coupure avant l'ecriture = nouvel essai au chargement (reessaie). */
 async function envoieClasse(c,w,gr){
   const S=typeof serviceClasse==='function'?serviceClasse():null;if(!S)return;
-  const C=window.GolemsClasse,id=c.robot?C.creePartieRobot({sa:c.sa,gr,a:'',profilA:c.profil,niveau:c.robot,gagne:false,saison:0}).id:C.idPartie(c.sa,gr);
+  const C=window.GolemsClasse,u=room.compte.uid(),id=c.robot?C.creePartieRobot({sa:c.sa,gr,a:'',profilA:c.profil,niveau:c.robot,gagne:false,saison:0}).id:C.idPartie(c.sa,gr);
   attenteClasse(id,true);
   try{
-    const r=c.robot?await S.finRobot({sa:c.sa,gr,niveau:c.robot,gagne:w===partie.moi})
-      :await S.finJoueurs({sa:c.sa,gr,a:c.a,b:c.b,gagnant:w===0?c.a:w===1?c.b:null});
-    if(r.fait){attenteClasse(id,false);
-      const j=await room.classeBase().lit('classe/joueurs/'+room.compte.uid());
-      if(j&&c.res&&j.dern===id){c.res.delta=Math.round(j.elo-c.res.avant);c.res.apres=j.elo;c.res.profil=j;c.res.ecrit=true;sauve()}}
+    let j=null;
+    if(c.robot){const r=await S.finRobot({sa:c.sa,gr,niveau:c.robot,gagne:w===partie.moi});if(r.fait)j=await room.classeBase().lit('classe/joueurs/'+u)}
+    else{
+      const o={sa:c.sa,gr,a:c.a,b:c.b,gagnant:w===0?c.a:w===1?c.b:null};
+      if(o.gagnant===u)j=await S.attends(id);
+      else{finEnAttente(u,o,true);const r=await S.finJoueurs(o);if(r.fait){finEnAttente(u,o,false);j=await room.classeBase().lit('classe/joueurs/'+u)}}
+    }
+    if(j){attenteClasse(id,false);
+      if(c.res&&j.dern===id){c.res.delta=Math.round(j.elo-c.res.avant);c.res.apres=j.elo;c.res.profil=j;c.res.ecrit=true;sauve();histoClasse(partie.graine+'-'+partie.debut,c.res.delta)}}
   }catch(e){console.warn('classe',e)}
   if(typeof chargeClasse==='function')chargeClasse();
+}
+/* Variation ecrite reportee sur l'entree d'historique de la partie (en memoire et dans l'envoi en attente). */
+function histoClasse(hid,delta){
+  const f=x=>{if(x&&x.classe&&x.classe.delta!==delta){x.classe.delta=delta;return true}return false};
+  try{if(compteCo())(room.compte.donnees().historique||[]).filter(x=>x&&x.id===hid).forEach(f)}catch(e){}
+  if(typeof majAttente==='function'&&litListe(ATTENTE).some(y=>y&&y.id===hid&&y.h))majAttente(hid,y=>f(y.h));
+}
+/* Fins de classees du perdant pas encore ecrites (coupure avant ou pendant l'ecriture) : rejouees au chargement. */
+const FINS_CL='golems.classeFins';
+function finEnAttente(u,o,on){const id=GolemsClasse.idPartie(o.sa,o.gr),l=litListe(FINS_CL).filter(x=>x&&x.id!==id);if(on)l.unshift({id,u,o});ecrire(FINS_CL,JSON.stringify(l.slice(0,20)))}
+async function reprendFins(){
+  const S=typeof serviceClasse==='function'?serviceClasse():null;if(!S)return;const u=room.compte.uid();
+  for(const x of litListe(FINS_CL).filter(y=>y&&y.u===u&&y.o))
+    try{const r=await S.finJoueurs(x.o);if(r.fait){finEnAttente(u,x.o,false);if(typeof attenteClasse==='function')attenteClasse(r.id,false)}}catch(e){console.warn('classe',e)}
 }
 /* 0.6 : deck du Golem tire dans la reserve (decks conseilles) a partir de la graine de la partie : meme graine = meme deck, rejeux exacts (le deck est aussi garde dans partie.decks). Partie guidee : deck fixe (onglets/tutoriel.js). */
 function deckRobot(g){
@@ -1010,6 +1031,7 @@ function envoieAttente(id){
 }
 /* Au chargement (compte connecte) : nouvel essai des parties restees en attente. */
 async function reessaie(){
+  if(compteCo()&&!reprendFins.cours){reprendFins.cours=true;reprendFins().finally(()=>{reprendFins.cours=false;if(typeof chargeClasse==='function')chargeClasse()})} /* 0.6 : classees du perdant pas encore ecrites */
   if(reessai||!compteCo())return;const u=room.compte.uid(),l=litListe(ATTENTE).filter(x=>x&&x.u===u&&typeof x.id==='string');if(!l.length)return;
   reessai=true;try{for(const x of l)await envoieAttente(x.id)}finally{reessai=false}
   if(!$('historique').hidden)peintHisto();
