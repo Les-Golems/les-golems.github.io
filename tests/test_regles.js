@@ -199,6 +199,7 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('partie classée, id sans graine'), false, req(A, 'PUT', CL + 'parties/' + code2 + '-78', partie));
   await attendu(ici('partie classée hors salon classé'), false, req(A, 'PUT', CL + 'parties/' + c.code + '-77', { ...partie, sa: c.code }));
   await attendu(ici('partie classée créée'), true, req(A, 'PUT', CL + 'parties/' + id, partie));
+  await attendu(ici('partie classée sans gagnant (nul)'), false, req(B, 'PUT', CL + 'parties/' + code2 + '-79', { ...partie, gr: '79', gagnant: 'nul' }));
   await attendu(ici('partie classée réécrite'), false, req(A, 'PUT', CL + 'parties/' + id, { ...partie, gagnant: B.uid }));
   const appli = (u, o) => ({ [J(u)]: { ...profil(o), dern: id }, [CL + 'parties/' + id + '/fait/' + u.uid]: true });
   await attendu(ici('victoire sans confirmation du perdant'), false, req(A, 'PATCH', '', appli(A, { elo: 1032, parties: 1, partiesTotal: 1, v: 1 })));
@@ -253,7 +254,7 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('robot : jour inventé'), false, req(X, 'PATCH', '', appR({ elo: 1020, parties: 1, partiesTotal: 1, v: 1 }, { jour: '2026-11-08', j: jour - 1, n: 1 })));
   await attendu(ici('robot : sans compteur du jour'), false, req(X, 'PATCH', '', appR({ elo: 1020, parties: 1, partiesTotal: 1, v: 1 })));
   await attendu(ici('robot : victoire appliquée'), true, req(X, 'PATCH', '', appR({ elo: 1020, parties: 1, partiesTotal: 1, v: 1 }, { jour: '2026-11-09', j: jour, n: 1 })));
-  await attendu(ici('partie robot nulle créée'), true, req(X, 'PUT', CL + 'parties/' + rid + 'n', { ...pr, gagnant: 'nul', deltaA: 0, eloA: 1020 }));
+  await attendu(ici('partie robot sans gagnant (nul)'), false, req(X, 'PUT', CL + 'parties/' + rid + 'n', { ...pr, gagnant: 'nul', deltaA: 0, eloA: 1020 }));
   await attendu(ici('bandeau robot retiré par son auteur'), true, req(X, 'DELETE', S3 + '/robot'));
   await req('admin', 'PATCH', J(X), { robots: { jour: '2026-11-09', j: jour, n: 5 } });
   await attendu(ici('bandeau robot après 5 classées du jour'), false, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));

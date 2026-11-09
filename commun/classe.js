@@ -15,7 +15,7 @@
      maj: <ms> (horodatage serveur de la dernière partie)
    classe/classement/<uid> : { pseudo, elo, rang, v, d }   joueurs ayant fini leur placement seulement (jamais de robot)
    classe/parties/<id> : id = sa + "-" + gr entre joueurs (libre contre un robot : [a-z0-9-]) ; + sa: code du salon, gr: graine en texte,
-     ok/<uid>: true (confirmation du résultat), fait/<uid>: true (posé dans la même écriture que le profil) ; gagnant peut valoir "nul" ;
+     ok/<uid>: true (confirmation du résultat), fait/<uid>: true (posé dans la même écriture que le profil) ; jamais de nul (moteur.js : départage aux points, Force, terrains, second joueur) ;
      { a: uid, b: uid ou "robot-facile|robot-normal|robot-difficile", gagnant: uid ou id robot,
      eloA, eloB (avant), deltaA, deltaB (deltaB absent pour un robot), robot: bool, saison: id, t: <ms> }
    classe/saisons/<id> : { nom, debut, fin }   saisons terminées
@@ -175,20 +175,24 @@
   var HORODATAGE = { '.sv': 'timestamp' };
   /* Id de partie toujours en minuscules (règle : [a-z0-9-]{3,60}). */
   function idPartie(sa, gr) { return (String(sa) + '-' + String(gr)).toLowerCase(); }
-  /* Partie entre joueurs : o = { sa, gr, a, b, profilA, profilB, gagnant (uid ou 'nul'), saison }. */
+  /* Une partie a toujours un gagnant (moteur.js) : une fin sans gagnant est refusée. */
+  function sansGagnant() { return Object.assign(new Error('classe/sans-gagnant'), { code: 'classe/sans-gagnant' }); }
+  /* Partie entre joueurs : o = { sa, gr, a, b, profilA, profilB, gagnant (uid de a ou de b), saison }. */
   function creePartie(o) {
-    var nul = o.gagnant === 'nul', ga = nul ? 'nul' : o.gagnant === o.a, gb = nul ? 'nul' : o.gagnant === o.b;
+    if (o.gagnant !== o.a && o.gagnant !== o.b) throw sansGagnant();
+    var ga = o.gagnant === o.a, gb = o.gagnant === o.b;
     return { id: idPartie(o.sa, o.gr), partie: {
       a: o.a, b: o.b, gagnant: o.gagnant, eloA: o.profilA.elo, eloB: o.profilB.elo,
       deltaA: variation(o.profilA, o.profilB.elo, ga), deltaB: variation(o.profilB, o.profilA.elo, gb),
       robot: false, saison: o.saison, t: HORODATAGE, sa: String(o.sa).toLowerCase(), gr: String(o.gr) } };
   }
-  /* Partie contre un robot : o = { sa, gr, a, profilA, niveau ('facile|normal|difficile'), gagne: true | false | 'nul', saison, id (facultatif) }. */
+  /* Partie contre un robot : o = { sa, gr, a, profilA, niveau ('facile|normal|difficile'), gagne: true | false, saison, id (facultatif) }. */
   function creePartieRobot(o) {
-    var R = ROBOTS[o.niveau], nul = o.gagne === 'nul';
+    if (o.gagne !== true && o.gagne !== false) throw sansGagnant();
+    var R = ROBOTS[o.niveau];
     return { id: (o.id || (idPartie(o.sa, o.gr) + '-' + R.id)).toLowerCase(), partie: {
-      a: o.a, b: R.id, gagnant: nul ? 'nul' : o.gagne ? o.a : R.id, eloA: o.profilA.elo, eloB: R.elo,
-      deltaA: variation(o.profilA, R.elo, nul ? 'nul' : !!o.gagne, { robot: true }),
+      a: o.a, b: R.id, gagnant: o.gagne ? o.a : R.id, eloA: o.profilA.elo, eloB: R.elo,
+      deltaA: variation(o.profilA, R.elo, o.gagne, { robot: true }),
       robot: true, saison: o.saison, t: HORODATAGE, sa: String(o.sa).toLowerCase(), gr: String(o.gr) } };
   }
   function confirmation(id, uid) { var u = {}; u['classe/parties/' + id + '/ok/' + uid] = true; return u; }
@@ -278,10 +282,11 @@
       try { await publieClassement(n); } catch (e) {}
       return { id: P.id, fait: ok, avant: j, apres: n, delta: ok && n ? n.elo - j.elo : P.partie.deltaA };
     }
-    /* Fin d'une classée entre joueurs. o = { sa, gr, a, b, gagnant (uid ou 'nul') }. Chaque joueur appelle cette fonction :
+    /* Fin d'une classée entre joueurs. o = { sa, gr, a, b, gagnant (uid de a ou de b, jamais de nul) }. Chaque joueur appelle cette fonction :
        la partie est écrite une fois (la seconde écriture est refusée), chacun confirme, puis chacun applique ce qui peut l'être.
        Le perdant applique aussi la partie du gagnant (il ne peut pas esquiver sa défaite). Renvoie { id, fait }. */
     async function finJoueurs(o) {
+      if (o.gagnant !== o.a && o.gagnant !== o.b) throw sansGagnant();
       var u = B.uid(), id = idPartie(o.sa, o.gr), p = await B.lit('classe/parties/' + id);
       if (!p) {
         var s = await saisonCourante(), pa = await B.lit('classe/joueurs/' + o.a), pb = await B.lit('classe/joueurs/' + o.b);

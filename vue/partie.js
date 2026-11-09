@@ -128,8 +128,8 @@ async function envoieClasse(c,w,gr){
   const C=window.GolemsClasse,id=c.robot?C.creePartieRobot({sa:c.sa,gr,a:'',profilA:c.profil,niveau:c.robot,gagne:false,saison:0}).id:C.idPartie(c.sa,gr);
   attenteClasse(id,true);
   try{
-    const r=c.robot?await S.finRobot({sa:c.sa,gr,niveau:c.robot,gagne:w===null||w===undefined?'nul':w===partie.moi})
-      :await S.finJoueurs({sa:c.sa,gr,a:c.a,b:c.b,gagnant:w===null||w===undefined?'nul':w===0?c.a:c.b});
+    const r=c.robot?await S.finRobot({sa:c.sa,gr,niveau:c.robot,gagne:w===partie.moi})
+      :await S.finJoueurs({sa:c.sa,gr,a:c.a,b:c.b,gagnant:w===0?c.a:w===1?c.b:null});
     if(r.fait){attenteClasse(id,false);
       const j=await room.classeBase().lit('classe/joueurs/'+room.compte.uid());
       if(j&&c.res&&j.dern===id){c.res.delta=Math.round(j.elo-c.res.avant);c.res.apres=j.elo;c.res.profil=j;c.res.ecrit=true;sauve()}}

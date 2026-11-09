@@ -89,8 +89,9 @@ const res=[];
   const ua=C.application('ua',A,id,partie,0);eq(ua['classe/parties/abcd-4567/fait/ua'],true);const pa=ua['classe/joueurs/ua'];
   eq(pa.elo,1000+partie.deltaA);eq(pa.dern,id);eq(pa.saison,0);eq(pa.d,1);eq(pa.v,0);eq(pa.parties,1);ok(!('robots' in pa),'partie humaine : robots inchangés');
   const pb=C.application('ub',B,id,partie,0)['classe/joueurs/ub'];eq(pb.elo,1100+partie.deltaB);eq(pb.v,5);eq(pb.dern,id);
-  const nul=C.creePartie({sa:'abcd',gr:'9',a:'ua',b:'ub',profilA:A,profilB:B,gagnant:'nul',saison:0}).partie;
-  ok(nul.deltaA>0&&nul.deltaB<0);const pn=C.application('ua',A,'abcd-9',nul,0)['classe/joueurs/ua'];eq(pn.v,0);eq(pn.d,0);eq(pn.parties,1);
+  assert.throws(()=>C.creePartie({sa:'abcd',gr:'9',a:'ua',b:'ub',profilA:A,profilB:B,gagnant:'nul',saison:0}),/sans-gagnant/);nv++;
+  assert.throws(()=>C.creePartie({sa:'abcd',gr:'9',a:'ua',b:'ub',profilA:A,profilB:B,gagnant:null,saison:0}),/sans-gagnant/);nv++;
+  assert.throws(()=>C.creePartieRobot({sa:'abcd',gr:9,a:'ua',profilA:B,niveau:'normal',gagne:'nul',saison:0}),/sans-gagnant/);nv++;
   const t=Date.UTC(2026,10,9,12);const R=C.creePartieRobot({sa:'abcd',gr:12,a:'ua',profilA:B,niveau:'normal',gagne:true,saison:0});
   ok(/^[a-z0-9-]{3,60}$/.test(R.id));eq(R.partie.b,'robot-normal');eq(R.partie.eloB,1100);ok(!('deltaB' in R.partie));eq(R.partie.deltaA,C.variation(B,1100,true,{robot:true}));
   const pr=C.application('ua',B,R.id,R.partie,t)['classe/joueurs/ua'];deq(pr.robots,{jour:'2026-11-09',j:C.numJour(t),n:1});eq(pr.elo,1100+R.partie.deltaA);
@@ -120,7 +121,9 @@ function base(uid,pseudo,db){
   // Classée contre un robot.
   const r=await SA.finRobot({sa:'abc1',gr:7,niveau:C.niveauRobot(1032),gagne:true});ok(r.fait);eq(r.id,'abc1-7-robot-normal');
   eq(db.classe.joueurs.ua.robots.n,1);eq(r.delta,db.classe.joueurs.ua.elo-1032);ok(r.delta>0&&r.delta<=32);
-  const rn=await SA.finRobot({sa:'abc1',gr:8,niveau:'normal',gagne:'nul'});eq(db.classe.parties[rn.id].gagnant,'nul');eq(db.classe.joueurs.ua.robots.n,2);
+  let refus=null;try{await SA.finRobot({sa:'abc1',gr:8,niveau:'normal',gagne:'nul'})}catch(e){refus=e.code}eq(refus,'classe/sans-gagnant','fin sans gagnant refusée');ok(!db.classe.parties['abc1-8-robot-normal']);
+  refus=null;try{await SA.finJoueurs({sa:'abc1',gr:9,a:'ua',b:'ub',gagnant:null})}catch(e){refus=e.code}eq(refus,'classe/sans-gagnant');ok(!db.classe.parties['abc1-9']);
+  await SA.finRobot({sa:'abc1',gr:8,niveau:'normal',gagne:false});eq(db.classe.joueurs.ua.robots.n,2);
   // Placement fini : ligne du classement publiée.
   for(let i=0;i<2;i++)await SA.finRobot({sa:'abc1',gr:20+i,niveau:'normal',gagne:true});
   eq(db.classe.joueurs.ua.parties,5);deq(db.classe.classement.ua,C.ligneClassement('Alice',db.classe.joueurs.ua));
