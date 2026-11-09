@@ -35,3 +35,43 @@ function ajusteHisto(){if(typeof peintHisto!=="function")return;ajustePage('hist
 /* Deux colonnes : une section ouverte de chaque côté pour les équilibrer. */
 if(matchMedia('(min-width:1200px)').matches)$('dTerrains').open=true;
 
+
+/* 0.6 : onglets de la refonte (maquette 32, B3) : Nouveautes, Jouer, Decks, Statistiques, Comment jouer, etires sur toute la largeur.
+   TODO vagues suivantes : Historique dans Jouer (Jouer / Mes parties), Cartes dans Decks (Decks / Cartes), Guides dans Comment jouer
+   (Regles / Guides). En attendant, leurs boutons restent masques ; les sections restent ouvrables par onglet('historique') etc. */
+['t-historique','t-cartes','t-guides'].forEach(i=>{const b=$(i);if(b)b.hidden=true});
+
+/* 0.6 : bandeau superieur B3 (maquette 32 - Bandeau superieur). Pastille « N en ligne » (affichage seul), capsule du compte
+   (clic = profil, ou connexion pour un invite : commun/compte.js), menu Affichage (theme + couleurs), porte de deconnexion. */
+/* Couleurs : selecteur [Standard] [Daltonien], le meme partout (bandeau, barre d'outils de la partie, diffusion). Remplace
+   l'ancien interrupteur oui/non : window.interDal (appele par vue/partie.js et diffusion.js) rend ce selecteur.
+   body.daltonien affiche les reperes ; memorise sur l'appareil (golems.daltonien). La case cachee #daltonienCase reste pour vue/partie.js. */
+const AIDE_DAL="Ajoute des repères en plus des couleurs : flèches sur la Force modifiée, « ! » sur une carte fautive, mot « Animal » dans les listes.";
+const DAL={K:'golems.daltonien',on:false};
+try{DAL.on=localStorage.getItem(DAL.K)==='1'}catch(e){}
+function appDal(v){DAL.on=!!v;document.body.classList.toggle('daltonien',DAL.on);
+  document.querySelectorAll('.dal-sel').forEach(s=>s.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.v==='1')===DAL.on))));
+  document.querySelectorAll('input.dal-case').forEach(c=>{c.checked=DAL.on})}
+function choisitDal(v){appDal(v);try{localStorage.setItem(DAL.K,v?'1':'0')}catch(e){}}
+function remplitSelDal(s){s.classList.add('dal-sel');s.setAttribute('role','group');s.setAttribute('aria-label','Couleurs');s.textContent='';
+  [['0','Standard'],['1','Daltonien']].forEach(([v,t])=>{const b=document.createElement('button');b.type='button';b.dataset.v=v;b.textContent=t;
+    if(v==='1')b.title=AIDE_DAL;b.setAttribute('aria-pressed',String((v==='1')===DAL.on));b.onclick=()=>choisitDal(v==='1');s.append(b)});return s}
+function selDaltonien(){const s=document.createElement('div');s.className='sc-sel sc-petit dal-inter';return remplitSelDal(s)}
+Object.defineProperty(window,'interDal',{configurable:true,get:()=>selDaltonien,set:()=>{}}); /* l'ancienne definition de vue/partie.js est ignoree */
+remplitSelDal($('selCouleurs'));
+$('daltonienCase').addEventListener('change',e=>choisitDal(e.target.checked));
+addEventListener('storage',e=>{if(e.key===DAL.K)appDal(e.newValue==='1')});
+appDal(DAL.on);
+/* Theme : [Sombre] seul tant que le mode clair n'existe pas (bouton « Clair » cache). TODO mode clair : montrer le bouton, html.clair, golems.theme. */
+$('selTheme').querySelectorAll('button').forEach(b=>b.onclick=()=>$('selTheme').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b))));
+/* Menu Affichage : s'ouvre par-dessus (position absolue), rien ne bouge ; ferme au clic dehors et sur Echap. */
+function menuAff(o){const m=$('menuAffichage'),b=$('btnAffichage');m.hidden=!o;b.setAttribute('aria-expanded',String(o))}
+$('btnAffichage').onclick=e=>{e.stopPropagation();menuAff($('menuAffichage').hidden)};
+document.addEventListener('click',e=>{if(!$('menuAffichage').hidden&&!e.target.closest('.bd-affw'))menuAff(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('menuAffichage').hidden){menuAff(false);$('btnAffichage').focus()}});
+/* Pastille « N en ligne » : comptes presents dans hall/ (presence Firebase existante, room.peers). Affichage seul, non cliquable.
+   TODO : invites compris. Les regles actuelles (hall lisible par les comptes seulement) ne le permettent pas : la pastille reste cachee pour un invite. */
+function majEnLigne(){const p=$('enLigne');let n=0;
+  try{n=room&&room.peers?room.peers().length:0}catch(e){n=0}
+  p.hidden=!n;$('enLigneN').textContent=String(n);p.title=n+(n>1?' joueurs connectés':' joueur connecté')+' au site'}
+{const t=setInterval(()=>{try{if(typeof room!=='undefined'&&room&&room.onPeers){clearInterval(t);room.onPeers(majEnLigne,majEnLigne);majEnLigne()}}catch(e){}},400)}
