@@ -3,17 +3,6 @@
 /* Filtre Adversaires : niveaux de l'ordinateur et parties entre joueurs, tous allumes par defaut, jamais tous eteints. */
 const ADV_ST=[['facile','Facile','#6fd08c'],['normal','Normal','#f3d163'],['difficile','Difficile','#ea7a6c'],['ligne','Entre joueurs','#7fd8f5']];let statsAdv=new Set(ADV_ST.map(x=>x[0]));
 const modeSt=r=>r.m==='ligne'?'ligne':String(r.m||'').replace(/^golem-/,'');
-async function peintStats(){
-  const z=$('statsCorps');
-  if(!room||!room.litResumes){z.textContent='';z.append(el('p','pf-vide','Les statistiques ne sont pas disponibles pour le moment.'));return}
-  if(!statsData){z.textContent='';z.append(el('p','pf-vide','Chargement des statistiques...'))}else dessineStats(statsData);
-  try{statsJoueurs=room.litClassement?await room.litClassement().catch(()=>[]):[]}catch(e){statsJoueurs=[]}
-  /* Resume public de chaque joueur classe : clic seulement si son profil est public. */
-  if(profilPublie&&compteCo())await Promise.race([Promise.resolve(profilPublie).catch(()=>{}),new Promise(r=>setTimeout(r,3000))]);
-  try{const pr=await Promise.all(statsJoueurs.filter(x=>x.n>=5).map(x=>room.compte.profilDe?room.compte.profilDe(x.uid).then(r=>[x.uid,r]):[x.uid,null]));statsProfils=Object.fromEntries(pr)}catch(e){statsProfils={}}
-  try{statsData=uneParGraine((await room.litResumes(2000)).filter(r=>r&&typeof r.d==='number'&&(r.g===0||r.g===1||r.g===-1)))}catch(e){console.warn(e);if(!statsData){z.textContent='';z.append(el('p','pf-vide','Lecture impossible pour le moment.'))}return}
-  if(!$('stats').hidden)dessineStats(statsData);
-}
 /* Deck par defaut (deck du robot, ancien paquet de test), en texte de deck : 30 cartes depuis 0.3 (33 avant). Le camp du robot est ignore dans les Statistiques. */
 const DECK_TEST=M.DECK_DEFAUT?{...M.DECK_DEFAUT}:Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])),DECK_TEST_TXT=M.deckTexte(DECK_TEST);
 /* Deck par defaut d'une partie selon la version de son moteur : jusqu'a 0.2c, celui des moteurs archives (moteurs/moteur-<v>.js : pas de DECK_DEFAUT,
@@ -87,176 +76,228 @@ function statZoomTerrain(T){
     L[0].v='Victoire du conquérant '+pc(o.cv,o.c)+' - '+String(Math.round(10*o.q/o.n)/10).replace('.',',')+' pts en moyenne - '+pc(o.e,o.m)+' d’égalités - '+o.m+(o.m>1?' manches':' manche');E.montre()});
   return [E.b];
 }
-/* Grille des Statistiques : 4 colonnes de meme largeur (2 de 641 a 1499 px, 1 au telephone).
-   Colonne 1 : Joueurs puis Terrains, chacun a demi-hauteur ; puis Meilleures cartes, Cartes les plus jouees, Elements, de meme hauteur H.
-   H = hauteur naturelle la plus grande des trois (10 cartes), verrouillee ; recalcul seulement quand la largeur change. */
-let statsAjuste=null,statsLarg=0;addEventListener('resize',()=>{if(statsAjuste&&innerWidth!==statsLarg){statsLarg=innerWidth;statsAjuste()}});
-/* Message vide des Statistiques : un seul texte, une seule classe (pf-vide). */
-const VIDE_ST='Pas encore assez de parties.';
-/* Meme classe, autre texte quand ce sont les filtres qui vident la liste. */
-const VIDE_FILTRES='Aucune partie avec ces filtres.';
+/* ===== Onglet Statistiques 0.6 (maquette 29\Saison, variante C) =====
+   Barre : sélecteur Classées | Amicales | Entraînement, panneau de saison (Classées) ou total de parties, Patchs (menu déroulant), recherche commune.
+   4 colonnes égales : Classement (ou Joueurs), Cartes (Meilleures | Plus jouées), Terrains (triable), Éléments (éléments puis duos).
+   Les colonnes prennent la hauteur de l'écran (au moins celle d'Éléments) ; les listes défilent dedans, en nombre entier de lignes.
+   Mode d'une partie (résumé) : classée si r.cl (ou r.m === 'classee'), entraînement si contre un Golem, amicale sinon. */
+const VIDE_ST='Pas encore assez de parties.',VIDE_FILTRES='Aucune partie avec ces filtres.',VIDE_RECH='Aucun résultat pour cette recherche.';
+const MODES_ST=[['classees','Classées','classées'],['amicales','Amicales','amicales'],['entrainement','Entraînement',"d'entraînement"]];
+const modeRes=r=>r&&(r.cl===true||r.m==='classee')?'classees':/^golem-/.test(String(r&&r.m||''))?'entrainement':'amicales';
+let statsMode='classees',statsQ='',statsQBrut='',statsTriC=0,statsClasse=null,statsAjuste=null,statsLarg=0;
+addEventListener('resize',()=>{if(statsAjuste&&innerWidth!==statsLarg){statsLarg=innerWidth;statsAjuste()}});
+const escSt=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const normSt=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+/* Surligne la recherche dans un texte (échappé). */
+function hlSt(s){s=String(s);if(!statsQ)return escSt(s);const i=normSt(s).indexOf(statsQ);if(i<0)return escSt(s);const j=i+statsQ.length;return escSt(s.slice(0,i))+'<mark>'+escSt(s.slice(i,j))+'</mark>'+escSt(s.slice(j))}
+const okSt=s=>!statsQ||normSt(s).includes(statsQ);
+const pcSt=(v,n)=>n?Math.round(100*v/n):null;
+/* Taux coloré par la charte : couleurTaux (vert >= 50, ambre 40-49, rouge < 40, gris < 5 parties) ; neutre = blanc (classement des joueurs). */
+const tauxSt=(p,n,neutre)=>`<span class="st-pc ${couleurTaux(p,n,neutre?{neutre:true}:null)}">${p==null?'-':p+' %'}</span>`;
+const rangImgSt=id=>'images/rangs/'+(id||'placement')+'.png';
+const eSt=n=>n===1?'er':'e';
+/* Saison en cours : classe/saison, sinon la saison 0 de classe.js. */
+function saisonSt(){const G=window.GolemsClasse,s=statsClasse&&statsClasse.saison,b=G&&G.SAISONS[0]||{id:0,nom:'Bêta'};
+  const o=s&&typeof s==='object'?{id:s.id|0,nom:String(s.nom||b.nom),debut:s.debut||null,fin:s.fin||null}:{id:b.id,nom:b.nom,debut:null,fin:b.fin};
+  o.titre='Saison '+o.id+(o.nom?' - '+o.nom:'');return o}
+/* Lecture du classement classé (classe/classement), de mon profil classé et de la saison ; aucune écriture. */
+async function litClasseSt(){
+  const lit=p=>room&&room.lit?room.lit(p).catch(()=>null):Promise.resolve(null);
+  const uid=compteCo()?room.compte.uid():null;
+  const [cl,moi,sa]=await Promise.all([lit('classe/classement'),uid?lit('classe/joueurs/'+uid):null,lit('classe/saison')]);
+  const G=window.GolemsClasse;
+  const L=Object.keys(cl||{}).map(u=>({uid:u,...cl[u]})).filter(x=>x&&typeof x.pseudo==='string'&&Number.isFinite(x.elo)&&!G.estRobot(x.uid))
+    .sort((a,b)=>b.elo-a.elo||(b.v|0)-(a.v|0)||a.pseudo.localeCompare(b.pseudo,'fr'));
+  L.forEach((x,i)=>{x.place=i+1});
+  return {liste:L,moi:moi&&typeof moi==='object'?moi:null,uid,saison:sa};
+}
+async function peintStats(){
+  const z=$('statsCorps');
+  if(!room||!room.litResumes){z.textContent='';z.append(el('p','pf-vide','Les statistiques ne sont pas disponibles pour le moment.'));return}
+  if(!statsData){z.textContent='';z.append(el('p','pf-vide','Chargement des statistiques...'))}else dessineStats(statsData);
+  try{statsJoueurs=room.litClassement?await room.litClassement().catch(()=>[]):[]}catch(e){statsJoueurs=[]}
+  try{statsClasse=await litClasseSt()}catch(e){console.warn(e);statsClasse={liste:[],moi:null,uid:null,saison:null}}
+  if(profilPublie&&compteCo())await Promise.race([Promise.resolve(profilPublie).catch(()=>{}),new Promise(r=>setTimeout(r,3000))]);
+  try{const pr=await Promise.all(statsJoueurs.filter(x=>x.n>=5).map(x=>room.compte.profilDe?room.compte.profilDe(x.uid).then(r=>[x.uid,r]):[x.uid,null]));statsProfils=Object.fromEntries(pr)}catch(e){statsProfils={}}
+  try{statsData=uneParGraine((await room.litResumes(2000)).filter(r=>r&&typeof r.d==='number'&&(r.g===0||r.g===1||r.g===-1)))}catch(e){console.warn(e);if(!statsData){z.textContent='';z.append(el('p','pf-vide','Lecture impossible pour le moment.'))}return}
+  if(!$('stats').hidden)dessineStats(statsData);
+}
+/* Médaille de saison (provisoire, en attendant l'image finale) : anneau + pièce dorée au numéro de la saison. */
+let medSt=0;
+function medailleSt(n,k){const id='stMed'+(++medSt);return `<span class="st-med" style="--k:${k||1}"><span class="st-med-i"><svg class="st-ring" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="#0a121a" stroke-width="3"/><circle cx="20" cy="20" r="18" fill="none" stroke="#f1c35a" stroke-width="3" stroke-linecap="round" stroke-dasharray="3 4" stroke-opacity=".6"/></svg><svg class="st-piece" viewBox="0 0 40 40"><defs><radialGradient id="${id}" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff2c4"/><stop offset=".5" stop-color="#f1c35a"/><stop offset="1" stop-color="#a8751a"/></radialGradient></defs><circle cx="20" cy="20" r="17" fill="url(#${id})" stroke="#5c3d08" stroke-width="2"/><circle cx="20" cy="20" r="13" fill="none" stroke="#fff2c4" stroke-opacity=".6" stroke-width="1.2"/><text x="20" y="27.5" text-anchor="middle" font-family="Lilita One,Impact" font-size="20" fill="#5c3d08">${n}</text></svg><i></i><i></i><i></i></span></span>`}
+/* Badges de saison (provisoires) : or Champion, argent Podium, bronze Top 10, bleu Pionnier (Saison 0). */
+const TIERS_ST={or:['#fff2c4','#f1c35a','#a8751a','#5c3d08'],ar:['#ffffff','#d5dee5','#8a99a5','#3d4a55'],br:['#ffd6ae','#d9955a','#8a5228','#43250e'],pi:['#d8f6ff','#3bd2f7','#0a7fa3','#063b4d']};
+function badgeSt(t,lbl){const c=TIERS_ST[t],k='stBd'+(++medSt);return `<svg class="st-bd" viewBox="0 0 48 54" aria-hidden="true"><defs><linearGradient id="${k}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c[0]}"/><stop offset=".45" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></linearGradient></defs><path d="M24 2 L44 12 L44 34 Q44 44 24 52 Q4 44 4 34 L4 12 Z" fill="url(#${k})" stroke="${c[3]}" stroke-width="2.5" stroke-linejoin="round"/><path d="M24 8 L39 15.5 L39 33 Q39 40.5 24 46.5 Q9 40.5 9 33 L9 15.5 Z" fill="none" stroke="${c[0]}" stroke-opacity=".7" stroke-width="1.5"/><path d="M13 17 Q24 11 35 17" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/><text x="24" y="37" text-anchor="middle" font-family="Lilita One,Impact" font-size="20" fill="${c[3]}">${lbl}</text></svg>`}
+/* Ma situation classée : place (si classé), palier, placement. */
+function situationSt(){
+  const C=statsClasse||{liste:[]},G=window.GolemsClasse,moi=C.uid?C.liste.find(x=>x.uid===C.uid):null,pr=C.moi;
+  const parties=pr?pr.parties|0:0,place=moi?moi.place:null;
+  return {co:compteCo(),moi,pr,parties,place,placement:!moi&&parties>0&&parties<G.PLACEMENT,fini:!!moi||parties>=G.PLACEMENT,
+    palier:place===1?'champion':place&&place<=3?'podium':place&&place<=10?'top10':null};
+}
 function dessineStats(RT){
   const z=$('statsCorps');z.textContent='';statsAjuste=null;
-  if(!RT.length){const v=el('div','bloc');v.append(el('p','pf-vide',VIDE_ST),el('p','pf-note','Les statistiques apparaîtront dès les premières parties terminées par des joueurs connectés avec un compte, contre un Golem ou en ligne.'));z.append(v);return}
-  /* Patchs coches : tous par defaut. */
-  const vers=versStats(RT);if(!statsPatchs||![...statsPatchs].some(v=>vers.includes(v)))statsPatchs=new Set(vers);
-  const R=uneParGraine(RT).filter(r=>statsPatchs.has(patchSite(r.v))&&statsAdv.has(modeSt(r)));
-  /* Liste videe par les filtres : meme classe, texte des filtres (Joueurs, Cartes, Elements). */
-  const VIDE_R=R.length?VIDE_ST:VIDE_FILTRES;
-  const pc=(v,n)=>n?Math.round(100*v/n):null,coul=p=>p===null?'var(--doux)':p>55?'#3ecf6e':p>=45?'#f0a030':'#ef4f4f',txt=p=>p===null?'-':p+' %';
-  const pl2=(n,m)=>n+' '+m+(n>1?'s':''),rangTx=i=>i+(i===1?'er':'e');
-  const NOMS_EL=NOMS_EL_ST;
-  const {cartes,els,duos,terr,pj,pv,golem,ab}=agregeStats(R);
-  const g=el('div','st-g4'),pile=el('div','st-pile');g.append(pile);
-  const panneau=(dans,cle,titre,note)=>{const c=el('div','bloc st-col st-p'),h=el('div','st-ph');c.dataset.p=cle;h.append(el('h3','st-h',titre));c.append(h);if(note)c.append(el('p','pf-note st-sous',note));dans.append(c);return {c,h}};
-  const sous=(c,t)=>c.append(el('h4','st-sh',t)),vide=c=>c.append(el('p','pf-vide',VIDE_R));
-  const plie=()=>matchMedia('(min-width:641px)').matches; /* plusieurs colonnes : hauteurs verrouillees */
-  const norm=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
-  /* Liste de panneau : k lignes (10 au plus ; Joueurs et Terrains : ce qui tient dans la demi-hauteur).
-     En-tete : titre, bouton Voir tout (gris ; inactif si tout tient ; bleu « Reduire » une fois deplie), puis recherche pleine largeur.
-     Liste complete a l'interieur du panneau (defilement, taille inchangee) ; recherche sans accents ni majuscules sur o.tous, rang reel. */
-  const listeP=(P,items,ligne,o)=>{
-    const tout=el('button','pastille st-tout','Voir tout'),champ=el('input','st-rech');tout.type='button';
-    champ.type='search';champ.placeholder=o.rech;champ.setAttribute('aria-label',o.rech);champ.autocomplete='off';
-    P.h.append(tout);P.h.after(champ);
-    const corps=el('div','st-corps'),pied=el('div','st-pied');P.c.append(corps,pied);
-    const bas=()=>corps.classList.toggle('st-bas',corps.scrollTop+corps.clientHeight>=corps.scrollHeight-2);corps.onscroll=bas;
-    let k=10,ouvert=false,q='',hPlie=0;
-    const fixe=()=>!(o.demi&&plie());
-    const peint=()=>{corps.textContent='';pied.textContent='';
-      const L=q?(o.tous||items).filter(x=>norm(x.cle).includes(q)):ouvert?items:items.slice(0,k),libre=!!q||ouvert;
-      corps.classList.toggle('st-defile',libre);corps.style.height=libre&&fixe()&&hPlie?hPlie+'px':'';
-      if(o.entete)corps.append(o.entete());
-      if(!items.length&&!q)corps.append(el('p','pf-vide',o.vide));else if(q&&!L.length)corps.append(el('p','pf-vide',o.aucun));
-      L.forEach(x=>{const n=ligne(x);if(n)corps.append(n)});
-      {const rien=items.length<=k;tout.disabled=rien;if(rien)tout.title='Toute la liste est déjà affichée';else tout.removeAttribute('title')}
-      tout.textContent=ouvert?'Réduire':'Voir tout';tout.setAttribute('aria-pressed',String(ouvert));
-      if(o.piedPlus)o.piedPlus(pied,{q,ouvert,k});
-      pied.hidden=!pied.childNodes.length;bas();
-    };
-    champ.oninput=()=>{q=norm(champ.value.trim());peint();corps.scrollTop=0;bas()};
-    tout.onclick=()=>{if(q){champ.value='';q='';ouvert=true}else ouvert=!ouvert;peint();corps.scrollTop=0;bas()};
-    o.repeint=peint;
-    /* Mesure en deux temps : etat replie naturel (hauteur H), puis lignes qui tiennent et etat courant. */
-    const mesure=()=>{const s=[ouvert,q];ouvert=false;q='';k=10;corps.style.height='';peint();return s};
-    const finit=s=>{if(o.demi&&plie())while(k>1&&corps.scrollHeight>corps.clientHeight+1){k--;peint()}hPlie=corps.offsetHeight;[ouvert,q]=s;peint()};
-    return {mesure,finit};
-  };
-  const listes=[];
-  /* Joueurs : classement public (toutes les parties de chacun), 5 parties minimum.
-     Filtre Adversaires : parties par niveau du profil public (o), entre joueurs = le reste ; profil prive ecarte.
-     Filtre Patch : detail par version du profil public (pv) ; profil prive ecarte, profil sans ce detail (pas encore republie) ecarte aussi.
-     Recherche : classes, puis joueurs a moins de 5 parties (avec ces filtres), mention « moins de 5 parties ». */
-  {const P=panneau(pile,'j','Joueurs','Taux de victoire, 5 parties minimum'),tousAdv=ADV_ST.every(([k])=>statsAdv.has(k)),tousPatchs=vers.every(v=>statsPatchs.has(v));let prives=0,anciens=0,peu=0;
-   const surF=[tousPatchs?'':statsPatchs.size>1?'sur ces patchs':'sur ce patch',tousAdv?'':'contre ces adversaires'].filter(Boolean).join(' ');
-   const parPatch=rp=>{if(rp&&rp.m===true){prives++;return null}const pv=rp&&rp.pv?Object.values(rp.pv):[];if(!pv.length){anciens++;return null}
-     const f={n:0,v:0};pv.forEach(z=>{if(!z||!statsPatchs.has(z.p)||!Number.isInteger(z.n))return;const zv=Number.isInteger(z.v)?z.v:0;
-       if(tousAdv){f.n+=z.n;f.v+=zv;return}const o=resumeLu({o:z.o}).o,g={n:0,v:0};NIV_ORDI.forEach(([k])=>{g.n+=o[k].n;g.v+=o[k].v});
-       o.ligne={n:Math.max(0,z.n-g.n),v:Math.max(0,zv-g.v)};statsAdv.forEach(k=>{if(o[k]){f.n+=o[k].n;f.v+=o[k].v}})});return f};
-   const parAdv=x=>{if(tousAdv&&tousPatchs)return {n:x.n,v:x.v};const rp=statsProfils[x.uid];if(!tousPatchs)return parPatch(rp);if(!rp||rp.m===true||!rp.o){prives++;return null}
-     const o=resumeLu(rp).o,g={n:0,v:0};NIV_ORDI.forEach(([k])=>{g.n+=o[k].n;g.v+=o[k].v});o.ligne={n:Math.max(0,(rp.n|0)-g.n),v:Math.max(0,(rp.v|0)-g.v)};
-     const f={n:0,v:0};statsAdv.forEach(k=>{if(o[k]){f.n+=o[k].n;f.v+=o[k].v}});return f};
-   const tri=(a,b)=>b.pct-a.pct||b.n-a.n||a.p.localeCompare(b.p,'fr');
-   const F=(statsJoueurs||[]).filter(x=>x.n>=5).map(x=>{const f=parAdv(x);return f&&{...x,...f,pct:pc(f.v,f.n)}}).filter(Boolean);
-   const J=F.filter(x=>{if(x.n<5)peu++;return x.n>=5}).sort(tri);J.forEach((x,i)=>{x.rang=i+1;x.cle=x.p});
-   /* Moins de 5 parties : avec ces filtres (detail du profil), ou au total quand tout est coche. */
-   const P5=F.filter(x=>x.n>0&&x.n<5).concat(tousAdv&&tousPatchs?(statsJoueurs||[]).filter(x=>x.n>0&&x.n<5).map(x=>({...x,pct:pc(x.v,x.n)})):[]).sort(tri).map(x=>({...x,rang:null,peu:true,cle:x.p}));
-   const moi=compteCo()?J.find(x=>x.uid===room.compte.uid()):null;
-   const ligneJ=(x,toi)=>{const li=el('div','st-r st-jl'+(toi?' st-toi':'')),gch=el('span','st-g'),dr=el('span','st-d'),t=el('b','st-pc',txt(x.pct));t.style.color=coul(x.pct);
-     gch.append(el('span','st-rang',toi?'':x.rang?String(x.rang):'-'),avatarUid(x.p,x.uid),el('span','st-ps',toi?'Toi : '+rangTx(x.rang):x.p));if(x.peu)gch.append(el('span','st-peu','moins de 5 parties'));
-     dr.append(el('span','st-np',pl2(x.n,'partie')),t);li.append(gch,dr);
-     if(x===moi&&!toi)li.classList.add('st-moi');
-     li.tabIndex=0;const fi=el('div','st-fiche'),ft=el('div','st-ft'),fv=el('b','',txt(x.pct));fv.style.color=coul(x.pct);
-     ft.append(avatarUid(x.p,x.uid),el('b','st-fp',x.p));fi.append(ft,el('p',''),el('p',''),el('p',''));
-     fi.children[1].append('Taux de victoire : ',fv);fi.children[2].textContent=pl2(x.v,'victoire')+', '+pl2(x.n-x.v,'défaite');fi.children[3].textContent=pl2(x.n,'partie');li.append(fi);
-     const rp=statsProfils[x.uid],moiJ=compteCo()&&x.uid===room.compte.uid();
-     if(rp&&rp.m===true&&!moiJ)fi.append(el('p','st-fprive','Profil privé'));
-     if(moiJ||rp){li.classList.add('st-jclic');li.setAttribute('role','button');li.setAttribute('aria-label','Profil de '+x.p+(x.rang?', '+rangTx(x.rang):''));
-       li.onclick=()=>ouvreProfil({uid:x.uid,p:x.p,v:x.v,n:x.n});li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();li.onclick()}}}
-     return li};
-   listes.push(listeP(P,J,x=>ligneJ(x,false),{demi:true,tous:J.concat(P5),rech:'Chercher un joueur',aucun:'Aucun joueur à ce nom.',
-     vide:VIDE_R,
-     piedPlus:(pd,s)=>{if(moi&&!s.q&&!s.ouvert&&moi.rang>s.k)pd.append(ligneJ(moi,true));
-       if(peu)pd.append(el('p','pf-note',pl2(peu,'joueur')+' avec moins de 5 parties '+surF+'.'));
-       if(prives)pd.append(el('p','pf-note',pl2(prives,'joueur')+' au profil privé, non '+(prives>1?'comptés':'compté')+' avec ce filtre.'));
-       if(anciens)pd.append(el('p','pf-note',pl2(anciens,'joueur')+' pas encore à jour, non '+(anciens>1?'comptés':'compté')+' avec ce filtre.'))}}));}
-  /* Terrains : tableau triable, en-tete fixe en haut de la liste. */
-  {const P=panneau(pile,'t','Terrains',null);
-   const cols=[['nom','Terrain','Nom du terrain'],['taux','Victoire',"Taux de victoire du conquérant : part des conquêtes de ce terrain où le joueur qui le remporte gagne aussi la partie."],['pts','Pts',"Points moyens : points rapportés par ce terrain en moyenne sur une partie."],['eg','Égalités',"Égalités : part des manches où les deux joueurs ont la même Force, personne ne marque."]];
-   const L=[...terr].map(([nom,o])=>({nom,cle:nom,n:o.n,taux:pc(o.cv,o.c),pts:o.n?Math.round(10*o.q/o.n)/10:null,conq:pc(o.c,o.m),eg:pc(o.e,o.m)}));
-   const v=x=>x===null?-1:x,trie=()=>L.sort((a,b)=>statsTri==='nom'?a.nom.localeCompare(b.nom,'fr'):v(b[statsTri])-v(a[statsTri])||a.nom.localeCompare(b.nom,'fr'));trie();
-   const o={demi:true,rech:'Chercher un terrain',aucun:'Aucun terrain à ce nom.',vide:VIDE_ST};
-   o.entete=()=>{const h=el('div','st-tl st-th');cols.forEach(([k,t,d])=>{const b=el('button','st-tri'+(statsTri===k?' actif':''),t+(statsTri===k?(k==='nom'?' ▲':' ▼'):''));b.setAttribute('aria-pressed',statsTri===k);b.type='button';b.title=d;b.setAttribute('aria-label','Trier par '+d.split(' :')[0].toLowerCase());b.onclick=()=>{statsTri=k;trie();o.repeint()};h.append(b)});return h};
-   const ligneT=x=>{const r=el('div','st-tl'),t=el('b','',txt(x.taux)),TT=M.TERRAINS.find(T=>T.nom===x.nom);if(TT){r.classList.add('st-tc');r.tabIndex=0;r.onmouseenter=()=>montreApercu(r,srcTerrain(TT));r.onmouseleave=cacheApercu;r.onclick=()=>zoomTerrain(TT);r.onkeydown=e=>{if(e.key==='Enter')zoomTerrain(TT)}}t.style.color=coul(x.taux);const nm=el('span','st-tn',x.nom);nm.title=pl2(x.n,'partie');
-     r.append(nm,t,el('span','',x.pts===null?'-':String(x.pts).replace('.',',')),el('span','',txt(x.eg)));return r};
-   listes.push(listeP(P,L,ligneT,o));}
-  /* Ligne de carte compacte (comme le profil), apercu au survol, zoom au clic ; rang reel, « moins de 10 parties » hors classement. */
-  const ligneC=x=>{const id=x.id,n=x.n,p=x.p,c=CARTES.find(y=>y[0]===id),C=M.CARTES[id];if(!c||!C)return null;
-    const li=el('div','pf-item pf-mvps st-carte'),q=el('button','dl-ligne'),fo=el('span','dl-force'),e=el('span','dl-els'),src=imgV('cartes/'+c[0]+'.jpg');q.type='button';
-    if(c[2].length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+c[2][0]+')');q.style.setProperty('--b','var(--fm-'+c[2][1]+')')}else if(estAnimal(c))q.classList.add('dl-animal')
-    const co=el('span','dl-cout');co.append(ico('enclume'),String(C.cout));{const f=forceAff(C);if(f!=null){fo.append(ico('force'),f);if(f.includes(','))fo.classList.add('dl-dec')}}c[2].forEach(y=>e.append(picto(y)));
-    const v=c[1].indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',v<0?c[1]:c[1].slice(0,v)));
-    if(v>=0){const ti=el('span','dl-titre',c[1].slice(v+2));ti.style.color=coulT(c);nm.append(ti)}
-    if(estAnimal(c)){fo.className='dl-force dl-mot';fo.textContent='Animal';q.append(co,fo,nm)}else q.append(co,fo,e,nm);q.setAttribute('aria-label',c[1]+', '+pl2(n,'partie')+(p===null?'':', '+p+' % de victoires'));
-    q.onclick=()=>{cacheApercu();dernier=q;zoom(src,c[1])};q.onmouseenter=()=>montreApercu(q,src);q.onmouseleave=cacheApercu;
-    const s=el('div','pf-dst'),t=el('b','pf-dt',txt(p));t.style.color=coul(p);
-    if(x.rang)s.append(el('span','pf-dk st-rg',rangTx(x.rang)+' - '));s.append(t,el('span','pf-dk',' de victoires - '+pl2(n,'partie')));if(x.peu)s.append(el('span','pf-peu','moins de '+MIN_CARTES+' parties'));
-    li.append(q,s);return li};
-  const MIN_CARTES=10; /* 0.4a : seuil des cartes (Meilleures cartes), distinct des joueurs (5) */
-  const lc=[...cartes].map(([id,o])=>{const c=CARTES.find(y=>y[0]===id);return {id,n:o.n,p:pc(o.v,o.n),cle:c?c[1]:id}});
-  {const P=panneau(g,'m','Meilleures cartes','Taux de victoire, '+MIN_CARTES+' parties minimum');
-   const tv=lc.filter(x=>x.n>=MIN_CARTES).sort((a,b)=>b.p-a.p||b.n-a.n).map((x,i)=>({...x,rang:i+1}));
-   const p5=lc.filter(x=>x.n<MIN_CARTES).sort((a,b)=>b.p-a.p||b.n-a.n).map(x=>({...x,rang:null,peu:true}));
-   listes.push(listeP(P,tv,ligneC,{tous:tv.concat(p5),rech:'Chercher une carte',aucun:'Aucune carte à ce nom.',vide:R.length?'Il faut au moins '+MIN_CARTES+' parties par carte.':VIDE_FILTRES}));}
-  {const P=panneau(g,'p','Cartes les plus jouées','Nombre de parties où elle est jouée');
-   const lp=lc.slice().sort((a,b)=>b.n-a.n||b.p-a.p).map((x,i)=>({...x,rang:i+1}));
-   listes.push(listeP(P,lp,ligneC,{rech:'Chercher une carte',aucun:'Aucune carte à ce nom.',vide:VIDE_R}));}
-  /* Elements : taux par element puis duos les plus joues, dans le meme panneau (sans Voir tout ni recherche). */
-  {const P=panneau(g,'e','Éléments',null),c=P.c,l=[...els].map(([e,o])=>({e,n:o.n,p:pc(o.v,o.n)}));
-   const barre=(nom,n,p,ic,u)=>{const li=el('div','pf-barre pf-item'),h=el('div','pf-bh'),j=el('div','pf-jauge'),f=el('i'),b=el('b','',txt(p)),s=el('span','st-bn');
-    if(ic)ic.forEach(x=>s.append(picto(x)));s.append(nom);b.style.color=coul(p);h.append(s,b);f.style.width=(p||0)+'%';f.style.background=coul(p);j.append(f);
-    li.append(h,j,el('div','pf-dk pf-np',pl2(n,u||'partie')));return li};
-   sous(c,'Taux de victoire par élément');if(!l.length)vide(c);
-   l.slice().sort((a,b)=>b.p-a.p||b.n-a.n).forEach(x=>c.append(barre(NOMS_EL[x.e],x.n,x.p,[x.e])));
-   sous(c,'Duos les plus joués');
-   const d=[...duos].sort((a,b)=>b[1].n-a[1].n).slice(0,10);if(!d.length)vide(c);
-   const u2=el('ul','pf-liste st-liste');d.forEach(([k,o])=>{const [a,b]=k.split('+'),li=el('li'),s=el('span','st-bn'),p=pc(o.v,o.n),t=el('b','',txt(p)+' - '+pl2(o.n,'partie'));
-     s.append(picto(a),picto(b),NOMS_EL[a]+' et '+NOMS_EL[b]);li.append(s,t);u2.append(li)});if(d.length)c.append(u2);}
-  /* Bandeau Parties : barre de filtres (Patch, Adversaires) puis chiffres cles en tuiles */
-  const ban=el('div','bloc st-bandeau');ban.append(el('h3','st-h','Parties'));
-  {const fb=el('div','st-filtres'),g1=el('div','st-fg'),g2=el('div','st-fg');
-   const dd=el('details','st-dd'),sm=el('summary'),lst=el('div','st-ddl');sm.setAttribute('aria-label','Patchs comptés');
-   const resume=()=>{sm.textContent=statsPatchs.size===1?'v'+[...statsPatchs][0]:vers.every(v=>statsPatchs.has(v))?'Tous les patchs':statsPatchs.size+' patchs'};resume();
-   vers.forEach(v=>{const lb=el('label','st-ddc'),cb=el('input');cb.type='checkbox';cb.checked=statsPatchs.has(v);
-     cb.onchange=()=>{if(!cb.checked&&statsPatchs.size<2){cb.checked=true;return}cb.checked?statsPatchs.add(v):statsPatchs.delete(v);dessineStats(RT);const n=$('statsCorps').querySelector('.st-dd');if(n){n.open=true;n.querySelector('summary').focus()}};
-     lb.append(cb,'v'+v);lst.append(lb)});
-   dd.append(sm,lst);g1.append(el('span','st-fl','Patch'),dd);
-   const bt=el('div','st-advs');ADV_ST.forEach(([k,t,c])=>{const b=el('button','pastille st-adv',t);b.type='button';b.style.setProperty('--c',c);b.setAttribute('aria-pressed',String(statsAdv.has(k)));
-     b.onclick=()=>{if(statsAdv.has(k)){if(statsAdv.size<2)return;statsAdv.delete(k)}else statsAdv.add(k);dessineStats(RT);const n=$('statsCorps').querySelector('.st-adv[data-k="'+k+'"]');if(n)n.focus()};b.dataset.k=k;bt.append(b)});
-   g2.append(el('span','st-fl','Adversaires'),bt);fb.append(g1,g2);ban.append(fb);
+  const G=window.GolemsClasse,vers=versStats(RT);if(!statsPatchs||![...statsPatchs].some(v=>vers.includes(v)))statsPatchs=new Set(vers);
+  const R=uneParGraine(RT).filter(r=>statsPatchs.has(patchSite(r.v))&&modeRes(r)===statsMode),A=agregeStats(R);
+  const iM=MODES_ST.findIndex(m=>m[0]===statsMode),S=saisonSt(),sit=situationSt(),pl=(n,m)=>n+' '+m+(n>1?'s':'');
+  /* ---- Barre ---- */
+  const barre=el('div','st-barre');
+  const sel=el('div','sc-sel st-mode');sel.setAttribute('role','group');sel.setAttribute('aria-label','Type de parties');
+  MODES_ST.forEach(([k,t])=>{const b=el('button','',t);b.type='button';b.setAttribute('aria-pressed',String(k===statsMode));b.onclick=()=>{if(statsMode===k)return;statsMode=k;dessineStats(RT);const n=$('statsCorps').querySelector('.st-mode [aria-pressed=true]');if(n)n.focus()};sel.append(b)});
+  barre.append(sel);
+  if(statsMode==='classees'){
+    const sz=el('button','st-saison');sz.type='button';sz.setAttribute('aria-label',S.titre+' : récompenses de la saison');
+    const etat=!sit.co?'':sit.palier?`<span class="st-sz-cs st-sz-rg">Tu es ${sit.place}${eSt(sit.place)}<b>${{champion:'Champion',podium:'Podium',top10:'Top 10'}[sit.palier]}</b></span>`
+      :sit.moi?`<span class="st-sz-cs st-sz-rg">Tu es ${sit.place}e<b class="st-sz-hors">${escSt(G.rang(sit.moi.elo).nom)}</b></span>`
+      :sit.placement?`<span class="st-sz-cs st-sz-rg">Placement<b class="st-sz-hors">${sit.parties}/${G.PLACEMENT}</b></span>`:'';
+    const on=p=>sit.palier===p?' on':'';
+    const bg=`<span class="st-sz-cs st-sz-bgs"><span class="st-bx or${on('champion')}" title="Champion">${badgeSt('or',S.id)}</span><span class="st-bx ar${on('podium')}" title="Podium">${badgeSt('ar',S.id)}</span><span class="st-bx br${on('top10')}" title="Top 10">${badgeSt('br',S.id)}</span>${S.id===0?`<span class="st-bx pi${sit.fini?' on':''}" title="Pionnier">${badgeSt('pi',S.id)}</span>`:''}</span>`;
+    const fin=S.fin?'fin dans <b>'+Math.max(0,Math.ceil((S.fin-Date.now())/864e5))+' j</b>':"jusqu'à la <b>1.0</b>";
+    sz.innerHTML=`<span class="st-sz-c1">${medailleSt(S.id)}<span class="st-sz-n">${escSt(S.titre)}</span></span>${etat}${bg}<span class="st-sz-cs st-sz-du"><span>${fin}</span></span>`;
+    sz.onclick=()=>fenSaisonSt(S,sit,R);barre.append(sz);
+  }else{const t=el('span','st-tot');t.innerHTML=`<b>${R.length.toLocaleString('fr-FR')}</b>parties ${MODES_ST[iM][2]}`;barre.append(t)}
+  /* Patchs : menu déroulant (exception de la charte) */
+  const pat=el('div','st-pat'),pb=el('button','st-pat-b'),pm=el('div','st-pat-m');pb.type='button';pb.setAttribute('aria-expanded','false');pb.setAttribute('aria-haspopup','true');pm.hidden=true;
+  pb.innerHTML=`Patchs : <b>${vers.every(v=>statsPatchs.has(v))?'tous':statsPatchs.size===1?'v'+escSt([...statsPatchs][0]):statsPatchs.size+' sur '+vers.length}</b> ▾`;
+  vers.forEach(v=>{const lb=el('label'),cb=el('input');cb.type='checkbox';cb.checked=statsPatchs.has(v);cb.dataset.v=v;
+    cb.onchange=()=>{if(!cb.checked&&statsPatchs.size<2){cb.checked=true;return}cb.checked?statsPatchs.add(v):statsPatchs.delete(v);dessineStats(RT);
+      const b=$('statsCorps').querySelector('.st-pat-b');if(b){b.click();const c=$('statsCorps').querySelector('.st-pat-m input[data-v="'+v+'"]');if(c)c.focus()}};
+    lb.append(cb,'v'+v);pm.append(lb)});
+  pm.append(el('p','','Ne change pas le classement Elo.'));
+  pb.onclick=e=>{e.stopPropagation();const o=pm.hidden;pm.hidden=!o;pb.setAttribute('aria-expanded',String(o))};
+  pat.append(pb,pm);barre.append(pat);
+  const rech=el('label','st-rech');rech.innerHTML='<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6" fill="none" stroke="#a6bac6" stroke-width="2.2"/><path d="M13 13l5 5" stroke="#a6bac6" stroke-width="2.2" stroke-linecap="round"/></svg>';
+  const q=el('input');q.type='search';q.placeholder='Chercher un joueur, une carte, un terrain';q.setAttribute('aria-label',q.placeholder);q.autocomplete='off';q.value=statsQBrut;
+  q.oninput=()=>{statsQBrut=q.value;statsQ=normSt(q.value.trim());peintCols()};rech.append(q);barre.append(rech);
+  const g=el('div','st-g4'),P=['c1','cC','cT','cE'].map(k=>{const s=el('section','st-p');s.dataset.p=k;g.append(s);return s});
+  z.append(barre,g);
+  const tete=(t,x)=>`<div class="st-ph"><h3>${t}</h3>${x||''}</div>`;
+  const enc=a=>`<div class="st-enc">${a.map(x=>`<div><i>${x[0]}</i><b>${x[1]}</b><small>${x[2]}</small></div>`).join('')}</div>`;
+  const moiUid=compteCo()?room.compte.uid():null;
+  const cls=(x,moi)=>moi?' st-moi':x.place<=3?' st-t'+x.place:'';
+  /* ---- Colonne 1 : Classement (Classées) ---- */
+  function classement(){
+    const L=(statsClasse||{liste:[]}).liste,gc='st-gcl';let en='';
+    if(!sit.co)en=enc([['Ton rang','Saphir','Elo 1087 - 7e'],['Prochain rang','63 pts','avant Émeraude'],['Classés',String(L.length),'joueurs']]); /* flouté, illisible */
+    else if(sit.moi){const r=G.rang(sit.moi.elo),nx=G.RANGS[G.RANGS.indexOf(r)+1];
+      en=enc([['Ton rang',`<span class="st-rg-${r.id}">${r.nom}</span>`,'Elo '+Math.round(sit.moi.elo)+' - '+sit.place+eSt(sit.place)],nx?['Prochain rang',Math.ceil(nx.min-sit.moi.elo)+' pts','avant '+nx.nom]:['Prochain rang','-','rang maximal'],['Classés',String(L.length),'joueurs']])}
+    else if(sit.placement)en=enc([['Ton rang',`<span class="st-enc-pl"><img src="${rangImgSt()}" alt="">${sit.parties}/${G.PLACEMENT}</span>`,'en placement'],['Prochain rang','-','après '+G.PLACEMENT+' parties'],['Classés',String(L.length),'joueurs']]);
+    else en='<div class="st-premier"><b>Joue ta première partie classée</b><button class="sc-btn" type="button" data-a="jouer">Jouer une partie classée</button></div>';
+    let h=en+`<div class="st-th ${gc}"><span class="r">#</span><span></span><span>Joueur</span><span class="r">Elo</span><span class="c">V - D</span><span class="r">Vict.</span></div><div class="st-corps">`;
+    const ligne=x=>{const n=(x.v|0)+(x.d|0),r=G.rang(x.elo);return `<div class="st-ln st-cl ${gc}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.pseudo)}, ${x.place}${eSt(x.place)}"><span class="st-rk">${x.place}</span><img class="st-emb" src="${rangImgSt(r.id)}" alt="" title="${r.nom}"><span class="st-ps" title="${escSt(x.pseudo)}">${hlSt(x.pseudo)}</span><span class="r st-n">${Math.round(x.elo)}</span><span class="c st-n">${x.v|0} - ${x.d|0}</span><span class="r">${tauxSt(pcSt(x.v|0,n),n,true)}</span></div>`};
+    const V=statsQ?L.filter(x=>okSt(x.pseudo)):L.slice(0,10);
+    if(!V.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:'Aucun joueur classé pour le moment.'}</div>`;
+    V.forEach(x=>h+=ligne(x));
+    if(!statsQ&&sit.moi&&sit.place>10)h+='<div class="st-etc">…</div>'+ligne(sit.moi);
+    h+='</div>';
+    if(!sit.co)h=`<div class="st-verrou"><div class="st-flou" aria-hidden="true">${h}</div><div class="st-vo"><svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><rect x="3" y="14" width="24" height="18" rx="4" fill="none" stroke="#01C1F0" stroke-width="3"/><path d="M8 14V10a7 7 0 0 1 14 0v4" fill="none" stroke="#01C1F0" stroke-width="3"/></svg><b>Rang, Elo et classement</b><p>Connecte-toi pour voir ta place parmi les joueurs.</p><div class="sc-rangee"><button class="sc-btn" type="button" data-a="co">Se connecter</button><button class="sc-btn sc-secondaire" type="button" data-a="cree">Créer un compte</button></div></div></div>`;
+    return tete('Classement')+h;
   }
-  {const tu=el('div','st-tuiles'),tuile=(n,t,col)=>{const s=el('div','pf-tuile'),b=el('b','',String(n));if(col)b.style.color=col;s.append(b,t instanceof Node?t:el('span','',t));return s};
-   const p1=pc(pv,pj),ce=p=>p===null?'':Math.abs(p-50)<=3?'#3ecf6e':Math.abs(p-50)<=8?'#f0a030':'#ef4f4f';
-   const ligne=R.filter(r=>r.m==='ligne').length;
-   /* Victoires contre l'ordinateur : camp du joueur (0) contre chaque niveau. */
-   const to=el('div','pf-tuile st-ordi'),tr=el('div','st-trois');
-   ADV_ST.slice(0,3).forEach(([k,t,c])=>{const a=R.filter(r=>r.m==='golem-'+k&&r.g!==-1),p=pc(a.filter(r=>r.g===0).length,a.length),b=el('b','',txt(p));b.style.color=c;b.title=t+' : '+pl2(a.length,'partie');tr.append(b)});
-   to.append(tr,el('span','',"Victoires contre l'ordinateur"));
-   const l1=el('span','');l1.append('Victoires du 1',Object.assign(document.createElement('sup'),{textContent:'er'}),' joueur');
-   tu.append(tuile(R.length,R.length>1?'Parties':'Partie'),tuile(ligne,'Parties entre joueurs'),to,tuile(txt(p1),l1,ce(p1)),tuile(txt(pc(ab,R.length)),'Abandons'));
-   ban.append(tu);}
-  z.append(ban,g);
-  /* Hors de la grille : sinon le message prendrait une rangee de hauteur H. */
-  if(!R.length)g.before(el('p','pf-vide',VIDE_FILTRES));
-  /* Apres mise en page : H mesuree puis verrouillee, Joueurs et Terrains gardent les lignes qui tiennent.
-     H minimale = grille avec 10 cartes : pendant la mesure, Meilleures cartes est completee par des lignes de carte invisibles (messages masques), retirees ensuite. */
-  const sonde=()=>{const c=g.querySelector('[data-p=m] .st-corps'),id=(CARTES.find(x=>M.CARTES[x[0]])||[])[0];if(!c||!id)return ()=>{};
-    const caches=[...c.children].filter(x=>!x.classList.contains('st-carte')),aj=[];caches.forEach(x=>x.style.display='none');
-    for(let i=c.querySelectorAll('.st-carte').length;i<10;i++){const n=ligneC({id,n:1,p:50,rang:1});if(!n)break;n.style.visibility='hidden';n.setAttribute('aria-hidden','true');c.append(n);aj.push(n)}
-    return ()=>{aj.forEach(x=>x.remove());caches.forEach(x=>x.style.display='')}};
-  statsAjuste=()=>{if(!g.isConnected||!g.offsetParent)return;g.style.gridAutoRows='';const S=listes.map(x=>x.mesure());
-    if(plie()){const fin=sonde(),H=Math.max(...['m','p','e'].map(k=>g.querySelector('[data-p='+k+']').offsetHeight));fin();g.style.gridAutoRows=H+'px'}
-    listes.forEach((x,i)=>x.finit(S[i]))};
-  statsLarg=innerWidth;statsAjuste();
+  /* ---- Colonne 1 : Joueurs (Amicales) : classement public, 5 parties minimum ---- */
+  function joueurs(){
+    const J=(statsJoueurs||[]).filter(x=>x.n>=5).map(x=>({...x,pct:pcSt(x.v,x.n)})).sort((a,b)=>b.pct-a.pct||b.n-a.n||a.p.localeCompare(b.p,'fr')).map((x,i)=>({...x,place:i+1}));
+    const moi=moiUid&&(statsJoueurs||[]).find(x=>x.uid===moiUid),gj='st-gjo';
+    let h=enc([['Parties',R.length.toLocaleString('fr-FR'),'entre joueurs'],['Tes victoires',moi&&moi.n?pcSt(moi.v,moi.n)+' %':'-',moi&&moi.n?moi.v+' sur '+moi.n:'aucune partie'],['Classés',String(J.length),'joueurs']]);
+    h+=`<div class="st-th ${gj}"><span class="r">#</span><span>Joueur (5 min.)</span><span class="r">Parties</span><span class="c">V - D</span><span class="r">Vict.</span></div><div class="st-corps">`;
+    const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10);if(!V.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
+    V.forEach(x=>h+=`<div class="st-ln st-cl ${gj}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.p)}"><span class="st-rk">${x.place}</span><span class="st-jg" data-av="${escSt(x.uid)}"><span class="st-ps" title="${escSt(x.p)}">${hlSt(x.p)}</span></span><span class="r st-n">${x.n}</span><span class="c st-n">${x.v} - ${x.n-x.v}</span><span class="r">${tauxSt(x.pct,x.n)}</span></div>`);
+    return tete('Joueurs')+h+'</div>';
+  }
+  /* ---- Colonne 1 : Joueurs (Entraînement) : taux contre chaque niveau (profil public) ---- */
+  function robots(){
+    const niv=['facile','normal','difficile'],gr='st-grb',tot=niv.map(k=>{const a=R.filter(r=>r.m==='golem-'+k&&r.g!==-1);return {n:a.length,p:pcSt(a.filter(r=>r.g===0).length,a.length)}});
+    let h=enc(niv.map((k,i)=>[k[0].toUpperCase()+k.slice(1),tot[i].p==null?'-':tot[i].p+' %',pl(tot[i].n,'partie')]));
+    const pk=(x,k)=>{const p=pcSt(x.o[k].v,x.o[k].n);return p==null?-1:p};
+    const J=(statsJoueurs||[]).filter(x=>x.n>=5).map(x=>{const rp=statsProfils[x.uid];if(!rp||rp.m===true||!rp.o)return null;return {...x,o:resumeLu(rp).o}}).filter(x=>x&&niv.some(k=>x.o[k].n))
+      .sort((a,b)=>pk(b,'difficile')-pk(a,'difficile')||pk(b,'normal')-pk(a,'normal')||pk(b,'facile')-pk(a,'facile')||a.p.localeCompare(b.p,'fr')).map((x,i)=>({...x,place:i+1}));
+    h+=`<div class="st-th ${gr}"><span class="r">#</span><span>Joueur (5 min.)</span><span class="r">Facile</span><span class="r">Normal</span><span class="r">Difficile</span></div><div class="st-corps">`;
+    const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10);if(!V.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
+    V.forEach(x=>h+=`<div class="st-ln st-cl ${gr}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.p)}"><span class="st-rk">${x.place}</span><span class="st-jg" data-av="${escSt(x.uid)}"><span class="st-ps" title="${escSt(x.p)}">${hlSt(x.p)}</span></span>${niv.map(k=>`<span class="r">${tauxSt(pcSt(x.o[k].v,x.o[k].n),x.o[k].n)}</span>`).join('')}</div>`);
+    return tete('Joueurs')+h+'</div>';
+  }
+  /* ---- Cartes : Meilleures (10 parties minimum) | Plus jouées ---- */
+  const MIN_CARTES=10,lc=[...A.cartes].map(([id,o])=>{const c=CARTES.find(y=>y[0]===id);return c&&M.CARTES[id]?{id,c,n:o.n,p:pcSt(o.v,o.n)}:null}).filter(Boolean);
+  function cartes(){
+    let L=statsTriC===0?lc.filter(x=>x.n>=MIN_CARTES).sort((a,b)=>b.p-a.p||b.n-a.n):lc.slice().sort((a,b)=>b.n-a.n||b.p-a.p);
+    if(statsQ)L=(statsTriC===0?L.concat(lc.filter(x=>x.n<MIN_CARTES).sort((a,b)=>b.n-a.n)):L).filter(x=>okSt(x.c[1]));
+    const sel=`<div class="sc-sel sc-petit st-tric" role="group" aria-label="Tri des cartes"><button type="button" aria-pressed="${statsTriC===0}">Meilleures</button><button type="button" aria-pressed="${statsTriC===1}">Plus jouées</button></div>`;
+    let h=tete('Cartes',sel)+`<div class="st-th st-thc"><span title="Coût" data-ico="enclume"></span><span title="Force" data-ico="force"></span><span></span><span>${statsTriC===0?'Carte ('+MIN_CARTES+' min.)':'Carte'}</span><span class="r" title="Parties">Part.</span><span class="r" title="Taux de victoire">Vict.</span></div><div class="st-corps">`;
+    if(!L.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:R.length?'Il faut au moins '+MIN_CARTES+' parties par carte.':VIDE_FILTRES}</div>`;
+    L.forEach(x=>{const c=x.c,C=M.CARTES[x.id],v=c[1].indexOf(', '),ps=v<0?c[1]:c[1].slice(0,v),ti=v<0?'':c[1].slice(v+2),ani=estAnimal(c),f=forceAff(C);
+      const cl=c[2].length===2?` st-duo" style="--a:var(--fm-${c[2][0]});--b:var(--fm-${c[2][1]})`:ani?' st-ani':'';
+      h+=`<div class="st-lc${cl}" tabindex="0" role="button" data-id="${escSt(x.id)}" title="${escSt(c[1])}" aria-label="${escSt(c[1])}, ${pl(x.n,'partie')}${x.p==null?'':', '+x.p+' % de victoires'}"><span class="st-cf" data-ico="enclume">${C.cout}</span>${ani?'<span class="st-mot">Animal</span>':`<span class="st-cf${f&&f.includes(',')?' st-dec':''}" data-ico="force">${f==null?'':f}</span><span class="st-els" data-els="${c[2].join(',')}"></span>`}<span class="st-nom"><span>${hlSt(ps)}</span>${ti?`<span class="st-ti" style="color:${coulT(c)}">${hlSt(ti)}</span>`:''}</span><span class="st-np">${x.n}</span><span class="st-pv ${couleurTaux(x.p,x.n)}">${x.p==null?'-':x.p+' %'}</span></div>`});
+    return h+'</div>';
+  }
+  /* ---- Terrains : tri par colonne ---- */
+  const TT_ST={pts:'Points du terrain',taux:'Victoire du conquérant : part des conquêtes où le joueur qui remporte le terrain gagne aussi la partie',moy:'Points rapportés en moyenne sur une partie',eg:'Part des manches à égalité'};
+  if(!TT_ST[statsTri])statsTri='taux';
+  function terrains(){
+    let L=[...A.terr].map(([nom,o])=>{const T=M.TERRAINS.find(t=>t.nom===nom);return {nom,pts:T?T.pts|0:0,n:o.n,c:o.c,taux:pcSt(o.cv,o.c),moy:o.n?Math.round(10*o.q/o.n)/10:null,eg:pcSt(o.e,o.m)}}).filter(x=>x.n);
+    const v=x=>x==null?-1:x;L.sort((a,b)=>v(b[statsTri])-v(a[statsTri])||a.nom.localeCompare(b.nom,'fr'));
+    if(statsQ)L=L.filter(x=>okSt(x.nom));
+    const th=(k,t,c)=>`<button type="button" class="st-tri ${c}${statsTri===k?' on':''}" data-k="${k}" title="${TT_ST[k]}" aria-pressed="${statsTri===k}">${t}${statsTri===k?'<small> ▾</small>':''}</button>`;
+    let h=tete('Terrains')+`<div class="st-th st-tht"><span>Terrain</span>${th('pts','Pts','c')}${th('taux','Vict.','r')}${th('moy','Moy.','r')}${th('eg','Égal.','r')}</div><div class="st-corps">`;
+    if(!L.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:R.length?VIDE_ST:VIDE_FILTRES}</div>`;
+    L.forEach(x=>h+=`<div class="st-lt" tabindex="0" role="button" data-t="${escSt(x.nom)}" aria-label="${escSt(x.nom)}"><span class="st-ps" title="${escSt(x.nom)} - ${pl(x.n,'partie')}">${hlSt(x.nom)}</span><span class="st-pz" data-ico="coupe">${x.pts}</span><span class="r">${tauxSt(x.taux,x.c)}</span><span class="r st-n">${x.moy==null?'-':x.moy.toFixed(1).replace('.',',')}</span><span class="r st-n">${x.eg==null?'-':x.eg+' %'}</span></div>`);
+    return h+'</div>';
+  }
+  /* ---- Éléments : taux par élément puis duos ; Decks = part des decks qui le contiennent ---- */
+  function elements(){
+    const ge='st-gel',nd=Math.max(1,R.reduce((s,r)=>s+(/^golem-/.test(r.m)?1:2),0)),E=Object.keys(NOMS_EL_ST),tx=o=>o&&o.n?o.v/o.n:-1;
+    const ligne=(ic,nom,o)=>`<div class="st-ln ${ge}"><span class="st-pk" data-els="${ic}"><span class="st-nm">${nom}</span></span><span class="r st-n">${o?o.n:0}</span><span class="r">${tauxSt(o?pcSt(o.v,o.n):null,o?o.n:0)}</span><span class="r st-n">${o?Math.round(100*o.n/nd):0} %</span></div>`;
+    let h=tete('Éléments')+`<div class="st-th ${ge}"><span>Élément</span><span class="r">Parties</span><span class="r">Vict.</span><span class="r" title="Part des decks qui contiennent cet élément">Decks</span></div><div class="st-els1">`;
+    if(!R.length)h+=`<div class="st-vide">${VIDE_FILTRES}</div>`;
+    else E.map(e=>({e,o:A.els.get(e)})).sort((a,b)=>tx(b.o)-tx(a.o)).forEach(x=>h+=ligne(x.e,NOMS_EL_ST[x.e],x.o));
+    h+=`</div><div class="st-th st-sh2 ${ge}"><span>Duo</span><span class="r">Parties</span><span class="r">Vict.</span><span class="r">Decks</span></div><div class="st-els2">`;
+    const D=[];for(let i=0;i<E.length;i++)for(let j=i+1;j<E.length;j++){const k=[E[i],E[j]].sort();D.push({k,o:A.duos.get(k.join('+'))})}
+    if(R.length)D.sort((a,b)=>(b.o?b.o.n:0)-(a.o?a.o.n:0)).forEach(x=>h+=ligne(x.k.join(','),NOMS_EL_ST[x.k[0]]+' et '+NOMS_EL_ST[x.k[1]],x.o));
+    return h+'</div>';
+  }
+  /* ---- Rendu des colonnes (la recherche ne redessine que les colonnes) ---- */
+  function peintCols(){
+    P[0].innerHTML=statsMode==='classees'?classement():statsMode==='amicales'?joueurs():robots();
+    P[1].innerHTML=cartes();P[2].innerHTML=terrains();P[3].innerHTML=elements();
+    g.querySelectorAll('[data-ico]').forEach(s=>s.prepend(ico(s.dataset.ico)));
+    g.querySelectorAll('[data-els]').forEach(s=>s.dataset.els.split(',').filter(Boolean).reverse().forEach(e=>s.prepend(picto(e))));
+    g.querySelectorAll('[data-av]').forEach(s=>{const x=(statsJoueurs||[]).find(y=>y.uid===s.dataset.av);if(x)s.prepend(avatarUid(x.p,x.uid))});
+    const clic=(n,f)=>{n.onclick=f;n.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}};
+    g.querySelectorAll('.st-cl[data-uid]').forEach(n=>{const u=n.dataset.uid,C=(statsClasse&&statsClasse.liste||[]).find(x=>x.uid===u),J=(statsJoueurs||[]).find(x=>x.uid===u);
+      clic(n,()=>ouvreProfil(statsMode==='classees'&&C?{uid:u,p:C.pseudo,v:C.v|0,n:(C.v|0)+(C.d|0)}:{uid:u,p:J?J.p:C?C.pseudo:'',v:J?J.v:0,n:J?J.n:0}))});
+    g.querySelectorAll('.st-lc[data-id]').forEach(n=>{const c=CARTES.find(y=>y[0]===n.dataset.id),src=imgV('cartes/'+c[0]+'.jpg');clic(n,()=>{cacheApercu();dernier=n;zoom(src,c[1],statZoomCarte(c[0]))});n.onmouseenter=()=>montreApercu(n,src);n.onmouseleave=cacheApercu});
+    g.querySelectorAll('.st-lt[data-t]').forEach(n=>{const T=M.TERRAINS.find(t=>t.nom===n.dataset.t);if(!T)return;clic(n,()=>zoomTerrain(T));n.onmouseenter=()=>montreApercu(n,srcTerrain(T));n.onmouseleave=cacheApercu});
+    g.querySelectorAll('.st-tri').forEach(b=>b.onclick=()=>{statsTri=b.dataset.k;peintCols();const n=g.querySelector('.st-tri[data-k="'+statsTri+'"]');if(n)n.focus()});
+    g.querySelectorAll('.st-tric button').forEach((b,i)=>b.onclick=()=>{statsTriC=i;peintCols();const n=g.querySelectorAll('.st-tric button')[i];if(n)n.focus()});
+    g.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a==='jouer')onglet('jouer');else{ouvrePseudo();if(a==='cree')modeCompte(true)}});
+    if(statsAjuste)statsAjuste();
+  }
+  /* Hauteurs (PC) : Éléments garde sa hauteur naturelle, au moins jusqu'au bas de l'écran ; les 3 autres colonnes s'alignent ;
+     listes en nombre entier de lignes visibles (l'espace restant est réparti entre les lignes). */
+  statsAjuste=()=>{if(!g.isConnected||!g.offsetParent)return;
+    const pE=P[3],sh=pE.querySelector('.st-sh2');P.forEach(p=>p.style.height='');if(sh)sh.style.marginTop='';
+    P.slice(0,3).forEach(p=>{const c=p.querySelector('.st-corps');if(c){c.style.removeProperty('--L');c.style.removeProperty('--g')}});
+    if(!matchMedia('(min-width:1200px)').matches)return;
+    const nat=pE.offsetHeight,He=Math.max(nat,Math.floor(innerHeight-24-(g.getBoundingClientRect().top+scrollY)));
+    if(sh)sh.style.marginTop=(10+He-nat)+'px';P.forEach(p=>p.style.height=He+'px');
+    P.slice(0,3).forEach(p=>{const c=p.querySelector('.st-corps');if(!c)return;const H=c.clientHeight;
+      if(c.querySelector('.st-lc,.st-lt')){const n=Math.floor((H+4)/48);if(n>1)c.style.setProperty('--g',((H-n*44)/(n-1))+'px')}
+      else if(c.querySelector('.st-ln')){const n=Math.floor(H/44);if(n)c.style.setProperty('--L',(H/n)+'px')}
+      c.classList.toggle('st-defile',c.scrollHeight>c.clientHeight+1)})};
+  statsLarg=innerWidth;peintCols();
+  if(document.fonts&&document.fonts.status!=='loaded')document.fonts.ready.then(()=>statsAjuste&&statsAjuste());
 }
-document.addEventListener('click',e=>{const d=document.querySelector('#statsCorps .st-dd[open]');if(d&&!d.contains(e.target))d.open=false});
+/* Fenêtre des récompenses de la saison (grande médaille centrée, comme FINAL_recompenses). */
+function fenSaisonSt(S,sit,R){
+  const L=(statsClasse||{liste:[]}).liste,nom=i=>L[i]?escSt(L[i].pseudo):'-',dt=ms=>new Date(ms).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
+  const nbT=Math.max(0,Math.min(7,L.length-3)),tu=sit.place&&sit.place>3&&sit.place<=10;
+  const v=el('div','st-fd'),f=el('div','sc-fenetre st-fn');f.setAttribute('role','dialog');f.setAttribute('aria-modal','true');f.setAttribute('aria-label','Récompenses - '+S.titre);
+  f.innerHTML=`<div class="st-fh">${medailleSt(S.id,2.3)}<div class="st-fnm">${escSt(S.titre)}</div><div class="st-fdt">${S.debut?'Du <b>'+dt(S.debut)+'</b> au ':'Jusqu’à '}<b>${S.fin?dt(S.fin):'la sortie de la 1.0'}</b>${S.fin?'':' (date à venir)'}</div><div class="st-fdt"><b>${R.length.toLocaleString('fr-FR')}</b> parties classées cette saison</div></div><div class="st-sep"><span>Récompenses</span></div>
+  <div class="st-rw${sit.place===1?' toi':''}">${badgeSt('or',S.id)}<div><b>Champion de la saison ${S.id}</b><small>1re place du classement</small></div><div class="st-pl">Actuel<b title="${nom(0)}">${nom(0)}</b></div></div>
+  <div class="st-rw${sit.place===2||sit.place===3?' toi':''}">${badgeSt('ar',S.id)}<div><b>Podium de la saison ${S.id}</b><small>2e et 3e places</small></div><div class="st-pl">Actuels<b title="${nom(1)}, ${nom(2)}">${nom(1)}, ${nom(2)}</b></div></div>
+  <div class="st-rw${tu?' toi':''}">${badgeSt('br',S.id)}<div><b>Top 10 de la saison ${S.id}</b><small>4e à 10e places${tu?' - tu es '+sit.place+'e':''}</small></div><div class="st-pl">Places<b>${nbT} sur 10</b></div></div>
+  ${S.id===0?`<div class="st-rw">${badgeSt('pi',S.id)}<div><b>Pionnier</b><small>Placement fini (5 parties) en Saison 0</small></div><div class="st-pl">Statut<b class="${sit.fini?'st-ok':''}">${sit.fini?'Obtenu':sit.co?'Pas encore':'-'}</b></div></div>`:''}
+  <p class="st-nt">Les badges s'affichent sur le profil. Classement figé à la fin de la saison.</p><div class="sc-fen-actions"><button class="sc-btn sc-secondaire sc-pousse" type="button">Fermer</button></div>`;
+  const ferme=()=>{v.remove();document.removeEventListener('keydown',ech);const b=$('statsCorps').querySelector('.st-saison');if(b)b.focus()},ech=e=>{if(e.key==='Escape')ferme()};
+  f.querySelector('.sc-fen-actions button').onclick=ferme;v.onclick=e=>{if(e.target===v)ferme()};document.addEventListener('keydown',ech);
+  v.append(f);document.body.append(v);f.querySelector('.sc-fen-actions button').focus();
+}
+document.addEventListener('click',e=>{const m=document.querySelector('#statsCorps .st-pat-m:not([hidden])');if(m&&!m.parentNode.contains(e.target)){m.hidden=true;m.previousSibling.setAttribute('aria-expanded','false')}});
