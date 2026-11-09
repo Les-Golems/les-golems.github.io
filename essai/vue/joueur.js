@@ -6,6 +6,8 @@ function adversaireParti(){
   const g=partie.graine,vu=p=>!p.sameTab&&p.presence&&p.presence.quitte===g;
   return personnes(r.peers()).some(vu)||!!room&&personnes(room.peers()).some(vu);
 }
+/* 0.6.1 : classee entre joueurs : le verrou (engages) n'est leve qu'apres l'ecriture de la partie (sinon refus des regles). */
+function liberePres(a,cl){const e=cl&&!cl.robot&&cl.envoi;if(e)e.finally(()=>a.libere());else a.libere()}
 /* envoi : promesse du coup d'abandon, attendue avant d'annoncer le depart. */
 function quittePartie(envoi){
   if(partie&&partie.rejeu){finRejeu();return}
@@ -14,7 +16,7 @@ function quittePartie(envoi){
   oublie(code);
   if(!a||!g){sortie();return}
   grainesFinies.add(g);
-  if(a.libere)a.libere();
+  if(a.libere)liberePres(a,partie&&partie.classe);
   /* Derniers coups envoyes d'abord, puis depart publie dans le salon, puis dans le lobby : chez l'adversaire, le salon voit le depart avant le lobby (sinon la partie se relancait en boucle). */
   sortie('',Promise.all([envoi,envoiPub]).catch(()=>{}).then(()=>a.presence({quitte:g})).catch(()=>{}).then(()=>room&&room.presence({quitte:g})).catch(()=>{}).then(()=>pause(400)));
 }
@@ -23,9 +25,24 @@ function quittePartie(envoi){
 function quitteAvecConfirmation(){
   if(!partie||partie.rejeu||!partie.etat||partie.etat.fin||partie.tuto){quitteBouton();return}
   if(!partie.local&&r){quitteBouton();return}
+  if(partie.classe){quitteBouton();return} /* 0.6.1 : classee contre le robot : abandon enregistre (quitteBouton) */
   confirmeAbandon('La partie en cours sera perdue.',()=>{if(partie)quitteBouton()},'Quitter la partie ?','Quitter');
 }
 function quitteBouton(){
+  /* 0.6.1 : classee contre le robot en cours : abandon joue (defaite, Elo, historique), ecriture attendue avant de quitter. */
+  const robotCl=()=>partie&&partie.local&&partie.classe&&!partie.rejeu&&!partie.tuto&&partie.etat&&!partie.etat.fin;
+  if(robotCl()){
+    confirmeAbandon('Partir maintenant compte comme une défaite.',async()=>{
+      if(!robotCl()){quittePartie();return}
+      const p=partie,id=p.graine+'-'+p.debut;
+      p.mien.push(M.code({t:'a'}));sel=null;
+      calcule(); /* fin par abandon : finClasse (finRobot gagne:false) et historique */
+      const fin=Promise.all([p.classe&&p.classe.envoi,typeof envoieAttente==='function'&&compteCo()?envoieAttente(id):null]).catch(()=>{});
+      await Promise.race([fin,pause(10000)]);
+      if(partie===p)quittePartie();
+    },'Quitter la partie ?','Quitter');
+    return;
+  }
   const enCours=()=>partie&&!partie.local&&!partie.rejeu&&!partie.tuto&&r&&partie.etat&&!partie.etat.fin&&M.VERSION===M0.VERSION;
   /* 0.5.1 : retour a l'accueil apres une partie terminee (hors replay) : Nouveautes si la version n'est pas encore vue */
   if(!enCours()){const fini=partie&&!partie.rejeu&&partie.etat&&partie.etat.fin;quittePartie();if(fini&&!versionVue())onglet('nouveautes');return}
@@ -58,7 +75,8 @@ function majPartie(){
     rattrape();if(partie.relDep===1||relit('relDep',majPartie))return;
     const ab=partie.etat&&partie.etat.fin&&partie.etat.fin.abandon===1-partie.moi;
     grainesFinies.add(partie.graine);
-    oublie(code);finPartie();notice=ab?'Partie : ton adversaire a abandonné. Tu es de retour dans le salon.':'Partie : ton adversaire a quitté la partie. Tu es de retour dans le salon.';if(r.libere)r.libere();
+    const cl=partie.classe,rr=r;
+    oublie(code);finPartie();notice=ab?'Partie : ton adversaire a abandonné. Tu es de retour dans le salon.':'Partie : ton adversaire a quitté la partie. Tu es de retour dans le salon.';if(rr.libere)liberePres(rr,cl);
     pub({graine:null,jg:null,j:null,veut:null,adv:null});
     $('salon').hidden=false;majSalon();return;
   }
@@ -78,6 +96,8 @@ function majPartie(){
   if(!partie&&maV&&l.some(p=>!vEg(vDe(p),maV)))return; /* versions differentes : aucune partie neuve (moteurs differents) */
   const moi=partie?partie.moi:l.findIndex(p=>p.sameTab);if(moi<0||moi>1)return;
   const g=l[0].presence.graine,lui=l[1-moi];
+  /* Revanche : souhait de l'adversaire (veut = graine de la partie finie) suivi a l'ecran de fin */
+  if(partie&&partie.etat&&partie.etat.fin&&!partie.local){const lv=lui.presence.veut===partie.graine;if(!!partie.luiVeut!==lv){partie.luiVeut=lv;affiche()}}
   const rejouer=partie&&g===partie.graine&&partie.etat&&partie.etat.fin&&partie.veut&&lui.presence.veut===g;
   /* Salon neuf : la graine attend les deux Pret (voir ticCompte). Rejouer et reprise ne passent pas par la. */
   const neuf=!partie&&!l.some(p=>Number.isInteger(p.presence.jg));
@@ -90,13 +110,15 @@ function majPartie(){
     const mien=partie?{texte:partie.decks[partie.moi]||'',nom:partie.deckNom}:deckPret,sien=typeof lui.presence.deck==='string'?lui.presence.deck:'';
     const dks=['',''];dks[moi]=mien.texte||'';dks[1-moi]=sien;
     if(!partie&&M.erreurElements)[0,1].forEach(p=>{const o=M.lisDeck(dks[p]);if(o&&(M.erreurElements(o)||(M.erreurEvolutions&&M.erreurEvolutions(o))))dks[p]=''}); /* 0.4a : deck a 5 elements = deck par defaut, des deux cotes ; 0.5 : idem evolution sans sa base */
-    if(moi===0&&r&&r.engage)r.engage([l[0].peer,l[1].peer]);
+    if(moi===0&&r&&r.engage)r.engage([l[0].peer,l[1].peer],g,partie&&partie.classe&&partie.classe.envoi); /* 0.6.1 : graine dans le verrou (regles du classe) ; revanche : nouveau verrou une fois la partie precedente ecrite */
     lancer(g,moi,typeof lui.presence.sid==='string'?lui.presence.sid:'',{mien:[],sien:[],decks:dks,deckNom:mien.texte?mien.nom:'',classe:salonClasse?{sa:code,a:l[0].peer,b:l[1].peer}:null});if(partie.classe)prepareClasse(partie.classe);sauve();return} /* 0.6 : classee entre joueurs (uids des places 0 et 1) */
   if(partie.advNom!==nomDe(lui)){partie.advNom=nomDe(lui);sauve()}
   if(lui.presence.jg!==g||typeof lui.presence.j!=='string')return;
   let liste;try{liste=M.litJournal(lui.presence.j)}catch(e){return}
   if(liste.length>partie.sien.length){partie.sien=liste;sel=null;calcule()}
 }
+/* Revanche annulee avant la reponse de l'adversaire : le souhait est retire de la presence */
+function annuleRevanche(){if(!partie||partie.local||!partie.veut)return;partie.veut=false;sauve();pub({veut:null});affiche()}
 function joue(a){
   if(!partie||partie.rejeu)return;
   if(window.SPEC&&SPEC.estSpectateur())return; /* spectateur : aucun coup */
@@ -274,7 +296,9 @@ function tasPile(p,k){if(!partie||!partie.etat)return null;const J=partie.etat.j
   if(k==='forge')return J.forge.slice();if(k==='defausse')return J.defausse.slice().reverse();
   if(k!=='deck'||p!==partie.moi||partie.rejeu||window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur())return null;
   const m=new Map();J.deck.forEach(c=>{const k=M.nomDetail(M.carte(c)),x=m.get(k);if(x)x.n++;else m.set(k,{c,n:1,nom:k})}); /* exemplaires d'une meme carte (codes differents) regroupes par nom */
-  return [...m.values()].sort((a,b)=>a.nom.localeCompare(b.nom,'fr'))}
+  /* 0.6.1 : meme regle que l'onglet Decks (cmpNomCarte de v06-divers) : cle = nom de la base pour une evolution, animaux meles, base avant son evolution. */
+  const C=M.CARTES,id=x=>(M.carte(x.c)||{}).id,cle=i=>{const y=C[i]||{};return y.base&&C[y.base]?C[y.base].nom:(y.nom||'')};
+  return [...m.values()].sort((a,b)=>{const i=id(a),j=id(b);return cle(i).localeCompare(cle(j),'fr',{sensitivity:'base',numeric:true})||(!!(C[i]||{}).base-!!(C[j]||{}).base)||a.nom.localeCompare(b.nom,'fr')})}
 const LIB_PILE={deck:'Deck',forge:'Forge',defausse:'Défausse'};
 function voirPile(p,k){const t=tasPile(p,k);if(t)ouvreTas(LIB_PILE[k]+(p===partie.moi?'':' de '+nomJ(p))+(k==='deck'?' (trié par nom)':''),t)}
 /* compteur du bandeau d'un camp (Deck, Defausse, Forge ou Energie) : ouvre la pile, comme les piles de la vue joueur */

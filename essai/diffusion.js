@@ -197,8 +197,11 @@ function peindre(){
   if(fin&&!suivi.fin){suivi.fin=true;suivi.nt=nt;ouvrePop('partie')}
   else if(!fin&&nt>suivi.nt&&nt%3===0){suivi.nt=nt;ouvrePop('manche',nt/3)}
   else if(suivi.pile&&sigPile(suivi.pile)!==suivi.pile.sig)ouvrePop('pile',suivi.pile); /* pile ouverte : mise a jour en direct */
-  /* recapitulatif ouvert pendant un decompte qui continue (bonus de fin de manche, de) : refait avec le journal a jour */
-  else if(suivi.vu&&suivi.vu.log!==s.log.length)ouvrePop(suivi.vu.type,suivi.vu.m);
+  /* recapitulatif ouvert pendant un decompte qui continue (bonus de fin de manche, de) : refait avec le journal a jour ;
+     fin de partie : refaite quand le souhait de revanche change (le mien ou celui de l'adversaire) */
+  else if(suivi.vu&&(suivi.vu.log!==s.log.length||(suivi.vu.type==='partie'&&suivi.vu.rv!==revSig())))ouvrePop(suivi.vu.type,suivi.vu.m);
+  /* fenetre de fin fermee et l'adversaire demande sa revanche : elle se rouvre */
+  else if(src==='joueur'&&fin&&!suivi.pop&&suivi.rvVu!==revSig()&&(revSig()&2))ouvrePop('partie');
   else if(suivi.pop)scene.append(suivi.pop);
 }
 function bandeau(s,qui){
@@ -440,6 +443,8 @@ function ajusteNoms(){
 }
 
 /* ---------- Fenetres de fin ---------- */
+/* souhait de revanche (vue joueur en ligne) : 1 = le mien, 2 = celui de l'adversaire */
+function revSig(){const P=src==='joueur'&&U()?U().partie:null;return P&&!P.local?(P.veut?1:0)+(P.luiVeut?2:0):0}
 function fermePop(){if(src==='joueur'&&suivi&&suivi.vu&&suivi.vu.type==='manche'){const c=document.getElementById('continuer'),r=document.getElementById('recap');if(c&&r&&!r.hidden)setTimeout(()=>c.click(),0)} /* vue joueur : fermer le bilan de manche = Continuer */
 if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi.pop=null;suivi.pile=null;suivi.vu=null}
 /* Piles (Deck, Defausse, Forge) : ordre de pioche (1 = prochaine carte), defausse de la plus recente a la plus ancienne, forge dans l'ordre */
@@ -488,10 +493,18 @@ function ouvrePop(type,m){
   if(type==='manche'){popManche(E.etat,m,pp);suivi.vu={type,m,log:E.etat.log.length}}
   else if(type==='pile'){pp.classList.add('pp-p');popPile(m,pp);suivi.pile={p:m.p,k:m.k,sig:sigPile(m)};v.onclick=e=>{if(e.target===v)fermePop()}}
   else if(type==='abandon')popAbandon(E.etat,m,pp);
-  else{popPartie(E.etat,pp);suivi.vu={type,m,log:E.etat.log.length};if(src==='joueur')boutonsFin(pp)}
+  else{popPartie(E.etat,pp);suivi.vu={type,m,log:E.etat.log.length,rv:revSig()};suivi.rvVu=suivi.vu.rv;if(src==='joueur')boutonsFin(pp)}
   if(!(type==='partie'&&src==='joueur')){const fe=mk('button','pp-fermer','Fermer');fe.type='button';fe.onclick=fermePop;pp.append(fe)} /* J06 : fin de partie du joueur sans petit Fermer */
-  v.append(pp);scene.append(v);suivi.pop=v;
+  v.append(pp);scene.append(v);suivi.pop=v;ajustePop(pp);
   if(type==='pile'&&haut){const g=pp.querySelector('.pp-pile');if(g)g.scrollTop=haut}
+}
+/* Pseudos des recapitulatifs : la police se reduit (28 -> 20 px dans les lignes de terrain, 22 -> 16 px dans « X marque n points ») avant toute coupure « ... » */
+function ajustePop(pp){
+  /* meme taille pour toutes les lignes d'un meme role (la plus petite necessaire) */
+  const cale=(L,el,f0,fmin)=>{let f=f0;const trop=()=>L.some(x=>{const n=el(x);return n&&n.scrollWidth>n.clientWidth+1});
+    while(f>fmin&&trop()){f--;L.forEach(x=>x.style.fontSize=f+'px')}};
+  cale([...pp.querySelectorAll('.pp-l>span:not(.avatar)')],x=>x,28,20);
+  cale([...pp.querySelectorAll('.pp-rl')],x=>x.querySelector(':scope>b'),22,16);
 }
 /* vue spectateur : fin par abandon (deconnexion), ecran neutre : Vainqueur / Abandon, score */
 function popAbandon(s,perdant,pp){
@@ -505,12 +518,17 @@ function boutonsFin(pp){
   const u=U(),s=E.etat,z=mk('div','pp-fbtns'),b=(t,cl,f)=>{const x=mk('button','btn'+(cl?' '+cl:''),t);x.type='button';x.onclick=()=>f(x);z.append(x);return x};
   const rj=document.getElementById('rejouer'),P=u.partie;
   if(rj){const rv=mk('div','pp-rev'),moiP=P?P.moi:0,j=p=>{const d=mk('div','pp-rj'+(p===moiP?'':' lui')),n=mk('b','',nom(p));n.style.color=COL[p];d.append(avatar(p),n);return d};
-    const x=mk('button','sc-btn pp-revb',P&&P.veut?'En attente de l\'adversaire':'Revanche');x.type='button';x.disabled=rj.disabled;
+    /* en ligne : apres « Revanche », la fenetre reste ouverte, « En attente de l'adversaire » et « Annuler » ; l'adversaire voit le souhait (P.luiVeut) */
+    const enLigne=P&&!P.local,attend=enLigne&&P.veut,lv=enLigne&&!P.veut&&P.luiVeut;
+    const x=mk('button','sc-btn pp-revb'+(attend?' sc-secondaire':''),attend?'Annuler':'Revanche');x.type='button';x.disabled=attend?false:rj.disabled;
     /* classee contre un Golem : la revanche relance une classee contre le Golem choisi par l'Elo (limite du jour comprise) */
     const cl=P&&P.classe&&P.classe.robot&&typeof lanceClasseRobot==='function'&&typeof profilClasse==='function';
     if(cl&&!GolemsClasse.peutAffronterRobot(profilClasse().robots)){x.disabled=true;x.textContent='Limite du jour atteinte'}
-    x.onclick=()=>{fermePop();if(cl)lanceClasseRobot(profilClasse(),P.classe.sa);else rj.click()};
-    const c=mk('div','pp-revc');c.append(x,mk('small','',P&&P.local?(cl?'Nouvelle classée contre un Golem':'Nouvelle partie contre le Golem'):P&&P.veut?'Tu as choisi la revanche':'Personne n\'a encore choisi'));
+    x.onclick=()=>{if(cl){fermePop();lanceClasseRobot(profilClasse(),P.classe.sa);return}
+      if(!enLigne){fermePop();rj.click();return}
+      if(attend){if(typeof u.annuleRevanche==='function')u.annuleRevanche()}else rj.click();
+      if(suivi&&suivi.vu&&suivi.vu.type==='partie'&&suivi.vu.rv!==revSig())ouvrePop('partie')};
+    const c=mk('div','pp-revc'+(attend||lv?' pp-revq':''));c.append(x,mk('small','',P&&P.local?(cl?'Nouvelle classée contre un Golem':'Nouvelle partie contre le Golem'):attend?'En attente de l\'adversaire':lv?nom(1-moiP)+' veut sa revanche':'Personne n\'a encore choisi'));
     rv.append(j(moiP),c,j(1-moiP));pp.append(rv)}
   b('Changer de deck','sec',()=>{if(typeof u.choisirDeck==='function')u.choisirDeck(()=>{},'Choisir')});
   b('Partager le résumé','sec',x=>u.partageFin(x,u.texteResume(s)));
@@ -521,8 +539,9 @@ function boutonsFin(pp){
 /* Echap ferme la fenetre d'une pile (apres le zoom d'une carte s'il est ouvert) */
 document.addEventListener('keydown',e=>{if(e.key!=='Escape'||!D||!suivi)return;const z=document.getElementById('vue');if(z&&!z.hidden)return;
   if(suivi.pile)fermePop();else if(chat.el)chat.ferme()},true);
-function score(sm,a,b){
-  const t=mk('div','pp-tot'),d=mk('div'),x=mk('b','',String(a)),y=mk('b','',String(b));x.style.color=COL[0];y.style.color=COL[1];
+/* sc = scores par place ; vue joueur : le sien d'abord, comme le bandeau du haut (BAS) */
+function score(sm,sc){
+  const o=BAS(),t=mk('div','pp-tot'),d=mk('div'),x=mk('b','',String(sc[o])),y=mk('b','',String(sc[1-o]));x.style.color=COL[o];y.style.color=COL[1-o];
   d.append(U().ico('coupe'),x,mk('span','','-'),y);t.append(mk('small','',sm),d);return t;
 }
 function popManche(s,m,pp){
@@ -549,10 +568,10 @@ function popManche(s,m,pp){
   const pm=ptsManche(s,m)||[0,0],tot=[0,0];for(let k=1;k<=m;k++){const x=ptsManche(s,k);if(x){tot[0]+=x[0];tot[1]+=x[1]}}
   const bas=mk('div','pp-bas');
   const bo=bonusManche(s,m);
-  [0,1].forEach(p=>{const w=mk('div','pp-gc'),x=mk('div','pp-gain'),n=mk('span','',nom(p)),i=mk('i','','+'+pm[p]);n.style.color=i.style.color=COL[p];x.append(avatar(p),n,i,u.ico('coupe'));w.append(x);
+  [BAS(),1-BAS()].forEach((p,rg)=>{const w=mk('div','pp-gc'),x=mk('div','pp-gain'),n=mk('span','',nom(p)),i=mk('i','','+'+pm[p]);n.style.color=i.style.color=COL[p];x.append(avatar(p),n,i,u.ico('coupe'));w.append(x);
     /* points hors terrains (Roi du Karaoke...) : petite ligne sous le gain, deja compris dans le +n */
     if(bo[p].length)w.append(mk('div','pp-bonus',bo[p].join(' - ')));bas.append(w);
-    if(p===0)bas.append(score('Score',tot[0],tot[1]))});
+    if(rg===0)bas.append(score('Score',tot))});
   pp.append(bas);
 }
 function popPartie(s,pp){
@@ -566,10 +585,10 @@ function popPartie(s,pp){
   if(F.abandon!==undefined)vic.append(mk('p','pp-sous',nom(F.abandon)+(F.quitte?' a quitté la partie':' a abandonné')));
   else if(F.deckVide!==undefined)vic.append(mk('p','pp-sous','Victoire par deck vide : '+nom(F.deckVide)+' n\'avait plus de carte à piocher')); /* 0.4 */
   else if(F.departage&&F.scores[0]===F.scores[1])vic.append(mk('p','pp-sous','Égalité de points : départage à la Force'));
-  vic.append(score('Score final',F.scores[0],F.scores[1]));pp.append(vic);
+  vic.append(score('Score final',F.scores));pp.append(vic);
   const tb=mk('table','pp-tab'),hr=mk('tr');['','Manche 1','Manche 2','Manche 3','Total'].forEach(x=>hr.append(mk('th','',x)));tb.append(hr);
   const P=[1,2,3].map(m=>ptsManche(s,m));
-  [0,1].forEach(p=>{const tr=mk('tr',w===p?'gagne':''),n=mk('td'),nm=mk('div','nm'),sp=mk('span','',nom(p));tr.style.setProperty('--c',COL[p]);sp.style.color=COL[p];nm.append(avatar(p),sp);n.append(nm);tr.append(n);
+  [BAS(),1-BAS()].forEach(p=>{const tr=mk('tr',w===p?'gagne':''),n=mk('td'),nm=mk('div','nm'),sp=mk('span','',nom(p));tr.style.setProperty('--c',COL[p]);sp.style.color=COL[p];nm.append(avatar(p),sp);n.append(nm);tr.append(n);
     P.forEach(x=>{const g=x&&x[p]>x[1-p],td=mk('td',g?'mg':'',x?String(x[p]):'-');td.style.color=g?COL[p]:'var(--texte)';tr.append(td)});
     const tt=mk('td','',String(F.scores[p]));tt.style.color=COL[p];tr.append(tt);tb.append(tr)});
   pp.append(tb);
@@ -791,13 +810,17 @@ function joueur(){
   const ok=P&&P.etat&&!P.rejeu&&ECRAN_JOUEUR.matches&&box&&!box.hidden&&!(window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur());
   if(!ok){if(D&&src==='joueur')fermer();return}
   const x={etat:P.etat,moi:P.moi,noms:[0,1].map(p=>u.nomJ(p)),avatars:[0,1].map(p=>p===P.moi?u.monAvatar():''),uids:[0,1].map(p=>p===P.moi||P.local?'':u.uidJ(p))};
+  /* nouvelle partie dans la meme vue (revanche) : memoire de la vue remise a zero (fenetres, derniere carte, manches vues) */
+  if(D&&src==='joueur'&&suivi&&suivi.P!==P){if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi=neufSuivi();suivi.P=P}
   if(D&&src==='joueur'){E=x;peindre();return}
-  ouvrir('joueur',x);D.classList.add('jr');document.documentElement.classList.add('dif-joueur');
+  ouvrir('joueur',x);suivi.P=P;D.classList.add('jr');document.documentElement.classList.add('dif-joueur');
   /* plein ecran au demarrage de la partie (geste de l'utilisateur : clic sur Jouer) ; refuse = rien */
   try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}
 }
 /* vue joueur : un bilan de manche de la partie ouvert (cache) sans fenetre de la vue = on ouvre celle de la vue (sinon la partie attendrait « Continuer ») */
 setInterval(()=>{if(!D||src!=='joueur'||!suivi||suivi.pop)return;const r=document.getElementById('recap');if(!r||r.hidden||!E.etat.stats)return;
+  /* partie finie : le bilan de la manche 3 est deja dans la fenetre de fin ; il est seulement marque vu (sinon il revenait apres « Revanche ») */
+  if(E.etat.fin){const c=document.getElementById('continuer');if(c)c.click();return}
   const n=Math.max(1,Math.floor(E.etat.stats.t.length/3));ouvrePop('manche',n)},400);
 /* « Quitter la partie » (spectateur) : la diffusion se ferme et le spectateur quitte la partie comme avec l'ancien bouton Quitter ;
    demonstration : « Quitter la diffusion » arrete la partie locale */

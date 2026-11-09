@@ -165,7 +165,7 @@ async function ouvre() {
       cree: +v.cree || 0,
       decks: versListe(v.decks).map(d => ({ id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0, ...(d.v ? { v: d.v } : {}) })),
       historique: Object.keys(v.historique || {}).map(k => { try { return JSON.parse(v.historique[k].x); } catch (e) { return null; } })
-        .filter(x => x && x.id).sort((a, b) => b.date - a.date),
+        .filter(x => x && x.id).sort((a, b) => (+b.date || 0) - (+a.date || 0)),
       cumul: lisCumul(v.cumul),
       masque: false
     };
@@ -204,8 +204,23 @@ async function ouvre() {
       if (!compte.connecte() || !cumuleur) return false;
       const qui = moi, l = (extra || []).concat(donnees.historique);
       try { if (!cumuleur(donnees.cumul, l)) return false; } catch (e) { console.warn("cumul", e); return false; }
+      // 0.6.2 : compteurs par mode à (re)construire (md absent ou en retard) : profil classé et, si l'historique ne contient
+      // plus toutes les classées, classées contre le robot lues dans classe/parties (lecture seule).
+      let ctx = null; const c0 = donnees.cumul;
+      if (c0 && c0.f === 1 && (+c0.k || 0) > 0 && !(c0.md && c0.md.k === c0.k)) {
+        ctx = {};
+        try { const j = (await get(ref(db, P + "classe/joueurs/" + qui))).val(); if (j && Number.isFinite(j.v) && Number.isFinite(j.d)) ctx.cl = { v: j.v, d: j.d }; } catch (e) {}
+        const nh = donnees.historique.filter(x => x && (x.mode === "classee" || x.cl === true)).length;
+        if (ctx.cl && ctx.cl.v + ctx.cl.d > nh) {
+          try {
+            const ps = (await get(ref(db, P + "classe/parties"))).val() || {}, rob = { facile: { n: 0, v: 0 }, normal: { n: 0, v: 0 }, difficile: { n: 0, v: 0 } };
+            for (const k in ps) { const p = ps[k]; const m = p && p.robot === true && p.a === qui && /^robot-(facile|normal|difficile)$/.exec(String(p.b)); if (m) { rob[m[1]].n++; if (p.gagnant === qui) rob[m[1]].v++; } }
+            ctx.rob = rob;
+          } catch (e) { console.warn("cumul", e); return false; }
+        }
+      }
       try {
-        const r = await runTransaction(ref(db, P + "joueurs/" + qui + "/cumul"), t => { const c = cumuleur(lisCumul(t), l); return c ? JSON.stringify(c) : undefined; });
+        const r = await runTransaction(ref(db, P + "joueurs/" + qui + "/cumul"), t => { const c = cumuleur(lisCumul(t), l, ctx); return c ? JSON.stringify(c) : undefined; });
         if (qui === moi && donnees) donnees.cumul = lisCumul(r.snapshot.val()) || donnees.cumul;
         return r.committed;
       } catch (e) { console.warn("cumul", e); return false; }
@@ -217,9 +232,11 @@ async function ouvre() {
   function marqueClassee(e, x) {
     const c = x && x.classe; if (!(x && (x.mode === "classee" || c))) return;
     e.c = true;
-    if (c && Number.isInteger(c.delta) && Math.abs(c.delta) <= 64) e.de = c.delta;
+    if (c && !c.attente && Number.isInteger(c.delta) && Math.abs(c.delta) <= 64) e.de = c.delta;
     if (c && /^(facile|normal|difficile)$/.test(c.niveau || "")) e.ro = c.niveau;
   }
+  // Texte d'une entrée d'historique (12 000 caractères au plus ; allégé si besoin) ; null si impossible.
+  const texteHisto = x => { let t = JSON.stringify(x); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [], rejeu: null }); if (t.length > 12000) t = JSON.stringify({ id: x.id, date: x.date, adv: x.adv, res: x.res, abandon: x.abandon, score: x.score, mvp: x.mvp, pseudo: x.pseudo, advNom: x.advNom, moteur: x.moteur }); return t.length > 12000 ? null : t; };
   const compte = {
     erreurPseudo, nettoiePseudo,
     connecte: () => estCompte() && !!donnees,
@@ -285,10 +302,11 @@ async function ouvre() {
         try { await set(ref(db, P + "classement/" + moi), { p: donnees.pseudo, v: r.v, n: r.n }); } catch (e) {}
       }
       const o = { p: donnees.pseudo, m: !!donnees.masque, n: r.n, v: r.v, d: r.d, t: serverTimestamp() };
-      if (donnees.cree) o.cr = donnees.cree;
-      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv", "pm"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
+      // 0.6 : profil privé (masque) : ni date de création (cr) ni Elo (el).
+      if (donnees.cree && !donnees.masque) o.cr = donnees.cree;
+      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv", "pm", "pmf"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
       // 0.6 : Elo classé affiché (placement fini seulement, règle profils/el).
-      const lisEl = async () => { delete o.el; try { const j = (await get(ref(db, P + "classe/joueurs/" + moi))).val(); if (j && j.parties >= 5 && Number.isFinite(j.elo)) o.el = j.elo; } catch (e) {} };
+      const lisEl = async () => { delete o.el; if (donnees.masque) return; try { const j = (await get(ref(db, P + "classe/joueurs/" + moi))).val(); if (j && j.parties >= 5 && Number.isFinite(j.elo)) o.el = j.elo; } catch (e) {} };
       await lisEl();
       try { await set(ref(db, P + "profils/" + moi), o); return true; } catch (e) {
         // el doit égaler classe/joueurs/<uid>/elo au moment de l'écriture : une fin de classée (finRobot, finJoueurs) peut
@@ -385,7 +403,7 @@ async function ouvre() {
       const maj = {}, ajoutes = [];
       // Trop long : on retire d'abord le bilan, puis le detail des manches, le rejeu en dernier, jamais en coupant le JSON.
       // En dernier recours, l'essentiel seulement (résultat, score, adversaire) : la partie compte toujours.
-      const texte = x => { let t = JSON.stringify(x); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [] }); if (t.length > 12000) t = JSON.stringify({ ...x, bilan: [], manches: [], rejeu: null }); if (t.length > 12000) t = JSON.stringify({ id: x.id, date: x.date, adv: x.adv, res: x.res, abandon: x.abandon, score: x.score, mvp: x.mvp, pseudo: x.pseudo, advNom: x.advNom, moteur: x.moteur }); return t.length > 12000 ? null : t; };
+      const texte = texteHisto;
       const trop = [];
       entrees.forEach(x => { const t = x && x.id && texte(x); if (x && x.id && !t) trop.push(x.id); if (t && !donnees.historique.some(y => y.id === x.id)) { donnees.historique.push(x); ajoutes.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; marqueClassee(maj[x.id], x); } });
       donnees.historique.sort((a, b) => b.date - a.date);
@@ -395,6 +413,13 @@ async function ouvre() {
       compte.publieStats(ajoutes);
       // Plus d'échec silencieux : la page affiche « Partie non enregistrée ».
       if (trop.length) throw Object.assign(new Error("historique trop long"), { code: "golems/trop-long" });
+    },
+    // 0.6.1 : réécrit une entrée déjà enregistrée (variation classée écrite après coup : fin de « en attente »).
+    async majHisto(x) {
+      if (!compte.connecte() || !x || !x.id || !donnees.historique.some(y => y.id === x.id)) return false;
+      const t = texteHisto(x); if (!t) return false;
+      const e = { d: +x.date || Date.now(), x: t }; marqueClassee(e, x);
+      await set(ref(db, P + "joueurs/" + moi + "/historique/" + x.id), e); return true;
     },
     async marqueImport() {
       if (!compte.connecte()) return;
@@ -520,10 +545,28 @@ async function ouvre() {
       journalDe: (sid, g) => journal(sid, g),
       async journalFrais(sid, g) { await relitCoups(); return journal(sid, g); },
       // Verrou de partie : les deux uid engagés (sans effet s'il existe déjà).
-      async engage(uids) {
+      // 0.6.1 : g = graine de la partie (salon classé : obligatoire ; nouvelle graine = ancien verrou levé d'abord, permis une fois sa partie écrite).
+      // Revanche : avant = écriture de la partie précédente (classée) ; le verrou de l'ancienne graine n'est levé qu'une fois
+      // cette partie écrite (règle engages), d'où l'attente puis de nouveaux essais (2 s, 90 s au plus). Même graine déjà posée
+      // (reprise après rechargement) : rien à écrire.
+      async engage(uids, g, avant) {
         const o = {}; uids.forEach(u => { if (typeof u === "string") o[u] = true; });
-        if (!o[uid] || Object.keys(o).length !== 2) return;
-        try { await set(ref(db, base + "/engages"), o); } catch (e) {}
+        if (!o[uid] || Object.keys(o).length !== 2) return false;
+        if (Number.isInteger(g)) o.g = String(g);
+        try { if (avant) await avant; } catch (e) {}
+        for (let k = 0; k < 45 && !fini; k++) {
+          try {
+            const e = (await get(ref(db, base + "/engages"))).val();
+            if (e && o.g && e.g === o.g && e[uid]) return true;
+            if (e && !e[uid]) return false;
+            // salon classé : partie de l'ancienne graine pas encore écrite = verrou pas encore levable, on attend sans essayer
+            if (e && e.g && (await get(ref(db, base + "/cl"))).val() === true && !(await get(ref(db, P + "classe/parties/" + code + "-" + e.g))).exists()) throw 0;
+            if (e) await remove(ref(db, base + "/engages"));
+            await set(ref(db, base + "/engages"), o);
+            return true;
+          } catch (e) { await new Promise(r => setTimeout(r, 2000)); }
+        }
+        return false;
       },
       chat: () => chat,
       onChat(f) { ecouteChat.push(f); f(chat); },
@@ -535,7 +578,9 @@ async function ouvre() {
       async libere() { try { await remove(ref(db, base + "/engages")); } catch (e) {} },
       // 0.6 : salon classé. marqueClasse : cl = true et heure d'ouverture (cree, une fois) ; estClasse : lecture de cl ;
       // poseRobot(o) : bandeau « Affronter un Golem » (o = GolemsClasse.salonRobot), à poser avant de quitter le salon.
-      async marqueClasse() { await set(ref(db, base + "/cl"), true); try { await set(ref(db, base + "/cree"), serverTimestamp()); } catch (e) {} },
+      // 0.6.1 : hote = créateur du salon (seul à pouvoir poser cl), posé à la création de tout salon.
+      async marqueHote() { try { await set(ref(db, base + "/hote"), uid); } catch (e) {} },
+      async marqueClasse() { try { await set(ref(db, base + "/hote"), uid); } catch (e) {} await set(ref(db, base + "/cl"), true); try { await set(ref(db, base + "/cree"), serverTimestamp()); } catch (e) {} },
       async estClasse() { try { return (await get(ref(db, base + "/cl"))).val() === true; } catch (e) { return false; } },
       poseRobot(o) { return set(ref(db, base + "/robot"), o); },
       async presence(p) {
@@ -687,6 +732,32 @@ async function ouvre() {
       async romain() {
         if (!estCompte()) return false;
         try { return (await get(ref(db, P + "pseudos/katarn"))).val() === moi; } catch (e) { return false; }
+      }
+    },
+    // 0.6 : votes des guides (rules/60-guides.js) : guides/<id>/votes/<uid> = 1 ou -1, lus par tous, écrits par un compte pour lui seul.
+    // ecoute(f) : f({ id: { uid: 1 | -1 } }) à chaque changement ({} si illisible) ; vote(id, v) : v = 1, -1, ou 0 pour retirer.
+    // uid() : uid du compte connecté (null en invité).
+    guides: {
+      ecoute(f) {
+        return onValue(ref(db, P + "guides"), s => {
+          const v = s.val() || {}, o = {};
+          for (const g in v) { const w = v[g] && v[g].votes; if (w && typeof w === "object") { o[g] = {}; for (const u in w) if (w[u] === 1 || w[u] === -1) o[g][u] = w[u]; } }
+          f(o);
+        }, () => f({}));
+      },
+      vote(id, v) {
+        if (!estCompte()) return Promise.reject(new Error("compte"));
+        const r = ref(db, P + "guides/" + id + "/votes/" + moi);
+        return v === 1 || v === -1 ? set(r, v) : remove(r);
+      },
+      uid: () => estCompte() ? moi : null,
+      // Proposition de guide (rules/60-guides.js, propositionsGuides) : o = { ty: 'v'|'t', ti, yt?, tx?, d1, d2? } ; rend la clé écrite.
+      async propose(o) {
+        if (!estCompte() || !donnees) throw new Error("compte");
+        const x = { u: moi, p: donnees.pseudo, ty: o.ty, ti: o.ti, d1: o.d1, t: serverTimestamp() };
+        for (const k of ["yt", "tx", "d2"]) if (o[k]) x[k] = o[k];
+        const r = push(ref(db, P + "propositionsGuides"));
+        await set(r, x); return r.key;
       }
     },
     // Lecture brute (tests locaux) : soumise aux mêmes règles que le reste.

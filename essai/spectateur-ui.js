@@ -109,6 +109,8 @@ function peindreSalon(etat){
   if(!lie())return;
   const u=q('joueurs');if(!u||!etat)return;
   const S=SPECobj(),moi=etat.moi,j1=etat.j1||{},adv=etat.adv||null,spec=Array.isArray(etat.spectateurs)?etat.spectateurs:[];
+  /* 0.6 : un joueur assis voit le salon refait de jouer.js (siegeSalon, colonne des spectateurs, rangee du bas) ; seul le spectateur garde cette vue */
+  if(moi!=='spec'){bandeauPromotion(etat.promotion||null);u.classList.remove('sp-3col');document.body.classList.remove('sp-spectateur');document.querySelectorAll('#salon .sp-trib').forEach(x=>x.remove());return}
   u.textContent='';
   /* Siege du createur : Changer de deck s'il est a moi (comme siegeSalon) */
   const s1=siege(j1,moi==='j1',moi==='j1'?[boutonChangerDeck(j1)]:[],!!etat.j1);
@@ -126,7 +128,7 @@ function peindreSalon(etat){
   }else{
     const bs=[];
     if(moi==='spec'){
-      const d=btn('Devenir adversaire','plein');d.id='devenirAdversaire';d.disabled=enCours;
+      const d=btn('Prendre la place','plein sl-prendre'); /* 0.6.1 : libelle de la maquette 23 (rf-prendre) */d.id='devenirAdversaire';d.disabled=enCours;
       d.onclick=()=>{if(!S||!S.devenirAdversaire||enCours)return;enCours=true;d.disabled=true;
         Promise.resolve(S.devenirAdversaire()).then(ok=>{enCours=false;if(!ok)message("Trop tard : la place d'adversaire vient d'être prise.");if(S.etatSalon)peindreSalon(S.etatSalon())},
           ()=>{enCours=false;message("La place d'adversaire n'a pas pu être prise.");if(S.etatSalon)peindreSalon(S.etatSalon())})};
@@ -134,12 +136,13 @@ function peindreSalon(etat){
     }
     s2=siegeLibre(bs);
   }
-  u.classList.add('sp-3col');
-  u.append(s1,mk('div','sl-vs','VS'),s2,tribune(spec));
+  /* 0.6 : la colonne des spectateurs est celle du salon refait (jouer.js, majSpecs) : plus de tribune en double */
+  u.classList.remove('sp-3col');document.querySelectorAll('#salon .sp-trib').forEach(x=>x.remove());
+  u.append(s1,mk('div','sl-vs','VS'),s2);
   document.body.classList.toggle('sp-spectateur',moi==='spec');
   /* Spectateur : pas de Pret, une phrase d'etat a la place */
   if(moi==='spec'){
-    const p=q('pret'),a=q('attente');if(p)p.hidden=true;
+    const p=q('pret'),a=q('attente'),d=q('slDeck');if(p)p.hidden=true;if(d)d.hidden=true; /* pas de deck a changer */
     if(a&&!enCours){a.textContent=adv?'Salon : tu regardes ce salon en spectateur. Prends une place libre pour jouer.':"Salon : place d'adversaire libre. Prends-la pour jouer.";a.classList.toggle('pret',!adv)}
   }
 }

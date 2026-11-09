@@ -13,7 +13,8 @@ function bandeauDeck(d){
 /* Version du jeu de la partie (moteur), "version inconnue" pour les anciennes entrees. */
 function versionHisto(x){const v=x&&(x.moteur||(x.rejeu&&x.rejeu.v));return typeof v==='string'&&v?'v'+v:'version inconnue'}
 /* Affichage : version du site (table PATCH_MOTEUR des Statistiques) et niveau du Golem avec majuscule. */
-function versionAff(x){const v=x&&(x.moteur||(x.rejeu&&x.rejeu.v));return typeof v==='string'&&v?patchSite(v):'version inconnue'}
+/* 0.6.1 : partie sans moteur ni rejeu.v : version deduite de sa date (calendrier des sorties, onglets/nouveautes.js) ; sans date : « v? » (gris, « Version inconnue » au survol). */
+function versionAff(x){const v=x&&(x.moteur||(x.rejeu&&x.rejeu.v));if(typeof v==='string'&&v)return patchSite(v);const d=x&&typeof versionALaDate==='function'?versionALaDate(+x.date):'';return d||'v?'}
 function advAff(a){const m=/^Golem \((.+)\)$/.exec(a||'');return m?'Golem ('+m[1].charAt(0).toUpperCase()+m[1].slice(1)+')':String(a||'')}
 /* Carte du detail : pictos d'elements puis pseudo (★ si evolution) et titre en dessous, comme la liste condensee des decks. */
 /* Nom complet comme sur la carte (« K-Chan, Reine du tilt »), d'apres CARTES. */
@@ -69,6 +70,7 @@ function advHisto(x,droite){
   return z;
 }
 function deltaHisto(x){
+  if(x.classe&&x.classe.attente){const s=el('span','hl-delta','…');s.title='Variation d’Elo en attente d’écriture';return s} /* 0.6.1 */
   const d=x.classe&&Number.isFinite(x.classe.delta)?Math.round(x.classe.delta):null;
   if(d===null)return null;return el('span','hl-delta '+(d>0?'p':d<0?'m':''),(d>0?'+':'')+d);
 }
@@ -81,12 +83,14 @@ function scoreHisto(x,cl){
 function mvpHisto(nom){
   const z=el('span','hl-mvp');z.append(el('span','hl-mvpe','MVP'));
   const C=carteDe(nom),b=el('b','',C?C.nom+(C.base?' ★':''):(nom||'-'));
-  if(C&&elCarte(C))b.style.color='var(--'+elCarte(C)+')';if(C&&C.base)b.title=C.nom+' (évolution de '+M0.CARTES[C.base].nom+')';else b.title=b.textContent;
+  if(C&&elCarte(C))b.style.color='var(--'+elCarte(C)+')';if(C&&C.base)b.title=C.nom+' (évolution de '+((M0.CARTES[C.base]||{}).nom||'-')+')';else b.title=b.textContent;
   z.append(b);return z;
 }
-const dateH=t=>new Date(t).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
-const heureH=t=>new Date(t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-function verHisto(x){const w=versionAff(x);return el('span','etq-v hl-ver',/^[0-9]/.test(w)?'v'+w:w)}
+/* 0.6 : partie sans date (ou date illisible) : « - » et non « Invalid Date » */
+const dateOk=t=>t!=null&&t!==''&&Number.isFinite(new Date(t).getTime());
+const dateH=t=>dateOk(t)?new Date(t).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}):'-';
+const heureH=t=>dateOk(t)?new Date(t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
+function verHisto(x){const w=versionAff(x),t=/^[0-9]/.test(w)?'v'+w:w,e=el('span','etq-v hl-ver'+(w==='v?'?' hl-ver-inc':''),t);if(w==='v?')e.title='Version inconnue';return e}
 
 /* ----- Fenetre de detail ----- */
 function detailHisto(x){
@@ -97,7 +101,7 @@ function detailHisto(x){
   /* Titre : resultat, etiquettes, mention ; date et version a droite */
   const t=el('h2','sc-fen-titre hd-tete');t.id='hdTitre';t.append(resHisto(x),etqHisto(x));
   if(x.abandon||x.deckVide)t.append(el('span','hd-ment',x.abandon?(x.abandon==='adv'?'abandon adverse':'abandon'):'deck vide'));
-  t.append(el('span','hd-sp'),el('span','hd-date',dateH(x.date)+' - '+heureH(x.date)),verHisto(x));d.append(t);
+  t.append(el('span','hd-sp'),el('span','hd-date',dateOk(x.date)?dateH(x.date)+' - '+heureH(x.date):'-'),verHisto(x));d.append(t);
   /* Face a face : moi | score | adversaire */
   const ff=el('div','hd-ff'),g=el('div','hd-j g'),c=el('div','hd-s'),dr=el('div','hd-j d');
   const moi=el('span','hl-adv');
@@ -180,7 +184,7 @@ function bilanHisto(x,ps,lui,moiN,golem,tout){
       if(m&&!t.includes(m))t=[t[0],t[1],m];if(R.length>t.length)plus=true;return t}
     const ani=R.filter(r=>(carteDe(r[0])||{}).animal),res=R.filter(r=>!ani.includes(r));
     ani.forEach(a=>{const C=carteDe(a[0]),mt=a[5]||(C&&C.maitre&&M0.CARTES[C.maitre]?M0.CARTES[C.maitre].nom:null);
-      const k=res.findIndex(r=>{const D=carteDe(r[0]);return r[0]===mt||(D&&(D.nom===mt||(D.base&&M0.CARTES[D.base].nom===mt)))});
+      const k=res.findIndex(r=>{const D=carteDe(r[0]);return r[0]===mt||(D&&(D.nom===mt||(D.base&&(M0.CARTES[D.base]||{}).nom===mt)))});
       a=a.slice();a.sous=k>=0;if(k>=0)res.splice(k+1,0,a);else res.push(a)});
     return res};
   const nomC=(r,droite)=>{const C=carteDe(r[0]),td=el('td','hd-cc'),n=el('span','hd-cn'+(C&&C.base?' evo':C&&C.animal?' ani':''),C?C.nom:String(r[0]));n.title=n.textContent;
@@ -208,17 +212,21 @@ function ordreRejeu(R,j){
     if(!avance&&!s.fin)for(const p of [0,1])if(!s.fin&&j[p][i[p]]==='a'){M.applique(s,p,{t:'a'});seq.push(p);i[p]++;avance=true}}
   return seq;
 }
-async function lanceRejeu(x){
+async function lanceRejeu(x,confirme){
   const R=x.rejeu,err=t=>{onglet('historique');alerte('histoAlerte',t);$('histoAlerte').scrollIntoView({block:'nearest'})};alerte('histoAlerte','');
   if(r){err('Salon en cours : replay indisponible dans un salon. Quitte le salon d\'abord.');return}
   if(!R){err('Replay impossible : partie enregistrée sans ses journaux. Choisis une autre partie.');return}
   if(!rejeuPossible(R)){err('Replay impossible : partie d\'une ancienne version, plus relisible. Choisis une autre partie.');return}
+  /* 0.6 : une partie en cours contre le robot n'est plus supprimee sans confirmation */
+  if(!confirme&&partie&&!partie.rejeu&&!partie.tuto&&partie.etat&&!partie.etat.fin){confirmeAbandon('La partie en cours sera perdue.',()=>lanceRejeu(x,true),'Quitter la partie ?','Quitter');return}
   let Mr;try{Mr=await chargeMoteur(R.v)}catch(e){err('Replay impossible : moteur de la version '+R.v+' introuvable. Recharge la page puis réessaie.');return}
   if(partie)finPartie();
   M=Mr;
-  let j,seq;try{j=R.j.map(M.litJournal);seq=ordreRejeu(R,j)}catch(e){M=M0;err('Replay impossible : partie illisible. Choisis une autre partie.');return}
+  /* 0.6 : decks normalises une seule fois, la meme liste sert au calcul de l'ordre et au lancement */
+  const decks=Array.isArray(R.decks)?R.decks:['',''],Rn=decks===R.decks?R:Object.assign({},R,{decks});
+  let j,seq;try{j=R.j.map(M.litJournal);seq=ordreRejeu(Rn,j)}catch(e){M=M0;err('Replay impossible : partie illisible. Choisis une autre partie.');return}
   onglet('jouer');
-  lancer(R.graine,R.moi===1?1:0,'',{mien:[],sien:[],decks:Array.isArray(R.decks)?R.decks:['',''],advNom:x.advNom||String(x.adv||'Adversaire'),local:true,
+  lancer(R.graine,R.moi===1?1:0,'',{mien:[],sien:[],decks,advNom:x.advNom||String(x.adv||'Adversaire'),local:true,
     rejeu:{seq,j,pos:0,n:[0,0],lecture:true,vitesse:1}});
   barreRejeu();pasRejeu();
 }
@@ -266,11 +274,11 @@ function ligneHisto(x){
   if(e.length){const cm=(c,a)=>'color-mix(in srgb,var(--fm-'+c+') '+a+'%,transparent)';li.style.background='linear-gradient(90deg,'+cm(e[0],30)+' 0%,'+cm(e[1]||e[0],14)+' 20%,transparent 40%),var(--panneau2)'}
   const dk=el('span','hl-deck'),dn=el('span','hl-dn',nomDeckH(x.deck));dn.title=dn.textContent;dk.append(pictosH(e),dn);
   const sc=el('span','hl-scz');sc.append(scoreHisto(x));const dl=deltaHisto(x);if(dl)sc.append(dl);
-  const dt=el('span','hl-date',dateH(x.date));dt.append(el('small','',heureH(x.date)));
+  const dt=el('span','hl-date',dateH(x.date));if(dateOk(x.date))dt.append(el('small','',heureH(x.date)));
   const res=resHisto(x);if(x.abandon||x.deckVide)res.title=x.res+(x.abandon?' (abandon)':' (deck vide)');
   li.append(res,etqHisto(x),dk,el('span','hl-vs','contre'),advHisto(x),sc,mvpHisto(x.mvp),dt,verHisto(x),el('span','hl-fl','›'));
   li.lastChild.setAttribute('aria-hidden','true');
-  li.setAttribute('aria-label',x.res+' contre '+advAff(x.adv)+', '+x.score+', '+dateH(x.date));
+  li.setAttribute('aria-label',x.res+' contre '+advAff(x.adv)+', '+String(x.score||'-')+', '+dateH(x.date));
   li.onclick=()=>detailHisto(x);li.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();detailHisto(x)}};
   return li;
 }

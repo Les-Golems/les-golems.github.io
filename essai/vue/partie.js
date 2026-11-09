@@ -108,20 +108,22 @@ function lanceClasseRobot(profil,sa){
 /* 0.6 : classee entre joueurs. partie.classe = { sa: code du salon, a, b : uids des places 0 et 1, profil (le mien avant), eloAdv } ;
    les deux profils classes sont lus des le lancement (ecran de fin) puis relus par le service au moment d'ecrire. */
 function prepareClasse(c){
-  const S=typeof serviceClasse==='function'?serviceClasse():null;if(!S||!c||c.robot)return;
+  const S=typeof serviceClasse==='function'?serviceClasse():null;if(!S||!c||c.robot||c.profil||c.prep)return;c.prep=1; /* 0.6.1 : relance possible (reprise, fin) */
   const B=room.classeBase(),u=room.compte.uid(),adv=c.a===u?c.b:c.a;
   Promise.all([B.lit('classe/joueurs/'+u),B.lit('classe/joueurs/'+adv)]).then(([m,o])=>{
     if(partie&&partie.classe===c&&!c.res&&m&&o){c.profil={elo:m.elo,parties:m.parties||0,partiesTotal:m.partiesTotal||0,v:m.v||0,d:m.d||0};c.eloAdv=o.elo;sauve();if(partie.etat&&partie.etat.fin)finClasse(partie.etat)}
-  },e=>console.warn('classe',e));
+  },e=>console.warn('classe',e)).finally(()=>{delete c.prep});
 }
 /* Fin d'une classee (robot ou joueur) : variation estimee tout de suite par commun/classe.js pour l'ecran de fin (partie.classe.res),
    puis ecriture Firebase par le service (classe/parties/<id>, confirmation, profil, classement) ; la valeur ecrite remplace l'estimation.
    Partie pas encore appliquee (adversaire qui n'a pas confirme, coupure) : gardee en attente, nouvel essai au chargement. */
 function finClasse(s){
-  const c=partie&&partie.classe;if(!c||c.res||!c.profil||!s||!s.fin)return;
+  const c=partie&&partie.classe;if(!c||c.res||!s||!s.fin)return;
+  if(!c.profil){prepareClasse(c);return} /* 0.6.1 : profils pas encore lus : relus, puis finClasse rappele */
   const C=window.GolemsClasse,w=s.fin.gagnant,g=w===null||w===undefined?'nul':w===partie.moi,A=C.appliquePartie(c.profil,c.eloAdv,g,{robot:!!c.robot}),apres=A.joueur;
   c.res={gagne:g,avant:c.profil.elo,apres:apres.elo,delta:A.delta,placement:C.enPlacement(c.profil),profil:apres};
-  envoieClasse(c,w,partie.graine);
+  const e=envoieClasse(c,w,partie.graine);Object.defineProperty(c,'envoi',{value:e,configurable:true}); /* non enumerable : hors sauvegarde */
+  return e;
 }
 /* Classee entre joueurs : UN SEUL cote ecrit, le perdant (commun/classe.js finJoueurs) ; le gagnant n'ecrit rien et ecoute son profil
    (S.attends) puis met a jour son ecran de fin, sa capsule (chargeClasse -> majRangMoi) et son historique avec la valeur ecrite.
@@ -132,10 +134,13 @@ async function envoieClasse(c,w,gr){
   attenteClasse(id,true);
   try{
     let j=null;
-    if(c.robot){const r=await S.finRobot({sa:c.sa,gr,niveau:c.robot,gagne:w===partie.moi});if(r.fait)j=await room.classeBase().lit('classe/joueurs/'+u)}
+    if(c.robot){const o={sa:c.sa,gr,niveau:c.robot,gagne:w===partie.moi};finRobotAttente(u,o,true);const r=await S.finRobot(o);if(r.fait){finRobotAttente(u,o,false);j=await room.classeBase().lit('classe/joueurs/'+u)}}
     else{
       const o={sa:c.sa,gr,a:c.a,b:c.b,gagnant:w===0?c.a:w===1?c.b:null};
-      if(o.gagnant===u)j=await S.attends(id);
+      /* 0.6.1 : forfait de l'adversaire (salons/<sa>/forfait/<gr>.u = perdant) : le gagnant ecrit la partie et les deux profils. */
+      const f=o.gagnant===u?await room.lit('salons/'+c.sa+'/forfait/'+gr).catch(()=>null):null,perd=o.gagnant===c.a?c.b:c.a;
+      if(o.gagnant===u&&f&&f.u===perd){const r=await S.finForfait(o);if(r.fait)j=await room.classeBase().lit('classe/joueurs/'+u)}
+      else if(o.gagnant===u)j=await S.attends(id);
       else{finEnAttente(u,o,true);const r=await S.finJoueurs(o);if(r.fait){finEnAttente(u,o,false);j=await room.classeBase().lit('classe/joueurs/'+u)}}
     }
     if(j){attenteClasse(id,false);
@@ -145,17 +150,31 @@ async function envoieClasse(c,w,gr){
 }
 /* Variation ecrite reportee sur l'entree d'historique de la partie (en memoire et dans l'envoi en attente). */
 function histoClasse(hid,delta){
-  const f=x=>{if(x&&x.classe&&x.classe.delta!==delta){x.classe.delta=delta;return true}return false};
-  try{if(compteCo())(room.compte.donnees().historique||[]).filter(x=>x&&x.id===hid).forEach(f)}catch(e){}
+  const f=x=>{if(x&&x.classe&&(x.classe.delta!==delta||x.classe.attente)){x.classe.delta=delta;delete x.classe.attente;return true}return false};
+  try{if(compteCo())(room.compte.donnees().historique||[]).filter(x=>x&&x.id===hid).forEach(x=>{if(f(x)&&room.compte.majHisto)room.compte.majHisto(x).catch(e=>console.warn('historique',e))})}catch(e){}
   if(typeof majAttente==='function'&&litListe(ATTENTE).some(y=>y&&y.id===hid&&y.h))majAttente(hid,y=>f(y.h));
 }
 /* Fins de classees du perdant pas encore ecrites (coupure avant ou pendant l'ecriture) : rejouees au chargement. */
 const FINS_CL='golems.classeFins';
 function finEnAttente(u,o,on){const id=GolemsClasse.idPartie(o.sa,o.gr),l=litListe(FINS_CL).filter(x=>x&&x.id!==id);if(on)l.unshift({id,u,o});ecrire(FINS_CL,JSON.stringify(l.slice(0,20)))}
+/* 0.6.1 : classee contre le robot aussi gardee (r = { sa, gr, niveau, gagne }) tant que finRobot n'a pas abouti. */
+function finRobotAttente(u,o,on){const id='r:'+GolemsClasse.idPartie(o.sa,o.gr),l=litListe(FINS_CL).filter(x=>x&&x.id!==id);if(on)l.unshift({id,u,r:o});ecrire(FINS_CL,JSON.stringify(l.slice(0,20)))}
+/* 0.6.1 : classee contre le robot laissee en cours (onglet ferme, rechargement) : comptee comme une defaite (abandon). */
+function abandonLocalClasse(u){
+  let v=null;try{v=JSON.parse(lire('golems.local'))}catch(e){}
+  if(!v||v.fin||!v.classe||!v.classe.robot||!Number.isInteger(v.graine)||(partie&&partie.local&&partie.graine===v.graine))return;
+  if(v.classe.res)return; /* fin deja calculee (ecriture en attente dans FINS_CL) */
+  finRobotAttente(u,{sa:v.classe.sa||'',gr:v.graine,niveau:v.classe.robot,gagne:false},true);oublieLocal();
+  if(typeof majReprise==='function')majReprise();
+}
 async function reprendFins(){
   const S=typeof serviceClasse==='function'?serviceClasse():null;if(!S)return;const u=room.compte.uid();
-  for(const x of litListe(FINS_CL).filter(y=>y&&y.u===u&&y.o))
-    try{const r=await S.finJoueurs(x.o);if(r.fait){finEnAttente(u,x.o,false);if(typeof attenteClasse==='function')attenteClasse(r.id,false)}}catch(e){console.warn('classe',e)}
+  abandonLocalClasse(u);
+  for(const x of litListe(FINS_CL).filter(y=>y&&y.u===u&&(y.o||y.r)))
+    try{
+      if(x.r){const r=await S.finRobot(x.r);if(r.fait){finRobotAttente(u,x.r,false);if(typeof attenteClasse==='function')attenteClasse(r.id,false)}continue}
+      const r=await S.finJoueurs(x.o);if(r.fait){finEnAttente(u,x.o,false);if(typeof attenteClasse==='function')attenteClasse(r.id,false)}
+    }catch(e){console.warn('classe',e)}
 }
 /* 0.6 : deck du Golem tire dans la reserve (decks conseilles) a partir de la graine de la partie : meme graine = meme deck, rejeux exacts (le deck est aussi garde dans partie.decks). Partie guidee : deck fixe (onglets/tutoriel.js). */
 function deckRobot(g){
@@ -182,6 +201,7 @@ function lancer(g,moi,adv,sv){
   partie={classe:sv&&sv.classe||null,decks:dks,deckNom:sv&&typeof sv.deckNom==='string'?sv.deckNom:'',rejeu:sv&&sv.rejeu||null,debut:sv&&+sv.debut||Date.now(),local:!!(sv&&sv.local),tuto:!!(sv&&sv.tuto),niveau:sv&&sv.niveau||'normal',graine:g,moi:moi,mien:sv?sv.mien:[],sien:sv?sv.sien:[],etat:null,erreur:null,veut:!!(sv&&sv.veut),adv:adv||'',advNom:sv&&typeof sv.advNom==='string'?nettoie(sv.advNom):'',recapVu:sv?+sv.recapVu||0:0};
   CARTES.forEach(c=>{new Image().src=imgV('cartes/'+c[0]+'.jpg')});M.TERRAINS.forEach(T=>{new Image().src=srcTerrain(T)});new Image().src=DOS;
   notice='';sel=null;selMull=[];selCases=[];modeVaisseau=false;modeFaille=false;modeCaramel=false;modeLove=false;modeTarte=false;fx=[];journalPage=null;journalReperes=0;
+  fermeRecap();derniereAdv=null;zoneSurvol=null; /* revanche : rien de la partie precedente (bilan de manche, derniere carte adverse) */
   stopCompte();jePret=false;
   pub({jg:g,j:M.ecritJournal(partie.mien),veut:partie.veut?g:null,adv:partie.adv||null,pret:null});
   if(room)room.presence({salon:null}).catch(()=>{});
@@ -768,7 +788,7 @@ function deHisto(x){
     mode:robot?'robot':'ligne',
     decks:[x.deck&&typeof x.deck.nom==='string'?{nom:x.deck.nom==='Test'?'Deck par défaut':x.deck.nom,els:els(x.deck.els)}:{nom:'',els:[]},robot?{nom:'Deck par défaut',els:els(elsTexte(DECK_TEST_TXT))}:{nom:'',els:[]}],
     manches,mvp:x.mvp?{carte:nomComplet(x.mvp),p:g,score:q?+q[1]:null,force:q?+q[2]:null,bonus:q?+q[3]:null,degats:q?+q[4]:null,morts:q?+q[5]:null}:null,
-    chiffres,version:versionAff(x),nomsCourts:[ps,advCourt]};
+    chiffres,version:(v=>v==='v?'?'inconnue':v)(versionAff(x)),nomsCourts:[ps,advCourt]};
 }
 
 /* ---------- Morceaux communs ---------- */
@@ -1008,7 +1028,7 @@ function enregistrePartie(s){
   if(l.some(x=>x.id===id))return;
   const o=archiveResume(s,id);
   enregistreDans(l,s,id);
-  {const c=partie.classe&&partie.classe.res;if(c&&l[0]&&l[0].id===id){const k=partie.classe;l[0].mode='classee';l[0].classe={elo:c.avant,delta:c.delta,eloAdv:k.eloAdv,robot:!!k.robot};if(k.robot)l[0].classe.niveau=k.robot}} /* 0.6 : etiquette Classee (+ Golem) de l'Historique ; c, de, ro dans Firebase (salon-firebase.js) */
+  {const k=partie.classe,c=k&&k.res;if(k&&l[0]&&l[0].id===id){l[0].mode='classee';l[0].classe=c?{elo:c.avant,delta:c.delta,eloAdv:k.eloAdv,robot:!!k.robot}:{robot:!!k.robot};if(k.robot)l[0].classe.niveau=k.robot;if(!(c&&c.ecrit))l[0].classe.attente=true}} /* 0.6.1 : etiquette d'apres partie.classe ; variation « en attente » tant que non ecrite */ /* 0.6 : etiquette Classee (+ Golem) de l'Historique ; c, de, ro dans Firebase (salon-firebase.js) */
   if(compteCo()){const x={id,u:room.compte.uid(),h:l[0]};if(o)x.r=o;majAttente(id,y=>Object.assign(y,x));envoieAttente(id);return}
   ecrire('golems.historique',JSON.stringify(l.slice(0,50)));
 }

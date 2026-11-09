@@ -209,7 +209,7 @@
   function niveauRobot(elo) { return elo < 900 ? 'facile' : elo < 1150 ? 'normal' : 'difficile'; }
   function salonRobot(uid, elo) { return { u: uid, n: niveauRobot(elo), t: HORODATAGE }; }
   /* Ligne du classement (copie exacte du profil, placement fini seulement). */
-  function ligneClassement(pseudo, j) { return enPlacement(j) ? null : { pseudo: pseudo, elo: j.elo, rang: rang(j.elo).id, v: j.v || 0, d: j.d || 0 }; }
+  function ligneClassement(pseudo, j) { return enPlacement(j) ? null : { pseudo: pseudo, elo: j.elo, rang: rang(j.elo).id, v: j.v || 0, d: j.d || 0, saison: j.saison | 0 }; }
   function sansNuls(o) {
     if (Array.isArray(o)) return o.map(sansNuls);
     if (!o || typeof o !== 'object') return o;
@@ -249,7 +249,7 @@
       var u = B.uid(), l = j && B.pseudo ? ligneClassement(B.pseudo(), j) : null;
       if (!l || !l.pseudo) return false;
       var o = await B.lit('classe/classement/' + u);
-      if (o && o.elo === l.elo && o.v === l.v && o.d === l.d && o.pseudo === l.pseudo) return false;
+      if (o && o.elo === l.elo && o.v === l.v && o.d === l.d && o.pseudo === l.pseudo && o.saison === l.saison) return false;
       await B.ecrit(m1('classe/classement/' + u, l)); return true;
     }
     /* Récompenses des saisons terminées : copie publique (classe/ecussons/<uid>/<s>) de ce que donne l'instantané. */
@@ -329,8 +329,26 @@
       try { await publieClassement(await B.lit('classe/joueurs/' + u)); } catch (e) {}
       return { id: id, fait: fait, partie: p };
     }
+    /* 0.6.1 : victoire par forfait (salons/<sa>/forfait/<gr>.u = perdant, parti) : le GAGNANT crée la partie et applique
+       les deux profils (la règle « confirme » accepte le forfait à la place de la confirmation du perdant). o comme finJoueurs. */
+    async function finForfait(o) {
+      if (o.gagnant !== o.a && o.gagnant !== o.b) throw sansGagnant();
+      var u = B.uid(), id = idPartie(o.sa, o.gr), perd = o.gagnant === o.a ? o.b : o.a;
+      if (u !== o.gagnant) return { id: id, fait: false };
+      var p = await B.lit('classe/parties/' + id);
+      if (!p) {
+        var s = await saisonCourante(), pa = await B.lit('classe/joueurs/' + o.a), pb = await B.lit('classe/joueurs/' + o.b);
+        if (!s || !pa || !pb) throw new Error('classe/profil');
+        try { await B.ecrit(m1('classe/parties/' + id, creePartie({ sa: o.sa, gr: o.gr, a: o.a, b: o.b, profilA: pa, profilB: pb, gagnant: o.gagnant, saison: s.id }).partie)); } catch (e) {}
+        p = await B.lit('classe/parties/' + id); if (!p) throw new Error('classe/partie');
+      }
+      var fait = await appliqueUn(id, u);
+      try { await appliqueUn(id, perd); } catch (e) {}
+      try { await publieClassement(await B.lit('classe/joueurs/' + u)); } catch (e) {}
+      return { id: id, fait: fait, partie: p };
+    }
     return { saisonCourante: saisonCourante, profil: profil, publieClassement: publieClassement, recompenses: recompenses,
-      applique: applique, attends: attends, finRobot: finRobot, finJoueurs: finJoueurs };
+      applique: applique, attends: attends, finRobot: finRobot, finJoueurs: finJoueurs, finForfait: finForfait };
   }
 
   var API = {

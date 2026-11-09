@@ -39,7 +39,7 @@
     if (q) return (oppUid[g] = q.peer);
     if (!essai['eng' + g]) {
       essai['eng' + g] = 1;
-      o.r.engages().then(e => { const u = Object.keys(e).find(x => x !== uidMoi()); if (u) oppUid[g] = u; });
+      o.r.engages().then(e => { const u = Object.keys(e).find(x => x !== uidMoi() && x !== 'g'); if (u) oppUid[g] = u; });
     }
     return '';
   }

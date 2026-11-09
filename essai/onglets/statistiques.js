@@ -106,7 +106,8 @@ async function litClasseSt(){
   const uid=compteCo()?room.compte.uid():null;
   const [cl,moi,sa]=await Promise.all([lit('classe/classement'),uid?lit('classe/joueurs/'+uid):null,lit('classe/saison')]);
   const G=window.GolemsClasse;
-  const L=Object.keys(cl||{}).map(u=>({uid:u,...cl[u]})).filter(x=>x&&typeof x.pseudo==='string'&&Number.isFinite(x.elo)&&!G.estRobot(x.uid))
+  const sid=sa&&typeof sa==='object'?sa.id|0:G.SAISONS[0].id; /* 0.6.1 : lignes de la saison en cours seulement */
+  const L=Object.keys(cl||{}).map(u=>({uid:u,...cl[u]})).filter(x=>x&&typeof x.pseudo==='string'&&Number.isFinite(x.elo)&&!G.estRobot(x.uid)&&x.saison===sid)
     .sort((a,b)=>b.elo-a.elo||(b.v|0)-(a.v|0)||a.pseudo.localeCompare(b.pseudo,'fr'));
   L.forEach((x,i)=>{x.place=i+1});
   return {liste:L,moi:moi&&typeof moi==='object'?moi:null,uid,saison:sa};
@@ -174,6 +175,7 @@ function dessineStats(RT){
   const tete=(t,x)=>`<div class="st-ph"><h3>${t}</h3>${x||''}</div>`;
   const enc=a=>`<div class="st-enc">${a.map(x=>`<div><i>${x[0]}</i><b>${x[1]}</b><small>${x[2]}</small></div>`).join('')}</div>`;
   const moiUid=compteCo()?room.compte.uid():null;
+  const mesPmSt=(()=>{try{return mesCompteurs()}catch(e){return {}}})();
   const cls=(x,moi)=>moi?' st-moi':x.place<=3?' st-t'+x.place:'';
   /* ---- Colonne 1 : Classement (Classées) ---- */
   function classement(){
@@ -195,12 +197,14 @@ function dessineStats(RT){
   }
   /* ---- Colonne 1 : Joueurs (Amicales) : classement public, 5 parties minimum ---- */
   function joueurs(){
-    const J=(statsJoueurs||[]).filter(x=>x.n>=5).map(x=>({...x,pct:pcSt(x.v,x.n)})).sort((a,b)=>b.pct-a.pct||b.n-a.n||a.p.localeCompare(b.p,'fr')).map((x,i)=>({...x,place:i+1}));
-    const moi=moiUid&&(statsJoueurs||[]).find(x=>x.uid===moiUid),gj='st-gjo';
+    /* 0.6.2 : parties amicales seulement, compteurs complets publies (compteursMode, les memes que le profil). */
+    const J=(statsJoueurs||[]).map(x=>{const pm=x.uid===moiUid?mesPmSt:compteursPublies(statsProfils[x.uid]);if(!pm)return null;const a=compteursMode(pm,'amicale');return {...x,n:a.n,v:a.v,d:a.d,pct:pcSt(a.v,a.n)}}).filter(x=>x&&x.n>=5)
+      .sort((a,b)=>b.pct-a.pct||b.n-a.n||a.p.localeCompare(b.p,'fr')).map((x,i)=>({...x,place:i+1}));
+    const moi=moiUid?compteursMode(mesPmSt,'amicale'):null,gj='st-gjo';
     let h=enc([['Parties',R.length.toLocaleString('fr-FR'),'entre joueurs'],['Tes victoires',moi&&moi.n?pcSt(moi.v,moi.n)+' %':'-',moi&&moi.n?moi.v+' sur '+moi.n:'aucune partie'],['Classés',String(J.length),'joueurs']]);
     h+=`<div class="st-th ${gj}"><span class="r">#</span><span>Joueur (5 min.)</span><span class="r">Parties</span><span class="c">V - D</span><span class="r">Vict.</span></div><div class="st-corps">`;
     const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10);if(!V.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
-    V.forEach(x=>h+=`<div class="st-ln st-cl ${gj}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.p)}"><span class="st-rk">${x.place}</span><span class="st-jg" data-av="${escSt(x.uid)}"><span class="st-ps" title="${escSt(x.p)}">${hlSt(x.p)}</span></span><span class="r st-n">${x.n}</span><span class="c st-n">${x.v} - ${x.n-x.v}</span><span class="r">${tauxSt(x.pct,x.n)}</span></div>`);
+    V.forEach(x=>h+=`<div class="st-ln st-cl ${gj}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.p)}"><span class="st-rk">${x.place}</span><span class="st-jg" data-av="${escSt(x.uid)}"><span class="st-ps" title="${escSt(x.p)}">${hlSt(x.p)}</span></span><span class="r st-n">${x.n}</span><span class="c st-n">${x.v} - ${x.d}</span><span class="r">${tauxSt(x.pct,x.n)}</span></div>`);
     return tete('Joueurs')+h+'</div>';
   }
   /* ---- Colonne 1 : Joueurs (Entraînement) : taux contre chaque niveau (profil public) ---- */
@@ -208,7 +212,8 @@ function dessineStats(RT){
     const niv=['facile','normal','difficile'],gr='st-grb',tot=niv.map(k=>{const a=R.filter(r=>r.m==='golem-'+k&&r.g!==-1);return {n:a.length,p:pcSt(a.filter(r=>r.g===0).length,a.length)}});
     let h=enc(niv.map((k,i)=>[k[0].toUpperCase()+k.slice(1),tot[i].p==null?'-':tot[i].p+' %',pl(tot[i].n,'partie')]));
     const pk=(x,k)=>{const p=pcSt(x.o[k].v,x.o[k].n);return p==null?-1:p};
-    const J=(statsJoueurs||[]).filter(x=>x.n>=5).map(x=>{const rp=statsProfils[x.uid];if(!rp||rp.m===true||!rp.o)return null;return {...x,o:resumeLu(rp).o}}).filter(x=>x&&niv.some(k=>x.o[k].n))
+    /* 0.6.2 : entrainement par niveau, compteurs complets publies (compteursMode, les memes que le profil). */
+    const J=(statsJoueurs||[]).map(x=>{const pm=x.uid===moiUid?mesPmSt:compteursPublies(statsProfils[x.uid]);if(!pm||compteursMode(pm,'entrainement').n<5)return null;const o={};niv.forEach(k=>{const c=compteursMode(pm,'entrainement',k);o[k]={n:c.n,v:c.v}});return {...x,o}}).filter(x=>x&&niv.some(k=>x.o[k].n))
       .sort((a,b)=>pk(b,'difficile')-pk(a,'difficile')||pk(b,'normal')-pk(a,'normal')||pk(b,'facile')-pk(a,'facile')||a.p.localeCompare(b.p,'fr')).map((x,i)=>({...x,place:i+1}));
     h+=`<div class="st-th ${gr}"><span class="r">#</span><span>Joueur (5 min.)</span><span class="r">Facile</span><span class="r">Normal</span><span class="r">Difficile</span></div><div class="st-corps">`;
     const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10);if(!V.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;

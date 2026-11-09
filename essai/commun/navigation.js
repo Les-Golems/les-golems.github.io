@@ -30,8 +30,11 @@ function ajustePage(sec,grille,set,peint,defaut){
 }
 function ajusteNotes(){if(typeof peintNotes!=="function")return;ajustePage('nouveautes',()=>$('notes'),v=>NV.par=v,peintNotes,6)}
 function ajusteHisto(){if(typeof peintHisto!=="function")return;ajustePage('historique',()=>document.querySelector('#histo .h-grille')||(peintHisto(),document.querySelector('#histo .h-grille')),v=>lignesPage=v,peintHisto,14)}
-{let t=0;const tout=()=>{clearTimeout(t);t=setTimeout(()=>{ajusteNotes();ajusteHisto()},120)};addEventListener('resize',tout);
-  ['nouveautes','historique'].forEach(x=>$(x).addEventListener('load',e=>{if(e.target.tagName==='IMG'&&!document.querySelector('#gdBlocs [data-joue="1"]'))tout()},true));document.fonts?.ready.then(tout);addEventListener('load',tout)}
+/* 0.6.1 : peintHisto recree les images de #histo, dont le load relancait tout() en boucle (clignotement, clics de filtre perdus) :
+   ces load sont ignores, et un redimensionnement ne recalcule que si la hauteur utile (taille de fenetre) change vraiment. */
+{let t=0,cle='';const tout=f=>{const k=innerWidth+'x'+innerHeight;if(f!==true&&k===cle)return;clearTimeout(t);t=setTimeout(()=>{cle=innerWidth+'x'+innerHeight;ajusteNotes();ajusteHisto()},120)};
+  addEventListener('resize',()=>tout());
+  ['nouveautes','historique'].forEach(x=>$(x).addEventListener('load',e=>{if(e.target.tagName==='IMG'&&!e.target.closest('#histo')&&!document.querySelector('#gdBlocs [data-joue="1"]'))tout(true)},true));document.fonts?.ready.then(()=>tout(true));addEventListener('load',()=>tout(true))}
 
 /* Lien #guides : ouvre Comment jouer > Guides. */
 function lienGuides(){if(location.hash==='#guides')onglet('guides')}

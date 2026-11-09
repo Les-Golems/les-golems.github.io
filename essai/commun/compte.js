@@ -154,12 +154,17 @@ function fermeDeco(){$('fenDeco').hidden=true;$('modifierPseudo').focus()}
 $('modifierPseudo').onclick=()=>{
   if(!compteCo()){ouvrePseudo();return}
   if(r){alerte('erreurJeu','Salon en cours : déconnexion indisponible dans un salon. Quitte le salon d\'abord.');onglet('jouer');return}
-  $('fenDeco').hidden=false;$('decoOui').focus();
+  $('fenDeco').hidden=false;if($('decoAlerte'))alerte($('decoAlerte'),'');$('decoOui').focus();
 };
 $('decoNon').onclick=fermeDeco;
 $('fenDeco').onclick=e=>{if(e.target.id==='fenDeco')fermeDeco()};
 $('fenDeco').onkeydown=e=>{if(e.key==='Escape')fermeDeco()};
-$('decoOui').onclick=async()=>{const b=$('decoOui');b.disabled=true;try{await room.compte.deconnecter()}catch(e){}b.disabled=false;$('fenDeco').hidden=true};
+/* 0.6 : enregistrement de deck en attente ecrit avant la deconnexion ; tout echec affiche un bandeau dans la fenetre (rien d'avale). */
+function alerteDeco(t){let z=$('decoAlerte');if(!z){z=document.createElement('div');z.id='decoAlerte';$('fenDecoT').after(z)}alerte(z,t)}
+$('decoOui').onclick=async()=>{const b=$('decoOui');b.disabled=true;alerteDeco('');
+  if(decksT&&typeof ecritDecksMaintenant==='function'){try{await ecritDecksMaintenant()}catch(e){b.disabled=false;alerteDeco('Déconnexion : decks non enregistrés. Réessaie dans un instant.');return}}
+  try{await room.compte.deconnecter()}catch(e){console.warn(e);b.disabled=false;alerteDeco('Déconnexion : serveur injoignable. Réessaie dans un instant.');return}
+  b.disabled=false;$('fenDeco').hidden=true};
 $('basculeCompte').onclick=()=>modeCompte(!modeCreer);
 $('plusTard').onclick=()=>{ecrire('golems.invite','1');$('popPseudo').hidden=true};
 $('formPseudo').onsubmit=async e=>{
