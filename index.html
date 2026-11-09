@@ -245,8 +245,11 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 </section>
 
 <section id="historique" role="tabpanel" aria-labelledby="t-historique" hidden>
-  <p class="intro">Consulte tes 50 dernières parties.</p>
-  <div id="histo"></div>
+  <div class="bloc h-bloc">
+    <div class="h-tete"><h2 class="sc-titre-bloc">Historique</h2><div class="sc-sel sc-petit h-filtres" id="hFiltres" role="group" aria-label="Filtrer les parties"></div></div>
+    <div id="histo"></div>
+    <div class="h-pied"><p class="h-taux" id="hTaux"></p><div class="nv-pages" role="navigation" aria-label="Pages de l’historique"><button class="j-btn nv-prec" type="button" title="Page précédente" aria-label="Page précédente">&lt;</button><span class="nv-num"></span><button class="j-btn nv-suiv" type="button" title="Page suivante" aria-label="Page suivante">&gt;</button></div></div>
+  </div>
 </section>
 
 <section id="stats" role="tabpanel" aria-labelledby="t-stats" hidden>
