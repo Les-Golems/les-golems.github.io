@@ -291,9 +291,6 @@ function peintHisto(){
     q.onclick=()=>{if(filtreHisto===k)return;filtreHisto=k;pageHisto=0;peintHisto()};fz.append(q)});
   const z=sec.querySelector('.h-pied .nv-pages');
   if(!z.dataset.pret){z.dataset.pret='1';z.querySelector('.nv-prec').onclick=()=>{pageHisto--;peintHisto()};z.querySelector('.nv-suiv').onclick=()=>{pageHisto++;peintHisto()}}
-  /* Taux de victoires de la selection (couleurTaux : gris sous 5 parties) */
-  const tx=$('hTaux'),dec=l.filter(x=>x.res==='Victoire'||x.res==='Défaite');tx.textContent='';
-  if(dec.length&&F[0]!=='victoires'&&F[0]!=='defaites'){const p=Math.round(100*dec.filter(x=>x.res==='Victoire').length/dec.length),s=el('b',couleurTaux(p,dec.length),p+' %');tx.append(s,' de victoires sur '+dec.length+' partie'+(dec.length>1?'s':''))}
   b.textContent='';
   const grand=innerWidth>=700&&!document.fullscreenElement,bloc=sec.querySelector('.h-bloc');
   if(grand){const m=document.querySelector('main'),pb=m?parseFloat(getComputedStyle(m).paddingBottom)||0:0;
