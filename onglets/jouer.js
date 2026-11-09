@@ -81,10 +81,12 @@ function majSalon(){
   if(!specUI)u.textContent='';
   const sieges=l.slice(0,MAX).map(siegeSalon);
   while(sieges.length<MAX){const v=el('div','sl-j sl-libre'),a=el('div','avatar','?'),t=el('div','cd-tuile');
-    t.append(el('span','h-deck h-sans','Place libre'),el('span','cd-nb','Partage le code ci-dessus'));
+    t.append(el('span','h-deck h-sans','Aucun deck'),el('span','cd-nb','Partage le code ou le lien'));
     const e=etiquetteV(maV,false);e.classList.add('sl-vide');
-    v.append(a,el('div','sl-nom','Adversaire'),el('span','sl-etat sl-vide','En attente'),e,t);sieges.push(v)}
+    v.append(a,el('div','sl-nom','Place libre'),el('span','sl-etat',"En attente d'un adversaire"),e,t);sieges.push(v)}
+  if(l.length)sieges[0].append(el('span','sl-role','Créateur'));
   if(!specUI)u.append(sieges[0],el('div','sl-vs','VS'),sieges[1]);
+  majSpecs();
   const adv=l.slice(0,MAX).find(p=>!p.sameTab);majFace(adv?nomDe(adv):'');
   if(!partie&&l.some(p=>!p.sameTab&&Number.isInteger(p.presence.jg)&&typeof p.presence.adv==='string'&&p.presence.adv!==sid&&p.presence.sid!==sid)&&Date.now()-entree>1500){sortie('Ce salon est complet.');return}
   const c=l.length>=MAX;
@@ -93,7 +95,8 @@ function majSalon(){
   if(!partie&&!c){const m=l.find(p=>p.sameTab);if(m&&Number.isInteger(m.presence.graine))pub({graine:null})} /* graine orpheline : l'adversaire est parti juste apres le compte */
   /* Pret toujours visible sous les deux joueurs : grise tant qu'on est seul, ou si les versions different. */
   $('pret').hidden=!!partie;$('pret').disabled=vxEcart||!(libre||jePret);
-  $('pret').textContent=vxEcart?'Versions différentes':jePret?'Pas prêt':!c?'En attente d\'un adversaire':'Prêt';$('pret').classList.toggle('sec',jePret);
+  $('pret').textContent=vxEcart?'Versions différentes':jePret?'Pas prêt':!c?'En attente d\'un adversaire':'Prêt';$('pret').classList.toggle('sc-secondaire',jePret);
+  $('slDeck').hidden=!!partie;$('slDeck').disabled=jePret;$('slDeck').title=jePret?'Retire ton Prêt pour changer de deck':'';
   majAnnonce(l);
   $('attente').textContent=vxEcart?'':compteFin?texteCompte():!c?notice||'':jePret?'En attente de ton adversaire':duo.some(estPret)?'Ton adversaire est prêt':'Salon complet, clique sur Prêt';
   $('attente').classList.toggle('pret',c&&!vxEcart);
@@ -401,7 +404,7 @@ function resultatClasseLocal(c,apres){
   const n=Object.assign({},profilClasse(),apres);
   ecrire(cleClasse(),JSON.stringify(n));majTuiles();
 }
-function imgRang(id){return imgV('cartes/rangs/'+id+'.png')}
+function imgRang(id){return imgV('images/rangs/'+id+'.png')}
 const pcJ=(v,n)=>n?Math.round(100*v/n):null;
 function c3(lib,val,sous,cl){const d=el('div','j-c3'),b=el('b',cl||'',val);b.title=val;d.append(el('i','',lib),b,el('small','',sous));return d}
 const txtTaux=t=>t===null?'-':t+' %';
@@ -411,7 +414,7 @@ function partiesDe(f){const l=typeof lesParties==='function'?lesParties():[];ret
 function encartClasse(j){
   const C=GolemsClasse,z=$('encartRang');z.textContent='';
   const A=C.affichage(j),R=A.placement?A.estime:A.rang,i=C.RANGS.indexOf(R),suiv=C.RANGS[i+1];
-  const im=el('img','j-emb');im.src=imgRang(R.id);im.alt=R.nom;
+  const im=el('img','j-emb');im.src=imgRang(A.placement?'placement':R.id);im.alt=R.nom;
   const r=c3('Rang',A.placement?'Placement':R.nom,A.placement?(A.n+' sur '+A.sur+' parties'):'Elo '+Math.round(j.elo),'rg');
   if(!A.placement&&suiv){const bas=Number.isFinite(R.min)?R.min:suiv.min-100,p=Math.max(0,Math.min(100,100*(j.elo-bas)/(suiv.min-bas))),br=el('span','j-barre'),u=el('u');u.style.width=p+'%';br.append(u);r.append(br)}
   const pr=A.placement?c3('Prochain rang','-','après le placement'):suiv?c3('Prochain rang',Math.ceil(suiv.min-j.elo)+' pts','avant '+suiv.nom):c3('Prochain rang','-','rang le plus haut');
@@ -515,7 +518,7 @@ $('jPages').querySelector('.nv-suiv').onclick=()=>{jPage++;peintListe()};
 const ATTENTE_ROBOT=120000;let robotT2=0;
 function majBandeauRobot(){
   const z=$('bandeauRobot');if(!z)return;
-  $('salonClasseTag').hidden=!salonClasse;
+  {const g=$('salonClasseTag');g.hidden=!r&&!code;g.textContent=salonClasse?'Classée':'Amicale';g.classList.toggle('cl',salonClasse)}
   clearTimeout(robotT2);robotT2=0;
   const seul=!!r&&!partie&&salonClasse&&createur&&ordre(r.peers()).length<2;
   if(!seul){z.hidden=true;return}
@@ -530,3 +533,17 @@ $('affronterGolem').onclick=async()=>{
   /* TODO branchement classé : poser salons/<code>/robot (GolemsClasse.salonRobot) avant de quitter le salon. */
   await sortie('');lanceClasseRobot(j,sa);
 };
+
+/* Colonne des spectateurs du salon (refonte v2) : 5 lignes au plus, puis « +N autres » ; « Aucun spectateur » si vide. */
+$('slDeck').onclick=()=>choisirDeck(()=>majSalon(),'Choisir');
+function majSpecs(){
+  const z=$('slSpecs');if(!z)return;z.textContent='';
+  const E=window.SPEC&&SPEC.etatSalon?SPEC.etatSalon():null,l=E&&Array.isArray(E.spectateurs)?E.spectateurs:[];
+  const t=el('div','sl-st'),g=el('span');g.innerHTML=OEIL_J;g.append('Spectateurs');t.append(g,el('b','',String(l.length)));z.append(t);
+  if(!l.length){z.append(el('div','sl-aucun','Aucun spectateur'));return}
+  const u=el('ul');l.slice(0,l.length>5?4:5).forEach(x=>{const nm=nettoie(x.pseudo||'')||'Joueur',li=el('li',x.moi?'moi':'');li.append(avatarUid(nm,x.uid,x.avatar),el('b','',nm));u.append(li)});
+  if(l.length>5)u.append(el('li','plus','+'+(l.length-4)+' autres'));z.append(u);
+}
+if(window.SPEC&&SPEC.onChange)SPEC.onChange(()=>{if(!$('salon').hidden)majSpecs()});
+/* Premier affichage (invite, ou avant la connexion) : tuiles et liste peintes des que decks.js et vue/partie.js sont charges. */
+(function t(){if(typeof deckChoisi==='function'&&typeof lesParties==='function'&&typeof teinte==='function')peintListe();else setTimeout(t,50)})();

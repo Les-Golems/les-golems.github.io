@@ -161,12 +161,12 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
     <div class="bloc" id="salon" hidden>
       <div class="sl-haut"><div><small>Code du salon</small><div class="j-codeL"><div class="code" id="codeSalon"></div><span class="j-tag cl" id="salonClasseTag" hidden>Classée</span></div></div><div class="sl-copies"><button class="btn btnCode" id="copieCode" type="button">Copier le code</button><button class="btn btnCode" id="copieLien" type="button">Copier le lien</button></div></div>
       <div class="sc-alerte sc-info sc-une-ligne j-robot" id="bandeauRobot" hidden><i></i><span></span><button class="sc-btn sc-tertiaire" id="affronterGolem" type="button" hidden>Affronter un Golem</button></div>
-      <div class="sl-scene"><div id="joueurs" class="sl-duo"></div><div class="sl-compte" id="slCompte" aria-hidden="true" hidden></div></div>
-      <p class="sl-face" id="faceAFace" hidden></p>
+      <div class="sl-cadre"><div class="sl-scene"><div id="joueurs" class="sl-duo"></div><div class="sl-compte" id="slCompte" aria-hidden="true" hidden></div></div>
+      <div class="sl-specs" id="slSpecs"></div></div>
+      <div class="sl-bas"><p class="sl-face" id="faceAFace" hidden></p>
       <p id="attente" role="status"></p>
-      <button class="btn plein" id="pret">Prêt</button>
+      <div class="sl-rangee"><button class="sc-btn sc-secondaire" id="slDeck" type="button">Changer de deck</button><button class="sc-btn" id="pret">Prêt</button><button class="sc-btn sc-secondaire sl-quitter" id="quitter" type="button">Quitter le salon</button></div></div>
       <div id="chatPlace"></div>
-      <button class="btn sec sl-quitter" id="quitter" type="button">Quitter le salon</button>
     </div>
     <div id="partie" hidden></div>
   </div></div>

@@ -569,7 +569,7 @@ function titreFin(h){if(!classeFin())return h;const z=mk('div','pp-titre');z.app
 function rangFin(pp){
   const c=classeFin(),C=window.GolemsClasse;if(!c||!c.res||!C)return;
   const x=c.res,A=C.affichage(x.profil),R=A.placement?A.estime:A.rang,i=C.RANGS.indexOf(R),suiv=C.RANGS[i+1],b=mk('div','pp-rang'),im=mk('img','pp-remb');
-  im.src=imgV('cartes/rangs/'+R.id+'.png');im.alt=R.nom;
+  im.src=imgV('images/rangs/'+(A.placement?'placement':R.id)+'.png');im.alt=R.nom;
   const mid=mk('div','pp-rmid'),l1=mk('div','pp-rl1'),nm=mk('b','pp-rnom',A.placement?'Placement '+A.n+'/'+A.sur:R.nom),el=mk('span','pp-relo');
   el.append(mk('small','','ELO'),' '+Math.round(x.avant)+' -> '+Math.round(x.apres));l1.append(nm);if(!A.placement)l1.append(el);
   const br=mk('div','pp-rbar'),bas=Number.isFinite(R.min)?R.min:(suiv?suiv.min-100:0),haut=suiv?suiv.min:bas+100,pct=e=>Math.max(0,Math.min(100,100*(e-bas)/(haut-bas)));
