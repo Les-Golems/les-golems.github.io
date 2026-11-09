@@ -20,6 +20,7 @@ Une nouvelle carte va dans le fichier de son type, un nouvel effet dans le fichi
 | `cartes/donnees/` | **Fiches des cartes** (données seules) : `golems.js` (Golems et évolutions), `animaux.js`, `terrains.js`, `interface.js` (numéros affichés, cartes à venir, decks conseillés, bac à sable, **modèle des éléments** `elements` et couleurs des cartes imprimées `couleursCarte` : source unique, aucune couleur d'élément en dur ailleurs), `index.js` (`TYPES_DE_CARTES`, `ordre` des codes, `nomLong`, deck par défaut). |
 | `cartes/effets/` | **Registre des types d'effets** : `golems.js`, `animaux.js`, `terrains.js` (une fabrique par type de carte), `index.js` (liste `FICHIERS` et assemblage). |
 | `cartes/*.jpg, *.png` | Images : `<code>.jpg` (ex. `001.jpg`, évolution `001e.jpg`), terrains `t001.jpg`..., pictos d'éléments `brume.png`..., `logo.png`. |
+| `versions-cartes.js` | Version de la **dernière modification** de chaque carte (`window.VERSIONS_CARTES`, code -> version). À renseigner à chaque patch qui change une carte. L'étiquette de version d'un deck passe en rouge (vx-diff) si une de ses cartes a changé depuis la version du deck (interface seule). |
 | `moteur.js` | Moteur pur des règles (sans affichage), chargé en page et sous Node. Lit les fiches et les effets, ne teste jamais un code de carte. Contient `VERSION`. |
 | `moteurs/` | Archives gelées `moteur-<version>.js` pour rejouer les anciennes parties. Jamais modifiées ni supprimées. |
 | `salon-firebase.js` | Comptes, données des joueurs, jeu en ligne (Firebase). Préfixe `essai/` automatique sur le site d'essai. |
@@ -42,7 +43,7 @@ Une nouvelle carte va dans le fichier de son type, un nouvel effet dans le fichi
 2. Scripts du jeu : `salon-firebase.js` et `spectateur.js` (modules), `spectateur-ui.js`, `diffusion.js`, `aide.js` (différés), puis
    `cartes/donnees/golems.js`, `animaux.js`, `terrains.js`, `index.js`, puis `cartes/effets/golems.js`, `animaux.js`, `terrains.js`, `index.js`, puis `moteur.js`, puis `presence.js`.
    Les données et les effets doivent être chargés **avant** `moteur.js` (sinon le moteur s'arrête avec un message clair).
-3. Interface : `cartes/donnees/interface.js`, `commun/etat.js`, `commun/outils.js`, `commun/alertes.js`, `commun/compte.js`, `onglets/guides.js`, `commun/navigation.js`, `onglets/nouveautes.js`, `onglets/cartes.js`, `onglets/jouer.js`, `vue/partie.js`, `onglets/statistiques.js`, `onglets/historique.js`, `commun/profil.js`, `onglets/decks.js`, `vue/joueur.js`, `onglets/tutoriel.js`, `commun/raccords.js`, `onglets/regles.js`, `commun/version.js`, `commun/demarrage.js`.
+3. Interface : `cartes/donnees/interface.js`, `versions-cartes.js`, `commun/etat.js`, `commun/outils.js`, `commun/alertes.js`, `commun/compte.js`, `onglets/guides.js`, `commun/navigation.js`, `onglets/nouveautes.js`, `onglets/cartes.js`, `onglets/jouer.js`, `vue/partie.js`, `onglets/statistiques.js`, `onglets/historique.js`, `commun/profil.js`, `onglets/decks.js`, `vue/joueur.js`, `onglets/tutoriel.js`, `commun/raccords.js`, `onglets/regles.js`, `commun/version.js`, `commun/demarrage.js`.
 
 Un nouveau fichier JS ou CSS doit être ajouté à la liste `golemsCharge` d'index.html, à sa place dans cet ordre.
 

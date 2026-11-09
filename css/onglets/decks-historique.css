@@ -459,7 +459,6 @@ body.daltonien .dk-tuile.inv::after{content:'!';position:absolute;right:8px;bott
 .dk-fen{width:520px;text-align:left}
 .dk-fen-p{margin:0;color:var(--doux);font:600 15px/1.4 var(--corps)}
 .dk-fen.dk-test{width:min(1280px,calc(100vw - 32px));max-width:none;max-height:calc(100vh - 32px);overflow-y:auto}
-.dk-fen.dk-test .bac{margin:0;padding:0;border:0;background:none}
 .dk-q button.dk-gris{opacity:.45;cursor:not-allowed}
 .voile.dk-voile{z-index:19} /* sous la carte en grand (#vue, 20) : zoom de carte et de terrain depuis le bac */
 
