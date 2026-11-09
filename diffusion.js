@@ -197,8 +197,11 @@ function peindre(){
   if(fin&&!suivi.fin){suivi.fin=true;suivi.nt=nt;ouvrePop('partie')}
   else if(!fin&&nt>suivi.nt&&nt%3===0){suivi.nt=nt;ouvrePop('manche',nt/3)}
   else if(suivi.pile&&sigPile(suivi.pile)!==suivi.pile.sig)ouvrePop('pile',suivi.pile); /* pile ouverte : mise a jour en direct */
-  /* recapitulatif ouvert pendant un decompte qui continue (bonus de fin de manche, de) : refait avec le journal a jour */
-  else if(suivi.vu&&suivi.vu.log!==s.log.length)ouvrePop(suivi.vu.type,suivi.vu.m);
+  /* recapitulatif ouvert pendant un decompte qui continue (bonus de fin de manche, de) : refait avec le journal a jour ;
+     fin de partie : refaite quand le souhait de revanche change (le mien ou celui de l'adversaire) */
+  else if(suivi.vu&&(suivi.vu.log!==s.log.length||(suivi.vu.type==='partie'&&suivi.vu.rv!==revSig())))ouvrePop(suivi.vu.type,suivi.vu.m);
+  /* fenetre de fin fermee et l'adversaire demande sa revanche : elle se rouvre */
+  else if(src==='joueur'&&fin&&!suivi.pop&&suivi.rvVu!==revSig()&&(revSig()&2))ouvrePop('partie');
   else if(suivi.pop)scene.append(suivi.pop);
 }
 function bandeau(s,qui){
@@ -440,6 +443,8 @@ function ajusteNoms(){
 }
 
 /* ---------- Fenetres de fin ---------- */
+/* souhait de revanche (vue joueur en ligne) : 1 = le mien, 2 = celui de l'adversaire */
+function revSig(){const P=src==='joueur'&&U()?U().partie:null;return P&&!P.local?(P.veut?1:0)+(P.luiVeut?2:0):0}
 function fermePop(){if(src==='joueur'&&suivi&&suivi.vu&&suivi.vu.type==='manche'){const c=document.getElementById('continuer'),r=document.getElementById('recap');if(c&&r&&!r.hidden)setTimeout(()=>c.click(),0)} /* vue joueur : fermer le bilan de manche = Continuer */
 if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi.pop=null;suivi.pile=null;suivi.vu=null}
 /* Piles (Deck, Defausse, Forge) : ordre de pioche (1 = prochaine carte), defausse de la plus recente a la plus ancienne, forge dans l'ordre */
@@ -488,7 +493,7 @@ function ouvrePop(type,m){
   if(type==='manche'){popManche(E.etat,m,pp);suivi.vu={type,m,log:E.etat.log.length}}
   else if(type==='pile'){pp.classList.add('pp-p');popPile(m,pp);suivi.pile={p:m.p,k:m.k,sig:sigPile(m)};v.onclick=e=>{if(e.target===v)fermePop()}}
   else if(type==='abandon')popAbandon(E.etat,m,pp);
-  else{popPartie(E.etat,pp);suivi.vu={type,m,log:E.etat.log.length};if(src==='joueur')boutonsFin(pp)}
+  else{popPartie(E.etat,pp);suivi.vu={type,m,log:E.etat.log.length,rv:revSig()};suivi.rvVu=suivi.vu.rv;if(src==='joueur')boutonsFin(pp)}
   if(!(type==='partie'&&src==='joueur')){const fe=mk('button','pp-fermer','Fermer');fe.type='button';fe.onclick=fermePop;pp.append(fe)} /* J06 : fin de partie du joueur sans petit Fermer */
   v.append(pp);scene.append(v);suivi.pop=v;
   if(type==='pile'&&haut){const g=pp.querySelector('.pp-pile');if(g)g.scrollTop=haut}
@@ -505,12 +510,17 @@ function boutonsFin(pp){
   const u=U(),s=E.etat,z=mk('div','pp-fbtns'),b=(t,cl,f)=>{const x=mk('button','btn'+(cl?' '+cl:''),t);x.type='button';x.onclick=()=>f(x);z.append(x);return x};
   const rj=document.getElementById('rejouer'),P=u.partie;
   if(rj){const rv=mk('div','pp-rev'),moiP=P?P.moi:0,j=p=>{const d=mk('div','pp-rj'+(p===moiP?'':' lui')),n=mk('b','',nom(p));n.style.color=COL[p];d.append(avatar(p),n);return d};
-    const x=mk('button','sc-btn pp-revb',P&&P.veut?'En attente de l\'adversaire':'Revanche');x.type='button';x.disabled=rj.disabled;
+    /* en ligne : apres « Revanche », la fenetre reste ouverte, « En attente de l'adversaire » et « Annuler » ; l'adversaire voit le souhait (P.luiVeut) */
+    const enLigne=P&&!P.local,attend=enLigne&&P.veut,lv=enLigne&&!P.veut&&P.luiVeut;
+    const x=mk('button','sc-btn pp-revb'+(attend?' sc-secondaire':''),attend?'Annuler':'Revanche');x.type='button';x.disabled=attend?false:rj.disabled;
     /* classee contre un Golem : la revanche relance une classee contre le Golem choisi par l'Elo (limite du jour comprise) */
     const cl=P&&P.classe&&P.classe.robot&&typeof lanceClasseRobot==='function'&&typeof profilClasse==='function';
     if(cl&&!GolemsClasse.peutAffronterRobot(profilClasse().robots)){x.disabled=true;x.textContent='Limite du jour atteinte'}
-    x.onclick=()=>{fermePop();if(cl)lanceClasseRobot(profilClasse(),P.classe.sa);else rj.click()};
-    const c=mk('div','pp-revc');c.append(x,mk('small','',P&&P.local?(cl?'Nouvelle classée contre un Golem':'Nouvelle partie contre le Golem'):P&&P.veut?'Tu as choisi la revanche':'Personne n\'a encore choisi'));
+    x.onclick=()=>{if(cl){fermePop();lanceClasseRobot(profilClasse(),P.classe.sa);return}
+      if(!enLigne){fermePop();rj.click();return}
+      if(attend){if(typeof u.annuleRevanche==='function')u.annuleRevanche()}else rj.click();
+      if(suivi&&suivi.vu&&suivi.vu.type==='partie'&&suivi.vu.rv!==revSig())ouvrePop('partie')};
+    const c=mk('div','pp-revc'+(attend||lv?' pp-revq':''));c.append(x,mk('small','',P&&P.local?(cl?'Nouvelle classée contre un Golem':'Nouvelle partie contre le Golem'):attend?'En attente de l\'adversaire':lv?nom(1-moiP)+' veut sa revanche':'Personne n\'a encore choisi'));
     rv.append(j(moiP),c,j(1-moiP));pp.append(rv)}
   b('Changer de deck','sec',()=>{if(typeof u.choisirDeck==='function')u.choisirDeck(()=>{},'Choisir')});
   b('Partager le résumé','sec',x=>u.partageFin(x,u.texteResume(s)));
@@ -798,6 +808,8 @@ function joueur(){
 }
 /* vue joueur : un bilan de manche de la partie ouvert (cache) sans fenetre de la vue = on ouvre celle de la vue (sinon la partie attendrait « Continuer ») */
 setInterval(()=>{if(!D||src!=='joueur'||!suivi||suivi.pop)return;const r=document.getElementById('recap');if(!r||r.hidden||!E.etat.stats)return;
+  /* partie finie : le bilan de la manche 3 est deja dans la fenetre de fin ; il est seulement marque vu (sinon il revenait apres « Revanche ») */
+  if(E.etat.fin){const c=document.getElementById('continuer');if(c)c.click();return}
   const n=Math.max(1,Math.floor(E.etat.stats.t.length/3));ouvrePop('manche',n)},400);
 /* « Quitter la partie » (spectateur) : la diffusion se ferme et le spectateur quitte la partie comme avec l'ancien bouton Quitter ;
    demonstration : « Quitter la diffusion » arrete la partie locale */

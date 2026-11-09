@@ -96,6 +96,8 @@ function majPartie(){
   if(!partie&&maV&&l.some(p=>!vEg(vDe(p),maV)))return; /* versions differentes : aucune partie neuve (moteurs differents) */
   const moi=partie?partie.moi:l.findIndex(p=>p.sameTab);if(moi<0||moi>1)return;
   const g=l[0].presence.graine,lui=l[1-moi];
+  /* Revanche : souhait de l'adversaire (veut = graine de la partie finie) suivi a l'ecran de fin */
+  if(partie&&partie.etat&&partie.etat.fin&&!partie.local){const lv=lui.presence.veut===partie.graine;if(!!partie.luiVeut!==lv){partie.luiVeut=lv;affiche()}}
   const rejouer=partie&&g===partie.graine&&partie.etat&&partie.etat.fin&&partie.veut&&lui.presence.veut===g;
   /* Salon neuf : la graine attend les deux Pret (voir ticCompte). Rejouer et reprise ne passent pas par la. */
   const neuf=!partie&&!l.some(p=>Number.isInteger(p.presence.jg));
@@ -115,6 +117,8 @@ function majPartie(){
   let liste;try{liste=M.litJournal(lui.presence.j)}catch(e){return}
   if(liste.length>partie.sien.length){partie.sien=liste;sel=null;calcule()}
 }
+/* Revanche annulee avant la reponse de l'adversaire : le souhait est retire de la presence */
+function annuleRevanche(){if(!partie||partie.local||!partie.veut)return;partie.veut=false;sauve();pub({veut:null});affiche()}
 function joue(a){
   if(!partie||partie.rejeu)return;
   if(window.SPEC&&SPEC.estSpectateur())return; /* spectateur : aucun coup */
