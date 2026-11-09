@@ -316,7 +316,7 @@ function codeDeck(d){
 }
 /* Format 2 (lien ?deck=) : 1 octet N, puis N quantites sur 2 bits dans l'ordre ORDRE_CODE, puis "nom\nauteur" en UTF-8, le tout en base64 URL.
    ORDRE_CODE : AJOUTER LES NOUVELLES CARTES EN FIN SEULEMENT, ne jamais retirer ni deplacer (les anciens liens restent lisibles). */
-const ORDRE_CODE='001 001e 002 002e 003 003e 004 004e 007 007e 008 013 013e 009 009e 029 029e 037 037e 026 026e 036 036e 018 018e 041 041e 025 025e 015 015e 016 016e 901 035 035e 042 042e 008e 020 020e 902'.split(' ');
+const ORDRE_CODE='001 001e 002 002e 003 003e 004 004e 007 007e 008 013 013e 009 009e 029 029e 037 037e 026 026e 036 036e 018 018e 041 041e 025 025e 015 015e 016 016e 901 035 035e 042 042e 008e 020 020e 902 903 021 021e'.split(' ');
 const b64u=u=>{let s='';u.forEach(x=>s+=String.fromCharCode(x));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')};
 function codeDeck2(d,auteur){
   if(Object.keys(d.cartes).some(k=>+d.cartes[k]>0&&!ORDRE_CODE.includes(k)))return codeDeck(d); /* carte oubliee dans ORDRE_CODE : format 1 */
