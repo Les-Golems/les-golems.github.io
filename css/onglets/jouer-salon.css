@@ -208,6 +208,8 @@ b[class^="chat-"][title]{cursor:help}
 #salon .sl-rangee .sl-quitter{min-height:46px;font-size:18px;padding:0 12px}
 #salon .sl-rangee [hidden]{display:inline-flex;visibility:hidden}
 #salon #chatPlace{margin-top:16px}
+/* Salon sans defilement de la page (1920x1080 et moins haut) : la liste du chat cede la hauteur qui manque, 150 px au plus, 50 px au moins. */
+@media (min-width:1080px){#salon .chat-liste{height:clamp(50px,calc(100vh - 990px),150px)}}
 #salon .j-robot{margin:0 0 16px}
 #salon .j-robot>span{-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis}
 @media (max-width:1079px){.sl-cadre{grid-template-columns:minmax(0,1fr)}.sl-bas{width:100%}.sl-rangee{grid-template-columns:1fr 1.6fr 1fr;width:100%}}
