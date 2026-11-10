@@ -354,7 +354,7 @@ function anBandeau(txt,sous,co,haut,fin){if(!couche||!scene)return 0;const t=per
   scene.querySelectorAll('.d-pts i.on').forEach(i=>anA(i,[{filter:'brightness(1)'},{filter:'brightness(1.6) drop-shadow(0 0 8px #f1c35a)',offset:.4},{filter:'brightness(1)'}],{t,delay:200,duration:500,fill:'none'}));
   anFin(bd,t,1050);return 1000}
 /* Debut de manche : apres la fermeture du recapitulatif de la manche qui vient de finir */
-function anManche(){const s=E&&E.etat;if(!s||s.fin||!D)return;const q=s.phase==='mulligan'?null:U().quiJoue(s);
+function anManche(m,n){const s=E&&E.etat;if(!s||s.fin||!D)return;if(Number.isInteger(m)&&s.manche<=m){if((n|0)<25)setTimeout(()=>anManche(m,(n|0)+1),150);return} /* test2j : attendre l'etat de la manche suivante */const q=s.phase==='mulligan'?null:U().quiJoue(s);
   anBandeau('Manche '+s.manche+(q===0||q===1?' - '+(src==='joueur'&&q===E.moi?'Tu commences':nom(q)+' commence'):''),null,'#f1c35a',0,null)}
 /* Victoire ou defaite : bandeau d'environ 1,5 s avant l'ecran de fin ; rend la duree reelle (ms) */
 function anVictoire(){const s=E.etat,F=s.fin;if(!F||(src==='spec'&&F.abandon!==undefined))return 0;
@@ -790,7 +790,7 @@ function ajusteNoms(){
 /* ---------- Fenetres de fin ---------- */
 /* souhait de revanche (vue joueur en ligne) : 1 = le mien, 2 = celui de l'adversaire */
 function revSig(){const P=src==='joueur'&&U()?U().partie:null;return P&&!P.local?(P.veut?1:0)+(P.luiVeut?2:0):0}
-function fermePop(){const mb=suivi&&suivi.vu&&suivi.vu.type==='manche'&&suivi.mAuto===suivi.vu.m;if(mb){suivi.mAuto=null;setTimeout(anManche,120)} /* 0.6a : bandeau « Manche n » apres le recapitulatif */
+function fermePop(){const mb=suivi&&suivi.vu&&suivi.vu.type==='manche'&&suivi.mAuto===suivi.vu.m;if(mb){suivi.mAuto=null;const mm=suivi.vu.m;setTimeout(()=>anManche(mm),120)} /* 0.6a : bandeau « Manche n » apres le recapitulatif */
 if(src==='joueur'&&suivi&&suivi.vu&&suivi.vu.type==='manche'){const c=document.getElementById('continuer'),r=document.getElementById('recap');if(c&&r&&!r.hidden)setTimeout(()=>c.click(),0)} /* vue joueur : fermer le bilan de manche = Continuer */
 if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi.pop=null;suivi.pile=null;suivi.vu=null}
 /* Piles (Deck, Defausse, Forge) : ordre de pioche (1 = prochaine carte), defausse de la plus recente a la plus ancienne, forge dans l'ordre */
