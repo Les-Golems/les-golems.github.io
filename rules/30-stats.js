@@ -56,6 +56,8 @@ module.exports = r => ({
       // s série en cours (signée), r 10 dernières (V, D, N), el part des éléments en %, tops 5 : dk decks, cb cartes, mv MVP.
       // 0.6.2 : pmf = 2 : pm tiré des compteurs complets (toutes les parties) ; pm porte aussi facile, normal, difficile (entraînement par niveau).
       "pmf": { ".validate": "newData.isNumber() && newData.val() === 2" },
+      // 0.6.3 : pm = compteurs de la saison pms (absent = saison 0) ; jamais au-delà de la saison en cours.
+      "pms": { ".validate": `newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= ${r}.child('classe').child('saison').child('id').val()` },
       "pm": {
         "$m": {
           ".validate": "$m.matches(/^(classee|amicale|entrainement|facile|normal|difficile)$/) && newData.hasChildren(['n', 'v', 'd'])",

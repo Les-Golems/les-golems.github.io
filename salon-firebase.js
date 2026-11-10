@@ -203,12 +203,15 @@ async function ouvre() {
     const f = async () => {
       if (!compte.connecte() || !cumuleur) return false;
       const qui = moi, l = (extra || []).concat(donnees.historique);
-      try { if (!cumuleur(donnees.cumul, l)) return false; } catch (e) { console.warn("cumul", e); return false; }
+      // 0.6.3 : compteurs par saison : la saison en cours (classe/saison, lecture publique) déclenche la bascule (remise à zéro, archive).
+      let saison = null;
+      try { const s = (await get(ref(db, P + "classe/saison"))).val(); if (s && Number.isInteger(s.id)) saison = { id: s.id, debut: +s.debut || 0 }; } catch (e) {}
+      try { if (!cumuleur(donnees.cumul, l, saison ? { saison } : undefined)) return false; } catch (e) { console.warn("cumul", e); return false; }
       // 0.6.2 : compteurs par mode à (re)construire (md absent ou en retard) : profil classé et, si l'historique ne contient
       // plus toutes les classées, classées contre le robot lues dans classe/parties (lecture seule).
-      let ctx = null; const c0 = donnees.cumul;
+      let ctx = saison ? { saison } : null; const c0 = donnees.cumul;
       if (c0 && c0.f === 1 && (+c0.k || 0) > 0 && !(c0.md && c0.md.k === c0.k)) {
-        ctx = {};
+        ctx = ctx || {};
         try { const j = (await get(ref(db, P + "classe/joueurs/" + qui))).val(); if (j && Number.isFinite(j.v) && Number.isFinite(j.d)) ctx.cl = { v: j.v, d: j.d }; } catch (e) {}
         const nh = donnees.historique.filter(x => x && (x.mode === "classee" || x.cl === true)).length;
         if (ctx.cl && ctx.cl.v + ctx.cl.d > nh) {
@@ -304,7 +307,7 @@ async function ouvre() {
       const o = { p: donnees.pseudo, m: !!donnees.masque, n: r.n, v: r.v, d: r.d, t: serverTimestamp() };
       // 0.6 : profil privé (masque) : ni date de création (cr) ni Elo (el).
       if (donnees.cree && !donnees.masque) o.cr = donnees.cree;
-      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv", "pm", "pmf"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
+      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv", "pm", "pmf", "pms"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
       // 0.6 : Elo classé affiché (placement fini seulement, règle profils/el).
       const lisEl = async () => { delete o.el; if (donnees.masque) return; try { const j = (await get(ref(db, P + "classe/joueurs/" + moi))).val(); if (j && j.parties >= 5 && Number.isFinite(j.elo)) o.el = j.elo; } catch (e) {} };
       await lisEl();

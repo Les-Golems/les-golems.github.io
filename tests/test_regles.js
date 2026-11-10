@@ -304,7 +304,13 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('instantané avec sa place'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { ...ins, place: 1 }));
   await attendu(ici('instantané, Elo faux'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { ...ins, elo: 1500, rang: 'diamant' }));
   await attendu(ici('instantané d\'un autre'), false, req(X, 'PUT', CL + 'instantanes/0/' + A.uid, ins));
-  await attendu(ici('instantané de fin de saison'), true, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, ins));
+  // 0.6.3 : instantané complet : trois modes et niveaux, chacun avec 10 dernières, éléments, tops 5.
+  const mc = { parties: 6, v: 4, d: 2, best: 3, serie: 1, r: 'VVDVDV', el: { brume: 60, roche: 40 }, dk: { 0: { nom: 'Montée', e: 'brume,roche', n: 6, v: 4 } }, cb: { 0: { c: '001', n: 6, v: 4 } }, mv: { 0: { c: '001', n: 3 } } };
+  await attendu(ici('instantané, mode inconnu'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { ...ins, modes: { tous: mc } }));
+  await attendu(ici('instantané, 10 dernières invalides'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { ...ins, modes: { amicale: { ...mc, r: 'VVVVVVVVVVV' } } }));
+  await attendu(ici('instantané, 6e deck'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { ...ins, modes: { amicale: { ...mc, dk: { 5: mc.dk[0] } } } }));
+  await attendu(ici('instantané, champ inconnu dans un mode'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { ...ins, modes: { amicale: { ...mc, x: 1 } } }));
+  await attendu(ici('instantané de fin de saison (trois modes et niveaux)'), true, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { ...ins, modes: { ...ins.modes, amicale: mc, entrainement: mc, facile: mc, normal: { parties: 0, v: 0, d: 0 } } }));
   await attendu(ici('instantané réécrit'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, ins));
   await attendu(ici('place posée par un joueur'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid + '/place', 1));
   await attendu(ici('place posée par Romain'), true, req(R, 'PUT', CL + 'instantanes/0/' + A.uid + '/place', 2));
@@ -340,6 +346,10 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('profil 0.6, sans pmf'), true, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pm }));
   await attendu(ici('profil, pmf inconnu'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pmf: 3, pm: pm2 }));
   await attendu(ici('profil, niveau inconnu'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pmf: 2, pm: { expert: pm2.facile } }));
+  // 0.6.3 : pms = saison des compteurs pm (jamais au-delà de la saison en cours, ici 1).
+  await attendu(ici('profil, compteurs de la saison 1 (pms)'), true, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pmf: 2, pm: pm2, pms: 1 }));
+  await attendu(ici('profil, saison future (pms 2)'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pmf: 2, pm: pm2, pms: 2 }));
+  await attendu(ici('profil, pms 0'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pmf: 2, pm: pm2, pms: 0 }));
   await attendu(ici('profil, niveau v > n'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, pmf: 2, pm: { facile: { n: 1, v: 2, d: 0 } } }));
   // Mon image gardée : marqueurs __img et __init.
   await attendu(ici('avatar : mon image active (__img)'), true, req(A, 'PUT', P + 'joueurs/' + A.uid + '/avatarId', '__img'));
