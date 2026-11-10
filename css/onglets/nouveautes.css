@@ -35,7 +35,7 @@ html.clair{--fdr-tard:#15222d;--fdr-etat-fond:#cdd6dd;--fdr-etat-texte:#15222d}
 .fdr-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
 .fdr-t small{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--doux)}
 .fdr-t b{font-size:15.5px;color:var(--texte)}
-.fdr-tard .fdr-t b{color:var(--fdr-tard)}
+.fdr-tard .fdr-t b,.fdr-precedente .fdr-t b{color:var(--fdr-tard)}
 .fdr-etat{flex:none;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:800;line-height:1.35;white-space:nowrap;background:var(--fdr-etat-fond);color:var(--fdr-etat-texte)}
 .fdr-proche .fdr-etat{background:var(--bleu);color:var(--encre)}
 .fdr-prevu .fdr-etat{background:var(--or);color:var(--encre)}

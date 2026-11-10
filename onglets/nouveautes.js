@@ -451,13 +451,14 @@ NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t)
    page 1 = epingles + recents ; pages suivantes : 6 blocs chacune, sans epingles. Fleches < x / n > a droite de la ligne d'intro
    (alignees sur le bord droit de la grille), masquees s'il n'y a qu'une page ; changer de page remonte en haut de la liste. */
 const FEUILLE_DE_ROUTE=[
+ {v:'0.6',nom:'Nouvelle interface et parties classées',etat:'precedente'},
  {v:'0.6a',nom:'Mode clair, rejeu et guides des joueurs',etat:'actuelle'},
  {nom:'Tournois',etat:'tard'},
  {nom:'Nouveau type de carte : Événements',etat:'tard'},
  {nom:'Équilibrage',etat:'tard'},
  {v:'1.0',nom:'Sortie officielle',etat:'tard'}
 ];
-const ETATS_FDR={actuelle:'Version actuelle',proche:'Prochaine mise à jour',prevu:'Prévu',tard:'Plus tard'};
+const ETATS_FDR={precedente:'Version précédente',actuelle:'Version actuelle',proche:'Prochaine mise à jour',prevu:'Prévu',tard:'Plus tard'};
 const SVG_EPINGLE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.6 2.6l6.8 6.8-1.9.9-3.4 3.4.4 4.6-1.6 1.6-4.2-4.2-5.6 5.6-1.3-1.3 5.6-5.6-4.2-4.2 1.6-1.6 4.6.4 3.4-3.4z"/></svg>';
 const NV={page:0,par:6,blocs:[...$('notes').children]}; /* blocs : ordre d'origine, du plus recent au plus ancien */
 {
