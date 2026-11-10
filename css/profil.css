@@ -79,7 +79,7 @@ html.galOuverte,html.galOuverte body{overflow:hidden}
 .av-g{display:grid;padding:16px;border-radius:10px;background:var(--panneau2);height:500px;box-sizing:border-box}
 .av-apercu{display:grid;grid-template-rows:1fr auto;gap:16px}.av-apercu[hidden],.av-cadrage[hidden]{display:none}
 .av-grand{display:grid;justify-items:center;align-content:center;gap:14px}
-.av-grand .avatar{display:block;box-shadow:0 0 0 3px var(--bleu)}
+.av-grand .avatar{display:grid;place-items:center;line-height:1;box-shadow:0 0 0 3px var(--bleu)}
 .av-gnom{font:400 22px/1.1 var(--titre);color:#fff;text-align:center}
 .av-actuel{display:flex;align-items:center;gap:8px;justify-content:center;border-top:1px solid var(--trait);padding-top:12px}
 .av-actu{font:700 12px/1 var(--corps);color:#c9d4e2;letter-spacing:.06em;text-transform:uppercase}.av-anom{font:700 13px var(--corps)}

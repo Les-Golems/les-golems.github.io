@@ -60,7 +60,8 @@
 .st-gcl{grid-template-columns:24px 30px minmax(0,1fr) 44px 58px 44px}
 .st-gjo{grid-template-columns:24px minmax(0,1fr) 54px 58px 44px}
 .st-grb{grid-template-columns:24px minmax(0,1fr) 54px 54px 58px}
-.st-gel{grid-template-columns:minmax(0,1fr) 46px 42px 42px}
+.st-gel{grid-template-columns:minmax(0,1fr) 46px 50px 50px}
+.st-gel>.r{white-space:nowrap}
 .st-p .r{text-align:right}.st-p .c{text-align:center}
 .st-n{font-weight:800;color:#fff}.st-pc{font-weight:800}
 .st-ps{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}

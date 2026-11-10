@@ -7,6 +7,7 @@ function deckJoue(){
 function bandeauDeck(d){
   if(!d||typeof d.nom!=='string')return el('span','h-deck h-sans','Deck non noté');
   const b=el('span','h-deck',d.nom==='Test'&&!d.cartes?'Deck par défaut':d.nom),e=(Array.isArray(d.els)?d.els:[]).filter(x=>/^(magma|cristal|foudre|brume|roche)$/.test(x));
+  b.title=b.textContent;
   b.style.background=e.length>1?'linear-gradient(90deg,'+e.map((x,i)=>'var(--fm-'+x+') '+Math.round(100*i/(e.length-1))+'%').join(',')+')':e.length?'var(--fm-'+e[0]+')':'var(--panneau2)';
   return b;
 }
@@ -45,6 +46,8 @@ const modeHisto=x=>x.mode||(x.classe?'classee':nivHisto(x.adv)?'entrainement':'a
 const resCl=x=>x.res==='Victoire'?'v':x.res==='Défaite'?'d':'n';
 const pictosH=(els,cl)=>{const s=el('span','hl-pts'+(cl?' '+cl:''));(Array.isArray(els)?els:[]).filter(e=>H_ELS.test(e)).forEach(e=>s.append(picto(e)));return s};
 const elsDeckH=x=>x.deck&&x.deck.nom==='Test'&&!x.deck.cartes?elsTexte(deckDefautTxt(vPartie(x))):(x.deck&&Array.isArray(x.deck.els)?x.deck.els:[]);
+/* Nom de deck coupe au bord : nom complet au survol. */
+const dnH=t=>{const s=el('span','hd-dn',t);if(t)s.title=t;return s};
 const nomDeckH=d=>!d||typeof d.nom!=='string'?'Deck non noté':d.nom==='Test'&&!d.cartes?'Deck par défaut':d.nom;
 function resHisto(x){return el('span','hl-res '+resCl(x),x.res==='Match nul'?'Nul':x.res)}
 /* Etiquettes : Classee (doree), Amicale, Entrainement ; classee contre un Golem = « Classee » + pastille grise « Golem » (variante D). */
@@ -112,9 +115,9 @@ function detailHisto(x){
   const moi=el('span','hl-adv');
   if(x.classe&&Number.isFinite(x.classe.elo))moi.append(el('span','hl-elo',String(Math.round(x.classe.elo+(+x.classe.delta||0)))));
   moi.append(el('b','hd-moi',ps),avHisto(ps,elsDeckH(x)));
-  g.append(moi,pictosH(elsDeckH(x)),el('span','hd-dn',nomDeckH(x.deck)));
+  g.append(moi,pictosH(elsDeckH(x)),dnH(nomDeckH(x.deck)));
   c.append(scoreHisto(x,'hd-sc'));const dl=deltaHisto(x);if(dl)c.append(dl);
-  if(x.deckAdv&&typeof x.deckAdv.nom==='string')dr.append(el('span','hd-dn',x.deckAdv.nom),pictosH(x.deckAdv.els));
+  if(x.deckAdv&&typeof x.deckAdv.nom==='string')dr.append(dnH(x.deckAdv.nom),pictosH(x.deckAdv.els));
   dr.append(advHisto(x,true));
   ff.append(g,c,dr);d.append(ff);
   if(Array.isArray(x.manches)){
@@ -201,7 +204,7 @@ function bilanHisto(x,ps,lui,moiN,golem,tout){
     R.forEach(r=>{const l=el('tr',r.sous?'sous':''),v=r.slice(1,5).map(n=>el('td',+n?'':'z',String(+n||0)));
       if(droite){v.reverse().forEach(y=>l.append(y));l.append(nomC(r,1))}else{l.append(nomC(r,0));v.forEach(y=>l.append(y))}t.append(l)});
     return t};
-  const tete=(nom,cl,deck,els,droite)=>{const h=el('div','hd-bt '+(droite?'d':'g')),b=el('b',cl,nom),p=pictosH(els),n=el('span','hd-dn',deck||'');
+  const tete=(nom,cl,deck,els,droite)=>{const h=el('div','hd-bt '+(droite?'d':'g')),b=el('b',cl,nom),p=pictosH(els),n=dnH(deck||'');
     if(droite)h.append(n,p,b);else h.append(b,p,n);return h};
   const w=el('div','hd-bil'),sg=el('div','hd-side g'),sd=el('div','hd-side d');
   sg.append(tete(ps,'hd-moi',nomDeckH(x.deck),elsDeckH(x),0),table(lignes(Jm),0));
