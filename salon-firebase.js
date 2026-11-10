@@ -277,13 +277,27 @@ async function ouvre() {
     },
     // Résumé public des parties (joueurs/{uid}/stats = { v: victoires, n: parties }) et classement, sur toutes les parties
     // (cumuls), après ajout au cumul des parties qui viennent d'être écrites (extra). Sans la page : l'historique seul.
+    // Stats publiques puis classement. Règle PAS_MAX (rules/00-communs.js) : n monte de 50 au plus par écriture ; un compte
+    // de plus de 50 parties sans stats publiées monte donc par paliers de 50 (v suit, sans jamais dépasser la hausse de n).
+    async ecritStats(v, n) {
+      const chemin = ref(db, P + "joueurs/" + moi + "/stats");
+      let a = null; try { a = (await get(chemin)).val(); } catch (e) {}
+      if (!a || typeof a !== "object") { try { a = (await get(ref(db, P + "classement/" + moi))).val(); } catch (e) {} }
+      let n0 = a && Number.isFinite(a.n) ? a.n : 0, v0 = a && Number.isFinite(a.v) ? a.v : 0, ok = true;
+      if (n < n0 || v < v0 || v - v0 > n - n0) { n0 = 0; v0 = 0; } // valeur précédente incohérente : écriture directe (refusée si la règle l'exige)
+      for (let i = 0; i < 2000; i++) {
+        const n1 = Math.min(n, n0 + 50), v1 = Math.max(v0, v - (n - n1));
+        try { await set(chemin, { v: v1, n: n1 }); } catch (e) { console.warn("stats", e); ok = false; break; }
+        n0 = n1; v0 = v1; if (n1 >= n) break;
+      }
+      try { await set(ref(db, P + "classement/" + moi), { p: donnees.pseudo, v, n }); } catch (e) { if (ok) console.warn("classement", e); }
+    },
     async publieStats(extra) {
       if (!compte.connecte()) return;
       await rattrape(extra);
       if (resumeur) { await compte.publieProfil(); return; }
       const h = donnees.historique, v = h.filter(x => x.res === "Victoire").length;
-      try { await set(ref(db, P + "joueurs/" + moi + "/stats"), { v, n: h.length }); } catch (e) {}
-      try { await set(ref(db, P + "classement/" + moi), { p: donnees.pseudo, v, n: h.length }); } catch (e) {}
+      await compte.ecritStats(v, h.length);
     },
     // Résumé public du profil : fabriqué par la page (mêmes calculs que la fenêtre de compte), sur toutes les parties,
     // publié à la connexion et à chaque fin de partie, avec stats et classement (mêmes n et v).
@@ -298,8 +312,7 @@ async function ouvre() {
       let r; try { r = resumeur(donnees.historique.slice(), donnees.cumul || null); } catch (e) { console.warn("profil", e); return false; }
       if (!r) return false;
       if (r.n > 0) {
-        try { await set(ref(db, P + "joueurs/" + moi + "/stats"), { v: r.v, n: r.n }); } catch (e) {}
-        try { await set(ref(db, P + "classement/" + moi), { p: donnees.pseudo, v: r.v, n: r.n }); } catch (e) {}
+        await compte.ecritStats(r.v, r.n);
       }
       const o = { p: donnees.pseudo, m: !!donnees.masque, n: r.n, v: r.v, d: r.d, t: serverTimestamp() };
       // 0.6 : profil privé (masque) : ni date de création (cr) ni Elo (el).
