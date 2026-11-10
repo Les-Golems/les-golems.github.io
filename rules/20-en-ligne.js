@@ -38,7 +38,7 @@ module.exports = r => ({
   "annonces": {
     ".read": `${COMPTE}`,
     "$code": {
-      ".write": `${COMPTE} && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid || !${r}.child('salons').child($code).child('joueurs').hasChild(data.child('u').val())) && ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && (data.child('u').val() === auth.uid || ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid))))`,
+      ".write": `${COMPTE} && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid || !${r}.child('salons').child($code).child('joueurs').hasChild(data.child('u').val())) && (${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) || ${r}.child('salons').child($code).child('pres').hasChild(auth.uid))) || (!newData.exists() && (data.child('u').val() === auth.uid || ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid))))`,
       ".validate": `$code.matches(${CODE}) && newData.hasChildren(['u', 'p', 't'])`,
       "u": { ".validate": "newData.val() === auth.uid" },
       "p": { ".validate": `newData.isString() && ${pseudoReel(r, 'auth.uid')}` },
@@ -189,7 +189,7 @@ module.exports = r => ({
       },
       // 0.6 : ouverture du salon (heure serveur), posée une fois par un joueur présent : sert au délai du bandeau robot.
       "cree": {
-        ".write": `${COMPTE} && !data.exists() && ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid)`,
+        ".write": `${COMPTE} && !data.exists() && (${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) || ${r}.child('salons').child($code).child('pres').hasChild(auth.uid))`,
         ".validate": `${MAINTENANT}`
       },
       // 0.6 : bandeau « Affronter un Golem » d'un salon classé : 2 min après l'ouverture, sans adversaire engagé,

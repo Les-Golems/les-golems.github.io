@@ -164,7 +164,7 @@
     "annonces": {
       ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
       "$code": {
-        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid || !root.child('salons').child($code).child('joueurs').hasChild(data.child('u').val())) && root.child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && (data.child('u').val() === auth.uid || root.child('salons').child($code).child('joueurs').hasChild(auth.uid))))",
+        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid || !root.child('salons').child($code).child('joueurs').hasChild(data.child('u').val())) && (root.child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('salons').child($code).child('pres').hasChild(auth.uid))) || (!newData.exists() && (data.child('u').val() === auth.uid || root.child('salons').child($code).child('joueurs').hasChild(auth.uid))))",
         ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.hasChildren(['u', 'p', 't'])",
         "u": {
           ".validate": "newData.val() === auth.uid"
@@ -384,7 +384,7 @@
           ".validate": "newData.isBoolean()"
         },
         "cree": {
-          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && root.child('salons').child($code).child('joueurs').hasChild(auth.uid)",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && (root.child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('salons').child($code).child('pres').hasChild(auth.uid))",
           ".validate": "newData.val() === now"
         },
         "robot": {
@@ -1400,7 +1400,7 @@
       "annonces": {
         ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
         "$code": {
-          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid || !root.child('essai').child('salons').child($code).child('joueurs').hasChild(data.child('u').val())) && root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && (data.child('u').val() === auth.uid || root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid))))",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid || !root.child('essai').child('salons').child($code).child('joueurs').hasChild(data.child('u').val())) && (root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('essai').child('salons').child($code).child('pres').hasChild(auth.uid))) || (!newData.exists() && (data.child('u').val() === auth.uid || root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid))))",
           ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.hasChildren(['u', 'p', 't'])",
           "u": {
             ".validate": "newData.val() === auth.uid"
@@ -1620,7 +1620,7 @@
             ".validate": "newData.isBoolean()"
           },
           "cree": {
-            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid)",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && (root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('essai').child('salons').child($code).child('pres').hasChild(auth.uid))",
             ".validate": "newData.val() === now"
           },
           "robot": {

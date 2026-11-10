@@ -91,6 +91,12 @@ async function scenario(P) {
     await attendu(ici('pres sans joueurs'), true, req(A, 'PUT', S2 + '/pres/' + A.uid, { c: false, t: HEURE }));
     await attendu(ici('activite avec pres seul'), true, req(A, 'PUT', P + 'activite/' + c2, HEURE));
     await attendu(ici('activite sans pres ni joueurs (autre uid)'), false, req(X, 'PUT', P + 'activite/' + c2, HEURE));
+    /* annonce et cree : de même avec pres/<uid> seul (réannonce / cree renvoyés par le SDK après coupure), pour son propre uid seulement */
+    await attendu(ici('annonce avec pres seul'), true, req(A, 'PUT', P + 'annonces/' + c2, { u: A.uid, p: pA, t: HEURE }));
+    await attendu(ici('annonce sans pres ni joueurs (autre uid)'), false, req(X, 'PUT', P + 'annonces/' + c2, { u: X.uid, p: pX, t: HEURE }));
+    await attendu(ici('annonce au nom d un autre uid (pres de A)'), false, req(X, 'PUT', P + 'annonces/' + c2, { u: A.uid, p: pA, t: HEURE }));
+    await attendu(ici('cree sans pres ni joueurs (autre uid)'), false, req(X, 'PUT', S2 + '/cree', HEURE));
+    await attendu(ici('cree avec pres seul'), true, req(A, 'PUT', S2 + '/cree', HEURE));
   }
   await attendu(ici('engagement de la partie'), true, req(A, 'PUT', S + '/engages', { [A.uid]: true, [B.uid]: true }));
   await attendu(ici('coup de A'), true, req(A, 'POST', S + '/coups', { a: A.uid, s: 'sa', g: 5, n: 0, c: 'p1' }));

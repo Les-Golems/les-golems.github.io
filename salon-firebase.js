@@ -589,21 +589,36 @@ async function ouvre() {
     }
     // Annonce publique (annonces/{code}) : effacée à la déconnexion du créateur.
     const annRef = ref(db, P + "annonces/" + code);
-    let annonceOn = false, presOk = false, annonceO = null, annonceRearme = false, versRobot = false; // annonceO : dernière annonce publiée (réécrite à la reconnexion)
+    let annonceOn = false, presOk = false, annonceO = null, annonceRearme = false, versRobot = false, creeAFaire = false, presConf = false; // annonceO : dernière annonce publiée (réécrite à la reconnexion) ; creeAFaire : heure d'ouverture du salon classé pas encore écrite (réessayée à la reconnexion)
     function ecrit() { return update(moiRef, { ...pres, t: serverTimestamp() }); }
     // Présence de connexion (0.5, déconnexion) : salons/{code}/pres/{uid} = { c: connecté, t: heure serveur du dernier changement }.
     // Le serveur écrit c:false lui-même à la coupure (onDisconnect) ; l'adversaire en tire « reconnexion » puis « hors ligne ».
     const presRef = ref(db, base + "/pres/" + uid);
-    let etats = {}, forfaits = {};
+    let etats = {}, forfaits = {}, presN = 0;
     const ecouteDeco = [];
     const notifieDeco = () => { if (!fini) ecouteDeco.forEach(f => { try { f(); } catch (e) {} }); };
-    stop.push(onValue(ref(db, base + "/pres"), s => { etats = s.val() || {}; notifieDeco(); }, () => {}));
+    // Micro-coupure : l'onDisconnect de l'ancienne connexion peut être joué par le serveur APRÈS la réécriture c:true de la
+    // reconnexion (ou la réponse de onDisconnect se perdre et bloquer presCo) : ma présence reste c:false alors que je joue,
+    // et l'adversaire prononce le forfait au bout de 60 s. Toute présence c:false vue pour moi pendant que je suis connecté est réécrite.
+    stop.push(onValue(ref(db, base + "/pres"), s => { etats = s.val() || {}; const m = etats[uid];
+      if (enLigne && !fini && m && m.c === false) presCo();
+      notifieDeco(); }, () => {}));
     stop.push(onValue(ref(db, base + "/forfait"), s => { forfaits = s.val() || {}; notifieDeco(); }, () => {}));
+    // Heure d'ouverture du salon classé (cree) écoutée en continu (jamais un get qui peut rester pendant pendant une coupure) ; désabonnée par stop.
+    let creeV = 0; const ecouteCree = [];
+    stop.push(onValue(ref(db, base + "/cree"), s => { creeV = +s.val() || 0; if (!fini) ecouteCree.forEach(f => { try { f(creeV); } catch (e) {} }); }, () => {}));
+    // onDisconnect réarmé puis c:true. La réponse du serveur à onDisconnect peut se perdre dans une coupure (promesse jamais
+    // tenue) : sans réponse en 3 s, connecté, on recommence (onDisconnect rejoué, idempotent).
     function presCo() {
-      return onDisconnect(presRef).set({ c: false, t: serverTimestamp() }).then(() => set(presRef, { c: true, t: serverTimestamp() })).catch(() => {});
+      const n = ++presN;
+      const essai = setTimeout(() => { if (n === presN && enLigne && !fini) presCo(); }, 3000);
+      return onDisconnect(presRef).set({ c: false, t: serverTimestamp() }).then(() => { if (n === presN) clearTimeout(essai); return set(presRef, { c: true, t: serverTimestamp() }); }).catch(() => {});
     }
     // Reconnexion : présence réécrite, puis annonce publiée réécrite (effacée par le serveur à la coupure ; la règle exige joueurs/<uid>, d'où l'attente de ecrit()).
-    const reco = () => { if (enLigne && !fini) { onDisconnect(moiRef).remove(); const e = ecrit(); presCo();
+    // presConf : joueurs/<uid> confirmé par le serveur depuis la dernière connexion. Faux dès la coupure (le serveur l'efface) : annonce et cree
+    // n'écrivent qu'avec presConf vrai, sinon leur écriture partirait avant la présence à la reconnexion et serait refusée (permission_denied).
+    const reco = () => { if (!enLigne) presConf = false; if (enLigne && !fini) { onDisconnect(moiRef).remove(); const e = ecrit().then(() => { if (enLigne) presConf = true; }); presCo();
+      if (creeAFaire) e.then(() => salon.poseCree()).catch(() => {}); // la règle de cree exige joueurs/<uid> : après ecrit()
       if (annonceOn && annonceO && !versRobot) { annonceRearme = true; const o = annonceO; e.then(() => { if (!fini && annonceO === o) return salon.annonce(o); }).catch(() => {}); } else e.catch(() => {}); } };
     ecouteCo.push(reco);
 
@@ -678,9 +693,15 @@ async function ouvre() {
       // poseRobot(o) : bandeau « Affronter un Golem » (o = GolemsClasse.salonRobot), à poser avant de quitter le salon.
       // 0.6.1 : hote = créateur du salon (seul à pouvoir poser cl), posé à la création de tout salon.
       async marqueHote() { try { await ajoute(ref(db, base + "/hote"), uid); } catch (e) {} },
-      async marqueClasse() { try { await ajoute(ref(db, base + "/hote"), uid); } catch (e) {} await set(ref(db, base + "/cl"), true); try { await ajoute(ref(db, base + "/cree"), serverTimestamp()); } catch (e) {} },
+      // cree : échec (coupure) remonté à l'appelant et réessayé à chaque reconnexion (creeAFaire) ; poseCree() pour un nouvel essai à la demande.
+      async marqueClasse() { creeAFaire = true; await salon.poseCree(); },
+      // hote, cl puis cree, tout repris à chaque essai (une coupure peut faire tomber n'importe laquelle des trois écritures).
+      async poseCree() { if (fini || !creeAFaire) return true; if (!presConf || !enLigne) return false; // réessayé par reco après la présence
+        try { await ajoute(ref(db, base + "/hote"), uid); } catch (e) {}
+        await set(ref(db, base + "/cl"), true); if (!presConf) return false; await ajoute(ref(db, base + "/cree"), serverTimestamp()); creeAFaire = false; return true; },
       // Heure d'ouverture du salon classé (cree, heure serveur ; 0 si absente) : base du délai de 2 min avant le Golem.
-      async lisCree() { try { return +(await get(ref(db, base + "/cree"))).val() || 0; } catch (e) { return 0; } },
+      lisCree() { return Promise.resolve(creeV); },
+      onCree(f) { ecouteCree.push(f); },
       async estClasse() { try { return (await get(ref(db, base + "/cl"))).val() === true; } catch (e) { return false; } },
       // Bandeau robot : ajout seulement ; déjà posé par moi (renvoi après coupure) = fait.
       // versRobot : départ contre le Golem engagé, le salon va être quitté : plus aucune (ré)annonce (la règle la refuserait).
@@ -695,7 +716,7 @@ async function ouvre() {
         for (const k in pres) if (pres[k] === null) delete pres[k];
         // null efface le champ côté base
         const maj = { ...filtre(reste, CHAMPS_SALON), t: serverTimestamp() };
-        await update(moiRef, maj); presOk = true;
+        await update(moiRef, maj); presOk = true; if (enLigne) presConf = true;
         touche();
         if (j !== undefined && j !== null) await envoieJournal(j);
       },
@@ -705,7 +726,7 @@ async function ouvre() {
       async annonce(o) {
         // Salon quitté (robot lancé, sortie) : plus d'annonce, la règle la refuserait (joueur absent du salon).
         // Avant l'écriture de joueurs/<uid> : refusée aussi ; majSalon la republie après presence().
-        if (o && (fini || versRobot || !presOk)) return false; // false : rien d'écrit, l'appelant réessaiera
+        if (o && (fini || versRobot || !presOk || !presConf || !enLigne)) return false; // false : rien d'écrit, l'appelant réessaiera
         annonceO = o || null;
         if (o) {
           const v = { u: uid, p: donnees && donnees.pseudo || "", a: donnees && donnees.avatarId || "", d: String(o.d || "").slice(0, 24), e: String(o.e || "").slice(0, 60), t: serverTimestamp() };
@@ -723,7 +744,7 @@ async function ouvre() {
             for (const k of ["a", "d", "e", "v", "w", "q", "n", "g", "m", "k", "f", "cl", "el"]) if (!(k in maj)) maj[k] = null;
             // Annonce absente (effacée à la coupure) : update refusé (t manquant), alors republiée par set.
             const ex = annonceRearme ? (await get(annRef).catch(() => null)) : true;
-            if (fini || versRobot) return false; // salon quitté pendant la lecture (robot lancé, fin) : plus rien à annoncer
+            if (fini || versRobot || !presConf) return false; // salon quitté pendant la lecture (robot lancé, fin) : plus rien à annoncer
             if (ex === true || (ex && ex.exists())) {
               try { await update(annRef, maj); if (annonceRearme) { annonceRearme = false; await onDisconnect(annRef).remove(); } return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
             }
@@ -731,7 +752,7 @@ async function ouvre() {
           // onDisconnect posé APRÈS l'écriture : la règle de retrait (u = moi) est alors vraie (sinon PERMISSION_DENIED).
           // Reconnexion : l'ancien onDisconnect a servi (annonce effacée), il est reposé.
           const pose = !annonceOn || annonceRearme;
-          if (fini || versRobot) return false;
+          if (fini || versRobot || !presConf) return false;
           await set(annRef, v);
           // Salon quitté pendant l'écriture (leave n'a pas vu l'annonce) : retirée aussitôt (u = moi).
           if (fini || versRobot) { try { await remove(annRef); } catch (e) {} return false; }
