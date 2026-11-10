@@ -146,6 +146,10 @@ function tuileDk(o){
   if(R.length){const r=el('span','rs',R.length>1?'Deck invalide : '+R.length+' raisons. Ouvre le deck pour corriger.':'Deck invalide : '+R[0].c+'.');r.title=R.map(z=>z.t).join('\n');t.append(r)}
   return t;
 }
+/* Nom d'une copie, jamais deja pris : « X (copie) », puis « X (copie 2) », « X (copie 3) »... (24 caracteres au plus). */
+function nomCopie(nom,L){const pris=new Set(L.map(x=>String(x.nom||'').toLowerCase())),base=String(nom||'').replace(/\s*\(copie(?: \d+)?\)$/i,'').trim()||'Deck';
+  for(let i=1;i<1000;i++){const s=i===1?' (copie)':' (copie '+i+')',n=nettoie(base.slice(0,24-s.length).trim()+s,24)||'Deck';if(!pris.has(n.toLowerCase()))return n}
+  return nettoie(base,24)||'Deck'}
 /* Ancien point d'entree (salon, spectateur-ui.js) : rend la tuile unique, a poser dans un conteneur .cd-tuile. */
 function enteteDeck(nom,els,nb,injouable,v,cartes){return [tuileDk({nom,els,nb,R:injouable&&typeof injouable==='object'?injouable:[],v,cartes})]}
 /* 0.6 : etiquette de version d'un deck. Bleue (etq-v) toujours ; ROUGE (vx-diff) si une carte du deck a ete modifiee depuis la
@@ -325,7 +329,7 @@ function panneauDk(R,d,l){
       if(k){v.textContent='Voir toute la liste ('+k+' de plus)';v.onclick=()=>{listeDepliee=true;peintDecks()}}else v.remove()})}
   const r1=el('div','dk-ligne'),r2=el('div','dk-ligne');
   r1.append(btnDk('Placements','',()=>ouvreTest(d,l)),btnDk('Partager','sc-secondaire',()=>partageDeck(R,d)));
-  const du=btnDk('Dupliquer','sc-secondaire',()=>{const L2=lesDecks();if(L2.length>=MAX_DECKS)return;const c={id:nouveauSid(),nom:nettoie(d.nom.slice(0,16).trim()+' (copie)',24)||'Deck',cartes:{...d.cartes},v:d.v||V_DECK_ANCIEN};gardeDecks(L2.concat(c));deckVu=c.id;peintDecks()});
+  const du=btnDk('Dupliquer','sc-secondaire',()=>{const L2=lesDecks();if(L2.length>=MAX_DECKS)return;const c={id:nouveauSid(),nom:nomCopie(d.nom,L2),cartes:{...d.cartes},v:d.v||V_DECK_ANCIEN};gardeDecks(L2.concat(c));deckVu=c.id;peintDecks()});
   if(l.length>=MAX_DECKS){du.disabled=true;du.title=MAX_DECKS+' decks au plus'}
   r2.append(du,btnDk('Supprimer','dk-danger',()=>confirmeSuppr(d,l)));R.append(r1,r2);
 }
