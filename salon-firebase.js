@@ -10,7 +10,7 @@
 //
 // Arborescence :
 //   pseudos/{pseudo minuscule}  uid du propriétaire
-//   joueurs/{uid}               pseudo, avatarId, cree, importe, decks/0..11, historique/{id} {d, x},
+//   joueurs/{uid}               pseudo, avatarId, cree, importe, decks/0..11 (emplacements fixes), ordreDecks (ordre affiché), historique/{id} {d, x},
 //                               cumul (texte JSON : cumuls de toutes les parties, fabriqués par la page)
 //   profils/{uid}               résumé public du profil (chiffres de la fenêtre de compte), m = profil privé
 //   hall/{uid}                  présence dans l'accueil (pseudo, salon, quitte), comptes seulement
@@ -183,7 +183,55 @@ async function ouvre() {
   majEnligne();
 
   // Données du compte
-  function versListe(o) { return Object.values(o || {}).filter(Boolean); }
+  // 0.6a : decks à emplacement fixe (decks/<i> ne bouge plus) et ordre d'affichage à part (ordreDecks = ids séparés par des virgules).
+  // decksBase = ce que la base contient (id -> { s: emplacement, o: deck normalisé }), sert à n'écrire que ce qui change.
+  let decksBase = new Map(), ordreBase = "", fileDecks = Promise.resolve();
+  const normeDeck = d => {
+    const c = {}; for (const k in d.cartes || {}) if (+d.cartes[k] > 0) c[k] = +d.cartes[k];
+    const o = { id: String(d.id), nom: String(d.nom || "").slice(0, 24) || "Deck", cartes: c };
+    if (typeof d.v === "string" && /^[0-9a-z.]{1,10}$/.test(d.v)) o.v = d.v;
+    return o;
+  };
+  function lisDecks(brut, ordre) {
+    decksBase = new Map(); ordreBase = typeof ordre === "string" ? ordre : "";
+    const l = [];
+    for (const k of Object.keys(brut || {})) {
+      const d = brut[k]; if (!d || typeof d !== "object" || typeof d.id !== "string" || decksBase.has(d.id)) continue;
+      const x = { id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0, ...(d.v ? { v: d.v } : {}) };
+      decksBase.set(d.id, { s: +k, o: normeDeck(x) }); l.push(x);
+    }
+    const rang = new Map(ordreBase.split(",").filter(Boolean).map((id, i) => [id, i]));
+    l.sort((a, b) => (rang.has(a.id) ? rang.get(a.id) : 99 + decksBase.get(a.id).s) - (rang.has(b.id) ? rang.get(b.id) : 99 + decksBase.get(b.id).s));
+    return l;
+  }
+  async function ecritDecksFile(l0) {
+    if (!compte.connecte()) return;
+    const l = l0.slice(0, MAX_DECKS); donnees.decks = l;
+    const rac = P + "joueurs/" + moi + "/decks/", ids = new Set(l.map(d => String(d.id))), refuses = [];
+    let erreur = null;
+    const essaie = async (nom, f) => { try { await f(); } catch (e) { console.warn("decks", nom, e); erreur = erreur || e; refuses.push(nom); } };
+    for (const [id, b] of [...decksBase]) if (!ids.has(id)) await essaie(b.o.nom, async () => { await remove(ref(db, rac + b.s)); decksBase.delete(id); });
+    for (const d of l) {
+      const n = normeDeck(d), b = decksBase.get(n.id);
+      if (!b) {
+        const pris = new Set([...decksBase.values()].map(x => x.s));
+        let s = 0; while (pris.has(s)) s++;
+        if (s >= MAX_DECKS) { refuses.push(n.nom); erreur = erreur || new Error("emplacements pleins"); continue; }
+        await essaie(n.nom, async () => { await set(ref(db, rac + s), { ...n, t: Date.now() }); decksBase.set(n.id, { s, o: n }); });
+        continue;
+      }
+      const maj = {};
+      if (n.nom !== b.o.nom) maj.nom = n.nom;
+      if ((n.v || null) !== (b.o.v || null)) maj.v = n.v || null;
+      for (const k of new Set([...Object.keys(n.cartes), ...Object.keys(b.o.cartes)])) if (n.cartes[k] !== b.o.cartes[k]) maj["cartes/" + k] = n.cartes[k] || null;
+      if (!Object.keys(maj).length) continue;
+      maj.t = Date.now();
+      await essaie(n.nom, async () => { await update(ref(db, rac + b.s), maj); b.o = n; });
+    }
+    const ordre = l.map(d => String(d.id)).filter(id => decksBase.has(id)).join(",");
+    if (ordre !== ordreBase) await essaie("ordre", async () => { await set(ref(db, P + "joueurs/" + moi + "/ordreDecks"), ordre || null); ordreBase = ordre; });
+    if (erreur) throw Object.assign(new Error("decks non enregistrés"), { code: erreur.code || "", refuses });
+  }
   function lisCumul(t) { if (typeof t !== "string") return null; try { const c = JSON.parse(t); return c && typeof c === "object" ? c : null; } catch (e) { return null; } }
   async function chargeDonnees() {
     if (!estCompte()) { donnees = null; return; }
@@ -194,7 +242,7 @@ async function ouvre() {
       avatarImg: typeof v.avatarImg === "string" ? v.avatarImg : "",
       importe: !!v.importe,
       cree: +v.cree || 0,
-      decks: versListe(v.decks).map(d => ({ id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0, ...(d.v ? { v: d.v } : {}) })),
+      decks: lisDecks(v.decks, v.ordreDecks),
       historique: Object.keys(v.historique || {}).map(k => { try { return JSON.parse(v.historique[k].x); } catch (e) { return null; } })
         .filter(x => x && x.id).sort((a, b) => (+b.date || 0) - (+a.date || 0)),
       cumul: lisCumul(v.cumul),
@@ -431,17 +479,14 @@ async function ouvre() {
         await signInAnonymously(auth);
       });
     },
-    // Decks : la liste entière est réécrite (12 au plus, emplacements 0 à 11).
-    async ecritDecks(l) {
-      if (!compte.connecte()) return;
-      const o = {};
-      l.slice(0, MAX_DECKS).forEach((d, i) => {
-        const c = {}; for (const k in d.cartes || {}) if (+d.cartes[k] > 0) c[k] = +d.cartes[k];
-        o[i] = { id: String(d.id), nom: String(d.nom).slice(0, 24) || "Deck", cartes: c, t: Date.now() };
-        if (typeof d.v === "string" && /^[0-9a-z.]{1,10}$/.test(d.v)) o[i].v = d.v;
-      });
-      donnees.decks = l.slice(0, MAX_DECKS);
-      await set(ref(db, P + "joueurs/" + moi + "/decks"), o);
+    // Decks (0.6a) : chaque écriture ne touche que ce qui change, deck par deck (ajout, suppression, champs modifiés),
+    // puis l'ordre (ordreDecks) à part. Un ancien deck refusé par les règles (ex. 5 exemplaires) ne bloque plus le reste :
+    // seule SA modification échoue. Échec : erreur avec refuses = noms des decks non enregistrés (la page affiche le bandeau) ;
+    // decksBase reste l'état de la base, la prochaine écriture renvoie tout ce qui diffère encore.
+    ecritDecks(l) {
+      const p = fileDecks.then(() => ecritDecksFile(l));
+      fileDecks = p.catch(() => {});
+      return p;
     },
     // Historique : ajoute les entrées, puis purge au-delà des 50 plus récentes (liste et replays).
     // Les cumuls (profil, classement) comptent toutes les parties, même celles purgées aussitôt.

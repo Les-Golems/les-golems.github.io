@@ -464,6 +464,22 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('deck avec version v'), true, req(A, 'PUT', P + 'joueurs/' + A.uid + '/decks/1', { id: 'd2', nom: 'Versionné', v: '0.6', cartes: { '001': 2 } }));
   await attendu(ici('deck, v trop longue'), false, req(A, 'PUT', P + 'joueurs/' + A.uid + '/decks/1', { id: 'd2', nom: 'Versionné', v: '0.6.1234567' }));
   await attendu(ici('deck, v non chaîne'), false, req(A, 'PUT', P + 'joueurs/' + A.uid + '/decks/1', { id: 'd2', nom: 'Versionné', v: 6 }));
+  // 0.6a : ancien deck invalide (5 exemplaires, posé en console) : ne bloque plus l'ordre ni les autres decks, réparable pas à pas.
+  {
+    const b = P + 'joueurs/' + A.uid;
+    await req('admin', 'PUT', b + '/decks/5', { id: 'vieux', nom: 'Ancien', cartes: { '001': 5 }, t });
+    await attendu(ici('ordreDecks seul'), true, req(A, 'PUT', b + '/ordreDecks', 'vieux,d2'));
+    await attendu(ici('ordreDecks mal formé'), false, req(A, 'PUT', b + '/ordreDecks', 'Vieux;d2'));
+    await attendu(ici('ordreDecks, 13 ids'), false, req(A, 'PUT', b + '/ordreDecks', Array.from({ length: 13 }, (_, i) => 'd' + i).join(',')));
+    await attendu(ici("renommer l'ancien deck invalide"), true, req(A, 'PATCH', b + '/decks/5', { nom: 'Ancien 2', t }));
+    await attendu(ici("J'ai vérifié sur l'ancien deck invalide"), true, req(A, 'PATCH', b + '/decks/5', { v: '0.6a', t }));
+    await attendu(ici('ancien deck : 5 -> 4 exemplaires'), true, req(A, 'PATCH', b + '/decks/5', { 'cartes/001': 4, t }));
+    await attendu(ici('ancien deck : 4 -> 5 exemplaires'), false, req(A, 'PATCH', b + '/decks/5', { 'cartes/001': 5, t }));
+    await attendu(ici('nouveau deck à 4 exemplaires'), false, req(A, 'PUT', b + '/decks/6', { id: 'copie', nom: 'Copie', cartes: { '001': 4 }, t }));
+    await attendu(ici('exemplaires non entiers'), false, req(A, 'PATCH', b + '/decks/5', { 'cartes/002': 1.5, t }));
+    await attendu(ici('ancien deck : 4 -> 3 exemplaires'), true, req(A, 'PATCH', b + '/decks/5', { 'cartes/001': 3, t }));
+    await attendu(ici("supprimer l'ancien deck"), true, req(A, 'DELETE', b + '/decks/5'));
+  }
 
   // Faille : pseudo libéré alors que le compte le porte encore.
   await attendu(ici('faille pseudo : libérer le pseudo porté'), false, req(X, 'DELETE', P + 'pseudos/' + pX.toLowerCase()));

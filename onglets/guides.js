@@ -166,7 +166,7 @@ function peintEcran(g){const e=$('gdEcran');if(!e)return;e.replaceChildren();
 async function gdSupprime(g){
   const ok=await confirmeFen({titre:'Supprimer ce guide ?',texte:'« '+g.titre+' » disparaît pour tous les joueurs, avec ses votes.',action:'Supprimer'});if(!ok)return;
   try{await GD.room.guides.supprime(g.id,GUIDES_IDS.has(g.id))}
-  catch(x){console.warn('suppression de guide',x);alerte('gdAlq','Guide : suppression impossible. Réessaie dans un instant.');return}
+  catch(x){console.warn('suppression de guide',x);alerte('gdAlq','Guide : suppression impossible. Réessaie dans un instant.').classList.add('sc-une-ligne');return}
   if(GD.cur===g)GD.cur=null;GD.fiches=Object.assign({},GD.fiches);delete GD.fiches[g.id];if(GUIDES_IDS.has(g.id))GD.sup=Object.assign({},GD.sup,{[g.id]:true});
   gdMaj();peintGuidesCJ();alerteInfo('gdAlq','Guide : supprimé. Il n\'apparaît plus pour personne.').classList.add('sc-une-ligne');
 }

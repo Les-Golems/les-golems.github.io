@@ -30,7 +30,7 @@ module.exports = r => ({
       // Résumé public des parties (victoires v sur n parties), lisible par tout connecté.
       // Garde-fou : une écriture suit la précédente (ou, si le nœud a été effacé, le classement) : voir gardeStats.
       "stats":    { ".read": `${COMPTE}`, ".validate": `newData.hasChildren(['v', 'n']) && newData.child('v').isNumber() && newData.child('n').isNumber() && newData.child('v').val() >= 0 && newData.child('v').val() <= newData.child('n').val() && (data.exists() ? ${gardeStats('data')} : ${gardeStats(r + ".child('classement').child($uid)")})`, "v": { ".validate": "newData.isNumber()" }, "n": { ".validate": "newData.isNumber()" }, "$autre": { ".validate": false } },
-      // 12 decks au plus : emplacements 0 à 11. Le total 24 à 30 est vérifié par le site
+      // 12 decks au plus : emplacements 0 à 11 (fixes depuis la 0.6a : l'ordre est dans ordreDecks). Le total 24 à 30 est vérifié par le site
       // (un deck en cours de construction peut être plus petit).
       "decks": {
         "$i": {
@@ -41,12 +41,16 @@ module.exports = r => ({
           // 0.6 : version du site à l'enregistrement du deck (M.VERSION, ex. « 0.6 »), 10 caractères au plus.
           "v":   { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,10}$/)" },
           // Carte (001, 001e...) : 1 à 3 exemplaires, base et évolution à part.
+          // 0.6a : un ancien deck au-delà (ex. 5 exemplaires, d'avant la règle) peut redescendre pas à pas (5, 4, puis 3) : réparable par le joueur.
           "cartes": {
-            "$c": { ".validate": "$c.matches(/^[0-9]{3}e?$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 3" }
+            "$c": { ".validate": "$c.matches(/^[0-9]{3}e?$/) && newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && (newData.val() <= 3 || (data.isNumber() && newData.val() < data.val()))" }
           },
           "$autre": { ".validate": false }
         }
       },
+      // 0.6a : ordre d'affichage des decks (ids de decks/<i> séparés par des virgules), écrit seul quand on les déplace :
+      // un deck n'est plus réécrit pour changer de place (un ancien deck refusé par les règles ne bloque plus l'ordre).
+      "ordreDecks": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}(,[a-z0-9]{1,16}){0,11}$/)" },
       // Historique : une entrée par partie (clé graine-début), d = date, x = détail en JSON.
       // Le site garde les 50 dernières (liste et replays) et efface les plus anciennes ; le profil compte toutes les parties (cumul).
       "historique": {

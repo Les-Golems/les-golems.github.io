@@ -372,6 +372,9 @@ html.clair :is(#historique,.hd-fen){--vic:#0e5530;--def:var(--rouge-texte)}
 body.daltonien .dk-tuile.inv .rs{padding-right:24px} /* raison jamais sous le « ! » */
 body.daltonien .dk-tuile.inv::after{content:'!';position:absolute;right:8px;bottom:3px;width:18px;height:18px;border-radius:50%;background:#fff;color:var(--encre);font:900 13px/18px var(--corps);text-align:center}
 .dk-tuile .rs{grid-column:1/-1;font:700 11.5px var(--corps);color:var(--rouge-texte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Mode clair (charte_clair) : texte pose sur le degrade de la tuile = couleurs du mode sombre. */
+html.clair .dk-tuile .rs{color:#ffd0ca}
+.dk-ligne .sc-btn.dk-gris{opacity:.45;cursor:not-allowed}
 .dk-vide0{color:var(--doux);font:700 14px/1.4 var(--corps);margin:auto 0 4px}
 .dk-invite{flex:none;margin-top:12px;padding:14px 12px 12px;border:1px solid var(--trait);border-radius:10px;background:var(--panneau2);display:flex;flex-direction:column;align-items:stretch;gap:8px;text-align:center}
 .dk-invite>svg{width:22px;height:22px;align-self:center;color:var(--bleu-titre)}
@@ -510,7 +513,12 @@ body.daltonien .dk-tuile.inv::after{content:'!';position:absolute;right:8px;bott
 
 /* Mode clair (A3) : lignes et tuiles sur degrade, voile sombre pose SOUS le texte (ombre interieure) ; degrade et images intacts, textes clairs gardes. */
 html.clair :is(.dl-ligne.dl-duo,.dl-ligne.dl-animal,.dk-tuile){box-shadow:inset 0 0 0 999px rgba(10,18,26,.46)}
-html.clair .dk-tuile.sel{box-shadow:inset 0 0 0 999px rgba(10,18,26,.46),0 0 0 2px var(--bleu)}
+html.clair .dk-tuile.sel{box-shadow:inset 0 0 0 999px rgba(10,18,26,.46),0 0 0 3px var(--bleu)}
+/* Charte : contour rouge de la tuile invalide (2 px, 3 px choisie, l'emporte sur le bleu) et compteur en erreur aussi en mode clair ;
+   texte sur le degrade = couleurs du mode sombre (charte_clair). */
+html.clair .dk-tuile.inv{box-shadow:inset 0 0 0 999px rgba(10,18,26,.46),0 0 0 2px var(--rouge)}
+html.clair .dk-tuile.inv.sel{box-shadow:inset 0 0 0 999px rgba(10,18,26,.46),0 0 0 3px var(--rouge)}
+html.clair .dk-tuile .ct.ko{color:#ff4d4f}
 html.clair .dl-ligne :is(.dl-pseudo,.dl-col small,.dl-pc,b,.dl-force,.dl-cout){color:#fff}
 html.clair .dl-ligne .dl-titre:not(.dl-evo){color:#a9ecff}
 html.clair .dl-ligne .dl-nb{color:#f1c35a}
