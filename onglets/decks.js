@@ -49,12 +49,14 @@ function ecritDecksMaintenant(){
     .then(()=>{if(decksEchec){decksEchec=false;alerte(zoneAlerteDecks(),'')}},e=>{echecDecks(e);throw e})
     .finally(()=>decksVol--);
 }
-/* 0.6a : un deck refuse par les regles de la base (ancien deck invalide, ex. 5 exemplaires) n'est pas enregistre, les autres le sont :
-   bandeau nommant ce deck ; sinon (reseau) le message general. Le prochain enregistrement renvoie tout ce qui differe encore. */
+/* 0.6a : un deck refuse par les regles de la base (ancien deck invalide, ex. 5 exemplaires) n'est pas enregistre, les autres le sont.
+   Le bandeau du haut ne sert qu'aux vraies pannes (reseau...) : un deck invalide a deja sa raison (tuile rouge de Mes decks, bandeau du panneau).
+   Le prochain enregistrement renvoie tout ce qui differe encore. */
 function echecDecks(e){
   console.warn(e);decksEchec=true;
   const R=(e&&e.refuses||[]).filter(x=>x!=='ordre'),refus=/permission/i.test(String(e&&(e.code||e.message)||''));
-  alerte(zoneAlerteDecks(),refus&&R.length?(R.length>1?'Decks '+R.map(x=>'« '+x+' »').join(', ')+' non enregistrés : invalides. Corrige-les pour les enregistrer.':'Deck « '+R[0]+' » non enregistré : invalide. Corrige-le pour l’enregistrer.'):'Decks : enregistrement impossible. Réessaie dans un instant.');
+  const signales=refus&&R.length&&R.every(nm=>lesDecks().some(d=>d.nom===nm&&raisonsDeck(d).length));
+  alerte(zoneAlerteDecks(),signales?'':'Decks : enregistrement impossible. Réessaie dans un instant.');
 }
 if(window.golemsSalon)Promise.resolve(window.golemsSalon).then(x=>{if(x&&x.onConnection)x.onConnection(()=>{if(decksEchec&&x.connected()&&compteCo())ecritDecksMaintenant().catch(()=>{})})}).catch(()=>{});
 /* Choix du deck avant Pret et contre le robot : paquet de test ou deck complet (24 a 30 cartes). */
