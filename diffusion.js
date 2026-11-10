@@ -172,7 +172,7 @@ function effetsCases(s,G0,G1,av,ap,t,t0,pose,morts,dec,X){
 /* traits entre cartes (0.4 : trace) : dans la couche, du centre d'une case au centre de l'autre */
 function lanceTraits(){
   if(!couche||!suivi.traits.length)return;const now=performance.now(),L=suivi.traits;suivi.traits=[];
-  L.forEach(o=>{if(now>o.t+o.d)return;const A=caseDe(o.a[0],o.a[1],o.a[2]),B=caseDe(o.b[0],o.b[1],o.b[2]);if(!A||!B)return;
+  L.forEach(o=>{if(now>o.t+o.d)return;prevoit(o.t+o.d);const A=caseDe(o.a[0],o.a[1],o.a[2]),B=caseDe(o.b[0],o.b[1],o.b[2]);if(!A||!B)return;
     const a=rectScene(A),b=rectScene(B),x0=a.x+a.w/2,y0=a.y+a.h/2,x1=b.x+b.w/2,y1=b.y+b.h/2;let dp='M'+x0+' '+y0;
     if(o.eclair){const nx=-(y1-y0),ny=x1-x0,n=Math.hypot(nx,ny)||1;for(let i=1;i<7;i++){const q=i/7,f=(i%2?1:-1)*(8+Math.random()*12);dp+='L'+(x0+(x1-x0)*q+nx/n*f)+' '+(y0+(y1-y0)*q+ny/n*f)}}
     dp+='L'+x1+' '+y1;
@@ -241,7 +241,7 @@ function cadre(r){const h=Math.max(r.h,84),w=h*5/7;return {x:r.x+r.w/2-w/2,y:r.y
 /* lance les vols en attente (apres la peinture : les destinations existent) ; ceux deja lances continuent dans la couche */
 function lanceVols(){
   if(!couche||!suivi.vols.length)return;const now=performance.now(),L=suivi.vols;suivi.vols=[];
-  L.forEach(v=>{if(now>v.t+v.d)return;
+  L.forEach(v=>{if(now>v.t+v.d)return;prevoit(v.t+v.d);
     if(v.etoile){const de=rectVers(v.de,v.p),vers=rectScore(v.p);if(de&&vers)etoileVol(de,vers,v.etoile,v.t,v.d,v.p);return}
     const A0=v.deR||rectVers(v.de,v.p),B0=rectVers(v.vers,v.p);if(!A0||!B0)return;
     const A=cadre(A0),B=cadre(B0),im=mk('img','d-vole d-vole2');im.src=v.dos?imgV('cartes/verso.jpg'):U().srcC(v.c);im.alt='';
@@ -257,7 +257,7 @@ function majScore(){if(!scene||!E)return;const b=scene.querySelector('.d-sc b'),
 function rectScore(p){const e=scene.querySelector('.d-sc '+(p===BAS()?'b':'em'));return e?rectScene(e):null}
 function etoileVol(de,vers,txt,t,d,p){
   /* le score du bandeau ne monte qu'a l'arrivee de l'etoile */
-  if(p!=null){const n=parseInt(txt,10)||0,S=suivi,a={p,n,t:t+d};S.etArr.push(a);setTimeout(()=>{if(suivi!==S)return;S.etArr=S.etArr.filter(x=>x!==a);majScore();if(scene)lueur(scene.querySelector('.d-sc '+(p===BAS()?'b':'em')))},Math.max(0,t+d-performance.now()))}
+  prevoit(t+d);if(p!=null){const n=parseInt(txt,10)||0,S=suivi,a={p,n,t:t+d};S.etArr.push(a);setTimeout(()=>{if(suivi!==S)return;S.etArr=S.etArr.filter(x=>x!==a);majScore();if(scene)lueur(scene.querySelector('.d-sc '+(p===BAS()?'b':'em')))},Math.max(0,t+d-performance.now()))}
   /* 0.6a (maquette 47) : etoile doree qui monte, file en arc vers le score et tourne sur elle-meme */
   const z=mk('div','d-etoile an-etoile','★');if(txt&&txt!=='+1')z.append(mk('b','',txt));couche.append(z);
   const x0=de.x+de.w/2-30,y0=de.y+de.h/2-30,x1=vers.x+vers.w/2-30,y1=vers.y+vers.h/2-30,f=(x,y,k,r)=>'translate('+x+'px,'+y+'px) scale('+k+') rotate('+r+'deg)';
@@ -269,9 +269,12 @@ function etoileVol(de,vers,txt,t,d,p){
    Lancees une fois apres la peinture (cases et piles en place), dans la couche gardee d'une peinture a l'autre ;
    ce que porte la tuile elle-meme (rebond, tremblement, pastille, Force) passe par suivi.fx (classes CSS, delai negatif).
    Mouvements reduits : ni deplacement ni tremblement, fondus et couleurs seulement. Rejeu : durees divisees par la vitesse (KV). Images jamais modifiees. */
+/* rejeu : heure de fin prevue des animations de la couche, declaree a leur lancement depuis leurs propres durees (cadence du rejeu sans mesure) */
+function prevoit(f){if(suivi&&f>(suivi.prevu||0))suivi.prevu=f}
 function anA(el,kf,o){
   if(REDUIT.matches){if(o.tremble)return null;kf=kf.map(f=>{const g=Object.assign({},f);delete g.transform;return g});if(kf.every(f=>Object.keys(f).every(k=>k==='offset'||k==='easing')))return null}
   const now=performance.now(),de=(o.t!=null?o.t:now)+(o.delay||0)/KV-now,du=(o.duration||300)/KV;if(de+du<=0)return null;
+  if(couche&&couche.contains(el))prevoit(now+de+du); /* fin prevue, calculee (pas mesuree) */
   return el.animate(kf,{fill:o.fill||'both',easing:o.easing||'ease-out',delay:de,duration:du});
 }
 const anFin=(e,t,ms)=>setTimeout(()=>e.remove(),Math.max(0,t+ms/KV-performance.now())+60);
@@ -409,7 +412,7 @@ function decore(s,plat){
 function atterrit(){if(!scene)return;scene.querySelectorAll('.d-der>button img').forEach(i=>i.style.visibility='');scene.querySelectorAll('.p-case.d-vol').forEach(c=>{c.classList.remove('d-vol');c.classList.toggle('evo',c.dataset.evo==='1');c.querySelectorAll(':scope>.d-vieux').forEach(o=>o.remove())})}
 /* Carte qui glisse de la main a sa case (couche au-dessus de la scene, gardee d'une peinture a l'autre) */
 function lanceVol(){
-  const v=suivi.vol;if(!v||v.lance||!couche)return;v.lance=true;
+  const v=suivi.vol;if(!v||v.lance||!couche)return;v.lance=true;prevoit(v.fin);
   const c=caseDe(v.p,v.l,v.k);if(!c)return;
   const a=rectScene(c),d=v.de,sc=a.h*1.2/d.h,dx=a.x+a.w/2-d.x-d.w*sc/2,dy=a.y+a.h/2-d.y-d.h*sc/2,im=mk('img','d-vole'),reste=v.fin-performance.now();
   if(reste<50)return;
@@ -1261,9 +1264,8 @@ const rejeu={
   fermePop(){if(suivi&&suivi.pop)fermePop()},
   /* heure prevue du coup qui va etre peint (horloge absolue du rejeu) */
   debut(t){coupT=t},
-  /* temps restant des animations en cours (ms), pour cadencer la lecture */
-  reste(){if(!suivi)return 0;const t=performance.now();let f=0;if(suivi.vol)f=Math.max(f,suivi.vol.fin-t);suivi.etArr.forEach(a=>f=Math.max(f,a.t-t));
-    if(couche)couche.getAnimations({subtree:true}).forEach(a=>{const e=a.effect&&a.effect.getComputedTiming();if(e&&e.endTime&&a.currentTime!=null)f=Math.max(f,e.endTime-a.currentTime)});return Math.max(0,f)}
+  /* temps restant jusqu'a la fin prevue des animations lancees (ms), pour cadencer la lecture : durees declarees, jamais mesurees */
+  reste(){if(!suivi)return 0;const t=performance.now();let f=suivi.prevu||0;if(suivi.vol)f=Math.max(f,suivi.vol.fin);suivi.etArr.forEach(a=>f=Math.max(f,a.t));return Math.max(0,f-t)}
 };
 function coinRejeu(){
   const r=rejeu.info()||{pos:0,total:0,manche:1,vitesse:1,lecture:false,fin:false},z=mk('div','d-z d-coin'),B=mk('div','d-bloc d-rj'),bas=mk('div','d-bas');
