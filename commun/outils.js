@@ -39,5 +39,5 @@ function couleurTaux(taux,parties,opts){
   const r=Math.round(taux*10)/10;
   return r>=50?'sc-taux-vert':r>=40?'sc-taux-ambre':'sc-taux-rouge';
 }
-couleurTaux.valeur=(taux,parties,opts)=>({'sc-taux-vert':'var(--vert)','sc-taux-ambre':'var(--ambre)','sc-taux-rouge':'var(--rouge)','sc-taux-gris':'var(--gris-taux)','sc-taux-neutre':'var(--blanc)'})[couleurTaux(taux,parties,opts)];
+couleurTaux.valeur=(taux,parties,opts)=>({'sc-taux-vert':'var(--vert)','sc-taux-ambre':'var(--ambre)','sc-taux-rouge':'var(--rouge-texte-clair)','sc-taux-gris':'var(--gris-taux)','sc-taux-neutre':'var(--blanc)'})[couleurTaux(taux,parties,opts)];
 if(typeof module!=='undefined'&&module.exports)module.exports.couleurTaux=couleurTaux;

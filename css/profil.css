@@ -172,6 +172,8 @@ html.galOuverte,html.galOuverte body{overflow:hidden}
 .pr-pa{display:flex;align-items:center;gap:8px;min-height:28px}
 .pr-pa span{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:800 12px var(--corps);color:var(--encre);flex:none}
 .pr-pa .v{background:var(--vert)}.pr-pa .d{background:var(--rouge)}.pr-pa .n{background:var(--gris-taux)}
+/* Mode clair : texte blanc sur le vert et le gris fonces (4,5:1 au moins ; l'encre ne passait qu'a 3,2 et 3,6). Mode sombre inchange. */
+html.clair .pr-pa :is(.v,.n){color:#fff}
 .pr-pa .pr-pvide{font-size:12.5px;color:var(--doux)}
 .pr-pa .pr-ser{font-size:12.5px;color:var(--doux);margin-left:auto;white-space:nowrap}.pr-pa .pr-ser b{color:var(--blanc)}
 .pr-an{background:var(--panneau2);border:1px solid var(--trait);border-radius:12px;padding:18px;height:246px;display:flex;flex-direction:column}

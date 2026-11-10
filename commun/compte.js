@@ -150,8 +150,14 @@ function modeCompte(c){
 function ouvrePseudo(){
   if(r){alerte('erreurJeu','Salon en cours : changement de compte indisponible dans un salon. Quitte le salon d\'abord.');return}
   modeCompte(false);$('pseudo').value=lire('golems.pseudo')||'';$('codeSecret').value='';
+  if($('popPseudo').hidden)origPseudo=document.activeElement;
   $('popPseudo').hidden=false;$('pseudo').focus();
 }
+/* Fermeture commune (Echap, clic sur le fond, Plus tard, connexion reussie) : focus rendu au bouton d'origine. */
+let origPseudo=null;
+function fermePseudo(){$('popPseudo').hidden=true;const o=origPseudo;origPseudo=null;if(o&&o.isConnected&&o!==document.body&&o.focus)o.focus()}
+$('popPseudo').onclick=e=>{if(e.target.id==='popPseudo')fermePseudo()};
+$('popPseudo').onkeydown=e=>{if(e.key==='Escape')fermePseudo()};
 /* Capsule : mon profil (connecte) ou connexion (invite). Ecoute en capture : le pseudo n'est plus un bouton a part (role=button pose par profil.js, retire dans majMoi). */
 $('capsuleMoi').addEventListener('click',e=>{e.stopPropagation();e.preventDefault();if(compteCo()){if(typeof ouvreProfil==='function')ouvreProfil()}else ouvrePseudo()},true);
 /* Porte de deconnexion : fenetre de confirmation [Se déconnecter] [Annuler] (sc-fenetre). */
@@ -171,7 +177,7 @@ $('decoOui').onclick=async()=>{const b=$('decoOui');b.disabled=true;alerteDeco('
   try{await room.compte.deconnecter()}catch(e){console.warn(e);b.disabled=false;alerteDeco('Déconnexion : serveur injoignable. Réessaie dans un instant.');return}
   b.disabled=false;$('fenDeco').hidden=true};
 $('basculeCompte').onclick=()=>modeCompte(!modeCreer);
-$('plusTard').onclick=()=>{ecrire('golems.invite','1');$('popPseudo').hidden=true};
+$('plusTard').onclick=()=>{ecrire('golems.invite','1');fermePseudo()};
 $('formPseudo').onsubmit=async e=>{
   e.preventDefault();
   const p=$('pseudo').value,c=$('codeSecret').value,err=$('erreurPseudo');
@@ -183,7 +189,7 @@ $('formPseudo').onsubmit=async e=>{
   $('entrer').disabled=true;alerteInfo(err,modeCreer?'Connexion : création du compte en cours. Patiente un instant.':'Connexion : connexion au compte en cours. Patiente un instant.');
   const m=modeCreer?await room.compte.creer(p,c):await room.compte.connecter(p,c);
   $('entrer').disabled=false;alerte(err,m);
-  if(!m){$('popPseudo').hidden=true;$('codeSecret').value='';ecrire('golems.pseudo',room.compte.pseudo())}
+  if(!m){fermePseudo();$('codeSecret').value='';ecrire('golems.pseudo',room.compte.pseudo())}
 };
 /* Apres chaque changement de compte : pseudo, decks, historique, proposition d'import. */
 function surCompte(){
