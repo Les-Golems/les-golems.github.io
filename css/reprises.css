@@ -68,6 +68,7 @@ html.clair{--pret-off-fond:#cdd6dd;--pret-off-texte:#5f6e79;--pf-bloc:rgba(236,2
 .d-act .d-code-m{color:var(--blanc);text-shadow:0 0 1px #0a121a,0 0 2px #0a121a,1px 1px 0 #0a121a,-1px -1px 0 #0a121a,1px -1px 0 #0a121a,-1px 1px 0 #0a121a}
 #erreurJeu:empty{display:none}
 #erreurJeu:not(:empty){margin:0 0 14px;min-height:0} /* bandeau sc-alerte (commun/alertes.js) */
+#erreurJeu>.sc-alerte{height:40px} /* charte : zone au-dessus du contenu = 1 ligne, 40 px, bouton tertiaire compris (comme les bandeaux de Decks) */
 #galTitre{text-align:center}
 @media (max-width:480px){.h-tab .h-crt,.h-tab .h-cnom{align-items:flex-start}#partageHisto,#partageResume{font-size:14px;padding-left:4px;padding-right:4px;white-space:nowrap}}
 /* Fermer : un seul style compact partout, taille d'un bouton secondaire, en bas et centre. */
