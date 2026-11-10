@@ -26,7 +26,7 @@ Une nouvelle carte va dans le fichier de son type, un nouvel effet dans le fichi
 | `salon-firebase.js` | Comptes, données des joueurs, jeu en ligne (Firebase). Préfixe `essai/` automatique sur le site d'essai. |
 | `presence.js` | Présence et déconnexion en ligne. |
 | `spectateur.js`, `spectateur-ui.js`, `spectateur.css` | Vue spectateur. |
-| `diffusion.js`, `diffusion.css` | Vue diffusion (grand écran). |
+| `diffusion.js`, `diffusion.css` | Vue diffusion (grand écran), vue joueur sur ordinateur et, depuis la 0.6, rejeu sur ordinateur (`DIFFUSION.rejeu`, commandes dans le coin droit ; calcul et `vaA(k)` dans `onglets/historique.js`). Effets de cases de la 0.4 (`effetsCases`, classes de `css/partie.css`). |
 | `aide.js`, `aide.css` | Aide « ? » et panneaux d'explication. |
 | `firebase-config.js` | Configuration publique Firebase. |
 | `database.rules.json` | Règles Firebase **générées** (voir section 3), jamais retouchées à la main. |

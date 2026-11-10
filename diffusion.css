@@ -593,3 +593,26 @@ html.tel-joueur #partie .p-barre .p-info small{line-height:10px!important;margin
 #dif .pp-ecran p{margin:0;font:700 24px/1.2 var(--corps);color:var(--doux)}
 #dif .pp-ecran-l{display:flex;justify-content:center;gap:6px;margin-top:10px}
 #dif .pp-ecran-l img{width:96px;height:auto;border-radius:6px}
+/* 0.6 : le bouton « Passer » de l'ancien ecran (#partie, decompte) n'apparait jamais sous la vue */
+html.dif-ouvert #passer{display:none!important}
+/* ---------- Rejeu (0.6, maquette 45 B) : vue spectateur, main adverse de dos, commandes a la place du logo ---------- */
+#dif.rj .mq-haut .d-tm{margin:0 0 9px!important}
+#dif.rj .mq-fan{position:relative;flex:1;min-height:150px}
+#dif.rj .mq-fan img{position:absolute;bottom:0;transform-origin:50% 120%;display:block;border-radius:7px;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+#dif.rj .d-coin{justify-content:space-between}
+#dif.rj .d-rj{position:static;width:380px;box-sizing:border-box;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+#dif.rj .d-rj-l{display:flex;align-items:center;justify-content:center;gap:12px}
+#dif.rj .d-rj-pos{font:400 26px/1 var(--titre);color:var(--texte);white-space:nowrap}
+#dif.rj .d-rj-pos span{font:700 22px/1 var(--corps);color:var(--doux)}
+#dif.rj .d-rj-vt{font:700 22px/1 var(--corps);color:var(--doux)}
+#dif.rj .d-rj-cmd{display:flex;align-items:center;justify-content:center;gap:12px}
+#dif.rj .d-rj-cmd .sc-btn{padding:0 14px}
+#dif.rj .d-rj-cmd .d-rj-fl{width:46px;padding:0}
+#dif.rj .d-rj-cmd .d-rj-pp{min-width:86px}
+/* ---------- 0.6 : effets sur les cases de la 0.4 (classes de css/partie.css), dans #dif ---------- */
+#dif .p-case>.mini.d-fantome.fx-fantome{animation:mortClign 1.1s linear both}
+#dif .p-case>.mini.fx-tenu{z-index:2}
+#dif .p-case:has(.fx-evo,.fx-bonus,.fx-deg,.fx-compte,.fx-lien,.fx-hors){overflow:visible;z-index:3}
+#dif .d-trait{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+#dif .d-sc .bascule{display:inline-block}
+@media (prefers-reduced-motion:reduce){#dif .p-case>.mini.d-fantome.fx-fantome{animation:fondu 1.1s linear both}}
