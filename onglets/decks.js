@@ -46,8 +46,15 @@ function ecritDecksMaintenant(){
   if(!compteCo()||!room||!room.compte)return Promise.resolve();
   decksVol++;
   return room.compte.ecritDecks(room.compte.donnees().decks)
-    .then(()=>{if(decksEchec){decksEchec=false;alerte(zoneAlerteDecks(),'')}},e=>{console.warn(e);decksEchec=true;alerte(zoneAlerteDecks(),'Decks : enregistrement impossible. Réessaie dans un instant.');throw e})
+    .then(()=>{if(decksEchec){decksEchec=false;alerte(zoneAlerteDecks(),'')}},e=>{echecDecks(e);throw e})
     .finally(()=>decksVol--);
+}
+/* 0.6a : un deck refuse par les regles de la base (ancien deck invalide, ex. 5 exemplaires) n'est pas enregistre, les autres le sont :
+   bandeau nommant ce deck ; sinon (reseau) le message general. Le prochain enregistrement renvoie tout ce qui differe encore. */
+function echecDecks(e){
+  console.warn(e);decksEchec=true;
+  const R=(e&&e.refuses||[]).filter(x=>x!=='ordre'),refus=/permission/i.test(String(e&&(e.code||e.message)||''));
+  alerte(zoneAlerteDecks(),refus&&R.length?(R.length>1?'Decks '+R.map(x=>'« '+x+' »').join(', ')+' non enregistrés : invalides. Corrige-les pour les enregistrer.':'Deck « '+R[0]+' » non enregistré : invalide. Corrige-le pour l’enregistrer.'):'Decks : enregistrement impossible. Réessaie dans un instant.');
 }
 if(window.golemsSalon)Promise.resolve(window.golemsSalon).then(x=>{if(x&&x.onConnection)x.onConnection(()=>{if(decksEchec&&x.connected()&&compteCo())ecritDecksMaintenant().catch(()=>{})})}).catch(()=>{});
 /* Choix du deck avant Pret et contre le robot : paquet de test ou deck complet (24 a 30 cartes). */
@@ -119,7 +126,7 @@ function proposeImport(){
     oui.disabled=non.disabled=true;
     try{
       const ids=new Set(D.decks.map(d=>d.id)),l=D.decks.concat(dl.filter(d=>!ids.has(d.id)).map(d=>({id:String(d.id).replace(/[^a-z0-9]/g,'').slice(0,16)||nouveauSid(),nom:nettoie(d.nom,24)||'Deck',cartes:d.cartes,v:d.v||V_DECK_ANCIEN}))).slice(0,MAX_DECKS);
-      await room.compte.ecritDecks(l);
+      await room.compte.ecritDecks(l).catch(e=>{echecDecks(e)});
       await room.compte.ajouteHisto(hl.filter(x=>x&&typeof x.id==='string'&&/^-?[0-9]{1,12}-[0-9]{10,14}$/.test(x.id)));
     }catch(e){console.warn(e)}
     fin();majChoixDeck();if(!$('decks').hidden)peintDecks();if(!$('historique').hidden)peintHisto();

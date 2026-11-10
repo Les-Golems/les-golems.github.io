@@ -62,13 +62,16 @@
             },
             "cartes": {
               "$c": {
-                ".validate": "$c.matches(/^[0-9]{3}e?$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 3"
+                ".validate": "$c.matches(/^[0-9]{3}e?$/) && newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && (newData.val() <= 3 || (data.isNumber() && newData.val() < data.val()))"
               }
             },
             "$autre": {
               ".validate": false
             }
           }
+        },
+        "ordreDecks": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}(,[a-z0-9]{1,16}){0,11}$/)"
         },
         "historique": {
           ".indexOn": [
@@ -1295,13 +1298,16 @@
               },
               "cartes": {
                 "$c": {
-                  ".validate": "$c.matches(/^[0-9]{3}e?$/) && newData.isNumber() && newData.val() >= 1 && newData.val() <= 3"
+                  ".validate": "$c.matches(/^[0-9]{3}e?$/) && newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && (newData.val() <= 3 || (data.isNumber() && newData.val() < data.val()))"
                 }
               },
               "$autre": {
                 ".validate": false
               }
             }
+          },
+          "ordreDecks": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{1,16}(,[a-z0-9]{1,16}){0,11}$/)"
           },
           "historique": {
             ".indexOn": [
