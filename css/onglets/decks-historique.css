@@ -366,6 +366,7 @@ main:has(#historique:not([hidden])){padding-bottom:24px}
 .dk-tuile.inv.sel{box-shadow:0 0 0 3px var(--rouge)}
 .dk-tuile:focus-visible{outline:2px solid var(--bleu);outline-offset:3px}
 @media (hover:hover){.dk-tuile:hover{filter:brightness(1.08)}}
+body.daltonien .dk-tuile.inv .rs{padding-right:24px} /* raison jamais sous le « ! » */
 body.daltonien .dk-tuile.inv::after{content:'!';position:absolute;right:8px;bottom:3px;width:18px;height:18px;border-radius:50%;background:#fff;color:#0a121a;font:900 13px/18px var(--corps);text-align:center}
 .dk-tuile .rs{grid-column:1/-1;font:700 11.5px var(--corps);color:var(--rouge-texte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dk-vide0{color:var(--doux);font:700 14px/1.4 var(--corps);margin:auto 0 4px}
@@ -474,7 +475,7 @@ body.daltonien .dk-tuile.inv::after{content:'!';position:absolute;right:8px;bott
 .etq-v{border:1px solid #066680;border-radius:999px;background:#02a6ce;color:#0a121a;font-family:var(--corps);font-weight:800;letter-spacing:.02em}
 .vx-etq{display:inline-block;padding:0 8px;font-size:11.5px;line-height:16px;white-space:nowrap;cursor:default}
 .vx-etq.vx-diff{background:var(--rouge);border-color:var(--rouge)}
-.dk-tuile .pi{align-items:center}.dk-tuile .pi .vx-etq{margin-left:8px}
+.dk-tuile .pi{align-items:center;min-width:0}.dk-tuile .pi .vx-etq{margin-left:8px;flex:none;white-space:nowrap!important} /* etiquette de version toujours sur une ligne */
 /* Fenetres sc-fenetre de l'onglet */
 .dk-fen>.sc-alerte{margin:0 0 12px;justify-content:flex-start;text-align:left}.dk-fen>.sc-alerte>span{flex:1 1 auto;min-width:0;text-align:left}.dk-fen>.sc-alerte+.sc-alerte{margin-top:-4px}
 .dk-fen-lib{margin:0 0 6px;color:var(--doux);font:700 13px var(--corps)}

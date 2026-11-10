@@ -111,6 +111,8 @@
 .st-verrou{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
 .st-flou{filter:blur(6px);opacity:.45;pointer-events:none;user-select:none;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
 .st-vo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:0 12px}
+/* Invite : tout l'onglet sous un seul verrou (le verrou de la colonne Classement, dans l'apercu, n'est pas repete). */
+.st-verrou-tout{min-height:min(640px,calc(100vh - 220px))}.st-verrou-tout .st-flou .st-vo{display:none}
 .st-vo b{font:21px var(--titre);color:#fff}.st-vo p{margin:0;color:#cfdbe2;font-size:14px}.st-vo .sc-rangee{display:flex;gap:12px;margin-top:8px}
 /* Fenêtre des récompenses */
 .st-fd{position:fixed;inset:0;background:rgba(4,8,12,.72);display:grid;place-items:center;z-index:60}

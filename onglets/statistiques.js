@@ -84,7 +84,8 @@ function statZoomTerrain(T){
 const VIDE_ST='Pas encore assez de parties.',VIDE_FILTRES='Aucune partie avec ces filtres.',VIDE_RECH='Aucun résultat pour cette recherche.';
 const MODES_ST=[['classees','Classées','classées'],['amicales','Amicales','amicales'],['entrainement','Entraînement',"d'entraînement"]];
 const modeRes=r=>r&&(r.cl===true||r.m==='classee')?'classees':/^golem-/.test(String(r&&r.m||''))?'entrainement':'amicales';
-let statsMode='classees',statsQ='',statsQBrut='',statsTriC=0,statsClasse=null,statsAjuste=null,statsLarg=0;
+let statsMode='classees',statsQ='',statsQBrut='',statsTriC=lire('golems.tri.statsCartes')==='1'?1:0, /* tris memorises sur l'appareil */statsClasse=null,statsAjuste=null,statsLarg=0;
+{const t=lire('golems.tri.stats');if(t)statsTri=t} /* tri des terrains memorise (inconnu : taux, voir terrains()) */
 addEventListener('resize',()=>{if(statsAjuste&&innerWidth!==statsLarg){statsLarg=innerWidth;statsAjuste()}});
 const escSt=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const normSt=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
@@ -114,7 +115,11 @@ async function litClasseSt(){
 }
 async function peintStats(){
   const z=$('statsCorps');
+  /* Salon pas encore pret (onglet memorise rouvert au chargement) : attente, puis l'onglet se repeint. */
+  if(!room&&!compteCharge&&window.golemsSalon){z.textContent='';alerteInfo(z.appendChild(el('div','pf-vide')),'Connexion : statistiques en cours de lecture. Patiente un instant.');
+    Promise.resolve(window.golemsSalon).catch(()=>{}).finally(()=>setTimeout(()=>{if(!$('stats').hidden)peintStats()},0));return}
   if(!room||!room.litResumes){z.textContent='';alerte(z.appendChild(el('div','pf-vide')),'Lecture impossible : statistiques indisponibles pour le moment. Réessaie plus tard.');return}
+  if(!compteCo()){verrouStats();return} /* invite : les regles refusent la lecture, invitation a se connecter (charte, comme Jouer) */
   if(!statsData){z.textContent='';alerteInfo(z.appendChild(el('div','pf-vide')),'Connexion : statistiques en cours de lecture. Patiente un instant.')}else dessineStats(statsData);
   try{statsJoueurs=room.litClassement?await room.litClassement().catch(()=>[]):[]}catch(e){statsJoueurs=[]}
   try{statsClasse=await litClasseSt()}catch(e){console.warn(e);statsClasse={liste:[],moi:null,uid:null,saison:null}}
@@ -122,6 +127,14 @@ async function peintStats(){
   try{const pr=await Promise.all(statsJoueurs.filter(x=>x.n>=5).map(x=>room.compte.profilDe?room.compte.profilDe(x.uid).then(r=>[x.uid,r]):[x.uid,null]));statsProfils=Object.fromEntries(pr)}catch(e){statsProfils={}}
   try{statsData=uneParGraine((await room.litResumes(2000)).filter(r=>r&&typeof r.d==='number'&&(r.g===0||r.g===1||r.g===-1)))}catch(e){console.warn(e);if(!statsData){z.textContent='';alerte(z.appendChild(el('div','pf-vide')),'Lecture impossible : statistiques injoignables. Réessaie plus tard.')}return}
   if(!$('stats').hidden)dessineStats(statsData);
+}
+/* Invite : apercu floute de l'onglet sous un cadenas, Se connecter / Creer un compte (meme verrou que la colonne Classement). */
+function verrouStats(){
+  const z=$('statsCorps');try{dessineStats([])}catch(e){console.warn(e);z.textContent=''}
+  const v=el('div','st-verrou st-verrou-tout'),f=el('div','st-flou');f.setAttribute('aria-hidden','true');f.append(...z.childNodes);
+  const o=el('div','st-vo');o.innerHTML='<svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><rect x="3" y="14" width="24" height="18" rx="4" fill="none" stroke="#01C1F0" stroke-width="3"/><path d="M8 14V10a7 7 0 0 1 14 0v4" fill="none" stroke="#01C1F0" stroke-width="3"/></svg><b>Statistiques des joueurs</b><p>Connecte-toi pour voir les classements, les cartes et les terrains.</p><div class="sc-rangee"><button class="sc-btn" type="button" data-a="co">Se connecter</button><button class="sc-btn sc-secondaire" type="button" data-a="cree">Créer un compte</button></div>';
+  o.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{ouvrePseudo();if(b.dataset.a==='cree')modeCompte(true)});
+  v.append(f,o);z.textContent='';z.append(v);statsAjuste=null;
 }
 /* Médaille de saison (image finale, images/recompenses/saison-<id>-<taille>.png) ; repli : emblème de placement. k = échelle (40 px x k). */
 let medSt=0;
@@ -156,7 +169,7 @@ function dessineStats(RT){
     const fin=S.fin?'fin dans <b>'+Math.max(0,Math.ceil((S.fin-Date.now())/864e5))+' j</b>':"jusqu'à la <b>1.0</b>";
     sz.innerHTML=`<span class="st-sz-c1">${medailleSt(S.id)}<span class="st-sz-n">${escSt(S.titre)}</span></span>${etat}${bg}<span class="st-sz-cs st-sz-du"><span>${fin}</span></span>`;
     sz.onclick=()=>fenSaisonSt(S,sit,R);barre.append(sz);
-  }else{const t=el('span','st-tot');t.innerHTML=`<b>${R.length.toLocaleString('fr-FR')}</b>parties ${MODES_ST[iM][2]}`;barre.append(t)}
+  }else{const t=el('span','st-tot');t.innerHTML=`<b>${R.length.toLocaleString('fr-FR')}</b>${R.length>1?'parties':'partie'} ${MODES_ST[iM][2]}`;barre.append(t)}
   /* Patchs : menu déroulant (exception de la charte) */
   const pat=el('div','st-pat'),pb=el('button','st-pat-b'),pm=el('div','st-pat-m');pb.type='button';pb.setAttribute('aria-expanded','false');pb.setAttribute('aria-haspopup','true');pm.hidden=true;
   pb.innerHTML=`Patchs : <b>${vers.every(v=>statsPatchs.has(v))?'tous':statsPatchs.size===1?'v'+escSt([...statsPatchs][0]):statsPatchs.size+' sur '+vers.length}</b> ▾`;
@@ -179,19 +192,22 @@ function dessineStats(RT){
   const saSt=statsClasse&&statsClasse.saison&&Number.isInteger(statsClasse.saison.id)?statsClasse.saison:null,sidSt=saSt?saSt.id:undefined;
   const mesPmSt=(()=>{try{return mesCompteurs(saSt)}catch(e){return {}}})();
   const cls=(x,moi)=>moi?' st-moi':x.place<=3?' st-t'+x.place:'';
+  /* Recherche : tous les joueurs (classement public), meme sous le minimum de la liste ; clic = profil. Les listes gardent leur minimum. */
+  const autresSt=(V,g,nv)=>{if(!statsQ)return '';const deja=new Set(V.map(x=>x.uid));
+    return (statsJoueurs||[]).filter(x=>x&&x.uid&&!deja.has(x.uid)&&typeof x.p==='string'&&okSt(x.p)).sort((a,b)=>a.p.localeCompare(b.p,'fr')).map(x=>`<div class="st-ln st-cl ${g}${x.uid===moiUid?' st-moi':''}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.p)}" title="Pas encore classé : moins de 5 parties"><span class="st-rk">-</span>${g==='st-gcl'?'<span></span>':''}<span class="st-jg" data-av="${escSt(x.uid)}"><span class="st-ps" title="${escSt(x.p)}">${hlSt(x.p)}</span></span>${'<span class="r">-</span>'.repeat(nv)}</div>`).join('')};
   /* ---- Colonne 1 : Classement (Classées) ---- */
   function classement(){
     const L=(statsClasse||{liste:[]}).liste,gc='st-gcl';let en='';
-    if(!sit.co)en=enc([['Ton rang','Saphir','Elo 1087 - 7e'],['Prochain rang','63 pts','avant Émeraude'],['Classés',String(L.length),'joueurs']]); /* flouté, illisible */
+    if(!sit.co)en=enc([['Ton rang','Saphir','Elo 1087 - 7e'],['Prochain rang','63 pts','avant Émeraude'],['Classés',String(L.length),L.length>1?'joueurs':'joueur']]); /* flouté, illisible */
     else if(sit.moi){const r=G.rang(sit.moi.elo),nx=G.RANGS[G.RANGS.indexOf(r)+1];
-      en=enc([['Ton rang',`<span class="st-rg-${r.id}">${r.nom}</span>`,'Elo '+Math.round(sit.moi.elo)+' - '+sit.place+eSt(sit.place)],nx?['Prochain rang',Math.ceil(nx.min-sit.moi.elo)+' pts','avant '+nx.nom]:['Prochain rang','-','rang maximal'],['Classés',String(L.length),'joueurs']])}
-    else if(sit.placement)en=enc([['Ton rang',`<span class="st-enc-pl"><img src="${rangImgSt()}" alt="">${sit.parties}/${G.PLACEMENT}</span>`,'en placement'],['Prochain rang','-','après '+G.PLACEMENT+' parties'],['Classés',String(L.length),'joueurs']]);
+      en=enc([['Ton rang',`<span class="st-rg-${r.id}">${r.nom}</span>`,'Elo '+Math.round(sit.moi.elo)+' - '+sit.place+eSt(sit.place)],nx?['Prochain rang',pl(Math.ceil(nx.min-sit.moi.elo),'pt'),'avant '+nx.nom]:['Prochain rang','-','rang maximal'],['Classés',String(L.length),L.length>1?'joueurs':'joueur']])}
+    else if(sit.placement)en=enc([['Ton rang',`<span class="st-enc-pl"><img src="${rangImgSt()}" alt="">${sit.parties}/${G.PLACEMENT}</span>`,'en placement'],['Prochain rang','-','après '+G.PLACEMENT+' parties'],['Classés',String(L.length),L.length>1?'joueurs':'joueur']]);
     else en='<div class="st-premier"><b>Joue ta première partie classée</b><button class="sc-btn" type="button" data-a="jouer">Jouer une partie classée</button></div>';
     let h=en+`<div class="st-th ${gc}"><span class="r">#</span><span></span><span>Joueur</span><span class="r">Elo</span><span class="c">V - D</span><span class="r">Vict.</span></div><div class="st-corps">`;
     const ligne=x=>{const n=(x.v|0)+(x.d|0),r=G.rang(x.elo);return `<div class="st-ln st-cl ${gc}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.pseudo)}, ${x.place}${eSt(x.place)}"><span class="st-rk">${x.place}</span><img class="st-emb" src="${rangImgSt(r.id)}" alt="" title="${r.nom}"><span class="st-ps" title="${escSt(x.pseudo)}">${hlSt(x.pseudo)}</span><span class="r st-n">${Math.round(x.elo)}</span><span class="c st-n">${x.v|0} - ${x.d|0}</span><span class="r">${tauxSt(pcSt(x.v|0,n),n,true)}</span></div>`};
     const V=statsQ?L.filter(x=>okSt(x.pseudo)):L.slice(0,10);
-    if(!V.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:'Aucun joueur classé pour le moment.'}</div>`;
-    V.forEach(x=>h+=ligne(x));
+    const AU=autresSt(V,gc,3);if(!V.length&&!AU)h+=`<div class="st-vide">${statsQ?VIDE_RECH:'Aucun joueur classé pour le moment.'}</div>`;
+    V.forEach(x=>h+=ligne(x));h+=AU;
     if(!statsQ&&sit.moi&&sit.place>10)h+='<div class="st-etc">…</div>'+ligne(sit.moi);
     h+='</div>';
     if(!sit.co)h=`<div class="st-verrou"><div class="st-flou" aria-hidden="true">${h}</div><div class="st-vo"><svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><rect x="3" y="14" width="24" height="18" rx="4" fill="none" stroke="#01C1F0" stroke-width="3"/><path d="M8 14V10a7 7 0 0 1 14 0v4" fill="none" stroke="#01C1F0" stroke-width="3"/></svg><b>Rang, Elo et classement</b><p>Connecte-toi pour voir ta place parmi les joueurs.</p><div class="sc-rangee"><button class="sc-btn" type="button" data-a="co">Se connecter</button><button class="sc-btn sc-secondaire" type="button" data-a="cree">Créer un compte</button></div></div></div>`;
@@ -203,11 +219,11 @@ function dessineStats(RT){
     const J=(statsJoueurs||[]).map(x=>{const pm=x.uid===moiUid?mesPmSt:compteursPublies(statsProfils[x.uid],sidSt);if(!pm)return null;const a=compteursMode(pm,'amicale');return {...x,n:a.n,v:a.v,d:a.d,pct:pcSt(a.v,a.n)}}).filter(x=>x&&x.n>=5)
       .sort((a,b)=>b.pct-a.pct||b.n-a.n||a.p.localeCompare(b.p,'fr')).map((x,i)=>({...x,place:i+1}));
     const moi=moiUid?compteursMode(mesPmSt,'amicale'):null,gj='st-gjo';
-    let h=enc([['Parties',R.length.toLocaleString('fr-FR'),'entre joueurs'],['Tes victoires',moi&&moi.n?pcSt(moi.v,moi.n)+' %':'-',moi&&moi.n?moi.v+' sur '+moi.n:'aucune partie'],['Classés',String(J.length),'joueurs']]);
+    let h=enc([['Parties',R.length.toLocaleString('fr-FR'),'entre joueurs'],['Tes victoires',moi&&moi.n?pcSt(moi.v,moi.n)+' %':'-',moi&&moi.n?moi.v+' sur '+moi.n:'aucune partie'],['Classés',String(J.length),J.length>1?'joueurs':'joueur']]);
     h+=`<div class="st-th ${gj}"><span class="r">#</span><span>Joueur (5 min.)</span><span class="r">Parties</span><span class="c">V - D</span><span class="r">Vict.</span></div><div class="st-corps">`;
-    const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10);if(!V.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
+    const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10),AU=autresSt(V,gj,3);if(!V.length&&!AU)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
     V.forEach(x=>h+=`<div class="st-ln st-cl ${gj}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.p)}"><span class="st-rk">${x.place}</span><span class="st-jg" data-av="${escSt(x.uid)}"><span class="st-ps" title="${escSt(x.p)}">${hlSt(x.p)}</span></span><span class="r st-n">${x.n}</span><span class="c st-n">${x.v} - ${x.d}</span><span class="r">${tauxSt(x.pct,x.n)}</span></div>`);
-    return tete('Joueurs')+h+'</div>';
+    return tete('Joueurs')+h+AU+'</div>';
   }
   /* ---- Colonne 1 : Joueurs (Entraînement) : taux contre chaque niveau (profil public) ---- */
   function robots(){
@@ -218,9 +234,9 @@ function dessineStats(RT){
     const J=(statsJoueurs||[]).map(x=>{const pm=x.uid===moiUid?mesPmSt:compteursPublies(statsProfils[x.uid],sidSt);if(!pm||compteursMode(pm,'entrainement').n<5)return null;const o={};niv.forEach(k=>{const c=compteursMode(pm,'entrainement',k);o[k]={n:c.n,v:c.v}});return {...x,o}}).filter(x=>x&&niv.some(k=>x.o[k].n))
       .sort((a,b)=>pk(b,'difficile')-pk(a,'difficile')||pk(b,'normal')-pk(a,'normal')||pk(b,'facile')-pk(a,'facile')||a.p.localeCompare(b.p,'fr')).map((x,i)=>({...x,place:i+1}));
     h+=`<div class="st-th ${gr}"><span class="r">#</span><span>Joueur (5 min.)</span><span class="r">Facile</span><span class="r">Normal</span><span class="r">Difficile</span></div><div class="st-corps">`;
-    const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10);if(!V.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
+    const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10),AU=autresSt(V,gr,3);if(!V.length&&!AU)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
     V.forEach(x=>h+=`<div class="st-ln st-cl ${gr}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.p)}"><span class="st-rk">${x.place}</span><span class="st-jg" data-av="${escSt(x.uid)}"><span class="st-ps" title="${escSt(x.p)}">${hlSt(x.p)}</span></span>${niv.map(k=>`<span class="r">${tauxSt(pcSt(x.o[k].v,x.o[k].n),x.o[k].n)}</span>`).join('')}</div>`);
-    return tete('Joueurs')+h+'</div>';
+    return tete('Joueurs')+h+AU+'</div>';
   }
   /* ---- Cartes : Meilleures (10 parties minimum) | Plus jouées ---- */
   const MIN_CARTES=10,lc=[...A.cartes].map(([id,o])=>{const c=CARTES.find(y=>y[0]===id);return c&&M.CARTES[id]?{id,c,n:o.n,p:pcSt(o.v,o.n)}:null}).filter(Boolean);
@@ -272,8 +288,8 @@ function dessineStats(RT){
       clic(n,()=>ouvreProfil(statsMode==='classees'&&C?{uid:u,p:C.pseudo,v:C.v|0,n:(C.v|0)+(C.d|0)}:{uid:u,p:J?J.p:C?C.pseudo:'',v:J?J.v:0,n:J?J.n:0}))});
     g.querySelectorAll('.st-lc[data-id]').forEach(n=>{const c=CARTES.find(y=>y[0]===n.dataset.id),src=imgV('cartes/'+c[0]+'.jpg');clic(n,()=>{cacheApercu();dernier=n;zoom(src,c[1],statZoomCarte(c[0]))});n.onmouseenter=()=>montreApercu(n,src);n.onmouseleave=cacheApercu});
     g.querySelectorAll('.st-lt[data-t]').forEach(n=>{const T=M.TERRAINS.find(t=>t.nom===n.dataset.t);if(!T)return;clic(n,()=>zoomTerrain(T));n.onmouseenter=()=>montreApercu(n,srcTerrain(T));n.onmouseleave=cacheApercu});
-    g.querySelectorAll('.st-tri').forEach(b=>b.onclick=()=>{statsTri=b.dataset.k;peintCols();const n=g.querySelector('.st-tri[data-k="'+statsTri+'"]');if(n)n.focus()});
-    g.querySelectorAll('.st-tric button').forEach((b,i)=>b.onclick=()=>{statsTriC=i;peintCols();const n=g.querySelectorAll('.st-tric button')[i];if(n)n.focus()});
+    g.querySelectorAll('.st-tri').forEach(b=>b.onclick=()=>{statsTri=b.dataset.k;ecrire('golems.tri.stats',statsTri);peintCols();const n=g.querySelector('.st-tri[data-k="'+statsTri+'"]');if(n)n.focus()});
+    g.querySelectorAll('.st-tric button').forEach((b,i)=>b.onclick=()=>{statsTriC=i;ecrire('golems.tri.statsCartes',String(i));peintCols();const n=g.querySelectorAll('.st-tric button')[i];if(n)n.focus()});
     g.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a==='jouer')onglet('jouer');else{ouvrePseudo();if(a==='cree')modeCompte(true)}});
     if(statsAjuste)statsAjuste();
   }

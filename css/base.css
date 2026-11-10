@@ -142,3 +142,5 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 
 /* Couleurs de taux (voir couleurTaux dans commun/outils.js). */
 .sc-taux-vert{color:var(--vert)}.sc-taux-ambre{color:var(--ambre)}.sc-taux-rouge{color:var(--rouge)}.sc-taux-gris{color:var(--gris-taux)}.sc-taux-neutre{color:#fff}
+/* Mode daltonien : symbole devant chaque taux colore (bon, moyen, faible) ; sc-sym-* = symbole seul, pour un taux colore autrement (anneau, style). */
+body.daltonien :is(.sc-taux-vert,.sc-sym-vert)::before{content:'▲\00a0'}body.daltonien :is(.sc-taux-ambre,.sc-sym-ambre)::before{content:'●\00a0'}body.daltonien :is(.sc-taux-rouge,.sc-sym-rouge)::before{content:'▼\00a0'}

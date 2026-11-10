@@ -56,6 +56,17 @@ async function scenario(P) {
   await attendu(ici('usurpation : pseudo d\'un autre dans classement/'), false, req(X, 'PUT', P + 'classement/' + X.uid, { p: pA, v: 0, n: 1 }));
   await attendu(ici('classement de X sous son pseudo'), true, req(X, 'PUT', P + 'classement/' + X.uid, { p: pX, v: 0, n: 1 }));
 
+  // Compte de plus de 50 parties sans stats publiées (PAS_MAX = 50) : écriture directe refusée, paliers de 50 acceptés
+  // (salon-firebase.js ecritStats), puis classement et profil publiés.
+  const Y = await compte(`y${t}${tag}@test.invalid`), pY = nom('Yan');
+  await attendu(ici('création du compte ' + pY), true, req(Y, 'PATCH', '', { [P + 'pseudos/' + pY.toLowerCase()]: Y.uid, [P + 'joueurs/' + Y.uid + '/pseudo']: pY, [P + 'joueurs/' + Y.uid + '/cree']: t }));
+  await attendu(ici('stats 120 parties en une écriture'), false, req(Y, 'PUT', P + 'joueurs/' + Y.uid + '/stats', { v: 70, n: 120 }));
+  await attendu(ici('stats palier 50'), true, req(Y, 'PUT', P + 'joueurs/' + Y.uid + '/stats', { v: 0, n: 50 }));
+  await attendu(ici('stats palier 100'), true, req(Y, 'PUT', P + 'joueurs/' + Y.uid + '/stats', { v: 50, n: 100 }));
+  await attendu(ici('stats palier 120'), true, req(Y, 'PUT', P + 'joueurs/' + Y.uid + '/stats', { v: 70, n: 120 }));
+  await attendu(ici('classement 120 parties'), true, req(Y, 'PUT', P + 'classement/' + Y.uid, { p: pY, v: 70, n: 120 }));
+  await attendu(ici('profil 120 parties'), true, req(Y, 'PUT', P + 'profils/' + Y.uid, { p: pY, m: false, n: 120, v: 70, d: 50, t: HEURE }));
+
   // Profil et deck.
   await attendu(ici('avatar'), true, req(A, 'PATCH', P + 'joueurs/' + A.uid, { avatarId: 'golem-1', avatarImg: null }));
   await attendu(ici('deck'), true, req(A, 'PUT', P + 'joueurs/' + A.uid + '/decks', { 0: { id: 'd1', nom: 'Mon deck', cartes: { '001': 2, '002e': 1 }, t } }));

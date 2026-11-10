@@ -390,7 +390,7 @@ async function ouvreProfil(autre){
     const tx=P.n?Math.round(100*P.v/P.n):null,coul=couleurTaux.valeur(tx,P.n);
     {const c=E('div');c.append(E('i','','Taux de victoire'));const an=E('div','pr-ann');
      an.innerHTML='<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="51" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="12"/>'+(tx?'<circle cx="60" cy="60" r="51" fill="none" stroke="'+coul+'" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+(3.2044*tx)+' 999" transform="rotate(-90 60 60)"/>':'')+'</svg>';
-     an.append(E('span','',tx===null?'-':tx+' %'));c.append(an,E('small','',P.v+' V - '+P.d+' D'));gn.append(c)}
+     an.append(E('span',tx===null?'':couleurTaux(tx,P.n).replace('sc-taux-','sc-sym-'),tx===null?'-':tx+' %'));c.append(an,E('small','',P.v+' V - '+P.d+' D'));gn.append(c)}
     const libM=glob?'tous modes':['parties classées','parties amicales',dif?'parties en '+['','Facile','Normal','Difficile'][dif]:"parties d'entraînement"][mode];
     {const c=E('div');c.append(E('i','','Parties'),E('b','',String(P.n)),E('small','',P.n>1?libM:libM.replace(/parties/,'partie').replace(/ées$/,'ée').replace(/ales$/,'ale')));gn.append(c)}
     {const c=E('div');c.append(E('i','','Meilleure série'),E('b','',prive||!P.best?'-':String(P.best)),E('small','',prive?'Masqué':!P.best&&D.global?'Non partagée':P.best?(P.best>1?'victoires':'victoire')+' d’affilée':'Aucune série'));gn.append(c)}
@@ -412,7 +412,7 @@ async function ouvreProfil(autre){
     const p3=E('div','pr-p3');dr.append(p3);
     if(prive){const pn=E('div','pr-pn pr-pv');pn.append(E('div','pr-ins','Profil privé : ce joueur ne partage que son rang et son bilan.'));p3.append(pn);return}
     const st=(n,o)=>{const s=E('div','pr-st'),p=Math.round(100*o.v/o.n);s.append(pfPl(n,'partie')+' - ');const q=E('b',couleurTaux(p,o.n),p+' %');s.append(q,' de victoires');return s};
-    const pan=(tt,items,ins)=>{const pn=E('section','pr-pn');pn.append(E('h3','',tt));items.filter(Boolean).forEach(x=>pn.append(x));if(items.filter(Boolean).length<5&&ins)pn.append(E('div','pr-ins',ins));p3.append(pn)};
+    const pan=(tt,items,ins)=>{const pn=E('section','pr-pn'),L=items.filter(Boolean);pn.append(E('h3','',tt));L.forEach(x=>pn.append(x));if(!L.length&&(!ins||/apparaît après|assez de parties/.test(ins)))ins='Pas encore assez de parties.'; /* bloc vide : encadre d'information de la charte */if(L.length<5&&ins)pn.append(E('div','pr-ins',ins));p3.append(pn)};
     const deckL=x=>{const w=E('div','pr-it'),z=E('div','pr-dk'),e=x.els.length?x.els:['brume'];z.style.setProperty('--a','var(--fm-'+e[0]+')');z.style.setProperty('--b','var(--fm-'+(e[1]||e[0])+')');z.title=x.nom;
       z.append(E('span','',x.nom));x.els.forEach(y=>{try{z.append(picto(y))}catch(er){}});w.append(z,st(x.n,x));return w};
     const carteL=(k,lab)=>{const C=M.CARTES[k],c=C&&CARTES.find(y=>y[0]===C.id);if(!c)return null;const q=el('button','dl-ligne');q.type='button';q.title=c[1];

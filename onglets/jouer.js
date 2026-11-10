@@ -428,7 +428,9 @@ $('jVue').querySelectorAll('button').forEach(b=>b.onclick=()=>jVue(b.dataset.v))
 new MutationObserver(()=>{if(!$('historique').hidden&&$('jVue').parentNode!==$('historique'))jVue('historique');else if(!$('jouer').hidden&&$('jVue').parentNode!==$('jouer'))jVue('parties')}).observe(document.body,{attributes:true,attributeFilter:['hidden'],subtree:true});
 
 /* Publique / Privee des tuiles Classee et Amicale (selecteur sc-sel, J14) ; la case cachee salonPublicCase reste lue par creerSalon (commun/raccords.js). */
-function selPub(id){const z=$(id),b=[...z.querySelectorAll('button')];b.forEach((x,i)=>x.onclick=()=>{b.forEach((y,k)=>y.setAttribute('aria-pressed',k===i?'true':'false'))});return ()=>b[0].getAttribute('aria-pressed')==='true'}
+function selPub(id){const z=$(id),b=[...z.querySelectorAll('button')],cle='golems.pub.'+id,pose=i=>b.forEach((y,k)=>y.setAttribute('aria-pressed',k===i?'true':'false'));
+  {const m=lire(cle);if(m==='0'||m==='1')pose(+m)} /* choix memorise sur l'appareil */
+  b.forEach((x,i)=>x.onclick=()=>{pose(i);ecrire(cle,String(i))});return ()=>b[0].getAttribute('aria-pressed')==='true'}
 const pubClasse=selPub('pubClasse'),pubAmicale=selPub('pubAmicale');
 let salonClasse=false; /* salon classe en cours (createur, ou joueur entre par une annonce classee) */
 $('creer').addEventListener('click',()=>{salonClasse=false;$('salonPublicCase').checked=pubAmicale();choixDeckCtx={lib:'Créer le salon',ctx:'Partie amicale',t:Date.now()}},true);
@@ -472,7 +474,7 @@ function imgRang(id){return imgV('images/rangs/'+id+'.png')}
 const pcJ=(v,n)=>n?Math.round(100*v/n):null;
 function c3(lib,val,sous,cl){const d=el('div','j-c3'),b=el('b',cl||'',val);b.title=val;d.append(el('i','',lib),b,el('small','',sous));return d}
 const txtTaux=t=>t===null?'-':t+' %';
-function colore(d,t,n){const b=d.querySelector('b');if(t!==null)b.style.color=couleurTaux.valeur(t,n)}
+function colore(d,t,n){const b=d.querySelector('b');b.classList.remove('sc-sym-vert','sc-sym-ambre','sc-sym-rouge');if(t!==null){b.style.color=couleurTaux.valeur(t,n);b.classList.add(couleurTaux(t,n).replace('sc-taux-','sc-sym-'))}}
 function partiesDe(f){const l=typeof lesParties==='function'?lesParties():[];return l.filter(x=>{try{return f(typeof modeHisto==='function'?modeHisto(x):'',x)}catch(e){return false}})}
 /* Encart Classee : embleme, rang + Elo (barre vers le rang suivant), prochain rang, victoires (couleurTaux, J13). Placement : n sur 5. */
 function encartClasse(j){
@@ -481,7 +483,7 @@ function encartClasse(j){
   const im=el('img','j-emb');im.src=imgRang(A.placement?'placement':R.id);im.alt=R.nom;
   const r=c3('Rang',A.placement?'Placement':R.nom,A.placement?(A.n+' sur '+A.sur+' parties'):'Elo '+Math.round(j.elo),'rg');
   if(!A.placement&&suiv){const bas=Number.isFinite(R.min)?R.min:suiv.min-100,p=Math.max(0,Math.min(100,100*(j.elo-bas)/(suiv.min-bas))),br=el('span','j-barre'),u=el('u');u.style.width=p+'%';br.append(u);r.append(br)}
-  const pr=A.placement?c3('Prochain rang','-','après le placement'):suiv?c3('Prochain rang',Math.ceil(suiv.min-j.elo)+' pts','avant '+suiv.nom):c3('Prochain rang','-','rang le plus haut');
+  const pr=A.placement?c3('Prochain rang','-','après le placement'):suiv?c3('Prochain rang',(n=>n+(n>1?' pts':' pt'))(Math.ceil(suiv.min-j.elo)),'avant '+suiv.nom):c3('Prochain rang','-','rang le plus haut');
   const n=(j.v||0)+(j.d||0),t=pcJ(j.v||0,n),v=c3('Victoires',txtTaux(t),(j.v||0)+' sur '+n+' partie'+(n>1?'s':''));colore(v,t,n);
   z.append(im,r,pr,v);
 }
@@ -523,7 +525,7 @@ function majTuiles(){
 }
 
 /* Parties en ligne : une ligne par partie (ouverte, complete, en cours), filtres Toutes / Ouvertes / En cours / Classees, pages de 6. */
-let jFiltre='toutes',jPage=0;const J_PAR_PAGE=6;
+let jFiltre=(k=>['toutes','ouvertes','encours','classees'].includes(k)?k:'toutes')(lire('golems.filtre.jouer')),jPage=0; /* filtre memorise sur l'appareil */const J_PAR_PAGE=6;
 const OEIL_J='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 function etatAnn(x){return x.g===true?'e':typeof x.w==='string'?'c':'o'}
 function filtreAnn(l,f){return f==='ouvertes'?l.filter(x=>etatAnn(x)==='o'):f==='encours'?l.filter(x=>etatAnn(x)==='e'):f==='classees'?l.filter(x=>x.cl===true):l}
@@ -531,7 +533,7 @@ function peintFiltres(l){
   const z=$('jFiltres');z.textContent='';
   [['toutes','Toutes'],['ouvertes','Ouvertes'],['encours','En cours'],['classees','Classées']].forEach(([k,lib])=>{
     const b=el('button','',lib+' ');b.type='button';b.append(el('b','j-nb',String(filtreAnn(l,k).length)));b.setAttribute('aria-pressed',k===jFiltre?'true':'false');
-    b.onclick=()=>{jFiltre=k;jPage=0;peintListe()};z.append(b)});
+    b.onclick=()=>{jFiltre=k;jPage=0;ecrire('golems.filtre.jouer',k);peintListe()};z.append(b)});
 }
 function joueurLigne(nom,av,els,elo,gauche){
   const s=el('span','j-j'+(gauche?' g':'')),pi=el('span','j-els');(els||[]).forEach(z=>{const i=picto(z);i.width=i.height=16;i.title=nomEl(z);pi.append(i)});

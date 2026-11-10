@@ -7,6 +7,9 @@ const LS=k=>(ESSAI?'essai.':'')+k;
 if(ESSAI){document.title='Les Golems (Essai)';document.documentElement.classList.add('essai');const h=document.querySelector('.haut h1'),st=h&&h.querySelector('.st-ligne');if(st){const p=document.createElement('span');p.className='essai-pastille';p.textContent="SITE D'ESSAI";h.insertBefore(p,st)}}
 function lire(k){try{return localStorage.getItem(LS(k))}catch(e){return null}}
 function ecrire(k,v){try{localStorage.setItem(LS(k),v)}catch(e){}}
+/* Filtres et tris memorises sur l'appareil (JSON) ; illisible ou absent : null. */
+function lireJ(k){try{const v=JSON.parse(lire(k)||'null');return v&&typeof v==='object'?v:null}catch(e){return null}}
+function ecrireJ(k,v){try{ecrire(k,JSON.stringify(v))}catch(e){}}
 /* Le moteur est revenu de 0.2a a 0.2 sans changement de regles : les sauvegardes et rejeux 0.2a restent valides. */
 /* 0.2c = 0.2b.2 renomme, memes regles : une partie 0.2b.2 sauvegardee se reprend. */
 function memeVersion(v){return v===M.VERSION||(M.VERSION==='0.2'&&v==='0.2a')||(M.VERSION==='0.2c'&&v==='0.2b.2')}

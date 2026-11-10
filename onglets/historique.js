@@ -37,7 +37,7 @@ function carteHisto(nom){
      bilan[].cartes[i][5] : pseudo du maitre d'un animal (sinon lu dans CARTES : maitre) */
 const H_NIV={facile:'Facile',normal:'Normal',difficile:'Difficile'};
 const H_ELS=/^(magma|cristal|foudre|brume|roche)$/;
-let filtreHisto='toutes';
+let filtreHisto=lire('golems.filtre.histo')||'toutes'; /* filtre memorise sur l'appareil (inconnu : Toutes, voir peintHisto) */
 const carteDe=nom=>nom?Object.values(M0.CARTES).find(c=>M0.nomDetail(c)===nom||c.nom===nom)||null:null;
 /* Couleur d'une carte : son premier element (un animal prend celui de son maitre). */
 const elCarte=C=>!C?null:(C.el&&C.el[0])||(C.maitre&&M0.CARTES[C.maitre]&&M0.CARTES[C.maitre].el[0])||null;
@@ -338,7 +338,7 @@ function peintHisto(){
   /* Filtres : un seul selecteur, nombre de parties de chaque filtre */
   const fz=$('hFiltres');fz.textContent='';
   FILTRES_H.forEach(([k,lib,f])=>{const q=el('button','',lib);q.type='button';q.setAttribute('aria-pressed',String(k===F[0]));q.append(el('i','',String(tout.filter(f).length)));
-    q.onclick=()=>{if(filtreHisto===k)return;filtreHisto=k;pageHisto=0;peintHisto()};fz.append(q)});
+    q.onclick=()=>{if(filtreHisto===k)return;filtreHisto=k;ecrire('golems.filtre.histo',k);pageHisto=0;peintHisto()};fz.append(q)});
   const z=sec.querySelector('.h-pied .nv-pages');
   if(!z.dataset.pret){z.dataset.pret='1';z.querySelector('.nv-prec').onclick=()=>{pageHisto--;peintHisto()};z.querySelector('.nv-suiv').onclick=()=>{pageHisto++;peintHisto()}}
   b.textContent='';

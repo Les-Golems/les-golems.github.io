@@ -29,7 +29,9 @@ pastilles($('filtreType'),TY,()=>fTy,v=>fTy=v);
    Les animaux (sans element) ne passent que sans filtre d'element ; avec Animaux, les pastilles sont grisees. */
 const ELS=EL.filter(x=>x[0]).map(x=>x[0]);
 const MODES_EL=[['ou','Au moins un'],['et','Tous']]; /* 3e mode possible : ['seul','Seulement'] = aucun element hors de ceux choisis */
-const passeEl=(c,f)=>!f.sel.size||c[2].length>0&&(f.mode==='et'?[...f.sel].every(x=>c[2].includes(x)):f.mode==='seul'?c[2].every(x=>f.sel.has(x)):c[2].some(x=>f.sel.has(x)));
+/* Filtres d'elements : un animal prend l'element imprime sur sa carte (interface.elementAnimal). */
+const elFiltre=c=>c[2].length?c[2]:(estAnimal(c)&&(window.GolemsDonnees.interface.elementAnimal||{})[c[0]])||[];
+const passeEl=(c,f)=>{const e=elFiltre(c);return !f.sel.size||e.length>0&&(f.mode==='et'?[...f.sel].every(x=>e.includes(x)):f.mode==='seul'?e.every(x=>f.sel.has(x)):e.some(x=>f.sel.has(x)))};
 /* Recherche : nom ou numero affiche (G-009), sans accents ni majuscules. */
 const sansAccent=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const cleRech=c=>sansAccent(c[1]+' '+numeroAffiche(c[0]));
@@ -78,7 +80,7 @@ function forceMoy(id){
 function trie(){
   const g=$('grille');
   if(!fTri){const ps=[...g.querySelectorAll('.paire')];if(triDesc)ps.reverse();ps.forEach(p=>g.append(p));
-    const ord=GALERIE.map(c=>c[0]);if(triDesc)ord.reverse();ord.forEach(id=>g.querySelector('[data-paire="'+id.slice(0,3)+'"]').append(g.querySelector('[data-id="'+id+'"]')))}
+    const ord=GALERIE.map(c=>c[0]);ord.forEach(id=>g.querySelector('[data-paire="'+id.slice(0,3)+'"]').append(g.querySelector('[data-id="'+id+'"]')))}
   else{const ord=GALERIE.map((c,i)=>[c[0],valTri(c[0],fTri),i]).sort((x,y)=>(triDesc?y[1]-x[1]:x[1]-y[1])||x[2]-y[2]);
     const p0=g.querySelector('.paire');ord.forEach(([id])=>g.insertBefore(g.querySelector('[data-id="'+id+'"]'),p0))}
   g.querySelectorAll('[data-terrain],[data-avenir]').forEach(b=>g.append(b));
@@ -119,6 +121,7 @@ function tuilesAVenir(){
   });
 }
 function maj(){
+  ecrireJ('golems.filtres.cartes',{ty:fTy,sel:[...fCartes.sel],mode:fCartes.mode,tri:fTri,desc:triDesc}); /* filtres et tris memorises sur l'appareil */
   const ter=fTy==='t',av=fTy==='v',offEl=ter||av||fTy==='a',q=$('rechCarte').value;if(ter){fEl='';tuilesTerrains()}
   if(av){fEl='';tuilesAVenir()}
   let n=0;const vu=(b,ok)=>{ok=ok&&passeRech(b.dataset.q,q);b.hidden=!ok;if(ok)n++};
@@ -157,6 +160,9 @@ function carteDeLien(v){const k=String(v||'').trim().toUpperCase().replace(/^([G
 function ouvreTerrainGalerie(T){cacheApercu();dernier=null;zoom(srcTerrain(T),T.nom+'. '+T.texte,[...statZoomTerrain(T),boutonLienCarte(idLienTerrain(T))])}
 function retireCarteLien(){try{const u=new URL(location.href);if(!u.searchParams.has('carte'))return;u.searchParams.delete('carte');history.replaceState(history.state,'',u.pathname+u.search+u.hash)}catch(e){}}
 function boutonLienCarte(id){const b=el('button','btn sec btnLienCarte','Copier le lien');b.type='button';b.onclick=()=>copie(lienCarte(id),b,'Copier le lien',null);return b}
+/* Filtres et tris memorises : retablis au chargement. */
+{const m=lireJ('golems.filtres.cartes');if(m){if(TY.some(x=>x[0]===m.ty))fTy=m.ty;if(Array.isArray(m.sel))m.sel.filter(e=>ELS.includes(e)).forEach(e=>fCartes.sel.add(e));
+  if(MODES_EL.some(x=>x[0]===m.mode))fCartes.mode=m.mode;if(TRI.some(x=>x[0]===m.tri))fTri=m.tri;triDesc=m.desc===true}}
 $('fermer').onclick=fermeVue;
 $('vue').onclick=e=>{if(e.target===$('vue'))fermeVue()};
 addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('aide').hidden)fermeAide();else if(!$('vue').hidden)fermeVue();else $('vueTas').hidden=true});
