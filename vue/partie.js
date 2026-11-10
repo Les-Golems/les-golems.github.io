@@ -139,7 +139,7 @@ async function envoieClasse(c,w,gr){
       const o={sa:c.sa,gr,a:c.a,b:c.b,gagnant:w===0?c.a:w===1?c.b:null};
       /* 0.6.1 : forfait de l'adversaire (salons/<sa>/forfait/<gr>.u = perdant) : le gagnant ecrit la partie et les deux profils. */
       const f=o.gagnant===u?await room.lit('salons/'+c.sa+'/forfait/'+gr).catch(()=>null):null,perd=o.gagnant===c.a?c.b:c.a;
-      if(o.gagnant===u&&f&&f.u===perd){const r=await S.finForfait(o);if(r.fait)j=await room.classeBase().lit('classe/joueurs/'+u)}
+      if(o.gagnant===u&&f&&f.u===perd){finEnAttente(u,o,true,true);const r=await S.finForfait(o);if(r.fait&&r.faitAdv)finEnAttente(u,o,false);if(r.fait)j=await room.classeBase().lit('classe/joueurs/'+u)}
       else if(o.gagnant===u)j=await S.attends(id);
       else{finEnAttente(u,o,true);const r=await S.finJoueurs(o);if(r.fait){finEnAttente(u,o,false);j=await room.classeBase().lit('classe/joueurs/'+u)}}
     }
@@ -156,7 +156,7 @@ function histoClasse(hid,delta){
 }
 /* Fins de classees du perdant pas encore ecrites (coupure avant ou pendant l'ecriture) : rejouees au chargement. */
 const FINS_CL='golems.classeFins';
-function finEnAttente(u,o,on){const id=GolemsClasse.idPartie(o.sa,o.gr),l=litListe(FINS_CL).filter(x=>x&&x.id!==id);if(on)l.unshift({id,u,o});ecrire(FINS_CL,JSON.stringify(l.slice(0,20)))}
+function finEnAttente(u,o,on,ff){const id=GolemsClasse.idPartie(o.sa,o.gr),l=litListe(FINS_CL).filter(x=>x&&x.id!==id);if(on)l.unshift(ff?{id,u,o,f:1}:{id,u,o}); /* f : victoire par forfait (le gagnant ecrit les deux profils) */ecrire(FINS_CL,JSON.stringify(l.slice(0,20)))}
 /* 0.6.1 : classee contre le robot aussi gardee (r = { sa, gr, niveau, gagne }) tant que finRobot n'a pas abouti. */
 function finRobotAttente(u,o,on){const id='r:'+GolemsClasse.idPartie(o.sa,o.gr),l=litListe(FINS_CL).filter(x=>x&&x.id!==id);if(on)l.unshift({id,u,r:o});ecrire(FINS_CL,JSON.stringify(l.slice(0,20)))}
 /* 0.6.1 : classee contre le robot laissee en cours (onglet ferme, rechargement) : comptee comme une defaite (abandon). */
@@ -173,9 +173,19 @@ async function reprendFins(){
   for(const x of litListe(FINS_CL).filter(y=>y&&y.u===u&&(y.o||y.r)))
     try{
       if(x.r){const r=await S.finRobot(x.r);if(r.fait){finRobotAttente(u,x.r,false);if(typeof attenteClasse==='function')attenteClasse(r.id,false)}continue}
+      if(x.f){const r=await S.finForfait(x.o);if(r.fait&&r.faitAdv)finEnAttente(u,x.o,false);if(r.fait&&typeof attenteClasse==='function')attenteClasse(r.id,false);continue}
       const r=await S.finJoueurs(x.o);if(r.fait){finEnAttente(u,x.o,false);if(typeof attenteClasse==='function')attenteClasse(r.id,false)}
     }catch(e){console.warn('classe',e)}
+  /* Reprise garantie : toute classee de la saison ou je figure sans fait/<moi> est appliquee (et la part de l'adversaire si
+     le perdant a confirme ou a ete declare forfait) ; la variation ecrite remplace « en attente » dans l'historique. */
+  try{const l=await S.rattrape();if(!l.length||room.compte.uid()!==u)return;
+    const hs=(room.compte.donnees().historique||[]).concat(litListe(ATTENTE).filter(y=>y&&y.u===u&&y.h).map(y=>y.h));
+    for(const r of l){if(!Number.isInteger(r.delta))continue;if(typeof attenteClasse==='function')attenteClasse(r.id,false);
+      for(const h of hs)if(h&&h.classe&&typeof h.id==='string'&&h.id.indexOf(r.gr+'-')===0&&(h.classe.attente||h.classe.delta!==r.delta))histoClasse(h.id,r.delta)}
+  }catch(e){console.warn('classe',e)}
 }
+/* Reconnexion : reprise des classees en attente (sans attendre le prochain chargement). */
+if(window.golemsSalon)Promise.resolve(window.golemsSalon).then(x=>{if(x&&x.onConnection)x.onConnection(()=>{if(x.connected&&x.connected()&&compteCo()&&!reprendFins.cours){reprendFins.cours=true;reprendFins().finally(()=>{reprendFins.cours=false;if(typeof chargeClasse==='function')chargeClasse()})}})}).catch(()=>{});
 /* 0.6 : deck du Golem tire dans la reserve (decks conseilles) a partir de la graine de la partie : meme graine = meme deck, rejeux exacts (le deck est aussi garde dans partie.decks). Partie guidee : deck fixe (onglets/tutoriel.js). */
 function deckRobot(g){
   const R=(window.GolemsDonnees.interface.decksConseilles)||[];if(!R.length)return '';

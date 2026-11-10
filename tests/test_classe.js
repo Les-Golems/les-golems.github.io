@@ -157,6 +157,21 @@ function base(uid,pseudo,db){
   eq(await SA.recompenses(),0,'rien à réécrire');
   // B : placement non fini -> 0.6.3 : instantané quand même (les trois modes), placementFini faux, sans récompense.
   await SB.profil();ok(db.classe.instantanes[0].ub&&db.classe.instantanes[0].ub.placementFini===false,'instantané hors placement');ok(!db.classe.ecussons.ub);eq(db.classe.joueurs.ub.saison,1);
+  // Coupures pendant un forfait : écritures du gagnant perdues (une fois sur deux) -> réessayées ; le perdant absent est compté
+  // par la reprise (rattrape) au chargement suivant, une seule fois par joueur.
+  {const db3={classe:{saison:{id:0,nom:'Bêta',debut:1},joueurs:{ua:C.nouveauJoueur(0),ub:C.nouveauJoueur(0)}},salons:{s1:{forfait:{'7':{u:'ua',t:1}}}}};
+    const F=base('ub','Bob',db3),G=base('ua','Alice',db3);let n=0;const ec=F.ecrit;F.pause=G.pause=async()=>{};
+    F.ecrit=async function(m){if(Object.keys(m).some(k=>/joueurs/.test(k))&&n++%2===0)throw new Error('disconnect');return ec.call(this,m)};
+    const SF=C.service(F),SG=C.service(G);const r=await SF.finForfait({sa:'s1',gr:7,a:'ua',b:'ub',gagnant:'ub'});
+    ok(r.fait&&r.faitAdv,'forfait appliqué aux deux malgré les coupures');const P=db3.classe.parties['s1-7'];
+    eq(db3.classe.joueurs.ua.partiesTotal,1);eq(db3.classe.joueurs.ub.partiesTotal,1);eq(db3.classe.joueurs.ub.elo,1000+P.deltaB);eq(db3.classe.joueurs.ua.elo,1000+P.deltaA);
+    delete db3.classe.parties['s1-7'].fait.ua;db3.classe.joueurs.ua=C.nouveauJoueur(0); /* perdant jamais compté (ancien défaut) */
+    const l=await SG.rattrape();eq(db3.classe.joueurs.ua.partiesTotal,1,'rattrape : perdant compté');eq(l.length,1);eq(l[0].delta,P.deltaA);
+    await SG.rattrape();await SF.rattrape();eq(db3.classe.joueurs.ua.partiesTotal,1,'une seule fois');eq(db3.classe.joueurs.ub.partiesTotal,1);
+    F.ecrit=async()=>{throw new Error('hors ligne')};ok(!(await SF.appliqueUn('s1-7','zz')),'profil absent : false');
+    let k=0;const H=base('ub','Bob',db3);H.pause=async()=>{k++};H.ecrit=async()=>{throw new Error('hors ligne')};db3.classe.joueurs.ub=C.nouveauJoueur(0);delete db3.classe.parties['s1-7'].fait.ub;
+    ok(!(await C.service(H).appliqueUn('s1-7','ub',{essais:3})),'toujours coupé : false');eq(k,2,'réessayé');}
+  res.push('reprise');
   res.push('service');
   console.log('test_classe : '+nv+' vérifications OK ('+res.join(', ')+')');
 })().catch(e=>{console.error(e);process.exit(1)});
