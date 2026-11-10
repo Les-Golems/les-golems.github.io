@@ -54,8 +54,10 @@ const caseDe=(p,l,k,racine)=>(racine||scene).querySelector('.p-case[data-p="'+p+
 /* Golems en jeu : cle joueur:carte -> [l,k,Force affichee] */
 function photo(s){const Mo=M(),r={};for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=s.j[p].grille[l][k];if(g&&!Mo.carte(g.c).animal)r[p+':'+g.c]=[l,k,Mo.forceDe(s,p,l,k),g.hors===s.manche]}return r}
 /* Avant de vider la scene : nouvelles poses (depart dans la main), Golems detruits (copie de leur case), Forces changees */
+/* rejeu : horloge des animations prise au debut du coup (dernier appel de rejeu.reste(), juste avant le coup), pas apres son calcul et sa peinture */
+let coupT=0;
 function prepareAnims(s,premier,nev0){
-  const t=performance.now(),Mo=M(),ap=photo(s),av=suivi.snap,pv=suivi.pq,G0=suivi.gr,G1=grilles(s),nr0=suivi.nrep;suivi.snap=ap;suivi.pq=tas(s);suivi.gr=G1;suivi.nrep=s.reperes.length;
+  const n0=performance.now(),t=src==='rejeu'&&coupT&&n0-coupT<200?coupT:n0,Mo=M(),ap=photo(s),av=suivi.snap,pv=suivi.pq,G0=suivi.gr,G1=grilles(s),nr0=suivi.nrep;suivi.snap=ap;suivi.pq=tas(s);suivi.gr=G1;suivi.nrep=s.reperes.length;
   suivi.decT=0;
   if(premier)return;
   const ev=s.stats.ev;let pose=null;const morts=[],X={recup:[],degs:[],ani:null};
@@ -342,17 +344,17 @@ function anFavori(t,de,vers){const s=caseR(de[0],de[1],de[2]),c=caseDe(vers[0],v
   const tx=q.x+12,ty=q.y+q.h/2,x0=s.x+s.w/2,y0=s.y+s.h/2,cr=anCalque('an-coeur');cr.innerHTML=COEUR_AN;Object.assign(cr.style,{left:(x0-16)+'px',top:(y0-16)+'px'});
   anA(cr,[{opacity:0,transform:'translate(0,0) scale(.4)'},{opacity:1,transform:'translate(0,-16px) scale(1.25)',offset:.18},{opacity:1,transform:'translate('+((tx-x0)/2)+'px,'+((ty-y0)/2-110)+'px) scale(1.1)',offset:.6},{opacity:1,transform:'translate('+(tx-x0)+'px,'+(ty-y0)+'px) scale(.9)',offset:.8},{opacity:0,transform:'translate('+(tx-x0)+'px,'+(ty-y0)+'px) scale(.9)'}],{t,duration:800,easing:'ease-in-out'});anFin(cr,t,850);
   const o=anCalque('an-rose',s);anA(o,[{opacity:0},{opacity:1,offset:.3},{opacity:0}],{t,duration:600});anFin(o,t,650)}
-/* Bandeau en travers (debut de manche, victoire, defaite) ; rend la duree a vitesse 1 */
-function anBandeau(txt,sous,co,haut,fin){if(!couche||!scene)return 0;const t=performance.now();
-  let v=null;if(fin){v=anCalque('an-voile',{x:0,y:0,w:1920,h:1080});anA(v,[{opacity:0},{opacity:1,offset:.15},{opacity:1,offset:.88},{opacity:0}],{t,duration:1650});anFin(v,t,1650)}
+/* Bandeau en travers (debut de manche, victoire, defaite) ; rend sa duree (divisee par la vitesse du rejeu, KV = 1 ailleurs) */
+function anBandeau(txt,sous,co,haut,fin){if(!couche||!scene)return 0;const t=performance.now(),k=x=>x/KV; /* rejeu x2/x4 : durees divisees par la vitesse */
+  let v=null;if(fin){v=anCalque('an-voile',{x:0,y:0,w:1920,h:1080});anA(v,[{opacity:0},{opacity:1,offset:.15},{opacity:1,offset:.88},{opacity:0}],{t,duration:k(1650)});anFin(v,t,k(1650))}
   const tr=scene.querySelector('.d-tr'),p=scene.querySelector('.d-plat'),R=fin||!tr||!p?{x:0,y:440,w:1920,h:200}:(()=>{const a=rectScene(tr);return {x:0,y:a.y+a.h/2-60,w:1920,h:120}})(); /* toute la largeur : le texte ne sort jamais de l'ecran */
   const bd=anCalque('an-bandeau'+(fin?'':' an-bandeau-l'),R),sp=mk('span','',txt);bd.style.color=co;if(sous)sp.append(mk('small','',sous));bd.append(sp);
-  if(fin){const sc=scene.querySelector('.d-sc');if(sc&&!fin.calme)anA(sc,[{transform:'scale(1)'},{transform:'scale(1.12)',offset:.4},{transform:'scale(1)'}],{t,delay:150,duration:450,fill:'none'});
-    anA(sp,[{opacity:0,transform:'scale(.85)'},{opacity:1,transform:'scale(1.03)',offset:.6},{opacity:1,transform:'scale(1)'}],{t,delay:250,duration:450,easing:'cubic-bezier(.3,1.3,.5,1)'});
-    anA(sp,[{opacity:1},{opacity:0}],{t,delay:1300,duration:250,fill:'forwards'});anFin(bd,t,1600);return 1500} /* test2j : ~1,5 s (valide par Romain) */
-  anA(sp,[{opacity:0,transform:'translateX(-60px)'},{opacity:1,transform:'translateX(0)',offset:.3},{opacity:1,transform:'translateX(0)',offset:.75},{opacity:0,transform:'translateX(60px)'}],{t,duration:1000,easing:'ease-in-out'});
-  scene.querySelectorAll('.d-pts i.on').forEach(i=>anA(i,[{filter:'brightness(1)'},{filter:'brightness(1.6) drop-shadow(0 0 8px #f1c35a)',offset:.4},{filter:'brightness(1)'}],{t,delay:200,duration:500,fill:'none'}));
-  anFin(bd,t,1050);return 1000}
+  if(fin){const sc=scene.querySelector('.d-sc');if(sc&&!fin.calme)anA(sc,[{transform:'scale(1)'},{transform:'scale(1.12)',offset:.4},{transform:'scale(1)'}],{t,delay:k(150),duration:k(450),fill:'none'});
+    anA(sp,[{opacity:0,transform:'scale(.85)'},{opacity:1,transform:'scale(1.03)',offset:.6},{opacity:1,transform:'scale(1)'}],{t,delay:k(250),duration:k(450),easing:'cubic-bezier(.3,1.3,.5,1)'});
+    anA(sp,[{opacity:1},{opacity:0}],{t,delay:k(1300),duration:k(250),fill:'forwards'});anFin(bd,t,k(1600));return k(1500)} /* test2j : ~1,5 s (valide par Romain) */
+  anA(sp,[{opacity:0,transform:'translateX(-60px)'},{opacity:1,transform:'translateX(0)',offset:.3},{opacity:1,transform:'translateX(0)',offset:.75},{opacity:0,transform:'translateX(60px)'}],{t,duration:k(1000),easing:'ease-in-out'});
+  scene.querySelectorAll('.d-pts i.on').forEach(i=>anA(i,[{filter:'brightness(1)'},{filter:'brightness(1.6) drop-shadow(0 0 8px #f1c35a)',offset:.4},{filter:'brightness(1)'}],{t,delay:k(200),duration:k(500),fill:'none'}));
+  anFin(bd,t,k(1050));return k(1000)}
 /* Debut de manche : apres la fermeture du recapitulatif de la manche qui vient de finir */
 function anManche(m,n){const s=E&&E.etat;if(!s||s.fin||!D)return;if(Number.isInteger(m)&&s.manche<=m){if((n|0)<25)setTimeout(()=>anManche(m,(n|0)+1),150);return} /* test2j : attendre l'etat de la manche suivante */const q=s.phase==='mulligan'?null:U().quiJoue(s);
   anBandeau('Manche '+s.manche+(q===0||q===1?' - '+(src==='joueur'&&q===E.moi?'Tu commences':nom(q)+' commence'):''),null,'#f1c35a',0,null)}
@@ -533,7 +535,7 @@ function peindre(){
   if(src==='joueur'&&fin&&!suivi.fin&&window.DECO&&DECO.etat&&DECO.etat().fin){suivi.fin=true;suivi.nt=nt}
   /* 0.6 : les etoiles de fin de manche volent vers le score, puis la fenetre s'ouvre */
   /* 0.6a : etoiles de la manche 3 deja parties (decompte arrive avant la fin, ex. de du Plateau) : la fin attend leur arrivee, le score du bandeau est alors a jour */
-  if(fin&&!suivi.fin){suivi.fin=true;const now=performance.now(),d=nt>suivi.nt&&nt%3===0?etoilesManche(s,nt/3):suivi.etArr.reduce((x,a)=>Math.max(x,a.t-now+150),0);suivi.nt=nt;popApres(d,'partie')}
+  if(fin&&!suivi.fin){suivi.fin=true;const now=performance.now(),d=nt>suivi.nt&&nt%3===0?etoilesManche(s,nt/3):suivi.etArr.reduce((x,a)=>Math.max(x,a.t-now+150/KV),0);suivi.nt=nt;popApres(d,'partie')}
   else if(!fin&&nt>suivi.nt&&nt%3===0){suivi.nt=nt;const d=etoilesManche(s,nt/3);if(auto)popApres(d,'manche',nt/3)}
   else if(suivi.pile&&sigPile(suivi.pile)!==suivi.pile.sig)ouvrePop('pile',suivi.pile); /* pile ouverte : mise a jour en direct */
   /* recapitulatif ouvert pendant un decompte qui continue (bonus de fin de manche, de) : refait avec le journal a jour ;
@@ -791,7 +793,7 @@ function ajusteNoms(){
 /* ---------- Fenetres de fin ---------- */
 /* souhait de revanche (vue joueur en ligne) : 1 = le mien, 2 = celui de l'adversaire */
 function revSig(){const P=src==='joueur'&&U()?U().partie:null;return P&&!P.local?(P.veut?1:0)+(P.luiVeut?2:0):0}
-function fermePop(){const mb=suivi&&suivi.vu&&suivi.vu.type==='manche'&&suivi.mAuto===suivi.vu.m;if(mb){suivi.mAuto=null;const mm=suivi.vu.m;setTimeout(()=>anManche(mm),120)} /* 0.6a : bandeau « Manche n » apres le recapitulatif */
+function fermePop(){const mb=suivi&&suivi.vu&&suivi.vu.type==='manche'&&suivi.mAuto===suivi.vu.m;if(mb){suivi.mAuto=null;const mm=suivi.vu.m;setTimeout(()=>anManche(mm),120/KV)} /* 0.6a : bandeau « Manche n » apres le recapitulatif */
 if(src==='joueur'&&suivi&&suivi.vu&&suivi.vu.type==='manche'){const c=document.getElementById('continuer'),r=document.getElementById('recap');if(c&&r&&!r.hidden)setTimeout(()=>c.click(),0)} /* vue joueur : fermer le bilan de manche = Continuer */
 if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi.pop=null;suivi.pile=null;suivi.vu=null}
 /* Piles (Deck, Defausse, Forge) : ordre de pioche (1 = prochaine carte), defausse de la plus recente a la plus ancienne, forge dans l'ordre */
@@ -1258,7 +1260,7 @@ const rejeu={
   pop(){if(!suivi)return null;if(suivi.popT)return 'attente';return suivi.pop&&suivi.vu?suivi.vu.type:null},
   fermePop(){if(suivi&&suivi.pop)fermePop()},
   /* temps restant des animations en cours (ms), pour cadencer la lecture */
-  reste(){if(!suivi)return 0;const t=performance.now();let f=0;if(suivi.vol)f=Math.max(f,suivi.vol.fin-t);suivi.etArr.forEach(a=>f=Math.max(f,a.t-t));
+  reste(){const t=performance.now();coupT=t;if(!suivi)return 0;let f=0;if(suivi.vol)f=Math.max(f,suivi.vol.fin-t);suivi.etArr.forEach(a=>f=Math.max(f,a.t-t));
     if(couche)couche.getAnimations({subtree:true}).forEach(a=>{const e=a.effect&&a.effect.getComputedTiming();if(e&&e.endTime&&a.currentTime!=null)f=Math.max(f,e.endTime-a.currentTime)});return Math.max(0,f)}
 };
 function coinRejeu(){
