@@ -221,6 +221,9 @@ function texteCarte(){
   const pasC=o=>!!o&&(o.C||o.E)===C,nl=window.GolemsDonnees.nomLong;
   if(B)fil=citeTexte(h('p','aide-fil','Évolution de '),nl(B.id),pasC);
   else if(C.animal&&G.CARTES[C.maitre])fil=citeTexte(h('p','aide-fil','Animal de compagnie de '),nl(C.maitre),pasC);
+  /* Charte (10 nov.) : base qui a une evolution, ligne symetrique « Évolue en Base ★ Titre » ; le nom cliquable remplace le zoom par celui de l'evolution */
+  else if(!C.animal){const ev=Object.values(G.CARTES).filter(e=>e.base===C.id);if(ev.length){fil=h('p','aide-fil','Évolue en ');
+    ev.forEach((e,k)=>{if(k)fil.append(', ');citeTexte(fil,nl(e.id),pasC);const bt=[...fil.querySelectorAll('.j-lien')].pop();if(bt)bt.textContent=C.nom+' ★ '+(e.titre||e.nom)})}}
   /* Charte : pictos seuls pour les donnees (elements, enclume + cout, bouclier + Force), libelles en mots pour les lecteurs d'ecran */
   if(C.el&&C.el.length)sous.push(['els',C.el,'Éléments : '+C.el.map(nomEl).join(', ')]);
   sous.push(['enclume',String(C.cout),'Coût '+C.cout]);
