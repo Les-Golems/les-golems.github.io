@@ -103,6 +103,35 @@ async function ouvre() {
   let decalage = 0;
   onValue(ref(db, ".info/serverTimeOffset"), s => { decalage = +s.val() || 0; });
 
+  // Écritures « ajout seulement » (règles !data.exists()) : un set déjà appliqué dont la réponse se perd dans une coupure
+  // est renvoyé par le SDK à la reconnexion, et la règle le refuse alors que la valeur est écrite. D'où une transaction
+  // qui n'écrit que si la valeur est absente (rejouée sur la valeur du serveur), relancée après une coupure (« disconnect ») :
+  // elle attend la reconnexion puis relit le serveur. Rend le résultat (committed, snapshot = valeur du serveur sinon).
+  async function ajoute(r, val) {
+    for (let k = 0; ; k++) {
+      try { return await runTransaction(r, v => v === null ? val : undefined, { applyLocally: false }); }
+      catch (e) { if (k >= 2 || !/disconnect/.test(String(e && e.message))) throw e; }
+    }
+  }
+  // Écriture multi-chemins (atomique, pas de transaction possible sur plusieurs chemins) : même renvoi refusé après une coupure.
+  // Refus : chaque chemin relu sur le serveur ; tous égaux à ce qui était envoyé (heure serveur = un nombre) = écriture déjà appliquée.
+  function pareil(a, b) {
+    if (b && typeof b === "object" && b[".sv"] === "timestamp") return typeof a === "number";
+    if (b === null || b === undefined) return a === null || a === undefined;
+    if (typeof b !== "object") return a === b;
+    if (!a || typeof a !== "object") return false;
+    const kb = Object.keys(b).filter(k => b[k] !== null && b[k] !== undefined);
+    return kb.every(k => pareil(a[k], b[k])) && Object.keys(a).every(k => kb.includes(k));
+  }
+  async function ecritPlusieurs(maj) {
+    try { await update(ref(db), maj); }
+    catch (e) {
+      if (!/permission/i.test(String(e && (e.code || e.message)))) throw e;
+      const ok = (await Promise.all(Object.keys(maj).map(async c => pareil((await get(ref(db, c))).val(), maj[c])))).every(Boolean);
+      if (!ok) throw e;
+    }
+  }
+
   // Accueil : seulement pour un compte ; arrêté puis relancé à chaque changement de compte.
   let hallRef = null, hallStop = null, hallPres = {}, hallPeers = [], hallErreur = false;
   const ecouteHall = [], hallPerdu = [];
@@ -501,7 +530,7 @@ async function ouvre() {
       if (typeof j !== "string" || typeof sid !== "string" || !Number.isInteger(g)) return;
       const liste = window.GolemsMoteur.litJournal(j), cle = sid + "|" + g;
       for (let n = pousses[cle] || 0; n < liste.length; n++) {
-        await set(push(ref(db, base + "/coups")), { a: uid, s: sid, g: g, n: n, c: liste[n] });
+        await ajoute(push(ref(db, base + "/coups")), { a: uid, s: sid, g: g, n: n, c: liste[n] });
         pousses[cle] = n + 1;
       }
     }
@@ -515,7 +544,7 @@ async function ouvre() {
     }
     // Annonce publique (annonces/{code}) : effacée à la déconnexion du créateur.
     const annRef = ref(db, P + "annonces/" + code);
-    let annonceOn = false, presOk = false;
+    let annonceOn = false, presOk = false, annonceO = null, annonceRearme = false; // annonceO : dernière annonce publiée (réécrite à la reconnexion)
     function ecrit() { return update(moiRef, { ...pres, t: serverTimestamp() }); }
     // Présence de connexion (0.5, déconnexion) : salons/{code}/pres/{uid} = { c: connecté, t: heure serveur du dernier changement }.
     // Le serveur écrit c:false lui-même à la coupure (onDisconnect) ; l'adversaire en tire « reconnexion » puis « hors ligne ».
@@ -528,7 +557,9 @@ async function ouvre() {
     function presCo() {
       return onDisconnect(presRef).set({ c: false, t: serverTimestamp() }).then(() => set(presRef, { c: true, t: serverTimestamp() })).catch(() => {});
     }
-    const reco = () => { if (enLigne && !fini) { onDisconnect(moiRef).remove(); ecrit().catch(() => {}); presCo(); } };
+    // Reconnexion : présence réécrite, puis annonce publiée réécrite (effacée par le serveur à la coupure ; la règle exige joueurs/<uid>, d'où l'attente de ecrit()).
+    const reco = () => { if (enLigne && !fini) { onDisconnect(moiRef).remove(); const e = ecrit(); presCo();
+      if (annonceOn && annonceO) { annonceRearme = true; const o = annonceO; e.then(() => { if (!fini && annonceO === o) return salon.annonce(o); }).catch(() => {}); } else e.catch(() => {}); } };
     ecouteCo.push(reco);
 
     await onDisconnect(moiRef).remove();
@@ -541,7 +572,7 @@ async function ouvre() {
       // Uids engagés dans la partie (lecture ponctuelle).
       async engages() { try { return (await get(ref(db, base + "/engages"))).val() || {}; } catch (e) { return {}; } },
       // Défaite par abandon d'un adversaire hors ligne depuis plus de 70 s (vérifié aussi par les règles de la base).
-      declareForfait(u, g) { return set(ref(db, base + "/forfait/" + g), { u, t: serverTimestamp() }); },
+      declareForfait(u, g) { return ajoute(ref(db, base + "/forfait/" + g), { u, t: serverTimestamp() }); },
       // Autre appareil du même compte : on lâche le salon sans effacer la présence (elle est à lui maintenant).
       async lache() {
         fini = true;
@@ -580,8 +611,11 @@ async function ouvre() {
             // salon classé : partie de l'ancienne graine pas encore écrite = verrou pas encore levable, on attend sans essayer
             if (e && e.g && (await get(ref(db, base + "/cl"))).val() === true && !(await get(ref(db, P + "classe/parties/" + code + "-" + e.g))).exists()) throw 0;
             if (e) await remove(ref(db, base + "/engages"));
-            await set(ref(db, base + "/engages"), o);
-            return true;
+            const x = await ajoute(ref(db, base + "/engages"), o);
+            if (x.committed) return true;
+            const v = x.snapshot.val(); // posé entre-temps (ou renvoi déjà appliqué) : le même verrou = fait, sinon nouvel essai
+            if (v && v[uid] && (!o.g || v.g === o.g)) return true;
+            throw 0;
           } catch (e) { await new Promise(r => setTimeout(r, 2000)); }
         }
         return false;
@@ -591,16 +625,19 @@ async function ouvre() {
       async dit(m) {
         m = String(m || "").replace(/\s+/g, " ").trim().slice(0, 200);
         if (!m || !donnees || !donnees.pseudo) return;
-        await set(push(ref(db, base + "/chat")), { a: uid, p: donnees.pseudo, t: serverTimestamp(), m });
+        await ajoute(push(ref(db, base + "/chat")), { a: uid, p: donnees.pseudo, t: serverTimestamp(), m });
       },
-      async libere() { try { await remove(ref(db, base + "/engages")); } catch (e) {} },
+      // Verrou levé seulement s'il existe encore et me compte (l'adversaire parti l'a peut-être déjà levé : sinon refus des règles).
+      async libere() { try { const e = (await get(ref(db, base + "/engages"))).val(); if (!e || !e[uid]) return; await remove(ref(db, base + "/engages")); } catch (e) {} },
       // 0.6 : salon classé. marqueClasse : cl = true et heure d'ouverture (cree, une fois) ; estClasse : lecture de cl ;
       // poseRobot(o) : bandeau « Affronter un Golem » (o = GolemsClasse.salonRobot), à poser avant de quitter le salon.
       // 0.6.1 : hote = créateur du salon (seul à pouvoir poser cl), posé à la création de tout salon.
-      async marqueHote() { try { await set(ref(db, base + "/hote"), uid); } catch (e) {} },
-      async marqueClasse() { try { await set(ref(db, base + "/hote"), uid); } catch (e) {} await set(ref(db, base + "/cl"), true); try { await set(ref(db, base + "/cree"), serverTimestamp()); } catch (e) {} },
+      async marqueHote() { try { await ajoute(ref(db, base + "/hote"), uid); } catch (e) {} },
+      async marqueClasse() { try { await ajoute(ref(db, base + "/hote"), uid); } catch (e) {} await set(ref(db, base + "/cl"), true); try { await ajoute(ref(db, base + "/cree"), serverTimestamp()); } catch (e) {} },
       async estClasse() { try { return (await get(ref(db, base + "/cl"))).val() === true; } catch (e) { return false; } },
-      poseRobot(o) { return set(ref(db, base + "/robot"), o); },
+      // Bandeau robot : ajout seulement ; déjà posé par moi (renvoi après coupure) = fait.
+      async poseRobot(o) { const x = await ajoute(ref(db, base + "/robot"), o); const v = x.committed ? null : x.snapshot.val();
+        if (!x.committed && !(v && v.u === uid && v.n === o.n)) throw Object.assign(new Error("robot"), { code: "PERMISSION_DENIED" }); },
       async presence(p) {
         const { j, ...reste } = p;
         if ("pseudo" in reste) reste.pseudo = donnees && donnees.pseudo || null;
@@ -619,6 +656,7 @@ async function ouvre() {
         // Salon quitté (robot lancé, sortie) : plus d'annonce, la règle la refuserait (joueur absent du salon).
         // Avant l'écriture de joueurs/<uid> : refusée aussi ; majSalon la republie après presence().
         if (o && (fini || !presOk)) return false; // false : rien d'écrit, l'appelant réessaiera
+        annonceO = o || null;
         if (o) {
           const v = { u: uid, p: donnees && donnees.pseudo || "", a: donnees && donnees.avatarId || "", d: String(o.d || "").slice(0, 24), e: String(o.e || "").slice(0, 60), t: serverTimestamp() };
           if (!v.a) delete v.a; if (!v.d) delete v.d; if (!v.e) delete v.e;
@@ -633,12 +671,17 @@ async function ouvre() {
           if (annonceOn) {
             const { t, ...maj } = v;
             for (const k of ["a", "d", "e", "v", "w", "q", "n", "g", "m", "k", "f", "cl", "el"]) if (!(k in maj)) maj[k] = null;
-            try { await update(annRef, maj); return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
+            // Annonce absente (effacée à la coupure) : update refusé (t manquant), alors republiée par set.
+            const ex = annonceRearme ? (await get(annRef).catch(() => null)) : true;
+            if (ex === true || (ex && ex.exists())) {
+              try { await update(annRef, maj); if (annonceRearme) { annonceRearme = false; await onDisconnect(annRef).remove(); } return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
+            }
           }
           // onDisconnect posé APRÈS l'écriture : la règle de retrait (u = moi) est alors vraie (sinon PERMISSION_DENIED).
-          const pose = !annonceOn;
+          // Reconnexion : l'ancien onDisconnect a servi (annonce effacée), il est reposé.
+          const pose = !annonceOn || annonceRearme;
           await set(annRef, v); annonceOn = true;
-          if (pose) await onDisconnect(annRef).remove();
+          if (pose) { annonceRearme = false; await onDisconnect(annRef).remove(); }
         } else {
           // Le créateur ou un joueur présent peut retirer l'annonce (salon complet).
           const v = annonceOn ? true : (await get(annRef).catch(() => null));
@@ -679,7 +722,10 @@ async function ouvre() {
       uid: () => moi,
       pseudo: () => donnees ? donnees.pseudo : "",
       lit: p => get(ref(db, P + p)).then(s => s.val()),
-      ecrit: m => { const o = {}; for (const k in m) o[P + k] = m[k]; return update(ref(db), o); }
+      // Ajouts seuls (partie, confirmation, partie appliquée, instantané) : transaction (déjà là = fait) ; le reste : multi-chemins.
+      ecrit: async m => { const ks = Object.keys(m);
+        if (ks.length === 1 && m[ks[0]] !== null && /^classe\/(parties\/[^/]+(\/(ok|fait)\/[^/]+)?|instantanes\/[^/]+\/[^/]+)$/.test(ks[0])) { await ajoute(ref(db, P + ks[0]), m[ks[0]]); return; }
+        const o = {}; for (const k in m) o[P + k] = m[k]; return ecritPlusieurs(o); }
     }),
     onPeers(f, g) { ecouteHall.push(f); if (g) { hallPerdu.push(g); if (hallErreur) setTimeout(g, 0); } },
     onConnection(f, g) { ecouteCo.push(f); },
@@ -722,9 +768,11 @@ async function ouvre() {
     async ecritResume(id, o) {
       if (!estCompte() || !/^-?[0-9]{1,12}-[0-9]{13}$/.test(id)) return false;
       const r = ref(db, P + "resume/" + id);
-      if ((await get(r)).exists()) return false;
-      await set(r, { ...o, d: serverTimestamp() });
-      return true;
+      // Transaction (écrit seulement si absent) plutôt que get + set : un set déjà appliqué mais dont la réponse est perdue
+      // (coupure juste après l'envoi) est renvoyé par le SDK à la reconnexion, et la règle (ajout seulement) le refusait.
+      // La transaction est rejouée sur la valeur du serveur : résumé déjà là = rien à écrire.
+      // Coupure pendant la transaction (erreur « disconnect ») : relancée, elle attend la reconnexion puis relit le serveur.
+      return (await ajoute(r, { ...o, d: serverTimestamp() })).committed;
     },
     // Les n résumés les plus récents (2000 par défaut), du plus ancien au plus récent, avec leur clé (id = graine-début).
     async litResumes(n) {
@@ -786,7 +834,7 @@ async function ouvre() {
           const neuf = !c || maint - c.d >= 86400000, n = neuf ? 1 : c.n + 1;
           if (n > 10) throw Object.assign(new Error("limite"), { code: "golems/limite" });
           id = push(ref(db, P + "guides")).key;
-          await update(ref(db), { [P + "guides/" + id + "/fiche"]: { ...x, u: moi, p: donnees.pseudo, t: serverTimestamp() },
+          await ecritPlusieurs({ [P + "guides/" + id + "/fiche"]: { ...x, u: moi, p: donnees.pseudo, t: serverTimestamp() },
             [P + "compteurGuides/" + moi]: { d: neuf ? serverTimestamp() : c.d, n, t: serverTimestamp() } });
           return id;
         }

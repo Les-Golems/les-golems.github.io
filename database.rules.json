@@ -154,7 +154,7 @@
       ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password' && query.orderByValue == true && query.limitToFirst <= 50",
       ".indexOn": ".value",
       "$code": {
-        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && root.child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && data.val() < now - 604800000))",
+        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && (root.child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('salons').child($code).child('pres').hasChild(auth.uid))) || (!newData.exists() && data.val() < now - 604800000))",
         ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.val() === now"
       }
     },
@@ -1387,7 +1387,7 @@
         ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password' && query.orderByValue == true && query.limitToFirst <= 50",
         ".indexOn": ".value",
         "$code": {
-          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && data.val() < now - 604800000))",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && (root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('essai').child('salons').child($code).child('pres').hasChild(auth.uid))) || (!newData.exists() && data.val() < now - 604800000))",
           ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.val() === now"
         }
       },

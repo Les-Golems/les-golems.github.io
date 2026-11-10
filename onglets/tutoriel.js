@@ -76,6 +76,19 @@ function arreteGuide(){
   clearInterval(tuto.T);tuto.b.remove();tuto.a.remove();tuto.f.remove();tuto=null;$('gPasser').hidden=true;
 }
 function etapeG(){return tuto&&ETAPES[tuto.i]}
+/* 0.6a : la vue joueur (#dif, diffusion.js) anime hors de la file fileA : carte en vol (.d-vole, case .d-vol jusqu'a l'atterrissage),
+   puis liens, bonus, eclat d'evolution. La bulle attend leur fin ; le halo de la derniere carte posee (.d-halo) et les animations
+   sans fin ne comptent pas. Filet : jamais plus de 8 s d'attente pour une meme etape (bulle jamais bloquee). */
+function gPose(){
+  const d=$('dif');if(!d||!tuto)return true;
+  const k=tuto.i+':'+(partie&&partie.etat&&partie.etat.stats&&partie.etat.stats.ev?partie.etat.stats.ev.length:0),t=performance.now();
+  if(tuto.pk!==k){tuto.pk=k;tuto.pt=t}
+  if(t-tuto.pt>8000)return true;
+  if(d.querySelector('.d-vole,.p-case.d-vol'))return false;
+  return !(document.getAnimations?document.getAnimations():[]).some(a=>{const x=a.effect&&a.effect.target;
+    if(!x||!x.closest||!d.contains(x)||x.closest('.d-halo')||(a.playState!=='running'&&a.playState!=='pending'))return false;
+    const c=a.effect.getComputedTiming();return isFinite(c.endTime)&&c.endTime-(a.currentTime||0)>0});
+}
 /* Etape suivante quand la condition est remplie ; bulle seulement au calme (ni animation, ni de, ni robot). */
 function tickGuide(){
   if(!tuto)return;
@@ -85,7 +98,7 @@ function tickGuide(){
   if(!e){arreteGuide();return}
   const b=tuto.b,a=tuto.a,f=tuto.f;
   /* fin : la bulle attend aussi la fin de l'animation de fin de partie (le bouton Passer de l'animation a alors disparu) */
-  const calme=!animCours&&!verrou&&!desActif&&!fileA.length&&$('vue').hidden===!e.vue&&(e.fin||$('recap').hidden===!e.recap)&&$('vueTas').hidden&&$('aide').hidden;
+  const calme=!animCours&&!verrou&&!desActif&&!fileA.length&&$('vue').hidden===!e.vue&&(e.fin||$('recap').hidden===!e.recap)&&$('vueTas').hidden&&$('aide').hidden&&gPose();
   if(!(e&&calme&&(!e.q||e.q(s))&&!$('jouer').hidden)){b.hidden=a.hidden=f.hidden=true;return}
   /* Cible introuvable : la bulle se place au centre de l'ecran (sans anneau) au lieu de disparaitre, avec un avertissement en console. */
   let z=e.c?gCible(e.c):document.body,perdue=false;

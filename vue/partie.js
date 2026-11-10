@@ -1039,7 +1039,13 @@ function majAttente(id,f){const l=litListe(ATTENTE).filter(x=>x&&typeof x.id==='
 function nonEnregistre(on){$('nonEnr').hidden=!on}
 $('nonEnrOk').onclick=()=>nonEnregistre(false);
 function archivee(id){const l=litListe('golems.archives');if(!l.includes(id)){l.unshift(id);ecrire('golems.archives',JSON.stringify(l.slice(0,200)))}}
+/* Un seul envoi a la fois par partie : un 2e appel (abandon classe contre le robot, nouvel essai) reprend l'envoi en cours (sinon resume ecrit deux fois : refus). */
+const envoisCours=new Map();
 function envoieAttente(id){
+  if(envoisCours.has(id))return envoisCours.get(id);
+  const p=envoieAttente1(id);envoisCours.set(id,p);p.then(()=>envoisCours.delete(id),()=>envoisCours.delete(id));return p;
+}
+function envoieAttente1(id){
   const u=compteCo()?room.compte.uid():'',x=litListe(ATTENTE).find(y=>y&&y.id===id&&y.u===u);
   if(!x)return Promise.resolve(true);
   let tard=false;const t=setTimeout(()=>{tard=true;nonEnregistre(true)},15000);
@@ -1065,9 +1071,9 @@ function archiveResume(s,id){
     t[k]={n:String(T.nom).slice(0,40),r:e.map(x=>x.gagnant===0||x.gagnant===1?String(x.gagnant):(r=>!!r&&x.manche<r.manche)(effetTerrain(T,'derniereManche'))?'-':x.forces[0]===x.forces[1]?'=':'-').join('').slice(0,3)||'-',q:Math.min(20,e.reduce((a,x)=>a+(+x.points||0),0))}});
   const o={v:String(M.VERSION).slice(0,12),m:partie.local?'golem-'+partie.niveau:'ligne',...(partie.classe?{cl:true}:{}),g:w===0||w===1?w:-1,pg:w===p0,a:s.fin.abandon!==undefined,
     s0:Math.min(30,s.j[0].score),s1:Math.min(30,s.j[1].score),mvp:B.mvp?String(B.mvp.carte).slice(0,40):'',t};
-  [0,1].forEach(p=>{const k=M.lisDeck(s.decks[p])?s.decks[p]:'';o['k'+p]=k;o['e'+p]=elsTexte(k).join(',')});
-  /* Partie contre un Golem : le robot joue le deck par defaut, enregistre sous son texte (30 cartes depuis 0.3, 33 avant ; camp ignore par agregeStats). */
-  if(partie.local){const r=1-partie.moi;if(!o['k'+r])o['k'+r]=DECK_TEST_TXT}
+  /* Deck par defaut (texte vide : joueur sans deck choisi, robot) : enregistre sous son texte (30 cartes depuis 0.3, 33 avant), sinon cartes et elements perdus pour les Statistiques. */
+  const kDef=M.DECK_DEFAUT?M.deckTexte(M.DECK_DEFAUT):DECK_TEST_TXT;
+  [0,1].forEach(p=>{const k=M.lisDeck(s.decks[p])?s.decks[p]:kDef;o['k'+p]=k;o['e'+p]=elsTexte(k).join(',')});
   /* Forces reellement tirees par les cartes a de (type forceAuDe : Alrevan 1 de, KEKWRevan 2 des), des deux camps ; cle = code de la carte. Lignes du journal du moteur. */
   {const dr={},id1=idsAvecEffet('forceAuDe',r=>r.des===1)[0],id2=idsAvecEffet('forceAuDe',r=>r.des===2)[0];(s.log||[]).forEach(x=>{const t=String(x[1]);let m=/^Alrevan lance le dé : Force (\d+)\.$/.exec(t),id=id1;
      if(!m){m=/^Alrevan \(KEKWRevan\) lance \d+ et \d+ : Force (\d+)\.$/.exec(t);id=id2}

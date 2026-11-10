@@ -85,6 +85,13 @@ async function scenario(P) {
   await attendu(ici('siège déjà pris (étranger)'), false, req(X, 'PUT', S + '/siege', X.uid));
   await attendu(ici('B entre dans le salon'), true, req(B, 'PUT', S + '/joueurs/' + B.uid, { pseudo: pB, sid: 'sb', t: HEURE }));
   await attendu(ici('présence de connexion'), true, req(A, 'PUT', S + '/pres/' + A.uid, { c: true, t: HEURE }));
+  { /* activite : aussi avec pres/<uid> seul (joueurs/<uid> effacé à la coupure, renvoi du SDK) ; pres/<uid> écrit par ce seul uid */
+    const c2 = code + 'p', S2 = P + 'salons/' + c2;
+    await attendu(ici('pres d un autre uid (étranger)'), false, req(X, 'PUT', S2 + '/pres/' + A.uid, { c: false, t: HEURE }));
+    await attendu(ici('pres sans joueurs'), true, req(A, 'PUT', S2 + '/pres/' + A.uid, { c: false, t: HEURE }));
+    await attendu(ici('activite avec pres seul'), true, req(A, 'PUT', P + 'activite/' + c2, HEURE));
+    await attendu(ici('activite sans pres ni joueurs (autre uid)'), false, req(X, 'PUT', P + 'activite/' + c2, HEURE));
+  }
   await attendu(ici('engagement de la partie'), true, req(A, 'PUT', S + '/engages', { [A.uid]: true, [B.uid]: true }));
   await attendu(ici('coup de A'), true, req(A, 'POST', S + '/coups', { a: A.uid, s: 'sa', g: 5, n: 0, c: 'p1' }));
   await attendu(ici('coup de B'), true, req(B, 'POST', S + '/coups', { a: B.uid, s: 'sb', g: 5, n: 0, c: 'p2' }));
