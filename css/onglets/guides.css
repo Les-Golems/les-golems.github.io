@@ -288,7 +288,7 @@
 .gd-lt b{display:block;font:800 14.5px var(--corps);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gd-lt small{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--doux);white-space:nowrap;overflow:hidden}
 .gd-sc{color:#fff;font-weight:800}
-.gd-lt .gd-ver{padding:0 7px;font-size:11px;line-height:15px}
+.gd-lt .gd-ver{padding:0 7px;font-size:11px;line-height:15px;flex:none;white-space:nowrap}
 .gd-tag{display:inline-block;height:20px;padding:0 9px;border-radius:999px;font:800 12px/20px var(--corps);white-space:nowrap;flex:none;background:var(--bleu);color:var(--encre)}
 .gd-lt .gd-tag{height:17px;font-size:11px;line-height:17px;padding:0 7px}
 .gd-li.on{background:linear-gradient(#3bd2f7,#01aad6);box-shadow:0 2px 0 #08708c}.gd-li.on b,.gd-li.on small,.gd-li.on .gd-sc{color:var(--encre)}
@@ -387,3 +387,14 @@ textarea.gd-ch{height:96px;padding:12px 14px;resize:none;line-height:1.5}
 .gd-cad>span{color:var(--doux);font-size:14.5px;max-width:420px}
 .gd-cad .sc-rangee{margin-top:8px}
 .gd-cad .sc-btn{min-width:220px}
+/* 0.6 (10 nov.) : guides publies sans relecture. Modifier / Supprimer (auteur et Romain) a droite du titre, boutons tertiaires ;
+   etiquette « Nouveau » (orange de la pastille de Nouveautes) ; pastille sur « Guides » du selecteur ; element cite = picto + nom ; texte d'une video sous l'ecran. */
+.gd-gest{display:flex;gap:12px;margin-left:auto;flex:none}
+.gd-tag.gd-nouv{background:var(--magma);color:var(--encre)}
+.gd-li.on .gd-tag.gd-nouv{background:var(--encre);color:var(--magma)}
+.onglets button#t-regles,#cjSel>button{position:relative}
+.o-nvpt.gd-ptsel{top:3px;right:4px}
+.gd-elt{display:inline-flex;align-items:center;gap:4px;font-weight:700;color:#fff;vertical-align:-3px}
+.gd-elt img{width:20px;height:20px}
+.gd-desc{column-count:1;margin-top:12px;max-height:120px;overflow:auto;scrollbar-width:thin;flex:none}
+.gd-desc p{margin:0 0 8px}

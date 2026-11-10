@@ -28,9 +28,11 @@ import { firebaseConfig as configEnLigne } from "./firebase-config.js";
 // demo-les-golems, voir lancer_emulateur.ps1). Jamais en ligne.
 const EMULATEUR = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 const HOTE_EMU = "127.0.0.1";
+// Ports de l'émulateur : 9000 (base) et 9099 (Auth), ou ceux de la clé locale golems.emuPorts = "base,auth" (tests sur un 2e émulateur).
+const PORTS_EMU = (() => { try { const m = /^(\d{4,5}),(\d{4,5})$/.exec(localStorage.getItem("golems.emuPorts") || ""); if (m) return [+m[1], +m[2]]; } catch (e) {} return [9000, 9099]; })();
 const firebaseConfig = EMULATEUR
   ? { apiKey: "demo-cle", authDomain: "demo-les-golems.firebaseapp.com", projectId: "demo-les-golems",
-      databaseURL: `http://${HOTE_EMU}:9000?ns=demo-les-golems-default-rtdb` }
+      databaseURL: `http://${HOTE_EMU}:${PORTS_EMU[0]}?ns=demo-les-golems-default-rtdb` }
   : configEnLigne;
 
 const CHAMPS_HALL = ["pseudo", "salon", "quitte"];
@@ -81,8 +83,8 @@ async function ouvre() {
   const auth = getAuth(app);
   const db = getDatabase(app);
   if (EMULATEUR) {
-    connectAuthEmulator(auth, `http://${HOTE_EMU}:9099`, { disableWarnings: true });
-    connectDatabaseEmulator(db, HOTE_EMU, 9000);
+    connectAuthEmulator(auth, `http://${HOTE_EMU}:${PORTS_EMU[1]}`, { disableWarnings: true });
+    connectDatabaseEmulator(db, HOTE_EMU, PORTS_EMU[0]);
   }
   // Un compte reste connecté (stockage local) ; un invité vit le temps de l'onglet.
   await auth.authStateReady();
@@ -734,16 +736,20 @@ async function ouvre() {
         try { return (await get(ref(db, P + "pseudos/katarn"))).val() === moi; } catch (e) { return false; }
       }
     },
-    // 0.6 : votes des guides (rules/60-guides.js) : guides/<id>/votes/<uid> = 1 ou -1, lus par tous, écrits par un compte pour lui seul.
-    // ecoute(f) : f({ id: { uid: 1 | -1 } }) à chaque changement ({} si illisible) ; vote(id, v) : v = 1, -1, ou 0 pour retirer.
-    // uid() : uid du compte connecté (null en invité).
+    // 0.6 : guides (rules/60-guides.js) : guides/<id> = { votes: { uid: 1 | -1 }, fiche: guide publié ou modifié, sup: guide du code retiré }.
+    // ecoute(f) : f(votes, fiches, retires) à chaque changement : votes { id: { uid: v } }, fiches { id: fiche }, retires { id: true }.
+    // vote(id, v) : v = 1, -1, ou 0 pour retirer. uid() : uid du compte connecté (null en invité). pseudo() : son pseudo.
     guides: {
       ecoute(f) {
         return onValue(ref(db, P + "guides"), s => {
-          const v = s.val() || {}, o = {};
-          for (const g in v) { const w = v[g] && v[g].votes; if (w && typeof w === "object") { o[g] = {}; for (const u in w) if (w[u] === 1 || w[u] === -1) o[g][u] = w[u]; } }
-          f(o);
-        }, () => f({}));
+          const v = s.val() || {}, o = {}, F = {}, S = {};
+          for (const g in v) {
+            const w = v[g] && v[g].votes; if (w && typeof w === "object") { o[g] = {}; for (const u in w) if (w[u] === 1 || w[u] === -1) o[g][u] = w[u]; }
+            if (v[g] && v[g].fiche && typeof v[g].fiche === "object") F[g] = v[g].fiche;
+            if (v[g] && v[g].sup === true) S[g] = true;
+          }
+          f(o, F, S);
+        }, () => f({}, {}, {}));
       },
       vote(id, v) {
         if (!estCompte()) return Promise.reject(new Error("compte"));
@@ -751,13 +757,34 @@ async function ouvre() {
         return v === 1 || v === -1 ? set(r, v) : remove(r);
       },
       uid: () => estCompte() ? moi : null,
-      // Proposition de guide (rules/60-guides.js, propositionsGuides) : o = { ty: 'v'|'t', ti, yt?, tx?, d1, d2? } ; rend la clé écrite.
-      async propose(o) {
+      pseudo: () => estCompte() && donnees ? donnees.pseudo : "",
+      // Publication sans relecture (10 nov.) : o = { ty: 'v'|'t', ti, yt?, tx?, d1, d2?, v? (version des decks) }.
+      // id absent : nouveau guide (clé push) et compteur des 24 h (10 au plus, erreur code "golems/limite") ; rend l'id.
+      // id présent : modification (auteur ou Romain) ; auteurCode = pseudo de l'auteur d'un guide du code sans fiche (Romain publie à son nom).
+      async publie(o, id, auteurCode) {
         if (!estCompte() || !donnees) throw new Error("compte");
-        const x = { u: moi, p: donnees.pseudo, ty: o.ty, ti: o.ti, d1: o.d1, t: serverTimestamp() };
-        for (const k of ["yt", "tx", "d2"]) if (o[k]) x[k] = o[k];
-        const r = push(ref(db, P + "propositionsGuides"));
-        await set(r, x); return r.key;
+        const x = { ty: o.ty, ti: o.ti, d1: o.d1, m: serverTimestamp() };
+        for (const k of ["yt", "tx", "d2", "v"]) if (o[k]) x[k] = o[k];
+        if (!id) {
+          const c = (await get(ref(db, P + "compteurGuides/" + moi))).val(), maint = Date.now() + decalage;
+          const neuf = !c || maint - c.d >= 86400000, n = neuf ? 1 : c.n + 1;
+          if (n > 10) throw Object.assign(new Error("limite"), { code: "golems/limite" });
+          id = push(ref(db, P + "guides")).key;
+          await update(ref(db), { [P + "guides/" + id + "/fiche"]: { ...x, u: moi, p: donnees.pseudo, t: serverTimestamp() },
+            [P + "compteurGuides/" + moi]: { d: neuf ? serverTimestamp() : c.d, n, t: serverTimestamp() } });
+          return id;
+        }
+        const a = (await get(ref(db, P + "guides/" + id + "/fiche"))).val();
+        let u = a ? a.u : moi;
+        if (!a && auteurCode) { const w = (await get(ref(db, P + "pseudos/" + clePseudo(auteurCode)))).val(); if (w) u = w; }
+        const p = u === moi ? donnees.pseudo : (await get(ref(db, P + "joueurs/" + u + "/pseudo"))).val();
+        await set(ref(db, P + "guides/" + id + "/fiche"), { ...x, u, p, t: a ? a.t : serverTimestamp() });
+        return id;
+      },
+      // Suppression : guide publié = guides/<id> entier (votes compris) ; guide du code = sup (retiré du site).
+      supprime(id, duCode) {
+        if (!estCompte()) return Promise.reject(new Error("compte"));
+        return duCode ? set(ref(db, P + "guides/" + id + "/sup"), true) : remove(ref(db, P + "guides/" + id));
       }
     },
     // Lecture brute (tests locaux) : soumise aux mêmes règles que le reste.
