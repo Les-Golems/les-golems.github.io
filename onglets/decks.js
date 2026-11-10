@@ -233,9 +233,11 @@ function peintDecks(){
   if(vueDk==='decks'){
     const h=el('h3','dk-titre','Mes decks');h.append(el('span','dk-nb',l.length+' sur '+MAX_DECKS));L.append(h);
     const ls=el('div','dk-dks');ls.setAttribute('role','list');
-    l.forEach(x=>{const t=tuileDk({nom:x.nom,els:elsOrdre(x),nb:totalDeck(x),R:raisonsDeck(x),v:x.v||V_DECK_ANCIEN,cartes:x.cartes});
+    l.forEach((x,i)=>{const t=tuileDk({nom:x.nom,els:elsOrdre(x),nb:totalDeck(x),R:raisonsDeck(x),v:x.v||V_DECK_ANCIEN,cartes:x.cartes});
       if(x.id===deckVu)t.classList.add('sel');t.tabIndex=0;t.setAttribute('role','listitem');t.setAttribute('aria-current',String(x.id===deckVu));
-      const ouvre=()=>{deckVu=x.id;msgDk=null;msgInfoDk=null;listeDepliee=false;peintDecks()};t.onclick=ouvre;t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvre()}};ls.append(t)});
+      const ouvre=()=>{deckVu=x.id;msgDk=null;msgInfoDk=null;listeDepliee=false;peintDecks()};t.onclick=()=>{if(t._glisse)return;ouvre()};
+      t.onkeydown=e=>{if(e.altKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){e.preventDefault();bougeDeck(i,i+(e.key==='ArrowUp'?-1:1),1)}else if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvre()}};
+      t.dataset.id=x.id;if(l.length>1){t.setAttribute('aria-description','Alt + flèche haut ou bas pour déplacer');glisseDk(t,ls,i)}ls.append(t)});
     if(!l.length)ls.append(el('p','dk-vide0','Aucun deck pour le moment. Crée ton premier deck.'));
     L.append(ls);
     /* Invite (variante B) : tuile sous la liste, decks gardes sur l'appareil, repris a la connexion */
@@ -430,6 +432,47 @@ function ligneStatCarte(id){
   return [el('p','pf-dk','Jouée dans '+o.n+(o.n>1?' parties':' partie')+' - '+Math.round(100*o.v/o.n)+' % de victoires'),el('p','pf-note',compteCo()?'Calculé sur toutes tes parties.':'Calculé sur tes 50 dernières parties.')];
 }
 /* Hauteur restante jusqu'au bas de la fenetre : le CSS n'en tient compte qu'a partir de 1200 px. */
+/* 0.6a : ORDRE DES DECKS (Mes decks). L'ordre de la liste est l'ordre enregistre (Firebase decks/0..11 ou golems.decks sur l'appareil),
+   repris partout (fenetre de choix du deck, salon). Glisser-deposer (souris ; doigt : appui long), fleches haut/bas, Alt + fleche au clavier. */
+function bougeDeck(a,b,foc){
+  const l=lesDecks();if(b<0||b>=l.length||a===b||a<0||a>=l.length)return;
+  const [x]=l.splice(a,1);l.splice(b,0,x);gardeDecks(l);peintDecks();
+  const ls=document.querySelector('#dkA .dk-dks'),t=ls&&ls.querySelector('.dk-tuile[data-id="'+CSS.escape(x.id)+'"]');if(!t)return;
+  if(foc)t.focus({preventScroll:true});t.scrollIntoView({block:'nearest'});
+}
+/* Glisser : la tuile suit le pointeur (soulevee, ombre), les autres glissent pour faire la place, trait d'insertion bleu ; pose animee.
+   Souris : des 6 px de mouvement ; doigt : appui long 350 ms. Un clic sans mouvement ouvre le deck. Echap annule. */
+function glisseDk(t,ls,i){
+  t.onpointerdown=e=>{
+    if(e.button!==0)return;
+    const doux=!matchMedia('(prefers-reduced-motion: reduce)').matches,x0=e.clientX,y0=e.clientY,tactile=e.pointerType!=='mouse';
+    let actif=false,k=i,repere=null,raf=0,vy=0,tl=0,lastY=y0,T=[],P=[],h=0,s0=0;
+    const pos=()=>{const st=ls.scrollTop-s0,ty=lastY-y0+st;t.style.transform='translateY('+ty+'px) scale(1.02)';
+      const c=P[i].top+ty+P[i].h/2;let b=0;for(let j=0;j<T.length;j++)if(j!==i&&c>P[j].top+P[j].h/2)b++;k=b;
+      T.forEach((u,j)=>{if(j===i)return;u.style.transform=(j>i&&j<=k)?'translateY('+(-h)+'px)':(j<i&&j>=k)?'translateY('+h+'px)':''});
+      const top=k>i?P[k].top+P[k].h-P[i].h:P[k].top;repere.style.top=Math.round(top-5.5)+'px';repere.hidden=k===i};
+    const defile=()=>{if(!actif)return;if(vy){ls.scrollTop+=vy;pos()}raf=requestAnimationFrame(defile)};
+    const demarre=()=>{actif=true;t._glisse=true;T=[...ls.querySelectorAll('.dk-tuile')];const lr=ls.getBoundingClientRect();s0=ls.scrollTop;
+      P=T.map(u=>{const r=u.getBoundingClientRect();return {top:r.top-lr.top+ls.scrollTop,h:r.height}});h=P[i].h+8;
+      ls.classList.add('dk-glisse');if(doux)ls.classList.add('dk-doux');t.classList.add('dk-tire');
+      repere=el('div','dk-repere');repere.hidden=true;ls.append(repere);pos();raf=requestAnimationFrame(defile);try{t.setPointerCapture(e.pointerId)}catch(_){}};
+    if(tactile)tl=setTimeout(demarre,350);
+    const mv=ev=>{lastY=ev.clientY;
+      if(!actif){if(Math.hypot(ev.clientX-x0,ev.clientY-y0)>6){if(tactile){fin(null);return}demarre()}else return}
+      ev.preventDefault();pos();const lr=ls.getBoundingClientRect();vy=ev.clientY<lr.top+28?-8:ev.clientY>lr.bottom-28?8:0};
+    const tm=ev=>{if(actif)ev.preventDefault()};
+    const fin=ev=>{clearTimeout(tl);cancelAnimationFrame(raf);removeEventListener('pointermove',mv);removeEventListener('pointerup',fin);removeEventListener('pointercancel',fin);removeEventListener('touchmove',tm);removeEventListener('keydown',ech,true);
+      if(!actif)return;actif=false;repere&&repere.remove();setTimeout(()=>{t._glisse=false},0);
+      const b=ev&&ev.type==='pointerup'?k:i,st=ls.scrollTop-s0,dest=(b>i?P[b].top+P[b].h-P[i].h:P[b].top)-P[i].top;
+      const pose=()=>{ls.classList.remove('dk-glisse','dk-doux');if(b!==i)bougeDeck(i,b);else{t.classList.remove('dk-tire','dk-pose');T.forEach(u=>u.style.transform='')}};
+      if(b===i)T.forEach(u=>{if(u!==t)u.style.transform=''});
+      if(!doux){pose();return}
+      t.classList.add('dk-pose');t.style.transform='translateY('+(dest)+'px)';setTimeout(pose,190)};
+    const ech=ev=>{if(ev.key==='Escape'&&actif){ev.preventDefault();ev.stopPropagation();fin(null)}};
+    addEventListener('pointermove',mv);addEventListener('pointerup',fin);addEventListener('pointercancel',fin);addEventListener('touchmove',tm,{passive:false});addEventListener('keydown',ech,true);
+  };
+  t.oncontextmenu=e=>{if(t._glisse)e.preventDefault()};
+}
 function hauteurDecks(){
   const z=document.querySelector('.d-zone');if(!z||!z.offsetParent)return;
   /* Grand ecran : le bas du panneau s'aligne sur le bas de la derniere ligne de tuiles. */
