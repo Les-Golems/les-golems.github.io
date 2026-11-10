@@ -208,7 +208,9 @@ function majAnnonce(l){
 /* Design B (0.4) : tuiles teintees. Avant la partie (parties ouvertes, salon) : teinte neutre, rien du deck n'est revele.
    Parties en cours : degrade d'apres les elements des decks des deux joueurs. */
 const TEINTE_NEUTRE='linear-gradient(135deg,#4a5a68,#26323d)';
-function teinte(els,sens){const l=(els||[]).filter(e=>NOMS_EL[e]);if(!l.length)return TEINTE_NEUTRE;
+/* Elements connus : lus ici dans cartes/donnees/interface.js (charge avant ce fichier), jamais via NOMS_EL de vue/joueur.js (charge apres : ReferenceError si la liste est peinte pendant le chargement, boucle t() en fin de fichier). */
+const estElementJ=e=>window.GolemsDonnees.interface.elements.ordre.includes(e);
+function teinte(els,sens){const l=(els||[]).filter(estElementJ);if(!l.length)return TEINTE_NEUTRE;
   const c=l.map(e=>'color-mix(in srgb,var(--'+e+') 70%,#0a121a)');if(c.length===1)c.push(c[0]);return 'linear-gradient('+(sens||'135deg')+','+c.join(',')+')'}
 /* Elements principaux d'un deck (texte, '' = deck par defaut) : par nombre de cartes, ceux qui couvrent au moins 30 % du deck, 2 au moins, 3 au plus. */
 function elsPrincipaux(t){
@@ -554,7 +556,7 @@ function peintListe(){
   if(!l.length)g.append(el('li','j-vide',jFiltre==='toutes'?'Aucune partie en ligne. Crée la tienne !':'Aucune partie dans ce filtre.'));
   l.slice(jPage*J_PAR_PAGE,(jPage+1)*J_PAR_PAGE).forEach(x=>{
     const et=etatAnn(x),mien=aMoi(x),li=el('li','j-p'+(mien?' mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur',nq=nettoie(typeof x.q==='string'?x.q:'')||'Joueur';
-    const ea=String(x.e||'').split(',').filter(z=>NOMS_EL[z]).slice(0,3),eb=String(x.f||'').split(',').filter(z=>NOMS_EL[z]).slice(0,3);
+    const ea=String(x.e||'').split(',').filter(estElementJ).slice(0,3),eb=String(x.f||'').split(',').filter(estElementJ).slice(0,3);
     const tz=e=>e?'color-mix(in srgb,var(--'+e+') 26%,var(--panneau2))':'var(--panneau2)';
     if(et==='e')li.style.setProperty('--j-teinte','linear-gradient(90deg,'+tz(ea[0])+','+tz(eb[0])+')');
     else if(ea[0])li.style.setProperty('--j-teinte','linear-gradient(90deg,'+tz(ea[0])+',var(--panneau2) 70%)');
