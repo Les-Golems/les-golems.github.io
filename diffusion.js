@@ -54,11 +54,11 @@ const caseDe=(p,l,k,racine)=>(racine||scene).querySelector('.p-case[data-p="'+p+
 /* Golems en jeu : cle joueur:carte -> [l,k,Force affichee] */
 function photo(s){const Mo=M(),r={};for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=s.j[p].grille[l][k];if(g&&!Mo.carte(g.c).animal)r[p+':'+g.c]=[l,k,Mo.forceDe(s,p,l,k),g.hors===s.manche]}return r}
 /* Avant de vider la scene : nouvelles poses (depart dans la main), Golems detruits (copie de leur case), Forces changees */
-/* rejeu : horloge des animations prise au debut du coup (dernier appel de rejeu.reste(), juste avant le coup), pas apres son calcul et sa peinture */
+/* rejeu : horloge des animations = heure prevue du coup (rejeu.debut, horloge absolue de onglets/historique.js), pas la fin de son calcul et de sa peinture ; servie une fois */
 let coupT=0;
 function prepareAnims(s,premier,nev0){
-  const n0=performance.now(),t=src==='rejeu'&&coupT&&n0-coupT<200?coupT:n0,Mo=M(),ap=photo(s),av=suivi.snap,pv=suivi.pq,G0=suivi.gr,G1=grilles(s),nr0=suivi.nrep;suivi.snap=ap;suivi.pq=tas(s);suivi.gr=G1;suivi.nrep=s.reperes.length;
-  suivi.decT=0;
+  const n0=performance.now(),t=src==='rejeu'&&coupT&&coupT<=n0&&n0-coupT<1000?coupT:n0,Mo=M(),ap=photo(s),av=suivi.snap,pv=suivi.pq,G0=suivi.gr,G1=grilles(s),nr0=suivi.nrep;suivi.snap=ap;suivi.pq=tas(s);suivi.gr=G1;suivi.nrep=s.reperes.length;
+  coupT=0;suivi.decT=0;
   if(premier)return;
   const ev=s.stats.ev;let pose=null;const morts=[],X={recup:[],degs:[],ani:null};
   for(let i=Math.max(0,nev0);i<ev.length;i++){const e=ev[i];if(e.t==='p')pose=e;else if(e.t==='m')morts.push(e);else if(e.t==='r'&&e.y!=='evolution')X.recup.push(e);else if(e.t==='d')X.degs.push(e)}
@@ -1259,8 +1259,10 @@ const rejeu={
   /* etat des fenetres pour la lecture : 'attente' (etoiles en vol avant la fenetre), 'manche', 'partie' ou null */
   pop(){if(!suivi)return null;if(suivi.popT)return 'attente';return suivi.pop&&suivi.vu?suivi.vu.type:null},
   fermePop(){if(suivi&&suivi.pop)fermePop()},
+  /* heure prevue du coup qui va etre peint (horloge absolue du rejeu) */
+  debut(t){coupT=t},
   /* temps restant des animations en cours (ms), pour cadencer la lecture */
-  reste(){const t=performance.now();coupT=t;if(!suivi)return 0;let f=0;if(suivi.vol)f=Math.max(f,suivi.vol.fin-t);suivi.etArr.forEach(a=>f=Math.max(f,a.t-t));
+  reste(){if(!suivi)return 0;const t=performance.now();let f=0;if(suivi.vol)f=Math.max(f,suivi.vol.fin-t);suivi.etArr.forEach(a=>f=Math.max(f,a.t-t));
     if(couche)couche.getAnimations({subtree:true}).forEach(a=>{const e=a.effect&&a.effect.getComputedTiming();if(e&&e.endTime&&a.currentTime!=null)f=Math.max(f,e.endTime-a.currentTime)});return Math.max(0,f)}
 };
 function coinRejeu(){

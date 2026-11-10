@@ -267,9 +267,9 @@ function vaA(k){
 window.__golemsRejeuCmd=(nom,val)=>{
   const R=partie&&partie.rejeu;if(!R)return;
   if(nom==='quitter'){finRejeu();return}
-  if(nom==='lecture'){if(!R.lecture&&R.pos>=R.seq.length){vaA(0);R.lecture=true}else R.lecture=!R.lecture;R.tCoup=performance.now();barreRejeu();pasRejeu();return}
-  if(nom==='vitesse'){R.vitesse=[1,2,4].includes(+val)?+val:1;barreRejeu();pasRejeu();return}
-  R.lecture=false;clearTimeout(rejeuT);rejeuT=0;
+  if(nom==='lecture'){if(!R.lecture&&R.pos>=R.seq.length){vaA(0);R.lecture=true}else R.lecture=!R.lecture;R.h=null;barreRejeu();pasRejeu();return}
+  if(nom==='vitesse'){R.vitesse=[1,2,4].includes(+val)?+val:1;R.h=null;barreRejeu();pasRejeu();return}
+  R.lecture=false;R.h=null;clearTimeout(rejeuT);rejeuT=0;
   if(R.dif&&window.DIFFUSION)DIFFUSION.rejeu.fermePop();
   if(nom==='debut')vaA(0);else if(nom==='fin')vaA(R.seq.length);else if(nom==='prec')vaA(R.pos-1);else if(nom==='suiv')vaA(R.pos+1);
   barreRejeu();
@@ -282,8 +282,8 @@ function barreRejeu(){
   b.textContent='';
   const bt=(t,f,lib)=>{const q=el('button','btn sec',t);q.type='button';if(lib)q.setAttribute('aria-label',lib);q.onclick=f;b.append(q);return q};
   b.append(el('b','','Replay'),el('span','r-pos',R.pos+' / '+R.seq.length));
-  bt(R.lecture?'Pause':'Lecture',()=>{R.lecture=!R.lecture;R.tCoup=performance.now();if(R.lecture&&R.pos>=R.seq.length)return relanceRejeu();barreRejeu();pasRejeu()});
-  const vt=bt('',()=>{R.vitesse=R.vitesse===1?2:R.vitesse===2?4:1;barreRejeu();pasRejeu()},'Changer la vitesse');vt.append(el('span','r-long','Vitesse '),'x'+R.vitesse);
+  bt(R.lecture?'Pause':'Lecture',()=>{R.lecture=!R.lecture;R.h=null;if(R.lecture&&R.pos>=R.seq.length)return relanceRejeu();barreRejeu();pasRejeu()});
+  const vt=bt('',()=>{R.vitesse=R.vitesse===1?2:R.vitesse===2?4:1;R.h=null;barreRejeu();pasRejeu()},'Changer la vitesse');vt.append(el('span','r-long','Vitesse '),'x'+R.vitesse);
   bt('Quitter',finRejeu,'Quitter le replay');
   /* Ordinateur : sous la zone d'apercu, dans la colonne du joueur ; ailleurs, barre flottante en bas. */
   const po=ZONE.matches&&document.querySelector('#partie .p-poste:has(.p-apercu)');
@@ -294,23 +294,25 @@ function pasRejeu(){
   clearTimeout(rejeuT);rejeuT=0;
   const R=partie&&partie.rejeu;if(!R)return;
   if(!R.lecture||R.pos>=R.seq.length){if(R.pos>=R.seq.length)R.lecture=false;barreRejeu();return}
+  /* Horloge absolue : R.h = heure prevue du prochain coup (debut du coup precedent + sa duree prevue / vitesse) ; le delai compense
+     le temps reellement passe (calcul, peinture), minimum 0. R.h nul = recalage : premier coup un intervalle apres maintenant (lecture, vitesse, sauts) ; apres une fenetre de manche, coup aussitot ;
+     retard de plus d'un intervalle (onglet en arriere-plan...) : recalage aussi, sans rafale de coups. */
+  const v=R.vitesse,now=performance.now();if(R.h==null)R.h=now+900/v;else if(R.h<now-900/v)R.h=now;
   const st0=R.dif&&window.DIFFUSION?DIFFUSION.rejeu.pop():null,enPop=st0==='manche',enAtt=st0==='attente',
-    anim=R.dif&&!enPop&&!enAtt?Math.min(150/R.vitesse,Math.max(0,DIFFUSION.rejeu.reste()-30)):0; /* fin des animations : au plus tot a leur fin, sondage 150/vitesse au plus (une animation peut etre retiree avant sa fin) */
-  /* Cadence : un coup toutes les 900/vitesse ms, comptees depuis le DEBUT du coup precedent (R.tCoup),
-     pour que le temps d'affichage du coup ne s'ajoute pas au delai (x2 et x4 vraiment 2 et 4 fois plus rapides). */
-  const auCoup=()=>Math.max(0,(R.tCoup||0)+900/R.vitesse-performance.now());
-  const joue=f=>{if(auCoup()>1){pasRejeu();return}R.tCoup=performance.now();f();pasRejeu()};
+    re=R.dif&&!enPop&&!enAtt?DIFFUSION.rejeu.reste():0, /* animation ajoutee apres le coup (etoiles...) : sondage 150/vitesse au plus ; fin des animations a 30 ms pres */
+    joue=f=>{const t0=R.h;f(t0);const fin=t0+900/v,a=R.dif&&window.DIFFUSION?performance.now()+DIFFUSION.rejeu.reste()-30:0;R.h=Math.max(fin,a);pasRejeu()};
   rejeuT=setTimeout(()=>{
     if(!partie||partie.rejeu!==R)return;
     if(R.dif){const st=DIFFUSION.rejeu.pop();
-      if(st==='attente'||DIFFUSION.rejeu.reste()>30){pasRejeu();return}
-      if(st==='manche'){if(enPop){DIFFUSION.rejeu.fermePop();R.tCoup=performance.now();vaA(R.pos+1);pasRejeu()}else pasRejeu();return}
-      joue(()=>vaA(R.pos+1));return}
+      const r2=DIFFUSION.rejeu.reste(),t2=performance.now();
+      if(st==='attente'||r2>30){R.h=Math.max(R.h,t2+(st==='attente'?0:r2-30));pasRejeu();return} /* attente non prevue (animation lancee apres la peinture, etoiles) : l'horloge avance d'autant, pas de rattrapage en rafale */
+      if(st==='manche'){if(enPop){DIFFUSION.rejeu.fermePop();R.h=performance.now();joue(t=>{DIFFUSION.rejeu.debut(t);vaA(R.pos+1)})}else pasRejeu();return}
+      joue(t=>{DIFFUSION.rejeu.debut(t);vaA(R.pos+1)});return}
     if(!$('recap').hidden){const c=$('continuer');if(c)c.click();pasRejeu();return}
     if(desActif||animCours){pasRejeu();return}
     joue(()=>{const p=R.seq[R.pos],c=R.j[p][R.n[p]];R.n[p]++;R.pos++;
       (p===partie.moi?partie.mien:partie.sien).push(c);calcule();barreRejeu()});
-  },R.dif?(enPop?2500/R.vitesse:enAtt?150/R.vitesse:Math.max(auCoup(),anim?anim+1:0)):!$('recap').hidden?2500/R.vitesse:(desActif||animCours)?Math.max(30,auCoup()):auCoup());
+  },R.dif?(enPop?2500/v:enAtt?150/v:Math.max(R.h-now,re>30?Math.min(150/v,re-30):0,0)):!$('recap').hidden?2500/v:(desActif||animCours)?30:Math.max(0,R.h-now));
 }
 function finRejeu(){clearTimeout(rejeuT);rejeuT=0;finPartie();const b=$('barreRejeu');if(b)b.remove();$('accueil').hidden=false;onglet('historique')}
 window.__golemsRejeu=()=>partie&&partie.rejeu?{pos:partie.rejeu.pos,total:partie.rejeu.seq.length,fin:!!(partie.etat&&partie.etat.fin),manche:partie.etat?partie.etat.manche:1,vitesse:partie.rejeu.vitesse,lecture:!!partie.rejeu.lecture,dif:!!partie.rejeu.dif}:null;
