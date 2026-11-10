@@ -481,7 +481,7 @@ function encartClasse(j){
   const im=el('img','j-emb');im.src=imgRang(A.placement?'placement':R.id);im.alt=R.nom;
   const r=c3('Rang',A.placement?'Placement':R.nom,A.placement?(A.n+' sur '+A.sur+' parties'):'Elo '+Math.round(j.elo),'rg');
   if(!A.placement&&suiv){const bas=Number.isFinite(R.min)?R.min:suiv.min-100,p=Math.max(0,Math.min(100,100*(j.elo-bas)/(suiv.min-bas))),br=el('span','j-barre'),u=el('u');u.style.width=p+'%';br.append(u);r.append(br)}
-  const pr=A.placement?c3('Prochain rang','-','après le placement'):suiv?c3('Prochain rang',Math.ceil(suiv.min-j.elo)+' pts','avant '+suiv.nom):c3('Prochain rang','-','rang le plus haut');
+  const pr=A.placement?c3('Prochain rang','-','après le placement'):suiv?c3('Prochain rang',(n=>n+(n>1?' pts':' pt'))(Math.ceil(suiv.min-j.elo)),'avant '+suiv.nom):c3('Prochain rang','-','rang le plus haut');
   const n=(j.v||0)+(j.d||0),t=pcJ(j.v||0,n),v=c3('Victoires',txtTaux(t),(j.v||0)+' sur '+n+' partie'+(n>1?'s':''));colore(v,t,n);
   z.append(im,r,pr,v);
 }

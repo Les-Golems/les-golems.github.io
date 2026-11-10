@@ -168,7 +168,7 @@ function dessineStats(RT){
     const fin=S.fin?'fin dans <b>'+Math.max(0,Math.ceil((S.fin-Date.now())/864e5))+' j</b>':"jusqu'à la <b>1.0</b>";
     sz.innerHTML=`<span class="st-sz-c1">${medailleSt(S.id)}<span class="st-sz-n">${escSt(S.titre)}</span></span>${etat}${bg}<span class="st-sz-cs st-sz-du"><span>${fin}</span></span>`;
     sz.onclick=()=>fenSaisonSt(S,sit,R);barre.append(sz);
-  }else{const t=el('span','st-tot');t.innerHTML=`<b>${R.length.toLocaleString('fr-FR')}</b>parties ${MODES_ST[iM][2]}`;barre.append(t)}
+  }else{const t=el('span','st-tot');t.innerHTML=`<b>${R.length.toLocaleString('fr-FR')}</b>${R.length>1?'parties':'partie'} ${MODES_ST[iM][2]}`;barre.append(t)}
   /* Patchs : menu déroulant (exception de la charte) */
   const pat=el('div','st-pat'),pb=el('button','st-pat-b'),pm=el('div','st-pat-m');pb.type='button';pb.setAttribute('aria-expanded','false');pb.setAttribute('aria-haspopup','true');pm.hidden=true;
   pb.innerHTML=`Patchs : <b>${vers.every(v=>statsPatchs.has(v))?'tous':statsPatchs.size===1?'v'+escSt([...statsPatchs][0]):statsPatchs.size+' sur '+vers.length}</b> ▾`;
@@ -192,10 +192,10 @@ function dessineStats(RT){
   /* ---- Colonne 1 : Classement (Classées) ---- */
   function classement(){
     const L=(statsClasse||{liste:[]}).liste,gc='st-gcl';let en='';
-    if(!sit.co)en=enc([['Ton rang','Saphir','Elo 1087 - 7e'],['Prochain rang','63 pts','avant Émeraude'],['Classés',String(L.length),'joueurs']]); /* flouté, illisible */
+    if(!sit.co)en=enc([['Ton rang','Saphir','Elo 1087 - 7e'],['Prochain rang','63 pts','avant Émeraude'],['Classés',String(L.length),L.length>1?'joueurs':'joueur']]); /* flouté, illisible */
     else if(sit.moi){const r=G.rang(sit.moi.elo),nx=G.RANGS[G.RANGS.indexOf(r)+1];
-      en=enc([['Ton rang',`<span class="st-rg-${r.id}">${r.nom}</span>`,'Elo '+Math.round(sit.moi.elo)+' - '+sit.place+eSt(sit.place)],nx?['Prochain rang',Math.ceil(nx.min-sit.moi.elo)+' pts','avant '+nx.nom]:['Prochain rang','-','rang maximal'],['Classés',String(L.length),'joueurs']])}
-    else if(sit.placement)en=enc([['Ton rang',`<span class="st-enc-pl"><img src="${rangImgSt()}" alt="">${sit.parties}/${G.PLACEMENT}</span>`,'en placement'],['Prochain rang','-','après '+G.PLACEMENT+' parties'],['Classés',String(L.length),'joueurs']]);
+      en=enc([['Ton rang',`<span class="st-rg-${r.id}">${r.nom}</span>`,'Elo '+Math.round(sit.moi.elo)+' - '+sit.place+eSt(sit.place)],nx?['Prochain rang',pl(Math.ceil(nx.min-sit.moi.elo),'pt'),'avant '+nx.nom]:['Prochain rang','-','rang maximal'],['Classés',String(L.length),L.length>1?'joueurs':'joueur']])}
+    else if(sit.placement)en=enc([['Ton rang',`<span class="st-enc-pl"><img src="${rangImgSt()}" alt="">${sit.parties}/${G.PLACEMENT}</span>`,'en placement'],['Prochain rang','-','après '+G.PLACEMENT+' parties'],['Classés',String(L.length),L.length>1?'joueurs':'joueur']]);
     else en='<div class="st-premier"><b>Joue ta première partie classée</b><button class="sc-btn" type="button" data-a="jouer">Jouer une partie classée</button></div>';
     let h=en+`<div class="st-th ${gc}"><span class="r">#</span><span></span><span>Joueur</span><span class="r">Elo</span><span class="c">V - D</span><span class="r">Vict.</span></div><div class="st-corps">`;
     const ligne=x=>{const n=(x.v|0)+(x.d|0),r=G.rang(x.elo);return `<div class="st-ln st-cl ${gc}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.pseudo)}, ${x.place}${eSt(x.place)}"><span class="st-rk">${x.place}</span><img class="st-emb" src="${rangImgSt(r.id)}" alt="" title="${r.nom}"><span class="st-ps" title="${escSt(x.pseudo)}">${hlSt(x.pseudo)}</span><span class="r st-n">${Math.round(x.elo)}</span><span class="c st-n">${x.v|0} - ${x.d|0}</span><span class="r">${tauxSt(pcSt(x.v|0,n),n,true)}</span></div>`};
@@ -213,7 +213,7 @@ function dessineStats(RT){
     const J=(statsJoueurs||[]).map(x=>{const pm=x.uid===moiUid?mesPmSt:compteursPublies(statsProfils[x.uid]);if(!pm)return null;const a=compteursMode(pm,'amicale');return {...x,n:a.n,v:a.v,d:a.d,pct:pcSt(a.v,a.n)}}).filter(x=>x&&x.n>=5)
       .sort((a,b)=>b.pct-a.pct||b.n-a.n||a.p.localeCompare(b.p,'fr')).map((x,i)=>({...x,place:i+1}));
     const moi=moiUid?compteursMode(mesPmSt,'amicale'):null,gj='st-gjo';
-    let h=enc([['Parties',R.length.toLocaleString('fr-FR'),'entre joueurs'],['Tes victoires',moi&&moi.n?pcSt(moi.v,moi.n)+' %':'-',moi&&moi.n?moi.v+' sur '+moi.n:'aucune partie'],['Classés',String(J.length),'joueurs']]);
+    let h=enc([['Parties',R.length.toLocaleString('fr-FR'),'entre joueurs'],['Tes victoires',moi&&moi.n?pcSt(moi.v,moi.n)+' %':'-',moi&&moi.n?moi.v+' sur '+moi.n:'aucune partie'],['Classés',String(J.length),J.length>1?'joueurs':'joueur']]);
     h+=`<div class="st-th ${gj}"><span class="r">#</span><span>Joueur (5 min.)</span><span class="r">Parties</span><span class="c">V - D</span><span class="r">Vict.</span></div><div class="st-corps">`;
     const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10);if(!V.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
     V.forEach(x=>h+=`<div class="st-ln st-cl ${gj}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.p)}"><span class="st-rk">${x.place}</span><span class="st-jg" data-av="${escSt(x.uid)}"><span class="st-ps" title="${escSt(x.p)}">${hlSt(x.p)}</span></span><span class="r st-n">${x.n}</span><span class="c st-n">${x.v} - ${x.d}</span><span class="r">${tauxSt(x.pct,x.n)}</span></div>`);
