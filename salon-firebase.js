@@ -589,7 +589,7 @@ async function ouvre() {
     }
     // Annonce publique (annonces/{code}) : effacée à la déconnexion du créateur.
     const annRef = ref(db, P + "annonces/" + code);
-    let annonceOn = false, presOk = false, annonceO = null, annonceRearme = false; // annonceO : dernière annonce publiée (réécrite à la reconnexion)
+    let annonceOn = false, presOk = false, annonceO = null, annonceRearme = false, versRobot = false; // annonceO : dernière annonce publiée (réécrite à la reconnexion)
     function ecrit() { return update(moiRef, { ...pres, t: serverTimestamp() }); }
     // Présence de connexion (0.5, déconnexion) : salons/{code}/pres/{uid} = { c: connecté, t: heure serveur du dernier changement }.
     // Le serveur écrit c:false lui-même à la coupure (onDisconnect) ; l'adversaire en tire « reconnexion » puis « hors ligne ».
@@ -604,7 +604,7 @@ async function ouvre() {
     }
     // Reconnexion : présence réécrite, puis annonce publiée réécrite (effacée par le serveur à la coupure ; la règle exige joueurs/<uid>, d'où l'attente de ecrit()).
     const reco = () => { if (enLigne && !fini) { onDisconnect(moiRef).remove(); const e = ecrit(); presCo();
-      if (annonceOn && annonceO) { annonceRearme = true; const o = annonceO; e.then(() => { if (!fini && annonceO === o) return salon.annonce(o); }).catch(() => {}); } else e.catch(() => {}); } };
+      if (annonceOn && annonceO && !versRobot) { annonceRearme = true; const o = annonceO; e.then(() => { if (!fini && annonceO === o) return salon.annonce(o); }).catch(() => {}); } else e.catch(() => {}); } };
     ecouteCo.push(reco);
 
     await onDisconnect(moiRef).remove();
@@ -683,8 +683,11 @@ async function ouvre() {
       async lisCree() { try { return +(await get(ref(db, base + "/cree"))).val() || 0; } catch (e) { return 0; } },
       async estClasse() { try { return (await get(ref(db, base + "/cl"))).val() === true; } catch (e) { return false; } },
       // Bandeau robot : ajout seulement ; déjà posé par moi (renvoi après coupure) = fait.
-      async poseRobot(o) { const x = await ajoute(ref(db, base + "/robot"), o); const v = x.committed ? null : x.snapshot.val();
-        if (!x.committed && !(v && v.u === uid && v.n === o.n)) throw Object.assign(new Error("robot"), { code: "PERMISSION_DENIED" }); },
+      // versRobot : départ contre le Golem engagé, le salon va être quitté : plus aucune (ré)annonce (la règle la refuserait).
+      async poseRobot(o) { versRobot = true;
+        try { const x = await ajoute(ref(db, base + "/robot"), o); const v = x.committed ? null : x.snapshot.val();
+          if (!x.committed && !(v && v.u === uid && v.n === o.n)) throw Object.assign(new Error("robot"), { code: "PERMISSION_DENIED" }); }
+        catch (e) { versRobot = false; throw e; } },
       async presence(p) {
         const { j, ...reste } = p;
         if ("pseudo" in reste) reste.pseudo = donnees && donnees.pseudo || null;
@@ -702,7 +705,7 @@ async function ouvre() {
       async annonce(o) {
         // Salon quitté (robot lancé, sortie) : plus d'annonce, la règle la refuserait (joueur absent du salon).
         // Avant l'écriture de joueurs/<uid> : refusée aussi ; majSalon la republie après presence().
-        if (o && (fini || !presOk)) return false; // false : rien d'écrit, l'appelant réessaiera
+        if (o && (fini || versRobot || !presOk)) return false; // false : rien d'écrit, l'appelant réessaiera
         annonceO = o || null;
         if (o) {
           const v = { u: uid, p: donnees && donnees.pseudo || "", a: donnees && donnees.avatarId || "", d: String(o.d || "").slice(0, 24), e: String(o.e || "").slice(0, 60), t: serverTimestamp() };
@@ -720,6 +723,7 @@ async function ouvre() {
             for (const k of ["a", "d", "e", "v", "w", "q", "n", "g", "m", "k", "f", "cl", "el"]) if (!(k in maj)) maj[k] = null;
             // Annonce absente (effacée à la coupure) : update refusé (t manquant), alors republiée par set.
             const ex = annonceRearme ? (await get(annRef).catch(() => null)) : true;
+            if (fini || versRobot) return false; // salon quitté pendant la lecture (robot lancé, fin) : plus rien à annoncer
             if (ex === true || (ex && ex.exists())) {
               try { await update(annRef, maj); if (annonceRearme) { annonceRearme = false; await onDisconnect(annRef).remove(); } return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
             }
@@ -727,7 +731,11 @@ async function ouvre() {
           // onDisconnect posé APRÈS l'écriture : la règle de retrait (u = moi) est alors vraie (sinon PERMISSION_DENIED).
           // Reconnexion : l'ancien onDisconnect a servi (annonce effacée), il est reposé.
           const pose = !annonceOn || annonceRearme;
-          await set(annRef, v); annonceOn = true;
+          if (fini || versRobot) return false;
+          await set(annRef, v);
+          // Salon quitté pendant l'écriture (leave n'a pas vu l'annonce) : retirée aussitôt (u = moi).
+          if (fini || versRobot) { try { await remove(annRef); } catch (e) {} return false; }
+          annonceOn = true;
           if (pose) { annonceRearme = false; await onDisconnect(annRef).remove(); }
         } else {
           // Le créateur ou un joueur présent peut retirer l'annonce (salon complet).
@@ -737,8 +745,8 @@ async function ouvre() {
         }
       },
       async leave() {
+        fini = true; // d'abord : une réannonce de reconnexion en cours s'arrête avant d'écrire (salon quitté, partie finie)
         if (annonceOn) { annonceOn = false; try { await onDisconnect(annRef).cancel(); await remove(annRef); } catch (e) {} }
-        fini = true;
         stop.forEach(f => f());
         const i = ecouteCo.indexOf(reco); if (i >= 0) ecouteCo.splice(i, 1);
         await onDisconnect(moiRef).cancel();
