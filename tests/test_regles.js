@@ -97,6 +97,10 @@ async function scenario(P) {
     await attendu(ici('annonce au nom d un autre uid (pres de A)'), false, req(X, 'PUT', P + 'annonces/' + c2, { u: A.uid, p: pA, t: HEURE }));
     await attendu(ici('cree sans pres ni joueurs (autre uid)'), false, req(X, 'PUT', S2 + '/cree', HEURE));
     await attendu(ici('cree avec pres seul'), true, req(A, 'PUT', S2 + '/cree', HEURE));
+    await attendu(ici('hote sans pres ni joueurs (autre uid)'), false, req(X, 'PUT', S2 + '/hote', X.uid));
+    await attendu(ici('hote avec pres seul'), true, req(A, 'PUT', S2 + '/hote', A.uid));
+    await attendu(ici('cl par un autre uid (pas hote)'), false, req(X, 'PUT', S2 + '/cl', true));
+    await attendu(ici('cl avec pres seul (hote)'), true, req(A, 'PUT', S2 + '/cl', true));
   }
   await attendu(ici('engagement de la partie'), true, req(A, 'PUT', S + '/engages', { [A.uid]: true, [B.uid]: true }));
   await attendu(ici('coup de A'), true, req(A, 'POST', S + '/coups', { a: A.uid, s: 'sa', g: 5, n: 0, c: 'p1' }));

@@ -376,11 +376,11 @@
           }
         },
         "hote": {
-          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.val() === auth.uid && root.child('salons').child($code).child('joueurs').hasChild(auth.uid)",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.val() === auth.uid && (root.child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('salons').child($code).child('pres').hasChild(auth.uid))",
           ".validate": "newData.isString()"
         },
         "cl": {
-          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && root.child('salons').child($code).child('hote').val() === auth.uid && root.child('salons').child($code).child('joueurs').hasChild(auth.uid) && !root.child('salons').child($code).child('engages').exists()",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && root.child('salons').child($code).child('hote').val() === auth.uid && (root.child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('salons').child($code).child('pres').hasChild(auth.uid)) && !root.child('salons').child($code).child('engages').exists()",
           ".validate": "newData.isBoolean()"
         },
         "cree": {
@@ -1612,11 +1612,11 @@
             }
           },
           "hote": {
-            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.val() === auth.uid && root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid)",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.val() === auth.uid && (root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('essai').child('salons').child($code).child('pres').hasChild(auth.uid))",
             ".validate": "newData.isString()"
           },
           "cl": {
-            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && root.child('essai').child('salons').child($code).child('hote').val() === auth.uid && root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid) && !root.child('essai').child('salons').child($code).child('engages').exists()",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && root.child('essai').child('salons').child($code).child('hote').val() === auth.uid && (root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('essai').child('salons').child($code).child('pres').hasChild(auth.uid)) && !root.child('essai').child('salons').child($code).child('engages').exists()",
             ".validate": "newData.isBoolean()"
           },
           "cree": {

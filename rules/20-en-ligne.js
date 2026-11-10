@@ -180,11 +180,11 @@ module.exports = r => ({
       // 0.6 : salon CLASSÉ (cl = true), posé ou retiré par un joueur présent avant le début de la partie ; jamais changé ensuite.
       // 0.6.1 : hote = uid du créateur du salon, posé une fois par lui, présent ; seul l'hôte pose ou retire cl.
       "hote": {
-        ".write": `${COMPTE} && !data.exists() && newData.val() === auth.uid && ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid)`,
+        ".write": `${COMPTE} && !data.exists() && newData.val() === auth.uid && (${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) || ${r}.child('salons').child($code).child('pres').hasChild(auth.uid))`,
         ".validate": "newData.isString()"
       },
       "cl": {
-        ".write": `${COMPTE} && ${r}.child('salons').child($code).child('hote').val() === auth.uid && ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) && !${r}.child('salons').child($code).child('engages').exists()`,
+        ".write": `${COMPTE} && ${r}.child('salons').child($code).child('hote').val() === auth.uid && (${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) || ${r}.child('salons').child($code).child('pres').hasChild(auth.uid)) && !${r}.child('salons').child($code).child('engages').exists()`,
         ".validate": "newData.isBoolean()"
       },
       // 0.6 : ouverture du salon (heure serveur), posée une fois par un joueur présent : sert au délai du bandeau robot.

@@ -589,7 +589,7 @@ async function ouvre() {
     }
     // Annonce publique (annonces/{code}) : effacée à la déconnexion du créateur.
     const annRef = ref(db, P + "annonces/" + code);
-    let annonceOn = false, presOk = false, annonceO = null, annonceRearme = false, versRobot = false, creeAFaire = false, presConf = false; // annonceO : dernière annonce publiée (réécrite à la reconnexion) ; creeAFaire : heure d'ouverture du salon classé pas encore écrite (réessayée à la reconnexion)
+    let annonceOn = false, presOk = false, annonceO = null, annonceRearme = false, versRobot = false, creeAFaire = false, presConf = false, clOk = false; // annonceO : dernière annonce publiée (réécrite à la reconnexion) ; creeAFaire : heure d'ouverture du salon classé pas encore écrite (réessayée à la reconnexion)
     function ecrit() { return update(moiRef, { ...pres, t: serverTimestamp() }); }
     // Présence de connexion (0.5, déconnexion) : salons/{code}/pres/{uid} = { c: connecté, t: heure serveur du dernier changement }.
     // Le serveur écrit c:false lui-même à la coupure (onDisconnect) ; l'adversaire en tire « reconnexion » puis « hors ligne ».
@@ -694,11 +694,13 @@ async function ouvre() {
       // 0.6.1 : hote = créateur du salon (seul à pouvoir poser cl), posé à la création de tout salon.
       async marqueHote() { try { await ajoute(ref(db, base + "/hote"), uid); } catch (e) {} },
       // cree : échec (coupure) remonté à l'appelant et réessayé à chaque reconnexion (creeAFaire) ; poseCree() pour un nouvel essai à la demande.
-      async marqueClasse() { creeAFaire = true; await salon.poseCree(); },
+      // Sans attendre cree : l'entrée au salon ne reste jamais suspendue à une écriture coupée (reprise par reco et par la page).
+      async marqueClasse() { creeAFaire = true; salon.poseCree().catch(e => console.warn('salon classe', e)); },
       // hote, cl puis cree, tout repris à chaque essai (une coupure peut faire tomber n'importe laquelle des trois écritures).
       async poseCree() { if (fini || !creeAFaire) return true; if (!presConf || !enLigne) return false; // réessayé par reco après la présence
         try { await ajoute(ref(db, base + "/hote"), uid); } catch (e) {}
-        await set(ref(db, base + "/cl"), true); if (!presConf) return false; await ajoute(ref(db, base + "/cree"), serverTimestamp()); creeAFaire = false; return true; },
+        if (!clOk) { if (fini || !presConf) return false; await set(ref(db, base + "/cl"), true); clOk = true; }
+        if (fini || !presConf) return false; await ajoute(ref(db, base + "/cree"), serverTimestamp()); creeAFaire = false; return true; },
       // Heure d'ouverture du salon classé (cree, heure serveur ; 0 si absente) : base du délai de 2 min avant le Golem.
       lisCree() { return Promise.resolve(creeV); },
       onCree(f) { ecouteCree.push(f); },
