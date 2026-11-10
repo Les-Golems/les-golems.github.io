@@ -26,7 +26,9 @@ function quitteAvecConfirmation(){
   if(!partie||partie.rejeu||!partie.etat||partie.etat.fin||partie.tuto){quitteBouton();return}
   if(!partie.local&&r){quitteBouton();return}
   if(partie.classe){quitteBouton();return} /* 0.6.1 : classee contre le robot : abandon enregistre (quitteBouton) */
-  confirmeAbandon('La partie en cours sera perdue.',()=>{if(partie)quitteBouton()},'Quitter la partie ?','Quitter');
+  /* Entrainement contre le robot : abandon joue (comme la classee contre le robot), fin normale affichee (defaite, Revanche, historique) ; on reste sur l'ecran de fin. */
+  const p=partie,enCours=()=>partie===p&&p.local&&!p.classe&&!p.rejeu&&!p.tuto&&p.etat&&!p.etat.fin;
+  confirmeAbandon('La partie en cours sera perdue.',()=>{if(!enCours()){if(partie)quitteBouton();return}p.mien.push(M.code({t:'a'}));sel=null;calcule()},'Quitter la partie ?','Quitter');
 }
 function quitteBouton(){
   /* 0.6.1 : classee contre le robot en cours : abandon joue (defaite, Elo, historique), ecriture attendue avant de quitter. */

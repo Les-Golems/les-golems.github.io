@@ -515,7 +515,7 @@ async function ouvre() {
     }
     // Annonce publique (annonces/{code}) : effacée à la déconnexion du créateur.
     const annRef = ref(db, P + "annonces/" + code);
-    let annonceOn = false, presOk = false;
+    let annonceOn = false, presOk = false, annonceO = null, annonceRearme = false; // annonceO : dernière annonce publiée (réécrite à la reconnexion)
     function ecrit() { return update(moiRef, { ...pres, t: serverTimestamp() }); }
     // Présence de connexion (0.5, déconnexion) : salons/{code}/pres/{uid} = { c: connecté, t: heure serveur du dernier changement }.
     // Le serveur écrit c:false lui-même à la coupure (onDisconnect) ; l'adversaire en tire « reconnexion » puis « hors ligne ».
@@ -528,7 +528,9 @@ async function ouvre() {
     function presCo() {
       return onDisconnect(presRef).set({ c: false, t: serverTimestamp() }).then(() => set(presRef, { c: true, t: serverTimestamp() })).catch(() => {});
     }
-    const reco = () => { if (enLigne && !fini) { onDisconnect(moiRef).remove(); ecrit().catch(() => {}); presCo(); } };
+    // Reconnexion : présence réécrite, puis annonce publiée réécrite (effacée par le serveur à la coupure ; la règle exige joueurs/<uid>, d'où l'attente de ecrit()).
+    const reco = () => { if (enLigne && !fini) { onDisconnect(moiRef).remove(); const e = ecrit(); presCo();
+      if (annonceOn && annonceO) { annonceRearme = true; const o = annonceO; e.then(() => { if (!fini && annonceO === o) return salon.annonce(o); }).catch(() => {}); } else e.catch(() => {}); } };
     ecouteCo.push(reco);
 
     await onDisconnect(moiRef).remove();
@@ -593,7 +595,8 @@ async function ouvre() {
         if (!m || !donnees || !donnees.pseudo) return;
         await set(push(ref(db, base + "/chat")), { a: uid, p: donnees.pseudo, t: serverTimestamp(), m });
       },
-      async libere() { try { await remove(ref(db, base + "/engages")); } catch (e) {} },
+      // Verrou levé seulement s'il existe encore et me compte (l'adversaire parti l'a peut-être déjà levé : sinon refus des règles).
+      async libere() { try { const e = (await get(ref(db, base + "/engages"))).val(); if (!e || !e[uid]) return; await remove(ref(db, base + "/engages")); } catch (e) {} },
       // 0.6 : salon classé. marqueClasse : cl = true et heure d'ouverture (cree, une fois) ; estClasse : lecture de cl ;
       // poseRobot(o) : bandeau « Affronter un Golem » (o = GolemsClasse.salonRobot), à poser avant de quitter le salon.
       // 0.6.1 : hote = créateur du salon (seul à pouvoir poser cl), posé à la création de tout salon.
@@ -619,6 +622,7 @@ async function ouvre() {
         // Salon quitté (robot lancé, sortie) : plus d'annonce, la règle la refuserait (joueur absent du salon).
         // Avant l'écriture de joueurs/<uid> : refusée aussi ; majSalon la republie après presence().
         if (o && (fini || !presOk)) return false; // false : rien d'écrit, l'appelant réessaiera
+        annonceO = o || null;
         if (o) {
           const v = { u: uid, p: donnees && donnees.pseudo || "", a: donnees && donnees.avatarId || "", d: String(o.d || "").slice(0, 24), e: String(o.e || "").slice(0, 60), t: serverTimestamp() };
           if (!v.a) delete v.a; if (!v.d) delete v.d; if (!v.e) delete v.e;
@@ -633,12 +637,17 @@ async function ouvre() {
           if (annonceOn) {
             const { t, ...maj } = v;
             for (const k of ["a", "d", "e", "v", "w", "q", "n", "g", "m", "k", "f", "cl", "el"]) if (!(k in maj)) maj[k] = null;
-            try { await update(annRef, maj); return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
+            // Annonce absente (effacée à la coupure) : update refusé (t manquant), alors republiée par set.
+            const ex = annonceRearme ? (await get(annRef).catch(() => null)) : true;
+            if (ex === true || (ex && ex.exists())) {
+              try { await update(annRef, maj); if (annonceRearme) { annonceRearme = false; await onDisconnect(annRef).remove(); } return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
+            }
           }
           // onDisconnect posé APRÈS l'écriture : la règle de retrait (u = moi) est alors vraie (sinon PERMISSION_DENIED).
-          const pose = !annonceOn;
+          // Reconnexion : l'ancien onDisconnect a servi (annonce effacée), il est reposé.
+          const pose = !annonceOn || annonceRearme;
           await set(annRef, v); annonceOn = true;
-          if (pose) await onDisconnect(annRef).remove();
+          if (pose) { annonceRearme = false; await onDisconnect(annRef).remove(); }
         } else {
           // Le créateur ou un joueur présent peut retirer l'annonce (salon complet).
           const v = annonceOn ? true : (await get(annRef).catch(() => null));
@@ -722,9 +731,14 @@ async function ouvre() {
     async ecritResume(id, o) {
       if (!estCompte() || !/^-?[0-9]{1,12}-[0-9]{13}$/.test(id)) return false;
       const r = ref(db, P + "resume/" + id);
-      if ((await get(r)).exists()) return false;
-      await set(r, { ...o, d: serverTimestamp() });
-      return true;
+      // Transaction (écrit seulement si absent) plutôt que get + set : un set déjà appliqué mais dont la réponse est perdue
+      // (coupure juste après l'envoi) est renvoyé par le SDK à la reconnexion, et la règle (ajout seulement) le refusait.
+      // La transaction est rejouée sur la valeur du serveur : résumé déjà là = rien à écrire.
+      // Coupure pendant la transaction (erreur « disconnect ») : relancée, elle attend la reconnexion puis relit le serveur.
+      for (let k = 0; ; k++) {
+        try { const x = await runTransaction(r, v => v === null ? { ...o, d: serverTimestamp() } : undefined, { applyLocally: false }); return x.committed; }
+        catch (e) { if (k >= 2 || !/disconnect/.test(String(e && e.message))) throw e; }
+      }
     },
     // Les n résumés les plus récents (2000 par défaut), du plus ancien au plus récent, avec leur clé (id = graine-début).
     async litResumes(n) {

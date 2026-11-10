@@ -532,7 +532,8 @@ function peindre(){
   /* vue joueur : fin par abandon sur deconnexion = ecran de presence.js, pas de 2e fenetre */
   if(src==='joueur'&&fin&&!suivi.fin&&window.DECO&&DECO.etat&&DECO.etat().fin){suivi.fin=true;suivi.nt=nt}
   /* 0.6 : les etoiles de fin de manche volent vers le score, puis la fenetre s'ouvre */
-  if(fin&&!suivi.fin){suivi.fin=true;const d=nt>suivi.nt&&nt%3===0?etoilesManche(s,nt/3):0;suivi.nt=nt;popApres(d,'partie')}
+  /* 0.6a : etoiles de la manche 3 deja parties (decompte arrive avant la fin, ex. de du Plateau) : la fin attend leur arrivee, le score du bandeau est alors a jour */
+  if(fin&&!suivi.fin){suivi.fin=true;const now=performance.now(),d=nt>suivi.nt&&nt%3===0?etoilesManche(s,nt/3):suivi.etArr.reduce((x,a)=>Math.max(x,a.t-now+150),0);suivi.nt=nt;popApres(d,'partie')}
   else if(!fin&&nt>suivi.nt&&nt%3===0){suivi.nt=nt;const d=etoilesManche(s,nt/3);if(auto)popApres(d,'manche',nt/3)}
   else if(suivi.pile&&sigPile(suivi.pile)!==suivi.pile.sig)ouvrePop('pile',suivi.pile); /* pile ouverte : mise a jour en direct */
   /* recapitulatif ouvert pendant un decompte qui continue (bonus de fin de manche, de) : refait avec le journal a jour ;
@@ -1197,7 +1198,10 @@ function garde(x){if(!E)return;['noms','avatars','uids'].forEach(k=>{const a=x[k
 function brancheSpec(){
   const S=window.SPEC_UI;if(!S||S.__dif)return !!S;
   const o=S.peindrePartieSpectateur;
-  S.peindrePartieSpectateur=function(e){const r=o.apply(this,arguments);dernierSpec=e;try{if(D&&src==='spec'){const x=lisSpec(e);if(x){garde(x);E=x;peindre()}}
+  S.peindrePartieSpectateur=function(e){const r=o.apply(this,arguments);dernierSpec=e;try{if(D&&src==='spec'){const x=lisSpec(e);if(x){garde(x);
+        /* 0.6a : nouvelle partie dans le meme salon (revanche) : memoire de la vue remise a zero, comme la vue joueur (sinon fin, manches et fenetre de la 1re partie restaient) */
+        const a=E&&E.etat,b=x.etat;if(suivi&&a&&b&&a.graine!==b.graine){clearTimeout(suivi.popT);desStop();if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi=neufSuivi()}
+        E=x;peindre()}}
     /* un spectateur est toujours en vue diffusion : elle s'ouvre des qu'il regarde une partie */
     else if(!D&&!sortieSpec&&window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur()&&document.querySelector('#partie.sp')){const x=lisSpec(e);if(x)ouvrir('spec',x)}}catch(z){console.warn(z)}return r};
   /* plus spectateur (sortie du salon) : la diffusion se ferme ; une nouvelle entree comme spectateur la rouvrira */
