@@ -121,6 +121,7 @@ function tuilesAVenir(){
   });
 }
 function maj(){
+  ecrireJ('golems.filtres.cartes',{ty:fTy,sel:[...fCartes.sel],mode:fCartes.mode,tri:fTri,desc:triDesc}); /* filtres et tris memorises sur l'appareil */
   const ter=fTy==='t',av=fTy==='v',offEl=ter||av||fTy==='a',q=$('rechCarte').value;if(ter){fEl='';tuilesTerrains()}
   if(av){fEl='';tuilesAVenir()}
   let n=0;const vu=(b,ok)=>{ok=ok&&passeRech(b.dataset.q,q);b.hidden=!ok;if(ok)n++};
@@ -159,6 +160,9 @@ function carteDeLien(v){const k=String(v||'').trim().toUpperCase().replace(/^([G
 function ouvreTerrainGalerie(T){cacheApercu();dernier=null;zoom(srcTerrain(T),T.nom+'. '+T.texte,[...statZoomTerrain(T),boutonLienCarte(idLienTerrain(T))])}
 function retireCarteLien(){try{const u=new URL(location.href);if(!u.searchParams.has('carte'))return;u.searchParams.delete('carte');history.replaceState(history.state,'',u.pathname+u.search+u.hash)}catch(e){}}
 function boutonLienCarte(id){const b=el('button','btn sec btnLienCarte','Copier le lien');b.type='button';b.onclick=()=>copie(lienCarte(id),b,'Copier le lien',null);return b}
+/* Filtres et tris memorises : retablis au chargement. */
+{const m=lireJ('golems.filtres.cartes');if(m){if(TY.some(x=>x[0]===m.ty))fTy=m.ty;if(Array.isArray(m.sel))m.sel.filter(e=>ELS.includes(e)).forEach(e=>fCartes.sel.add(e));
+  if(MODES_EL.some(x=>x[0]===m.mode))fCartes.mode=m.mode;if(TRI.some(x=>x[0]===m.tri))fTri=m.tri;triDesc=m.desc===true}}
 $('fermer').onclick=fermeVue;
 $('vue').onclick=e=>{if(e.target===$('vue'))fermeVue()};
 addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('aide').hidden)fermeAide();else if(!$('vue').hidden)fermeVue();else $('vueTas').hidden=true});

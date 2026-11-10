@@ -185,6 +185,12 @@ function picto(e){const i=el('img');i.src=imgV('cartes/'+e+'.png');i.alt=e;i.wid
    Le deck choisi se modifie directement dans le catalogue (plus d'editeur a part) ; « Placements » ouvre « Tester des placements » en fenetre. */
 let vueDk='decks',pageDk=0,msgDk=null,msgDkId=null,msgInfoDk=null,listeDepliee=false;
 const fDk={q:'',inc:new Set(),exc:new Set(),mode:'ou',ty:'',cout:new Set(),tri:'',desc:false};
+/* Filtres et tris de Decks > Cartes memorises sur l'appareil (sauf la recherche), retablis au chargement. */
+const memoFDk=()=>ecrireJ('golems.filtres.decks',{inc:[...fDk.inc],exc:[...fDk.exc],mode:fDk.mode,ty:fDk.ty,cout:[...fDk.cout],tri:fDk.tri,desc:fDk.desc});
+{const m=lireJ('golems.filtres.decks');if(m){const els=['magma','cristal','foudre','brume','roche'],L=(x,ok)=>Array.isArray(x)?x.filter(ok):[];
+  fDk.inc=new Set(L(m.inc,e=>els.includes(e)));fDk.exc=new Set(L(m.exc,e=>els.includes(e)&&!fDk.inc.has(e)));fDk.mode=m.mode==='et'?'et':'ou';
+  fDk.ty=['','0','1','a','t','m'].includes(m.ty)?m.ty:'';fDk.cout=new Set(L(m.cout,c=>Number.isInteger(c)&&c>=0&&c<=6));
+  fDk.tri=['','nom','cout','force'].includes(m.tri)?m.tri:'';if(fDk.ty==='t'&&fDk.tri!=='nom')fDk.tri='';fDk.desc=m.desc===true}}
 const ELS_DK=['magma','cristal','foudre','brume','roche'];
 const fondDeck=E=>E.length>1?'linear-gradient(120deg,'+E.map(e=>'color-mix(in srgb,var(--'+e+') 60%,#0a121a)').join(',')+')':E.length?'color-mix(in srgb,var(--'+E[0]+') 60%,#0a121a)':'var(--panneau2)';
 const dkAuDepart=()=>!fDk.q&&!fDk.inc.size&&!fDk.exc.size&&!fDk.cout.size&&!fDk.ty&&!fDk.tri&&!fDk.desc&&fDk.mode==='ou';
@@ -250,7 +256,7 @@ function peintDecks(){
   const rc=el('input','dk-rech');rc.type='search';rc.placeholder='Nom, numéro ou mot';rc.value=fDk.q;rc.setAttribute('aria-label','Rechercher une carte');
   let tq=0;rc.oninput=()=>{fDk.q=rc.value;clearTimeout(tq);tq=setTimeout(()=>{pageDk=0;peintDecks();const r=document.querySelector('#dkA .dk-rech');if(r){r.focus();r.setSelectionRange(r.value.length,r.value.length)}},250)};
   const pills=(L2,sel,clic,cl)=>{const z=el('div','dk-pp'+(cl?' '+cl:''));L2.forEach(([v,t])=>{const q=el('button','dk-p',t);q.type='button';q.setAttribute('aria-pressed',String(sel(v)));q.onclick=()=>clic(v);z.append(q)});return z};
-  const re=()=>{pageDk=0;peintDecks()};
+  const re=()=>{pageDk=0;memoFDk();peintDecks()};
   const tri=pills([['','Numéro'],['nom','Nom'],['cout','Coût'],['force','Force']],v=>v===fDk.tri,v=>{fDk.tri=v;re()});
   if(fDk.ty==='t')[...tri.children].slice(2).forEach(x=>{x.disabled=true;x.title='Les terrains n’ont ni coût ni Force'});
   {const s=el('button','dk-p');s.type='button';s.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="'+(fDk.desc?'M8 3v10M3.5 8.5L8 13l4.5-4.5':'M8 13V3M3.5 7.5L8 3l4.5 4.5')+'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';s.append(fDk.desc?'Décroissant':'Croissant');s.onclick=()=>{fDk.desc=!fDk.desc;re()};tri.append(s)}

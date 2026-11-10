@@ -84,7 +84,8 @@ function statZoomTerrain(T){
 const VIDE_ST='Pas encore assez de parties.',VIDE_FILTRES='Aucune partie avec ces filtres.',VIDE_RECH='Aucun résultat pour cette recherche.';
 const MODES_ST=[['classees','Classées','classées'],['amicales','Amicales','amicales'],['entrainement','Entraînement',"d'entraînement"]];
 const modeRes=r=>r&&(r.cl===true||r.m==='classee')?'classees':/^golem-/.test(String(r&&r.m||''))?'entrainement':'amicales';
-let statsMode='classees',statsQ='',statsQBrut='',statsTriC=0,statsClasse=null,statsAjuste=null,statsLarg=0;
+let statsMode='classees',statsQ='',statsQBrut='',statsTriC=lire('golems.tri.statsCartes')==='1'?1:0, /* tris memorises sur l'appareil */statsClasse=null,statsAjuste=null,statsLarg=0;
+{const t=lire('golems.tri.stats');if(t)statsTri=t} /* tri des terrains memorise (inconnu : taux, voir terrains()) */
 addEventListener('resize',()=>{if(statsAjuste&&innerWidth!==statsLarg){statsLarg=innerWidth;statsAjuste()}});
 const escSt=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const normSt=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
@@ -282,8 +283,8 @@ function dessineStats(RT){
       clic(n,()=>ouvreProfil(statsMode==='classees'&&C?{uid:u,p:C.pseudo,v:C.v|0,n:(C.v|0)+(C.d|0)}:{uid:u,p:J?J.p:C?C.pseudo:'',v:J?J.v:0,n:J?J.n:0}))});
     g.querySelectorAll('.st-lc[data-id]').forEach(n=>{const c=CARTES.find(y=>y[0]===n.dataset.id),src=imgV('cartes/'+c[0]+'.jpg');clic(n,()=>{cacheApercu();dernier=n;zoom(src,c[1],statZoomCarte(c[0]))});n.onmouseenter=()=>montreApercu(n,src);n.onmouseleave=cacheApercu});
     g.querySelectorAll('.st-lt[data-t]').forEach(n=>{const T=M.TERRAINS.find(t=>t.nom===n.dataset.t);if(!T)return;clic(n,()=>zoomTerrain(T));n.onmouseenter=()=>montreApercu(n,srcTerrain(T));n.onmouseleave=cacheApercu});
-    g.querySelectorAll('.st-tri').forEach(b=>b.onclick=()=>{statsTri=b.dataset.k;peintCols();const n=g.querySelector('.st-tri[data-k="'+statsTri+'"]');if(n)n.focus()});
-    g.querySelectorAll('.st-tric button').forEach((b,i)=>b.onclick=()=>{statsTriC=i;peintCols();const n=g.querySelectorAll('.st-tric button')[i];if(n)n.focus()});
+    g.querySelectorAll('.st-tri').forEach(b=>b.onclick=()=>{statsTri=b.dataset.k;ecrire('golems.tri.stats',statsTri);peintCols();const n=g.querySelector('.st-tri[data-k="'+statsTri+'"]');if(n)n.focus()});
+    g.querySelectorAll('.st-tric button').forEach((b,i)=>b.onclick=()=>{statsTriC=i;ecrire('golems.tri.statsCartes',String(i));peintCols();const n=g.querySelectorAll('.st-tric button')[i];if(n)n.focus()});
     g.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a==='jouer')onglet('jouer');else{ouvrePseudo();if(a==='cree')modeCompte(true)}});
     if(statsAjuste)statsAjuste();
   }

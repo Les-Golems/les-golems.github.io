@@ -428,7 +428,9 @@ $('jVue').querySelectorAll('button').forEach(b=>b.onclick=()=>jVue(b.dataset.v))
 new MutationObserver(()=>{if(!$('historique').hidden&&$('jVue').parentNode!==$('historique'))jVue('historique');else if(!$('jouer').hidden&&$('jVue').parentNode!==$('jouer'))jVue('parties')}).observe(document.body,{attributes:true,attributeFilter:['hidden'],subtree:true});
 
 /* Publique / Privee des tuiles Classee et Amicale (selecteur sc-sel, J14) ; la case cachee salonPublicCase reste lue par creerSalon (commun/raccords.js). */
-function selPub(id){const z=$(id),b=[...z.querySelectorAll('button')];b.forEach((x,i)=>x.onclick=()=>{b.forEach((y,k)=>y.setAttribute('aria-pressed',k===i?'true':'false'))});return ()=>b[0].getAttribute('aria-pressed')==='true'}
+function selPub(id){const z=$(id),b=[...z.querySelectorAll('button')],cle='golems.pub.'+id,pose=i=>b.forEach((y,k)=>y.setAttribute('aria-pressed',k===i?'true':'false'));
+  {const m=lire(cle);if(m==='0'||m==='1')pose(+m)} /* choix memorise sur l'appareil */
+  b.forEach((x,i)=>x.onclick=()=>{pose(i);ecrire(cle,String(i))});return ()=>b[0].getAttribute('aria-pressed')==='true'}
 const pubClasse=selPub('pubClasse'),pubAmicale=selPub('pubAmicale');
 let salonClasse=false; /* salon classe en cours (createur, ou joueur entre par une annonce classee) */
 $('creer').addEventListener('click',()=>{salonClasse=false;$('salonPublicCase').checked=pubAmicale();choixDeckCtx={lib:'Créer le salon',ctx:'Partie amicale',t:Date.now()}},true);
@@ -523,7 +525,7 @@ function majTuiles(){
 }
 
 /* Parties en ligne : une ligne par partie (ouverte, complete, en cours), filtres Toutes / Ouvertes / En cours / Classees, pages de 6. */
-let jFiltre='toutes',jPage=0;const J_PAR_PAGE=6;
+let jFiltre=(k=>['toutes','ouvertes','encours','classees'].includes(k)?k:'toutes')(lire('golems.filtre.jouer')),jPage=0; /* filtre memorise sur l'appareil */const J_PAR_PAGE=6;
 const OEIL_J='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 function etatAnn(x){return x.g===true?'e':typeof x.w==='string'?'c':'o'}
 function filtreAnn(l,f){return f==='ouvertes'?l.filter(x=>etatAnn(x)==='o'):f==='encours'?l.filter(x=>etatAnn(x)==='e'):f==='classees'?l.filter(x=>x.cl===true):l}
@@ -531,7 +533,7 @@ function peintFiltres(l){
   const z=$('jFiltres');z.textContent='';
   [['toutes','Toutes'],['ouvertes','Ouvertes'],['encours','En cours'],['classees','Classées']].forEach(([k,lib])=>{
     const b=el('button','',lib+' ');b.type='button';b.append(el('b','j-nb',String(filtreAnn(l,k).length)));b.setAttribute('aria-pressed',k===jFiltre?'true':'false');
-    b.onclick=()=>{jFiltre=k;jPage=0;peintListe()};z.append(b)});
+    b.onclick=()=>{jFiltre=k;jPage=0;ecrire('golems.filtre.jouer',k);peintListe()};z.append(b)});
 }
 function joueurLigne(nom,av,els,elo,gauche){
   const s=el('span','j-j'+(gauche?' g':'')),pi=el('span','j-els');(els||[]).forEach(z=>{const i=picto(z);i.width=i.height=16;i.title=nomEl(z);pi.append(i)});
