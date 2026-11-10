@@ -382,21 +382,23 @@ const NOMS_LOG=(()=>{const m=new Map(),D=window.GolemsDonnees,cs=Object.values(M
   cs.forEach(C=>mets(av(C),{E:C}));M.TERRAINS.forEach(T=>{const n=av(T);if(n.length<40)mets(n,{ET:T})});
   const e=[...m.keys()].sort((a,b)=>b.length-a.length).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
   return {m,re:new RegExp('(?<![\\p{L}\\p{N}])('+e.join('|')+')(?![\\p{L}\\p{N}])','gu')}})();
-function lienLog(nom){
+/* Forme courte (charte, 10 nov.) : journaux, bilans de manche, ecran de fin, detail d'une partie de l'Historique : « Trigas », « Trigas ★ » pour l'evolution. */
+function nomCourt(C){return C.base&&M.CARTES[C.base]?M.CARTES[C.base].nom+' ★':C.nom}
+function lienLog(nom,court){
   const o=NOMS_LOG.m.get(nom),K=window.GolemsDonnees.interface.couleursTexte,C=o.C||o.E,T=o.T||o.ET;
-  const lib=o.C?window.GolemsDonnees.nomLong(C.id)+(C.base?' ★':''):o.T?T.nom:nom;
-  const b=el('button','j-lien'+(o.C&&C.base?' j-evo':''),lib);b.type='button';
+  const lib=o.C?(court?nomCourt(C):window.GolemsDonnees.nomLong(C.id)+(C.base?' ★':'')):o.T?T.nom:nom;
+  const b=el('button','j-lien'+(o.C&&C.base?' j-evo':''),lib);b.type='button';if(court&&o.C)b.title=window.GolemsDonnees.nomLong(C.id); /* titre au survol */
   b.style.color=o.E||o.ET?K.effet:T?K.terrain:C.animal?K.animal:C.base?K.evolution:K.golem;
   if(T){b.onclick=()=>zoomTerrain(T);b.onmouseenter=()=>montreApercu(b,srcTerrain(T))}
   else{const src=imgV('cartes/'+C.id+'.jpg');b.onclick=()=>{cacheApercu();dernier=null;zoom(src,C.nom)};b.onmouseenter=()=>montreApercu(b,src)}
   b.onmouseleave=cacheApercu;return b;
 }
 /* sauf(o) : vrai pour un nom a laisser en texte (zoom : la carte zoomee elle-meme) */
-function texteLog(x,sauf){
+function texteLog(x,sauf,court){
   const s=el('span','');let d=0;
   /* Ponctuation qui suit un lien (point, virgule...) collee a lui : un bouton laisse sinon le navigateur couper la ligne juste avant. */
   for(const m of x.matchAll(NOMS_LOG.re)){if(sauf&&sauf(NOMS_LOG.m.get(m[0])))continue;s.append(x.slice(d,m.index));d=m.index+m[0].length;
-    const p=/^[.,;:!?)…]+/.exec(x.slice(d)),b=lienLog(m[0]);
+    const p=/^[.,;:!?)…]+/.exec(x.slice(d)),b=lienLog(m[0],court);
     if(p){const n=el('span','j-colle');n.append(b,p[0]);s.append(n);d+=p[0].length}else s.append(b)}
   s.append(x.slice(d));return s;
 }
@@ -826,7 +828,7 @@ function affiche(){
     /* 0.4a : ligne à la couleur du joueur (liseré à gauche), nom du joueur en gras à sa couleur */
     let t=ligneLog(p,x,me)+(causes.get(e)||''),q=null;
     if(p!==null){d.classList.add(p===me?'j-moi':'j-lui');const pr=(p===me?'Toi':nomJ(p))+' : ';if(t.startsWith(pr)){q=el('b','j-qui',pr.slice(0,-3));t=t.slice(pr.length-3)}}
-    const sp=texteLog(t);if(q)sp.prepend(q);d.append(ico(n),sp);li.append(d)});
+    const sp=texteLog(t,null,true);if(q)sp.prepend(q);d.append(ico(n),sp);li.append(d)});
   jo.append(su,nav,li);
   const pied=el('div','p-pied'),q=el('button','btn sec plein','Quitter la partie');q.type='button';q.onclick=quitteBouton;pied.append(q);
   let enTuto=false;try{enTuto=!!tuto}catch(e){}
