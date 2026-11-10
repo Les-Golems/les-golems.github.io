@@ -439,7 +439,7 @@ function ligneStatCarte(id){
   return [el('p','pf-dk','Jouée dans '+o.n+(o.n>1?' parties':' partie')+' - '+Math.round(100*o.v/o.n)+' % de victoires'),el('p','pf-note',compteCo()?'Calculé sur toutes tes parties.':'Calculé sur tes 50 dernières parties.')];
 }
 /* Hauteur restante jusqu'au bas de la fenetre : le CSS n'en tient compte qu'a partir de 1200 px. */
-/* 0.6a : ORDRE DES DECKS (Mes decks). L'ordre de la liste est l'ordre enregistre (Firebase decks/0..11 ou golems.decks sur l'appareil),
+/* 0.6a : ORDRE DES DECKS (Mes decks). L'ordre de la liste est l'ordre enregistre (Firebase ordreDecks, decks/0..11 a emplacement fixe ; golems.decks sur l'appareil),
    repris partout (fenetre de choix du deck, salon). Glisser-deposer (souris ; doigt : appui long), fleches haut/bas, Alt + fleche au clavier. */
 function bougeDeck(a,b,foc){
   const l=lesDecks();if(b<0||b>=l.length||a===b||a<0||a>=l.length)return;
