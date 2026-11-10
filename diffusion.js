@@ -358,11 +358,11 @@ function anManche(){const s=E&&E.etat;if(!s||s.fin||!D)return;const q=s.phase===
   anBandeau('Manche '+s.manche+(q===0||q===1?' - '+(src==='joueur'&&q===E.moi?'Tu commences':nom(q)+' commence'):''),null,'#f1c35a',0,null)}
 /* Victoire ou defaite : bandeau d'environ 1,5 s avant l'ecran de fin ; rend la duree reelle (ms) */
 function anVictoire(){const s=E.etat,F=s.fin;if(!F||(src==='spec'&&F.abandon!==undefined))return 0;
-  const w=F.gagnant,sc=F.scores||[s.j[0].score,s.j[1].score],moi=src==='joueur'||src==='rejeu'?E.moi:null,o=moi!=null?moi:(w===0||w===1?w:0),ab=sc[o]+' - '+sc[1-o];
+  const w=F.gagnant,sc=F.scores||[s.j[0].score,s.j[1].score],dp=F.departage&&(F.scores||[0,1])[0]===(F.scores||[0,1])[1]?' au départage':'',moi=src==='joueur'||src==='rejeu'?E.moi:null,o=moi!=null?moi:(w===0||w===1?w:0),ab=sc[o]+' - '+sc[1-o];
   let d;
   if(w!==0&&w!==1)d=anBandeau('Match nul',ab,'#f1c35a',0,{calme:1});
-  else if(moi==null||w===moi)d=anBandeau('Victoire',nom(w)+' remporte la partie '+sc[w]+' - '+sc[1-w],COL[w],0,{});
-  else d=anBandeau('Défaite',nom(moi)+' perd la partie '+ab,'var(--adverse,#ee6a2c)',0,{calme:1});
+  else if(moi==null||w===moi)d=anBandeau('Victoire',nom(w)+' remporte la partie'+dp+' '+sc[w]+' - '+sc[1-w],COL[w],0,{});
+  else d=anBandeau('Défaite',nom(moi)+' perd la partie'+dp+' '+ab,'var(--adverse,#ee6a2c)',0,{calme:1});
   return d/KV}
 /* Fin de manche : une etoile par terrain remporte (et par bonus du decompte) vers le score du bandeau, avant la fenetre de manche ; rend la duree */
 const ONDE=620;
