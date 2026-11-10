@@ -7,17 +7,17 @@
    Guides publies (10 nov., sans relecture) : guides/<id>/fiche en ligne, affiches avec ceux du code ; une fiche sur un guide du code le remplace (modification),
    guides/<id>/sup le retire. Modifier et Supprimer : l'auteur (uid de la fiche, ou pseudo d'un guide du code) et Romain (KaTarN). */
 /* yt : identifiant YouTube ; titre, auteur et date releves a la main (aucune requete a YouTube au chargement) ; decks : liens ?deck= du site ; v : version des decks.
-   texte : guide ecrit (HTML simple, noms de cartes reconnus et cliquables, {{element}} = picto suivi du nom) ; officiel : guide de l'equipe (etiquette « Officiel »). */
+   texte : guide ecrit (HTML simple ; a l'affichage, comme dans les Regles : noms de cartes cliquables, pictos devant les valeurs et les elements, mots du lexique en bulle) ; officiel : guide de l'equipe (etiquette « Officiel »). */
 const GUIDES=[
  {id:'bien-debuter',titre:'Bien débuter : ton premier deck',auteur:'Équipe des Golems',date:'10 nov. 2026',officiel:true,min:4,v:'0.6',
-  decks:[{nom:'Départ Roche et Cristal',lien:'https://les-golems.github.io/?deck=GOL2-LQADAAAsAMACAMsSAETDqXBhcnQgUm9jaGUgZXQgQ3Jpc3RhbArDiXF1aXBlIGRlcyBHb2xlbXM'}],
-  texte:`<div class="sec"><h4><span class="n">1</span>Deux éléments, pas plus</h4><p>Ce deck de départ ne joue que {{roche}} et {{cristal}}. Toutes ses cartes partagent ces deux éléments : tes Golems se renforcent entre voisins, et tu restes loin de la limite de 4 éléments par deck.</p></div>
+  decks:[{nom:'Départ trois éléments',lien:'https://les-golems.github.io/?deck=GOL2-LQAHMOwAAAAAAOICAETDqXBhcnQgdHJvaXMgw6lsw6ltZW50cwrDiXF1aXBlIGRlcyBHb2xlbXM'}],
+  texte:`<div class="sec"><h4><span class="n">1</span>Trois éléments, dans la limite de 4</h4><p>Ce deck de départ joue Roche, Cristal et Magma. Chaque carte porte deux éléments : avec trois, tes Golems trouvent souvent un voisin qui partage un élément, et tu restes sous la limite de 4 éléments par deck.</p></div>
 <div class="sec"><h4><span class="n">2</span>24 cartes, prêtes à jouer</h4><p>Le deck compte <b>24 cartes</b>, le minimum (24 à 30). Moins de cartes, c'est piocher plus souvent les meilleures. Clique sur <b>Importer le deck</b>, puis joue-le tel quel contre le robot.</p></div>
-<div class="sec"><h4><span class="n">3</span>Pose tes soutiens d'abord</h4><p>GénéralBrioche, Le pas sûr de lui donne +1 de Force aux autres Golems alliés de son terrain. Cyrdan, Le Champion des Tournois Annexes renforce ses voisins, et Vic222, Lurker du discord double le bonus du cercle sur sa colonne.</p></div>
-<div class="sec"><h4><span class="n">4</span>Empile sur une colonne</h4><p>Shifukuro, Le chatteur gagne +1 de Force par Golem allié au-dessus de lui : pose-le en bas, puis ses alliés par-dessus. Uki, Le chien de Shifukuro compte comme un Golem allié au-dessus de son maître.</p></div>
-<div class="sec"><h4><span class="n">5</span>Fais évoluer au bon moment</h4><p>Une évolution se pose sur son Golem de base : le deck garde 3 bases pour 2 évolutions. GénéralBrioche, Le civ player gagne +1 de Force par voisin, et Vic222, Baby gamer ignore la première perte de Force due à un effet adverse.</p></div>
+<div class="sec"><h4><span class="n">3</span>Des Golems pas chers pour commencer</h4><p>Apo, Clown junior coûte 1 : pose-le dès le premier tour. Glad, /Poll et K-Chan, Reine du tilt coûtent 2 et gênent déjà l'adversaire : Glad déplace un Golem adverse, qui perd 1 de Force.</p></div>
+<div class="sec"><h4><span class="n">4</span>Renforce ta colonne</h4><p>GénéralBrioche, Le pas sûr de lui donne +1 de Force aux autres Golems alliés de son terrain. Cyrdan, Le Champion des Tournois Annexes renforce ses voisins, et Vic222, Lurker du discord double le bonus du cercle sur sa colonne.</p></div>
+<div class="sec"><h4><span class="n">5</span>Fais évoluer au bon moment</h4><p>Une évolution se pose sur son Golem de base : le deck garde 3 bases pour 1 ou 2 évolutions. Glad, GymRat ne perd jamais de Force à cause d'un effet adverse, et K-Chan, L'attachiante soigne un Golem allié une fois par manche.</p></div>
 <div class="sec"><h4><span class="n">6</span>Vise les bons terrains</h4><p>Un terrain à 3 points vaut plus qu'un terrain à 1 point. Garde ta colonne la plus forte pour le plus gros terrain, et laisse l'adversaire s'épuiser sur les petits.</p></div>
-<div class="sec"><h4><span class="n">7</span>Teste, puis ajuste</h4><p>Dans Decks, le bouton <b>Placements</b> te laisse essayer ton deck sans adversaire. Après 5 parties, regarde dans Statistiques les cartes que tu poses le moins, et essaie Cyrdan, Le Roi du Karaoké à leur place.</p></div>`},
+<div class="sec"><h4><span class="n">7</span>Teste, puis ajuste</h4><p>Dans Decks, le bouton <b>Placements</b> te laisse essayer ton deck sans adversaire. Après 5 parties, regarde dans Statistiques les cartes que tu poses le moins, et essaie un 2e Cyrdan, Le Roi du Karaoké à leur place.</p></div>`},
  {titre:'Meule-Contrôle',auteur:'Bellock',date:'7 nov. 2026',yt:'l8-g9rcBFnI',
   decks:[{nom:'Meule/Contrôle',lien:'https://les-golems.github.io/?deck=GOL2-KgswBsyDwALAAAAATWV1bGUvQ29udHLDtGxlCkJlbGxvY2s'}]},
  {titre:'Q-Bellock & Loxim Contrôle',auteur:'Bellock',date:'7 nov. 2026',yt:'G6EM_E0vT4w',
@@ -51,12 +51,13 @@ const gdDate=t=>{const d=new Date(t);return d.getDate()+' '+['janv.','févr.','m
 /* Texte ecrit par un joueur : echappe (aucun HTML), un paragraphe par ligne vide ; les noms de cartes deviennent cliquables a l'affichage (gdNoms). */
 const gdEsc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const gdHtml=tx=>String(tx||'').split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map(p=>'<p>'+gdEsc(p).replace(/\n/g,'<br>')+'</p>').join('');
-/* {{element}} d'un guide du code : picto suivi du nom (charte : element cite dans une phrase). */
-const gdPictos=h=>h.replace(/\{\{(magma|cristal|foudre|brume|roche)\}\}/g,(m,e)=>'<span class="gd-elt"><img src="'+imgV('cartes/'+e+'.png')+'" alt="" width="20" height="20">'+nomEl(e)+'</span>');
+/* Texte d'un guide (du code ou publie par un joueur) : meme traitement que les Regles (onglets/regles.js, golemsRegles.enrichit) :
+   noms de cartes cliquables (zoom), picto devant Force, cout et elements, mots du lexique en pointilles avec leur bulle au clic. */
+const gdEnrichit=t=>{if(window.golemsRegles&&window.golemsRegles.enrichit)window.golemsRegles.enrichit(t);else gdNoms(t)};
 /* Texte brut d'un guide (fenetre Modifier) : la fiche telle qu'ecrite, sinon le texte du guide du code (titres et paragraphes). */
 function gdTexteBrut(g){
   if(g.fiche)return g.fiche.tx||'';if(!g.texte)return '';
-  const d=document.createElement('div');d.innerHTML=g.texte.replace(/\{\{(\w+)\}\}/g,(m,e)=>nomEl(e));
+  const d=document.createElement('div');d.innerHTML=g.texte;
   d.querySelectorAll('.n').forEach(x=>x.remove());return [...d.querySelectorAll('h4,p')].map(x=>x.textContent.trim()).join('\n\n');
 }
 /* Deck d'un guide, decode depuis son code ?deck= avec les fonctions du site : elements (nombre de cartes de chacun), total, cartes, validite. */
@@ -144,13 +145,12 @@ function gdItem(g){
   const mi=gdMk('span','gd-mi'+(g.texte?' t':''));if(g.texte)mi.textContent='TEXTE';else{const i=gdMk('img');i.src='https://i.ytimg.com/vi/'+g.yt+'/mqdefault.jpg';i.alt='';i.loading='lazy';mi.append(i)}
   const tx=gdMk('span','gd-lt'),t=gdMk('b','',g.titre),s=gdMk('small');t.title=g.titre;
   const sc=gdScore(g);s.append(gdMk('span','gd-sc',(sc>0?'+':'')+sc));const D=gdInfo(g);if(D.length&&!D[0].err)s.append(gdVer(D.find(x=>!x.ok)||D[0],g));
-  if(gdNouveau(g))s.append(gdMk('span','gd-tag gd-nouv','Nouveau'));
   if(g.officiel)s.append(gdMk('span','gd-tag','Officiel'));s.append(g.auteur+' - '+g.date.replace(/ \d{4}$/,''));
-  tx.append(t,s);b.append(mi,tx);b.onclick=()=>{GD.cur=g;gdOuvert(g);gdAlerte(false);peintGuidesCJ()};li.append(b);return li;
+  tx.append(t,s);b.append(mi,tx);if(gdNouveau(g)){const p=gdMk('span','o-nvpt gd-ptli');p.setAttribute('aria-hidden','true');b.append(p);b.title='Nouveau guide'} /* pastille de l'onglet, coin haut droit, ne decale rien */b.onclick=()=>{GD.cur=g;gdOuvert(g);gdAlerte(false);peintGuidesCJ()};li.append(b);return li;
 }
 /* Noms de cartes cites dans un guide texte : meme composant que le journal (texteLog, clic = zoom). */
 function gdNoms(r){if(typeof texteLog!=='function')return;const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT),L=[];while(w.nextNode())L.push(w.currentNode);
-  L.forEach(t=>{if(!t.data.trim()||t.parentNode.closest('h4,.j-lien,.gd-elt'))return;const s=texteLog(t.data);if(s.querySelector('.j-lien'))t.replaceWith(...s.childNodes)})}
+  L.forEach(t=>{if(!t.data.trim()||t.parentNode.closest('h4,.j-lien'))return;const s=texteLog(t.data);if(s.querySelector('.j-lien'))t.replaceWith(...s.childNodes)})}
 function gdAlerte(on,txt){const z=$('gdAlq');if(!z)return;z.replaceChildren();if(!on)return;
   const a=gdMk('div','sc-alerte sc-info sc-une-ligne');a.setAttribute('role','status');a.append(gdMk('i'),gdMk('span','',txt||'Guide : lien copié. Colle-le sur Discord.'));z.append(a)}
 const gdLien=g=>location.origin+location.pathname+'?guide='+encodeURIComponent(g.id);
@@ -199,10 +199,10 @@ function gdDetail(g){
   st.append(gdMk('span','gd-esp'));
   if(d&&!d.err){const im=gdMk('button','sc-btn gd-imp','Importer le deck');im.type='button';im.setAttribute('aria-label','Importer le deck « '+g.decks[g.dk].nom+' »');im.onclick=()=>ouvreDeckLien(d.code);st.append(im)}
   let corps;
-  if(g.texte){corps=gdMk('div','gd-txtB');const t=gdMk('div','gd-txt');t.innerHTML=gdPictos(g.texte);gdNoms(t);corps.append(t)}
+  if(g.texte){corps=gdMk('div','gd-txtB');const t=gdMk('div','gd-txt');t.innerHTML=g.texte;corps.append(t)}
   else{corps=gdMk('div','gd-ecran');corps.id='gdEcran'}
-  P.append(ph,r2,alq,st,corps);
-  if(!g.texte&&g.desc){const t=gdMk('div','gd-txt gd-desc');t.innerHTML=g.desc;gdNoms(t);P.append(t)}
+  P.append(ph,r2,alq,st,corps);if(g.texte)gdEnrichit(corps.firstChild);
+  if(!g.texte&&g.desc){const t=gdMk('div','gd-txt gd-desc');t.innerHTML=g.desc;P.append(t);gdEnrichit(t)}
   if(!g.texte)peintEcran(g);
 }
 function peintGuidesCJ(){
@@ -255,12 +255,12 @@ function cjInit(){
   if(id){const ouvre=()=>{const g=gdTous().find(x=>x.id===id);if(typeof onglet==='function')onglet('regles');if(g){GD.cur=g;GD.fait=false;gdOuvert(g)}else GD.voulu=id;cjVue('guides');scrollTo(0,0)};
     if(document.readyState==='complete')setTimeout(ouvre,0);else addEventListener('load',()=>setTimeout(ouvre,0))}
 }
-/* ----- 0.6 : « Proposer un guide » (maquette 31\Guides, B3 compte et B4 invite ; choix du deck B6 = fenetre de deck unique choisirDeck).
+/* ----- 0.6 : « Publier un guide » (ex « Proposer un guide ») (maquette 31\Guides, B3 compte et B4 invite ; choix du deck B6 = fenetre de deck unique choisirDeck).
    Bouton sous la pagination de la liste ; invite : bouton secondaire au cadenas, fenetre floutee + « Se connecter » / « Créer un compte ».
    Publication sans relecture (decision de Romain, 10 nov.) : bouton « Publier », guide visible tout de suite par tous (room.guides.publie, rules/60-guides.js).
    Meme fenetre pour « Modifier » (g fourni) : champs remplis, modification publiee directement. */
 const SVG_CADENAS='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10.5" width="16" height="11" rx="2.5" fill="currentColor"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>';
-function gdMajProp(){const b=$('gdProp');if(!b)return;const co=compteCo();b.className='sc-btn gd-prop'+(co?'':' sc-secondaire');b.innerHTML=(co?'':'<span class="gd-pcad">'+SVG_CADENAS+'</span>')+'Proposer un guide'}
+function gdMajProp(){const b=$('gdProp');if(!b)return;const co=compteCo();b.className='sc-btn gd-prop'+(co?'':' sc-secondaire');b.innerHTML=(co?'':'<span class="gd-pcad">'+SVG_CADENAS+'</span>')+'Publier un guide'}
 const gdYt=u=>{u=String(u||'').trim();const m=/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/|\/live\/)([A-Za-z0-9_-]{11})(?![A-Za-z0-9_-])/.exec(u)||/^([A-Za-z0-9_-]{11})$/.exec(u);return m?m[1]:''};
 function gdTuileDeck(d){
   const t=gdMk('div','gd-strip dg gd-tf'),E=elsOrdre(d);t.style.background=fondDeck(E);
@@ -274,7 +274,7 @@ function ouvrePropGuide(g){
   $('gdPFen')?.remove();
   const co=compteCo(),v=gdMk('div','voile gd-pvoile'),f=gdMk('div','sc-fenetre gd-pfen');
   v.id='gdPFen';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','gdPT');
-  const h=gdMk('h3','sc-fen-titre',g?'Modifier le guide':'Proposer un guide');h.id='gdPT';const msg=gdMk('div','gd-pmsg');f.append(h,msg);
+  const h=gdMk('h3','sc-fen-titre',g?'Modifier le guide':'Publier un guide');h.id='gdPT';const msg=gdMk('div','gd-pmsg');f.append(h,msg);
   const ferme=()=>{v.remove();$('gdProp')?.focus()};v.onclick=e=>{if(e.target===v)ferme()};v.onkeydown=e=>{if(e.key==='Escape'&&!$('popDeck'))ferme()};
   const choisi=()=>{const id=lire('golems.deckChoisi')||'';return lesDecks().find(x=>x.id===id)||null};
   /* Deck deja publie (Modifier) : repris de son code, garde tel quel s'il n'est pas change. */
@@ -332,7 +332,7 @@ function ouvrePropGuide(g){
     const c=gdMk('div','gd-cad'),ic=gdMk('span','gd-cadi');ic.innerHTML=SVG_CADENAS;
     const r=gdMk('div','sc-rangee'),a=gdMk('button','sc-btn','Se connecter'),b=gdMk('button','sc-btn sc-secondaire','Créer un compte');a.type=b.type='button';
     a.onclick=()=>{ferme();ouvrePseudo()};b.onclick=()=>{ferme();ouvrePseudo();modeCompte(true)};r.append(a,b);
-    c.append(ic,gdMk('b','','Un compte est nécessaire pour proposer un guide'),gdMk('span','','Connecte-toi pour publier une vidéo ou un texte.'),r);
+    c.append(ic,gdMk('b','','Un compte est nécessaire pour publier un guide'),gdMk('span','','Connecte-toi pour publier une vidéo ou un texte.'),r);
     w.append(corps,c);f.append(w);
   }
   maj();v.append(f);document.body.append(v);(co?ti:f.querySelector('.gd-cad .sc-btn')).focus();
