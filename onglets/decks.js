@@ -125,9 +125,11 @@ function proposeImport(){
   const D=room.compte.donnees();if(!D||D.importe||lire('golems.import.'+room.compte.uid()))return;
   const dl=decksLocaux(),hl=litListe('golems.historique');
   if(!dl.length&&!hl.length){room.compte.marqueImport().catch(()=>{});return}
-  const v=el('div','voile'),b=el('div','boite');v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.id='popImport';
-  b.append(el('h2','','Importer tes données ?'),el('p','',"Cet appareil contient "+dl.length+" deck"+(dl.length>1?'s':'')+" et "+hl.length+" partie"+(hl.length>1?'s':'')+" jouée"+(hl.length>1?'s':'')+". Les ajouter à ton compte ?"+(D.decks.length+dl.length>MAX_DECKS?' Au-delà de '+MAX_DECKS+' decks, les derniers ne sont pas importés.':'')));
-  const z=el('div','p-btns'),oui=el('button','btn plein','Importer'),non=el('button','btn sec','Non merci');oui.type=non.type='button';
+  /* 0.6a : fenetre de la charte (bd-fond, sc-fenetre, titre en question, phrase, [Action] [Annuler]), comme confirmeFen. */
+  const v=el('div','bd-fond'),b=el('div','sc-fenetre bd-fen');b.setAttribute('role','dialog');b.setAttribute('aria-modal','true');b.setAttribute('aria-labelledby','popImportT');v.id='popImport';
+  const h=el('h3','sc-fen-titre','Importer tes données ?');h.id='popImportT';
+  b.append(h,el('p','sc-fen-texte',"Cet appareil contient "+dl.length+" deck"+(dl.length>1?'s':'')+" et "+hl.length+" partie"+(hl.length>1?'s':'')+" jouée"+(hl.length>1?'s':'')+". Les ajouter à ton compte ?"+(D.decks.length+dl.length>MAX_DECKS?' Au-delà de '+MAX_DECKS+' decks, les derniers ne sont pas importés.':'')));
+  const z=el('div','sc-fen-actions'),oui=el('button','sc-btn','Importer'),non=el('button','sc-btn sc-secondaire','Non merci');oui.type=non.type='button';
   const fin=()=>{ecrire('golems.import.'+room.compte.uid(),'1');room.compte.marqueImport().catch(()=>{});v.remove()};
   oui.onclick=async()=>{
     oui.disabled=non.disabled=true;
