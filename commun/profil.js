@@ -349,7 +349,7 @@ async function ouvreProfil(autre){
     const p3=E('div','pr-p3');dr.append(p3);
     if(prive){const pn=E('div','pr-pn pr-pv');pn.append(E('div','pr-ins','Profil privé : ce joueur ne partage que son rang et son bilan.'));p3.append(pn);return}
     const st=(n,o)=>{const s=E('div','pr-st'),p=Math.round(100*o.v/o.n);s.append(pfPl(n,'partie')+' - ');const q=E('b',couleurTaux(p,o.n),p+' %');s.append(q,' de victoires');return s};
-    const pan=(tt,items,ins)=>{const pn=E('section','pr-pn');pn.append(E('h3','',tt));items.filter(Boolean).forEach(x=>pn.append(x));if(items.filter(Boolean).length<5&&ins)pn.append(E('div','pr-ins',ins));p3.append(pn)};
+    const pan=(tt,items,ins)=>{const pn=E('section','pr-pn'),L=items.filter(Boolean);pn.append(E('h3','',tt));L.forEach(x=>pn.append(x));if(!L.length&&(!ins||/apparaît après|assez de parties/.test(ins)))ins='Pas encore assez de parties.'; /* bloc vide : encadre d'information de la charte */if(L.length<5&&ins)pn.append(E('div','pr-ins',ins));p3.append(pn)};
     const deckL=x=>{const w=E('div','pr-it'),z=E('div','pr-dk'),e=x.els.length?x.els:['brume'];z.style.setProperty('--a','var(--fm-'+e[0]+')');z.style.setProperty('--b','var(--fm-'+(e[1]||e[0])+')');z.title=x.nom;
       z.append(E('span','',x.nom));x.els.forEach(y=>{try{z.append(picto(y))}catch(er){}});w.append(z,st(x.n,x));return w};
     const carteL=(k,lab)=>{const C=M.CARTES[k],c=C&&CARTES.find(y=>y[0]===C.id);if(!c)return null;const q=el('button','dl-ligne');q.type='button';q.title=c[1];
