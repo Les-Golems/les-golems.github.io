@@ -44,6 +44,30 @@
   "nom": "La Salle Verrouillée"
  },
  {
+  "id": "terrain-011",
+  "nom": "L'École"
+ },
+ {
+  "id": "terrain-012",
+  "nom": "Le Karaoké"
+ },
+ {
+  "id": "terrain-013",
+  "nom": "Les Pronos"
+ },
+ {
+  "id": "terrain-014",
+  "nom": "Le Cirque"
+ },
+ {
+  "id": "terrain-015",
+  "nom": "Le Tournoi"
+ },
+ {
+  "id": "terrain-016",
+  "nom": "Le Versus"
+ },
+ {
   "id": "cooking",
   "nom": "Cooking"
  },
