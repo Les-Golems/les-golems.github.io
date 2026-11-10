@@ -190,6 +190,9 @@ function dessineStats(RT){
   const moiUid=compteCo()?room.compte.uid():null;
   const mesPmSt=(()=>{try{return mesCompteurs()}catch(e){return {}}})();
   const cls=(x,moi)=>moi?' st-moi':x.place<=3?' st-t'+x.place:'';
+  /* Recherche : tous les joueurs (classement public), meme sous le minimum de la liste ; clic = profil. Les listes gardent leur minimum. */
+  const autresSt=(V,g,nv)=>{if(!statsQ)return '';const deja=new Set(V.map(x=>x.uid));
+    return (statsJoueurs||[]).filter(x=>x&&x.uid&&!deja.has(x.uid)&&typeof x.p==='string'&&okSt(x.p)).sort((a,b)=>a.p.localeCompare(b.p,'fr')).map(x=>`<div class="st-ln st-cl ${g}${x.uid===moiUid?' st-moi':''}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.p)}" title="Pas encore classé : moins de 5 parties"><span class="st-rk">-</span>${g==='st-gcl'?'<span></span>':''}<span class="st-jg" data-av="${escSt(x.uid)}"><span class="st-ps" title="${escSt(x.p)}">${hlSt(x.p)}</span></span>${'<span class="r">-</span>'.repeat(nv)}</div>`).join('')};
   /* ---- Colonne 1 : Classement (Classées) ---- */
   function classement(){
     const L=(statsClasse||{liste:[]}).liste,gc='st-gcl';let en='';
@@ -201,8 +204,8 @@ function dessineStats(RT){
     let h=en+`<div class="st-th ${gc}"><span class="r">#</span><span></span><span>Joueur</span><span class="r">Elo</span><span class="c">V - D</span><span class="r">Vict.</span></div><div class="st-corps">`;
     const ligne=x=>{const n=(x.v|0)+(x.d|0),r=G.rang(x.elo);return `<div class="st-ln st-cl ${gc}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.pseudo)}, ${x.place}${eSt(x.place)}"><span class="st-rk">${x.place}</span><img class="st-emb" src="${rangImgSt(r.id)}" alt="" title="${r.nom}"><span class="st-ps" title="${escSt(x.pseudo)}">${hlSt(x.pseudo)}</span><span class="r st-n">${Math.round(x.elo)}</span><span class="c st-n">${x.v|0} - ${x.d|0}</span><span class="r">${tauxSt(pcSt(x.v|0,n),n,true)}</span></div>`};
     const V=statsQ?L.filter(x=>okSt(x.pseudo)):L.slice(0,10);
-    if(!V.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:'Aucun joueur classé pour le moment.'}</div>`;
-    V.forEach(x=>h+=ligne(x));
+    const AU=autresSt(V,gc,3);if(!V.length&&!AU)h+=`<div class="st-vide">${statsQ?VIDE_RECH:'Aucun joueur classé pour le moment.'}</div>`;
+    V.forEach(x=>h+=ligne(x));h+=AU;
     if(!statsQ&&sit.moi&&sit.place>10)h+='<div class="st-etc">…</div>'+ligne(sit.moi);
     h+='</div>';
     if(!sit.co)h=`<div class="st-verrou"><div class="st-flou" aria-hidden="true">${h}</div><div class="st-vo"><svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><rect x="3" y="14" width="24" height="18" rx="4" fill="none" stroke="#01C1F0" stroke-width="3"/><path d="M8 14V10a7 7 0 0 1 14 0v4" fill="none" stroke="#01C1F0" stroke-width="3"/></svg><b>Rang, Elo et classement</b><p>Connecte-toi pour voir ta place parmi les joueurs.</p><div class="sc-rangee"><button class="sc-btn" type="button" data-a="co">Se connecter</button><button class="sc-btn sc-secondaire" type="button" data-a="cree">Créer un compte</button></div></div></div>`;
@@ -216,9 +219,9 @@ function dessineStats(RT){
     const moi=moiUid?compteursMode(mesPmSt,'amicale'):null,gj='st-gjo';
     let h=enc([['Parties',R.length.toLocaleString('fr-FR'),'entre joueurs'],['Tes victoires',moi&&moi.n?pcSt(moi.v,moi.n)+' %':'-',moi&&moi.n?moi.v+' sur '+moi.n:'aucune partie'],['Classés',String(J.length),J.length>1?'joueurs':'joueur']]);
     h+=`<div class="st-th ${gj}"><span class="r">#</span><span>Joueur (5 min.)</span><span class="r">Parties</span><span class="c">V - D</span><span class="r">Vict.</span></div><div class="st-corps">`;
-    const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10);if(!V.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
+    const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10),AU=autresSt(V,gj,3);if(!V.length&&!AU)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
     V.forEach(x=>h+=`<div class="st-ln st-cl ${gj}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.p)}"><span class="st-rk">${x.place}</span><span class="st-jg" data-av="${escSt(x.uid)}"><span class="st-ps" title="${escSt(x.p)}">${hlSt(x.p)}</span></span><span class="r st-n">${x.n}</span><span class="c st-n">${x.v} - ${x.d}</span><span class="r">${tauxSt(x.pct,x.n)}</span></div>`);
-    return tete('Joueurs')+h+'</div>';
+    return tete('Joueurs')+h+AU+'</div>';
   }
   /* ---- Colonne 1 : Joueurs (Entraînement) : taux contre chaque niveau (profil public) ---- */
   function robots(){
@@ -229,9 +232,9 @@ function dessineStats(RT){
     const J=(statsJoueurs||[]).map(x=>{const pm=x.uid===moiUid?mesPmSt:compteursPublies(statsProfils[x.uid]);if(!pm||compteursMode(pm,'entrainement').n<5)return null;const o={};niv.forEach(k=>{const c=compteursMode(pm,'entrainement',k);o[k]={n:c.n,v:c.v}});return {...x,o}}).filter(x=>x&&niv.some(k=>x.o[k].n))
       .sort((a,b)=>pk(b,'difficile')-pk(a,'difficile')||pk(b,'normal')-pk(a,'normal')||pk(b,'facile')-pk(a,'facile')||a.p.localeCompare(b.p,'fr')).map((x,i)=>({...x,place:i+1}));
     h+=`<div class="st-th ${gr}"><span class="r">#</span><span>Joueur (5 min.)</span><span class="r">Facile</span><span class="r">Normal</span><span class="r">Difficile</span></div><div class="st-corps">`;
-    const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10);if(!V.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
+    const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10),AU=autresSt(V,gr,3);if(!V.length&&!AU)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
     V.forEach(x=>h+=`<div class="st-ln st-cl ${gr}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.p)}"><span class="st-rk">${x.place}</span><span class="st-jg" data-av="${escSt(x.uid)}"><span class="st-ps" title="${escSt(x.p)}">${hlSt(x.p)}</span></span>${niv.map(k=>`<span class="r">${tauxSt(pcSt(x.o[k].v,x.o[k].n),x.o[k].n)}</span>`).join('')}</div>`);
-    return tete('Joueurs')+h+'</div>';
+    return tete('Joueurs')+h+AU+'</div>';
   }
   /* ---- Cartes : Meilleures (10 parties minimum) | Plus jouées ---- */
   const MIN_CARTES=10,lc=[...A.cartes].map(([id,o])=>{const c=CARTES.find(y=>y[0]===id);return c&&M.CARTES[id]?{id,c,n:o.n,p:pcSt(o.v,o.n)}:null}).filter(Boolean);
