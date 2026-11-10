@@ -232,7 +232,8 @@
         var n = nouveauJoueur(s.id); n.maj = HORODATAGE;
         await B.ecrit(m1('classe/joueurs/' + u, n)); j = await B.lit('classe/joueurs/' + u);
       } else if (j.saison < s.id) {
-        if (!enPlacement(j) && !(await B.lit('classe/instantanes/' + j.saison + '/' + u))) {
+        // 0.6.3 : instantané pour tout joueur (les trois modes) ; la récompense reste réservée au placement fini.
+        if (!(await B.lit('classe/instantanes/' + j.saison + '/' + u))) {
           var st = opts.stats ? await opts.stats(j.saison) : {};
           await B.ecrit(m1('classe/instantanes/' + j.saison + '/' + u, sansNuls(instantaneSaison(j.saison, j, st))));
         }

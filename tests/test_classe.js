@@ -155,8 +155,8 @@ function base(uid,pseudo,db){
   deq(db.classe.ecussons.ua[0],{saison:0},'médaille Pionnier seule avant la place');
   db.classe.instantanes[0].ua.place=2;await SA.recompenses();deq(db.classe.ecussons.ua[0],{saison:0,place:2,ecu:'argent'},'écu argent après la place posée par Romain');
   eq(await SA.recompenses(),0,'rien à réécrire');
-  // B : placement non fini -> ni instantané ni récompense.
-  await SB.profil();ok(!db.classe.instantanes[0].ub);ok(!db.classe.ecussons.ub);eq(db.classe.joueurs.ub.saison,1);
+  // B : placement non fini -> 0.6.3 : instantané quand même (les trois modes), placementFini faux, sans récompense.
+  await SB.profil();ok(db.classe.instantanes[0].ub&&db.classe.instantanes[0].ub.placementFini===false,'instantané hors placement');ok(!db.classe.ecussons.ub);eq(db.classe.joueurs.ub.saison,1);
   res.push('service');
   console.log('test_classe : '+nv+' vérifications OK ('+res.join(', ')+')');
 })().catch(e=>{console.error(e);process.exit(1)});

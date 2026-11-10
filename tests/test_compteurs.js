@@ -10,7 +10,7 @@ function charge(fichier) {
   const ctx = { window: { GolemsDonnees: { interface: { elements: { ordre: ['magma', 'cristal', 'foudre', 'brume', 'roche'] } } } },
     M: { CARTES: { '001': { id: '001', nom: 'Spom' }, '002': { id: '002', nom: 'Cyd' } } }, deckDefautTxt: () => '', vPartie: () => '0.6',
     patchSite: v => v, versStats: l => l.map(x => x.v), $: () => ({ onchange: null, setAttribute() {}, classList: { add() {} } }), console };
-  vm.createContext(ctx); vm.runInContext(fs.readFileSync(fichier, 'utf8') + '\n;this.API={cumulAjoute,resumeModes,pfModeDe,pfStats,compteursMode:typeof compteursMode===\'function\'?compteursMode:null};', ctx);
+  vm.createContext(ctx); vm.runInContext(fs.readFileSync(fichier, 'utf8') + '\n;this.API={cumulAjoute,resumeModes,pfModeDe,pfStats,instantaneStats:typeof instantaneStats===\'function\'?instantaneStats:null,pfStatsInstantane:typeof pfStatsInstantane===\'function\'?pfStatsInstantane:null,compteursMode:typeof compteursMode===\'function\'?compteursMode:null};', ctx);
   return ctx.API;
 }
 const N = charge(path.join(__dirname, '..', 'commun', 'profil.js'));
@@ -84,5 +84,25 @@ eq(N.pfModeDe({ adv: 'Golem (normal)', mode: 'classee' }), 'classee', 'classée 
   let ca = null; A.forEach(x => { ca = ancien.cumulAjoute(ca, [x]) || ca; }); delete ca.md;
   const r = N.cumulAjoute(ca, A.slice(-50).reverse()), a = N.compteursMode(N.resumeModes(r.md), 'amicale');
   eq(a.dk.reduce((s, y) => s + y.n, 0), 80, 'totaux du cumul : 80 parties'); eq(tops(a), tops(N.pfStats(A, 'amicale', '', 0)), 'totaux = toutes les parties'); }
+// 0.6.3 : compteurs PAR SAISON. Saison 0 (md.sa absent) = toutes les parties d'avant ; bascule en saison 1 : archive md.ar, remise à zéro.
+{ const S1 = { id: 1, debut: 1700000000000 + 1000 * 1000 };
+  const c0 = N.cumulAjoute(c2, histo, { cl });
+  eq(c0, null, 'saison 0 : rien à changer sans saison');
+  const b = N.cumulAjoute(c2, histo, { cl, saison: S1 });
+  eq([b.md.sa, b.md.ar.sa, b.md.classee.n, b.md.amicale.n, b.md.entrainement.n, b.md.facile.n], [1, 0, 0, 0, 0, 0], 'bascule : remise à zéro');
+  eq(['classee', 'amicale', 'entrainement', 'facile', 'normal', 'difficile'].map(k => b.md.ar[k].n), ['classee', 'amicale', 'entrainement', 'facile', 'normal', 'difficile'].map(k => vrai[k].n), 'archive de la saison 0 complète');
+  eq(N.cumulAjoute(b, histo, { saison: S1 }), null, 'bascule faite une fois');
+  const p1 = partie(1100, 'Golem (normal)', 'Victoire'), b2 = N.cumulAjoute(b, [p1].concat(histo), { saison: S1 });
+  const pm1 = N.resumeModes(b2.md);
+  eq([N.compteursMode(pm1, 'entrainement', 'normal').n, N.compteursMode(pm1, 'entrainement').v, N.compteursMode(pm1, 'amicale').n, b2.n], [1, 1, 0, c2.n + 1], 'saison 1 : nouvelle partie seule (total gardé)');
+  const tard = partie(900, 'Spom', 'Victoire'), b3 = N.cumulAjoute(b2, [tard, p1].concat(histo), { saison: S1 });
+  eq([b3.md.ar.amicale.n, b3.md.amicale.n], [vrai.amicale.n + 1, 0], 'partie en retard : dans l\'archive de sa saison');
+  // Instantané : les trois modes et les niveaux, avec tops, relu par le profil (badge de la saison passée).
+  const I = N.instantaneStats(b.md.ar, histo);
+  eq(Object.keys(I.modes).sort(), ['amicale', 'classee', 'difficile', 'entrainement', 'facile', 'normal'], 'instantané : trois modes et niveaux');
+  const ie = N.pfStatsInstantane(JSON.parse(JSON.stringify(I)), 'entrainement'), ve = N.compteursMode(N.resumeModes(b.md.ar), 'entrainement');
+  eq(tops(ie), tops(ve), 'instantané relu = compteurs de la saison');
+  eq([ie.n, ie.v, ie.d, ie.best, ie.der.join('')], [ve.n, ve.v, ve.d, ve.best, ve.der.join('')], 'instantané : bilan et 10 dernières');
+  eq(N.pfStatsInstantane({ modes: { amicale: { parties: 3, v: 1, d: 2 } } }, 'amicale').vieux, true, 'ancien instantané reconnu'); }
 console.log(ko ? ko + ' échec(s), ' + ok + ' réussi(s)' : 'test_compteurs : ' + ok + ' réussis, 0 échec');
 process.exit(ko ? 1 : 0);
