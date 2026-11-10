@@ -583,7 +583,8 @@ async function ouvre() {
       if (typeof j !== "string" || typeof sid !== "string" || !Number.isInteger(g)) return;
       const liste = window.GolemsMoteur.litJournal(j), cle = sid + "|" + g;
       for (let n = pousses[cle] || 0; n < liste.length; n++) {
-        await ajoute(push(ref(db, base + "/coups")), { a: uid, s: sid, g: g, n: n, c: liste[n] });
+        // Clé fixe par coup (joueur, partie, rang) : un renvoi après coupure retombe sur la même clé (ajout seul), jamais un 2e push.
+        await ajoute(ref(db, base + "/coups/" + String(sid).replace(/[.#$\/\[\]]/g, "_") + "_" + g + "_" + n), { a: uid, s: sid, g: g, n: n, c: liste[n] });
         pousses[cle] = n + 1;
       }
     }
@@ -756,7 +757,12 @@ async function ouvre() {
             const ex = annonceRearme ? (await get(annRef).catch(() => null)) : true;
             if (fini || versRobot || !presConf) return false; // salon quitté pendant la lecture (robot lancé, fin) : plus rien à annoncer
             if (ex === true || (ex && ex.exists())) {
-              try { await update(annRef, maj); if (annonceRearme) { annonceRearme = false; await onDisconnect(annRef).remove(); } return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
+              // Transaction plutôt qu'update : une annonce effacée par le serveur pendant une coupure n'est jamais mise à jour
+              // (update refusé et journalisé « permission_denied » au renvoi) ; elle est alors republiée par set.
+              try {
+                const r = await runTransaction(annRef, cur => { if (!cur || cur.u !== uid) return undefined; const x = { ...cur }; for (const k in maj) { if (maj[k] === null) delete x[k]; else x[k] = maj[k]; } return x; }, { applyLocally: false });
+                if (r.committed) { if (annonceRearme) { annonceRearme = false; await onDisconnect(annRef).remove(); } return; }
+              } catch (e) { /* annonce effacée entre-temps : republiée */ }
             }
           }
           // onDisconnect posé APRÈS l'écriture : la règle de retrait (u = moi) est alors vraie (sinon PERMISSION_DENIED).
