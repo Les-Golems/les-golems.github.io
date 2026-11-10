@@ -424,7 +424,7 @@ function ligneZt(c){
 }
 function zoomTerrainJeu(s,k,me){
   const T=s.terrains[k],cc=M.colonnes(s)[k];cacheApercu();dernier=null;
-  const pan=p=>{const moi=p===me,coul=moi?'var(--bleu)':'var(--magma)',a=el('section','zt-camp '+(moi?'toi':'lui')),h=el('h3','',nomJ(p)+(moi?' (toi)':'')),ol=el('ol','zt-l');h.style.color=coul;a.append(h);
+  const pan=p=>{const moi=p===me,coul=moi?'var(--moi-texte,var(--bleu))':'var(--lui-texte,var(--magma))',a=el('section','zt-camp '+(moi?'toi':'lui')),h=el('h3','',nomJ(p)+(moi?' (toi)':'')),ol=el('ol','zt-l');h.style.color=coul;a.append(h);
     for(let l=0;l<3;l++){const g=s.j[p].grille[l][k],li=el('li');
       if(!g){li.className='zt-vide';li.append(el('span','','Case vide'))}
       else{const v=M.valeurDecompte(s,p,l,k),f=el('span','zt-v'),fb=el('b','',String(v));fb.style.color=coul;f.append(ico('force'),fb);f.setAttribute('role','img');f.setAttribute('aria-label','Force '+v);

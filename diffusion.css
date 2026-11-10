@@ -470,7 +470,7 @@ html.dif-joueur .dk-btns .btn{width:100%}
 #dif.jr .mq-etape .p-consigne{font-size:14.5px;line-height:1.2;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;padding-top:6px;padding-bottom:6px}
 #dif.jr .mq-etape .p-consigne b{font-size:19px}
 .dk-voile{--moi:var(--bleu);--lui:var(--magma)}
-html.clair :is(#dif,.dk-voile){--moi:#086f95;--lui:#c75925} /* noms bleu / orange de la fin par abandon (maquette C) */
+html.clair :is(#dif,.dk-voile){--moi:#086f95;--lui:var(--adverse-texte)} /* noms bleu / orange de la fin par abandon (maquette C) */
 /* vue joueur : le bilan de manche de la partie est remplace par celui de la vue spectateur (Fermer = Continuer) */
 html.dif-joueur #recap{display:none!important}
 #dif .pp-fbtns{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;width:100%;margin-top:6px}
@@ -594,3 +594,6 @@ html.tel-joueur #partie .p-barre .p-info small{line-height:10px!important;margin
 #dif .pp-ecran p{margin:0;font:700 24px/1.2 var(--corps);color:var(--doux)}
 #dif .pp-ecran-l{display:flex;justify-content:center;gap:6px;margin-top:10px}
 #dif .pp-ecran-l img{width:96px;height:auto;border-radius:6px}
+/* 0.6a clair, controle aux pixels : boutons d'outils de la partie a pleine opacite. */
+html.clair #dif :is(.d-quit,.mq-outils button,.d-chat){opacity:1}
+html.clair.tel-joueur #mqAp p{color:var(--fond)} /* 0.6a clair : voile sombre conserve, legende claire */

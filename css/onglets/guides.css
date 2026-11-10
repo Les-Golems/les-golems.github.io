@@ -1,9 +1,9 @@
 /* Onglet Comment jouer (0.6) : barre commune (selecteur Regles | Guides 46 px, filtres des guides, recherche), vue Regles (#rgVue, maquette 31\Regles\A)
+   et vue Guides (#gdVue, maquettes 31\Guides variante B et 37 - Partage de guide). Les deux vues occupent la hauteur de la fenetre (--cj-h, onglets/guides.js). */
 :root{--rg-sec1:#3b4249;--rg-sec2:#2b3137;--btn-g-texte2:#fff;--rg-ter1:#2a333b;--rg-ter2:#1d242a;--nc-t:#a9e6f7;--nc-e:#c9b6f2;--gd-txt:#dbe7ee}
 html.clair{--rg-sec1:#e6ebef;--rg-sec2:#cdd6dd;--btn-g-texte2:#15222d;--rg-ter1:#e6ebef;--rg-ter2:#cdd6dd;--nc-t:#0b6d8a;--nc-e:#6a3fb8;--gd-txt:#15222d}
 /* Bandeau de deck sur degrade (.gd-strip.dg) : textes clairs gardes en mode clair. */
 html.clair .gd-strip.dg :is(.gd-el,.gd-dn b){color:#fff}
-   et vue Guides (#gdVue, maquettes 31\Guides variante B et 37 - Partage de guide). Les deux vues occupent la hauteur de la fenetre (--cj-h, onglets/guides.js). */
 #regles>*{max-width:none}
 #regles [hidden]{display:none!important}
 .cj-barre{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:center;min-height:46px}

@@ -570,13 +570,13 @@ function bacDes(v,id,apres){
 /* Terrain du bac en grand : ton camp seulement, lignes condensees (cout, Force, elements, nom + titre coupe par « … », titre complet au survol). */
 function zoomTerrainBac(s,k){
   const T=s.terrains[k],cc=M.colonnes(s)[k];cacheApercu();dernier=document.activeElement;
-  const a=el('section','zt-camp toi bt-camp'),h=el('h3','',compteCo()?pseudo:'Ton camp'),ol=el('ol','zt-l');h.style.color='var(--bleu)';a.append(h);
+  const a=el('section','zt-camp toi bt-camp'),h=el('h3','',compteCo()?pseudo:'Ton camp'),ol=el('ol','zt-l');h.style.color='var(--moi-texte,var(--bleu))';a.append(h);
   for(let l=0;l<3;l++){const g=s.j[0].grille[l][k],li=el('li');
     if(!g){li.className='zt-vide';li.append(el('span','','Case vide'))}
-    else{const v=M.valeurDecompte(s,0,l,k),f=el('span','zt-v'),fb=el('b','',String(v));fb.style.color='var(--bleu)';f.append(ico('force'),fb);f.setAttribute('role','img');f.setAttribute('aria-label','Force '+v);
+    else{const v=M.valeurDecompte(s,0,l,k),f=el('span','zt-v'),fb=el('b','',String(v));fb.style.color='var(--moi-texte,var(--bleu))';f.append(ico('force'),fb);f.setAttribute('role','img');f.setAttribute('aria-label','Force '+v);
       const q=ligneZt(g.c);q.title=(q.getAttribute('aria-label')||'').replace(/^Agrandir /,'');li.append(q,f)}
     ol.append(li)}
-  const tt=el('div','zt-tot'),b=el('b','',String(cc[0]));b.style.color='var(--bleu)';tt.append('Total ',ico('force'),b);tt.setAttribute('aria-label','Force totale '+cc[0]);a.append(ol,tt);
+  const tt=el('div','zt-tot'),b=el('b','',String(cc[0]));b.style.color='var(--moi-texte,var(--bleu))';tt.append('Total ',ico('force'),b);tt.setAttribute('aria-label','Force totale '+cc[0]);a.append(ol,tt);
   zoom(srcTerrain(T),T.nom+'. '+T.texte,[a]);$('vueGrand').classList.add('zt-bac');
 }
 /* 0.6 : fenetres au modele sc-fenetre (titre 800 18 px a gauche, bandeau d'alerte sous le titre, [action] a gauche, [Annuler/Fermer] a droite). */

@@ -80,13 +80,13 @@ bacNotes:{
 bacDes:{1:[4],2:[3,4]},
 /* MODELE DES ELEMENTS (source unique, lue par tout le code d'interface : aide.js, vue/joueur.js, diffusion.js, commun/compte.js, commun/profil.js, commun/demarrage.js).
    ordre = ordre du cercle ; nom = libelle affiche ; texte = teinte du titre et du nom d'effet sur la carte imprimee (TEXTE_ELT de generer_cartes.py) ;
-   image cartes/<id>.png ; couleur de fond CSS var(--fm-<id>). couleursCarte : autres couleurs des cartes imprimees (generer_cartes.py, generer_animaux.py, generer_terrains.py). */
+   image cartes/<id>.png ; couleur de fond CSS var(--fm-<id>). Mode clair (0.6a) : var(--txt-*, valeur sombre), variables definies seulement dans html.clair (css/base.css). couleursCarte : autres couleurs des cartes imprimees (generer_cartes.py, generer_animaux.py, generer_terrains.py). */
 elements:{
  ordre:['magma','cristal','foudre','brume','roche'],
- magma:{nom:'Magma',texte:'#ffb52a'},cristal:{nom:'Cristal',texte:'#ffa8d6'},foudre:{nom:'Foudre',texte:'#ffe36e'},brume:{nom:'Brume',texte:'#c9b6f2'},roche:{nom:'Roche',texte:'#ecbc8c'}
+ magma:{nom:'Magma',texte:'var(--txt-magma,#ffb52a)'},cristal:{nom:'Cristal',texte:'var(--txt-cristal,#ffa8d6)'},foudre:{nom:'Foudre',texte:'var(--txt-foudre,#ffe36e)'},brume:{nom:'Brume',texte:'var(--txt-brume,#c9b6f2)'},roche:{nom:'Roche',texte:'var(--txt-roche,#ecbc8c)'}
 },
-couleursCarte:{evoNom:'#ffd23a',evoTitre:'#fff0b8',evoEffet:'#ffd23a',evoEncart:'#ffd23a',animal:'#c8f58a',terrain:'#a9e6f7'},
+couleursCarte:{evoNom:'var(--txt-evo,#ffd23a)',evoTitre:'var(--txt-evo,#fff0b8)',evoEffet:'var(--txt-evo,#ffd23a)',evoEncart:'#ffd23a',animal:'var(--txt-animal,#c8f58a)',terrain:'var(--txt-terrain,#a9e6f7)'},
 /* Noms cites dans un texte (charte, 9 nov.) : couleur de leur type dans le journal, les bulles d'aide, les zooms, les Regles (lue par vue/joueur.js : lienLog, texteLog). */
-couleursTexte:{golem:'var(--or)',evolution:'var(--or)',animal:'#7be07f',terrain:'#a9e6f7',effet:'#c9b6f2'}
+couleursTexte:{golem:'var(--txt-evo,var(--or))',evolution:'var(--txt-evo,var(--or))',animal:'var(--txt-animal,#7be07f)',terrain:'var(--txt-terrain,#a9e6f7)',effet:'var(--txt-brume,#c9b6f2)'}
 };
 })(typeof window!=='undefined'?window:globalThis);

@@ -40,7 +40,7 @@ html.clair{--compteur:var(--doux);--survol-trait:rgba(10,18,26,.25)}
 #partie .p-camp>b{margin-right:0;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
 #partie .p-camp.joue{animation:none;box-shadow:none}
 #partie .p-camp.toi.joue{border-color:var(--moi)}#partie .p-camp.lui.joue{border-color:var(--lui)}
-#partie .p-joue{flex:none;margin:0;font:400 13px/1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--encre);padding:4px 7px;border-radius:8px 6px 9px 5px}
+#partie .p-joue{flex:none;margin:0;font:400 13px/1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--p-joue-texte,var(--encre));padding:4px 7px;border-radius:8px 6px 9px 5px}
 #partie .p-camp.toi .p-joue{background:var(--moi)}#partie .p-camp.lui .p-joue{background:var(--lui)}
 #partie .p-comptes{flex:none;margin-left:auto;display:grid;grid-template-columns:58px 64px 86px 62px;gap:4px}
 #partie .p-compteur{background:transparent;color:var(--compteur);font-weight:700;font-size:12.5px;padding:2px 0;white-space:nowrap}

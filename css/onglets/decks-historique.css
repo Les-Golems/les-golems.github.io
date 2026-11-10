@@ -230,6 +230,7 @@ main:has(#historique:not([hidden])){padding-bottom:12px}
 /* ===== Historique 0.6 (maquettes 24, 26, 36 variante D) : liste a place fixe, filtres sc-sel, fenetre de detail face a face ===== */
 main:has(#historique:not([hidden])){padding-bottom:24px}
 #historique,.hd-fen{--vic:#6fd08c;--def:#ff7b72}
+html.clair :is(#historique,.hd-fen){--vic:#0e5530;--def:var(--rouge-texte)}
 .h-bloc{display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;margin:0;padding:18px}
 .h-tete{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:36px;margin:0 0 12px}
 .h-tete .sc-titre-bloc{margin:0}
@@ -498,3 +499,7 @@ html.clair .dl-ligne .dl-nb{color:#f1c35a}
 html.clair .dk-tuile.dk-masque b{color:var(--texte)}
 html.clair .dk-ent .ct{background:var(--gris-b1);color:var(--texte)}
 html.clair .dk-danger{background:var(--danger);box-shadow:0 2px 0 #8c2224}
+/* 0.6a clair, controle aux pixels : avatar du Golem, quantites grisees, colonnes vides de la courbe. */
+html.clair .hl-av.golem{background:var(--doux)}
+html.clair .dk-q button.dk-gris{opacity:1;color:var(--doux)}
+html.clair .dl-col.dl-vide{opacity:1}

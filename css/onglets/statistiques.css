@@ -1,8 +1,8 @@
 /* Onglet Statistiques 0.6 (maquette 29\Saison\maquette.html, variante C).
-:root{--st-sz-rg:#e0a46a;--st-rg-am:#d6a8ff;--st-rg-to:#f3c06a;--st-rg-sa:#8fc3ff;--st-rg-em:#6fe0a0;--st-rg-ru:#ff8a8a;--st-rg-di:#bff4ff;--st-t2:#cfd8df;--st-t3:#d08a4e;--st-pz:#fff}
-html.clair{--st-sz-rg:#715335;--st-rg-am:var(--r-amethyste);--st-rg-to:var(--r-topaze);--st-rg-sa:var(--r-saphir);--st-rg-em:var(--r-emeraude);--st-rg-ru:var(--r-rubis);--st-rg-di:var(--r-diamant);--st-t2:#5f6e79;--st-t3:#916036;--st-pz:#0a121a}
    Barre de 4 colonnes (sélecteur de mode, saison ou total, Patchs, recherche) puis 4 colonnes égales :
    Classement / Joueurs, Cartes, Terrains, Éléments. Tablette et téléphone : à reprendre avec tous les onglets (2 colonnes puis 1). */
+:root{--st-sz-rg:#e0a46a;--st-rg-am:#d6a8ff;--st-rg-to:#f3c06a;--st-rg-sa:#8fc3ff;--st-rg-em:#6fe0a0;--st-rg-ru:#ff8a8a;--st-rg-di:#bff4ff;--st-t2:#cfd8df;--st-t3:#d08a4e;--st-pz:#fff}
+html.clair{--st-sz-rg:#715335;--st-rg-am:var(--r-amethyste);--st-rg-to:var(--r-topaze);--st-rg-sa:var(--r-saphir);--st-rg-em:var(--r-emeraude);--st-rg-ru:var(--r-rubis);--st-rg-di:var(--r-diamant);--st-t2:#5f6e79;--st-t3:#916036;--st-pz:#0a121a}
 #stats{--L:44px}
 .st-barre{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:center;position:relative;margin:0 0 16px}
 .st-barre>*{grid-row:1}
@@ -129,3 +129,5 @@ html.clair{--st-sz-rg:#715335;--st-rg-am:var(--r-amethyste);--st-rg-to:var(--r-t
 /* Mode clair (A3) : lignes de cartes sur degrade, voile sous le texte, textes clairs gardes. */
 html.clair .st-lc.st-duo{box-shadow:inset 0 0 0 999px rgba(10,18,26,.46)}
 html.clair .st-lc.st-duo :is(.st-np,b,.st-nom span,.st-nom b){color:#fff}
+/* 0.6a clair : lignes sur degrade sombre (.st-duo) : taux aux couleurs du mode sombre (charte : textes sur degrade inchanges). */
+html.clair .st-duo{--vert:#5fd68a;--ambre:#f0a35e;--rouge-texte-clair:#ff9c8a;--gris-taux:#c2ccd2;--blanc:#fff}

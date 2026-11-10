@@ -117,3 +117,5 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 #vueDetail .bt-camp .dl-titre{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #vueDetail .bt-camp .zt-tot{margin-top:10px;align-items:center}
 #vueDetail .bt-camp .zt-tot .ico{font-size:22px}
+/* 0.6a clair : cadre des cartes (charte A3) pose sur le CONTENEUR de la carte, jamais sur l'image. */
+html.clair :is(.dk-c,.d-main *,.p-case *,#vueDetail *,.d-der *,.p-main *):has(>img:not(.ico,[src*=rangs],[src*=elements])){border-radius:7px;box-shadow:var(--cadre-carte)}

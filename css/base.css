@@ -19,8 +19,10 @@
 html.clair{color-scheme:light;
   --fond:#e4e9ee;--fond-partie:#dde3e9;--panneau:#f4f6f8;--panneau2:#ecf0f3;--trait:#c3ced7;--gris-b1:#e6ebef;--gris-b2:#cdd6dd;
   --texte:#15222d;--doux:#4c5e6b;--bleu-titre:#04678b;--or-texte:#7a5a06;--rouge-texte-clair:#c41f26;--erreur:#c41f26;--rouge-texte:#8f1418;
-  --vert:#157443;--adverse-texte:#b5430f;--gris-taux:#5f6e79;--danger:#cf2d30;--blanc:#15222d;--ombre-tertiaire:#b3bfc9;
+  --vert:#157443;--ambre:#9a4f00;--adverse-texte:#b5430f;--gris-taux:#5f6e79;--danger:#cf2d30;--blanc:#15222d;--ombre-tertiaire:#b3bfc9;
   --r-amethyste:#8133c9;--r-topaze:#84620a;--r-saphir:#1b62c4;--r-emeraude:#11753f;--r-rubis:#c41f3a;--r-diamant:#3f6f8c;
+  /* Noms de cartes et d'effets en texte (cartes/donnees/interface.js : var(--txt-*, couleur sombre)) : variantes foncees, 4,5:1 sur panneau. */
+  --txt-magma:#a8460c;--txt-cristal:#a8326f;--txt-foudre:#7a5a06;--txt-brume:#6a3fb8;--txt-roche:#8a5a2b;--txt-evo:#7a5a06;--txt-animal:#157443;--txt-terrain:#0b6d8a;--moi-texte:#086f95;--lui-texte:var(--adverse-texte);
   --lisere:#3d5366;--cadre-carte:0 0 0 1.5px #3d5366,0 2px 3px rgba(10,18,26,.35),0 6px 14px rgba(10,18,26,.22);--voile:rgba(10,18,26,.45);
 }
 *{box-sizing:border-box}
