@@ -29,7 +29,9 @@ pastilles($('filtreType'),TY,()=>fTy,v=>fTy=v);
    Les animaux (sans element) ne passent que sans filtre d'element ; avec Animaux, les pastilles sont grisees. */
 const ELS=EL.filter(x=>x[0]).map(x=>x[0]);
 const MODES_EL=[['ou','Au moins un'],['et','Tous']]; /* 3e mode possible : ['seul','Seulement'] = aucun element hors de ceux choisis */
-const passeEl=(c,f)=>!f.sel.size||c[2].length>0&&(f.mode==='et'?[...f.sel].every(x=>c[2].includes(x)):f.mode==='seul'?c[2].every(x=>f.sel.has(x)):c[2].some(x=>f.sel.has(x)));
+/* Filtres d'elements : un animal prend l'element imprime sur sa carte (interface.elementAnimal). */
+const elFiltre=c=>c[2].length?c[2]:(estAnimal(c)&&(window.GolemsDonnees.interface.elementAnimal||{})[c[0]])||[];
+const passeEl=(c,f)=>{const e=elFiltre(c);return !f.sel.size||e.length>0&&(f.mode==='et'?[...f.sel].every(x=>e.includes(x)):f.mode==='seul'?e.every(x=>f.sel.has(x)):e.some(x=>f.sel.has(x)))};
 /* Recherche : nom ou numero affiche (G-009), sans accents ni majuscules. */
 const sansAccent=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const cleRech=c=>sansAccent(c[1]+' '+numeroAffiche(c[0]));

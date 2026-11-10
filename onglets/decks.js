@@ -192,7 +192,7 @@ function dkPasse(id,d){const C=M.CARTES[id],c=CARTES.find(x=>x[0]===id);if(!C||!
   if(fDk.ty==='m'&&!(d&&+d.cartes[id]>0))return false;
   if(fDk.q){const t=sansAccent(c[1]+' '+numeroAffiche(id)+' '+(C.texte||''));if(!t.includes(sansAccent(fDk.q.trim())))return false}
   if(fDk.ty==='a'&&!C.animal)return false;if(fDk.ty==='0'&&(C.base||C.animal))return false;if(fDk.ty==='1'&&!C.base)return false;
-  const e=C.el||[];if((fDk.inc.size||fDk.exc.size)&&!e.length)return false;if(e.some(x=>fDk.exc.has(x)))return false;
+  const e=C.el&&C.el.length?C.el:(C.animal&&(window.GolemsDonnees.interface.elementAnimal||{})[id])||[]; /* animal : element imprime sur sa carte */if((fDk.inc.size||fDk.exc.size)&&!e.length)return false;if(e.some(x=>fDk.exc.has(x)))return false;
   if(fDk.inc.size&&!(fDk.mode==='et'?[...fDk.inc].every(x=>e.includes(x)):e.some(x=>fDk.inc.has(x))))return false;
   if(fDk.cout.size&&!fDk.cout.has(Math.min(6,C.cout)))return false;return true}
 /* 0.6 (Romain) : tri par nom sur le NOM DU GOLEM : une evolution prend le nom de sa base et vient juste apres elle ; un animal, son propre nom
