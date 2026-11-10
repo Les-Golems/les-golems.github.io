@@ -14,7 +14,7 @@ body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:64px}
 #premierePartie{margin:0 0 12px;max-width:none;width:auto;display:flex;flex-direction:row;align-items:center;flex-wrap:wrap;gap:10px 16px;border-color:var(--or);border-left:4px solid var(--or);padding:12px 16px}
 #premierePartie[hidden]{display:none}
 .pp-tx{flex:1 1 260px;min-width:0}
-.pp-tx b{display:block;font:400 19px/1.2 var(--titre);color:var(--or)}
+.pp-tx b{display:block;font:400 19px/1.2 var(--titre);color:var(--or-texte)}
 .pp-tx span{color:var(--doux);font-size:14.5px}
 .pp-btns{display:flex;gap:8px;flex:0 1 auto}
 .pp-btns .btn{min-height:42px;padding:4px 16px;font-size:15px;margin:0;white-space:nowrap}

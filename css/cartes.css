@@ -1,4 +1,7 @@
 /* Filtres et grille des cartes (onglet Cartes, editeur de deck), pictos d'elements, zoom d'une carte. */
+/* Mode clair : variables de role communes a mes fichiers (valeur sombre = valeur d origine). */
+:root{--btn-g1:#3d4e5d;--btn-g2:#283643;--btn-g-texte:#e8eff4;--vert-coche:#3fcf6e;--survol-fond:#22384a;--doux-c:#cfdbe2;--doux-g:#c3ccd3;--vert-v:#3ecf6e;--rouge-d:#ef4f4f;--gris-nul:#9aa4ae;--orange-s:#ffb347;--bleu-survol:#7fe3ff;--vert-ani:#7be07f}
+html.clair{--btn-g1:#e6ebef;--btn-g2:#cdd6dd;--btn-g-texte:#15222d;--vert-coche:#157443;--survol-fond:#dde4ea;--doux-c:#4c5e6b;--doux-g:#4c5e6b;--vert-v:#157443;--rouge-d:#c41f26;--gris-nul:#5f6e79;--orange-s:#9a4f00;--bleu-survol:#04678b;--vert-ani:#157443}
 /* Lignes de filtres (onglet Cartes et editeur de deck) : libelle dans une colonne fixe (--lib), boutons alignes au meme x sur toutes
    les lignes, meme quand ils passent a la ligne ; 8 px entre boutons d'un groupe, --grp entre groupes. */
 .f-ligne{--lib:86px;--grp:18px;position:relative;align-items:center;gap:8px var(--grp);margin-bottom:12px;padding-left:calc(var(--lib) + var(--grp));min-height:38px}
@@ -14,12 +17,12 @@
 #triSens svg,.tri-sens svg{width:16px;height:16px;transition:transform .25s}#triSens[data-sens=desc] svg,.tri-sens[data-sens=desc] svg{transform:rotate(180deg)}
 /* En-tete des resultats, juste au-dessus de la grille et aligne sur elle : nombre de cartes puis Reinitialiser. */
 .f-res{display:flex;align-items:center;gap:16px;margin-top:16px;color:var(--doux);font-size:14.5px;font-weight:700}.f-res~.grille{margin-top:10px}
-.f-reinit{background:none;border:0;padding:4px 0;color:var(--bleu);font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.f-reinit{background:none;border:0;padding:4px 0;color:var(--bleu-titre);font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .f-reinit:hover{color:var(--texte)}
 @media (max-width:600px){.f-ligne{--lib:84px;--grp:10px}}
 .pastille i{width:11px;height:11px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1px var(--encre)}
 /* Recherche par nom ou numero : 1re ligne, meme x que les boutons ; toute la colonne sur telephone. 16 px : pas de zoom sur iPhone. */
-.f-rech{width:459px;max-width:100%;min-width:0;height:38px;padding:0 12px;background:var(--encre);border:1px solid var(--trait);border-radius:8px;color:var(--texte);font-size:16px}
+.f-rech{width:459px;max-width:100%;min-width:0;height:38px;padding:0 12px;background:var(--fond);border:1px solid var(--trait);border-radius:8px;color:var(--texte);font-size:16px}
 .f-rech::placeholder{color:var(--doux)}
 .grille{--col:4;display:grid;grid-template-columns:repeat(var(--col),minmax(0,1fr));gap:14px;margin-top:18px}
 .paire{display:contents}
@@ -65,13 +68,13 @@ img.el-pic,.boite img.el-pic{display:inline-block;width:1.2em;height:1.2em;verti
 body:has(#barreRejeu) #passer{display:none}
 @media (max-width:640px){.barreRejeu{gap:4px;padding:3px 5px;bottom:4px}.barreRejeu>b{display:none}.barreRejeu .r-pos{min-width:46px;font-size:12.5px}.barreRejeu .r-long{display:none}#barreRejeu#barreRejeu .btn{min-height:28px;padding:1px 8px;font-size:12.5px}}
 label{display:block;text-align:left;font-weight:700;font-size:14.5px;margin-bottom:6px}
-input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--encre);border:1px solid var(--trait);border-radius:8px;padding:11px 12px;font-size:16px}
+input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--fond);border:1px solid var(--trait);border-radius:8px;padding:11px 12px;font-size:16px}
 .erreur{color:var(--erreur);font-size:14.5px;min-height:22px;margin:6px 0;text-align:left}
 .btn{--bord:#08708c;background:linear-gradient(#3bd2f7,#01aad6);color:var(--encre);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 3px 0 var(--bord),0 5px 10px rgba(0,0,0,.35);transition:translate .1s,box-shadow .1s,filter .1s;border:0;border-radius:8px;padding:12px 20px;font-family:var(--titre);font-size:18px;min-height:46px}
 .btn:not(:disabled):hover{filter:brightness(1.08);translate:0 -1px}
 .btn:not(:disabled):active{translate:0 2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 1px 0 var(--bord)}
 .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
-.btn.sec{--bord:#121b24;background:linear-gradient(#3d4e5d,#283643);color:#e8eff4}
+.btn.sec{--bord:#121b24;background:linear-gradient(var(--btn-g1),var(--btn-g2));color:var(--btn-g-texte)}
 .btn.plein{width:100%}
 .grand{display:flex;flex-direction:column;align-items:center;gap:12px;margin:auto;width:100%}
 .grand img{display:block;width:min(462px,100%,calc((100vh - 110px)*5/7));height:auto;border-radius:16px}
@@ -86,22 +89,22 @@ input:is([type=text],[type=password]){width:100%;color:inherit;background:var(--
 
 .bloc{background:var(--panneau);border:1px solid var(--trait);border-radius:12px;padding:18px;margin-bottom:14px}
 .bloc h3{font-size:19px;margin-bottom:10px}
-#accueil .bloc h3{color:var(--bleu)}
+#accueil .bloc h3{color:var(--bleu-titre)}
 .ligne{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
 .ligne>div{flex:1 1 170px;min-width:0}
 .etat{color:var(--doux);font-size:14.5px;margin:0 0 14px;display:flex;align-items:center;gap:8px}
 .etat i{width:9px;height:9px;border-radius:50%;background:var(--doux);flex:none}
 .etat.ok i{background:var(--bleu)}
-.code{font-family:var(--titre);font-size:34px;letter-spacing:.12em;color:var(--bleu);line-height:1.1;margin-bottom:12px}
+.code{font-family:var(--titre);font-size:34px;letter-spacing:.12em;color:var(--bleu-titre);line-height:1.1;margin-bottom:12px}
 #joueurs{list-style:none;margin:0 0 12px;padding:0}
 #joueurs li{background:var(--panneau2);border-radius:8px;padding:9px 12px;margin-bottom:6px;display:flex;gap:8px;align-items:center;min-width:0}
 #joueurs span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#joueurs .coche{flex:none;width:20px;height:20px;display:block;color:#3fcf6e}
+#joueurs .coche{flex:none;width:20px;height:20px;display:block;color:var(--vert-coche)}
 #joueurs .coche svg{display:block;width:100%;height:100%}
 #pret{margin-bottom:10px}
 #joueurs em{font-style:normal;font-size:13px;font-weight:800;background:var(--bleu);color:var(--encre);border-radius:5px;padding:0 7px;flex:none}
 #attente{font-weight:800;margin:0 0 14px}
-#attente.pret{color:var(--or)}
+#attente.pret{color:var(--or-texte)}
 #attente:empty{display:none}
 /* 0.6 (audit 34, D02) : Fermer des zooms de carte et de terrain au modele sc-fenetre : 46 px, Lilita 18 px */
 :is(#vueGrand>#fermer,#f#f#f#f){min-height:46px;height:46px;padding:0 24px;font:400 18px/1 var(--titre);border-radius:10px}

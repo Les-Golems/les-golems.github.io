@@ -1,7 +1,7 @@
 /* Onglet Statistiques : archive commune, filtres, agregats, encart du zoom. */
 /* Statistiques : archive commune resume/, calculs en direct, aucune donnee de joueur. */
 /* Filtre Adversaires : niveaux de l'ordinateur et parties entre joueurs, tous allumes par defaut, jamais tous eteints. */
-const ADV_ST=[['facile','Facile','#6fd08c'],['normal','Normal','#f3d163'],['difficile','Difficile','#ea7a6c'],['ligne','Entre joueurs','#7fd8f5']];let statsAdv=new Set(ADV_ST.map(x=>x[0]));
+const ADV_ST=[['facile','Facile','var(--js-taux-haut)'],['normal','Normal','var(--js-taux-moyen)'],['difficile','Difficile','var(--js-taux-bas)'],['ligne','Entre joueurs','var(--js-ligne)']];let statsAdv=new Set(ADV_ST.map(x=>x[0]));
 const modeSt=r=>r.m==='ligne'?'ligne':String(r.m||'').replace(/^golem-/,'');
 /* Deck par defaut (deck du robot, ancien paquet de test), en texte de deck : 30 cartes depuis 0.3 (33 avant). Le camp du robot est ignore dans les Statistiques. */
 const DECK_TEST=M.DECK_DEFAUT?{...M.DECK_DEFAUT}:Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])),DECK_TEST_TXT=M.deckTexte(DECK_TEST);
@@ -167,7 +167,7 @@ function dessineStats(RT){
   pm.append(el('p','','Ne change pas le classement Elo.'));
   pb.onclick=e=>{e.stopPropagation();const o=pm.hidden;pm.hidden=!o;pb.setAttribute('aria-expanded',String(o))};
   pat.append(pb,pm);barre.append(pat);
-  const rech=el('label','st-rech');rech.innerHTML='<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6" fill="none" stroke="#a6bac6" stroke-width="2.2"/><path d="M13 13l5 5" stroke="#a6bac6" stroke-width="2.2" stroke-linecap="round"/></svg>';
+  const rech=el('label','st-rech');rech.innerHTML='<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6" fill="none" stroke="var(--doux)" stroke-width="2.2"/><path d="M13 13l5 5" stroke="var(--doux)" stroke-width="2.2" stroke-linecap="round"/></svg>';
   const q=el('input');q.type='search';q.placeholder='Chercher un joueur, une carte, un terrain';q.setAttribute('aria-label',q.placeholder);q.autocomplete='off';q.value=statsQBrut;
   q.oninput=()=>{statsQBrut=q.value;statsQ=normSt(q.value.trim());peintCols()};rech.append(q);barre.append(rech);
   const g=el('div','st-g4'),P=['c1','cC','cT','cE'].map(k=>{const s=el('section','st-p');s.dataset.p=k;g.append(s);return s});
@@ -192,7 +192,7 @@ function dessineStats(RT){
     V.forEach(x=>h+=ligne(x));
     if(!statsQ&&sit.moi&&sit.place>10)h+='<div class="st-etc">…</div>'+ligne(sit.moi);
     h+='</div>';
-    if(!sit.co)h=`<div class="st-verrou"><div class="st-flou" aria-hidden="true">${h}</div><div class="st-vo"><svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><rect x="3" y="14" width="24" height="18" rx="4" fill="none" stroke="#01C1F0" stroke-width="3"/><path d="M8 14V10a7 7 0 0 1 14 0v4" fill="none" stroke="#01C1F0" stroke-width="3"/></svg><b>Rang, Elo et classement</b><p>Connecte-toi pour voir ta place parmi les joueurs.</p><div class="sc-rangee"><button class="sc-btn" type="button" data-a="co">Se connecter</button><button class="sc-btn sc-secondaire" type="button" data-a="cree">Créer un compte</button></div></div></div>`;
+    if(!sit.co)h=`<div class="st-verrou"><div class="st-flou" aria-hidden="true">${h}</div><div class="st-vo"><svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><rect x="3" y="14" width="24" height="18" rx="4" fill="none" stroke="var(--bleu-titre)" stroke-width="3"/><path d="M8 14V10a7 7 0 0 1 14 0v4" fill="none" stroke="var(--bleu-titre)" stroke-width="3"/></svg><b>Rang, Elo et classement</b><p>Connecte-toi pour voir ta place parmi les joueurs.</p><div class="sc-rangee"><button class="sc-btn" type="button" data-a="co">Se connecter</button><button class="sc-btn sc-secondaire" type="button" data-a="cree">Créer un compte</button></div></div></div>`;
     return tete('Classement')+h;
   }
   /* ---- Colonne 1 : Joueurs (Amicales) : classement public, 5 parties minimum ---- */

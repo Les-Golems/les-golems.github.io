@@ -9,11 +9,11 @@
 /* --- Bulle flottante sous le paragraphe, fleche vers le mot --- */
 .ib{position:fixed;z-index:1000;width:min(300px,calc(100vw - 24px));box-sizing:border-box;background:var(--panneau2);border:1px solid #3a5a72;border-radius:12px 9px 14px 8px;padding:10px 14px 12px;box-shadow:0 10px 28px rgba(0,0,0,.55);font:400 14.5px/1.45 var(--corps);color:var(--texte);text-align:left;white-space:normal}
 .ib[hidden]{display:none}
-.ib h4{font:400 19px/1.15 var(--titre);color:var(--bleu);margin:0}
+.ib h4{font:400 19px/1.15 var(--titre);color:var(--bleu-titre);margin:0}
 .ib p{margin:0}
 .ib .ib-def{margin-top:4px}
 .ib .ib-va{margin-top:8px;color:var(--doux);font-size:13.5px}
-.ib .ib-lien{background:none;border:0;padding:2px 0;margin:0;min-height:0;color:var(--bleu);font:700 13.5px var(--corps);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.ib .ib-lien{background:none;border:0;padding:2px 0;margin:0;min-height:0;color:var(--bleu-titre);font:700 13.5px var(--corps);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .ib .ib-ret{background:none;border:0;padding:0;margin:0 0 4px;min-height:0;color:var(--doux);font:700 12.5px var(--corps);display:block;cursor:pointer}
 .ib .ib-ret:hover,.ib .ib-lien:hover{color:var(--texte)}
 .ib .ib-cercle{font-weight:800;font-size:13.5px;margin-top:6px}
@@ -30,11 +30,11 @@
 @media (min-width:761px){.grand.avecDetail:has(.aide-carte):not(:has(.zt-camp)){grid-template-columns:minmax(0,462px) 360px}}
 #vueDetail:has(.aide-carte) .btnLienCarte{margin-top:12px} /* ecart standard de la charte entre texte et bouton */
 #vueDetail .aide-carte .aide-sous{margin:2px 0 8px;color:var(--doux);font-size:13.5px;display:flex;flex-wrap:nowrap;white-space:nowrap;align-items:center;gap:4px 12px}
-#vueDetail .aide-carte .aide-pz{display:inline-flex;align-items:center;gap:4px;font:400 17px var(--titre);color:#fff}
+#vueDetail .aide-carte .aide-pz{display:inline-flex;align-items:center;gap:4px;font:400 17px var(--titre);color:var(--blanc)}
 #vueDetail .aide-carte .aide-pz .ico{font-size:19px}
 #vueDetail .aide-carte .aide-pz img{width:20px;height:20px}
 #vueDetail .aide-carte .aide-txt{margin:0;font-size:15.5px;line-height:1.5}
-#vueDetail .aide-carte .aide-txt b{font-family:var(--titre);font-weight:400;color:var(--bleu)}
+#vueDetail .aide-carte .aide-txt b{font-family:var(--titre);font-weight:400;color:var(--bleu-titre)}
 /* Zoom d'un terrain en partie ou en spectateur : le panneau n'a pas de fond (deux blocs de camps) ; le texte du terrain prend
    le meme cadre que les blocs, en tete, a sa hauteur naturelle (les deux camps gardent des hauteurs egales). */
 #vueDetail:has(.zt-camp) .aide-carte,#vueDetail:has(.dz-camp) .aide-carte{background:var(--panneau);border:1px solid var(--trait);border-radius:12px 9px 14px 8px;padding:12px 14px}
@@ -43,16 +43,16 @@
 /* --- Onglet Regles : bandeau collant (recherche + pastilles des sections) --- */
 #regles [hidden]{display:none!important}
 #regles details{scroll-margin-top:calc(var(--rgHaut,120px) + 8px)}
-.rg-barre{position:sticky;top:var(--rgNav,49px);z-index:4;background:var(--encre);border-bottom:1px solid var(--trait);margin:0 0 16px;padding:0 0 10px;display:flex;align-items:flex-start;gap:14px} /* champ a la meme hauteur que dans Cartes (20 px sous l intro) */
+.rg-barre{position:sticky;top:var(--rgNav,49px);z-index:4;background:var(--fond);border-bottom:1px solid var(--trait);margin:0 0 16px;padding:0 0 10px;display:flex;align-items:flex-start;gap:14px} /* champ a la meme hauteur que dans Cartes (20 px sous l intro) */
 .rg-gauche{flex:none;min-width:0;width:calc(86px + 18px + var(--rgRech,459px));max-width:100%} /* libelle 86 + 18, puis le champ, de la largeur du champ de Cartes */
 #rechRegles{width:var(--rgRech,459px)}
 .rg-barre .rg-ligne{margin:0;flex-wrap:wrap}
 .rg-compte{flex-basis:100%;color:var(--doux);font-size:14px;white-space:nowrap;margin-top:-4px}
 .rg-pastilles{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
 .rg-pas{flex:none;background:var(--panneau2);border:1px solid var(--trait);border-radius:999px;padding:5px 13px;min-height:0;margin:0;font:400 15px/1.2 var(--titre);color:var(--doux);white-space:nowrap;cursor:pointer}
-.rg-pas:hover,.rg-pas:focus-visible{color:var(--bleu);border-color:var(--bleu)}
+.rg-pas:hover,.rg-pas:focus-visible{color:var(--bleu-titre);border-color:var(--bleu)}
 .rg-pas.zero{opacity:.38}
-.rg-pas small{font:700 12px var(--corps);color:var(--or);margin-left:5px}
+.rg-pas small{font:700 12px var(--corps);color:var(--or-texte);margin-left:5px}
 .rg-vide{color:var(--doux);font-size:16px;margin:8px 0 18px;padding:14px 16px;border:1px dashed var(--trait);border-radius:10px;max-width:760px}
 mark.rg-sur{background:rgba(241,195,90,.38);color:var(--texte);border-radius:3px;padding:0 1px;box-shadow:0 0 0 1px rgba(241,195,90,.55)}
 @media (max-width:760px){
@@ -61,3 +61,5 @@ mark.rg-sur{background:rgba(241,195,90,.38);color:var(--texte);border-radius:3px
   .rg-pastilles{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-mask:linear-gradient(90deg,#000 88%,transparent);mask:linear-gradient(90deg,#000 88%,transparent);padding-right:30px}
   .rg-pastilles::-webkit-scrollbar{display:none}
 }
+/* Mode clair (A3) : mots-cles des textes d aide en or fonce. */
+html.clair #vueDetail .aide-carte .aide-txt b{color:var(--or-texte)}

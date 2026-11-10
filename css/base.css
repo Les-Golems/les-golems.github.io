@@ -157,3 +157,9 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 
 /* Couleurs de taux (voir couleurTaux dans commun/outils.js). */
 .sc-taux-vert{color:var(--vert)}.sc-taux-ambre{color:var(--ambre)}.sc-taux-rouge{color:var(--rouge-texte-clair)}.sc-taux-gris{color:var(--gris-taux)}.sc-taux-neutre{color:var(--blanc)}
+
+/* Variables des couleurs du JS (0.6a) : couleurs autrefois ecrites en dur dans onglets/, commun/, vue/. Sombre = valeurs d'origine. */
+:root{--js-taux-haut:#6fd08c;--js-taux-moyen:#f3d163;--js-taux-bas:#ea7a6c;--js-taux-bas2:#ef7a6c;--js-or-taux:#f1c35a;--js-ligne:#7fd8f5;
+  --js-r-diamant:#ffffff;--js-r-pionnier:#bfe9ff;--js-anneau:rgba(255,255,255,.10);--js-pointille:#3a5263;--js-case:#0f1a24}
+html.clair{--js-taux-haut:#157443;--js-taux-moyen:#84620a;--js-taux-bas:#c41f26;--js-taux-bas2:#c41f26;--js-or-taux:#7a5a06;--js-ligne:#04678b;
+  --js-r-diamant:#3f6f8c;--js-r-pionnier:#04678b;--js-anneau:rgba(10,18,26,.10);--js-pointille:#9aabb8;--js-case:#dde3e9}

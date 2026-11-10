@@ -1,3 +1,5 @@
+:root{--doux-sp:#c2ccd2}
+html.clair{--doux-sp:#4c5e6b}
 /* Onglet Jouer : salon, parties ouvertes et en cours, chat et reactions. */
 /* Salon : carte centree, deux joueurs face a face, chat */
 #salon{max-width:720px;margin:0 auto 14px;padding:20px;text-align:center}
@@ -22,11 +24,11 @@
 .sl-nom{font:400 22px/1.15 var(--titre);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sl-nom em{font:800 12px var(--corps);background:var(--bleu);color:var(--encre);border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:middle}
 .sl-etat{font-size:14px;font-weight:800;color:var(--doux)}
-.sl-j.pret .sl-etat{color:#3fcf6e}
+.sl-j.pret .sl-etat{color:var(--vert-coche)}
 .sl-j .cd-tuile{width:100%;cursor:default}
 .sl-j .btn{min-height:38px;padding:5px 12px;font-size:15px}
 .sl-compte{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;background:rgba(5,10,15,.55);border-radius:12px}
-.sl-compte b{font:400 120px/1 var(--titre);color:var(--or);text-shadow:0 4px 0 #6b4f12,0 0 30px rgba(241,195,90,.6);animation:slPop 1s ease-out both}
+.sl-compte b{font:400 120px/1 var(--titre);color:var(--or-texte);text-shadow:0 4px 0 #6b4f12,0 0 30px rgba(241,195,90,.6);animation:slPop 1s ease-out both}
 @keyframes slPop{0%{transform:scale(1.8);opacity:0}25%{transform:scale(1);opacity:1}80%{opacity:1}100%{transform:scale(.8);opacity:.2}}
 @media (prefers-reduced-motion:reduce){.sl-compte b{animation:none}}
 #salon #pret{display:block;width:100%;max-width:340px;margin:0 auto 14px;min-height:54px;font-size:22px}
@@ -37,7 +39,7 @@
 #joueurs .sl-etat,#joueurs .sl-libre .cd-nb{text-align:center;white-space:normal}
 #joueurs .sl-taux{font-size:13px;font-weight:700;color:var(--doux);text-align:center;max-width:100%;white-space:normal;overflow-wrap:anywhere}
 @media (max-width:520px){#salon #joueurs .sl-j .btn{white-space:normal;max-width:100%}}
-.sl-face{text-align:center;font-weight:800;color:var(--or);margin:0 0 10px}
+.sl-face{text-align:center;font-weight:800;color:var(--or-texte);margin:0 0 10px}
 .caseSalon{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--doux);margin:0 0 10px;cursor:pointer}
 .caseSalon.pf-inter{margin:0 0 12px;width:max-content;max-width:100%}
 .sl-liste{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -132,14 +134,14 @@
 #joueurs .sl-j.b-teinte.pret{box-shadow:0 0 0 2px #3fcf6e}
 @media (max-width:520px){#salon{padding:12px}.sl-duo{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.sl-vs{display:none}.sl-j{padding:10px 6px}#joueurs .sl-j .avatar{width:48px;height:48px;font-size:22px}.sl-nom{font-size:18px}#salon .sl-j .btn{font-size:14px;padding:5px 8px;white-space:nowrap}.sl-haut .code{font-size:32px}.sl-compte b{font-size:90px}}
 /* Chat */
-.chat{display:flex;flex-direction:column;background:var(--encre);border:1px solid var(--trait);border-radius:10px;text-align:left;margin:4px 0 8px;min-height:0}
+.chat{display:flex;flex-direction:column;background:var(--fond);border:1px solid var(--trait);border-radius:10px;text-align:left;margin:4px 0 8px;min-height:0}
 .chat-tete{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;font-weight:800;font-size:14px;color:var(--doux);border-bottom:1px solid var(--trait)}
 .chat-tete button{background:none;border:0;color:var(--texte);font:inherit;font-size:18px;cursor:pointer;padding:0 4px}
 .chat-liste{list-style:none;margin:0;padding:6px 10px;overflow-y:auto;height:150px;font-size:14.5px;overflow-wrap:anywhere}
 .chat-liste li{padding:2px 0}
-.chat-liste b{color:var(--bleu);margin-right:5px}
+.chat-liste b{color:var(--bleu-titre);margin-right:5px}
 /* 0.4 : pseudo selon le role (createur dore, adversaire bleu, spectateur gris clair avec un oeil, parti neutre) ; aussi dans la vue spectateur */
-b.chat-createur{color:var(--or)}b.chat-adversaire{color:var(--bleu)}b.chat-spectateur{color:#c2ccd2}b.chat-parti{color:var(--doux)}
+b.chat-createur{color:var(--or-texte)}b.chat-adversaire{color:var(--bleu-titre)}b.chat-spectateur{color:var(--doux-sp)}b.chat-parti{color:var(--doux)}
 b[class^="chat-"][title]{cursor:help}
 .chat-oeil{display:inline-block;width:1.05em;height:1.05em;margin-right:.25em;vertical-align:-.15em;opacity:.85}
 .chat-oeil svg{display:block;width:100%;height:100%;fill:currentColor}
@@ -154,9 +156,9 @@ b[class^="chat-"][title]{cursor:help}
 .p-reac{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 6px}
 .p-reac button{flex:1 1 auto;background:var(--panneau2);border:1px solid var(--trait);border-radius:14px;color:var(--texte);font:inherit;font-size:13.5px;padding:4px 9px;cursor:pointer;min-height:30px}
 .p-reac button:disabled{opacity:.45;cursor:default}
-.bulle-reac{position:fixed;z-index:40;background:var(--or);color:#0a121a;font-weight:800;font-size:15px;padding:5px 11px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.45);pointer-events:none;white-space:nowrap;animation:bulleReac 2.6s ease forwards}
+.bulle-reac{position:fixed;z-index:40;background:var(--or);color:var(--encre);font-weight:800;font-size:15px;padding:5px 11px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.45);pointer-events:none;white-space:nowrap;animation:bulleReac 2.6s ease forwards}
 @keyframes bulleReac{0%{opacity:0;transform:translateY(6px)}10%,80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-6px)}}
-.p-abandon{font-weight:800;color:var(--or)}
+.p-abandon{font-weight:800;color:var(--or-texte)}
 #salon .chat-tete button{display:none}
 /* En partie : panneau replie en bas a droite, bouton flottant sur telephone */
 .chat.flottant{position:fixed;right:12px;bottom:12px;z-index:15;width:320px;max-width:calc(100vw - 24px);margin:0;box-shadow:0 8px 24px rgba(0,0,0,.5)}
@@ -170,7 +172,7 @@ b[class^="chat-"][title]{cursor:help}
 @media (max-width:640px){
   .chat.flottant.replie{right:10px;bottom:10px;border-radius:50%;width:52px;height:52px;background:var(--bleu);border:0}
   .chat.flottant.replie .chat-tete{width:52px;height:52px;padding:0;justify-content:center;color:var(--encre);font-size:0;position:relative}
-  .chat.flottant.replie .chat-tete::before{content:'';width:24px;height:22px;background:var(--encre);clip-path:polygon(0 0,100% 0,100% 72%,45% 72%,20% 100%,22% 72%,0 72%)}
+  .chat.flottant.replie .chat-tete::before{content:'';width:24px;height:22px;background:var(--fond);clip-path:polygon(0 0,100% 0,100% 72%,45% 72%,20% 100%,22% 72%,0 72%)}
   .chat.flottant.replie .chat-nb{position:absolute;top:2px;right:2px;font-size:12px}
   .chat.flottant.replie .chat-tete button{display:none}
   .chat.flottant:not(.replie){left:8px;right:8px;bottom:8px;width:auto;max-width:none}
@@ -188,11 +190,11 @@ b[class^="chat-"][title]{cursor:help}
 .sl-j.pret{box-shadow:inset 0 0 0 1px #3fcf6e}
 .sl-j.sl-libre{background:transparent}
 .sl-j>.btn{display:none}
-.sl-role{position:absolute;top:12px;right:12px;padding:2px 10px;border-radius:999px;font:800 12px/1.3 var(--corps);color:var(--or);box-shadow:inset 0 0 0 1px rgba(241,195,90,.55)}
+.sl-role{position:absolute;top:12px;right:12px;padding:2px 10px;border-radius:999px;font:800 12px/1.3 var(--corps);color:var(--or-texte);box-shadow:inset 0 0 0 1px rgba(241,195,90,.55)}
 .sl-specs{display:flex;flex-direction:column;gap:10px;min-width:0;background:var(--panneau2);border:1px solid var(--trait);border-radius:12px;padding:16px;box-sizing:border-box}
 .sl-st{display:flex;align-items:center;justify-content:space-between;height:24px;color:var(--doux);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
 .sl-st span{display:flex;align-items:center;gap:8px}.sl-st svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
-.sl-st b{min-width:24px;padding:0 8px;border-radius:999px;background:var(--panneau);color:#fff;text-align:center;line-height:22px;box-shadow:inset 0 0 0 1px var(--trait)}
+.sl-st b{min-width:24px;padding:0 8px;border-radius:999px;background:var(--panneau);color:var(--blanc);text-align:center;line-height:22px;box-shadow:inset 0 0 0 1px var(--trait)}
 .sl-specs ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .sl-specs li{display:flex;align-items:center;gap:10px;height:40px;padding:0 10px 0 6px;border-radius:10px;background:var(--panneau);border:1px solid var(--trait);min-width:0}
 .sl-specs li.moi{border-color:var(--bleu)}
@@ -201,7 +203,7 @@ b[class^="chat-"][title]{cursor:help}
 .sl-specs li.plus{justify-content:center;color:var(--doux);font-weight:800;font-size:14px}
 .sl-aucun{flex:1;display:flex;align-items:center;justify-content:center;color:var(--doux);font-size:14px;font-weight:700}
 .sl-bas{width:calc(100% - 316px);display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:16px}
-.sl-bas #attente{margin:0;min-height:22px;font-weight:800;font-size:16px;color:var(--doux)}.sl-bas #attente.pret{color:var(--or)}
+.sl-bas #attente{margin:0;min-height:22px;font-weight:800;font-size:16px;color:var(--doux)}.sl-bas #attente.pret{color:var(--or-texte)}
 .sl-rangee{display:grid;grid-template-columns:200px 340px 200px;gap:16px}
 #salon .sl-rangee .sc-btn{width:100%;margin:0}
 #salon .sl-rangee #pret{max-width:none;min-height:46px;font-size:18px}
@@ -215,7 +217,7 @@ b[class^="chat-"][title]{cursor:help}
 #salon .j-tag{font-size:14px;padding:3px 12px}
 #joueurs .vx-etq:not(.vx-diff){display:none}
 #salon .sl-copies{gap:12px}
-#salon .sl-haut .btnCode{width:180px;min-height:46px;--bord:#26323c;background:#3b4b59;color:var(--texte);box-shadow:0 2px 0 #26323c}
+#salon .sl-haut .btnCode{width:180px;min-height:46px;--bord:#26323c;background:var(--gris-b1);color:var(--texte);box-shadow:0 2px 0 #26323c}
 #salon .sl-haut .btnCode{font-size:17px}.sl-cadre .sl-scene,.sl-cadre .sl-duo{height:100%}
 
 /* 0.6 (charte, salon) : tuile de deck unique (.dk-tuile de Mes decks) dans le conteneur .cd-tuile, qui devient transparent. */
@@ -232,12 +234,12 @@ b[class^="chat-"][title]{cursor:help}
 #joueurs .sl-pn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #joueurs .sl-pw>em{position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);margin:0}
 #joueurs .sl-emb{position:absolute;right:calc(100% + 20px);top:-8px;width:48px;height:48px}
-#joueurs .sl-elo{position:absolute;right:calc(100% + 20px);top:calc(100% + 8px);width:48px;text-align:center;font:800 14px/20px var(--corps);color:#fff;white-space:nowrap}
+#joueurs .sl-elo{position:absolute;right:calc(100% + 20px);top:calc(100% + 8px);width:48px;text-align:center;font:800 14px/20px var(--corps);color:var(--blanc);white-space:nowrap}
 #joueurs .sl-etat{font:800 14px/20px var(--corps)}
 /* Nouvelle version (maquette 41 P1, charte : Bandeau d'alerte, NOUVELLE VERSION) : bandeau d'information compact dans le bandeau du haut,
    28 px a droite de la pastille de version, centre verticalement ; marges interieures egales (6 px visibles de chaque cote).
    La largeur du titre est calee par commun/version.js sur la fin de la pastille (h1 en conteneur : pas de largeur intrinseque). */
-.majDispo{box-sizing:border-box;align-self:center;flex:none;height:40px;margin-left:16px;display:flex;align-items:center;gap:10px;padding:0 5px;border:1px solid #1f8fb0;border-radius:9px;background:linear-gradient(rgba(31,143,176,.10),rgba(31,143,176,.10)),var(--encre);color:#fff;font:700 14px/1.3 var(--corps);white-space:nowrap}
+.majDispo{box-sizing:border-box;align-self:center;flex:none;height:40px;margin-left:16px;display:flex;align-items:center;gap:10px;padding:0 5px;border:1px solid var(--info-bord);border-radius:9px;background:linear-gradient(rgba(31,143,176,.10),rgba(31,143,176,.10)),var(--fond);color:var(--blanc);font:700 14px/1.3 var(--corps);white-space:nowrap}
 .majDispo[hidden]{display:none}
 .majDispo>i{flex:none;width:20px;height:20px;border-radius:50%;background:#1f8fb0;color:#fff;font:800 13px/20px var(--corps);font-style:normal;text-align:center}
 .majDispo .etq-v{display:inline-block;padding:0 7px;font-size:12px;line-height:18px}
@@ -250,6 +252,6 @@ b[class^="chat-"][title]{cursor:help}
 .sl-coinw{position:absolute;top:10px;right:10px;z-index:2}
 .sl-coin{display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border-radius:8px;border:1px solid var(--trait);background:var(--panneau);color:var(--doux);cursor:pointer}
 .sl-coin:hover,.sl-coin:focus-visible{color:var(--texte);border-color:var(--bleu)}.sl-coin svg{width:18px;height:18px}
-.sl-bulle{position:absolute;top:3px;right:40px;white-space:nowrap;background:#0a121a;color:var(--texte);border:1px solid var(--trait);border-radius:6px;padding:4px 8px;font-size:13px;font-weight:700;display:none;pointer-events:none}
+.sl-bulle{position:absolute;top:3px;right:40px;white-space:nowrap;background:var(--fond);color:var(--texte);border:1px solid var(--trait);border-radius:6px;padding:4px 8px;font-size:13px;font-weight:700;display:none;pointer-events:none}
 .sl-coinw:hover .sl-bulle,.sl-coin:focus-visible+.sl-bulle{display:block}
 #salon .sl-prendre{margin:0;min-height:46px;width:100%;font-size:18px}

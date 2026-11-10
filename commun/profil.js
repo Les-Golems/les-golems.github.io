@@ -2,7 +2,7 @@
 /* Profil joueur : resume calcule sur TOUTES les parties d'un compte (cumuls joueurs/{uid}/cumul, tenus a jour a chaque partie),
    sur l'historique de l'appareil (50 dernieres parties) pour un invite.
    Le meme resume est publie (profils/{uid}) : la fenetre d'un autre joueur affiche exactement ses chiffres. */
-const NIV_ORDI=[['facile','#6fd08c'],['normal','#f3d163'],['difficile','#ea7a6c']];
+const NIV_ORDI=[['facile','var(--js-taux-haut)'],['normal','var(--js-taux-moyen)'],['difficile','var(--js-taux-bas)']];
 /* Cumuls (texte JSON ecrit par salon-firebase.js) : f format, n parties, v victoires, d defaites, s serie signee
    (sd : date de la partie qui l'a fixee), k parties comptees, tables de lignes [cle, parties, victoires, rang, ...] :
    dk decks (+ elements), c cartes, mv MVP (nom), a adversaires, ve versions du moteur (+ parties et victoires contre
@@ -180,7 +180,7 @@ function resumeLu(r){
    Hauteur de fenetre fixe quel que soit le mode. Lectures seules : classe/saison, classe/saisons, classe/joueurs/<uid>,
    classe/classement, classe/ecussons/<uid>, classe/instantanes/<id>/<uid>. */
 const PF_MODES=[['classee','Classées'],['amicale','Amicales'],['entrainement','Entraînement']],PF_DIF=['','facile','normal','difficile'];
-const PF_RANG_COUL={amethyste:'#d6a8ff',topaze:'#ffe58a',saphir:'#8fc3ff',emeraude:'#9ff0b8',rubis:'#ff9aa6',diamant:'#ffffff',pionnier:'#bfe9ff'};
+const PF_RANG_COUL={amethyste:'var(--r-amethyste)',topaze:'var(--r-topaze)',saphir:'var(--r-saphir)',emeraude:'var(--r-emeraude)',rubis:'var(--r-rubis)',diamant:'var(--js-r-diamant)',pionnier:'var(--js-r-pionnier)'};
 const PF_EMB='images/rangs/'; /* emblemes de rang : images/rangs/<id>.png et placement.png (copie unique partagee avec Jouer et Statistiques) */
 const PF_MIN_TOP=5; /* un deck, une carte n'entrent dans un top qu'a partir de 5 parties */
 /* Mode d'une partie de l'historique : ordinateur = entrainement ; classee si marquee (cl / mode, pose par les parties classees 0.6) ; sinon amicale. */
@@ -266,11 +266,11 @@ async function ouvreProfil(autre){
   /* Rang en cours : placement, ou rang + Elo + place au classement + jauge vers le rang suivant. */
   const place=(()=>{const sid=sa&&typeof sa==='object'?sa.id|0:0,l=Object.entries(cla||{}).filter(([,x])=>x&&Number.isFinite(x.elo)&&x.saison===sid) /* 0.6.1 : saison en cours */.sort((a,b)=>b[1].elo-a[1].elo);const i=l.findIndex(([u])=>u===uid);return i<0?null:{i:i+1,sur:l.length}})();
   const pose=(idR,titre,sous,coul)=>{rg.textContent='';const im=el('img');im.alt='';im.src=PF_EMB+(idR||'placement')+'.png';im.onerror=()=>{im.style.visibility='hidden'};
-    const tx=E('div'),bb=E('b','',titre);bb.style.color=coul||'#fff';tx.append(bb,E('small','',sous));rg.append(im,tx);id.style.setProperty('--rc',coul||'#2a3f50')};
+    const tx=E('div'),bb=E('b','',titre);bb.style.color=coul||'var(--blanc)';tx.append(bb,E('small','',sous));rg.append(im,tx);id.style.setProperty('--rc',coul||'var(--trait)')};
   const rangCours=()=>{etR.textContent='Rang classé';jg.hidden=true;jg.textContent='';
-    if(!CL||!jo||!Number.isFinite(jo.elo)){pose('',co||!moi?'Non classé':'Sans compte',co||!moi?'Aucune partie classée cette saison':'Crée un compte pour être classé','#a6bac6');return}
+    if(!CL||!jo||!Number.isFinite(jo.elo)){pose('',co||!moi?'Non classé':'Sans compte',co||!moi?'Aucune partie classée cette saison':'Crée un compte pour être classé','var(--doux)');return}
     const a=CL.affichage(jo);
-    if(a.placement){pose('',a.texte,'Rang estimé : '+a.estime.nom,'#a6bac6');return}
+    if(a.placement){pose('',a.texte,'Rang estimé : '+a.estime.nom,'var(--doux)');return}
     pose(a.rang.id,a.rang.nom,'Elo '+Math.round(jo.elo)+(place?' - '+place.i+(place.i>1?'e':'er')+' sur '+pfPl(place.sur,'classé'):''),PF_RANG_COUL[a.rang.id]);
     const i=CL.RANGS.findIndex(x=>x.id===a.rang.id),nx=CL.RANGS[i+1];
     if(nx){const lo=Number.isFinite(a.rang.min)?a.rang.min:nx.min-100,p=Math.max(0,Math.min(100,100*(jo.elo-lo)/(nx.min-lo)));jg.hidden=false;
@@ -326,7 +326,7 @@ async function ouvreProfil(autre){
     const hr=E('div','pr-hr'),gc=E('div','pr-gc'),gn=E('div','pr-gn');
     const tx=P.n?Math.round(100*P.v/P.n):null,coul=couleurTaux.valeur(tx,P.n);
     {const c=E('div');c.append(E('i','','Taux de victoire'));const an=E('div','pr-ann');
-     an.innerHTML='<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="51" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="12"/>'+(tx?'<circle cx="60" cy="60" r="51" fill="none" stroke="'+coul+'" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+(3.2044*tx)+' 999" transform="rotate(-90 60 60)"/>':'')+'</svg>';
+     an.innerHTML='<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="51" fill="none" stroke="var(--js-anneau)" stroke-width="12"/>'+(tx?'<circle cx="60" cy="60" r="51" fill="none" stroke="'+coul+'" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+(3.2044*tx)+' 999" transform="rotate(-90 60 60)"/>':'')+'</svg>';
      an.append(E('span','',tx===null?'-':tx+' %'));c.append(an,E('small','',P.v+' V - '+P.d+' D'));gn.append(c)}
     const libM=glob?'tous modes':['parties classées','parties amicales',dif?'parties en '+['','Facile','Normal','Difficile'][dif]:"parties d'entraînement"][mode];
     {const c=E('div');c.append(E('i','','Parties'),E('b','',String(P.n)),E('small','',P.n>1?libM:libM.replace(/parties/,'partie').replace(/ées$/,'ée').replace(/ales$/,'ale')));gn.append(c)}
