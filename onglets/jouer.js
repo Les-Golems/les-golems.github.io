@@ -619,8 +619,9 @@ async function affronterGolem(){
   const j=profilClasse(),sa=code;if(!GolemsClasse.peutAffronterRobot(j.robots)){majBandeauRobot();return}
   /* Bandeau robot pose dans le salon (regles : 2 min, sans adversaire, 5 par jour) avant de le quitter. */
   try{if(!r||!r.poseRobot)throw new Error('salon');await r.poseRobot(GolemsClasse.salonRobot(room.compte.uid(),j.elo))}
-  catch(e){console.warn(e);creeLu='';majBandeauRobot();alerte('erreurJeu','Golem pas encore disponible : le serveur n\'a pas encore validé les 2 minutes d\'attente. Réessaie dans un instant.');return}
-  await sortie('');lanceClasseRobot(j,sa);
+  catch(e){console.warn(e);creeLu='';majBandeauRobot();alerte('erreurJeu',e&&/PERMISSION_DENIED/i.test(String(e.code||e.message))?'Golem pas encore disponible : le serveur n\'a pas encore validé les 2 minutes d\'attente. Réessaie dans un instant.':'Connexion coupée : le Golem n\'a pas pu être lancé. Réessaie dans un instant.',{bouton:{texte:'Réessayer',action:()=>{alerte('erreurJeu','');$('affronterGolem').click()}}});return}
+  /* Sortie du salon bornee a 3 s : sous coupure, leave() attend des accuses du serveur ; la partie contre le Golem ne doit jamais attendre en silence. */
+  await Promise.race([sortie(''),new Promise(f=>setTimeout(f,3000))]);lanceClasseRobot(j,sa);
 }
 
 /* Colonne des spectateurs du salon (refonte v2) : 5 lignes au plus, puis « +N autres » ; « Aucun spectateur » si vide. */
