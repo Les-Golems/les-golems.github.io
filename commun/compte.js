@@ -184,7 +184,7 @@ $('formPseudo').onsubmit=async e=>{
 function surCompte(){
   pseudo=compteCo()?room.compte.pseudo():'';
   majMoi();majEtat();majChoixDeck();
-  if(!$('decks').hidden)peintDecks();if(!$('historique').hidden)peintHisto();
+  if(!$('decks').hidden)peintDecks();if(!$('historique').hidden)peintHisto();if(!$('stats').hidden)peintStats();
   if(compteCo())proposeImport();
 }
 majMoi();

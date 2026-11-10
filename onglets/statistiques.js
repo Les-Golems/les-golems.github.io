@@ -118,6 +118,7 @@ async function peintStats(){
   if(!room&&!compteCharge&&window.golemsSalon){z.textContent='';alerteInfo(z.appendChild(el('div','pf-vide')),'Connexion : statistiques en cours de lecture. Patiente un instant.');
     Promise.resolve(window.golemsSalon).catch(()=>{}).finally(()=>setTimeout(()=>{if(!$('stats').hidden)peintStats()},0));return}
   if(!room||!room.litResumes){z.textContent='';alerte(z.appendChild(el('div','pf-vide')),'Lecture impossible : statistiques indisponibles pour le moment. Réessaie plus tard.');return}
+  if(!compteCo()){verrouStats();return} /* invite : les regles refusent la lecture, invitation a se connecter (charte, comme Jouer) */
   if(!statsData){z.textContent='';alerteInfo(z.appendChild(el('div','pf-vide')),'Connexion : statistiques en cours de lecture. Patiente un instant.')}else dessineStats(statsData);
   try{statsJoueurs=room.litClassement?await room.litClassement().catch(()=>[]):[]}catch(e){statsJoueurs=[]}
   try{statsClasse=await litClasseSt()}catch(e){console.warn(e);statsClasse={liste:[],moi:null,uid:null,saison:null}}
@@ -125,6 +126,14 @@ async function peintStats(){
   try{const pr=await Promise.all(statsJoueurs.filter(x=>x.n>=5).map(x=>room.compte.profilDe?room.compte.profilDe(x.uid).then(r=>[x.uid,r]):[x.uid,null]));statsProfils=Object.fromEntries(pr)}catch(e){statsProfils={}}
   try{statsData=uneParGraine((await room.litResumes(2000)).filter(r=>r&&typeof r.d==='number'&&(r.g===0||r.g===1||r.g===-1)))}catch(e){console.warn(e);if(!statsData){z.textContent='';alerte(z.appendChild(el('div','pf-vide')),'Lecture impossible : statistiques injoignables. Réessaie plus tard.')}return}
   if(!$('stats').hidden)dessineStats(statsData);
+}
+/* Invite : apercu floute de l'onglet sous un cadenas, Se connecter / Creer un compte (meme verrou que la colonne Classement). */
+function verrouStats(){
+  const z=$('statsCorps');try{dessineStats([])}catch(e){console.warn(e);z.textContent=''}
+  const v=el('div','st-verrou st-verrou-tout'),f=el('div','st-flou');f.setAttribute('aria-hidden','true');f.append(...z.childNodes);
+  const o=el('div','st-vo');o.innerHTML='<svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><rect x="3" y="14" width="24" height="18" rx="4" fill="none" stroke="#01C1F0" stroke-width="3"/><path d="M8 14V10a7 7 0 0 1 14 0v4" fill="none" stroke="#01C1F0" stroke-width="3"/></svg><b>Statistiques des joueurs</b><p>Connecte-toi pour voir les classements, les cartes et les terrains.</p><div class="sc-rangee"><button class="sc-btn" type="button" data-a="co">Se connecter</button><button class="sc-btn sc-secondaire" type="button" data-a="cree">Créer un compte</button></div>';
+  o.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{ouvrePseudo();if(b.dataset.a==='cree')modeCompte(true)});
+  v.append(f,o);z.textContent='';z.append(v);statsAjuste=null;
 }
 /* Médaille de saison (image finale, images/recompenses/saison-<id>-<taille>.png) ; repli : emblème de placement. k = échelle (40 px x k). */
 let medSt=0;
