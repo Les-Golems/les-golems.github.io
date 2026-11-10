@@ -4,7 +4,10 @@
 const DATE_V05='7 novembre 2026';
 /* Date de publication de la 0.6 : A REMPLACER LE JOUR J (ex. '10 novembre 2026'), bloc de version et Details. */
 const DATE_V06='9 novembre 2026';
+/* Date de publication de la 0.6a : A REMPLACER LE JOUR J (ex. '11 novembre 2026'), bloc de version et Details. */
+const DATE_V06A='A REMPLACER LE JOUR J';
 const NOUVEAUTES=[
+ {version:'Version 0.6a',date:DATE_V06A,notes:["Mode clair, dans le menu Affichage","Nouvelles animations : évolution, animal, destruction, victoire et plus","Rejeu corrigé dans la nouvelle interface de partie","Guides éditables : publication, modification ou suppression","Classement des decks par glisser-déposer","Profil et Statistiques corrigés","Nouveaux avatars disponibles","Nombreux bugs corrigés"]},
  {version:'Version 0.6',date:DATE_V06,notes:["Nouvelle interface","Parties classées (6 rangs, saison 0)","Récompenses : médaille Pionnier, écus du top 10","Nouveau Golem : {{Elccino}} (Brume, Cristal)","Nouvel animal : {{Uki}}, l'animal de Shifukuro (Roche)","6 decks conseillés, un par archétype","Le Golem adverse joue l'un d'eux au hasard","Nouveau mot-clé : Récupérer"]},
  {version:'Version 0.5a',date:'8 novembre 2026',notes:["Sur ordinateur, les piles Deck, Forge et Défausse s'ouvrent de nouveau","Sur téléphone, les compteurs des bandeaux affichent les cartes","Ton deck se consulte trié par nom, avec le nombre d'exemplaires","Le deck adverse n'est plus consultable, seul son nombre de cartes s'affiche"]},
  {version:'Version 0.5',date:DATE_V05,notes:["Nouvel écran de partie","6 nouveaux terrains","Animaux de compagnie retravaillés","Nouvelle règle : 4 éléments différents au plus par deck","Decks conseillés retravaillés","État de la connexion et reprise de la partie","Mode daltonien","Nouvel onglet Guides","Diverses améliorations de confort"]},
@@ -17,7 +20,7 @@ const NOUVEAUTES=[
 ];
 /* 0.6.1 : calendrier des sorties, tire de NOUVEAUTES (version et date de chaque bloc) ; heure de mise en ligne des builds connus
    (journal de main) pour departager deux versions du meme jour. Sert a l'Historique : version deduite de la date d'une partie ancienne. */
-const HEURES_SORTIE={'0.2a':'09:40','0.2b':'09:45','0.2c':'11:01','0.3':'18:40','0.4':'10:09','0.5':'14:48','0.5a':'12:52','0.6':'19:46'};
+const HEURES_SORTIE={'0.2a':'09:40','0.2b':'09:45','0.2c':'11:01','0.3':'18:40','0.4':'10:09','0.5':'14:48','0.5a':'12:52','0.6':'19:46','0.6a':'00:00'/* A REMPLACER LE JOUR J : heure de mise en ligne */};
 const MOIS_FR=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 function sortiesVersions(){
   return NOUVEAUTES.map(n=>{const v=String(n.version).replace(/^Version /,''),m=/^(\d{1,2}) (\S+) (\d{4})$/.exec(String(n.date||'')),mo=m?MOIS_FR.indexOf(m[2]):-1;if(mo<0)return null;
@@ -29,6 +32,32 @@ function versionALaDate(t){if(!(t>0))return '';let v='';sortiesVersions().forEac
    Une ligne = une phrase courte pour les joueurs. Sous-liste : {t:"titre :",l:[...]}. Rubrique vide : [] (message neutre affiché).
    Nouvelle version : ajouter son entree en tete, comme dans NOUVEAUTES. */
 const DETAILS_VERSIONS={
+ 'Version 0.6a':{
+  nouveautes:[
+   "Mode clair : un nouveau thème clair pour tout le site, à choisir dans Affichage (compatible avec le mode daltonien).",
+   "Nouvelles animations en partie : évolution, animal de compagnie, destruction, terrain conquis, Récupérer, grosse frappe, bonus, copie, favori, début de manche, victoire et défaite.",
+   "Rejeu dans la nouvelle interface : les parties rejouées s'affichent enfin avec le nouvel écran de partie, commandes du rejeu dans la colonne de droite.",
+   "Guides publiés par les joueurs : un guide publié est visible tout de suite. L'auteur peut le Modifier ou le Supprimer (10 guides par jour et par compte). Une pastille « nouveau » signale chaque guide récent. Nouveau guide officiel Bien débuter, avec pictos et noms de cartes cliquables comme dans les Règles.",
+   "Classement des decks : decks réordonnables par glisser-déposer, l'ordre choisi est enregistré (ou Alt + flèches au clavier).",
+   "« Évolue en » dans le zoom d'une carte : en quoi elle évolue, d'un coup d'œil.",
+   "Nouveaux avatars de terrain.",
+   "Statistiques sans compte : un aperçu flouté, avec Se connecter et Créer un compte.",
+   {t:"Confort :",l:[
+    "Noms courts des cartes dans le journal de partie, les bilans de manche et l'historique : « Trigas » pour la base, « Trigas ★ » pour l'évolution.",
+    "Bandeau de fin de partie : en cas d'égalité de points, il indique que la partie s'est jouée au départage.",
+    "Profils accessibles : le profil de n'importe quel joueur s'ouvre, et la recherche de Statistiques trouve désormais tous les joueurs.",
+    "Choix mémorisés : Publique/Privée, filtres et tris sont conservés sur l'appareil, même après un rechargement."]}],
+  corrections:[
+   "Animations de partie rétablies : pioche, pose, Forge, Défausse et étoiles de fin de manche reviennent.",
+   "Profil : Meilleurs decks, Meilleures cartes et MVP se remplissent de nouveau, y compris avec les anciennes parties. Un profil de plus de 50 parties s'affiche correctement. Les blocs encore vides indiquent « Pas encore assez de parties ». La saison passée apparaît sur le badge.",
+   "Statistiques : chiffres par saison justes, 100 % sur une seule ligne, taux lisibles en mode daltonien. Le message « Lecture impossible » n'apparaît plus à tort.",
+   "Salon : deck invalide (avec son étiquette de version) et salon d'attente corrigés, plus de défilement de la page sur un écran 1920 x 1080. Les noms de decks identiques se distinguent.",
+   "Decks : Dupliquer numérote les copies : deux decks ne portent plus le même nom. Accords justes au singulier (« 1 partie », « 1 pt ») dans tout le site.",
+   "Decks et Cartes : en tri par numéro décroissant, la base passe avant son évolution. Le filtre d'élément classe chaque animal selon l'élément imprimé sur sa carte.",
+   "Avatar inconnu : plus d'image cassée.",
+   "Chargement plus fiable : si un fichier du site ne se charge pas, la page le recharge toute seule."],
+  regles:[]
+ },
  'Version 0.6':{
   nouveautes:[
    "Refonte graphique complète du site : nouveaux onglets Jouer, Decks (Decks et Cartes réunis), Statistiques, Comment jouer (Règles et Guides), Nouveautés et Profil. Nouveau bandeau en haut de page, nouvelles alertes et nouveaux sélecteurs.",
@@ -422,7 +451,7 @@ NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t)
    page 1 = epingles + recents ; pages suivantes : 6 blocs chacune, sans epingles. Fleches < x / n > a droite de la ligne d'intro
    (alignees sur le bord droit de la grille), masquees s'il n'y a qu'une page ; changer de page remonte en haut de la liste. */
 const FEUILLE_DE_ROUTE=[
- {v:'0.6',nom:'Nouvelle interface et parties classées',etat:'actuelle'},
+ {v:'0.6a',nom:'Mode clair, rejeu et guides des joueurs',etat:'actuelle'},
  {nom:'Tournois',etat:'tard'},
  {nom:'Nouveau type de carte : Événements',etat:'tard'},
  {nom:'Équilibrage',etat:'tard'},
