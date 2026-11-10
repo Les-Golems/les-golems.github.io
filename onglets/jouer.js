@@ -582,16 +582,21 @@ $('jPages').querySelector('.nv-suiv').onclick=()=>{jPage++;peintListe()};
 
 /* Salon classe (36 variante B) : bandeau d'information des l'ouverture ; compte a rebours de 2 min sans adversaire,
    puis « Golem X - Elo N, points divises par 2, k sur 5 aujourd'hui » et le bouton « Affronter un Golem » ; limite atteinte. */
-const ATTENTE_ROBOT=120000;let robotT2=0;
+const ATTENTE_ROBOT=120000;let robotT2=0,creeSrv=0,creeLu='';
+/* La regle serveur exige cree <= now - 120000, cree et now en heure SERVEUR : le delai part de cree lu en base, compare a l'heure serveur estimee (room.heure = horloge locale + .info/serverTimeOffset). */
+function lisCreeSalon(){const s=r,c=code;if(!s||!s.lisCree||creeLu===c)return;creeLu=c;s.lisCree().then(v=>{if(r!==s||code!==c)return;if(v>0){creeSrv=v;majBandeauRobot()}else{creeLu='';robotT2=setTimeout(majBandeauRobot,1000)}})}
 function majBandeauRobot(){
   const z=$('bandeauRobot');if(!z)return;
   {const g=$('salonClasseTag');g.hidden=!r&&!code;g.textContent=salonClasse?'Classée':'Amicale';g.classList.toggle('cl',salonClasse)}
   clearTimeout(robotT2);robotT2=0;
   const seul=!!r&&!partie&&salonClasse&&createur&&ordre(r.peers()).length<2;
   if(!seul){z.hidden=true;return}
-  const C=GolemsClasse,j=profilClasse(),R=C.ROBOTS[C.niveauRobot(j.elo)],reste=C.robotsRestants(j.robots),t=z.querySelector('span'),b=$('affronterGolem'),ms=ATTENTE_ROBOT-(Date.now()-entree);
+  if(creeLu!==code){creeSrv=0}
+  lisCreeSalon();
+  const C=GolemsClasse,j=profilClasse(),R=C.ROBOTS[C.niveauRobot(j.elo)],reste=C.robotsRestants(j.robots),t=z.querySelector('span'),b=$('affronterGolem'),ms=creeSrv&&creeLu===code?ATTENTE_ROBOT-(room.heure()-creeSrv):ATTENTE_ROBOT-(Date.now()-entree)+1000;
   z.hidden=false;
   if(reste<=0){t.textContent='Limite atteinte : '+C.ROBOTS_PAR_JOUR+' parties contre un Golem par jour en classée. Reviens demain ou attends un adversaire.';b.hidden=true;return}
+  if(ms<=0&&!(creeSrv&&creeLu===code)){t.textContent='Salon classé : personne n\'a encore rejoint. Vérification de l\'heure du salon…';b.hidden=true;if(!robotT2)robotT2=setTimeout(majBandeauRobot,1000);return}
   if(ms>0){const s=Math.ceil(ms/1000);t.textContent='Salon classé : personne n\'a encore rejoint. Un Golem te sera proposé dans '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+'.';b.hidden=true;robotT2=setTimeout(majBandeauRobot,(ms%1000)+20);return}
   t.textContent='Salon classé : personne n\'a rejoint. Affronte le '+R.nom+' - Elo '+R.elo+', points divisés par 2, '+C.compteRobot(j.robots).n+' sur '+C.ROBOTS_PAR_JOUR+' aujourd\'hui.';b.hidden=false;
 }
@@ -602,7 +607,7 @@ async function affronterGolem(){
   const j=profilClasse(),sa=code;if(!GolemsClasse.peutAffronterRobot(j.robots)){majBandeauRobot();return}
   /* Bandeau robot pose dans le salon (regles : 2 min, sans adversaire, 5 par jour) avant de le quitter. */
   try{if(!r||!r.poseRobot)throw new Error('salon');await r.poseRobot(GolemsClasse.salonRobot(room.compte.uid(),j.elo))}
-  catch(e){console.warn(e);alerte('erreurJeu','Partie classée impossible : Golem refusé par le serveur. Réessaie dans un instant.');return}
+  catch(e){console.warn(e);creeLu='';majBandeauRobot();alerte('erreurJeu','Golem pas encore disponible : le serveur n\'a pas encore validé les 2 minutes d\'attente. Réessaie dans un instant.');return}
   await sortie('');lanceClasseRobot(j,sa);
 }
 

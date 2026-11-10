@@ -679,6 +679,8 @@ async function ouvre() {
       // 0.6.1 : hote = créateur du salon (seul à pouvoir poser cl), posé à la création de tout salon.
       async marqueHote() { try { await ajoute(ref(db, base + "/hote"), uid); } catch (e) {} },
       async marqueClasse() { try { await ajoute(ref(db, base + "/hote"), uid); } catch (e) {} await set(ref(db, base + "/cl"), true); try { await ajoute(ref(db, base + "/cree"), serverTimestamp()); } catch (e) {} },
+      // Heure d'ouverture du salon classé (cree, heure serveur ; 0 si absente) : base du délai de 2 min avant le Golem.
+      async lisCree() { try { return +(await get(ref(db, base + "/cree"))).val() || 0; } catch (e) { return 0; } },
       async estClasse() { try { return (await get(ref(db, base + "/cl"))).val() === true; } catch (e) { return false; } },
       // Bandeau robot : ajout seulement ; déjà posé par moi (renvoi après coupure) = fait.
       async poseRobot(o) { const x = await ajoute(ref(db, base + "/robot"), o); const v = x.committed ? null : x.snapshot.val();
