@@ -222,8 +222,8 @@ function peintDecks(){
     l.forEach((x,i)=>{const t=tuileDk({nom:x.nom,els:elsOrdre(x),nb:totalDeck(x),R:raisonsDeck(x),v:x.v||V_DECK_ANCIEN,cartes:x.cartes});
       if(x.id===deckVu)t.classList.add('sel');t.tabIndex=0;t.setAttribute('role','listitem');t.setAttribute('aria-current',String(x.id===deckVu));
       const ouvre=()=>{deckVu=x.id;msgDk=null;msgInfoDk=null;listeDepliee=false;peintDecks()};t.onclick=()=>{if(t._glisse)return;ouvre()};
-      t.onkeydown=e=>{if(e.altKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){e.preventDefault();bougeDeck(i,i+(e.key==='ArrowUp'?-1:1),'t')}else if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvre()}};
-      t.dataset.id=x.id;t.title='Glisse pour déplacer (ou Alt + flèche haut/bas)';if(l.length>1){t.classList.add('dk-ord');t.append(flechesDk(i,l.length,x.nom));glisseDk(t,ls,i)}ls.append(t)});
+      t.onkeydown=e=>{if(e.altKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){e.preventDefault();bougeDeck(i,i+(e.key==='ArrowUp'?-1:1),1)}else if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvre()}};
+      t.dataset.id=x.id;if(l.length>1){t.setAttribute('aria-description','Alt + flèche haut ou bas pour déplacer');glisseDk(t,ls,i)}ls.append(t)});
     if(!l.length)ls.append(el('p','dk-vide0','Aucun deck pour le moment. Crée ton premier deck.'));
     L.append(ls);
     /* Invite (variante B) : tuile sous la liste, decks gardes sur l'appareil, repris a la connexion */
@@ -424,37 +424,36 @@ function bougeDeck(a,b,foc){
   const l=lesDecks();if(b<0||b>=l.length||a===b||a<0||a>=l.length)return;
   const [x]=l.splice(a,1);l.splice(b,0,x);gardeDecks(l);peintDecks();
   const ls=document.querySelector('#dkA .dk-dks'),t=ls&&ls.querySelector('.dk-tuile[data-id="'+CSS.escape(x.id)+'"]');if(!t)return;
-  const cible=foc==='h'?t.querySelector('.dk-fl button:first-child'):foc==='b'?t.querySelector('.dk-fl button:last-child'):t;
-  (cible&&!cible.disabled?cible:t).focus({preventScroll:true});t.scrollIntoView({block:'nearest'});
+  if(foc)t.focus({preventScroll:true});t.scrollIntoView({block:'nearest'});
 }
-function flechesDk(i,n,nom){
-  const z=el('span','dk-fl');
-  [['h','M3 9.5L8 4.5l5 5','Monter '],['b','M3 6.5l5 5 5-5','Descendre ']].forEach(([s,d,lib])=>{
-    const b=el('button');b.type='button';b.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="'+d+'" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    b.setAttribute('aria-label',lib+nom);b.title=s==='h'?'Monter':'Descendre';b.disabled=s==='h'?i===0:i===n-1;
-    b.onclick=e=>{e.stopPropagation();bougeDeck(i,i+(s==='h'?-1:1),s)};b.onkeydown=e=>e.stopPropagation();b.onpointerdown=e=>e.stopPropagation();z.append(b)});
-  return z;
-}
+/* Glisser : la tuile suit le pointeur (soulevee, ombre), les autres glissent pour faire la place, trait d'insertion bleu ; pose animee.
+   Souris : des 6 px de mouvement ; doigt : appui long 350 ms. Un clic sans mouvement ouvre le deck. Echap annule. */
 function glisseDk(t,ls,i){
   t.onpointerdown=e=>{
-    if(e.button!==0||e.target.closest('.dk-fl'))return;
-    const x0=e.clientX,y0=e.clientY,tactile=e.pointerType!=='mouse';let actif=false,cible=i,repere=null,raf=0,vy=0,tl=0;
-    const tuiles=()=>[...ls.querySelectorAll('.dk-tuile')];
-    const place=y=>{const T=tuiles();let k=T.length;for(let j=0;j<T.length;j++){const r=T[j].getBoundingClientRect();if(y<r.top+r.height/2){k=j;break}}
-      cible=k;const lr=ls.getBoundingClientRect(),ref=T[k]||T[T.length-1],r=ref.getBoundingClientRect();
-      const yy=(T[k]?r.top-5:r.bottom+3)-lr.top+ls.scrollTop;repere.style.top=Math.round(yy-1)+'px';
-      repere.hidden=(k===i||k===i+1)};
-    const defile=()=>{if(!actif)return;if(vy){ls.scrollTop+=vy;place(lastY)}raf=requestAnimationFrame(defile)};
-    let lastY=y0;
-    const demarre=()=>{actif=true;t._glisse=true;t.classList.add('dk-tire');ls.classList.add('dk-glisse');repere=el('div','dk-repere');ls.append(repere);place(lastY);raf=requestAnimationFrame(defile);try{t.setPointerCapture(e.pointerId)}catch(_){}};
+    if(e.button!==0)return;
+    const doux=!matchMedia('(prefers-reduced-motion: reduce)').matches,x0=e.clientX,y0=e.clientY,tactile=e.pointerType!=='mouse';
+    let actif=false,k=i,repere=null,raf=0,vy=0,tl=0,lastY=y0,T=[],P=[],h=0,s0=0;
+    const pos=()=>{const st=ls.scrollTop-s0,ty=lastY-y0+st;t.style.transform='translateY('+ty+'px) scale(1.02)';
+      const c=P[i].top+ty+P[i].h/2;let b=0;for(let j=0;j<T.length;j++)if(j!==i&&c>P[j].top+P[j].h/2)b++;k=b;
+      T.forEach((u,j)=>{if(j===i)return;u.style.transform=(j>i&&j<=k)?'translateY('+(-h)+'px)':(j<i&&j>=k)?'translateY('+h+'px)':''});
+      const top=k>i?P[k].top+P[k].h-P[i].h:P[k].top;repere.style.top=Math.round(top-5.5)+'px';repere.hidden=k===i};
+    const defile=()=>{if(!actif)return;if(vy){ls.scrollTop+=vy;pos()}raf=requestAnimationFrame(defile)};
+    const demarre=()=>{actif=true;t._glisse=true;T=[...ls.querySelectorAll('.dk-tuile')];const lr=ls.getBoundingClientRect();s0=ls.scrollTop;
+      P=T.map(u=>{const r=u.getBoundingClientRect();return {top:r.top-lr.top+ls.scrollTop,h:r.height}});h=P[i].h+8;
+      ls.classList.add('dk-glisse');if(doux)ls.classList.add('dk-doux');t.classList.add('dk-tire');
+      repere=el('div','dk-repere');repere.hidden=true;ls.append(repere);pos();raf=requestAnimationFrame(defile);try{t.setPointerCapture(e.pointerId)}catch(_){}};
     if(tactile)tl=setTimeout(demarre,350);
     const mv=ev=>{lastY=ev.clientY;
       if(!actif){if(Math.hypot(ev.clientX-x0,ev.clientY-y0)>6){if(tactile){fin(null);return}demarre()}else return}
-      ev.preventDefault();place(ev.clientY);const lr=ls.getBoundingClientRect();vy=ev.clientY<lr.top+28?-8:ev.clientY>lr.bottom-28?8:0};
+      ev.preventDefault();pos();const lr=ls.getBoundingClientRect();vy=ev.clientY<lr.top+28?-8:ev.clientY>lr.bottom-28?8:0};
     const tm=ev=>{if(actif)ev.preventDefault()};
     const fin=ev=>{clearTimeout(tl);cancelAnimationFrame(raf);removeEventListener('pointermove',mv);removeEventListener('pointerup',fin);removeEventListener('pointercancel',fin);removeEventListener('touchmove',tm);removeEventListener('keydown',ech,true);
-      if(!actif)return;actif=false;repere&&repere.remove();t.classList.remove('dk-tire');ls.classList.remove('dk-glisse');setTimeout(()=>{t._glisse=false},0);
-      if(ev&&ev.type==='pointerup'){const b=cible>i?cible-1:cible;if(b!==i)bougeDeck(i,b,'t')}};
+      if(!actif)return;actif=false;repere&&repere.remove();setTimeout(()=>{t._glisse=false},0);
+      const b=ev&&ev.type==='pointerup'?k:i,st=ls.scrollTop-s0,dest=(b>i?P[b].top+P[b].h-P[i].h:P[b].top)-P[i].top;
+      const pose=()=>{ls.classList.remove('dk-glisse','dk-doux');if(b!==i)bougeDeck(i,b);else{t.classList.remove('dk-tire','dk-pose');T.forEach(u=>u.style.transform='')}};
+      if(b===i)T.forEach(u=>{if(u!==t)u.style.transform=''});
+      if(!doux){pose();return}
+      t.classList.add('dk-pose');t.style.transform='translateY('+(dest)+'px)';setTimeout(pose,190)};
     const ech=ev=>{if(ev.key==='Escape'&&actif){ev.preventDefault();ev.stopPropagation();fin(null)}};
     addEventListener('pointermove',mv);addEventListener('pointerup',fin);addEventListener('pointercancel',fin);addEventListener('touchmove',tm,{passive:false});addEventListener('keydown',ech,true);
   };

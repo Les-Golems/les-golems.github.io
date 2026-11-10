@@ -487,18 +487,14 @@ body.daltonien .dk-tuile.inv::after{content:'!';position:absolute;right:8px;bott
 .dk-fen-lien .vd-m:empty{display:none}
 .dk-fen-lien .sc-fen-actions .sc-btn:disabled{opacity:.45;cursor:not-allowed}
 
-/* 0.6a : ordre des decks (Mes decks) : fleches haut/bas a droite de la tuile, repere d'insertion bleu pendant le glisser-deposer. */
+/* 0.6a : ordre des decks (Mes decks) : glisser-deposer seul (tuile inchangee), trait d'insertion bleu 3 px, tuiles qui glissent ; Alt + fleche au clavier. */
 .dk-dks{position:relative}
-.dk-tuile.dk-ord{grid-template-columns:minmax(0,1fr) auto 18px;column-gap:6px;padding-right:6px;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-.dk-tuile .dk-fl{grid-column:3;grid-row:1/-1;display:flex;flex-direction:column;gap:2px;align-self:center}
-.dk-tuile .dk-fl button{width:18px;height:21px;padding:0;margin:0;display:grid;place-items:center;border:0;border-radius:5px;background:rgba(0,0,0,.28);color:#fff;cursor:pointer}
-.dk-tuile .dk-fl svg{width:13px;height:13px}
-.dk-tuile .dk-fl button:disabled{opacity:.3;cursor:default}
-.dk-tuile .dk-fl button:focus-visible{outline:2px solid var(--bleu);outline-offset:1px}
-@media (hover:hover){.dk-tuile .dk-fl button:not(:disabled):hover{background:rgba(0,0,0,.5)}}
-.dk-tuile.dk-ord>div{grid-column:1;grid-row:1}.dk-tuile.dk-ord>.ct{grid-column:2;grid-row:1;padding:4px 7px}.dk-tuile.dk-ord .pi{overflow:hidden}.dk-tuile.dk-ord .pi .vx-etq{white-space:nowrap;flex:none}
+.dk-dks .dk-tuile{touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .dk-glisse,.dk-glisse .dk-tuile{cursor:grabbing}
-.dk-tuile.dk-tire{opacity:.55}
-.dk-repere{position:absolute;left:4px;right:4px;height:3px;border-radius:2px;background:var(--bleu);pointer-events:none;z-index:2}
-.dk-tuile.dk-ord .rs{grid-column:1/3;grid-row:2}
-body.daltonien .dk-tuile.inv.dk-ord::after{right:30px}
+.dk-doux .dk-tuile{transition:transform .16s ease}
+.dk-dks .dk-tuile.dk-tire{z-index:3;transition:none;filter:brightness(1.06);box-shadow:0 10px 24px rgba(0,0,0,.55)}
+.dk-dks .dk-tuile.dk-tire.sel{box-shadow:0 0 0 3px var(--bleu),0 10px 24px rgba(0,0,0,.55)}
+.dk-dks .dk-tuile.dk-tire.inv{box-shadow:0 0 0 2px var(--rouge),0 10px 24px rgba(0,0,0,.55)}
+.dk-dks .dk-tuile.dk-tire.inv.sel{box-shadow:0 0 0 3px var(--rouge),0 10px 24px rgba(0,0,0,.55)}
+.dk-doux .dk-tuile.dk-pose{transition:transform .18s ease-out}
+.dk-repere{position:absolute;left:4px;right:4px;height:3px;border-radius:2px;background:var(--bleu);pointer-events:none;z-index:4}
