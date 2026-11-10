@@ -327,7 +327,7 @@ async function ouvreProfil(autre){
     const tx=P.n?Math.round(100*P.v/P.n):null,coul=couleurTaux.valeur(tx,P.n);
     {const c=E('div');c.append(E('i','','Taux de victoire'));const an=E('div','pr-ann');
      an.innerHTML='<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="51" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="12"/>'+(tx?'<circle cx="60" cy="60" r="51" fill="none" stroke="'+coul+'" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+(3.2044*tx)+' 999" transform="rotate(-90 60 60)"/>':'')+'</svg>';
-     an.append(E('span','',tx===null?'-':tx+' %'));c.append(an,E('small','',P.v+' V - '+P.d+' D'));gn.append(c)}
+     an.append(E('span',tx===null?'':couleurTaux(tx,P.n).replace('sc-taux-','sc-sym-'),tx===null?'-':tx+' %'));c.append(an,E('small','',P.v+' V - '+P.d+' D'));gn.append(c)}
     const libM=glob?'tous modes':['parties classées','parties amicales',dif?'parties en '+['','Facile','Normal','Difficile'][dif]:"parties d'entraînement"][mode];
     {const c=E('div');c.append(E('i','','Parties'),E('b','',String(P.n)),E('small','',P.n>1?libM:libM.replace(/parties/,'partie').replace(/ées$/,'ée').replace(/ales$/,'ale')));gn.append(c)}
     {const c=E('div');c.append(E('i','','Meilleure série'),E('b','',prive||!P.best?'-':String(P.best)),E('small','',prive?'Masqué':!P.best&&D.global?'Non partagée':P.best?(P.best>1?'victoires':'victoire')+' d’affilée':'Aucune série'));gn.append(c)}

@@ -472,7 +472,7 @@ function imgRang(id){return imgV('images/rangs/'+id+'.png')}
 const pcJ=(v,n)=>n?Math.round(100*v/n):null;
 function c3(lib,val,sous,cl){const d=el('div','j-c3'),b=el('b',cl||'',val);b.title=val;d.append(el('i','',lib),b,el('small','',sous));return d}
 const txtTaux=t=>t===null?'-':t+' %';
-function colore(d,t,n){const b=d.querySelector('b');if(t!==null)b.style.color=couleurTaux.valeur(t,n)}
+function colore(d,t,n){const b=d.querySelector('b');b.classList.remove('sc-sym-vert','sc-sym-ambre','sc-sym-rouge');if(t!==null){b.style.color=couleurTaux.valeur(t,n);b.classList.add(couleurTaux(t,n).replace('sc-taux-','sc-sym-'))}}
 function partiesDe(f){const l=typeof lesParties==='function'?lesParties():[];return l.filter(x=>{try{return f(typeof modeHisto==='function'?modeHisto(x):'',x)}catch(e){return false}})}
 /* Encart Classee : embleme, rang + Elo (barre vers le rang suivant), prochain rang, victoires (couleurTaux, J13). Placement : n sur 5. */
 function encartClasse(j){
