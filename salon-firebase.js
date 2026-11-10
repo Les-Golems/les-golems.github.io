@@ -16,7 +16,7 @@
 //   hall/{uid}                  présence dans l'accueil (pseudo, salon, quitte), comptes seulement
 //   salons/{code}/joueurs/{uid} présence dans le salon (pseudo, arrivee, sid, pret, deck,
 //                               graine, jg, adv, veut, quitte, v = version du site), effacée par onDisconnect
-//   salons/{code}/coups/{push}  journal : un coup par entrée, jamais modifié
+//   salons/{code}/coups/{uid_sid_g_n}  journal (anciennes parties : push) : un coup par entrée, jamais modifié
 //                               { a: uid auteur, s: sid, g: graine, n: rang, c: code du coup }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, setPersistence, browserSessionPersistence, browserLocalPersistence,
@@ -586,7 +586,7 @@ async function ouvre() {
       const liste = window.GolemsMoteur.litJournal(j), cle = sid + "|" + g;
       for (let n = pousses[cle] || 0; n < liste.length; n++) {
         // Clé fixe par coup (joueur, partie, rang) : un renvoi après coupure retombe sur la même clé (ajout seul), jamais un 2e push.
-        await ajoute(ref(db, base + "/coups/" + String(sid).replace(/[.#$\/\[\]]/g, "_") + "_" + g + "_" + n), { a: uid, s: sid, g: g, n: n, c: liste[n] });
+        await ajoute(ref(db, base + "/coups/" + uid + "_" + String(sid).replace(/[.#$\/\[\]]/g, "_") + "_" + g + "_" + n), { a: uid, s: sid, g: g, n: n, c: liste[n] });
         pousses[cle] = n + 1;
       }
     }
