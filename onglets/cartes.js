@@ -78,7 +78,7 @@ function forceMoy(id){
 function trie(){
   const g=$('grille');
   if(!fTri){const ps=[...g.querySelectorAll('.paire')];if(triDesc)ps.reverse();ps.forEach(p=>g.append(p));
-    const ord=GALERIE.map(c=>c[0]);if(triDesc)ord.reverse();ord.forEach(id=>g.querySelector('[data-paire="'+id.slice(0,3)+'"]').append(g.querySelector('[data-id="'+id+'"]')))}
+    const ord=GALERIE.map(c=>c[0]);ord.forEach(id=>g.querySelector('[data-paire="'+id.slice(0,3)+'"]').append(g.querySelector('[data-id="'+id+'"]')))}
   else{const ord=GALERIE.map((c,i)=>[c[0],valTri(c[0],fTri),i]).sort((x,y)=>(triDesc?y[1]-x[1]:x[1]-y[1])||x[2]-y[2]);
     const p0=g.querySelector('.paire');ord.forEach(([id])=>g.insertBefore(g.querySelector('[data-id="'+id+'"]'),p0))}
   g.querySelectorAll('[data-terrain],[data-avenir]').forEach(b=>g.append(b));

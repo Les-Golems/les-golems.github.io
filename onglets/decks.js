@@ -207,7 +207,10 @@ function dkVues(d){
   const ORD=CARTES.map(c=>c[0]),o=(a,b)=>ORD.indexOf(a)-ORD.indexOf(b),C=M.CARTES;
   if(fDk.tri==='nom')return ORD.filter(id=>dkPasse(id,d)).sort((a,b)=>cmpNomCarte(a,b,fDk.desc)||o(a,b));
   const k={cout:(a,b)=>C[a].cout-C[b].cout||o(a,b),force:(a,b)=>(C[a].force||0)-(C[b].force||0)||o(a,b)}[fDk.tri]||o;
-  const L=ORD.filter(id=>dkPasse(id,d)).sort(k);return fDk.desc?L.reverse():L}
+  const L=ORD.filter(id=>dkPasse(id,d)).sort(k);if(!fDk.desc)return L;L.reverse();if(fDk.tri)return L;
+  /* Numéro décroissant : la base passe toujours avant son évolution (comme le tri par nom). */
+  const pos=new Map(L.map((x,i)=>[x,i])),bz=id=>{const B=C[id]&&C[id].base;return B&&pos.has(B)?B:id};
+  return L.map((x,i)=>[x,pos.get(bz(x)),bz(x)===x?0:1,i]).sort((p,q)=>p[1]-q[1]||p[2]-q[2]||p[3]-q[3]).map(p=>p[0])}
 const btnDk=(t,cl,f)=>{const b=el('button','sc-btn'+(cl?' '+cl:''),t);b.type='button';if(f)b.onclick=f;return b};
 const alerteDk=(t,info,cl)=>{const a=el('div','sc-alerte '+(info?'sc-info':'sc-erreur')+(cl?' '+cl:''));a.setAttribute('role',info?'status':'alert');a.append(el('i'));const s=el('span');if(typeof t==='string')s.textContent=t;else s.append(...t);a.append(s);return a};
 function selVueDk(){const s=el('div','sc-sel dk-vue');s.setAttribute('role','group');s.setAttribute('aria-label','Vue');
