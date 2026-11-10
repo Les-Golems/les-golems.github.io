@@ -313,7 +313,7 @@
             "a"
           ],
           "$coup": {
-            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && !root.child('salons').child($code).child('spectateurs').hasChild(auth.uid) && (!root.child('salons').child($code).child('engages').exists() || root.child('salons').child($code).child('engages').hasChild(auth.uid))",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && ($coup.beginsWith('-') || $coup.beginsWith(auth.uid + '_')) && !root.child('salons').child($code).child('spectateurs').hasChild(auth.uid) && (!root.child('salons').child($code).child('engages').exists() || root.child('salons').child($code).child('engages').hasChild(auth.uid))",
             ".validate": "newData.hasChildren(['a', 's', 'g', 'n', 'c'])",
             "a": {
               ".validate": "newData.isString() && newData.val().length <= 128"
@@ -1549,7 +1549,7 @@
               "a"
             ],
             "$coup": {
-              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && !root.child('essai').child('salons').child($code).child('spectateurs').hasChild(auth.uid) && (!root.child('essai').child('salons').child($code).child('engages').exists() || root.child('essai').child('salons').child($code).child('engages').hasChild(auth.uid))",
+              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('a').val() === auth.uid && ($coup.beginsWith('-') || $coup.beginsWith(auth.uid + '_')) && !root.child('essai').child('salons').child($code).child('spectateurs').hasChild(auth.uid) && (!root.child('essai').child('salons').child($code).child('engages').exists() || root.child('essai').child('salons').child($code).child('engages').hasChild(auth.uid))",
               ".validate": "newData.hasChildren(['a', 's', 'g', 'n', 'c'])",
               "a": {
                 ".validate": "newData.isString() && newData.val().length <= 128"

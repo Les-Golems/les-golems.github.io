@@ -106,8 +106,12 @@ async function scenario(P) {
   await attendu(ici('coup de A'), true, req(A, 'POST', S + '/coups', { a: A.uid, s: 'sa', g: 5, n: 0, c: 'p1' }));
   await attendu(ici('coup de B'), true, req(B, 'POST', S + '/coups', { a: B.uid, s: 'sb', g: 5, n: 0, c: 'p2' }));
   // Clé fixe (sid_graine_rang, b9384c0) : première écriture permise, renvoi sur la même clé refusé (ajout seul).
-  await attendu(ici('coup de A sur clé fixe'), true, req(A, 'PUT', S + '/coups/sa_5_1', { a: A.uid, s: 'sa', g: 5, n: 1, c: 'p1' }));
-  await attendu(ici('coup de A renvoyé sur la même clé fixe'), false, req(A, 'PUT', S + '/coups/sa_5_1', { a: A.uid, s: 'sa', g: 5, n: 1, c: 'p1' }));
+  await attendu(ici('coup de A sur clé fixe à son uid'), true, req(A, 'PUT', S + '/coups/' + A.uid + '_sa_5_1', { a: A.uid, s: 'sa', g: 5, n: 1, c: 'p1' }));
+  await attendu(ici('coup de A renvoyé sur la même clé fixe'), false, req(A, 'PUT', S + '/coups/' + A.uid + '_sa_5_1', { a: A.uid, s: 'sa', g: 5, n: 1, c: 'p1' }));
+  await attendu(ici('coup de A sur clé préfixée par l uid de B'), false, req(A, 'PUT', S + '/coups/' + B.uid + '_sb_5_1', { a: A.uid, s: 'sa', g: 5, n: 2, c: 'p1' }));
+  await attendu(ici('coup de A sur clé sans préfixe (ancien format)'), false, req(A, 'PUT', S + '/coups/sa_5_2', { a: A.uid, s: 'sa', g: 5, n: 2, c: 'p1' }));
+  await attendu(ici('coup de A sur clé push explicite'), true, req(A, 'PUT', S + '/coups/-Nzzpush01', { a: A.uid, s: 'sa', g: 5, n: 2, c: 'p1' }));
+  await attendu(ici('réécriture sur une clé push existante'), false, req(A, 'PUT', S + '/coups/-Nzzpush01', { a: A.uid, s: 'sa', g: 5, n: 2, c: 'p9' }));
   await attendu(ici('coup au nom d\'un autre'), false, req(X, 'POST', S + '/coups', { a: X.uid, s: 'sx', g: 5, n: 0, c: 'p3' }));
   await attendu(ici('chat'), true, req(A, 'POST', S + '/chat', { a: A.uid, p: pA, t: HEURE, m: 'Bonne partie' }));
   await attendu(ici('spectateur X'), true, req(X, 'PUT', S + '/spectateurs/' + X.uid, { p: pX, t: HEURE }));

@@ -134,8 +134,9 @@ module.exports = r => ({
         ".indexOn": ["a"],
         "$coup": {
           // Ajout seulement (jamais de modification ni d'effacement),
-          // et uniquement ses propres coups : le champ a doit être son uid.
-          ".write": `${COMPTE} && !data.exists() && newData.child('a').val() === auth.uid && !${r}.child('salons').child($code).child('spectateurs').hasChild(auth.uid) && (!${r}.child('salons').child($code).child('engages').exists() || ${r}.child('salons').child($code).child('engages').hasChild(auth.uid))`,
+          // et uniquement ses propres coups : le champ a doit être son uid, et la clé doit être
+          // une clé push (anciennes parties) ou commencer par son uid + '_' (personne ne réserve la clé d'un autre).
+          ".write": `${COMPTE} && !data.exists() && newData.child('a').val() === auth.uid && ($coup.beginsWith('-') || $coup.beginsWith(auth.uid + '_')) && !${r}.child('salons').child($code).child('spectateurs').hasChild(auth.uid) && (!${r}.child('salons').child($code).child('engages').exists() || ${r}.child('salons').child($code).child('engages').hasChild(auth.uid))`,
           ".validate": "newData.hasChildren(['a', 's', 'g', 'n', 'c'])",
           "a": { ".validate": "newData.isString() && newData.val().length <= 128" },
           "s": { ".validate": "newData.isString() && newData.val().length <= 16" },
