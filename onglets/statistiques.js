@@ -114,6 +114,9 @@ async function litClasseSt(){
 }
 async function peintStats(){
   const z=$('statsCorps');
+  /* Salon pas encore pret (onglet memorise rouvert au chargement) : attente, puis l'onglet se repeint. */
+  if(!room&&!compteCharge&&window.golemsSalon){z.textContent='';alerteInfo(z.appendChild(el('div','pf-vide')),'Connexion : statistiques en cours de lecture. Patiente un instant.');
+    Promise.resolve(window.golemsSalon).catch(()=>{}).finally(()=>setTimeout(()=>{if(!$('stats').hidden)peintStats()},0));return}
   if(!room||!room.litResumes){z.textContent='';alerte(z.appendChild(el('div','pf-vide')),'Lecture impossible : statistiques indisponibles pour le moment. Réessaie plus tard.');return}
   if(!statsData){z.textContent='';alerteInfo(z.appendChild(el('div','pf-vide')),'Connexion : statistiques en cours de lecture. Patiente un instant.')}else dessineStats(statsData);
   try{statsJoueurs=room.litClassement?await room.litClassement().catch(()=>[]):[]}catch(e){statsJoueurs=[]}
