@@ -132,10 +132,10 @@ function detailHisto(x){
     const u=el('ul','hd-ancien');(Array.isArray(x.detail)?x.detail:[]).filter(s=>!/infligés 0, subis 0, morts causées 0, morts subies 0/.test(s)).forEach(s=>u.append(el('li','',String(s).replace(/\bToi\b/g,ps).trim())));d.append(u);
   }
   /* Actions : Replay | Partager le resume | Copier les donnees | Fermer */
-  const z=el('div','sc-fen-actions hd-act'),esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc)};
+  const z=el('div','sc-fen-actions hd-act'),prec=document.activeElement,esc=e=>{if(e.key==='Escape'&&$('vue').hidden)ferme()},ferme=r=>{v.remove();removeEventListener('keydown',esc,true);if(r!==false&&prec&&prec.isConnected)prec.focus()};
   const bt=(txt,cl)=>{const b=el('button','sc-btn'+(cl?' '+cl:''),txt);b.type='button';z.append(b);return b};
   const ok=rejeuPossible(x.rejeu),q=bt('','hd-rj');q.append(el('span','hd-rj-i','▶'),'Replay');
-  if(ok)q.onclick=()=>{ferme();lanceRejeu(x)};else{q.disabled=true;q.title=x.rejeu?'Replay impossible : partie d\'une ancienne version, plus relisible.':'Replay impossible : partie enregistrée sans ses journaux.'}
+  if(ok)q.onclick=()=>{ferme(false);lanceRejeu(x)};else{q.disabled=true;q.title=x.rejeu?'Replay impossible : partie d\'une ancienne version, plus relisible.':'Replay impossible : partie enregistrée sans ses journaux.'}
   const sh=bt('Partager le résumé','sc-secondaire');sh.id='partageHisto';sh.onclick=()=>partageFin(sh,texteHisto(x));
   /* Copier les donnees : meme format que l'ancien bouton de fin de partie (donneesHisto). Calcul lance a l'ouverture : la copie reste dans le clic. Repli : zone de texte. */
   const cd=bt('Copier les données','sc-secondaire'),msg=el('div','hd-msg'),rp=el('textarea','r-repli');
@@ -144,8 +144,8 @@ function detailHisto(x){
   const copieD=o=>{copie(o.txt,cd,'Copier les données',()=>{rp.value=o.txt;rp.hidden=false;rp.focus();rp.select()});
     if(o.brut){alerteInfo(msg,'Copie : données brutes de la partie copiées ('+o.brut+'). Colle-les à KaTarN (Romain).');msg.hidden=false}};
   cd.onclick=()=>{if(pret)copieD(pret);else dh.then(copieD)};
-  const f=bt('Fermer','sc-secondaire fermer');f.onclick=ferme;
-  v.onclick=e=>{if(e.target===v)ferme()};addEventListener('keydown',esc);
+  const f=bt('Fermer','sc-secondaire fermer');f.onclick=()=>ferme();
+  v.onclick=e=>{if(e.target===v)ferme()};addEventListener('keydown',esc,true); /* capture : lu avant la fermeture du zoom (cartes.js) */
   d.append(z,msg,rp);v.append(d);document.body.append(v);f.focus({preventScroll:true});
 }
 /* Manches en tuiles : terrains, points, gagnant et Forces (si la partie les porte), sinon les lignes enregistrees. */

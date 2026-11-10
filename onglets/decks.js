@@ -534,7 +534,7 @@ function decklist(b,d,l){
     nm.append(el('span','dl-pseudo',v<0?c[1]:c[1].slice(0,v)));
     if(v>=0){const ti=el('span','dl-titre',c[1].slice(v+2));ti.style.color=coulT(c);ti.title=c[1].slice(v+2);nm.append(ti)}
     if(estAnimal(c)){fo.className='dl-force dl-mot';fo.textContent='Animal';q.append(co,fo,nm,el('span','dl-nb','×'+n))}else q.append(co,fo,e,nm,el('span','dl-nb','×'+n));
-    q.onclick=()=>{ap.hidden=true;zoom(src,c[1])};
+    q.onclick=()=>{ap.hidden=true;dernier=q;zoom(src,c[1])};
     if(matchMedia('(hover:hover)').matches){
       q.onmouseenter=ev=>{ap.src=src;ap.hidden=false;place(ev)};q.onmousemove=place;q.onmouseleave=()=>{ap.hidden=true};
     }

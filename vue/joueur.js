@@ -391,8 +391,8 @@ function lienLog(nom,court){
   const lib=o.C?(court?nomCourt(C):window.GolemsDonnees.nomLong(C.id)+(C.base?' ★':'')):o.T?T.nom:nom;
   const b=el('button','j-lien'+(o.C&&C.base?' j-evo':''),lib);b.type='button';if(court&&o.C)b.title=window.GolemsDonnees.nomLong(C.id); /* titre au survol */
   b.style.color=o.E||o.ET?K.effet:T?K.terrain:C.animal?K.animal:C.base?K.evolution:K.golem;
-  if(T){b.onclick=()=>zoomTerrain(T);b.onmouseenter=()=>montreApercu(b,srcTerrain(T))}
-  else{const src=imgV('cartes/'+C.id+'.jpg');b.onclick=()=>{cacheApercu();dernier=null;zoom(src,C.nom)};b.onmouseenter=()=>montreApercu(b,src)}
+  if(T){b.onclick=()=>{zoomTerrain(T);if(!b.closest('#vue'))dernier=b};b.onmouseenter=()=>montreApercu(b,srcTerrain(T))}
+  else{const src=imgV('cartes/'+C.id+'.jpg');b.onclick=()=>{cacheApercu();if(!b.closest('#vue'))dernier=b;zoom(src,C.nom)};b.onmouseenter=()=>montreApercu(b,src)}
   b.onmouseleave=cacheApercu;return b;
 }
 /* sauf(o) : vrai pour un nom a laisser en texte (zoom : la carte zoomee elle-meme) */
