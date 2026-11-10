@@ -132,7 +132,7 @@ async function peintStats(){
 function verrouStats(){
   const z=$('statsCorps');try{dessineStats([])}catch(e){console.warn(e);z.textContent=''}
   const v=el('div','st-verrou st-verrou-tout'),f=el('div','st-flou');f.setAttribute('aria-hidden','true');f.append(...z.childNodes);
-  const o=el('div','st-vo');o.innerHTML='<svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><rect x="3" y="14" width="24" height="18" rx="4" fill="none" stroke="#01C1F0" stroke-width="3"/><path d="M8 14V10a7 7 0 0 1 14 0v4" fill="none" stroke="#01C1F0" stroke-width="3"/></svg><b>Statistiques des joueurs</b><p>Connecte-toi pour voir les classements, les cartes et les terrains.</p><div class="sc-rangee"><button class="sc-btn" type="button" data-a="co">Se connecter</button><button class="sc-btn sc-secondaire" type="button" data-a="cree">Créer un compte</button></div>';
+  const o=el('div','st-vo');o.innerHTML='<svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><rect x="3" y="14" width="24" height="18" rx="4" fill="none" style="stroke:var(--bleu)" stroke-width="3"/><path d="M8 14V10a7 7 0 0 1 14 0v4" fill="none" style="stroke:var(--bleu)" stroke-width="3"/></svg><b>Statistiques des joueurs</b><p>Connecte-toi pour voir les classements, les cartes et les terrains.</p><div class="sc-rangee"><button class="sc-btn" type="button" data-a="co">Se connecter</button><button class="sc-btn sc-secondaire" type="button" data-a="cree">Créer un compte</button></div>';
   o.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{ouvrePseudo();if(b.dataset.a==='cree')modeCompte(true)});
   v.append(f,o);z.textContent='';z.append(v);statsAjuste=null;
 }

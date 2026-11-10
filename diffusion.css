@@ -104,7 +104,7 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-vole.d-vole2{border-radius:5px;box-shadow:0 8px 20px rgba(0,0,0,.55);opacity:0}
 #dif .d-etoile{position:absolute;left:0;top:0;width:60px;height:60px;transform-origin:30px 30px;opacity:0;will-change:transform}
 #dif .d-etoile .ico{width:100%;height:100%;font-size:60px}
-#dif .d-etoile b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 20px/1 var(--titre);color:#fff;-webkit-text-stroke:4px #0a121a;paint-order:stroke fill}
+#dif .d-etoile b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 20px/1 var(--titre);color:#fff;-webkit-text-stroke:4px var(--encre);paint-order:stroke fill}
 /* Golem detruit : copie de sa case, fondu et legere reduction (0,6 s) ; ceux d'une meme vague ensemble */
 #dif .p-case>.mini.d-fantome{z-index:3;pointer-events:none;animation:dEfface .6s ease-in both}
 @keyframes dEfface{from{opacity:1;transform:scale(1);filter:none}to{opacity:0;transform:scale(.84);filter:grayscale(.6) brightness(.7)}}
@@ -635,40 +635,42 @@ html.dif-ouvert #des{display:none!important}
 #dif .d-couche>.d-des{z-index:5}
 
 /* ---------- 0.6a : animations de la maquette 47 (diffusion.js, anA / anCalque), dans la couche #dif .d-couche ---------- */
+/* Couleurs des animations : variables de role, memes valeurs en clair (effets poses sur les cartes et sur un voile sombre). */
+:root{--an-or:#f1c35a;--an-or-rgb:241,195,90;--an-vert:#5fd68a;--an-vert-rgb:95,214,138;--an-rose:#d6336c;--an-rose-rgb:214,51,108;--an-rouge:#ff4d4f;--an-rouge-rgb:255,77,79;--an-texte:#eaf4f8;--an-vert-past:#7be07f;--an-fond-bandeau:rgba(10,18,26,.88);--an-trait:#fff4d6}
 #dif .d-couche .an-abs{position:absolute;box-sizing:border-box;pointer-events:none}
 #dif .an-carte{border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.6);display:block}
 #dif .an-reflet{overflow:hidden;border-radius:12px}
 #dif .an-reflet i{position:absolute;top:-60%;left:0;width:45%;height:220%;background:linear-gradient(90deg,transparent,rgba(255,226,140,0) 10%,rgba(255,226,140,.75) 50%,rgba(255,226,140,0) 90%,transparent);mix-blend-mode:screen;transform:rotate(20deg)}
-#dif .an-etoile{color:#f1c35a;font:400 46px/1 var(--titre);text-shadow:0 0 14px rgba(241,195,90,.9),0 2px 0 #0a121a}
+#dif .an-etoile{color:var(--an-or);font:400 46px/1 var(--titre);text-shadow:0 0 14px rgba(var(--an-or-rgb),.9),0 2px 0 var(--encre)}
 #dif .d-etoile.an-etoile{font-size:56px;line-height:60px;text-align:center}
-#dif .an-rayon{width:4px;height:22px;border-radius:2px;background:#f1c35a;box-shadow:0 0 8px #f1c35a}
-#dif .an-cadre{border-radius:12px;border:3px solid #f1c35a;box-shadow:0 0 18px rgba(241,195,90,.6)}
-#dif .an-halo{border-radius:14px;border:3px solid #5fd68a;box-shadow:0 0 22px rgba(95,214,138,.75),inset 0 0 14px rgba(95,214,138,.35)}
+#dif .an-rayon{width:4px;height:22px;border-radius:2px;background:var(--an-or);box-shadow:0 0 8px var(--an-or)}
+#dif .an-cadre{border-radius:12px;border:3px solid var(--an-or);box-shadow:0 0 18px rgba(var(--an-or-rgb),.6)}
+#dif .an-halo{border-radius:14px;border:3px solid var(--an-vert);box-shadow:0 0 22px rgba(var(--an-vert-rgb),.75),inset 0 0 14px rgba(var(--an-vert-rgb),.35)}
 #dif .an-blanc{border-radius:12px;border:3px solid #fff;box-shadow:0 0 18px rgba(255,255,255,.6)}
-#dif .an-rose{border-radius:12px;border:3px solid #d6336c;box-shadow:0 0 16px rgba(214,51,108,.6)}
-#dif .an-lueur-v{border-radius:12px;background:radial-gradient(ellipse at 50% 60%,rgba(95,214,138,.55),rgba(95,214,138,0) 72%)}
+#dif .an-rose{border-radius:12px;border:3px solid var(--an-rose);box-shadow:0 0 16px rgba(var(--an-rose-rgb),.6)}
+#dif .an-lueur-v{border-radius:12px;background:radial-gradient(ellipse at 50% 60%,rgba(var(--an-vert-rgb),.55),rgba(var(--an-vert-rgb),0) 72%)}
 #dif .an-voile-c{border-radius:14px;background:radial-gradient(ellipse at 50% 55%,color-mix(in srgb,currentColor 45%,transparent),transparent 70%)}
-#dif .an-chiffre{-webkit-text-stroke:2px #0a121a;paint-order:stroke fill;font:400 76px/1 var(--titre);text-shadow:0 2px 0 #0a121a,0 0 14px currentColor;white-space:nowrap}
-#dif .an-vert{color:#5fd68a}#dif .an-rouge{color:#ff4d4f}
-#dif .an-voile-rouge{border-radius:12px;background:rgba(255,77,79,.45);mix-blend-mode:screen}
+#dif .an-chiffre{-webkit-text-stroke:2px var(--encre);paint-order:stroke fill;font:400 76px/1 var(--titre);text-shadow:0 2px 0 var(--encre),0 0 14px currentColor;white-space:nowrap}
+#dif .an-vert{color:var(--an-vert)}#dif .an-rouge{color:var(--an-rouge)}
+#dif .an-voile-rouge{border-radius:12px;background:rgba(var(--an-rouge-rgb),.45);mix-blend-mode:screen}
 #dif .an-poussiere{width:10px;height:10px;box-shadow:0 0 4px rgba(255,220,160,.5);border-radius:2px 3px 2px 4px}
 #dif .an-onde{border-radius:16px;border:6px solid currentColor;box-shadow:0 0 22px currentColor,inset 0 0 14px currentColor}
 #dif .an-voile{background:rgba(5,10,15,.55)}
 #dif .an-bandeau{display:flex;align-items:center;justify-content:center;font:400 96px/1 var(--titre);letter-spacing:2px;z-index:8}
-#dif .an-bandeau span{padding:18px 70px;border-radius:14px 9px 15px 8px;background:rgba(10,18,26,.88);border:3px solid currentColor;box-shadow:0 0 30px color-mix(in srgb,currentColor 45%,transparent)}
-#dif .an-bandeau small{display:block;font:600 26px/1.2 var(--corps);color:#eaf4f8;text-align:center;margin-top:8px;letter-spacing:0}
+#dif .an-bandeau span{padding:18px 70px;border-radius:14px 9px 15px 8px;background:var(--an-fond-bandeau);border:3px solid currentColor;box-shadow:0 0 30px color-mix(in srgb,currentColor 45%,transparent)}
+#dif .an-bandeau small{display:block;font:600 26px/1.2 var(--corps);color:var(--an-texte);text-align:center;margin-top:8px;letter-spacing:0}
 #dif .an-bandeau-l{font-size:48px}#dif .an-bandeau-l span{padding:14px 36px;white-space:nowrap}
-#dif .an-etiq{font:700 20px/1 var(--corps);color:#0a121a;background:#f1c35a;padding:5px 10px;border-radius:8px 5px 9px 4px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+#dif .an-etiq{font:700 20px/1 var(--corps);color:var(--encre);background:var(--an-or);padding:5px 10px;border-radius:8px 5px 9px 4px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.5)}
 #dif .an-fantome{border-radius:12px;outline:3px dashed rgba(255,255,255,.85);outline-offset:-3px;overflow:hidden}
 #dif .an-fantome>.mini{position:absolute;inset:0}
-#dif .an-chevron{font:400 40px/1 var(--titre);color:#f1c35a;text-shadow:0 0 12px rgba(241,195,90,.8),0 2px 0 #0a121a;white-space:nowrap}
-#dif .an-coeur{width:32px;height:32px;color:#d6336c;filter:drop-shadow(0 0 8px rgba(214,51,108,.85))}
+#dif .an-chevron{font:400 40px/1 var(--titre);color:var(--an-or);text-shadow:0 0 12px rgba(var(--an-or-rgb),.8),0 2px 0 var(--encre);white-space:nowrap}
+#dif .an-coeur{width:32px;height:32px;color:var(--an-rose);filter:drop-shadow(0 0 8px rgba(var(--an-rose-rgb),.85))}
 #dif .an-coeur svg{width:100%;height:100%;display:block}
 /* mentions de tuile : nom entier de l'animal attache (vert), favori d'Indra (rose) ; la rangee du cout remonte au-dessus */
 #dif .p-case .mini .d-pasts{position:absolute;left:6px;bottom:3px;display:flex;gap:4px;z-index:3;pointer-events:none}
 #dif .d-past{display:inline-flex;align-items:center;gap:3px;height:20px;padding:0 8px;border-radius:999px;font:800 12px/20px var(--corps);white-space:nowrap}
-#dif .d-past.vert{background:#7be07f;color:#0a121a}
-#dif .d-past.rose{background:#d6336c;color:#fff}
+#dif .d-past.vert{background:var(--an-vert-past);color:var(--encre)}
+#dif .d-past.rose{background:var(--an-rose);color:#fff}
 #dif .d-past.rose svg{width:13px;height:13px}
 #dif .mini.a-past .bas,#dif .mini.a-past .cp{transform:translateY(-13px)}
 #dif .mini.a-past.a-fav .fav,#dif .mini:has(.d-past.rose) .fav{display:none}

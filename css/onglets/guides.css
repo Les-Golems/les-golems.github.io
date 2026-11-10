@@ -403,6 +403,6 @@ textarea.gd-ch{height:96px;padding:12px 14px;resize:none;line-height:1.5}
 #gdVue .ico{display:inline-block;width:18px;height:18px;vertical-align:-3px}
 #gdVue .ico svg{width:100%;height:100%;display:block}
 #gdVue .pe{width:20px;height:20px;vertical-align:-4px;margin-right:3px}
-#gdVue .bulle{position:fixed;z-index:20;max-width:300px;background:var(--panneau2);border:1px solid var(--bleu);border-radius:9px;padding:10px 12px;font-size:13.5px;box-shadow:0 8px 22px rgba(0,0,0,.55);color:#dbe7ee}
+#gdVue .bulle{position:fixed;z-index:20;max-width:300px;background:var(--panneau2);border:1px solid var(--bleu);border-radius:9px;padding:10px 12px;font-size:13.5px;box-shadow:0 8px 22px rgba(0,0,0,.55);color:var(--gd-txt)}
 .gd-li{position:relative}
 .o-nvpt.gd-ptli{top:6px;right:6px}

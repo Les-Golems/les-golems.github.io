@@ -290,7 +290,7 @@ function anChiffre(r,txt,cl,t,kf){const p=anCalque('an-chiffre '+cl,null,0,txt);
 function anEvo(t,p,l,k){const r=caseR(p,l,k);if(!r)return;
   const cad=anCalque('an-cadre',r);anA(cad,[{opacity:0},{opacity:1,offset:.25},{opacity:1,offset:.75},{opacity:0}],{t,delay:40,duration:900});
   const rf=anCalque('an-reflet',r),i=mk('i');rf.append(i);anA(i,[{transform:'translateX(-120%) rotate(20deg)'},{transform:'translateX('+(r.w*2.6)+'px) rotate(20deg)'}],{t,delay:60,duration:420,easing:'ease-in-out'});
-  if(REDUIT.matches)anA(rf,[{background:'rgba(241,195,90,0)'},{background:'rgba(241,195,90,.35)',offset:.5},{background:'rgba(241,195,90,0)'}],{t,delay:60,duration:420});
+  if(REDUIT.matches)anA(rf,[{background:'rgba(var(--an-or-rgb),0)'},{background:'rgba(var(--an-or-rgb),.35)',offset:.5},{background:'rgba(var(--an-or-rgb),0)'}],{t,delay:60,duration:420});
   anEtoile(r.x+r.w-6,r.y+4,t,180);anFin(cad,t,1000);anFin(rf,t,500)}
 /* Animal : la carte glisse sous son maitre et disparait ; le maitre rebondit, halo vert, la pastille verte eclot, la Force saute */
 function anAnimal(t,p,l,k,c,de){const r=caseR(p,l,k);if(!r)return;
@@ -305,7 +305,7 @@ function anBrise(t,p,l,k){const r=caseR(p,l,k);if(!r)return;
   const ns='http://www.w3.org/2000/svg',sv=document.createElementNS(ns,'svg');sv.setAttribute('viewBox','0 0 100 100');sv.setAttribute('preserveAspectRatio','none');sv.setAttribute('class','an-abs an-fissure');
   Object.assign(sv.style,{left:r.x+'px',top:r.y+'px',width:r.w+'px',height:r.h+'px',overflow:'visible'});couche.append(sv);
   ['M48 0 L44 22 L55 36 L41 55 L52 72 L46 100','M44 22 L22 30 L6 26','M55 36 L78 42 L96 38','M41 55 L20 64 L3 78','M52 72 L74 80 L92 96'].forEach((d,i)=>{
-    for(const[w,col]of[[3.2,'#0a121a'],[1.2,'#fff4d6']]){const q=document.createElementNS(ns,'path');q.setAttribute('d',d);q.setAttribute('fill','none');q.setAttribute('stroke',col);q.setAttribute('stroke-width',w);q.setAttribute('vector-effect','non-scaling-stroke');q.setAttribute('stroke-linejoin','round');q.setAttribute('pathLength','1');q.style.strokeDasharray='1';sv.append(q);
+    for(const[w,col]of[[3.2,'var(--encre)'],[1.2,'var(--an-trait)']]){const q=document.createElementNS(ns,'path');q.setAttribute('d',d);q.setAttribute('fill','none');q.style.stroke=col;q.setAttribute('stroke-width',w);q.setAttribute('vector-effect','non-scaling-stroke');q.setAttribute('stroke-linejoin','round');q.setAttribute('pathLength','1');q.style.strokeDasharray='1';sv.append(q);
       anA(q,[{strokeDashoffset:1},{strokeDashoffset:0}],{t,delay:i?90+i*30:0,duration:200,easing:'linear'})}});
   anA(sv,[{opacity:1},{opacity:0}],{t,delay:330,duration:250});anFin(sv,t,620);
   if(REDUIT.matches)return;
@@ -337,7 +337,7 @@ function anCopie(t,de,vers,nm){const r=caseR(vers[0],vers[1],vers[2]),c=caseDe(d
   anA(e,[{opacity:0,transform:'translate(-50%,6px) scale(.8)'},{opacity:1,transform:'translate(-50%,0) scale(1)',offset:.12},{opacity:1,transform:'translate(-50%,0) scale(1)',offset:.85},{opacity:0,transform:'translate(-50%,0) scale(1)'}],{t,delay:520,duration:1800,easing:'ease-out'});
   if(REDUIT.matches)e.style.transform='translate(-50%,0)';anFin(e,t,2400)}
 /* Favori d'Indra : petit coeur rose qui vole d'Indra jusqu'a la pastille « Favori » du Golem choisi */
-const COEUR_AN='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.6C6.6 16.9 2.6 13.4 2.6 9.2 2.6 6.4 4.7 4.3 7.3 4.3c1.9 0 3.6 1 4.7 2.7 1.1-1.7 2.8-2.7 4.7-2.7 2.6 0 4.7 2.1 4.7 4.9 0 4.2-4 7.7-9.4 11.4z" fill="currentColor" stroke="#0a121a" stroke-width="1.6" stroke-linejoin="round" paint-order="stroke"/></svg>';
+const COEUR_AN='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.6C6.6 16.9 2.6 13.4 2.6 9.2 2.6 6.4 4.7 4.3 7.3 4.3c1.9 0 3.6 1 4.7 2.7 1.1-1.7 2.8-2.7 4.7-2.7 2.6 0 4.7 2.1 4.7 4.9 0 4.2-4 7.7-9.4 11.4z" fill="currentColor" style="stroke:var(--encre)" stroke-width="1.6" stroke-linejoin="round" paint-order="stroke"/></svg>';
 function anFavori(t,de,vers){const s=caseR(de[0],de[1],de[2]),c=caseDe(vers[0],vers[1],vers[2]);if(!s||!c)return;const r=rectScene(c),pa=c.querySelector('.d-past.rose'),q=pa?rectScene(pa):{x:r.x+6,y:r.y+r.h-26,w:60,h:20};
   const tx=q.x+12,ty=q.y+q.h/2,x0=s.x+s.w/2,y0=s.y+s.h/2,cr=anCalque('an-coeur');cr.innerHTML=COEUR_AN;Object.assign(cr.style,{left:(x0-16)+'px',top:(y0-16)+'px'});
   anA(cr,[{opacity:0,transform:'translate(0,0) scale(.4)'},{opacity:1,transform:'translate(0,-16px) scale(1.25)',offset:.18},{opacity:1,transform:'translate('+((tx-x0)/2)+'px,'+((ty-y0)/2-110)+'px) scale(1.1)',offset:.6},{opacity:1,transform:'translate('+(tx-x0)+'px,'+(ty-y0)+'px) scale(.9)',offset:.8},{opacity:0,transform:'translate('+(tx-x0)+'px,'+(ty-y0)+'px) scale(.9)'}],{t,duration:800,easing:'ease-in-out'});anFin(cr,t,850);
@@ -351,16 +351,16 @@ function anBandeau(txt,sous,co,haut,fin){if(!couche||!scene)return 0;const t=per
     anA(sp,[{opacity:0,transform:'scale(.85)'},{opacity:1,transform:'scale(1.03)',offset:.6},{opacity:1,transform:'scale(1)'}],{t,delay:250,duration:450,easing:'cubic-bezier(.3,1.3,.5,1)'});
     anA(sp,[{opacity:1},{opacity:0}],{t,delay:1950,duration:250,fill:'forwards'});anFin(bd,t,2250);return 2150}
   anA(sp,[{opacity:0,transform:'translateX(-60px)'},{opacity:1,transform:'translateX(0)',offset:.3},{opacity:1,transform:'translateX(0)',offset:.75},{opacity:0,transform:'translateX(60px)'}],{t,duration:1000,easing:'ease-in-out'});
-  scene.querySelectorAll('.d-pts i.on').forEach(i=>anA(i,[{filter:'brightness(1)'},{filter:'brightness(1.6) drop-shadow(0 0 8px #f1c35a)',offset:.4},{filter:'brightness(1)'}],{t,delay:200,duration:500,fill:'none'}));
+  scene.querySelectorAll('.d-pts i.on').forEach(i=>anA(i,[{filter:'brightness(1)'},{filter:'brightness(1.6) drop-shadow(0 0 8px var(--an-or))',offset:.4},{filter:'brightness(1)'}],{t,delay:200,duration:500,fill:'none'}));
   anFin(bd,t,1050);return 1000}
 /* Debut de manche : apres la fermeture du recapitulatif de la manche qui vient de finir */
 function anManche(){const s=E&&E.etat;if(!s||s.fin||!D)return;const q=s.phase==='mulligan'?null:U().quiJoue(s);
-  anBandeau('Manche '+s.manche+(q===0||q===1?' - '+(src==='joueur'&&q===E.moi?'Tu commences':nom(q)+' commence'):''),null,'#f1c35a',0,null)}
+  anBandeau('Manche '+s.manche+(q===0||q===1?' - '+(src==='joueur'&&q===E.moi?'Tu commences':nom(q)+' commence'):''),null,'var(--an-or)',0,null)}
 /* Victoire ou defaite : bandeau d'environ 1,5 s avant l'ecran de fin ; rend la duree reelle (ms) */
 function anVictoire(){const s=E.etat,F=s.fin;if(!F||(src==='spec'&&F.abandon!==undefined))return 0;
   const w=F.gagnant,sc=F.scores||[s.j[0].score,s.j[1].score],dp=F.departage&&(F.scores||[0,1])[0]===(F.scores||[0,1])[1]?' au départage':'',moi=src==='joueur'||src==='rejeu'?E.moi:null,o=moi!=null?moi:(w===0||w===1?w:0),ab=sc[o]+' - '+sc[1-o];
   let d;
-  if(w!==0&&w!==1)d=anBandeau('Match nul',ab,'#f1c35a',0,{calme:1});
+  if(w!==0&&w!==1)d=anBandeau('Match nul',ab,'var(--an-or)',0,{calme:1});
   else if(moi==null||w===moi)d=anBandeau('Victoire',nom(w)+' remporte la partie'+dp+' '+sc[w]+' - '+sc[1-w],COL[w],0,{});
   else d=anBandeau('Défaite',nom(moi)+' perd la partie'+dp+' '+ab,'var(--adverse,#ee6a2c)',0,{calme:1});
   return d/KV}
