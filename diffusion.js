@@ -344,12 +344,12 @@ function anFavori(t,de,vers){const s=caseR(de[0],de[1],de[2]),c=caseDe(vers[0],v
   const o=anCalque('an-rose',s);anA(o,[{opacity:0},{opacity:1,offset:.3},{opacity:0}],{t,duration:600});anFin(o,t,650)}
 /* Bandeau en travers (debut de manche, victoire, defaite) ; rend la duree a vitesse 1 */
 function anBandeau(txt,sous,co,haut,fin){if(!couche||!scene)return 0;const t=performance.now();
-  let v=null;if(fin){v=anCalque('an-voile',{x:0,y:0,w:1920,h:1080});anA(v,[{opacity:0},{opacity:1,offset:.15},{opacity:1,offset:.88},{opacity:0}],{t,duration:2300});anFin(v,t,2300)}
+  let v=null;if(fin){v=anCalque('an-voile',{x:0,y:0,w:1920,h:1080});anA(v,[{opacity:0},{opacity:1,offset:.15},{opacity:1,offset:.88},{opacity:0}],{t,duration:1650});anFin(v,t,1650)}
   const tr=scene.querySelector('.d-tr'),p=scene.querySelector('.d-plat'),R=fin||!tr||!p?{x:0,y:440,w:1920,h:200}:(()=>{const a=rectScene(tr);return {x:0,y:a.y+a.h/2-60,w:1920,h:120}})(); /* toute la largeur : le texte ne sort jamais de l'ecran */
   const bd=anCalque('an-bandeau'+(fin?'':' an-bandeau-l'),R),sp=mk('span','',txt);bd.style.color=co;if(sous)sp.append(mk('small','',sous));bd.append(sp);
   if(fin){const sc=scene.querySelector('.d-sc');if(sc&&!fin.calme)anA(sc,[{transform:'scale(1)'},{transform:'scale(1.12)',offset:.4},{transform:'scale(1)'}],{t,delay:150,duration:450,fill:'none'});
     anA(sp,[{opacity:0,transform:'scale(.85)'},{opacity:1,transform:'scale(1.03)',offset:.6},{opacity:1,transform:'scale(1)'}],{t,delay:250,duration:450,easing:'cubic-bezier(.3,1.3,.5,1)'});
-    anA(sp,[{opacity:1},{opacity:0}],{t,delay:1950,duration:250,fill:'forwards'});anFin(bd,t,2250);return 2150}
+    anA(sp,[{opacity:1},{opacity:0}],{t,delay:1300,duration:250,fill:'forwards'});anFin(bd,t,1600);return 1500} /* test2j : ~1,5 s (valide par Romain) */
   anA(sp,[{opacity:0,transform:'translateX(-60px)'},{opacity:1,transform:'translateX(0)',offset:.3},{opacity:1,transform:'translateX(0)',offset:.75},{opacity:0,transform:'translateX(60px)'}],{t,duration:1000,easing:'ease-in-out'});
   scene.querySelectorAll('.d-pts i.on').forEach(i=>anA(i,[{filter:'brightness(1)'},{filter:'brightness(1.6) drop-shadow(0 0 8px #f1c35a)',offset:.4},{filter:'brightness(1)'}],{t,delay:200,duration:500,fill:'none'}));
   anFin(bd,t,1050);return 1000}
