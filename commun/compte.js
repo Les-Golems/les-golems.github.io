@@ -1,12 +1,15 @@
 /* Compte et avatars : avatar, galerie, import et cadrage d'image, fenetre pseudo et code secret. */
 /* Avatar : rond avec initiale sur une couleur tiree du pseudo. avatarId (futur choix en galerie, a stocker plus tard dans la presence ou Firebase) : si fourni, image avatars/<id>.png a la place. */
 const AVATAR_COULEURS=window.GolemsDonnees.interface.elements.ordre.map(e=>"--fm-"+e); /* modele des elements : cartes/donnees/interface.js */
+/* Avatars introuvables (ancien identifiant, 404) : retenus pour la session, l'image n'est plus jamais redemandee, l'initiale s'affiche d'emblee. */
+const AVATARS_ABSENTS=new Set();
 function avatarDe(nom,avatarId){
   const n=String(nom||"").trim()||"?",a=el("span","avatar");a.setAttribute("aria-hidden","true");
   let h=0;for(const c of n.toLowerCase())h=(h*31+c.codePointAt(0))>>>0;
   a.style.background="var("+AVATAR_COULEURS[h%AVATAR_COULEURS.length]+")";
   const imp=typeof avatarId==='string'&&/^data:image\/(jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(avatarId);
-  if(imp||avatarId&&/^[a-z0-9_-]{1,40}$/.test(avatarId)){const i=document.createElement("img");i.alt="";i.src=imp?avatarId:imgV("avatars/"+avatarId+".jpg");i.onerror=()=>{i.remove();a.textContent=Array.from(n)[0]};a.append(i)}
+  if(imp||avatarId&&/^[a-z0-9_-]{1,40}$/.test(avatarId)&&!AVATARS_ABSENTS.has(avatarId)){const i=document.createElement("img");i.alt="";i.src=imp?avatarId:imgV("avatars/"+avatarId+".jpg");
+    i.onerror=()=>{i.onerror=null;if(!imp)AVATARS_ABSENTS.add(avatarId);i.remove();a.textContent=Array.from(n)[0]};a.append(i)}
   else a.textContent=Array.from(n)[0];
   return a;
 }
