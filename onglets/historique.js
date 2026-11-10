@@ -228,11 +228,49 @@ async function lanceRejeu(x,confirme){
   onglet('jouer');
   lancer(R.graine,R.moi===1?1:0,'',{mien:[],sien:[],decks,advNom:x.advNom||String(x.adv||'Adversaire'),local:true,
     rejeu:{seq,j,pos:0,n:[0,0],lecture:true,vitesse:1}});
-  barreRejeu();pasRejeu();
+  ouvreRejeuDif();pasRejeu();
 }
+/* 0.6 : rejeu dans la vue #dif (maquette 45 B) sur ordinateur, si le moteur de la partie fournit ce que lit la vue ; sinon ancien ecran et ancienne barre */
+const ECRAN_RJ=matchMedia('(min-width:1200px) and (min-height:600px)');
+function rejeuDifOk(Mx){
+  if(!['carte','colonnes','forceDe','attendus','valeurDecompte','nouvelle','rejoue'].every(f=>typeof Mx[f]==='function')||!Mx.CARTES||!Array.isArray(Mx.TERRAINS))return false;
+  try{const dk=Mx.deckTexte&&Mx.DECK_DEFAUT?Mx.deckTexte(Mx.DECK_DEFAUT):'',s=Mx.nouvelle(1,[dk,dk]);return !!(s&&s.stats&&Array.isArray(s.stats.t)&&Array.isArray(s.stats.ev)&&Array.isArray(s.log)&&Array.isArray(s.reperes)&&'manche' in s&&'tour' in s)}catch(e){return false}
+}
+function ouvreRejeuDif(){
+  const R=partie&&partie.rejeu;if(!R)return;
+  if(window.DIFFUSION&&DIFFUSION.rejeu&&ECRAN_RJ.matches&&rejeuDifOk(M)){
+    R.dif=true;partie.recapVu=99; /* les fins de manche passent par les fenetres de la vue */
+    DIFFUSION.rejeu.ouvre({etat:partie.etat,noms:[nomJ(0),nomJ(1)],avatars:[0,1].map(p=>p===partie.moi&&typeof monAvatar==='function'?monAvatar():''),moi:partie.moi});
+  }else barreRejeu();
+}
+/* Position k du rejeu (0..N) : journaux coupes, puis calcul depuis la graine. Seule l'avance d'un coup est animee. */
+function vaA(k){
+  const R=partie&&partie.rejeu;if(!R)return;
+  k=Math.max(0,Math.min(R.seq.length,k|0));const saut=k!==R.pos+1,n=[0,0];
+  for(let i=0;i<k;i++)n[R.seq[i]]++;
+  R.pos=k;R.n=n;
+  partie.mien=R.j[partie.moi].slice(0,n[partie.moi]);partie.sien=R.j[1-partie.moi].slice(0,n[1-partie.moi]);
+  if(saut){arreteAnim();arreteDes();fermeRecap()}
+  if(saut||R.dif){partie.lusM=partie.mien.length;partie.lusS=partie.sien.length} /* vue #dif : l'ancien ecran cache n'anime rien */
+  calcule();
+  if(saut&&R.dif&&window.DIFFUSION)DIFFUSION.rejeu.saut(partie.etat);
+  barreRejeu();
+}
+window.__golemsRejeuCmd=(nom,val)=>{
+  const R=partie&&partie.rejeu;if(!R)return;
+  if(nom==='quitter'){finRejeu();return}
+  if(nom==='lecture'){if(!R.lecture&&R.pos>=R.seq.length){vaA(0);R.lecture=true}else R.lecture=!R.lecture;barreRejeu();pasRejeu();return}
+  if(nom==='vitesse'){R.vitesse=[1,2,4].includes(+val)?+val:1;barreRejeu();pasRejeu();return}
+  R.lecture=false;clearTimeout(rejeuT);rejeuT=0;
+  if(R.dif&&window.DIFFUSION)DIFFUSION.rejeu.fermePop();
+  if(nom==='debut')vaA(0);else if(nom==='fin')vaA(R.seq.length);else if(nom==='prec')vaA(R.pos-1);else if(nom==='suiv')vaA(R.pos+1);
+  barreRejeu();
+};
 function barreRejeu(){
+  if(partie&&partie.rejeu&&partie.rejeu.dif){const o=$('barreRejeu');if(o)o.remove();if(window.DIFFUSION)DIFFUSION.rejeu.maj();return}
   let b=$('barreRejeu');if(!b){b=el('div','barreRejeu');b.id='barreRejeu';b.setAttribute('role','toolbar');b.setAttribute('aria-label','Replay');document.body.append(b)}
   const R=partie&&partie.rejeu;if(!R){b.remove();return}
+  if(R.dif){b.remove();if(window.DIFFUSION)DIFFUSION.rejeu.maj();return}
   b.textContent='';
   const bt=(t,f,lib)=>{const q=el('button','btn sec',t);q.type='button';if(lib)q.setAttribute('aria-label',lib);q.onclick=f;b.append(q);return q};
   b.append(el('b','','Replay'),el('span','r-pos',R.pos+' / '+R.seq.length));
@@ -248,16 +286,21 @@ function pasRejeu(){
   clearTimeout(rejeuT);rejeuT=0;
   const R=partie&&partie.rejeu;if(!R)return;
   if(!R.lecture||R.pos>=R.seq.length){if(R.pos>=R.seq.length)R.lecture=false;barreRejeu();return}
+  const st0=R.dif&&window.DIFFUSION?DIFFUSION.rejeu.pop():null,enPop=st0==='manche',enAtt=st0==='attente'||(R.dif&&DIFFUSION.rejeu.reste()>30);
   rejeuT=setTimeout(()=>{
     if(!partie||partie.rejeu!==R)return;
+    if(R.dif){const st=DIFFUSION.rejeu.pop();
+      if(st==='attente'||DIFFUSION.rejeu.reste()>30){pasRejeu();return}
+      if(st==='manche'){if(enPop){DIFFUSION.rejeu.fermePop();vaA(R.pos+1);pasRejeu()}else pasRejeu();return}
+      vaA(R.pos+1);pasRejeu();return}
     if(!$('recap').hidden){const c=$('continuer');if(c)c.click();pasRejeu();return}
     if(desActif||animCours){pasRejeu();return}
     const p=R.seq[R.pos],c=R.j[p][R.n[p]];R.n[p]++;R.pos++;
     (p===partie.moi?partie.mien:partie.sien).push(c);calcule();barreRejeu();pasRejeu();
-  },(!$('recap').hidden?2500:900)/R.vitesse);
+  },R.dif?(enPop?2500:enAtt?150:900)/R.vitesse:(!$('recap').hidden?2500:900)/R.vitesse);
 }
 function finRejeu(){clearTimeout(rejeuT);rejeuT=0;finPartie();const b=$('barreRejeu');if(b)b.remove();$('accueil').hidden=false;onglet('historique')}
-window.__golemsRejeu=()=>partie&&partie.rejeu?{pos:partie.rejeu.pos,total:partie.rejeu.seq.length,fin:!!(partie.etat&&partie.etat.fin)}:null;
+window.__golemsRejeu=()=>partie&&partie.rejeu?{pos:partie.rejeu.pos,total:partie.rejeu.seq.length,fin:!!(partie.etat&&partie.etat.fin),manche:partie.etat?partie.etat.manche:1,vitesse:partie.rejeu.vitesse,lecture:!!partie.rejeu.lecture,dif:!!partie.rejeu.dif}:null;
 /* Confirmations au modele de la deconnexion (commun/alertes.js, confirmeFen) : titre en question, phrase, [Action] [Annuler]. */
 function confirmeAbandon(msg,oui,titre,bouton){confirmeFen({titre:titre||'Abandonner la partie ?',texte:msg,action:bouton||'Abandonner'}).then(v=>{if(v)oui()})}
 function confirmePage(box,titre,oui,texte,bouton){confirmeFen({titre,texte,action:bouton||'Supprimer'}).then(v=>{if(v)oui()})}

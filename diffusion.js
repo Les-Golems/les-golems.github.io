@@ -7,9 +7,9 @@
 'use strict';
 const ESSAI=location.pathname.split('/')[1]==='essai';
 /* couleurs par joueur : en vue joueur, le joueur de l'ecran est toujours en bleu (--moi), meme s'il est le joueur 2 */
-const inv=()=>src==='joueur'&&E&&E.moi===1;
+const inv=()=>(src==='joueur'||src==='rejeu')&&E&&E.moi===1;
 const COL={get 0(){return inv()?'var(--lui)':'var(--moi)'},get 1(){return inv()?'var(--moi)':'var(--lui)'}};
-const BAS=()=>src==='joueur'&&E?E.moi:0; /* joueur affiche en bas (vue joueur : toi ; vue spectateur : joueur 1) */
+const BAS=()=>(src==='joueur'||src==='rejeu')&&E?E.moi:0; /* joueur affiche en bas (vue joueur : toi ; vue spectateur : joueur 1) */
 const mk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const U=()=>window.GOLEMS_UI,M=()=>U().M;
 const d_=n=>/^[aeiouyhàâäéèêëîïôöùûü]/i.test(n)?"d'":'de '; /* Main d'Alrevan, Victoire de KaTarN */
@@ -31,22 +31,29 @@ const nbCartes=x=>{const u=U();if(u&&u.texteLog)return u.texteLog(x);const f=doc
 /* ---------- Etat de la vue ---------- */
 let D=null,scene=null,src=null,E=null; /* src : 'spec' ou 'demo' ; E : {etat, noms, avatars, uids} */
 let suivi=null; /* memoire entre deux peintures : poses vues, halo, manches et fin deja annoncees */
-function neufSuivi(){return {nev:-1,der:null,lieu:{},halo:null,nt:-1,fin:false,pop:null,vu:null,vol:null,morts:[],flash:{},snap:null,arr:{}}}
+function neufSuivi(){return {nev:-1,der:null,lieu:{},halo:null,nt:-1,fin:false,pop:null,vu:null,vol:null,morts:[],flash:{},snap:null,arr:{},pq:null,vols:[],popT:0,etArr:[],fx:[],traits:[],gr:null,nrep:-1,decT:0,tenus:[]}}
 /* Animations (0.3a) : pose qui glisse de la main a la case, Golem detruit qui s'efface, Force qui clignote, moments forts du journal.
    Purement visuelles : la vue est repeinte a chaque action, chaque animation est rejouee ou elle en etait (delai negatif) ;
    aucune n'attend ni ne retarde la partie. prefers-reduced-motion : ni glissement ni clignotement. */
 const REDUIT=matchMedia('(prefers-reduced-motion: reduce)');
-const VOL=500,EFFACE=600,FLASH=1000,LUEUR=1600;
+let VOL,EFFACE,FLASH,LUEUR,HALO,KV=1;
+/* 0.6 : durees de la 0.4 (vue/partie.js) : carte jouee en grand puis glissade 1,95 s, pioche 450 ms (140 ms d'ecart), Forge 600, Defausse 500, detruit 450, etoile 700 */
+let GRAND,PIOCHE,PAS_P,FORGE,DEFAUSSE,DETRUIT,ETOILE,PAS_E;
+/* rejeu a x2 / x4 : toutes les durees divisees par la vitesse */
+function vitesseAnims(k){KV=k||1;const d=x=>x/KV;VOL=d(500);EFFACE=d(1100);FLASH=d(1000);LUEUR=d(1600);HALO=d(1200);
+  GRAND=d(1950);PIOCHE=d(450);PAS_P=d(140);FORGE=d(600);DEFAUSSE=d(500);DETRUIT=d(450);ETOILE=d(700);PAS_E=d(500)}
+vitesseAnims(1);
 let couche=null,finVol=0;
 const delai=t=>((t-performance.now())/1000)+'s';
 /* rectangle d'un element dans le repere de la scene (1920 x 1080, avant mise a l'echelle) */
 function rectScene(e){const r=e.getBoundingClientRect(),R=scene.getBoundingClientRect(),k=R.width/1920||1;return {x:(r.left-R.left)/k,y:(r.top-R.top)/k,w:r.width/k,h:r.height/k}}
 const caseDe=(p,l,k,racine)=>(racine||scene).querySelector('.p-case[data-p="'+p+'"][data-l="'+l+'"][data-k="'+k+'"]');
 /* Golems en jeu : cle joueur:carte -> [l,k,Force affichee] */
-function photo(s){const Mo=M(),r={};for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=s.j[p].grille[l][k];if(g&&!Mo.carte(g.c).animal)r[p+':'+g.c]=[l,k,Mo.forceDe(s,p,l,k)]}return r}
+function photo(s){const Mo=M(),r={};for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=s.j[p].grille[l][k];if(g&&!Mo.carte(g.c).animal)r[p+':'+g.c]=[l,k,Mo.forceDe(s,p,l,k),g.hors===s.manche]}return r}
 /* Avant de vider la scene : nouvelles poses (depart dans la main), Golems detruits (copie de leur case), Forces changees */
 function prepareAnims(s,premier,nev0){
-  const t=performance.now(),Mo=M(),ap=photo(s),av=suivi.snap;suivi.snap=ap;
+  const t=performance.now(),Mo=M(),ap=photo(s),av=suivi.snap,pv=suivi.pq,G0=suivi.gr,G1=grilles(s),nr0=suivi.nrep;suivi.snap=ap;suivi.pq=tas(s);suivi.gr=G1;suivi.nrep=s.reperes.length;
+  suivi.decT=0;
   if(premier)return;
   const ev=s.stats.ev;let pose=null;const morts=[];
   for(let i=Math.max(0,nev0);i<ev.length;i++){const e=ev[i];if(e.t==='p')pose=e;else if(e.t==='m')morts.push(e)}
@@ -60,13 +67,188 @@ function prepareAnims(s,premier,nev0){
       let de=b?rectScene(b):zm?rectScene(zm):null;
       if(de&&!b)de={x:de.x+de.w/2-51,y:de.y,w:103,h:144};
       const ca=caseDe(pose.cp,x[0],x[1]),vi=ca&&ca.querySelector(':scope>.mini');
-      if(de){t0=t+VOL;suivi.vol={p:pose.cp,c:pose.cc,l:x[0],k:x[1],de,fin:t0,vieux:vi?vi.cloneNode(true):null,vevo:!!(ca&&ca.classList.contains('evo')),lance:false}}}
+      if(de){t0=t+GRAND;suivi.vol={p:pose.cp,c:pose.cc,l:x[0],k:x[1],de,fin:t0,vieux:vi?vi.cloneNode(true):null,vevo:!!(ca&&ca.classList.contains('evo')),lance:false}}}
     if(suivi.halo&&suivi.halo.c===pose.cc)suivi.halo.t=t0;}
   /* Golems detruits par cette action : ils s'effacent ensemble */
   if(av&&scene)morts.forEach(e=>{const o=av[e.cp+':'+e.cc];if(!o)return;const ca=caseDe(e.cp,o[0],o[1]),vi=ca&&ca.querySelector(':scope>.mini:not(.d-fantome):not(.d-vieux)');
     if(vi)suivi.morts.push({p:e.cp,l:o[0],k:o[1],n:vi.cloneNode(true),t:t0})});
   /* Force affichee changee (meme Golem) : vert si elle monte, rouge si elle baisse */
   if(av&&!REDUIT.matches)Object.keys(ap).forEach(q=>{const o=av[q];if(o&&o[2]!==ap[q][2])suivi.flash[q]={h:ap[q][2]>o[2],t:t0}});
+  if(pv&&scene&&!REDUIT.matches)mouvements(s,pv,suivi.pq,t,t0,nev0);
+  if(scene)effetsCases(s,G0,G1,av,ap,t,t0,pose,morts,nr0>=0&&s.reperes.length>nr0);
+}
+/* ---------- 0.6 : effets sur les cases de la 0.4 (vue/partie.js), portes dans #dif ----------
+   arrive, fx-evo (eclat d'evolution), traits entre cartes (.v-lien) + fx-lien, bonus « +n », degat « -n » + frappe, secoue,
+   compte « +n » et fx-hors au decompte, bascule (Energie, score). Memes classes CSS que la 0.4 (css/partie.css). */
+/* Lancers de des (0.4 : #des) : Alrevan, KEKWRevan, Le Plateau de Jeu, Gamba d'Apo ; meme fenetre, dans la couche de #dif */
+const DES_RE=[[/^Alrevan lance le dé : Force (\d+)\.$/,m=>['Alrevan',[+m[1]],'Force '+m[1]]],
+  [/^Alrevan \(KEKWRevan\) lance (\d) et (\d) : Force (\d+)\.$/,m=>['Alrevan (KEKWRevan)',[+m[1],+m[2]],'Force '+m[3]]],
+  [/^Le Plateau de Jeu lance (\d) : (.+)\.$/,m=>['Le Plateau de Jeu',[+m[1]],m[2]]],
+  [/^(Apo|(?:Apo \(Maître du déguisement\)|Velnen \(Le chansonnier\)) \(Gamba\)) lance (\d) : (.+)\.$/,m=>[m[1]==='Apo'?'Apo (Gamba)':m[1],[+m[2]],m[3].charAt(0).toUpperCase()+m[3].slice(1)]]];
+const desF={L:[],t:0,el:null,iv:0};
+function des(s,t0){const n0=suivi.nlog!=null?suivi.nlog:s.log.length;
+  let t=Math.max(t0,desF.fin||0);
+  for(let i=n0;i<s.log.length;i++){const[p,x]=s.log[i];for(const[re,f]of DES_RE){const m=re.exec(x);if(m){const[nm,v,r]=f(m);desF.L.push({p,nm,v,r,t});t+=(REDUIT.matches?1700:2700)/KV;break}}}
+  desF.fin=t;if(!desF.cur)desSuite()}
+function desStop(){desF.L=[];desF.cur=null;desF.fin=0;clearTimeout(desF.t);clearInterval(desF.iv);if(desF.el)desF.el.remove();desF.el=null}
+function desSuite(){
+  clearTimeout(desF.t);const o=desF.L[0];if(!o||!D){if(desF.el&&!desF.cur){desF.el.remove();desF.el=null}return}
+  const now=performance.now();if(now<o.t){desF.t=setTimeout(desSuite,o.t-now);return}
+  desF.L.shift();desF.cur=o;clearInterval(desF.iv);if(!desF.el||!couche||!couche.contains(desF.el)){desF.el=mk('div','d-des');desF.el.setAttribute('role','status');if(couche)couche.append(desF.el)}
+  const b=desF.el,fa=mk('div','faces'),re=mk('p');b.textContent='';b.append(mk('h3','',(src==='joueur'&&o.p===E.moi?'Toi':nom(o.p))+' : '+o.nm),fa,re);
+  const svg=window.deSvg||(v=>String(v)),faces=a=>{fa.innerHTML=a.map(svg).join('')};
+  const finit=()=>{clearInterval(desF.iv);b.classList.remove('roule');faces(o.v);re.textContent=o.r;desF.t=setTimeout(()=>{desF.cur=null;if(!desF.L.length&&desF.el){desF.el.remove();desF.el=null}desSuite()},1700/KV)};
+  if(REDUIT.matches){finit();return}
+  b.classList.add('roule');const h=()=>faces(o.v.map(()=>1+Math.floor(Math.random()*6)));h();desF.iv=setInterval(h,90);desF.t=setTimeout(finit,1000/KV);
+}
+function grilles(s){return s.j.map(J=>J.grille.map(r=>r.map(g=>g?{c:g.c,hors:g.hors}:null)))}
+const COUL=e=>'var(--'+e+')';
+function liens(G){
+  const Mo=M(),t={},c={},el=x=>{const C=Mo.carte(x.c);return C&&!C.animal&&C.el?C.el:[]};
+  for(let p=0;p<2;p++)for(let l=0;l<3;l++)for(let k=0;k<3;k++){const g=G[p][l][k];if(!g)continue;const E=el(g);
+    [[l,k+1],[l+1,k]].forEach(([x,y])=>{const n=G[p][x]&&G[p][x][y];if(n)E.filter(e=>el(n).includes(e)).forEach(e=>{t[[p,l,k,x,y,e]]={p,l,k,x,y,e}})});
+    const f=G[1-p][l][k],m=f&&Mo.DOMINE&&E.find(e=>el(f).includes(Mo.DOMINE[e]));if(m)c[[p,l,k]]={p,l,k,e:m}}
+  return {t,c};
+}
+function effetsCases(s,G0,G1,av,ap,t,t0,pose,morts,dec){
+  const F=suivi.fx,Mo=M(),K=x=>x/KV,cs=(p,l,k)=>[p,l,k];
+  const fx=(o,q,ms)=>F.push(Object.assign({t:q,ms:K(ms)},o));
+  /* pose : la carte arrive dans sa case ; evolution : eclat dore */
+  if(pose){const x=chercheCarte(s,pose.cp,pose.cc);if(x){fx({cs:cs(pose.cp,x[0],x[1]),classe:'arrive',mini:true},t0,480);
+    const C=Mo.carte(pose.cc);if(C&&C.base)fx({cs:cs(pose.cp,x[0],x[1]),classe:'fx-evo',eclat:true},t0,1950)}}
+  /* Golems qui bougent (Slam, Deguisement, echange...) : ils arrivent dans leur nouvelle case */
+  if(av)Object.keys(ap).forEach(q=>{const o=av[q],n=ap[q];if(o&&(o[0]!==n[0]||o[1]!==n[1]))fx({cs:cs(+q.split(':')[0],n[0],n[1]),classe:'arrive',mini:true},t0,480)});
+  /* mise des Pronos : « +1 » sur le terrain des paris */
+  if(Mo.miseTotale){const mt=Mo.miseTotale(s),k=s.terrains.findIndex(T=>typeof effetTerrain==='function'&&effetTerrain(T,'paris'));if(suivi.mise!=null&&mt>suivi.mise&&k>=0)fx({ter:k,classe:'fx-bonus',texte:'+'+(mt-suivi.mise)},t,1300);suivi.mise=mt}
+  des(s,t0);
+  if(!G0||!av)return;
+  let u=t0;const A=liens(G0),B=liens(G1),nT=Object.keys(B.t).filter(x=>!A.t[x]).map(x=>B.t[x]),nC=Object.keys(B.c).filter(x=>!A.c[x]).map(x=>B.c[x]);
+  /* traits : nouveau lien d'element entre voisins (trait), domination de la case d'en face (eclair) */
+  nT.forEach(o=>{suivi.traits.push({a:cs(o.p,o.l,o.k),b:cs(o.p,o.x,o.y),c:COUL(o.e),eclair:false,t:u,d:K(1000)});
+    [[o.l,o.k],[o.x,o.y]].forEach(([l,k])=>{fx({cs:cs(o.p,l,k),classe:'fx-lien',eclat:true,c:COUL(o.e)},u,1000);fx({cs:cs(o.p,l,k),classe:'fx-bonus',texte:'+1'},u,1300)});u+=K(650)});
+  nC.forEach(o=>{suivi.traits.push({a:cs(o.p,o.l,o.k),b:cs(1-o.p,o.l,o.k),c:COUL(o.e),eclair:true,t:u,d:K(800)});
+    fx({cs:cs(o.p,o.l,o.k),classe:'fx-lien',eclat:true,c:COUL(o.e)},u,800);fx({cs:cs(o.p,o.l,o.k),classe:'fx-bonus',texte:'+1'},u,1300);u+=K(550)});
+  /* Force changee sur place : reste du gain en « +n », perte en « -n » avec frappe ; gros degats ou plusieurs morts : le plateau tremble */
+  let perte=0;
+  if(!dec)Object.keys(ap).forEach(q=>{const o=av[q],n=ap[q];if(!o||o[0]!==n[0]||o[1]!==n[1])return;const p=+q.split(':')[0],l=n[0],k=n[1];
+    const dej=nT.filter(x=>x.p===p&&((x.l===l&&x.k===k)||(x.x===l&&x.y===k))).length+(nC.some(x=>x.p===p&&x.l===l&&x.k===k)?1:0),g=n[2]-o[2];
+    if(g-dej>0)fx({cs:cs(p,l,k),classe:'fx-bonus',texte:'+'+(g-dej)},u,1300);
+    else if(g<0){perte-=g;fx({cs:cs(p,l,k),classe:'fx-deg',texte:String(g)},t0,1500);fx({cs:cs(p,l,k),classe:'fx-frappe',mini:true},t0,500)}});
+  if((perte>=3||morts.length>=2)&&!REDUIT.matches)fx({plat:true,classe:'fx-secoue'},t0,500);
+  /* decompte de fin de manche : chaque Golem compte sa Force (« +n », « +0 » hors decompte), colonne par colonne ; les etoiles partent ensuite */
+  if(dec){const ordre=BAS()===0?[0,1,2]:[2,1,0],me=BAS();let d=t+K(350);
+    const ex=(s.dernier&&s.dernier.exclus)||[],hx=(p,l,k)=>ex.some(x=>x.q===p&&x.l===l&&x.k===k);
+    Object.keys(av).forEach(q=>{const o=av[q];o[3]=o[3]||hx(+q.split(':')[0],o[0],o[1])});
+    const vieux=[];Object.keys(av).forEach(q=>{const o=av[q],p=+q.split(':')[0],c=caseDe(p,o[0],o[1]),vi=c&&c.querySelector(':scope>.mini:not(.d-fantome):not(.d-vieux)');if(vi)vieux.push({p,l:o[0],k:o[1],n:vi.cloneNode(true)})});
+    Object.keys(av).forEach(q=>{const o=av[q];if(o[3]){const p=+q.split(':')[0];fx({cs:cs(p,o[0],o[1]),classe:'fx-hors',texte:'Hors décompte'},d,7000);fx({cs:cs(p,o[0],o[1]),classe:'fx-frappe',mini:true},d,500)}});
+    if(Object.keys(av).some(q=>av[q][3]))d+=K(1100);
+    ordre.forEach(k=>{[0,1,2].forEach(l=>[me,1-me].forEach(p=>{const q=Object.keys(av).find(x=>+x.split(':')[0]===p&&av[x][0]===l&&av[x][1]===k);if(!q)return;
+      fx({cs:cs(p,l,k),classe:'fx-compte',texte:'+'+(av[q][3]?0:av[q][2])},d,650);d+=K(240)}));d+=K(320)});
+    /* plateau de la manche finie garde a l'ecran pendant le decompte (comme fixe(av) en 0.4) */
+    const fin=d+K(300);vieux.forEach(v=>suivi.tenus.push(Object.assign(v,{fin})));
+    suivi.decT=Math.max(0,d-t);}
+}
+/* traits entre cartes (0.4 : trace) : dans la couche, du centre d'une case au centre de l'autre */
+function lanceTraits(){
+  if(!couche||!suivi.traits.length)return;const now=performance.now(),L=suivi.traits;suivi.traits=[];
+  L.forEach(o=>{if(now>o.t+o.d)return;const A=caseDe(o.a[0],o.a[1],o.a[2]),B=caseDe(o.b[0],o.b[1],o.b[2]);if(!A||!B)return;
+    const a=rectScene(A),b=rectScene(B),x0=a.x+a.w/2,y0=a.y+a.h/2,x1=b.x+b.w/2,y1=b.y+b.h/2;let dp='M'+x0+' '+y0;
+    if(o.eclair){const nx=-(y1-y0),ny=x1-x0,n=Math.hypot(nx,ny)||1;for(let i=1;i<7;i++){const q=i/7,f=(i%2?1:-1)*(8+Math.random()*12);dp+='L'+(x0+(x1-x0)*q+nx/n*f)+' '+(y0+(y1-y0)*q+ny/n*f)}}
+    dp+='L'+x1+' '+y1;
+    const ns='http://www.w3.org/2000/svg',sv=document.createElementNS(ns,'svg'),pa=document.createElementNS(ns,'path');sv.setAttribute('class','d-trait');sv.setAttribute('width','1920');sv.setAttribute('height','1080');
+    pa.setAttribute('d',dp);pa.setAttribute('class','v-lien');pa.style.stroke=o.c;pa.style.color=o.c;pa.style.animationDuration=o.d+'ms';pa.style.animationDelay=(o.t-now)+'ms';sv.append(pa);couche.append(sv);
+    setTimeout(()=>sv.remove(),o.t+o.d-now+50)});
+}
+/* effets en cours remis sur les cases a chaque peinture (l'animation reprend ou elle en etait) */
+function poseEffets(plat){
+  const t=performance.now();suivi.fx=suivi.fx.filter(o=>t<o.t+o.ms);
+  suivi.tenus=suivi.tenus.filter(v=>t<v.fin);
+  suivi.tenus.forEach(v=>{const c=caseDe(v.p,v.l,v.k,plat);if(!c)return;c.querySelectorAll(':scope>.mini').forEach(m=>m.style.visibility='hidden');const o=v.n.cloneNode(true);o.classList.add('fx-tenu');o.style.visibility='';c.append(o)});
+  suivi.fx.forEach(o=>{let z=o.plat?plat:o.ter!=null?plat.querySelectorAll('.d-tr>.p-terrain')[o.ter]:caseDe(o.cs[0],o.cs[1],o.cs[2],plat);if(!z)return;let e=z;
+    if(o.mini)e=z.querySelector(':scope>.mini:not(.d-fantome):not(.d-vieux)')||z;
+    if(o.eclat)z.append(e=mk('span',o.classe));else if(o.texte)z.append(e=mk('span',o.classe,o.texte));else e.classList.add(o.classe);
+    if(o.c)e.style.setProperty('--c',o.c);e.style.animationDuration=o.ms+'ms';e.style.animationDelay=(o.t-t)+'ms'});
+}
+/* bascule (0.4) : chiffre qui grossit un instant (score a l'arrivee d'une etoile, Energie qui monte) */
+function bascule(e){if(!e||REDUIT.matches)return;e.classList.remove('bascule');void e.offsetWidth;e.style.animationDuration=(750/KV)+'ms';e.classList.add('bascule')}
+/* ---------- 0.6 : cartes qui volent entre piles, main et plateau (comme la 0.4), dans la couche de vol ----------
+   Piles de chaque joueur avant / apres l'action : pioche (deck ou Forge -> main), main -> Forge / Defausse, Golem ou animal detruit
+   ou remplace (case -> Defausse), defausse du deck. Vue joueur : l'adversaire reste cache (verso) pour sa main, sa pioche et sa Forge. */
+function tas(s){return [0,1].map(p=>{const J=s.j[p],g={};
+  for(let l=0;l<3;l++)for(let k=0;k<3;k++){const v=J.grille[l][k];if(!v)continue;g[v.c]=[l,k];if(v.ani)g[v.ani.c]=[l,k]}
+  return {main:J.main.slice(),deck:new Set(J.deck),forge:new Set(J.forge),defausse:new Set(J.defausse),g}})}
+const cache=p=>(src==='joueur'||src==='rejeu')&&E&&p!==E.moi;
+function mouvements(s,a2,b2,t,t0,nev0){
+  const V=suivi.vols,pose=suivi.vol;
+  for(let p=0;p<2;p++){const a=a2[p],b=b2[p],ori=c=>a.forge.has(c)?'forge':a.deck.has(c)?'deck':a.defausse.has(c)?'defausse':null;
+    let np=0,nm=0,nd=0;
+    /* pioche : du deck ou de la Forge vers la main */
+    b.main.forEach(c=>{if(a.main.includes(c))return;const o=ori(c);if(!o)return;
+      V.push({p,c,de:{pile:o},vers:{main:c},t:t+PAS_P*np++,d:PIOCHE,dos:cache(p)})});
+    /* main -> Forge, Defausse, deck (mulligan) ou plateau (animal attache) ; la pose sur une case est le vol en grand */
+    a.main.forEach(c=>{if(b.main.includes(c))return;const k=b.forge.has(c)?'forge':b.defausse.has(c)?'defausse':b.deck.has(c)?'deck':null;
+      const de=rectMain(p,c);if(!de)return;
+      if(k)V.push({p,c,deR:de,vers:{pile:k},t:t+120*nm++,d:k==='forge'?FORGE:k==='deck'?PIOCHE:DEFAUSSE,dos:cache(p)});
+      else if(b.g[c]&&!(pose&&pose.c===c))V.push({p,c,deR:de,vers:{case:b.g[c]},t:t+120*nm++,d:VOL,dos:false})});
+    /* Defausse : Golem ou animal detruit, remplace (apres l'arrivee de la carte posee), defausse du deck ou de la Forge */
+    b.defausse.forEach(c=>{if(a.defausse.has(c)||a.main.includes(c))return;
+      if(a.g[c]){const ca=caseDe(p,a.g[c][0],a.g[c][1]);V.push({p,c,deR:ca?rectScene(ca):null,de:{case:a.g[c]},vers:{pile:'defausse'},t:t0+90*nd++,d:DETRUIT,dos:false})}
+      else{const o=ori(c);if(o)V.push({p,c,de:{pile:o},vers:{pile:'defausse'},t:t+120*nd++,d:DEFAUSSE,dos:false})}});
+  }
+  /* deck vide (meule) : l'etoile part du deck de celui qui n'a pas pu piocher vers le score de l'autre */
+  const ev=s.stats.ev;let ne=0;
+  for(let i=Math.max(0,nev0);i<ev.length;i++){const e=ev[i];if(e.t==='dv')V.push({etoile:'+'+e.n,p:1-e.cp,de:{pile:'deck',p:e.cp},t:t+PAS_E*ne++,d:ETOILE})}
+}
+/* rectangles dans le repere de la scene : pile d'un joueur, carte de sa main, case */
+function rectPile(p,k){
+  let e=src==='joueur'&&p===E.moi?scene.querySelector('.mq-piles .pile.'+k):null;
+  if(!e)e=scene.querySelector('.d-ban .d-j[data-p="'+p+'"] [data-k="'+k+'"]');
+  return e?rectScene(e):null;
+}
+function rectMain(p,c){
+  if(cache(p)){const f=scene.querySelector('.mq-haut .mq-fan');if(!f)return null;const r=rectScene(f);return {x:r.x+r.w/2-43,y:r.y+r.h/2-60,w:86,h:120}}
+  const b=scene.querySelector('.d-col[data-p="'+p+'"] button[data-c="'+c+'"]');if(b)return rectScene(b);
+  const z=scene.querySelector('.d-col[data-p="'+p+'"] .d-main');if(!z)return null;const r=rectScene(z);return {x:r.x+r.w/2-51,y:r.y,w:103,h:144};
+}
+function rectVers(o,p){if(!o)return null;if(o.pile)return rectPile(o.p!=null?o.p:p,o.pile);if(o.main!=null)return rectMain(p,o.main);
+  if(o.case){const c=caseDe(p,o.case[0],o.case[1]);return c?rectScene(c):null}return null}
+/* cadre d'une carte (5 x 7) centre sur un rectangle : au moins 84 px de haut (compteurs du bandeau) */
+function cadre(r){const h=Math.max(r.h,84),w=h*5/7;return {x:r.x+r.w/2-w/2,y:r.y+r.h/2-h/2,w,h}}
+/* lance les vols en attente (apres la peinture : les destinations existent) ; ceux deja lances continuent dans la couche */
+function lanceVols(){
+  if(!couche||!suivi.vols.length)return;const now=performance.now(),L=suivi.vols;suivi.vols=[];
+  L.forEach(v=>{if(now>v.t+v.d)return;
+    if(v.etoile){const de=rectVers(v.de,v.p),vers=rectScore(v.p);if(de&&vers)etoileVol(de,vers,v.etoile,v.t,v.d,v.p);return}
+    const A0=v.deR||rectVers(v.de,v.p),B0=rectVers(v.vers,v.p);if(!A0||!B0)return;
+    const A=cadre(A0),B=cadre(B0),im=mk('img','d-vole d-vole2');im.src=v.dos?imgV('cartes/verso.jpg'):U().srcC(v.c);im.alt='';
+    Object.assign(im.style,{left:A.x+'px',top:A.y+'px',width:A.w+'px',height:A.h+'px'});couche.append(im);
+    const T='translate('+(B.x-A.x)+'px,'+(B.y-A.y)+'px) scale('+(B.w/A.w)+')';
+    const an=im.animate([{transform:'none',opacity:1},{transform:T,opacity:1,offset:.85},{transform:T,opacity:0}],{duration:v.d,delay:Math.max(0,v.t-now),easing:'cubic-bezier(.3,.7,.3,1)',fill:'forwards'});
+    an.onfinish=()=>im.remove();an.oncancel=()=>im.remove()});
+}
+/* score affiche : sans les etoiles encore en vol */
+function scoreAff(s,p){return s.j[p].score-(suivi?suivi.etArr.filter(a=>a.p===p).reduce((x,a)=>x+a.n,0):0)}
+function majScore(){if(!scene||!E)return;const b=scene.querySelector('.d-sc b'),e=scene.querySelector('.d-sc em');if(b)b.textContent=String(scoreAff(E.etat,BAS()));if(e)e.textContent=String(scoreAff(E.etat,1-BAS()))}
+/* score du bandeau : le chiffre du joueur */
+function rectScore(p){const e=scene.querySelector('.d-sc '+(p===BAS()?'b':'em'));return e?rectScene(e):null}
+function etoileVol(de,vers,txt,t,d,p){
+  /* le score du bandeau ne monte qu'a l'arrivee de l'etoile */
+  if(p!=null){const n=parseInt(txt,10)||0,S=suivi,a={p,n,t:t+d};S.etArr.push(a);setTimeout(()=>{if(suivi!==S)return;S.etArr=S.etArr.filter(x=>x!==a);majScore();if(scene)bascule(scene.querySelector('.d-sc '+(p===BAS()?'b':'em')))},Math.max(0,t+d-performance.now()))}
+  const z=mk('div','d-etoile');z.append(U().ico('coupe'),mk('b','',txt));couche.append(z);
+  const f=(r,k)=>'translate('+(r.x+r.w/2-30)+'px,'+(r.y+r.h/2-30)+'px) scale('+k+')';
+  const an=z.animate([{transform:f(de,.6),opacity:1},{transform:f(de,1.5),opacity:1,offset:.3},{transform:f(vers,.7),opacity:1}],{duration:d,delay:Math.max(0,t-performance.now()),easing:'ease-in',fill:'forwards'});
+  an.onfinish=()=>z.remove();an.oncancel=()=>z.remove();
+}
+/* Fin de manche : une etoile par terrain remporte (et par bonus du decompte) vers le score du bandeau, avant la fenetre de manche ; rend la duree */
+function etoilesManche(s,m){
+  if(REDUIT.matches||!scene||!couche)return 0;
+  const R=s.reperes[m-1];if(!R)return 0;const t=performance.now()+(suivi.decT||0),tr=[...scene.querySelectorAll('.d-tr>.p-terrain')];let n=0;
+  for(let i=R[0];i<s.log.length&&(m<s.reperes.length?i<s.reperes[m][0]:true);i++){const[p,x]=s.log[i];if(p!==0&&p!==1)continue;
+    const q=/:\s\+(\d+)( points?)?\.$/.exec(x);if(!q)continue;
+    const k=s.terrains.findIndex(T=>x.startsWith('marque '+T.nom+' ')||x.startsWith(T.nom+' lance '));
+    const o=k>=0&&tr[k]?tr[k]:scene.querySelector('.d-plat'),vers=rectScore(p);if(!o||!vers)continue;
+    etoileVol(rectScene(o),vers,'+'+q[1],t+PAS_E*n,ETOILE,p);n++}
+  return n?(suivi.decT||0)+PAS_E*(n-1)+ETOILE+150:0;
 }
 /* Apres la peinture du plateau : carte en vol, copies qui s'effacent, chiffres qui clignotent */
 function decore(s,plat){
@@ -76,14 +258,15 @@ function decore(s,plat){
       if(c){c.dataset.evo=c.classList.contains('evo')?'1':'';c.classList.add('d-vol');c.classList.toggle('evo',v.vevo);if(v.vieux){const o=v.vieux.cloneNode(true);o.classList.add('d-vieux');c.append(o)}}}
     clearTimeout(finVol);finVol=setTimeout(atterrit,v.fin-t+10)}
   else suivi.vol=null;
+  poseEffets(plat);
   suivi.morts=suivi.morts.filter(m=>t<m.t+EFFACE+100);
-  suivi.morts.forEach(m=>{const c=caseDe(m.p,m.l,m.k,plat);if(!c)return;const o=m.n.cloneNode(true);o.classList.add('d-fantome');o.style.animationDelay=delai(m.t);c.append(o)});
+  suivi.morts.forEach(m=>{const c=caseDe(m.p,m.l,m.k,plat);if(!c)return;const o=m.n.cloneNode(true);o.classList.add('d-fantome','fx-fantome');o.style.animationDelay=delai(m.t);o.style.animationDuration=EFFACE+'ms';c.append(o)});
   Object.keys(suivi.flash).forEach(q=>{const f=suivi.flash[q];if(t>f.t+FLASH){delete suivi.flash[q];return}
     const[p,cc]=q.split(':'),x=chercheCarte(s,+p,+cc),c=x&&caseDe(p,x[0],x[1],plat),e=c&&c.querySelector(':scope>.mini:not(.d-vieux) .f');
-    if(e){e.classList.add(f.h?'d-fh':'d-fb');e.querySelector('b').style.animationDelay=delai(f.t)}});
+    if(e){e.classList.add(f.h?'d-fh':'d-fb');const fb=e.querySelector('b');fb.style.animationDelay=delai(f.t);fb.style.animationDuration=FLASH+'ms'}});
 }
 /* Fin du vol : la case montre la carte posee (sans repeindre) */
-function atterrit(){if(!scene)return;scene.querySelectorAll('.p-case.d-vol').forEach(c=>{c.classList.remove('d-vol');c.classList.toggle('evo',c.dataset.evo==='1');c.querySelectorAll(':scope>.d-vieux').forEach(o=>o.remove())})}
+function atterrit(){if(!scene)return;scene.querySelectorAll('.d-der>button img').forEach(i=>i.style.visibility='');scene.querySelectorAll('.p-case.d-vol').forEach(c=>{c.classList.remove('d-vol');c.classList.toggle('evo',c.dataset.evo==='1');c.querySelectorAll(':scope>.d-vieux').forEach(o=>o.remove())})}
 /* Carte qui glisse de la main a sa case (couche au-dessus de la scene, gardee d'une peinture a l'autre) */
 function lanceVol(){
   const v=suivi.vol;if(!v||v.lance||!couche)return;v.lance=true;
@@ -91,6 +274,13 @@ function lanceVol(){
   const a=rectScene(c),d=v.de,sc=a.h*1.2/d.h,dx=a.x+a.w/2-d.x-d.w*sc/2,dy=a.y+a.h/2-d.y-d.h*sc/2,im=mk('img','d-vole'),reste=v.fin-performance.now();
   if(reste<50)return;
   im.src=U().srcC(v.c);im.alt='';Object.assign(im.style,{left:d.x+'px',top:d.y+'px',width:d.w+'px',height:d.h+'px'});couche.append(im);
+  /* 0.6 : comme montreGrand en 0.4, la carte passe en grand sur l'image de « Derniere carte jouee » (a cote du plateau, sans le cacher), puis glisse vers sa case */
+  const g=scene.querySelector('.d-der>button img');
+  if(g&&reste>GRAND*.5){const G=rectScene(g),k=G.h/d.h,gx=G.x-d.x,gy=G.y-d.y,tr=(x,y,z)=>'translate('+x+'px,'+y+'px) scale('+z+')';
+    g.style.visibility='hidden';
+    const an=im.animate([{transform:tr(0,0,1),opacity:1},{transform:tr(gx,gy,k),opacity:1,offset:.14},{transform:tr(gx,gy,k),opacity:1,offset:.62},
+      {transform:tr(dx,dy,sc),opacity:1,offset:.95},{transform:tr(dx,dy,sc),opacity:0}],{duration:reste,easing:'ease-in-out',fill:'forwards'});
+    an.onfinish=()=>im.remove();an.oncancel=()=>im.remove();return}
   const an=im.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:'translate('+dx*.3+'px,'+(dy*.3-30)+'px) scale('+(1+(sc-1)*.3+.06)+')',opacity:1,offset:.35},
     {transform:'translate('+dx+'px,'+dy+'px) scale('+sc+')',opacity:1,offset:.85},{transform:'translate('+dx+'px,'+dy+'px) scale('+sc+')',opacity:0}],{duration:reste,easing:'cubic-bezier(.35,.6,.3,1)',fill:'forwards'});
   an.onfinish=()=>im.remove();an.oncancel=()=>im.remove();
@@ -183,19 +373,29 @@ function peindre(){
   [...scene.children].forEach(n=>{if(n!==chat.el&&n!==couche)n.remove()}); /* la fenetre de chat reste en place (saisie en cours), la carte en vol aussi */
   const fin=!!s.fin,qui=fin||s.phase==='mulligan'?null:u.quiJoue(s);
   if(src==='joueur')peindreJoueur(s,qui);
+  else if(src==='rejeu')scene.append(bandeau(s,qui),plateau(s,qui),eventail(s,1-BAS()),cercle(),derniere(s),actions(s),main(s,BAS(),854,qui===BAS()),coin());
   else scene.append(bandeau(s,qui),plateau(s,qui),main(s,1,186,qui===1),cercle(),derniere(s),actions(s),main(s,0,854,qui===0),coin());
   if(!couche||couche.parentNode!==scene)couche=mk('div','d-couche');
   if(chat.el)scene.insertBefore(couche,chat.el);else scene.append(couche);
   ajusteNoms();
-  lanceVol();
+  /* Energie qui monte (Caramel, mise des Pronos, Forge) : le compteur bascule comme en 0.4 */
+  {const en=[0,1].map(p=>s.j[p].energie),t=performance.now();if(suivi.ener&&!premier)[0,1].forEach(p=>{if(en[p]>suivi.ener[p])suivi.basc={p,t}});suivi.ener=en;
+    const b=suivi.basc;if(b&&t<b.t+750/KV){const e=(src==='joueur'&&b.p===E.moi&&scene.querySelector('.mq-piles .pile.forge'))||scene.querySelector('.d-ban .d-j[data-p="'+b.p+'"] [data-k="forge"]');
+      if(e&&!REDUIT.matches){e.classList.add('bascule');e.style.animationDuration=(750/KV)+'ms';e.style.animationDelay=(b.t-t)+'ms'}}}
+  if(suivi.vol&&suivi.vol.lance&&performance.now()<suivi.vol.fin-GRAND*.38){const g=scene.querySelector('.d-der>button img');if(g)g.style.visibility='hidden'}
+  lanceVol();lanceVols();lanceTraits();
   /* fenetres de fin : une fin de manche nouvelle, ou la fin de la partie */
   const nt=s.stats.t.length;
-  if(suivi.nt<0)suivi.nt=premier&&!fin?nt:suivi.nt; /* arrivee en cours de partie : pas de fenetre pour une manche deja passee */
+  if(suivi.nt<0)suivi.nt=premier&&(!fin||suivi.calme)?nt:suivi.nt;
+  /* rejeu : apres un saut (retour arriere, Debut, Fin), ni etoiles ni fenetre de manche ; en pause, pas de fenetre de manche automatique */
+  if(suivi.calme&&fin&&!suivi.fin){suivi.fin=true;ouvrePop('partie')}
+  const auto=!(src==='rejeu'&&!rejeu.lecture()); /* arrivee en cours de partie : pas de fenetre pour une manche deja passee */
   /* les fenetres restent ouvertes jusqu'a « Fermer » ; la partie continue derriere */
   /* vue joueur : fin par abandon sur deconnexion = ecran de presence.js, pas de 2e fenetre */
   if(src==='joueur'&&fin&&!suivi.fin&&window.DECO&&DECO.etat&&DECO.etat().fin){suivi.fin=true;suivi.nt=nt}
-  if(fin&&!suivi.fin){suivi.fin=true;suivi.nt=nt;ouvrePop('partie')}
-  else if(!fin&&nt>suivi.nt&&nt%3===0){suivi.nt=nt;ouvrePop('manche',nt/3)}
+  /* 0.6 : les etoiles de fin de manche volent vers le score, puis la fenetre s'ouvre */
+  if(fin&&!suivi.fin){suivi.fin=true;const d=nt>suivi.nt&&nt%3===0?etoilesManche(s,nt/3):0;suivi.nt=nt;popApres(d,'partie')}
+  else if(!fin&&nt>suivi.nt&&nt%3===0){suivi.nt=nt;const d=etoilesManche(s,nt/3);if(auto)popApres(d,'manche',nt/3)}
   else if(suivi.pile&&sigPile(suivi.pile)!==suivi.pile.sig)ouvrePop('pile',suivi.pile); /* pile ouverte : mise a jour en direct */
   /* recapitulatif ouvert pendant un decompte qui continue (bonus de fin de manche, de) : refait avec le journal a jour ;
      fin de partie : refaite quand le souhait de revanche change (le mien ou celui de l'adversaire) */
@@ -203,18 +403,21 @@ function peindre(){
   /* fenetre de fin fermee et l'adversaire demande sa revanche : elle se rouvre */
   else if(src==='joueur'&&fin&&!suivi.pop&&suivi.rvVu!==revSig()&&(revSig()&2))ouvrePop('partie');
   else if(suivi.pop)scene.append(suivi.pop);
+  if(suivi.etArr.length)majScore(); /* etoiles lancees apres la peinture du bandeau */
 }
+function popApres(d,type,m){if(!d){ouvrePop(type,m);return}const S=suivi;clearTimeout(S.popT);
+  S.popT=setTimeout(()=>{S.popT=0;if(suivi===S&&D)ouvrePop(type,m)},d)}
 function bandeau(s,qui){
   const u=U(),ban=mk('div','d-z d-ban');
   const cpt=(n,lib,v)=>{const x=mk('span');x.append(u.ico(n),lib+' ');x.append(mk('b','',String(v)));return x};
   /* Deck, Defausse, Forge (et Energie, qui prend la place de la Forge chez le joueur actif) : ouvrent la pile en grand */
-  const pile=(x,p,k,lib)=>{if(!pileOuverte(p,k))return x;x.classList.add('d-pile');x.setAttribute('role','button');x.tabIndex=0;x.setAttribute('aria-label','Voir '+lib+' '+d_(nom(p))+nom(p));
+  const pile=(x,p,k,lib)=>{x.dataset.k=k;if(!pileOuverte(p,k))return x;x.classList.add('d-pile');x.setAttribute('role','button');x.tabIndex=0;x.setAttribute('aria-label','Voir '+lib+' '+d_(nom(p))+nom(p));
     x.onclick=()=>ouvrePop('pile',{p,k});x.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvrePop('pile',{p,k})}};return x};
   const bloc=(p,dr)=>{
-    const J=s.j[p],b=mk('div','d-j '+(p===BAS()?'toi':'lui')+(dr?' dr':'')+(qui===p?' actif':'')),id=mk('div','d-id'),c=mk('div','d-cpt'),l1=mk('div','d-l1');
+    const J=s.j[p],b=mk('div','d-j '+(p===BAS()?'toi':'lui')+(dr?' dr':'')+(qui===p?' actif':'')),id=mk('div','d-id'),c=mk('div','d-cpt'),l1=mk('div','d-l1');b.dataset.p=p;
     c.append(cpt('main','Main',J.main.length),pile(cpt('deck','Deck',J.deck.length),p,'deck','le deck'),pile(cpt('defausse','Défausse',J.defausse.length),p,'defausse','la défausse'),pile(cpt('enclume','Forge',J.forge.length),p,'forge','la Forge'));
     l1.append(mk('div','d-nom',nom(p)));
-    if(qui===p){l1.append(mk('span','d-badge',src==='joueur'&&p===E.moi?'À toi de jouer':'À lui de jouer'));const e=mk('span','d-ener');e.append(u.ico('enclume'),'Énergie ');e.append(mk('b','',String(J.energie)));c.lastChild.replaceWith(pile(e,p,'forge','la Forge'))}
+    if(qui===p){l1.append(mk('span','d-badge',src==='joueur'&&p===E.moi?'À toi de jouer':src==='rejeu'?'Joue':'À lui de jouer'));const e=mk('span','d-ener');e.append(u.ico('enclume'),'Énergie ');e.append(mk('b','',String(J.energie)));c.lastChild.replaceWith(pile(e,p,'forge','la Forge'))}
     id.append(l1,c);b.append(avatar(p),id);return b;
   };
   const pts=(n,clic)=>{const w=mk('span','d-pts');for(let i=1;i<=3;i++){const x=mk('i',i<n?'fait':i===n?'on':'');
@@ -224,7 +427,7 @@ function bandeau(s,qui){
     w.append(x)}return w};
   const co=(l,n,clic)=>{const c=mk('div','d-cote');c.append(mk('small','',l),mk('b','',String(n)),pts(n,clic));return c};
   const mid=mk('div','d-mid'),sc=mk('div','d-sc');
-  sc.append(mk('b','',String(s.j[BAS()].score)),mk('span','','-'),mk('em','',String(s.j[1-BAS()].score)));
+  sc.append(mk('b','',String(scoreAff(s,BAS()))),mk('span','','-'),mk('em','',String(scoreAff(s,1-BAS()))));
   /* partie finie : le score rouvre la fenetre de fin de partie (pendant la partie, il ne reagit pas) */
   if(s.fin){sc.classList.add('d-clic');sc.setAttribute('role','button');sc.tabIndex=0;sc.title='Résultat de la partie';sc.setAttribute('aria-label','Revoir le résultat de la partie');
     sc.onclick=()=>ouvrePop('partie');sc.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvrePop('partie')}}}
@@ -235,7 +438,7 @@ function bandeau(s,qui){
 function plateau(s,qui){
   const u=U(),Mo=M(),plat=mk('div','d-z d-plat');
   const live=src==='joueur'?document.querySelectorAll('#partie .p-plateau>.p-grille'):[]; /* vue joueur : les vraies grilles de la partie (cibles et clics) */
-  const gh=live.length===2?live[0]:u.grilleVue(s,1,[0,1,2],[2,1,0],null),gb=live.length===2?live[1]:u.grilleVue(s,0,[0,1,2],[0,1,2],null);gh.classList.add('lui');gb.classList.add('mienne');
+  const gh=live.length===2?live[0]:u.grilleVue(s,1-BAS(),[0,1,2],[2,1,0],null),gb=live.length===2?live[1]:u.grilleVue(s,BAS(),[0,1,2],[0,1,2],null);gh.classList.add('lui');gb.classList.add('mienne');
   const r1=mk('div','d-rg'),r2=mk('div','d-rg');
   const hb=1-BAS();r1.append(mk('div','d-vt lui'+(qui===hb?' actif':''),nom(hb)),gh);r2.append(mk('div','d-vt toi'+(qui===BAS()?' actif':''),nom(BAS())),gb);
   /* terrains : Force de chaque camp, contour du joueur qui mene (neutre a egalite), valeur dessous */
@@ -247,8 +450,8 @@ function plateau(s,qui){
   /* halo : case de la derniere carte jouee, 3,6 s a partir de la pose (repeinture : l'animation reprend ou elle en etait) */
   const h=suivi.halo;
   if(h&&!s.fin){const x=chercheCarte(s,h.p,h.c),dt=performance.now()-h.t;
-    if(x&&dt<3600){const c=plat.querySelector('.p-case[data-p="'+h.p+'"][data-l="'+x[0]+'"][data-k="'+x[1]+'"]');
-      if(c){c.classList.add('d-halo');c.style.setProperty('--hc',COL[h.p]);c.style.animationDelay=(-dt/1000)+'s'}}}
+    if(x&&dt<HALO*3){const c=plat.querySelector('.p-case[data-p="'+h.p+'"][data-l="'+x[0]+'"][data-k="'+x[1]+'"]');
+      if(c){c.classList.add('d-halo');c.style.setProperty('--hc',COL[h.p]);c.style.animationDelay=(-dt/1000)+'s';c.style.animationDuration=HALO+'ms'}}}
   decore(s,plat);
   return plat;
 }
@@ -388,7 +591,7 @@ function actions(s){
     if(!e[3]){li.append(u.ico(g[1]),phrase(e[0],e[1]));ol.append(li);return}
     /* moment fort : liseré dore, fond teinte, pictogramme sur pastille doree, courte lueur a l'arrivee */
     li.classList.add('d-fort');const a=suivi.arr[e[2]];
-    if(a!=null){if(t<a+LUEUR){li.classList.add('d-neuf');li.style.animationDelay=delai(a)}else delete suivi.arr[e[2]]}
+    if(a!=null){if(t<a+LUEUR){li.classList.add('d-neuf');li.style.animationDelay=delai(a);li.style.animationDuration=LUEUR+'ms'}else delete suivi.arr[e[2]]}
     let ph;if(e[0]===0||e[0]===1)ph=phrase(e[0],e[1]);else{ph=mk('span');ph.append(nbCartes(e[1].replace(/\.$/,'')))}
     li.append(u.ico(e[3]),ph);ol.append(li)});
   z.append(ol);
@@ -397,6 +600,7 @@ function actions(s){
   return z;
 }
 function coin(){
+  if(src==='rejeu')return coinRejeu();
   const z=mk('div','d-z d-coin'),lo=mk('div','d-logo'),li=mk('img'),bas=mk('div','d-bas');li.src=imgV('cartes/logo.png');li.alt='Les Golems';lo.append(li);
   if(window.interDal)bas.append(interDal('Daltonien')); /* 0.5 : mode daltonien, a gauche de Chat */
   if(src==='spec'&&window.SPEC&&SPEC.chat){const b=mk('button','d-chat','Chat');b.type='button';b.setAttribute('aria-label','Ouvrir le chat');b.onclick=()=>chat.ouvre();
@@ -632,7 +836,7 @@ function pourquoiMvp(m){
 function ouvrir(source,entree){
   if(!window.GOLEMS_UI)return;
   if(D)fermer();
-  src=source;E=entree;suivi=neufSuivi();
+  src=source;E=entree;suivi=neufSuivi();if(source!=='rejeu')vitesseAnims(1);
   D=mk('div');D.id='dif';D.setAttribute('role','dialog');D.setAttribute('aria-label',source==='joueur'?'Partie':'Vue spectateur');
   scene=mk('div','d-scene');D.append(scene);
   /* telephone en portrait : la vue 16:9 se centre ; invitation discrete a tourner l'ecran */
@@ -651,7 +855,7 @@ function eventail(s,p){ /* main adverse en eventail de versos, resserre dans sa 
   let sp=Math.min(40,560/Math.max(1,n));
   for(let k=0;k<n;k++){const i=mk('img');i.src=imgV('cartes/verso.jpg');i.alt='';i.style.width=w+'px';i.style.height=Math.round(w*1.4)+'px';
     i.style.transform='rotate('+(n>1?(k-(n-1)/2)*(24/(n-1)):0)+'deg)';f.append(i)}
-  const place=()=>[...f.children].forEach((i,k)=>i.style.left=(250-w/2+(k-(n-1)/2)*sp)+'px');place();
+  const cx=src==='rejeu'?384:250,place=()=>[...f.children].forEach((i,k)=>i.style.left=(cx-w/2+(k-(n-1)/2)*sp)+'px');place();
   requestAnimationFrame(()=>{if(!scene)return;const im=[...f.children],R=scene.getBoundingClientRect(),k=R.width/1920||1;
     for(let t=0;t<60&&im.length>1;t++){const r=Math.max(...im.map(e=>(e.getBoundingClientRect().right-R.left)/k));if(r<=1500)break;sp*=.95;place()}});
   z.append(h,f);return z;
@@ -806,6 +1010,7 @@ function telephone(P){
 }
 function joueur(){
   const u=U();if(!u)return;const P=u.partie,box=document.getElementById('partie');
+  if(D&&src==='rejeu'){if(P&&P.rejeu&&P.etat){E.etat=P.etat;peindre()}else fermer();return}
   try{telephone(P)}catch(e){console.warn(e)}
   const ok=P&&P.etat&&!P.rejeu&&ECRAN_JOUEUR.matches&&box&&!box.hidden&&!(window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur());
   if(!ok){if(D&&src==='joueur')fermer();return}
@@ -818,21 +1023,21 @@ function joueur(){
   try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}
 }
 /* vue joueur : un bilan de manche de la partie ouvert (cache) sans fenetre de la vue = on ouvre celle de la vue (sinon la partie attendrait « Continuer ») */
-setInterval(()=>{if(!D||src!=='joueur'||!suivi||suivi.pop)return;const r=document.getElementById('recap');if(!r||r.hidden||!E.etat.stats)return;
+setInterval(()=>{if(!D||src!=='joueur'||!suivi||suivi.pop||suivi.popT)return;const r=document.getElementById('recap');if(!r||r.hidden||!E.etat.stats)return;
   /* partie finie : le bilan de la manche 3 est deja dans la fenetre de fin ; il est seulement marque vu (sinon il revenait apres « Revanche ») */
   if(E.etat.fin){const c=document.getElementById('continuer');if(c)c.click();return}
   const n=Math.max(1,Math.floor(E.etat.stats.t.length/3));ouvrePop('manche',n)},400);
 /* « Quitter la partie » (spectateur) : la diffusion se ferme et le spectateur quitte la partie comme avec l'ancien bouton Quitter ;
    demonstration : « Quitter la diffusion » arrete la partie locale */
 let sortieSpec=false; /* le spectateur vient de quitter : pas de reouverture tant qu'il est encore inscrit */
-function quitter(){const sp=src==='spec';fermer();if(sp){sortieSpec=true;const u=U();if(u&&typeof u.quitteBouton==='function')u.quitteBouton()}}
+function quitter(){if(src==='rejeu'){fermer();rejeu.cmd('quitter');return}const sp=src==='spec';fermer();if(sp){sortieSpec=true;const u=U();if(u&&typeof u.quitteBouton==='function')u.quitteBouton()}}
 function fermer(){
   if(!D)return;
   if(chat.el){chat.el.remove();chat.el=null}
   if(src==='demo')demo.stop();
   if(src==='joueur'){const cf=document.querySelector('.chat.flottant');if(cf&&D.contains(cf)){cf.classList.remove('mq-chatw');document.body.append(cf)}
     document.documentElement.classList.remove('dif-joueur');try{if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}catch(e){}}
-  D.remove();D=null;scene=null;E=null;src=null;suivi=null;document.documentElement.classList.remove('dif-ouvert');
+  desStop();D.remove();D=null;scene=null;E=null;src=null;suivi=null;document.documentElement.classList.remove('dif-ouvert');
 }
 
 /* ---------- Vue spectateur : bouton « Mode diffusion » et mise a jour en direct ---------- */
@@ -890,5 +1095,43 @@ function blocDemo(){
 }
 blocDemo();
 
-window.DIFFUSION={ouvrir,fermer,joueur,demo,peindre,chat,etat:()=>({ouvert:!!D,src,pause:demo.enPause,pop:!!(suivi&&suivi.pop),fin:!!(E&&E.etat&&E.etat.fin)})};
+/* ---------- Rejeu (0.6, maquette 45 B) : vue spectateur, main adverse de dos, commandes a la place du logo ----------
+   Le calcul reste dans onglets/historique.js (partie.rejeu) : la vue lit window.__golemsRejeu() et commande par window.__golemsRejeuCmd(nom,val). */
+const rejeu={
+  info(){return window.__golemsRejeu?window.__golemsRejeu():null},
+  lecture(){const r=this.info();return !!(r&&r.lecture)},
+  cmd(n,v){if(window.__golemsRejeuCmd)window.__golemsRejeuCmd(n,v)},
+  ouvre(x){ouvrir('rejeu',{etat:x.etat,noms:x.noms,avatars:x.avatars||['',''],uids:[],moi:x.moi});D.classList.add('rj');D.setAttribute('aria-label','Rejeu');this.maj()},
+  /* barre seule repeinte (position, Lecture/Pause, vitesse) */
+  maj(){const r=this.info();if(r)vitesseAnims(r.vitesse);if(!D||src!=='rejeu')return;const b=scene.querySelector('.d-coin');if(b)b.replaceWith(coinRejeu())},
+  /* retour arriere ou saut : animations coupees, vue repeinte comme a une arrivee en cours de partie */
+  saut(etat){if(!D||src!=='rejeu')return;clearTimeout(suivi.popT);clearTimeout(finVol);if(suivi.pile)U().cacheApercu();
+    desStop();suivi=neufSuivi();suivi.calme=true;if(couche){couche.getAnimations({subtree:true}).forEach(a=>a.cancel());couche.textContent=''}
+    if(etat)E.etat=etat;peindre();suivi.calme=false},
+  /* etat des fenetres pour la lecture : 'attente' (etoiles en vol avant la fenetre), 'manche', 'partie' ou null */
+  pop(){if(!suivi)return null;if(suivi.popT)return 'attente';return suivi.pop&&suivi.vu?suivi.vu.type:null},
+  fermePop(){if(suivi&&suivi.pop)fermePop()},
+  /* temps restant des animations en cours (ms), pour cadencer la lecture */
+  reste(){if(!suivi)return 0;const t=performance.now();let f=0;if(suivi.vol)f=Math.max(f,suivi.vol.fin-t);suivi.etArr.forEach(a=>f=Math.max(f,a.t-t));
+    if(couche)couche.getAnimations({subtree:true}).forEach(a=>{const e=a.effect&&a.effect.getComputedTiming();if(e&&e.endTime&&a.currentTime!=null)f=Math.max(f,e.endTime-a.currentTime)});return Math.max(0,f)}
+};
+function coinRejeu(){
+  const r=rejeu.info()||{pos:0,total:0,manche:1,vitesse:1,lecture:false,fin:false},z=mk('div','d-z d-coin'),B=mk('div','d-bloc d-rj'),bas=mk('div','d-bas');
+  B.setAttribute('role','toolbar');B.setAttribute('aria-label','Rejeu');
+  const r1=mk('div','d-rj-l'),ps=mk('div','d-rj-pos');ps.append(mk('b','','Coup '+r.pos+' / '+r.total),mk('span','',' - Manche '+r.manche));r1.append(ps);
+  const chev=d=>'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="'+(d<0?'M15 4 7 12l8 8':'M9 4l8 8-8 8')+'" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const bt=(t,cl,lib,n,off)=>{const b=mk('button','sc-btn '+cl,t==='‹'||t==='›'?null:t);if(t==='‹'||t==='›')b.innerHTML=chev(t==='‹'?-1:1);b.type='button';if(lib)b.setAttribute('aria-label',lib);b.disabled=!!off;b.onclick=()=>rejeu.cmd(n);return b};
+  const au=r.pos>=r.total,r2=mk('div','d-rj-cmd');
+  r2.append(bt('Début','sc-secondaire','Aller au début','debut',r.pos<=0),bt('‹','sc-secondaire d-rj-fl','Coup précédent','prec',r.pos<=0),
+    bt(r.lecture?'Pause':au?'Revoir':'Lecture','d-rj-pp',r.lecture?'Mettre en pause':au?'Revoir depuis le début':'Lancer la lecture','lecture'),
+    bt('›','sc-secondaire d-rj-fl','Coup suivant','suiv',au),bt('Fin','sc-secondaire','Aller à la fin','fin',au));
+  const r3=mk('div','d-rj-l'),v=mk('div','sc-sel sc-petit');v.setAttribute('role','group');v.setAttribute('aria-label','Vitesse');
+  [1,2,4].forEach(k=>{const b=mk('button','','x'+k);b.type='button';b.setAttribute('aria-pressed',String(r.vitesse===k));b.onclick=()=>rejeu.cmd('vitesse',k);v.append(b)});
+  r3.append(mk('span','d-rj-vt','Vitesse'),v);B.append(r1,r2,r3);
+  if(window.interDal)bas.append(interDal('Daltonien'));
+  const qt=mk('button','d-quit','Quitter le rejeu');qt.type='button';qt.onclick=quitter;bas.append(qt);
+  z.append(B,bas);return z;
+}
+
+window.DIFFUSION={ouvrir,fermer,joueur,demo,peindre,chat,rejeu,etat:()=>({ouvert:!!D,src,pause:demo.enPause,pop:!!(suivi&&suivi.pop),fin:!!(E&&E.etat&&E.etat.fin)})};
 })();
