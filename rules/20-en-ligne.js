@@ -26,7 +26,9 @@ module.exports = r => ({
     ".read": `${COMPTE} && query.orderByValue == true && query.limitToFirst <= 50`,
     ".indexOn": ".value",
     "$code": {
-      ".write": `${COMPTE} && ((newData.exists() && ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid)) || (!newData.exists() && data.val() < now - ${SEPT_JOURS}))`,
+      // pres/<uid> aussi (écrit par ce seul uid, gardé à c:false par le serveur à la coupure) : le renvoi par le SDK, après une coupure,
+      // d'un set envoyé juste avant arrive quand joueurs/<uid> est déjà effacé ; il n'est plus refusé.
+      ".write": `${COMPTE} && ((newData.exists() && (${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) || ${r}.child('salons').child($code).child('pres').hasChild(auth.uid))) || (!newData.exists() && data.val() < now - ${SEPT_JOURS}))`,
       ".validate": `$code.matches(${CODE}) && ${MAINTENANT}`
     }
   },
