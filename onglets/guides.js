@@ -170,8 +170,10 @@ async function gdSupprime(g){
   if(GD.cur===g)GD.cur=null;GD.fiches=Object.assign({},GD.fiches);delete GD.fiches[g.id];if(GUIDES_IDS.has(g.id))GD.sup=Object.assign({},GD.sup,{[g.id]:true});
   gdMaj();peintGuidesCJ();alerteInfo('gdAlq','Guide : supprimé. Il n\'apparaît plus pour personne.').classList.add('sc-une-ligne');
 }
+/* Bandeau des guides (#gdAlq) : un seul noeud, garde d'un rendu a l'autre et place aussi dans le panneau vide (liste filtree vide apres une modification ou une suppression). */
+const GD_ALQ=(()=>{const z=document.createElement('div');z.className='gd-alq';z.id='gdAlq';return z})();
 function gdDetail(g){
-  const P=$('gdDet');P.replaceChildren();if(!g){P.append(gdMk('p','gd-vide','Aucun guide ne correspond.'));return}
+  const P=$('gdDet');P.replaceChildren();if(!g){P.append(GD_ALQ,gdMk('p','gd-vide','Aucun guide ne correspond.'));return}
   const ph=gdMk('div','gd-ph'),h=gdMk('h3','',g.titre);h.title=g.titre;ph.append(h);if(g.officiel)ph.append(gdMk('span','gd-tag','Officiel'));
   if(gdPeut(g)){const ge=gdMk('div','gd-gest'),mo=gdMk('button','sc-btn sc-tertiaire','Modifier'),su=gdMk('button','sc-btn sc-tertiaire','Supprimer');mo.type=su.type='button';
     mo.onclick=()=>ouvrePropGuide(g);su.onclick=()=>gdSupprime(g);ge.append(mo,su);ph.append(ge)}
@@ -186,7 +188,7 @@ function gdDetail(g){
   ac.append(vo,cp);
   if(!g.texte){const y=gdMk('a','sc-btn sc-secondaire gd-yt','Voir sur YouTube ');y.href='https://www.youtube.com/watch?v='+g.yt;y.target='_blank';y.rel='noopener';y.insertAdjacentHTML('beforeend',SVG_EXT);ac.append(y)}
   r2.append(me,ac);
-  const alq=gdMk('div','gd-alq');alq.id='gdAlq';
+  const alq=GD_ALQ;
   /* Bande du deck : fond aux couleurs de ses elements, selecteur s'il y a deux versions, compteur x/30, version, Importer le deck */
   const D=gdInfo(g),d=D[g.dk],st=gdMk('div','gd-strip');
   if(D.length>1){const s=gdMk('div','sc-sel sc-petit gd-dsel');s.setAttribute('role','group');s.setAttribute('aria-label','Version du deck');
@@ -217,7 +219,7 @@ function peintGuidesCJ(garde){
   if(!L.length)ol.append(gdMk('li','gd-vide','Aucun guide ne correspond.'));
   $('gdNum').textContent=(GD.page+1)+'/'+n;$('gdPrec').disabled=GD.page===0;$('gdSuiv').disabled=GD.page>=n-1;
   /* Guide deja affiche (meme id, video en cours) : le detail n'est repeint que s'il change, sauf l'alerte qui reste. */
-  const avant=$('gdDet').dataset.id,al=$('gdAlq')?[...$('gdAlq').childNodes]:[];gdDetail(GD.cur);$('gdDet').dataset.id=GD.cur?.id||'';if(garde===true&&avant===(GD.cur?.id||'')&&al.length&&$('gdAlq'))$('gdAlq').append(...al);
+  const avant=$('gdDet').dataset.id;if(!(garde===true&&avant===(GD.cur?.id||'')))GD_ALQ.replaceChildren();gdDetail(GD.cur);$('gdDet').dataset.id=GD.cur?.id||'';
   majPointGd();
 }
 /* Barre commune : selecteur Regles | Guides, filtres (Guides seulement), recherche (un texte par vue). */
