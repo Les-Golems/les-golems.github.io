@@ -486,3 +486,4 @@ body.daltonien .dk-tuile.inv::after{content:'!';position:absolute;right:8px;bott
 .vd-co{min-height:0;flex:1 1 auto;overflow:hidden}.vd-co .dl-liste{max-height:420px}
 .dk-fen-lien .vd-m:empty{display:none}
 .dk-fen-lien .sc-fen-actions .sc-btn:disabled{opacity:.45;cursor:not-allowed}
+.hd-zoom{cursor:pointer}

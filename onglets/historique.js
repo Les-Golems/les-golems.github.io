@@ -80,12 +80,17 @@ function scoreHisto(x,cl){
   return z;
 }
 /* MVP : nom de la carte dans la couleur de son premier element, ★ apres une evolution (audit 34, J11). */
-function mvpHisto(nom){
+function mvpHisto(nom,court){
   const z=el('span','hl-mvp');z.append(el('span','hl-mvpe','MVP'));
-  const C=carteDe(nom),b=el('b','',C?C.nom+(C.base?' ★':''):(nom||'-'));
+  const C=carteDe(nom),b=el('b','',C?(court?courtH(C):C.nom+(C.base?' ★':'')):(nom||'-'));
   if(C&&elCarte(C))b.style.color='var(--'+elCarte(C)+')';if(C&&C.base)b.title=C.nom+' (évolution de '+((M0.CARTES[C.base]||{}).nom||'-')+')';else b.title=b.textContent;
+  if(C&&court){b.title=window.GolemsDonnees.nomLong(C.id);zoomH(b,C)}
   z.append(b);return z;
 }
+/* 0.6a : forme courte des noms dans le detail d'une partie (charte, 10 nov.) : « Trigas », « Trigas ★ », nom complet au survol, clic = zoom */
+const courtH=C=>C.base&&M0.CARTES[C.base]?M0.CARTES[C.base].nom+' ★':C.nom;
+function zoomH(b,C){b.classList.add('hd-zoom');b.setAttribute('role','button');b.tabIndex=0;b.setAttribute('aria-label','Agrandir '+window.GolemsDonnees.nomLong(C.id));
+  const f=e=>{if(e)e.stopPropagation();if(typeof zoom==='function')zoom(imgV('cartes/'+C.id+'.jpg'),C.nom)};b.onclick=f;b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f(e)}}}
 /* 0.6 : partie sans date (ou date illisible) : « - » et non « Invalid Date » */
 const dateOk=t=>t!=null&&t!==''&&Number.isFinite(new Date(t).getTime());
 const dateH=t=>dateOk(t)?new Date(t).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}):'-';
@@ -166,7 +171,7 @@ function manchesHisto(x,ps,lui,moiN){
 /* MVP du detail : nom colore (★ si evolution), puis le calcul du score, picto bouclier devant « Force » (audit 34, J17). */
 function mvpDetail(x){
   const p=el('p','hd-mvp');if(!x.mvp){p.append(el('span','hl-mvpe','MVP'),' Aucun');return p}
-  p.append(mvpHisto(x.mvp));
+  p.append(mvpHisto(x.mvp,true));
   const q=(x.mvpLigne||'').match(/score .*/);
   if(q){const s=el('span','hd-mvps'),i=q[0].indexOf('Force');
     if(i<0)s.textContent=q[0];else{const f=ico('force');f.classList.add('hd-force');s.append(q[0].slice(0,i),f,q[0].slice(i))}
@@ -187,7 +192,7 @@ function bilanHisto(x,ps,lui,moiN,golem,tout){
       const k=res.findIndex(r=>{const D=carteDe(r[0]);return r[0]===mt||(D&&(D.nom===mt||(D.base&&(M0.CARTES[D.base]||{}).nom===mt)))});
       a=a.slice();a.sous=k>=0;if(k>=0)res.splice(k+1,0,a);else res.push(a)});
     return res};
-  const nomC=(r,droite)=>{const C=carteDe(r[0]),td=el('td','hd-cc'),n=el('span','hd-cn'+(C&&C.base?' evo':C&&C.animal?' ani':''),C?C.nom:String(r[0]));n.title=n.textContent;
+  const nomC=(r,droite)=>{const C=carteDe(r[0]),td=el('td','hd-cc'),n=el('span','hd-cn'+(C&&C.base?' evo':C&&C.animal?' ani':''),C?courtH(C):String(r[0]));n.title=C?window.GolemsDonnees.nomLong(C.id):n.textContent;if(C)zoomH(n,C);
     const p=C?pictosH(C.el&&C.el.length?C.el:[elCarte(C)]):el('span');if(droite)td.append(n,p);else td.append(p,n);return td};
   const H=['Infligés','Subis','Morts causées','Morts subies'];
   const table=(R,droite)=>{const t=el('table','hd-tab'+(droite?' d':'')),cg=el('colgroup'),tr=el('tr');
