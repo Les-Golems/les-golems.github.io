@@ -219,9 +219,11 @@ function peintDecks(){
   if(vueDk==='decks'){
     const h=el('h3','dk-titre','Mes decks');h.append(el('span','dk-nb',l.length+' sur '+MAX_DECKS));L.append(h);
     const ls=el('div','dk-dks');ls.setAttribute('role','list');
-    l.forEach(x=>{const t=tuileDk({nom:x.nom,els:elsOrdre(x),nb:totalDeck(x),R:raisonsDeck(x),v:x.v||V_DECK_ANCIEN,cartes:x.cartes});
+    l.forEach((x,i)=>{const t=tuileDk({nom:x.nom,els:elsOrdre(x),nb:totalDeck(x),R:raisonsDeck(x),v:x.v||V_DECK_ANCIEN,cartes:x.cartes});
       if(x.id===deckVu)t.classList.add('sel');t.tabIndex=0;t.setAttribute('role','listitem');t.setAttribute('aria-current',String(x.id===deckVu));
-      const ouvre=()=>{deckVu=x.id;msgDk=null;msgInfoDk=null;listeDepliee=false;peintDecks()};t.onclick=ouvre;t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvre()}};ls.append(t)});
+      const ouvre=()=>{deckVu=x.id;msgDk=null;msgInfoDk=null;listeDepliee=false;peintDecks()};t.onclick=()=>{if(t._glisse)return;ouvre()};
+      t.onkeydown=e=>{if(e.altKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){e.preventDefault();bougeDeck(i,i+(e.key==='ArrowUp'?-1:1),'t')}else if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvre()}};
+      t.dataset.id=x.id;t.title='Glisse pour déplacer (ou Alt + flèche haut/bas)';if(l.length>1){t.classList.add('dk-ord');t.append(flechesDk(i,l.length,x.nom));glisseDk(t,ls,i)}ls.append(t)});
     if(!l.length)ls.append(el('p','dk-vide0','Aucun deck pour le moment. Crée ton premier deck.'));
     L.append(ls);
     /* Invite (variante B) : tuile sous la liste, decks gardes sur l'appareil, repris a la connexion */
@@ -416,6 +418,48 @@ function ligneStatCarte(id){
   return [el('p','pf-dk','Jouée dans '+o.n+(o.n>1?' parties':' partie')+' - '+Math.round(100*o.v/o.n)+' % de victoires'),el('p','pf-note',compteCo()?'Calculé sur toutes tes parties.':'Calculé sur tes 50 dernières parties.')];
 }
 /* Hauteur restante jusqu'au bas de la fenetre : le CSS n'en tient compte qu'a partir de 1200 px. */
+/* 0.6a : ORDRE DES DECKS (Mes decks). L'ordre de la liste est l'ordre enregistre (Firebase decks/0..11 ou golems.decks sur l'appareil),
+   repris partout (fenetre de choix du deck, salon). Glisser-deposer (souris ; doigt : appui long), fleches haut/bas, Alt + fleche au clavier. */
+function bougeDeck(a,b,foc){
+  const l=lesDecks();if(b<0||b>=l.length||a===b||a<0||a>=l.length)return;
+  const [x]=l.splice(a,1);l.splice(b,0,x);gardeDecks(l);peintDecks();
+  const ls=document.querySelector('#dkA .dk-dks'),t=ls&&ls.querySelector('.dk-tuile[data-id="'+CSS.escape(x.id)+'"]');if(!t)return;
+  const cible=foc==='h'?t.querySelector('.dk-fl button:first-child'):foc==='b'?t.querySelector('.dk-fl button:last-child'):t;
+  (cible&&!cible.disabled?cible:t).focus({preventScroll:true});t.scrollIntoView({block:'nearest'});
+}
+function flechesDk(i,n,nom){
+  const z=el('span','dk-fl');
+  [['h','M3 9.5L8 4.5l5 5','Monter '],['b','M3 6.5l5 5 5-5','Descendre ']].forEach(([s,d,lib])=>{
+    const b=el('button');b.type='button';b.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="'+d+'" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    b.setAttribute('aria-label',lib+nom);b.title=s==='h'?'Monter':'Descendre';b.disabled=s==='h'?i===0:i===n-1;
+    b.onclick=e=>{e.stopPropagation();bougeDeck(i,i+(s==='h'?-1:1),s)};b.onkeydown=e=>e.stopPropagation();b.onpointerdown=e=>e.stopPropagation();z.append(b)});
+  return z;
+}
+function glisseDk(t,ls,i){
+  t.onpointerdown=e=>{
+    if(e.button!==0||e.target.closest('.dk-fl'))return;
+    const x0=e.clientX,y0=e.clientY,tactile=e.pointerType!=='mouse';let actif=false,cible=i,repere=null,raf=0,vy=0,tl=0;
+    const tuiles=()=>[...ls.querySelectorAll('.dk-tuile')];
+    const place=y=>{const T=tuiles();let k=T.length;for(let j=0;j<T.length;j++){const r=T[j].getBoundingClientRect();if(y<r.top+r.height/2){k=j;break}}
+      cible=k;const lr=ls.getBoundingClientRect(),ref=T[k]||T[T.length-1],r=ref.getBoundingClientRect();
+      const yy=(T[k]?r.top-5:r.bottom+3)-lr.top+ls.scrollTop;repere.style.top=Math.round(yy-1)+'px';
+      repere.hidden=(k===i||k===i+1)};
+    const defile=()=>{if(!actif)return;if(vy){ls.scrollTop+=vy;place(lastY)}raf=requestAnimationFrame(defile)};
+    let lastY=y0;
+    const demarre=()=>{actif=true;t._glisse=true;t.classList.add('dk-tire');ls.classList.add('dk-glisse');repere=el('div','dk-repere');ls.append(repere);place(lastY);raf=requestAnimationFrame(defile);try{t.setPointerCapture(e.pointerId)}catch(_){}};
+    if(tactile)tl=setTimeout(demarre,350);
+    const mv=ev=>{lastY=ev.clientY;
+      if(!actif){if(Math.hypot(ev.clientX-x0,ev.clientY-y0)>6){if(tactile){fin(null);return}demarre()}else return}
+      ev.preventDefault();place(ev.clientY);const lr=ls.getBoundingClientRect();vy=ev.clientY<lr.top+28?-8:ev.clientY>lr.bottom-28?8:0};
+    const tm=ev=>{if(actif)ev.preventDefault()};
+    const fin=ev=>{clearTimeout(tl);cancelAnimationFrame(raf);removeEventListener('pointermove',mv);removeEventListener('pointerup',fin);removeEventListener('pointercancel',fin);removeEventListener('touchmove',tm);removeEventListener('keydown',ech,true);
+      if(!actif)return;actif=false;repere&&repere.remove();t.classList.remove('dk-tire');ls.classList.remove('dk-glisse');setTimeout(()=>{t._glisse=false},0);
+      if(ev&&ev.type==='pointerup'){const b=cible>i?cible-1:cible;if(b!==i)bougeDeck(i,b,'t')}};
+    const ech=ev=>{if(ev.key==='Escape'&&actif){ev.preventDefault();ev.stopPropagation();fin(null)}};
+    addEventListener('pointermove',mv);addEventListener('pointerup',fin);addEventListener('pointercancel',fin);addEventListener('touchmove',tm,{passive:false});addEventListener('keydown',ech,true);
+  };
+  t.oncontextmenu=e=>{if(t._glisse)e.preventDefault()};
+}
 function hauteurDecks(){
   const z=document.querySelector('.d-zone');if(!z||!z.offsetParent)return;
   /* Grand ecran : le bas du panneau s'aligne sur le bas de la derniere ligne de tuiles. */
