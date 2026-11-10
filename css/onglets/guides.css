@@ -288,7 +288,7 @@
 .gd-lt b{display:block;font:800 14.5px var(--corps);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gd-lt small{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--doux);white-space:nowrap;overflow:hidden}
 .gd-sc{color:#fff;font-weight:800}
-.gd-lt .gd-ver{padding:0 7px;font-size:11px;line-height:15px}
+.gd-lt .gd-ver{padding:0 7px;font-size:11px;line-height:15px;flex:none;white-space:nowrap}
 .gd-tag{display:inline-block;height:20px;padding:0 9px;border-radius:999px;font:800 12px/20px var(--corps);white-space:nowrap;flex:none;background:var(--bleu);color:var(--encre)}
 .gd-lt .gd-tag{height:17px;font-size:11px;line-height:17px;padding:0 7px}
 .gd-li.on{background:linear-gradient(#3bd2f7,#01aad6);box-shadow:0 2px 0 #08708c}.gd-li.on b,.gd-li.on small,.gd-li.on .gd-sc{color:var(--encre)}
@@ -337,7 +337,7 @@ a.gd-yt{text-decoration:none}
 .gd-lec svg{width:26px;height:26px;fill:#fff;margin-left:4px}
 @media(hover:hover){.gd-vid:hover .gd-lec{filter:brightness(1.08);transform:scale(1.04)}}
 .gd-txtB{margin-top:16px;flex:1;min-height:0;overflow:auto;scrollbar-width:thin}
-.gd-txt{column-count:2;column-gap:36px;font-size:15.5px;line-height:1.6;color:#dbe7ee}
+.gd-txt{max-width:900px;font-size:15.5px;line-height:1.6;color:#dbe7ee} /* une seule colonne (10 nov.) */
 .gd-txt h4{margin:0 0 6px;font:19px var(--titre);color:#fff;font-weight:400;break-after:avoid}
 .gd-txt h4 .n{display:inline-block;width:26px;height:26px;border-radius:50%;background:var(--bleu);color:var(--encre);font:15px/26px var(--titre);text-align:center;margin-right:8px;vertical-align:2px}
 .gd-txt p{margin:0 0 14px}.gd-txt .sec{break-inside:avoid;margin-bottom:6px}
@@ -354,7 +354,7 @@ a.gd-yt{text-decoration:none}
 @media (max-width:1099px){
   .cj-barre{grid-template-columns:1fr 1fr}.cj-filtres{grid-column:1/3;flex-wrap:wrap;order:3}.cj-rech{grid-column:2}
   .cj-vue{height:auto}#rgVue.g4,.gd-g4{grid-template-columns:1fr}#rgVue #rgSec,#gdDet{grid-column:auto}
-  #rgVue .som{max-height:260px}.gd-r2{height:auto;flex-wrap:wrap}.gd-strip{height:auto;flex-wrap:wrap;padding:10px}.gd-ecran{aspect-ratio:16/9;flex:none}.gd-txt{column-count:1}
+  #rgVue .som{max-height:260px}.gd-r2{height:auto;flex-wrap:wrap}.gd-strip{height:auto;flex-wrap:wrap;padding:10px}.gd-ecran{aspect-ratio:16/9;flex:none}
 }
 main:has(#regles:not([hidden])){padding-bottom:24px}
 #rgVue .j-lien:hover,#rgVue .j-lien:focus-visible,.gd-txt .j-lien:hover{filter:brightness(1.15)}
@@ -387,3 +387,18 @@ textarea.gd-ch{height:96px;padding:12px 14px;resize:none;line-height:1.5}
 .gd-cad>span{color:var(--doux);font-size:14.5px;max-width:420px}
 .gd-cad .sc-rangee{margin-top:8px}
 .gd-cad .sc-btn{min-width:220px}
+/* 0.6 (10 nov.) : guides publies sans relecture. Modifier / Supprimer (auteur et Romain) a droite du titre, boutons tertiaires ;
+   etiquette « Nouveau » (orange de la pastille de Nouveautes) ; pastille sur « Guides » du selecteur ; element cite = picto + nom ; texte d'une video sous l'ecran. */
+.gd-gest{display:flex;gap:12px;margin-left:auto;flex:none}
+.onglets button#t-regles,#cjSel>button{position:relative}
+.o-nvpt.gd-ptsel{top:3px;right:4px}
+.gd-desc{margin-top:12px;max-height:120px;overflow:auto;scrollbar-width:thin;flex:none}
+.gd-desc p{margin:0 0 8px}
+/* Texte des guides traite comme les Regles : mots du lexique, pictos, bulle */
+#gdVue .rg-mot{border-bottom:1.5px dotted var(--bleu);cursor:help}
+#gdVue .ico{display:inline-block;width:18px;height:18px;vertical-align:-3px}
+#gdVue .ico svg{width:100%;height:100%;display:block}
+#gdVue .pe{width:20px;height:20px;vertical-align:-4px;margin-right:3px}
+#gdVue .bulle{position:fixed;z-index:20;max-width:300px;background:var(--panneau2);border:1px solid var(--bleu);border-radius:9px;padding:10px 12px;font-size:13.5px;box-shadow:0 8px 22px rgba(0,0,0,.55);color:#dbe7ee}
+.gd-li{position:relative}
+.o-nvpt.gd-ptli{top:6px;right:6px}

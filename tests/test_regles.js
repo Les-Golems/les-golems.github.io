@@ -3,8 +3,9 @@
 // Usage : node tests/test_regles.js
 // Chaque test est joué deux fois : site public (préfixe "") et site d'essai (préfixe "essai/").
 
-const AUTH = 'http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo';
-const DB = 'http://127.0.0.1:9000';
+const PORT_AUTH = process.env.GOLEMS_EMU_AUTH || '9099', PORT_DB = process.env.GOLEMS_EMU_DB || '9000';
+const AUTH = 'http://127.0.0.1:' + PORT_AUTH + '/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo';
+const DB = 'http://127.0.0.1:' + PORT_DB;
 const NS = 'ns=demo-les-golems-default-rtdb';
 const HEURE = { '.sv': 'timestamp' };
 
@@ -158,7 +159,7 @@ async function compteRomain() {
   const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
   const maint = Math.floor(Date.now() / 1000);
   const jeton = b64({ alg: 'none', typ: 'JWT' }) + '.' + b64({ iss: 'demo', sub: 'demo', aud: 'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit', iat: maint, exp: maint + 3600, uid: UID_ROMAIN }) + '.';
-  const r = await fetch('http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=demo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: jeton, returnSecureToken: true }) });
+  const r = await fetch('http://127.0.0.1:' + PORT_AUTH + '/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=demo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: jeton, returnSecureToken: true }) });
   const j = await r.json();
   if (!j.idToken) throw new Error('Auth Romain : ' + JSON.stringify(j));
   return { uid: j.localId, jeton: j.idToken };
@@ -380,21 +381,62 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('vote, guide hors liste'), false, req(A, 'PUT', P + 'guides/guide-invente/votes/' + A.uid, 1));
   await attendu(ici('vote retiré, guide vidéo'), true, req(A, 'DELETE', P + 'guides/l8-g9rcBFnI/votes/' + A.uid));
 
-  // 0.6 : propositions de guides (fenêtre « Proposer un guide »).
-  const PG = P + 'propositionsGuides/', pv = { u: A.uid, p: pA, ty: 'v', ti: 'Magma rapide', yt: 'Xk29fQ_r7Ls', d1: 'GOL2-KgMPA8ADDAgA', t: HEURE };
-  await attendu(ici('proposition vidéo'), true, req(A, 'PUT', PG + 'pa' + t, pv));
-  await attendu(ici('proposition texte'), true, req(A, 'PUT', PG + 'pb' + t, { u: A.uid, p: pA, ty: 't', ti: 'Mon plan', tx: 'Pose Roche en premier.', d1: 'GOL2-KgMPA8ADDAgA', d2: 'GOL1-QUJD', t: HEURE }));
-  await attendu(ici('proposition modifiée par son auteur'), false, req(A, 'PUT', PG + 'pa' + t, { ...pv, ti: 'Autre titre' }));
-  await attendu(ici('proposition par un invité'), false, req(G, 'PUT', PG + 'pg' + t, { ...pv, u: G.uid }));
-  await attendu(ici('proposition au nom de B'), false, req(A, 'PUT', PG + 'pc' + t, { ...pv, u: B.uid }));
-  await attendu(ici('proposition, pseudo de B'), false, req(A, 'PUT', PG + 'pd' + t, { ...pv, p: pB }));
-  await attendu(ici('proposition vidéo sans lien'), false, req(A, 'PUT', PG + 'pe' + t, { ...pv, yt: undefined }));
-  await attendu(ici('proposition, lien invalide'), false, req(A, 'PUT', PG + 'pf' + t, { ...pv, yt: 'https://exemple.fr' }));
-  await attendu(ici('proposition sans deck'), false, req(A, 'PUT', PG + 'ph' + t, { ...pv, d1: undefined }));
-  await attendu(ici('proposition, champ inconnu'), false, req(A, 'PUT', PG + 'pi' + t, { ...pv, x: 1 }));
+  // 0.6 (10 nov.) : guides publiés sans relecture (guides/<id>/fiche), compteur de 10 par 24 h, modification et suppression.
+  const GF = id => P + 'guides/' + id, CG = P + 'compteurGuides/' + A.uid;
+  const fiche = (u, p, x) => ({ u, p, ty: 'v', ti: 'Magma rapide', yt: 'Xk29fQ_r7Ls', d1: 'GOL2-KgMPA8ADDAgA', v: '0.6', t: HEURE, m: HEURE, ...x });
+  const publie = (qui, id, f, n, d) => req(qui, 'PATCH', '', { [P + 'guides/' + id + '/fiche']: f, [P + 'compteurGuides/' + qui.uid]: { d: d === undefined ? HEURE : d, n, t: HEURE } });
+  const ga = 'ga' + t;
+  await attendu(ici('guide publié par A'), true, publie(A, ga, fiche(A.uid, pA), 1));
+  await attendu(ici('guide lu par un invité'), true, req(G, 'GET', GF(ga)));
+  await attendu(ici('vote sur un guide publié'), true, req(B, 'PUT', GF(ga) + '/votes/' + B.uid, 1));
+  await attendu(ici('vote sur un guide inexistant'), false, req(B, 'PUT', GF('rien' + t) + '/votes/' + B.uid, 1));
+  await attendu(ici('guide sans compteur'), false, req(A, 'PUT', GF('gb' + t) + '/fiche', fiche(A.uid, pA)));
+  await attendu(ici('guide par un invité'), false, req(G, 'PATCH', '', { [GF('gg' + t) + '/fiche']: fiche(G.uid, pA), [P + 'compteurGuides/' + G.uid]: { d: HEURE, n: 1, t: HEURE } }));
+  const lu = await fetch(`${DB}/${CG}.json?${NS}&auth=${A.jeton}`).then(x => x.json());
+  await attendu(ici('guide au nom de B'), false, publie(A, 'gc' + t, fiche(B.uid, pB), 2, lu.d));
+  await attendu(ici('guide, pseudo de B'), false, publie(A, 'gc' + t, fiche(A.uid, pB), 2, lu.d));
+  await attendu(ici('guide vidéo sans lien'), false, publie(A, 'gc' + t, fiche(A.uid, pA, { yt: null }), 2, lu.d));
+  await attendu(ici('guide, lien de 12 caractères'), false, publie(A, 'gc' + t, fiche(A.uid, pA, { yt: 'Xk29fQ_r7Ls1' }), 2, lu.d));
+  await attendu(ici('guide, deck GOL3'), false, publie(A, 'gc' + t, fiche(A.uid, pA, { d1: 'GOL3-KgMPA8ADDAgA' }), 2, lu.d));
+  await attendu(ici('guide, titre de 81 caractères'), false, publie(A, 'gc' + t, fiche(A.uid, pA, { ti: 'x'.repeat(81) }), 2, lu.d));
+  await attendu(ici('guide, texte de 4001 caractères'), false, publie(A, 'gc' + t, fiche(A.uid, pA, { ty: 't', yt: null, tx: 'x'.repeat(4001) }), 2, lu.d));
+  await attendu(ici('guide, version de deck invalide'), false, publie(A, 'gc' + t, fiche(A.uid, pA, { v: 'v0.6<script>' }), 2, lu.d));
+  await attendu(ici('guide, champ inconnu'), false, publie(A, 'gc' + t, fiche(A.uid, pA, { x: 1 }), 2, lu.d));
+  await attendu(ici('guide, compteur qui ne monte pas'), false, publie(A, 'gc' + t, fiche(A.uid, pA), 1, lu.d));
+  await attendu(ici('guide, compteur remis à zéro avant 24 h'), false, publie(A, 'gc' + t, fiche(A.uid, pA), 1));
+  // Limite de 10 par 24 h : le 1er est publié, 9 de plus passent, le 11e est refusé.
+  for (let n = 2; n <= 10; n++) await attendu(ici('guide n° ' + n + ' du jour'), true, publie(A, 'gn' + n + '-' + t, fiche(A.uid, pA, { ty: 't', yt: null, tx: 'Plan ' + n }), n, lu.d));
+  await attendu(ici('11e guide du jour'), false, publie(A, 'gn11-' + t, fiche(A.uid, pA), 11, lu.d));
+  await attendu(ici('compteur d\'un autre'), false, req(A, 'PUT', P + 'compteurGuides/' + B.uid, { d: HEURE, n: 1, t: HEURE }));
+  // Modification : l'auteur et Romain, pas un autre compte ; t et u ne changent pas.
+  const ft = (await fetch(`${DB}/${GF(ga)}/fiche.json?${NS}`).then(x => x.json())).t;
+  await attendu(ici('guide modifié par son auteur'), true, req(A, 'PUT', GF(ga) + '/fiche', fiche(A.uid, pA, { ti: 'Magma rapide 2', t: ft })));
+  await attendu(ici('guide modifié par un autre compte'), false, req(B, 'PUT', GF(ga) + '/fiche', fiche(A.uid, pA, { ti: 'Piraté', t: ft })));
+  await attendu(ici('guide repris par un autre compte'), false, req(B, 'PUT', GF(ga) + '/fiche', fiche(B.uid, pB, { t: ft })));
+  await attendu(ici('guide, date de publication changée'), false, req(A, 'PUT', GF(ga) + '/fiche', fiche(A.uid, pA, { t: 5 })));
+  await attendu(ici('guide modifié par Romain'), true, req(R, 'PATCH', GF(ga) + '/fiche', { ti: 'Corrigé par Romain', m: HEURE }));
+  await attendu(ici('fiche effacée seule'), false, req(A, 'DELETE', GF(ga) + '/fiche'));
+  // Suppression : un autre compte refusé, l'auteur accepté, Romain accepté.
+  await attendu(ici('guide supprimé par un autre compte'), false, req(B, 'DELETE', GF(ga)));
+  await attendu(ici('guide supprimé par son auteur'), true, req(A, 'DELETE', GF(ga)));
+  await attendu(ici('guide supprimé par Romain'), true, req(R, 'DELETE', GF('gn2-' + t)));
+  // Guides du code : l'auteur reconnu par son pseudo (pseudos/bellock), Romain ; pas un autre compte.
+  const yb = 'l8-g9rcBFnI', bel = await compte(`bel${t}${tag}@test.invalid`);
+  await req('admin', 'PATCH', '', { [P + 'pseudos/bellock']: bel.uid, [P + 'joueurs/' + bel.uid + '/pseudo']: 'Bellock' });
+  await attendu(ici('guide du code modifié par son auteur (pseudo)'), true, req(bel, 'PUT', GF(yb) + '/fiche', fiche(bel.uid, 'Bellock', { ti: 'Meule-Contrôle v0.6' })));
+  await attendu(ici('guide du code modifié par un autre compte'), false, req(A, 'PUT', GF(yb) + '/fiche', fiche(A.uid, pA)));
+  await attendu(ici('guide officiel modifié par un joueur'), false, req(A, 'PUT', GF('bien-debuter') + '/fiche', fiche(A.uid, pA)));
+  await attendu(ici('guide du code modifié par Romain'), true, req(R, 'PATCH', GF(yb) + '/fiche', { ti: 'Meule-Contrôle', m: HEURE }));
+  await attendu(ici('guide du code retiré par un autre compte'), false, req(A, 'PUT', GF(yb) + '/sup', true));
+  await attendu(ici('guide du code effacé en entier'), false, req(bel, 'DELETE', GF(yb)));
+  await attendu(ici('guide du code retiré par son auteur'), true, req(bel, 'PUT', GF(yb) + '/sup', true));
+  await attendu(ici('guide officiel retiré par Romain'), true, req(R, 'PUT', GF('bien-debuter') + '/sup', true));
+  await req('admin', 'DELETE', GF(yb)); await req('admin', 'DELETE', GF('bien-debuter') + '/sup'); await req('admin', 'DELETE', P + 'pseudos/bellock');
+  // Anciennes propositions : plus d'écriture ; Romain lit et efface.
+  const PG = P + 'propositionsGuides/';
+  await attendu(ici('proposition (relecture retirée)'), false, req(A, 'PUT', PG + 'pa' + t, { u: A.uid, p: pA, ty: 'v', ti: 'Magma rapide', yt: 'Xk29fQ_r7Ls', d1: 'GOL2-KgMPA8ADDAgA', t: HEURE }));
   await attendu(ici('propositions lues par un joueur'), false, req(A, 'GET', PG));
   await attendu(ici('propositions lues par Romain'), true, req(R, 'GET', PG));
-  await attendu(ici('proposition effacée par Romain'), true, req(R, 'DELETE', PG + 'pa' + t));
 
   // En ligne (invités compris).
   await attendu(ici('invité se signale en ligne'), true, req(G, 'PUT', P + 'enligne/' + G.uid, HEURE));

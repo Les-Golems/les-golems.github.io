@@ -1158,53 +1158,77 @@
     "guides": {
       ".read": true,
       "$g": {
-        ".validate": "($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k')",
+        ".write": "!newData.exists() && !($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k') && data.child('fiche').exists() && ((auth != null && auth.token.firebase.sign_in_provider === 'password' && data.child('fiche').child('u').val() === auth.uid) || (auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'))",
+        ".validate": "$g.matches(/^[A-Za-z0-9_-]{1,40}$/) && (($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k') || newData.child('fiche').exists())",
         "votes": {
           "$uid": {
-            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && ($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k')",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && (($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k') || root.child('guides').child($g).child('fiche').exists())",
             ".validate": "newData.isNumber() && (newData.val() === 1 || newData.val() === -1)"
           }
+        },
+        "fiche": {
+          ".write": "newData.exists() && ((auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1') || (auth != null && auth.token.firebase.sign_in_provider === 'password' && newData.child('u').val() === auth.uid && ((!data.exists() && !($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k') && newData.parent().parent().parent().child('compteurGuides').child(auth.uid).child('t').val() === now) || (data.exists() && data.child('u').val() === auth.uid) || (($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k') && (($g === 'l8-g9rcBFnI' && auth.uid === root.child('pseudos').child('bellock').val()) || ($g === 'G6EM_E0vT4w' && auth.uid === root.child('pseudos').child('bellock').val()) || ($g === 'u9amOoOXy1A' && auth.uid === root.child('pseudos').child('bellock').val()) || ($g === 'fXJVQ7yxy6w' && auth.uid === root.child('pseudos').child('bellock').val()) || ($g === '4fw5nB_H-2g' && auth.uid === root.child('pseudos').child('bellock').val()) || ($g === 'J_famvZzFng' && auth.uid === root.child('pseudos').child('bellock').val()) || ($g === 'biR_tFUhM1k' && auth.uid === root.child('pseudos').child('bellock').val()))))))",
+          ".validate": "newData.hasChildren(['u', 'p', 'ty', 'ti', 'd1', 't', 'm']) && (newData.child('ty').val() === 'v' ? newData.hasChild('yt') : newData.hasChild('tx'))",
+          "u": {
+            ".validate": "newData.isString() && (!data.exists() || newData.val() === data.val() || (auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'))"
+          },
+          "p": {
+            ".validate": "newData.val() === root.child('joueurs').child(newData.parent().child('u').val()).child('pseudo').val()"
+          },
+          "ty": {
+            ".validate": "newData.val() === 'v' || newData.val() === 't'"
+          },
+          "ti": {
+            ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 80"
+          },
+          "yt": {
+            ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{11}$/)"
+          },
+          "tx": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 4000"
+          },
+          "d1": {
+            ".validate": "newData.isString() && newData.val().matches(/^GOL[12]-[A-Za-z0-9_-]{4,200}$/)"
+          },
+          "d2": {
+            ".validate": "newData.isString() && newData.val().matches(/^GOL[12]-[A-Za-z0-9_-]{4,200}$/)"
+          },
+          "v": {
+            ".validate": "newData.isString() && newData.val().matches(/^[0-9][0-9a-z.]{0,9}$/)"
+          },
+          "t": {
+            ".validate": "newData.isNumber() && (data.exists() ? newData.val() === data.val() : newData.val() === now)"
+          },
+          "m": {
+            ".validate": "newData.val() === now"
+          },
+          "$autre": {
+            ".validate": false
+          }
+        },
+        "sup": {
+          ".write": "($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k') && ((auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1') || (auth != null && auth.token.firebase.sign_in_provider === 'password' && (($g === 'l8-g9rcBFnI' && auth.uid === root.child('pseudos').child('bellock').val()) || ($g === 'G6EM_E0vT4w' && auth.uid === root.child('pseudos').child('bellock').val()) || ($g === 'u9amOoOXy1A' && auth.uid === root.child('pseudos').child('bellock').val()) || ($g === 'fXJVQ7yxy6w' && auth.uid === root.child('pseudos').child('bellock').val()) || ($g === '4fw5nB_H-2g' && auth.uid === root.child('pseudos').child('bellock').val()) || ($g === 'J_famvZzFng' && auth.uid === root.child('pseudos').child('bellock').val()) || ($g === 'biR_tFUhM1k' && auth.uid === root.child('pseudos').child('bellock').val()))))",
+          ".validate": "newData.val() === true"
         },
         "$autre": {
           ".validate": false
         }
       }
     },
-    "propositionsGuides": {
-      ".read": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
-      "$id": {
-        ".write": "(auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('u').val() === auth.uid) || (auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1' && !newData.exists())",
-        ".validate": "newData.hasChildren(['u', 'p', 'ty', 'ti', 'd1', 't']) && (newData.child('ty').val() === 'v' ? newData.hasChild('yt') : newData.hasChild('tx'))",
-        "u": {
-          ".validate": "newData.isString()"
-        },
-        "p": {
-          ".validate": "newData.val() === root.child('joueurs').child(auth.uid).child('pseudo').val()"
-        },
-        "ty": {
-          ".validate": "newData.val() === 'v' || newData.val() === 't'"
-        },
-        "ti": {
-          ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 80"
-        },
-        "yt": {
-          ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{11}$/)"
-        },
-        "tx": {
-          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 4000"
-        },
-        "d1": {
-          ".validate": "newData.isString() && newData.val().matches(/^GOL[12]-[A-Za-z0-9_-]{4,200}$/)"
-        },
-        "d2": {
-          ".validate": "newData.isString() && newData.val().matches(/^GOL[12]-[A-Za-z0-9_-]{4,200}$/)"
-        },
-        "t": {
-          ".validate": "newData.val() === now"
-        },
+    "compteurGuides": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && newData.exists()",
+        ".validate": "newData.hasChildren(['d', 'n', 't']) && newData.child('t').val() === now && ((!data.exists() || now - data.child('d').val() >= 86400000) ? (newData.child('d').val() === now && newData.child('n').val() === 1) : (newData.child('d').val() === data.child('d').val() && newData.child('n').val() === data.child('n').val() + 1 && newData.child('n').val() <= 10))",
         "$autre": {
-          ".validate": false
+          ".validate": "$autre === 'd' || $autre === 'n' || $autre === 't'"
         }
+      }
+    },
+    "propositionsGuides": {
+      ".read": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1')",
+      "$id": {
+        ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1') && !newData.exists()"
       }
     },
     "enligne": {
@@ -2367,53 +2391,77 @@
       "guides": {
         ".read": true,
         "$g": {
-          ".validate": "($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k')",
+          ".write": "!newData.exists() && !($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k') && data.child('fiche').exists() && ((auth != null && auth.token.firebase.sign_in_provider === 'password' && data.child('fiche').child('u').val() === auth.uid) || (auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'))",
+          ".validate": "$g.matches(/^[A-Za-z0-9_-]{1,40}$/) && (($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k') || newData.child('fiche').exists())",
           "votes": {
             "$uid": {
-              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && ($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k')",
+              ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && (($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k') || root.child('essai').child('guides').child($g).child('fiche').exists())",
               ".validate": "newData.isNumber() && (newData.val() === 1 || newData.val() === -1)"
             }
+          },
+          "fiche": {
+            ".write": "newData.exists() && ((auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1') || (auth != null && auth.token.firebase.sign_in_provider === 'password' && newData.child('u').val() === auth.uid && ((!data.exists() && !($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k') && newData.parent().parent().parent().child('compteurGuides').child(auth.uid).child('t').val() === now) || (data.exists() && data.child('u').val() === auth.uid) || (($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k') && (($g === 'l8-g9rcBFnI' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()) || ($g === 'G6EM_E0vT4w' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()) || ($g === 'u9amOoOXy1A' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()) || ($g === 'fXJVQ7yxy6w' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()) || ($g === '4fw5nB_H-2g' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()) || ($g === 'J_famvZzFng' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()) || ($g === 'biR_tFUhM1k' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()))))))",
+            ".validate": "newData.hasChildren(['u', 'p', 'ty', 'ti', 'd1', 't', 'm']) && (newData.child('ty').val() === 'v' ? newData.hasChild('yt') : newData.hasChild('tx'))",
+            "u": {
+              ".validate": "newData.isString() && (!data.exists() || newData.val() === data.val() || (auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'))"
+            },
+            "p": {
+              ".validate": "newData.val() === root.child('essai').child('joueurs').child(newData.parent().child('u').val()).child('pseudo').val()"
+            },
+            "ty": {
+              ".validate": "newData.val() === 'v' || newData.val() === 't'"
+            },
+            "ti": {
+              ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 80"
+            },
+            "yt": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{11}$/)"
+            },
+            "tx": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 4000"
+            },
+            "d1": {
+              ".validate": "newData.isString() && newData.val().matches(/^GOL[12]-[A-Za-z0-9_-]{4,200}$/)"
+            },
+            "d2": {
+              ".validate": "newData.isString() && newData.val().matches(/^GOL[12]-[A-Za-z0-9_-]{4,200}$/)"
+            },
+            "v": {
+              ".validate": "newData.isString() && newData.val().matches(/^[0-9][0-9a-z.]{0,9}$/)"
+            },
+            "t": {
+              ".validate": "newData.isNumber() && (data.exists() ? newData.val() === data.val() : newData.val() === now)"
+            },
+            "m": {
+              ".validate": "newData.val() === now"
+            },
+            "$autre": {
+              ".validate": false
+            }
+          },
+          "sup": {
+            ".write": "($g === 'bien-debuter' || $g === 'l8-g9rcBFnI' || $g === 'G6EM_E0vT4w' || $g === 'u9amOoOXy1A' || $g === 'fXJVQ7yxy6w' || $g === '4fw5nB_H-2g' || $g === 'J_famvZzFng' || $g === 'biR_tFUhM1k') && ((auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1') || (auth != null && auth.token.firebase.sign_in_provider === 'password' && (($g === 'l8-g9rcBFnI' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()) || ($g === 'G6EM_E0vT4w' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()) || ($g === 'u9amOoOXy1A' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()) || ($g === 'fXJVQ7yxy6w' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()) || ($g === '4fw5nB_H-2g' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()) || ($g === 'J_famvZzFng' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()) || ($g === 'biR_tFUhM1k' && auth.uid === root.child('essai').child('pseudos').child('bellock').val()))))",
+            ".validate": "newData.val() === true"
           },
           "$autre": {
             ".validate": false
           }
         }
       },
-      "propositionsGuides": {
-        ".read": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
-        "$id": {
-          ".write": "(auth != null && auth.token.firebase.sign_in_provider === 'password' && !data.exists() && newData.child('u').val() === auth.uid) || (auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1' && !newData.exists())",
-          ".validate": "newData.hasChildren(['u', 'p', 'ty', 'ti', 'd1', 't']) && (newData.child('ty').val() === 'v' ? newData.hasChild('yt') : newData.hasChild('tx'))",
-          "u": {
-            ".validate": "newData.isString()"
-          },
-          "p": {
-            ".validate": "newData.val() === root.child('essai').child('joueurs').child(auth.uid).child('pseudo').val()"
-          },
-          "ty": {
-            ".validate": "newData.val() === 'v' || newData.val() === 't'"
-          },
-          "ti": {
-            ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 80"
-          },
-          "yt": {
-            ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{11}$/)"
-          },
-          "tx": {
-            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 4000"
-          },
-          "d1": {
-            ".validate": "newData.isString() && newData.val().matches(/^GOL[12]-[A-Za-z0-9_-]{4,200}$/)"
-          },
-          "d2": {
-            ".validate": "newData.isString() && newData.val().matches(/^GOL[12]-[A-Za-z0-9_-]{4,200}$/)"
-          },
-          "t": {
-            ".validate": "newData.val() === now"
-          },
+      "compteurGuides": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && newData.exists()",
+          ".validate": "newData.hasChildren(['d', 'n', 't']) && newData.child('t').val() === now && ((!data.exists() || now - data.child('d').val() >= 86400000) ? (newData.child('d').val() === now && newData.child('n').val() === 1) : (newData.child('d').val() === data.child('d').val() && newData.child('n').val() === data.child('n').val() + 1 && newData.child('n').val() <= 10))",
           "$autre": {
-            ".validate": false
+            ".validate": "$autre === 'd' || $autre === 'n' || $autre === 't'"
           }
+        }
+      },
+      "propositionsGuides": {
+        ".read": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1')",
+        "$id": {
+          ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1') && !newData.exists()"
         }
       },
       "enligne": {

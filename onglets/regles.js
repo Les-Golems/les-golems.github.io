@@ -353,8 +353,8 @@ function pictos(r){const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT),L=[
    a=i+x.length}
   f.append(d.slice(a));t.replaceWith(f)});
  r.querySelectorAll('.ico+.ico').forEach(x=>{if(x.previousElementSibling.innerHTML===x.innerHTML&&x.previousSibling===x.previousElementSibling)x.remove()});}
-function motsCles(r){
-  const blocs=r.querySelectorAll('.bl,.pr,.formule,.form');
+function motsCles(r,sel){
+  const blocs=r.querySelectorAll(sel||'.bl,.pr,.formule,.form');
   blocs.forEach(bl=>{const vus=new Set([...bl.querySelectorAll('.rg-mot')].map(m=>norm0(m.dataset.k)));
     const w=document.createTreeWalker(bl,NodeFilter.SHOW_TEXT),L=[];while(w.nextNode())L.push(w.currentNode);
     L.forEach(t=>{if(t.parentNode.closest('.rg-mot,svg,.prt,.n,.et,.an2,h4,.enc4,.j-lien'))return;
@@ -380,14 +380,16 @@ function cercle(id){
 $('rgSom').onclick=e=>{const b=e.target.closest('button');if(b&&!b.disabled){cur=+b.dataset.i;rendre()}};
 $('rgCorps').addEventListener('click',e=>{const l=e.target.closest('a.lien[data-s]');if(!l)return;e.preventDefault();const i=S.findIndex(s=>s.id===l.dataset.s);if(i>=0){cur=i;rendre()}});
 /* Bulle d'un mot du lexique : clic (ou Entree) sur un mot en pointilles ; un clic ailleurs la ferme. */
-function bulle(m){$('rgVue').querySelectorAll('.bulle').forEach(x=>x.remove());if(!m)return;
-  const d=document.createElement('div');d.className='bulle';d.setAttribute('role','tooltip');d.innerHTML='<b>'+m.textContent+'</b> : '+(DEF[norm0(m.dataset.k)]||'');$('rgVue').append(d);
+/* 0.6 (10 nov.) : aussi dans le texte des guides (#gdVue), la bulle se pose dans la vue du mot. */
+function bulle(m){document.querySelectorAll('#rgVue .bulle,#gdVue .bulle').forEach(x=>x.remove());if(!m)return;
+  const d=document.createElement('div');d.className='bulle';d.setAttribute('role','tooltip');d.innerHTML='<b>'+m.textContent+'</b> : '+(DEF[norm0(m.dataset.k)]||'');(m.closest('#gdVue')||$('rgVue')).append(d);
   const r=m.getBoundingClientRect();d.style.left=Math.min(r.left,innerWidth-316)+'px';d.style.top=(r.bottom+6)+'px'}
-document.addEventListener('click',e=>bulle(e.target.closest&&e.target.closest('#rgVue .rg-mot')));
-$('rgVue').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.classList.contains('rg-mot'))bulle(e.target)});
+document.addEventListener('click',e=>bulle(e.target.closest&&e.target.closest('#rgVue .rg-mot,#gdVue .rg-mot')));
+['rgVue','gdVue'].forEach(v=>$(v)?.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.classList.contains('rg-mot'))bulle(e.target)}));
 addEventListener('resize',()=>{if(!$('rgVue').hidden)setTimeout(paginer,60)});
 rendre();
-return {rendre,cherche:v=>{Q=norm(String(v).trim());if(Q&&!nb(S[cur].h,Q)){const i=S.findIndex(s=>nb(s.h,Q));if(i>=0)cur=i}rendre()},
+/* Texte d'un guide (onglets/guides.js) : noms de cartes, pictos, mots du lexique (une fois par section .sec, ou par paragraphe), images. */
+return {rendre,enrichit:r=>{noms(r);pictos(r);motsCles(r,r.querySelector('.sec')?'.sec':'p');chemins(r)},cherche:v=>{Q=norm(String(v).trim());if(Q&&!nb(S[cur].h,Q)){const i=S.findIndex(s=>nb(s.h,Q));if(i>=0)cur=i}rendre()},
   section:id=>{const i=S.findIndex(s=>s.id===id);if(i>=0){cur=i;rendre()}}};
 })();
 if(typeof cjInit==='function')cjInit();
