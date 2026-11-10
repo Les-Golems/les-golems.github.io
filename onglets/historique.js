@@ -86,7 +86,7 @@ function scoreHisto(x,cl){
 function mvpHisto(nom,court){
   const z=el('span','hl-mvp');z.append(el('span','hl-mvpe','MVP'));
   const C=carteDe(nom),b=el('b','',C?(court?courtH(C):C.nom+(C.base?' ★':'')):(nom||'-'));
-  if(C&&elCarte(C))b.style.color='var(--'+elCarte(C)+')';if(C&&C.base)b.title=C.nom+' (évolution de '+((M0.CARTES[C.base]||{}).nom||'-')+')';else b.title=b.textContent;
+  if(C&&elCarte(C))b.style.color='var(--txt-'+elCarte(C)+',var(--'+elCarte(C)+'))';if(C&&C.base)b.title=C.nom+' (évolution de '+((M0.CARTES[C.base]||{}).nom||'-')+')';else b.title=b.textContent;
   if(C&&court){b.title=window.GolemsDonnees.nomLong(C.id);zoomH(b,C)}
   z.append(b);return z;
 }

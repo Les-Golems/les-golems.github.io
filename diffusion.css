@@ -1,14 +1,19 @@
 /* Vue diffusion (0.3a) : ecran 1920 x 1080 pour un stream, mis a l'echelle proportionnellement (diffusion.js).
    Maquette validee : variante g15 (grilles reduites de 15 %), cercle c1 (gros pictos, sans titre).
    Tout est sous #dif : rien ne touche au reste du site. */
+/* Mode clair (0.6a) : variables de role de la diffusion, du spectateur et du rejeu. Sombre = valeurs d'origine ; clair = maquette 46 A3. */
+:root{--dif-halo:#132332;--compteur:#c9d4e2;--survol:rgba(255,255,255,.09);--survol-fort:rgba(255,255,255,.18);--case-bord-dif:#34516a;--voile-pp:rgba(4,8,12,.68);
+  --chat-spec:#c2ccd2;--poste-haut:rgba(10,16,24,.94);--fondu-0:rgba(11,17,24,0);--fondu-1:rgba(11,17,24,.95)}
+html.clair{--dif-halo:var(--fond-partie);--compteur:var(--doux);--survol:rgba(10,18,26,.07);--survol-fort:rgba(10,18,26,.14);--case-bord-dif:#8a9cab;--voile-pp:var(--voile);
+  --chat-spec:var(--doux);--poste-haut:rgba(221,227,233,.94);--fondu-0:rgba(221,227,233,0);--fondu-1:rgba(221,227,233,.95)}
 html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
-#dif{position:fixed;inset:0;z-index:19;background:radial-gradient(ellipse at 50% 0%,#132332 0%,var(--encre) 60%);color:var(--texte);font-family:var(--corps);overflow:hidden;
+#dif{position:fixed;inset:0;z-index:19;background:radial-gradient(ellipse at 50% 0%,var(--dif-halo) 0%,var(--fond-partie) 60%);color:var(--texte);font-family:var(--corps);overflow:hidden;
   --moi:var(--bleu);--lui:var(--magma);--h:114px}
 #dif *{box-sizing:border-box}
 #dif .d-scene{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
 #dif .d-z{position:absolute}
 #dif .d-nw{white-space:nowrap}
-#dif .d-evo{color:var(--or)}
+#dif .d-evo{color:var(--or-texte)}
 
 /* ---------- Bandeaux ---------- */
 #dif .d-ban{left:24px;top:16px;width:1872px;height:150px;display:grid;grid-template-columns:680px minmax(0,1fr) 680px;gap:16px}
@@ -24,12 +29,12 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-nom{font:400 54px/1 var(--titre);white-space:nowrap}
 #dif .d-j.toi .d-nom{color:var(--moi)}
 #dif .d-j.lui .d-nom{color:var(--lui)}
-#dif .d-cpt{display:flex;align-items:baseline;gap:6px;font-size:22px;font-weight:400;color:#c9d4e2;line-height:1.1;white-space:nowrap}
+#dif .d-cpt{display:flex;align-items:baseline;gap:6px;font-size:22px;font-weight:400;color:var(--compteur);line-height:1.1;white-space:nowrap}
 #dif .d-j.dr .d-cpt{flex-direction:row-reverse;justify-content:flex-start}
 #dif .d-cpt>span{display:inline-flex;align-items:baseline;gap:3px}
 #dif .d-cpt .ico,#dif .d-ener .ico{align-self:center} /* mot et chiffre sur la meme ligne de base, picto centre */ /* ecarts resserres : Main, Deck, Defausse et Energie a 2 chiffres tiennent avec un pseudo de 54 px */
-#dif .d-cpt .ico{font-size:24px;color:var(--bleu)}
-#dif .d-cpt b{font:400 26px/1 var(--titre);color:#fff}
+#dif .d-cpt .ico{font-size:24px;color:var(--bleu-titre)}
+#dif .d-cpt b{font:400 26px/1 var(--titre);color:var(--blanc)}
 #dif .d-j.actif{border:3px solid var(--bleu);background:linear-gradient(90deg,rgba(1,193,240,.30),rgba(1,193,240,.06) 70%),var(--panneau);box-shadow:0 0 0 2px rgba(1,193,240,.35),0 0 34px rgba(1,193,240,.45)}
 #dif .d-j.dr.actif{background:linear-gradient(270deg,rgba(1,193,240,.30),rgba(1,193,240,.06) 70%),var(--panneau)}
 #dif .d-badge{background:var(--bleu);color:var(--encre);font:400 28px/1 Anton,var(--titre);text-transform:uppercase;letter-spacing:.03em;padding:9px 16px;border-radius:12px 8px 13px 7px;white-space:nowrap}
@@ -39,8 +44,8 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 /* chiffres des compteurs et de l'Energie : case fixe de 2 chiffres (largeur de « Energie 99 »), chiffres a chasse fixe ; rien ne bouge de 9 a 10 */
 /* Deck, Defausse, Forge, Energie : cliquables (la taille ne change pas au survol) */
 #dif .d-pile{cursor:pointer;border-radius:8px 6px 9px 5px;transition:background .15s,box-shadow .15s}
-#dif .d-cpt>.d-pile:hover,#dif .d-cpt>.d-pile:focus-visible{background:rgba(255,255,255,.09);box-shadow:0 0 0 5px rgba(255,255,255,.09);outline:none} /* survols neutres : jamais la couleur d'un joueur */
-#dif .d-ener.d-pile:hover,#dif .d-ener.d-pile:focus-visible{box-shadow:0 0 0 4px rgba(255,255,255,.18);outline:none}
+#dif .d-cpt>.d-pile:hover,#dif .d-cpt>.d-pile:focus-visible{background:var(--survol);box-shadow:0 0 0 5px var(--survol);outline:none} /* survols neutres : jamais la couleur d'un joueur */
+#dif .d-ener.d-pile:hover,#dif .d-ener.d-pile:focus-visible{box-shadow:0 0 0 4px var(--survol-fort);outline:none}
 #dif .d-cpt b,#dif .d-ener b{display:inline-block;min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
 #dif .d-mid{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:24px;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--trait);border-radius:13px 22px 12px 24px/22px 13px 24px 12px}
 #dif .d-sc{display:flex;align-items:center;gap:22px;font:400 92px/1 var(--titre);border-radius:14px 9px 15px 8px;padding:0 10px}
@@ -54,11 +59,11 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-cote b{font:400 48px/1 var(--titre);color:var(--texte)}
 #dif .d-pts{display:inline-flex;gap:6px}
 #dif .d-pts i{width:20px;height:20px;background:var(--trait);border-radius:7px 4px 8px 3px/4px 8px 3px 7px;transform:rotate(45deg) scale(.8)}
-#dif .d-pts i.fait{background:color-mix(in srgb,var(--or) 45%,var(--encre))} /* losanges de Manche et Tour : dore des titres de section */
+#dif .d-pts i.fait{background:color-mix(in srgb,var(--or) 45%,var(--fond))} /* losanges de Manche et Tour : dore des titres de section */
 #dif .d-pts i.on{background:var(--or);box-shadow:0 0 10px var(--or)}
 /* losanges des manches terminees : rouvrent le recapitulatif de la manche */
 #dif .d-pts i.d-clic{cursor:pointer;transition:transform .15s,box-shadow .15s,background .15s}
-#dif .d-pts i.d-clic:hover,#dif .d-pts i.d-clic:focus-visible{transform:rotate(45deg) scale(1);background:#c9d4e2;box-shadow:0 0 0 4px rgba(255,255,255,.09);outline:none}
+#dif .d-pts i.d-clic:hover,#dif .d-pts i.d-clic:focus-visible{transform:rotate(45deg) scale(1);background:var(--compteur);box-shadow:0 0 0 4px var(--survol);outline:none}
 
 /* ---------- Plateau : grilles du site reduites de 15 % ---------- */
 #dif .d-plat{left:24px;top:186px;width:673px;height:878px;display:flex;flex-direction:column;gap:12px}
@@ -70,8 +75,8 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-vt.actif{border-color:var(--bleu);box-shadow:0 0 16px rgba(1,193,240,.35)}
 #dif .d-vt.lui.actif{border-color:var(--lui);box-shadow:0 0 16px color-mix(in srgb,var(--lui) 45%,transparent)}
 #dif .d-tr{margin-left:48px}
-#dif .p-case{height:var(--h);border-color:#34516a}
-#dif .p-case:disabled{border-color:#2a3f50}
+#dif .p-case{height:var(--h);border-color:var(--case-bord-dif)}
+#dif .p-case:disabled{border-color:var(--trait)}
 /* curseur : la main partout ou l'on peut cliquer, jamais le « + » du site */
 #dif .p-case:not(:disabled),#dif .p-terrain,#dif button:not(:disabled),html.dif-ouvert #vueDetail .dl-ligne{cursor:pointer}
 #dif .mini{--f:72px}
@@ -88,8 +93,8 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 /* Halo de la derniere carte jouee : couleur du joueur, 3 pulsations (3,6 s) puis plus rien */
 #dif .p-case.d-halo{z-index:2;animation:dHalo 1.2s ease-in-out 3}
 @keyframes dHalo{
-  0%,100%{box-shadow:0 0 0 3px var(--encre),0 0 0 7px var(--hc),0 0 28px 10px color-mix(in srgb,var(--hc) 70%,transparent)}
-  50%{box-shadow:0 0 0 3px var(--encre),0 0 0 6px color-mix(in srgb,var(--hc) 60%,transparent),0 0 10px 2px color-mix(in srgb,var(--hc) 35%,transparent)}}
+  0%,100%{box-shadow:0 0 0 3px var(--fond-partie),0 0 0 7px var(--hc),0 0 28px 10px color-mix(in srgb,var(--hc) 70%,transparent)}
+  50%{box-shadow:0 0 0 3px var(--fond-partie),0 0 0 6px color-mix(in srgb,var(--hc) 60%,transparent),0 0 10px 2px color-mix(in srgb,var(--hc) 35%,transparent)}}
 /* ---------- Animations (0.3a) : purement visuelles, aucune ne retarde la partie ---------- */
 /* Pose : la carte glisse de la main a sa case (couche au-dessus de la scene) ; la case montre l'ancien contenu jusqu'a l'arrivee */
 #dif .d-couche{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none;z-index:40}
@@ -132,7 +137,7 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-main button:hover{z-index:2} /* main de plus de 7 cartes (chevauchement) : la carte survolee passe devant */
 #dif .d-main img{display:block;width:100%;height:100%;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.5)}
 #dif .d-bloc{background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--trait);border-radius:18px 11px 20px 10px/11px 19px 10px 18px}
-#dif .d-h{font:400 26px/1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--or);margin:0 0 14px}
+#dif .d-h{font:400 26px/1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--or-texte);margin:0 0 14px}
 
 /* ---------- Cercle des elements (sans titre, gros pictos) ---------- */
 #dif .d-cer{left:1516px;top:186px;width:380px;height:210px;padding:0 10px;display:flex;flex-direction:column}
@@ -148,17 +153,17 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-txt{padding:22px 26px;display:flex;flex-direction:column;gap:18px;min-width:0}
 #dif .d-phr{margin:0;font-size:28px;line-height:1.3;font-weight:700}
 #dif .d-phr b{font:400 34px/1.15 var(--titre)}
-#dif .d-phr strong{font-family:var(--titre);font-weight:400;color:#fff}
+#dif .d-phr strong{font-family:var(--titre);font-weight:400;color:var(--blanc)}
 #dif .d-phr.d-rien{color:var(--doux)}
 #dif .d-phr.d-peche{margin-top:auto;font-size:22px;line-height:1.25;color:var(--doux)} /* Le Q : Jour de peche en cours, a la place des pastilles */
 #dif .d-phr.d-peche b{font-size:25px}
 #dif .d-txt:has(.d-peche){gap:12px}
 #dif .d-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:auto}
-#dif .d-chips>span{display:inline-flex;align-items:baseline;gap:7px;background:var(--encre);border:1px solid var(--trait);border-radius:10px 7px 11px 6px;padding:6px 10px;white-space:nowrap;font:700 22px/1 var(--corps);color:var(--doux)}
+#dif .d-chips>span{display:inline-flex;align-items:baseline;gap:7px;background:var(--fond);border:1px solid var(--trait);border-radius:10px 7px 11px 6px;padding:6px 10px;white-space:nowrap;font:700 22px/1 var(--corps);color:var(--doux)}
 #dif .d-chips b{font:400 26px/1 var(--titre);color:var(--texte)}
 #dif .d-chips img{width:28px;height:28px;align-self:center}
 #dif .d-chips .ico{align-self:center}
-#dif .d-chips .ico{font-size:24px;color:var(--bleu)}
+#dif .d-chips .ico{font-size:24px;color:var(--bleu-titre)}
 
 /* ---------- Dernieres actions ---------- */
 #dif .d-act{display:block;left:1516px;top:414px;width:380px;height:422px;padding:14px 16px 16px;overflow:hidden}
@@ -167,20 +172,20 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-ah{display:flex;flex-direction:column;align-items:stretch;gap:10px;white-space:nowrap}
 #dif .d-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;font:400 24px/1 var(--titre);letter-spacing:.02em;text-transform:none;color:var(--texte)}
 #dif .d-nav button{background:transparent;border:1px solid var(--trait);border-radius:8px 6px 9px 5px;color:var(--texte);font:800 30px/1 var(--corps);width:44px;height:34px;padding:0 0 4px;cursor:pointer}
-#dif .d-nav button:hover:not(:disabled){border-color:var(--doux);background:rgba(255,255,255,.09)}
+#dif .d-nav button:hover:not(:disabled){border-color:var(--doux);background:var(--survol)}
 #dif .d-nav button:disabled{opacity:.3;cursor:default}
 #dif .d-act ol{list-style:none;margin:0;padding:0 4px 0 0;display:flex;flex-direction:column;gap:12px;overflow-y:auto;min-height:0;flex:1;scrollbar-width:thin}
 #dif .d-act li{display:flex;align-items:flex-start;gap:10px;font-size:22px;line-height:1.25;font-weight:700}
 #dif .d-act li{flex:none}
-#dif .d-act li .ico{font-size:24px;color:var(--bleu);flex:none;margin-top:2px}
+#dif .d-act li .ico{font-size:24px;color:var(--bleu-titre);flex:none;margin-top:2px}
 #dif .d-act li b{font-family:var(--titre);font-weight:400}
-#dif .d-act li b.d-ca{color:#fff}
-#dif .d-act li b.d-ca.d-evo{color:var(--or)}
-#dif .d-act li.dern{color:#fff}
+#dif .d-act li b.d-ca{color:var(--blanc)}
+#dif .d-act li b.d-ca.d-evo{color:var(--or-texte)}
+#dif .d-act li.dern{color:var(--blanc)}
 #dif .d-act li:not(.dern){color:var(--doux)}
 /* Moments forts (destruction, evolution, terrain remporte ou egalite, pose d'animal, points hors terrains) : liseré dore, fond teinte, pastille doree, lueur a l'arrivee */
 #dif .d-act li.d-fort{padding:6px 8px 6px 8px;border-left:4px solid var(--or);border-radius:3px 10px 11px 3px;background:color-mix(in srgb,var(--or) 12%,transparent);color:var(--texte)}
-#dif .d-act li.d-fort.dern{color:#fff}
+#dif .d-act li.d-fort.dern{color:var(--blanc)}
 #dif .d-act li.d-fort>.ico{width:30px;height:30px;padding:4px;margin-top:-1px;border-radius:50%;background:var(--or);color:var(--encre)}
 #dif .d-act li.d-fort.d-neuf{animation:dLueur 1.6s ease-out}
 @keyframes dLueur{0%{background:color-mix(in srgb,var(--or) 42%,transparent);box-shadow:0 0 22px 3px color-mix(in srgb,var(--or) 60%,transparent)}100%{background:color-mix(in srgb,var(--or) 12%,transparent);box-shadow:0 0 0 0 transparent}}
@@ -199,12 +204,12 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .d-quit:hover{opacity:1}
 
 /* ---------- Fenetres de fin de manche et de fin de partie ---------- */
-#dif .pp-voile{position:absolute;left:0;top:0;width:1920px;height:1080px;background:rgba(4,8,12,.68);display:grid;place-items:center;z-index:50}
+#dif .pp-voile{position:absolute;left:0;top:0;width:1920px;height:1080px;background:var(--voile-pp);display:grid;place-items:center;z-index:50}
 #dif .pp{position:relative;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--trait);border-radius:22px 13px 24px 12px/13px 22px 12px 24px;box-shadow:0 18px 60px rgba(0,0,0,.6);padding:30px 36px 28px;color:var(--texte)}
 #dif .pp h2{margin:0 150px;text-align:center;font:400 52px/1.1 var(--titre)}
 #dif .pp-sous{text-align:center;font:700 24px/1.2 var(--corps);color:var(--doux);margin:8px 0 0}
 #dif .pp-ters{display:grid;grid-template-columns:repeat(3,330px);grid-auto-rows:322px;gap:22px;margin:28px 0 0} /* 3 sections de taille fixe, a chaque manche */
-#dif .pp-ter{background:var(--encre);border:2px solid var(--trait);border-radius:14px 9px 15px 8px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;overflow:hidden}
+#dif .pp-ter{background:var(--fond);border:2px solid var(--trait);border-radius:14px 9px 15px 8px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;overflow:hidden}
 #dif .pp-th{display:flex;align-items:center;justify-content:space-between;gap:10px}
 #dif .pp-th b{font:400 30px/1.1 var(--titre);white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
 #dif .pp-pts{flex:none;background:var(--or);color:var(--encre);font:400 22px/30px var(--titre);padding:0 10px;border-radius:10px 7px 11px 6px;white-space:nowrap}
@@ -233,13 +238,13 @@ html.dif-ouvert,html.dif-ouvert body{overflow:hidden}
 #dif .pp-gain{display:flex;align-items:center;gap:12px;font:400 30px/1 var(--titre);white-space:nowrap}
 #dif .pp-gain .avatar{width:52px;height:52px;font-size:24px}
 #dif .pp-gain .avatar img{width:100%;height:100%}
-#dif .pp-gain .ico{font-size:34px;color:var(--or)}
+#dif .pp-gain .ico{font-size:34px;color:var(--or-texte)}
 #dif .pp-gain i{font-style:normal;font:400 40px/1 var(--titre)}
 #dif .pp-tot{display:flex;flex-direction:column;align-items:center;gap:6px}
 #dif .pp-tot small{font:800 22px/1 var(--corps);letter-spacing:.05em;text-transform:uppercase;color:var(--doux)}
 #dif .pp-tot div{position:relative;display:flex;align-items:center;gap:16px;font:400 60px/1 var(--titre)}
 #dif .pp-tot b{font-weight:400}
-#dif .pp-tot .ico{position:absolute;right:100%;margin-right:14px;font-size:44px;color:var(--or)}
+#dif .pp-tot .ico{position:absolute;right:100%;margin-right:14px;font-size:44px;color:var(--or-texte)}
 #dif .pp-tot span{font-size:40px;color:var(--doux)}
 #dif .pp-fermer{position:absolute;right:18px;top:16px;background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 22px/1 var(--titre);padding:8px 14px;opacity:.8;cursor:pointer}
 /* Fenetre d'une pile : lignes condensees du panneau Decks agrandies (textes de 22 px au moins), numero a gauche, 1 a 3 colonnes */
@@ -262,10 +267,10 @@ html.dif-ouvert #apercu{z-index:25}
 #dif .pp-vic .avatar img{width:100%;height:100%}
 #dif .pp-tab{border-collapse:separate;border-spacing:0 8px;margin:22px auto 0;font:400 30px/1 var(--titre)}
 #dif .pp-tab th{font:800 22px/1 var(--corps);letter-spacing:.05em;text-transform:uppercase;color:var(--doux);padding:0 26px 4px;text-align:center}
-#dif .pp-tab td{padding:12px 26px;text-align:center;background:var(--encre);border-top:3px solid transparent;border-bottom:3px solid transparent}
+#dif .pp-tab td{padding:12px 26px;text-align:center;background:var(--fond);border-top:3px solid transparent;border-bottom:3px solid transparent}
 #dif .pp-tab td:first-child{text-align:left;border-left:3px solid transparent;border-radius:12px 0 0 12px}
 #dif .pp-tab td:last-child{border-right:3px solid transparent;border-radius:0 12px 12px 0;font-size:40px}
-#dif .pp-tab tr.gagne td{background:color-mix(in srgb,var(--c) 20%,var(--encre));border-color:var(--c)}
+#dif .pp-tab tr.gagne td{background:color-mix(in srgb,var(--c) 20%,var(--fond));border-color:var(--c)}
 #dif .pp-tab .nm{display:flex;align-items:center;gap:12px;white-space:nowrap}
 #dif .pp-tab .nm span{max-width:320px;overflow:hidden;text-overflow:ellipsis}
 #dif .pp-tab .nm .avatar{width:44px;height:44px;font-size:20px}
@@ -295,14 +300,14 @@ html.dif-ouvert #vueDetail .dz-l .dl-els img{width:22px;height:22px}
 html.dif-ouvert #vueDetail .dz-l .dl-nom{flex-direction:row;align-items:baseline;gap:8px;font-size:16px;line-height:1.15;overflow:hidden}
 html.dif-ouvert #vueDetail .dz-l .dl-pseudo{flex:none;white-space:nowrap}
 html.dif-ouvert #vueDetail .dz-l .dl-titre{flex:1;min-width:0;font-size:13px}
-html.dif-ouvert #vueDetail .dz-v{font:700 15px/1 var(--corps);text-align:right;white-space:nowrap;color:#fff}
+html.dif-ouvert #vueDetail .dz-v{font:700 15px/1 var(--corps);text-align:right;white-space:nowrap;color:var(--blanc)}
 html.dif-ouvert #vueDetail .dz-v b{font:400 24px/1 var(--titre)}
 html.dif-ouvert #vueDetail .dz-v{display:inline-flex;align-items:center;justify-content:flex-end;gap:4px}html.dif-ouvert #vueDetail .dz-v .ico{font-size:20px}
 html.dif-ouvert #vueDetail .dz-vide>span:first-child{height:40px;padding:0 10px;border:1px dashed var(--trait);border-radius:7px 5px 8px 4px;color:var(--doux);font-size:14px;line-height:38px;opacity:.7}
 html.dif-ouvert #vueDetail .dz-tot{display:flex;align-items:baseline;justify-content:flex-end;gap:8px;margin:10px 0 0;padding:8px 0 0;border-top:1px solid var(--trait);font:700 17px/1 var(--corps);color:var(--doux)}
 html.dif-ouvert #vueDetail .dz-tot b{font:400 30px/1 var(--titre);color:var(--texte)}
 html.dif-ouvert #vueDetail .dz-tot.mene b{text-shadow:0 0 12px currentColor}
-html.dif-ouvert #vueDetail .dz-eg{font:400 18px/1 var(--titre);color:var(--or);margin-left:6px}
+html.dif-ouvert #vueDetail .dz-eg{font:400 18px/1 var(--titre);color:var(--or-texte);margin-left:6px}
 
 /* ---------- Chat (vue spectateur) ---------- */
 #dif .d-chat{position:relative;background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 22px/1 var(--titre);padding:9px 14px;opacity:.75;cursor:pointer}
@@ -314,11 +319,11 @@ html.dif-ouvert #vueDetail .dz-eg{font:400 18px/1 var(--titre);color:var(--or);m
 #dif .d-ch .pp-fermer{position:static}
 #dif .d-cl{list-style:none;margin:0;padding:0 4px 0 0;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;font:700 22px/1.25 var(--corps);color:var(--texte);overflow-wrap:anywhere}
 #dif .d-cl time{color:var(--doux);margin-right:6px;font-weight:400}
-#dif .d-cl b{font-family:var(--titre);font-weight:400;color:var(--bleu)}
-#dif .d-cl b.chat-createur{color:var(--or)}#dif .d-cl b.chat-spectateur{color:#c2ccd2}#dif .d-cl b.chat-parti{color:var(--doux)}
+#dif .d-cl b{font-family:var(--titre);font-weight:400;color:var(--bleu-titre)}
+#dif .d-cl b.chat-createur{color:var(--or-texte)}#dif .d-cl b.chat-spectateur{color:var(--chat-spec)}#dif .d-cl b.chat-parti{color:var(--doux)}
 #dif .d-cl .d-rien{color:var(--doux)}
 #dif .d-cf{display:flex;gap:8px}
-#dif .d-cf input{flex:1;min-width:0;background:var(--encre);border:1px solid var(--trait);border-radius:8px 6px 9px 5px;color:var(--texte);font:700 22px/1 var(--corps);padding:8px 10px}
+#dif .d-cf input{flex:1;min-width:0;background:var(--fond);border:1px solid var(--trait);border-radius:8px 6px 9px 5px;color:var(--texte);font:700 22px/1 var(--corps);padding:8px 10px}
 #dif .d-cenv{background:var(--bleu);border:0;border-radius:8px 6px 9px 5px;color:var(--encre);font:400 22px/1 var(--titre);padding:8px 12px;cursor:pointer}
 #dif .d-cinf{min-height:0;font:700 22px/1.2 var(--corps);color:var(--magma)}
 #dif .d-cinf:empty{display:none}
@@ -356,7 +361,7 @@ html.dif-ouvert #vueDetail .dz-eg{font:400 18px/1 var(--titre);color:var(--or);m
 #dif.jr .mq-etape{position:absolute;left:711px;top:304px;width:791px;height:72px;display:flex;flex-direction:column;gap:8px}
 #dif.jr .mq-etape .p-signal{margin:0}
 #dif.jr .mq-etape .p-signal b{font-size:26px}
-#dif.jr .mq-etape .p-consigne{margin:0;min-height:0;height:72px;box-sizing:border-box;font-size:16px;padding:8px 14px;overflow:hidden}#dif.jr .mq-etape .p-consigne b{display:block;font:400 22px/1.1 var(--titre);color:var(--or)}
+#dif.jr .mq-etape .p-consigne{margin:0;min-height:0;height:72px;box-sizing:border-box;font-size:16px;padding:8px 14px;overflow:hidden}#dif.jr .mq-etape .p-consigne b{display:block;font:400 22px/1.1 var(--titre);color:var(--or-texte)}
 #dif.jr .mq-etape .p-cale{display:none}
 #dif.jr .d-der{top:390px!important;height:472px!important;grid-template-columns:334px minmax(0,1fr)!important}
 #dif.jr .d-der>button img{width:334px!important;height:468px!important}
@@ -382,21 +387,21 @@ html.dif-ouvert #vueDetail .dz-eg{font:400 18px/1 var(--titre);color:var(--or);m
 #dif .d-act .j-lien{all:unset;font-family:var(--titre);font-weight:400;cursor:pointer}#dif .d-act .j-lien:hover{text-decoration:underline}#dif .d-act .j-lien:focus-visible{outline:2px solid var(--bleu);outline-offset:1px}
 #dif.jr .mq-outils .d-chat{position:relative;font-size:18px;padding:0 12px;height:36px}#dif.jr .mq-outils .d-pastille{right:-8px;top:-8px;min-width:20px;height:20px;font-size:13px;line-height:20px}
 #dif.jr .mq-chatw{position:absolute;left:1516px;top:62px;width:380px;height:802px;z-index:60;display:flex;flex-direction:column;gap:10px;padding:14px 16px 16px;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--bleu);border-radius:18px 11px 20px 10px/11px 19px 10px 18px;box-shadow:0 18px 60px rgba(0,0,0,.6)}
-#dif.jr .mq-chatw .mq-ct{display:flex;align-items:center;justify-content:space-between;font:400 26px/1 Anton,var(--titre);text-transform:uppercase;letter-spacing:.04em;color:var(--or)}
+#dif.jr .mq-chatw .mq-ct{display:flex;align-items:center;justify-content:space-between;font:400 26px/1 Anton,var(--titre);text-transform:uppercase;letter-spacing:.04em;color:var(--or-texte)}
 #dif.jr .mq-chatw .mq-ct button{background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 26px/1 var(--titre);width:40px;height:40px;cursor:pointer}
 #dif.jr .mq-chatw ul{flex:1;list-style:none;margin:0;padding:0;overflow-y:auto;font-size:19px;line-height:1.35;color:var(--texte)}#dif.jr .mq-chatw li{padding:5px 0}#dif.jr .mq-chatw time{color:var(--doux);font-size:15px;margin-right:6px}
 #dif.jr .mq-chatw form{display:flex;gap:8px}#dif.jr .mq-chatw input{flex:1;background:var(--panneau2);border:1px solid var(--trait);border-radius:7px;color:var(--texte);font:inherit;font-size:18px;padding:8px}#dif.jr .mq-chatw form button{font-size:18px;padding:0 14px}
 #dif.jr .mq-outils{position:absolute;left:1516px;top:16px;width:380px;height:36px;display:flex;justify-content:flex-end;gap:8px}
 #dif.jr .mq-outils button{background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 18px/1 var(--titre);padding:0 12px;height:36px;min-width:36px;opacity:.8;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
 #dif.jr .mq-outils button svg{width:20px;height:20px}
-#dif.jr .mq-outils button:hover{opacity:1;color:#fff}
+#dif.jr .mq-outils button:hover{opacity:1;color:var(--blanc)}
 /* Vue joueur : la partie d'origine reste dessinee mais invisible ; fenetres de la partie au-dessus de la vue */
 html.dif-joueur #partie{visibility:hidden}
 html.dif-joueur :is(#recap,#des,#scene,#passer,#absence,#nonEnr,.bulle-reac,#apercu,.barreRejeu){z-index:30}
 html.dif-joueur .chat.flottant.replie{display:none}
 #dif.jr.verrou :is(.p-grille,.d-col.bas,.mq-btns,.mq-piles,.mq-choix,.mq-etape){pointer-events:none}
 #dif.jr .mq-choix{position:absolute;left:711px;top:390px;width:791px;height:472px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px;box-sizing:border-box;background:linear-gradient(180deg,var(--panneau2),var(--panneau));border:2px solid var(--or);border-radius:18px 11px 20px 10px/11px 19px 10px 18px}
-#dif.jr .mq-ch-t{font:400 26px/1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--or)}
+#dif.jr .mq-ch-t{font:400 26px/1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--or-texte)}
 #dif.jr .mq-choix .p-main{flex:1;min-height:0;display:flex;gap:24px;justify-content:center;align-items:center}
 #dif.jr .mq-choix .p-slot{height:100%;display:flex}#dif.jr .mq-choix .p-carte{height:100%;width:auto}#dif.jr .mq-choix .p-carte img{height:100%;width:auto}
 #dif.jr .mq-choix .oeil{display:none}
@@ -432,14 +437,14 @@ html.dif-joueur #partie{position:fixed;left:-10000px;top:0;width:1400px}
 #dif.jr .dk-pt.ok{background:var(--dk-ok);box-shadow:0 0 0 3px rgba(95,211,141,.22)}
 #dif.jr .dk-pt.att{background:var(--dk-att);box-shadow:0 0 0 3px rgba(241,195,90,.3)}
 #dif.jr .dk-pt.off{background:var(--dk-off)}
-#dif.jr .d-badge.dk-lab{background:rgba(241,195,90,.14);color:var(--dk-att);border:2px solid var(--dk-att);box-shadow:none}
+#dif.jr .d-badge.dk-lab{background:rgba(241,195,90,.14);color:var(--or-texte);border:2px solid var(--dk-att);box-shadow:none}
 #dif.jr .d-badge.dk-lab.off{background:rgba(125,140,152,.12);color:var(--doux);border-color:var(--dk-off)}
 #dif.jr .d-ban>.d-j.lui .d-l1 .d-badge.dk-lab{margin-left:auto}
 #dif.jr .dk-et{position:absolute;left:711px;top:304px;width:791px;height:72px;box-sizing:border-box;display:flex;align-items:center;gap:16px;padding:0 18px 6px;border:2px solid var(--or);border-radius:14px 9px 15px 8px/9px 14px 8px 15px;background:linear-gradient(180deg,#2a2512,#1a1a12)}
 #dif.jr .dk-et .t{flex:1;min-width:0}
-#dif.jr .dk-et .t b{display:block;font:400 22px/1.1 var(--titre);color:var(--or)}
+#dif.jr .dk-et .t b{display:block;font:400 22px/1.1 var(--titre);color:var(--or-texte)}
 #dif.jr .dk-et .t span{display:block;margin-top:4px;font:400 16px/1.2 var(--corps);color:var(--texte)}
-#dif.jr .dk-et .n{font:400 44px/1 Anton,var(--titre);color:var(--or);letter-spacing:.02em}
+#dif.jr .dk-et .n{font:400 44px/1 Anton,var(--titre);color:var(--or-texte);letter-spacing:.02em}
 #dif.jr .dk-et .barre{position:absolute;left:18px;right:242px;bottom:8px;height:5px;border-radius:3px;background:rgba(241,195,90,.2)}
 #dif.jr .dk-et .barre i{display:block;height:100%;background:var(--or);border-radius:3px;transition:width .25s linear}
 html.dif-joueur .dk-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -469,7 +474,8 @@ html.dif-joueur .dk-btns .btn{width:100%}
 /* consigne d'etape : 3 lignes au plus dans 72 px, texte reduit, coupe propre */
 #dif.jr .mq-etape .p-consigne{font-size:14.5px;line-height:1.2;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;padding-top:6px;padding-bottom:6px}
 #dif.jr .mq-etape .p-consigne b{font-size:19px}
-.dk-voile{--moi:var(--bleu);--lui:var(--magma)} /* noms bleu / orange de la fin par abandon (maquette C) */
+.dk-voile{--moi:var(--bleu);--lui:var(--magma)}
+html.clair :is(#dif,.dk-voile){--moi:#086f95;--lui:var(--adverse-texte)} /* noms bleu / orange de la fin par abandon (maquette C) */
 /* vue joueur : le bilan de manche de la partie est remplace par celui de la vue spectateur (Fermer = Continuer) */
 html.dif-joueur #recap{display:none!important}
 #dif .pp-fbtns{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;width:100%;margin-top:6px}
@@ -482,14 +488,14 @@ html.dif-joueur #recap{display:none!important}
 #dif:not(.jr) .dk-pt.ok{background:var(--dk-ok);box-shadow:0 0 0 3px rgba(95,211,141,.22)}
 #dif:not(.jr) .dk-pt.att{background:var(--dk-att);box-shadow:0 0 0 3px rgba(241,195,90,.3)}
 #dif:not(.jr) .dk-pt.off{background:var(--dk-off)}
-#dif:not(.jr) .d-badge.dk-lab{box-sizing:border-box;min-width:171px;height:38px;display:inline-flex;align-items:center;justify-content:center;background:rgba(241,195,90,.14);color:var(--dk-att);border:2px solid var(--dk-att)}
+#dif:not(.jr) .d-badge.dk-lab{box-sizing:border-box;min-width:171px;height:38px;display:inline-flex;align-items:center;justify-content:center;background:rgba(241,195,90,.14);color:var(--or-texte);border:2px solid var(--dk-att)}
 #dif:not(.jr) .d-badge.dk-lab.off{background:rgba(125,140,152,.12);color:var(--doux);border-color:var(--dk-off)}
 #dif .dk-et.dk-spec{position:absolute;left:727px;top:416px;width:769px;height:72px;z-index:6;box-sizing:border-box;display:flex;align-items:center;gap:16px;padding:0 18px 6px;border:2px solid var(--or);border-radius:14px 9px 15px 8px/9px 14px 8px 15px;background:linear-gradient(180deg,#2a2512,#1a1a12)}
-#dif .dk-et.dk-spec .t{flex:1;min-width:0}#dif .dk-et.dk-spec .t b{display:block;font:400 22px/1.1 var(--titre);color:var(--or)}
+#dif .dk-et.dk-spec .t{flex:1;min-width:0}#dif .dk-et.dk-spec .t b{display:block;font:400 22px/1.1 var(--titre);color:var(--or-texte)}
 #dif .dk-et.dk-spec .t span{display:block;margin-top:4px;font:400 16px/1.2 var(--corps);color:var(--texte)}
-#dif .dk-et.dk-spec .n{font:400 44px/1 Anton,var(--titre);color:var(--or)}
+#dif .dk-et.dk-spec .n{font:400 44px/1 Anton,var(--titre);color:var(--or-texte)}
 #dif .dk-et.dk-spec .barre{position:absolute;left:18px;right:242px;bottom:8px;height:5px;border-radius:3px;background:rgba(241,195,90,.2)}#dif .dk-et.dk-spec .barre i{display:block;height:100%;background:var(--or);border-radius:3px}
-#dif .pp-neutre{color:var(--or)}
+#dif .pp-neutre{color:var(--or-texte)}
 #dif .pp-duo{display:flex;gap:28px;justify-content:center;margin:8px 0}
 #dif .pp-dj{width:220px;padding:14px;box-sizing:border-box;border:2px solid var(--trait);border-radius:14px 9px 15px 8px;display:flex;flex-direction:column;align-items:center;gap:8px}
 #dif .pp-dj.g{border-color:var(--or)}#dif .pp-dn{font:400 28px/1 var(--titre)}
@@ -526,10 +532,10 @@ html.tel-joueur #partie .mqt small b{display:block;font:400 12px/1 var(--titre);
 html.tel-joueur #partie .mqt-fan{position:relative;height:34px;width:var(--fw)}
 html.tel-joueur #partie .mqt-fan img{position:absolute;bottom:0;transform-origin:50% 120%;display:block;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.5)}
 html.tel-joueur #partie .p-comptes{grid-template-columns:60px 64px 84px 82px!important}
-html.tel-joueur #partie .p-poste{position:sticky;bottom:0;z-index:40;display:flex;flex-direction:column;gap:4px;margin:0 -16px;padding:4px 16px calc(4px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(10,16,24,.94),var(--fond,#0b1118));border-top:1px solid var(--trait);box-shadow:0 -8px 20px rgba(0,0,0,.55)}
+html.tel-joueur #partie .p-poste{position:sticky;bottom:0;z-index:40;display:flex;flex-direction:column;gap:4px;margin:0 -16px;padding:4px 16px calc(4px + env(safe-area-inset-bottom));background:linear-gradient(180deg,var(--poste-haut),var(--fond,#0b1118));border-top:1px solid var(--trait);box-shadow:0 -8px 20px rgba(0,0,0,.55)}
 html.tel-joueur #partie .p-poste>*{display:none!important}
 html.tel-joueur #partie .p-poste>.mqb-l{display:flex!important;align-items:center;gap:8px;min-height:44px}
-html.tel-joueur #partie .mqb-c{flex:1;min-width:0;font:400 15px/1.15 var(--titre);color:var(--or);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.tel-joueur #partie .mqb-c{flex:1;min-width:0;font:400 15px/1.15 var(--titre);color:var(--or-texte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.tel-joueur #partie .mqb-c small{display:block;font:600 11px/1.2 var(--corps);color:var(--doux);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.tel-joueur #partie .mqb-b{flex:none;height:44px;min-width:44px;padding:0 12px;font:400 15px/1 var(--titre);border-radius:10px 7px 11px 6px;border:1px solid var(--trait);background:var(--panneau2);color:var(--texte)}
 html.tel-joueur #partie .mqb-b.plein{background:var(--or);color:var(--encre);border-color:var(--or)}
@@ -541,7 +547,7 @@ html.tel-joueur #partie .mqb-r>button{flex:0 0 44px;height:62px;padding:0;border
 html.tel-joueur #partie .mqb-r>button img{width:44px;height:62px;object-fit:cover;border-radius:4px;display:block;box-shadow:0 2px 5px rgba(0,0,0,.6)}
 html.tel-joueur #partie .mqb-r>button.choisi img{outline:3px solid var(--or);outline-offset:-1px}
 html.tel-joueur #partie .mqb-r>button.surtaxe::after{content:'+1';position:absolute;right:2px;top:2px;font:400 11px/1 var(--titre);background:var(--magma);color:#fff;border-radius:4px;padding:2px 3px}
-html.tel-joueur #partie .mqb-g{position:absolute;right:0;top:0;bottom:0;width:40px;pointer-events:none;background:linear-gradient(90deg,rgba(11,17,24,0),rgba(11,17,24,.95));display:flex;align-items:center;justify-content:flex-end;font:400 22px/1 var(--titre);color:var(--or);padding-right:2px}
+html.tel-joueur #partie .mqb-g{position:absolute;right:0;top:0;bottom:0;width:40px;pointer-events:none;background:linear-gradient(90deg,var(--fondu-0),var(--fondu-1));display:flex;align-items:center;justify-content:flex-end;font:400 22px/1 var(--titre);color:var(--or-texte);padding-right:2px}
 html.tel-joueur #partie .mqb-n{position:absolute;left:0;top:-2px;font:700 10px/1 var(--corps);color:var(--doux)}
 html.tel-joueur #mqAp{position:fixed;inset:0;z-index:200;background:rgba(3,6,10,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
 html.tel-joueur #mqAp img{width:min(78vw,300px);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.7)}
@@ -558,13 +564,13 @@ html.tel-joueur #partie .p-outils .p-outil{width:44px!important;height:44px!impo
 
 /* Telephone, complements : connexion, ligne Daltonien, barre du haut dans son cadre (retours de Romain du 7 nov.) */
 @media (max-width:899px){
-html.tel-joueur #partie .mq-lab.dk-att{background:rgba(241,195,90,.14);color:var(--or);border:1px solid var(--or)}
+html.tel-joueur #partie .mq-lab.dk-att{background:rgba(241,195,90,.14);color:var(--or-texte);border:1px solid var(--or)}
 html.tel-joueur #partie .mq-lab.dk-off{background:rgba(125,140,152,.12);color:var(--doux);border:1px solid #7d8c98}
 html.tel-joueur #partie .mq-pt.dk-att{background:var(--or);box-shadow:0 0 6px rgba(241,195,90,.7)}
 html.tel-joueur #partie .mq-pt.dk-off{background:#7d8c98;box-shadow:none}
 html.tel-joueur #partie .mq-dal{display:flex;align-items:center;justify-content:space-between;min-height:44px;padding:0 12px;background:var(--panneau);border:1px solid var(--trait);border-radius:12px 9px 14px 8px/9px 13px 8px 14px}
 html.tel-joueur #partie .mq-dal .dal-inter{width:100%;justify-content:space-between;border:0;background:none;padding:0}
-html.tel-joueur #partie .mq-dal .dal-inter .pf-itx{display:inline;font:400 18px/1 var(--titre);color:var(--bleu)}
+html.tel-joueur #partie .mq-dal .dal-inter .pf-itx{display:inline;font:400 18px/1 var(--titre);color:var(--bleu-titre)}
 html.tel-joueur .chat.flottant.replie{display:none}
 html.tel-joueur #partie .mqb-l .mqb-b{width:auto;flex:none}
 html.tel-joueur #partie .mqb-r>button.grisee img{filter:grayscale(.85) brightness(.55)}
@@ -688,3 +694,6 @@ html.dif-ouvert #des{display:none!important}
   #dif .p-case>.mini.d-fantome.fx-fantome{animation:dEffaceR .65s linear both}
 }
 #dif .fx-evo{display:none} /* 0.6a : l'eclat de la 0.4 est remplace par anEvo */
+/* 0.6a clair, controle aux pixels : boutons d'outils de la partie a pleine opacite. */
+html.clair #dif :is(.d-quit,.mq-outils button,.d-chat){opacity:1}
+html.clair.tel-joueur #mqAp p{color:var(--fond)} /* 0.6a clair : voile sombre conserve, legende claire */

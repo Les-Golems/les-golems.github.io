@@ -1,6 +1,6 @@
 /* Ecran de chargement (logo sur fond bleu ciel) affiche avant le reste de la page. */
 /* Ecran de chargement : en ligne pour s'afficher des les premiers octets, meme fond que l'en-tete et que background_color du manifeste. Logo calque sur l'ecran de demarrage Android (icone maskable de 240 dp centree sur la fenetre entiere, logo = 60 % de l'icone soit 144 px, ombre identique incrustee dans l'icone). */
-#ecranCharge{position:fixed;inset:0;z-index:2147483000;background:#01C1F0;color:#0a121a;transition:opacity .35s ease;-webkit-user-select:none;user-select:none}
+#ecranCharge{position:fixed;inset:0;z-index:2147483000;background:var(--bleu);color:var(--encre);transition:opacity .35s ease;-webkit-user-select:none;user-select:none}
 #ecranCharge.part{opacity:0;pointer-events:none}
 #ecranCharge img{position:absolute;left:50%;top:50%;width:144px;height:144px;margin:-72px 0 0 -72px;filter:drop-shadow(0 2px 3px rgba(10,18,26,.45))}
 #ecranCharge .ec-txt{position:absolute;left:0;right:0;top:calc(50% + 84px);padding:0 16px;text-align:center}

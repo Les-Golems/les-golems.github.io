@@ -28,9 +28,9 @@ const NE={magma:'Magma',cristal:'Cristal',foudre:'Foudre',brume:'Brume',roche:'R
 const el=e=>`<img class="pe" src="img/${e}.png" alt="">${NE[e]}`;
 const DEF={};
 const K=(m,c)=>`<span class="rg-mot" tabindex="0" data-k="${c||m}">${m}</span>`;
-const CARTE='<svg viewBox="0 0 66 66" style="color:#01C1F0"><g fill="#1a2a38" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><rect x="23" y="5" width="30" height="42" rx="4"/><rect x="17" y="11" width="30" height="42" rx="4"/><rect x="11" y="17" width="30" height="42" rx="4"/></g></svg>';
-const DEFAU='<svg viewBox="0 0 66 66" style="color:#01C1F0"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"><rect x="13" y="7" width="38" height="50" rx="5" transform="rotate(7 32 32)"/><path d="M23 23L41 41M41 23L23 41"/></g></svg>';
-const MAIN='<svg viewBox="0 0 66 66" style="color:#01C1F0"><g fill="#1a2a38" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><rect x="9" y="17" width="23" height="36" rx="4" transform="rotate(-18 20 35)"/><rect x="34" y="17" width="23" height="36" rx="4" transform="rotate(18 45 35)"/><rect x="21" y="9" width="24" height="38" rx="4"/></g></svg>';
+const CARTE='<svg viewBox="0 0 66 66" style="color:var(--bleu-titre)"><g fill="var(--panneau2)" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><rect x="23" y="5" width="30" height="42" rx="4"/><rect x="17" y="11" width="30" height="42" rx="4"/><rect x="11" y="17" width="30" height="42" rx="4"/></g></svg>';
+const DEFAU='<svg viewBox="0 0 66 66" style="color:var(--bleu-titre)"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"><rect x="13" y="7" width="38" height="50" rx="5" transform="rotate(7 32 32)"/><path d="M23 23L41 41M41 23L23 41"/></g></svg>';
+const MAIN='<svg viewBox="0 0 66 66" style="color:var(--bleu-titre)"><g fill="var(--panneau2)" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><rect x="9" y="17" width="23" height="36" rx="4" transform="rotate(-18 20 35)"/><rect x="34" y="17" width="23" height="36" rx="4" transform="rotate(18 45 35)"/><rect x="21" y="9" width="24" height="38" rx="4"/></g></svg>';
 const MOTS=[
  ["Remporter","Avoir la plus grande Force sur un terrain en fin de manche : tu marques ses points. Égalité : personne ne le remporte."],
  ["Amicale","Partie sans enjeu de rang : ni Elo gagné ni Elo perdu."],
@@ -128,7 +128,7 @@ const S0=[
   <li>Chaque joueur a une <b>grille 3 x 3</b>, en miroir de l'autre. Une colonne = un terrain.</li></ul></div>
 </div>
 <div class="bl mt"><h4>Désigner une case</h4>
- <div class="duo"><div class="plat"><small class="lg" style="color:#ee6a2c;font-weight:800">ADVERSAIRE</small>
+ <div class="duo"><div class="plat"><small class="lg" style="color:var(--adverse-texte);font-weight:800">ADVERSAIRE</small>
   <div class="gr adv"><span></span><span></span><span></span><span class="la">ligne</span><span class="fa">en face</span><span class="la">ligne</span><span></span><span></span><span></span></div>
   <div class="trs"><span>Terrain 1</span><span>Terrain 2</span><span>Terrain 3</span></div>
   <div class="gr toi"><span></span><span class="vo">voisin</span><span></span><span class="vo">voisin</span><span class="moi">toi</span><span class="vo">voisin</span><span></span><span class="vo">voisin</span><span></span></div><small class="lg" style="color:#01C1F0;font-weight:800">TOI</small>
@@ -138,7 +138,7 @@ const S0=[
   <li><i style="background:var(--magma)"></i><b>En face :</b>&nbsp;même terrain, même ligne.</li>
   <li><i style="background:rgba(238,106,44,.25);border:1px solid var(--magma)"></i><b>Ligne adverse :</b>&nbsp;les 3 cases adverses de la même ligne.</li>
   <li><i style="background:rgba(1,193,240,.18);border:1px solid var(--bleu)"></i><b>Voisin :</b>&nbsp;Golem allié adjacent, sans diagonale.</li>
-  <li><i style="background:transparent;border:1px dashed #3a5263"></i><b>En jeu :</b>&nbsp;une carte posée sur une grille.</li></ul></div></div></div>`},
+  <li><i style="background:transparent;border:1px dashed var(--js-pointille)"></i><b>En jeu :</b>&nbsp;une carte posée sur une grille.</li></ul></div></div></div>`},
 {id:'lire',t:'Lire une carte',h:`
 <div class="lire4">
  <div class="bl"><h4>Un Golem</h4><div class="an2" id="rgAnG"></div></div>
@@ -305,16 +305,16 @@ const T=[[LG('<span class="ico" style="width:20px;height:20px">'+ETOILE+'</span>
 const E=[[LG(ic(ENCL)+' 4','Coût'),0],[LG(ic(FORCE)+' 4','Force'),0],[LG('<span class="l-nom" style="color:#ffd23a">K-Chan</span>','Nom'),0],[LG('<i style="color:#ffb52a;font-weight:700">L’attachiante</i>','Sous-titre'),0],[LG('<img class="pe" src="img/magma.png" alt=""><img class="pe" src="img/cristal.png" alt="">','Éléments du Golem'),0],[LG('<b style="color:#ffb52a">Love inconditionnel :</b>',"Nom de l'effet"),0],[LG('<span class="l-evo">Évolution de la Reine du tilt</span>','Évolution : la carte de base'),0],[LG('<span class="l-cit">« J’vous love… »</span>','Citation'),0],[LG('<span class="l-num">G-006 ★</span>','Numéro de la carte'),0]];
 const A=[[LG(ic(ENCL)+' 0','Coût'),0],[LG(ic(FORCE)+' +1','Force donnée au maître'),0],[LG('<span class="l-nom">Kiwi</span>','Nom'),0],[LG('<i style="color:#7be07f;font-weight:700">Le lapin de Titom76</i>','Sous-titre'),0],[LG('<img class="pe" src="img/brume.png" alt="">','Éléments de l’animal'),0],[LG('<b style="color:#7be07f">Mignonitude :</b>',"Nom de l'effet"),0],[LG('<span style="color:#fff">Animal de compagnie de Titom76</span>','Son maître'),0],[LG('<span class="l-num">A-011</span>','Numéro de la carte'),0]];
 function schemas(){const star=(x,y,z)=>`<svg x="${x}" y="${y}" width="${z}" height="${z}" viewBox="-6 -6 312 318">`+ETOILE.replace(/^<svg[^>]*>/,'');
- let p='';const T=[['Boutique',2],['Cirque',2],['Tournoi','?']],R='#ee6a2c',B='#01C1F0';
- p+=`<text x="0" y="40" fill="${R}" font-size="14" font-weight="800">ADV.</text><text x="0" y="146" fill="${B}" font-size="14" font-weight="800">TOI</text><text x="0" y="93" fill="#a6bac6" font-size="13" font-weight="800">TERRAINS</text>`;
- const cel=(x,y,w,f,st,t,tc)=>`<rect x="${x}" y="${y}" width="${w}" height="20" rx="8" fill="${f}" stroke="${st}" stroke-width="1.5"${f==='#0f1a24'?' stroke-dasharray="3 3"':''}/>`+(t?`<text x="${x+w/2}" y="${y+14.5}" fill="${tc}" font-size="12" font-weight="800" text-anchor="middle">${t}</text>`:'');
+ let p='';const T=[['Boutique',2],['Cirque',2],['Tournoi','?']],R='var(--adverse-texte)',B='var(--bleu)',BT='var(--bleu-titre)',CASE='var(--js-case)';
+ p+=`<text x="0" y="40" fill="${R}" font-size="14" font-weight="800">ADV.</text><text x="0" y="146" fill="${BT}" font-size="14" font-weight="800">TOI</text><text x="0" y="93" fill="var(--doux)" font-size="13" font-weight="800">TERRAINS</text>`;
+ const cel=(x,y,w,f,st,t,tc)=>`<rect x="${x}" y="${y}" width="${w}" height="20" rx="8" fill="${f}" stroke="${st}" stroke-width="1.5"${f===CASE?' stroke-dasharray="3 3"':''}/>`+(t?`<text x="${x+w/2}" y="${y+14.5}" fill="${tc}" font-size="12" font-weight="800" text-anchor="middle">${t}</text>`:'');
  T.forEach(([n,v],i)=>{const x0=94+i*120,w=112;
-  for(let r=0;r<3;r++){p+=cel(x0,2+r*24,w,'#0f1a24','#2a3f50');p+=cel(x0,110+r*24,w,'#0f1a24','#2a3f50')}
-  p+=`<rect x="${x0}" y="76" width="${w}" height="28" rx="9" fill="#1a2a38" stroke="#2a3f50"/><text x="${x0+8}" y="94.5" fill="#eaf4f8" font-size="14" font-weight="800">${n}</text>`;
-  p+=v==='?'?`<text x="${x0+w-14}" y="95" fill="#f1c35a" font-size="15" font-weight="800">?</text>`:star(x0+w-34,80,20)+`<text x="${x0+w-9}" y="95" fill="#eaf4f8" font-size="13" font-weight="800">${v}</text>`});
- p+=cel(214,50,112,'rgba(238,106,44,.35)',R,'en face','#fff');
+  for(let r=0;r<3;r++){p+=cel(x0,2+r*24,w,CASE,'var(--trait)');p+=cel(x0,110+r*24,w,CASE,'var(--trait)')}
+  p+=`<rect x="${x0}" y="76" width="${w}" height="28" rx="9" fill="var(--panneau2)" stroke="var(--trait)"/><text x="${x0+8}" y="94.5" fill="var(--texte)" font-size="14" font-weight="800">${n}</text>`;
+  p+=v==='?'?`<text x="${x0+w-14}" y="95" fill="var(--or-texte)" font-size="15" font-weight="800">?</text>`:star(x0+w-34,80,20)+`<text x="${x0+w-9}" y="95" fill="var(--texte)" font-size="13" font-weight="800">${v}</text>`});
+ p+=cel(214,50,112,'rgba(238,106,44,.35)','var(--adverse)','en face','var(--blanc)');
  p+=cel(214,110,112,B,B,'ton Golem','#0a121a');
- p+=cel(94,110,112,'rgba(1,193,240,.18)',B,'voisin','#fff')+cel(334,110,112,'rgba(1,193,240,.18)',B,'voisin','#fff')+cel(214,134,112,'rgba(1,193,240,.18)',B,'voisin','#fff');
+ p+=cel(94,110,112,'rgba(1,193,240,.18)',B,'voisin','var(--blanc)')+cel(334,110,112,'rgba(1,193,240,.18)',B,'voisin','var(--blanc)')+cel(214,134,112,'rgba(1,193,240,.18)',B,'voisin','var(--blanc)');
  $('rgSvP').innerHTML=p;
  let s='';[["L'École",9,7,2,'Tu remportes','b'],["L'Écran du MJ",4,4,1,'Égalité : personne','n'],['Le Versus',3,5,3,"L'adversaire remporte",'r']].forEach(([n,a,b,v,t,c])=>{
   s+=`<div><div class="ptr ${c}"><b>${n}</b><span class="vs"><em class="cb">${a}</em> contre <em class="cr">${b}</em></span><span class="pv">${ic(ETOILE)} ${v} pt${v>1?'s':''}</span></div><small class="${c}">${t}</small></div>`});

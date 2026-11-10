@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Jeu de cartes communautaire">
 <meta name="theme-color" content="#0a121a">
+<script>/* Theme (0.6a) : applique avant tout CSS, sans flash sombre ; choix memorise sur l'appareil (golems.theme), voir commun/navigation.js. */try{if(localStorage.getItem('golems.theme')==='clair'){document.documentElement.classList.add('clair');document.querySelector('meta[name=theme-color]').content='#e4e9ee'}}catch(e){}</script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Les Golems">
 <meta property="og:title" content="Les Golems">
@@ -79,7 +80,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
     <button class="bd-capsule" id="capsuleMoi" type="button"><span class="bd-rg" id="rangMoi" hidden><img alt="" width="32" height="32"><span id="rangElo"></span></span><span class="bd-sep" hidden></span><span class="bd-id"><b id="pseudoAffiche"></b><span class="bd-sc" id="sousConnexion" hidden>Se connecter</span></span><span class="avatar" id="avatarMoi" aria-hidden="true"></span></button>
     <span class="bd-affw"><button class="bd-b bd-carre" id="btnAffichage" type="button" title="Affichage" aria-label="Affichage" aria-expanded="false" aria-controls="menuAffichage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
       <div class="bd-menu" id="menuAffichage" role="dialog" aria-label="Affichage" hidden><h4>Affichage</h4>
-        <div class="bd-lig bd-lig-theme" hidden><span class="bd-et">Thème</span><div class="sc-sel sc-large bd-sel" id="selTheme" role="group" aria-label="Thème"><button type="button" aria-pressed="true" data-v="sombre">Sombre</button><button type="button" aria-pressed="false" data-v="clair" hidden>Clair</button></div></div>
+        <div class="bd-lig bd-lig-theme"><span class="bd-et">Thème</span><div class="sc-sel sc-large bd-sel" id="selTheme" role="group" aria-label="Thème"><button type="button" aria-pressed="true" data-v="sombre">Sombre</button><button type="button" aria-pressed="false" data-v="clair">Clair</button></div></div>
         <div class="bd-lig"><span class="bd-et">Couleurs</span><div class="sc-sel sc-large bd-sel" id="selCouleurs" role="group" aria-label="Couleurs"></div></div>
       </div></span>
     <button class="bd-b bd-carre" id="modifierPseudo" type="button" title="Se déconnecter" aria-label="Se déconnecter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></svg></button>

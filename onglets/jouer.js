@@ -225,7 +225,7 @@ function boutonObserver(x,off){const b=el('button','btn sec po-obs');b.type='but
 /* Parties en cours (0.4) : parties publiques lancees et pas finies, une ligne chacune (joueurs, manche, score, spectateurs, Observer). */
 /* Parties ouvertes (variante C) : places libres en cartes (Rejoindre / Observer), puis salons complets en lignes (Observer). */
 function tauxCourt(s){return s&&s.n?Math.round(100*s.v/s.n)+' % de victoires - '+s.n+' partie'+(s.n>1?'s':''):s===false?'…':'Aucune partie jouée'}
-function colTaux(z,s){if(!s||!s.n)return;const p=100*s.v/s.n;z.style.color=p>=55?'#6fd08c':p>=45?'var(--or)':'#ef7a6c'}
+function colTaux(z,s){if(!s||!s.n)return;const p=100*s.v/s.n;z.style.color=p>=55?'var(--js-taux-haut)':p>=45?'var(--js-or-taux)':'var(--js-taux-bas2)'}
 setInterval(()=>{if(!$('jouer').hidden&&!r)peintListe()},30000);
 function estPret(p){return p.sameTab?jePret:p.presence.pret===true}
 function texteCompte(){const n=compteFin-Date.now();return n>0?'La partie démarre dans '+Math.ceil(n/1000)+' s':'La partie démarre'}
