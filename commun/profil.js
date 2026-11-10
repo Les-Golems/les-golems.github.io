@@ -24,7 +24,9 @@ function mdCles(x){const m=pfModeDe(x),n=pfNiveauDe(x);return m==='entrainement'
 /* Serie, meilleure serie, 10 dernieres : une partie arrivee en retard (plus ancienne) ne les change pas. */
 function mdSerie(X,x){const w=x.res==='Victoire',l=x.res==='Défaite',dt=+x.date||0;if(dt<X.sd)return;X.sd=dt;
   X.s=w?(X.s>0?X.s+1:1):l?(X.s<0?X.s-1:-1):0;if(X.s>X.b)X.b=X.s;X.r=(X.r+(w?'V':l?'D':'N')).slice(-10)}
-function mdPartie(X,x,idMvp){const w=x.res==='Victoire';X.n++;if(w)X.v++;else if(x.res==='Défaite')X.d++;mdSerie(X,x);
+function mdPartie(X,x,idMvp){const w=x.res==='Victoire';X.n++;if(w)X.v++;else if(x.res==='Défaite')X.d++;mdSerie(X,x);mdTops(X,x,idMvp)}
+/* Elements, decks, cartes et MVP d'une partie (sans toucher n, v, d ni la serie) : partie nouvelle ou amorce depuis l'historique. */
+function mdTops(X,x,idMvp){const w=x.res==='Victoire';
   const ordre=window.GolemsDonnees.interface.elements.ordre,d=x.deck||{},els=(Array.isArray(d.els)?d.els:[]).filter(y=>ordre.includes(y)).slice(0,5);
   els.forEach(y=>{X.el[y]=(X.el[y]|0)+1});
   const add=(k,cle,ex)=>{let e=X[k].find(z=>z[0]===cle);if(!e){e=k==='mv'?[cle,0]:[cle,0,0];X[k].push(e)}e[1]++;if(w&&k!=='mv')e[2]++;if(ex!==undefined)e[3]=ex};
@@ -58,6 +60,30 @@ function mdCompte(o,h0,ctx,prev){
     if(!vu[k]){vu[k]=1;const P=md[k],b=P.b|0;Object.assign(P,{s:0,sd:0,r:''});P.b=b}mdSerie(md[k],x)}));
   return md;
 }
+/* 0.6.3 : amorce des tops (elements, decks, cartes, MVP) de chaque mode et niveau, une seule fois (md.am = 1), pour les comptes
+   passes en 0.6.2 avec des tops vides. Source : les totaux du cumul (dk, c, mv : TOUTES les parties) pour un mode qui contient
+   toutes les parties du compte ; sinon l'historique detaille h0 (50 dernieres parties deja comptees), chaque partie dans son mode
+   et son niveau. Sans doublon : les parties deja dans les tops (jouees apres la 0.6.2) sont les plus recentes ; pour chaque mode,
+   leur nombre = somme des parties des decks du top ; la date de la plus ancienne d'entre elles fixe la limite, l'amorce ne prend
+   que les parties plus anciennes. */
+function mdAmorce(o,h0,idM){const md=o.md,modes=['classee','amicale','entrainement'];
+  const h=h0.filter(x=>x&&(x.res==='Victoire'||x.res==='Défaite'||x.res==='Match nul')).sort((a,b)=>(+b.date||0)-(+a.date||0));
+  let lim=Infinity;
+  modes.forEach(m=>{const X=md[m];if(!X)return;const N=(X.dk||[]).reduce((a,e)=>a+(e[1]|0),0);if(!N)return;
+    const L=h.filter(x=>pfModeDe(x)===m&&x.deck&&typeof x.deck.nom==='string'&&x.deck.nom);
+    lim=Math.min(lim,L.length?(+L[Math.min(N,L.length)-1].date||0):0)});
+  const tout=modes.find(m=>md[m]&&(o.n|0)>0&&(md[m].n|0)===(o.n|0));
+  if(tout){const X=md[tout],ordre=window.GolemsDonnees.interface.elements.ordre,ks=[tout];
+    if(tout==='entrainement'){const nv=['facile','normal','difficile'].filter(k=>md[k]&&md[k].n>0);if(nv.length===1)ks.push(nv[0])}
+    ks.forEach(k=>{const Y=md[k];Y.el={};Y.dk=[];Y.c=[];Y.mv=[];
+      (o.dk||[]).forEach(e=>{if(!Array.isArray(e)||typeof e[0]!=='string')return;const els=String(e[4]||'').split(',').filter(y=>ordre.includes(y)).slice(0,5);
+        els.forEach(y=>{Y.el[y]=(Y.el[y]|0)+(e[1]|0)});Y.dk.push([e[0].slice(0,40),e[1]|0,e[2]|0,els.join(',')])});
+      (o.c||[]).forEach(e=>{if(Array.isArray(e)&&/^[0-9]{3}e?$/.test(e[0]))Y.c.push([e[0],e[1]|0,e[2]|0])});
+      const mv={};(o.mv||[]).forEach(e=>{if(!Array.isArray(e))return;const id=idM[e[0]];if(id)mv[id]=(mv[id]|0)+(e[1]|0)});Y.mv=Object.entries(mv)});
+    ks.forEach(m=>{const Y=md[m];['dk','c','mv'].forEach(k=>{if(Y[k].length>MD_MAX)Y[k]=Y[k].sort((a,b)=>b[1]-a[1]).slice(0,MD_MAX)})})}
+  h.filter(x=>(+x.date||0)<lim).reverse().forEach(x=>mdCles(x).forEach(k=>{if(md[k]&&k!==tout&&!(tout==='entrainement'&&md[k].n===md.entrainement.n))mdTops(md[k],x,idM)}));
+  md.am=1;
+}
 function cumulAjoute(c,l,ctx){
   const ok=!!(c&&typeof c==='object'&&c.f===1);
   const o=ok?JSON.parse(JSON.stringify(c)):{f:1,n:0,v:0,d:0,s:0,sd:0,k:0,dk:[],c:[],mv:[],a:[],ve:[],ids:[]};
@@ -68,8 +94,9 @@ function cumulAjoute(c,l,ctx){
   (l||[]).forEach(x=>{if(!x||typeof x!=='object')return;if(typeof x.id!=='string'||!x.id){if(!ok)nv.push(x);return}
     const g=gr(x.id);if(vus.has(g)){if(!nv.includes(x))h0.push(x);return}vus.add(g);nv.push(x)});
   const mdOk=o.md&&typeof o.md==='object'&&o.md.k===o.k;
-  if(!nv.length&&mdOk)return null;
-  if(!mdOk)o.md=o.k?mdCompte(o,h0,ctx,o.md):(()=>{const m={k:0};MD_CLES.forEach(k=>{m[k]=mdVide()});return m})();
+  if(!nv.length&&mdOk&&o.md.am===1)return null;
+  if(!mdOk)o.md=o.k?mdCompte(o,h0,ctx,o.md):(()=>{const m={k:0,am:1};MD_CLES.forEach(k=>{m[k]=mdVide()});return m})();
+  if(o.md.am!==1)mdAmorce(o,h0,mdIdMvp());
   {const idM=mdIdMvp();nv.slice().sort((a,b)=>(+a.date||0)-(+b.date||0)).forEach(x=>mdCles(x).forEach(k=>mdPartie(o.md[k],x,idM)))}
   if(!nv.length)return o;
   const T={};['dk','c','mv','a','ve'].forEach(k=>{T[k]=new Map(o[k].filter(e=>Array.isArray(e)&&typeof e[0]==='string').map(e=>[e[0],e]))});
@@ -320,8 +347,8 @@ async function ouvreProfil(autre){
     const D=prive&&cours?resume:I?pfStatsInstantane(I,MO):cours?compteursMode(PM,MO,mode===2?PF_DIF[dif]:''):compteursMode(null,MO);
     if(attente)D.attente=true;
     const P=prive?resume:D;
-    /* 0.6.1 : ancien compte (parties d'avant le correctif du 9 nov. reconstruites au total) : aucun element compte pour le mode, ou les 10 dernieres ne couvrent pas toutes ses parties. */
-    const AV=(moi?'Tes':'Ses')+" parties d'avant le 9 novembre comptent dans le total, pas par mode.",avant=!I&&!D.global&&D.n>0&&(!(D.els||[]).length||(D.der||[]).length<Math.min(D.n,10));
+    /* Ancien compte : tops amorces sur les 50 dernieres parties (mdAmorce) ; liste vide alors que des parties plus anciennes existent : on le dit. */
+    const AV='Détail connu pour les 50 dernières parties seulement.',avant=!I&&!D.global&&D.n>0&&(!(D.els||[]).length||(D.der||[]).length<Math.min(D.n,10));
     /* Bilan */
     const hr=E('div','pr-hr'),gc=E('div','pr-gc'),gn=E('div','pr-gn');
     const tx=P.n?Math.round(100*P.v/P.n):null,coul=couleurTaux.valeur(tx,P.n);
