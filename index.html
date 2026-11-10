@@ -38,7 +38,17 @@ const r=u=>u+'?r='+Date.now().toString(36)+Math.random().toString(36).slice(2,8)
 window.golemsManque=s=>{try{return new Function('return typeof '+s)()==='undefined'}catch(e){return false}}; /* zone morte (script parti puis arrete) : present */
 window.golemsSecours=pourquoi=>{let n=0;try{n=+sessionStorage.getItem(S)||0}catch(e){}
   console.error('Chargement : '+pourquoi+(n?' ; deja recharge une fois, arret.':' ; rechargement de la page.'));
-  if(n)return;try{sessionStorage.setItem(S,'1')}catch(e){return}location.reload()};
+  if(n){avis();return}try{sessionStorage.setItem(S,'1')}catch(e){avis();return}window.golemsRecharge=1;location.reload()};
+/* Deja recharge une fois et toujours incomplet : bandeau clair (bouton Recharger) au lieu d'une page cassee. */
+const avis=()=>{if(window.golemsAvis)return;window.golemsAvis=1;const f=()=>{const d=document.createElement('div');d.setAttribute('role','alert');
+  d.style.cssText='position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:99999;max-width:calc(100% - 32px);box-sizing:border-box;padding:10px 14px;border-radius:10px;background:#3a1416;border:2px solid #ea7a6c;color:#fff;font:700 15px/1.35 sans-serif;display:flex;gap:12px;align-items:center';
+  d.textContent='Chargement incomplet : un fichier du site n’a pas pu être chargé. Vérifie ta connexion puis recharge la page.';
+  const b=document.createElement('button');b.type='button';b.textContent='Recharger';b.style.cssText='flex:none;padding:6px 14px;border-radius:8px;border:0;background:#ea7a6c;color:#0a121a;font:800 15px sans-serif;cursor:pointer';
+  b.onclick=()=>{try{sessionStorage.removeItem(S)}catch(e){}location.reload()};d.append(b);document.body.append(d)};
+  document.body?f():document.addEventListener('DOMContentLoaded',f)};
+/* Script qui plante faute d'un symbole d'un fichier manquant (ReferenceError pendant le chargement) : meme repli ; erreurs suivantes tues pendant le rechargement. */
+window.addEventListener('error',e=>{if(window.golemsPret)return;if(window.golemsRecharge||window.golemsAvis){e.preventDefault();return}
+  if(e.error instanceof ReferenceError){e.preventDefault();golemsSecours('script interrompu ('+e.message+')')}});
 window.golemsRepare=(e,u,m)=>{if(e.dataset.r)return;e.dataset.r='1';
   if(m){const x=document.createElement('script');if(/module/.test(m))x.type='module';x.src=r(u);x.dataset.r='1';x.onerror=()=>golemsSecours(u+' introuvable');document.head.append(x);return}
   try{const q=new XMLHttpRequest();q.open('GET',r(u),false);q.send();if(q.status!==200)throw new Error('HTTP '+q.status);
@@ -46,7 +56,7 @@ window.golemsRepare=(e,u,m)=>{if(e.dataset.r)return;e.dataset.r='1';
     if(SYMB[u]&&golemsManque(SYMB[u]))throw new Error(SYMB[u]+' absent');console.warn('Chargement : '+u+' recharge (?r=).')}catch(x){golemsSecours(u+' en echec'+(x&&x.message?' ('+x.message+')':''))}};
 window.golemsVerifie=(e,u,m)=>{if(!m&&SYMB[u]&&golemsManque(SYMB[u]))golemsRepare(e,u,m)};
 window.golemsFin=()=>{const k=['$','ETOILE_G','M','onglet','lancer','affiche','lanceGuide','peintDecks'].filter(golemsManque);
-  if(k.length)golemsSecours('symboles absents : '+k.join(', '));else try{sessionStorage.removeItem(S)}catch(e){}};
+  window.golemsPret=1;if(k.length)golemsSecours('symboles absents : '+k.join(', '));else try{sessionStorage.removeItem(S)}catch(e){}};
 const h=(u,m)=>'(this,\''+u+'\',\''+(m||'').replace(/"/g,'')+'\')'; /* attributs : sans guillemets doubles (type="module") */
 window.golemsCharge=l=>document.write(l.map(([t,u,m])=>t==='css'?'<link rel="stylesheet" href="'+a(u)+'">':'<script'+(m?' '+m:'')+' src="'+a(u)+'"'+(/module/.test(m||'')?'':' onerror="golemsRepare'+h(u,m)+'" onload="golemsVerifie'+h(u,m)+'"')+'><\/script>').join(''));})();
 window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
