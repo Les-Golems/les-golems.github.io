@@ -73,6 +73,8 @@ async function ouvreGalerie(){
   if(!listeAvatars){try{listeAvatars=await (await fetch('avatars/avatars.json',{cache:'no-cache'})).json()}catch(e){listeAvatars=[]}}
   const cur=monAvatar();GAL.img=monImage();GAL.actuel=/^data:/.test(cur)?'__img':cur;GAL.choix=GAL.actuel;GAL.imp=false;
   galPeint();
+  /* 1re ouverture : police des titres pas encore chargee, on redessine une fois prete (initiale du grand apercu). */
+  if(document.fonts&&document.fonts.status!=='loaded')document.fonts.ready.then(()=>{if(!$('galerieAvatar').hidden&&!GAL.imp)galPeint()});
   $('galerieAvatar').hidden=false;document.documentElement.classList.add('galOuverte');
   const g=$('galGrille');g.scrollTop=0;(g.querySelector('[aria-pressed="true"]')||g.firstChild).focus({preventScroll:true});
 }
