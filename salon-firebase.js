@@ -97,6 +97,8 @@ async function ouvre() {
   const signale = () => ecouteCompte.forEach(f => { try { f(); } catch (e) {} });
 
   let enLigne = false;
+  // Salons ouverts dans cette page (annonce légitime) ; les autres annonces de mon uid sont orphelines (nettoyées par annonces()).
+  const salonsOuverts = new Set(), orphelinesVues = new Set();
   const ecouteCo = [];
   // Coupures répétées : le SDK espace ses reconnexions (délai x1,3 à chaque connexion de moins de 30 s, jusqu'à plusieurs
   // minutes) ; un joueur qui joue paraît alors absent plus de 60 s et perd par abandon. Coupé, on relance la connexion
@@ -597,8 +599,8 @@ async function ouvre() {
       set(ref(db, P + "activite/" + code), serverTimestamp()).catch(() => { touche0 = 0; });
     }
     // Annonce publique (annonces/{code}) : effacée à la déconnexion du créateur.
-    const annRef = ref(db, P + "annonces/" + code);
-    let annonceOn = false, presOk = false, annonceO = null, annonceRearme = false, versRobot = false, creeAFaire = false, presConf = false, clOk = false; // annonceO : dernière annonce publiée (réécrite à la reconnexion) ; creeAFaire : heure d'ouverture du salon classé pas encore écrite (réessayée à la reconnexion)
+    const annRef = ref(db, P + "annonces/" + code); salonsOuverts.add(code);
+    let annonceOn = false, presOk = false, annonceO = null, annonceRearme = false, versRobot = false, creeAFaire = false, presConf = false, clOk = false, annoncePosee = false; // annoncePosee : une écriture d'annonce est partie (à effacer en sortant, même sans accusé) // annonceO : dernière annonce publiée (réécrite à la reconnexion) ; creeAFaire : heure d'ouverture du salon classé pas encore écrite (réessayée à la reconnexion)
     function ecrit() { return update(moiRef, { ...pres, t: serverTimestamp() }); }
     // Présence de connexion (0.5, déconnexion) : salons/{code}/pres/{uid} = { c: connecté, t: heure serveur du dernier changement }.
     // Le serveur écrit c:false lui-même à la coupure (onDisconnect) ; l'adversaire en tire « reconnexion » puis « hors ligne ».
@@ -769,6 +771,10 @@ async function ouvre() {
           // Reconnexion : l'ancien onDisconnect a servi (annonce effacée), il est reposé.
           const pose = !annonceOn || annonceRearme;
           if (fini || versRobot || !presConf) return false;
+          // Effacement à la déconnexion posé AVANT l'écriture (créateur présent : la règle de retrait est vraie) : une annonce dont l'accusé
+          // se perd dans une coupure ne reste jamais orpheline si la page se ferme.
+          annoncePosee = true; try { await onDisconnect(annRef).remove(); } catch (e) {}
+          if (fini || versRobot) return false;
           await set(annRef, v);
           // Salon quitté pendant l'écriture (leave n'a pas vu l'annonce) : retirée aussitôt (u = moi).
           if (fini || versRobot) { try { await remove(annRef); } catch (e) {} return false; }
@@ -781,14 +787,15 @@ async function ouvre() {
           if (annonceOn) { try { await onDisconnect(annRef).cancel(); } catch (e) {} annonceOn = false; }
         }
       },
+      // Sortie : nettoyage garanti même sous coupure. Les onDisconnect d'effacement restent posés (le serveur efface si la page se ferme
+      // avant les accusés) ; celui de pres passe de c:false à l'effacement ; les effacements directs partent en parallèle.
       async leave() {
         fini = true; // d'abord : une réannonce de reconnexion en cours s'arrête avant d'écrire (salon quitté, partie finie)
-        if (annonceOn) { annonceOn = false; try { await onDisconnect(annRef).cancel(); await remove(annRef); } catch (e) {} }
+        const ann = annonceOn || annoncePosee; annonceOn = false; annoncePosee = false; salonsOuverts.delete(code);
         stop.forEach(f => f());
         const i = ecouteCo.indexOf(reco); if (i >= 0) ecouteCo.splice(i, 1);
-        await onDisconnect(moiRef).cancel();
-        try { await onDisconnect(presRef).cancel(); await remove(presRef); } catch (e) {}
-        await remove(moiRef);
+        try { await onDisconnect(presRef).remove(); } catch (e) {}
+        await Promise.all([ann ? remove(annRef).catch(() => {}) : null, remove(presRef).catch(() => {}), remove(moiRef).catch(() => {})]);
       }
     };
     return salon;
@@ -836,6 +843,11 @@ async function ouvre() {
     annonces(f) {
       return onValue(ref(db, P + "annonces"), s => {
         const v = s.val() || {};
+        // Annonce orpheline de mon uid (salon quitté sous coupure, page fermée) : retirée si je ne suis plus connecté à ce salon.
+        for (const k in v) if (v[k] && v[k].u === moi && !salonsOuverts.has(k) && !orphelinesVues.has(k)) {
+          orphelinesVues.add(k);
+          get(ref(db, P + "salons/" + k + "/pres/" + moi)).then(p => { const x = p.val(); if (!(x && x.c === true) && !salonsOuverts.has(k)) return remove(ref(db, P + "annonces/" + k)); }).catch(() => { orphelinesVues.delete(k); });
+        }
         f(Object.keys(v).map(k => ({ code: k, ...v[k] })).filter(x => typeof x.u === "string").sort((a, b) => (+b.t || 0) - (+a.t || 0)));
       }, () => f([]));
     },
