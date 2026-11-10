@@ -21,7 +21,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, setPersistence, browserSessionPersistence, browserLocalPersistence,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, orderByValue, endAt, limitToFirst, limitToLast, equalTo, runTransaction, connectDatabaseEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, goOffline, goOnline, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, orderByValue, endAt, limitToFirst, limitToLast, equalTo, runTransaction, connectDatabaseEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { firebaseConfig as configEnLigne } from "./firebase-config.js";
 
 // Servi depuis localhost ou 127.0.0.1 : émulateur Firebase local (projet de démonstration
@@ -98,7 +98,15 @@ async function ouvre() {
 
   let enLigne = false;
   const ecouteCo = [];
-  onValue(ref(db, ".info/connected"), s => { enLigne = s.val() === true; ecouteCo.forEach(f => f()); });
+  // Coupures répétées : le SDK espace ses reconnexions (délai x1,3 à chaque connexion de moins de 30 s, jusqu'à plusieurs
+  // minutes) ; un joueur qui joue paraît alors absent plus de 60 s et perd par abandon. Coupé, on relance la connexion
+  // toutes les 3 s (goOffline puis goOnline remet le délai au minimum) ; les écritures en attente sont gardées.
+  let relance = null;
+  const relanceCo = () => { relance = null; if (enLigne || (typeof navigator !== "undefined" && navigator.onLine === false)) { if (!enLigne) relance = setTimeout(relanceCo, 3000); return; }
+    relance = -1; try { goOffline(db); goOnline(db); } catch (e) {} relance = setTimeout(relanceCo, 3000); };
+  onValue(ref(db, ".info/connected"), s => { enLigne = s.val() === true;
+    if (enLigne) { if (relance && relance !== -1) clearTimeout(relance); if (relance !== -1) relance = null; } else if (!relance) relance = setTimeout(relanceCo, 1500);
+    ecouteCo.forEach(f => f()); });
   // Écart entre l'horloge locale et celle du serveur (déconnexion : minuteurs comptés en heure serveur).
   let decalage = 0;
   onValue(ref(db, ".info/serverTimeOffset"), s => { decalage = +s.val() || 0; });
