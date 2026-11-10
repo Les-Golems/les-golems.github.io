@@ -101,8 +101,8 @@ const gdVote=g=>gdComptes(g).mien;
 const gdScore=g=>{const c=gdComptes(g);return c.haut-c.bas};
 function gdVoter(g,v){
   const u=gdUid(),n=gdVote(g)===v?0:v;
-  if(!u){const o=gdVotesLocaux();o[g.id]=n;ecrire('golems.votesGuides',JSON.stringify(o));peintGuidesCJ();return}
-  GD.votes=GD.votes||{};const w=GD.votes[g.id]=Object.assign({},GD.votes[g.id]);if(n)w[u]=n;else delete w[u];peintGuidesCJ(); /* affichage immediat, l'ecoute corrige */
+  if(!u){const o=gdVotesLocaux();o[g.id]=n;ecrire('golems.votesGuides',JSON.stringify(o));peintGuidesCJ(true);return}
+  GD.votes=GD.votes||{};const w=GD.votes[g.id]=Object.assign({},GD.votes[g.id]);if(n)w[u]=n;else delete w[u];peintGuidesCJ(true); /* affichage immediat, l'ecoute corrige */
   GD.room.guides.vote(g.id,n).catch(e=>console.warn('vote guide',e));
 }
 /* Droits (affichage ; la regle de la base decide) : Romain (pseudo KaTarN) partout ; l'auteur d'une fiche ; l'auteur d'un guide du code par son pseudo. */
@@ -128,7 +128,7 @@ function majPointGd(){
     b.title=n?'Nouveau guide publié':''});
 }
 if(window.golemsSalon)Promise.resolve(window.golemsSalon).then(r=>{if(!r||!r.guides)return;GD.room=r;
-  r.guides.ecoute((v,F,S)=>{GD.votes=v;GD.fiches=F||{};GD.sup=S||{};if(typeof litCodeDeck!=='function')return;gdMaj();peintGuidesCJ();majPointGd()});
+  r.guides.ecoute((v,F,S)=>{GD.votes=v;GD.fiches=F||{};GD.sup=S||{};if(typeof litCodeDeck!=='function')return;gdMaj();peintGuidesCJ(true);majPointGd()});
   if(r.compte&&r.compte.onChange)r.compte.onChange(()=>{peintGuidesCJ();majPointGd()});
   setTimeout(()=>{if(typeof litCodeDeck==="function"&&GD.tous){peintGuidesCJ();majPointGd()}},0)}).catch(()=>{}); /* room (commun/demarrage.js) est pose juste apres : droits et pastille recalcules */
 /* Filtres, tri, liste */
@@ -205,7 +205,9 @@ function gdDetail(g){
   if(!g.texte&&g.desc){const t=gdMk('div','gd-txt gd-desc');t.innerHTML=g.desc;P.append(t);gdEnrichit(t)}
   if(!g.texte)peintEcran(g);
 }
-function peintGuidesCJ(){
+/* garde : repeinture venue de la base ou d'un vote, sur le meme guide : le bandeau ponctuel (publie, supprime, lien copie) reste ;
+   toute autre action (autre guide, filtre, tri, page) l'efface (charte : bandeau ponctuel). */
+function peintGuidesCJ(garde){
   if(!$('gdVue'))return;
   const L=gdListe(),n=Math.max(1,Math.ceil(L.length/GD.par));
   if(GD.cur&&!L.includes(GD.cur))GD.cur=null;if(!GD.cur)GD.cur=L[0]||null;
@@ -215,7 +217,7 @@ function peintGuidesCJ(){
   if(!L.length)ol.append(gdMk('li','gd-vide','Aucun guide ne correspond.'));
   $('gdNum').textContent=(GD.page+1)+'/'+n;$('gdPrec').disabled=GD.page===0;$('gdSuiv').disabled=GD.page>=n-1;
   /* Guide deja affiche (meme id, video en cours) : le detail n'est repeint que s'il change, sauf l'alerte qui reste. */
-  const al=$('gdAlq')?[...$('gdAlq').childNodes]:[];gdDetail(GD.cur);$('gdDet').dataset.id=GD.cur?.id||'';if(al.length&&$('gdAlq'))$('gdAlq').append(...al);
+  const avant=$('gdDet').dataset.id,al=$('gdAlq')?[...$('gdAlq').childNodes]:[];gdDetail(GD.cur);$('gdDet').dataset.id=GD.cur?.id||'';if(garde===true&&avant===(GD.cur?.id||'')&&al.length&&$('gdAlq'))$('gdAlq').append(...al);
   majPointGd();
 }
 /* Barre commune : selecteur Regles | Guides, filtres (Guides seulement), recherche (un texte par vue). */
