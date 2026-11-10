@@ -80,6 +80,27 @@ function prepareAnims(s,premier,nev0){
 /* ---------- 0.6 : effets sur les cases de la 0.4 (vue/partie.js), portes dans #dif ----------
    arrive, fx-evo (eclat d'evolution), traits entre cartes (.v-lien) + fx-lien, bonus « +n », degat « -n » + frappe, secoue,
    compte « +n » et fx-hors au decompte, bascule (Energie, score). Memes classes CSS que la 0.4 (css/partie.css). */
+/* Lancers de des (0.4 : #des) : Alrevan, KEKWRevan, Le Plateau de Jeu, Gamba d'Apo ; meme fenetre, dans la couche de #dif */
+const DES_RE=[[/^Alrevan lance le dé : Force (\d+)\.$/,m=>['Alrevan',[+m[1]],'Force '+m[1]]],
+  [/^Alrevan \(KEKWRevan\) lance (\d) et (\d) : Force (\d+)\.$/,m=>['Alrevan (KEKWRevan)',[+m[1],+m[2]],'Force '+m[3]]],
+  [/^Le Plateau de Jeu lance (\d) : (.+)\.$/,m=>['Le Plateau de Jeu',[+m[1]],m[2]]],
+  [/^(Apo|(?:Apo \(Maître du déguisement\)|Velnen \(Le chansonnier\)) \(Gamba\)) lance (\d) : (.+)\.$/,m=>[m[1]==='Apo'?'Apo (Gamba)':m[1],[+m[2]],m[3].charAt(0).toUpperCase()+m[3].slice(1)]]];
+const desF={L:[],t:0,el:null,iv:0};
+function des(s,t0){const n0=suivi.nlog!=null?suivi.nlog:s.log.length;
+  let t=Math.max(t0,desF.fin||0);
+  for(let i=n0;i<s.log.length;i++){const[p,x]=s.log[i];for(const[re,f]of DES_RE){const m=re.exec(x);if(m){const[nm,v,r]=f(m);desF.L.push({p,nm,v,r,t});t+=(REDUIT.matches?1700:2700)/KV;break}}}
+  desF.fin=t;if(!desF.cur)desSuite()}
+function desStop(){desF.L=[];desF.cur=null;desF.fin=0;clearTimeout(desF.t);clearInterval(desF.iv);if(desF.el)desF.el.remove();desF.el=null}
+function desSuite(){
+  clearTimeout(desF.t);const o=desF.L[0];if(!o||!D){if(desF.el&&!desF.cur){desF.el.remove();desF.el=null}return}
+  const now=performance.now();if(now<o.t){desF.t=setTimeout(desSuite,o.t-now);return}
+  desF.L.shift();desF.cur=o;clearInterval(desF.iv);if(!desF.el||!couche||!couche.contains(desF.el)){desF.el=mk('div','d-des');desF.el.setAttribute('role','status');if(couche)couche.append(desF.el)}
+  const b=desF.el,fa=mk('div','faces'),re=mk('p');b.textContent='';b.append(mk('h3','',(src==='joueur'&&o.p===E.moi?'Toi':nom(o.p))+' : '+o.nm),fa,re);
+  const svg=window.deSvg||(v=>String(v)),faces=a=>{fa.innerHTML=a.map(svg).join('')};
+  const finit=()=>{clearInterval(desF.iv);b.classList.remove('roule');faces(o.v);re.textContent=o.r;desF.t=setTimeout(()=>{desF.cur=null;if(!desF.L.length&&desF.el){desF.el.remove();desF.el=null}desSuite()},1700/KV)};
+  if(REDUIT.matches){finit();return}
+  b.classList.add('roule');const h=()=>faces(o.v.map(()=>1+Math.floor(Math.random()*6)));h();desF.iv=setInterval(h,90);desF.t=setTimeout(finit,1000/KV);
+}
 function grilles(s){return s.j.map(J=>J.grille.map(r=>r.map(g=>g?{c:g.c,hors:g.hors}:null)))}
 const COUL=e=>'var(--'+e+')';
 function liens(G){
@@ -97,6 +118,9 @@ function effetsCases(s,G0,G1,av,ap,t,t0,pose,morts,dec){
     const C=Mo.carte(pose.cc);if(C&&C.base)fx({cs:cs(pose.cp,x[0],x[1]),classe:'fx-evo',eclat:true},t0,1950)}}
   /* Golems qui bougent (Slam, Deguisement, echange...) : ils arrivent dans leur nouvelle case */
   if(av)Object.keys(ap).forEach(q=>{const o=av[q],n=ap[q];if(o&&(o[0]!==n[0]||o[1]!==n[1]))fx({cs:cs(+q.split(':')[0],n[0],n[1]),classe:'arrive',mini:true},t0,480)});
+  /* mise des Pronos : « +1 » sur le terrain des paris */
+  if(Mo.miseTotale){const mt=Mo.miseTotale(s),k=s.terrains.findIndex(T=>typeof effetTerrain==='function'&&effetTerrain(T,'paris'));if(suivi.mise!=null&&mt>suivi.mise&&k>=0)fx({ter:k,classe:'fx-bonus',texte:'+'+(mt-suivi.mise)},t,1300);suivi.mise=mt}
+  des(s,t0);
   if(!G0||!av)return;
   let u=t0;const A=liens(G0),B=liens(G1),nT=Object.keys(B.t).filter(x=>!A.t[x]).map(x=>B.t[x]),nC=Object.keys(B.c).filter(x=>!A.c[x]).map(x=>B.c[x]);
   /* traits : nouveau lien d'element entre voisins (trait), domination de la case d'en face (eclair) */
@@ -113,6 +137,8 @@ function effetsCases(s,G0,G1,av,ap,t,t0,pose,morts,dec){
   if((perte>=3||morts.length>=2)&&!REDUIT.matches)fx({plat:true,classe:'fx-secoue'},t0,500);
   /* decompte de fin de manche : chaque Golem compte sa Force (« +n », « +0 » hors decompte), colonne par colonne ; les etoiles partent ensuite */
   if(dec){const ordre=BAS()===0?[0,1,2]:[2,1,0],me=BAS();let d=t+K(350);
+    const ex=(s.dernier&&s.dernier.exclus)||[],hx=(p,l,k)=>ex.some(x=>x.q===p&&x.l===l&&x.k===k);
+    Object.keys(av).forEach(q=>{const o=av[q];o[3]=o[3]||hx(+q.split(':')[0],o[0],o[1])});
     const vieux=[];Object.keys(av).forEach(q=>{const o=av[q],p=+q.split(':')[0],c=caseDe(p,o[0],o[1]),vi=c&&c.querySelector(':scope>.mini:not(.d-fantome):not(.d-vieux)');if(vi)vieux.push({p,l:o[0],k:o[1],n:vi.cloneNode(true)})});
     Object.keys(av).forEach(q=>{const o=av[q];if(o[3]){const p=+q.split(':')[0];fx({cs:cs(p,o[0],o[1]),classe:'fx-hors',texte:'Hors décompte'},d,7000);fx({cs:cs(p,o[0],o[1]),classe:'fx-frappe',mini:true},d,500)}});
     if(Object.keys(av).some(q=>av[q][3]))d+=K(1100);
@@ -138,7 +164,7 @@ function poseEffets(plat){
   const t=performance.now();suivi.fx=suivi.fx.filter(o=>t<o.t+o.ms);
   suivi.tenus=suivi.tenus.filter(v=>t<v.fin);
   suivi.tenus.forEach(v=>{const c=caseDe(v.p,v.l,v.k,plat);if(!c)return;c.querySelectorAll(':scope>.mini').forEach(m=>m.style.visibility='hidden');const o=v.n.cloneNode(true);o.classList.add('fx-tenu');o.style.visibility='';c.append(o)});
-  suivi.fx.forEach(o=>{let z=o.plat?plat:caseDe(o.cs[0],o.cs[1],o.cs[2],plat);if(!z)return;let e=z;
+  suivi.fx.forEach(o=>{let z=o.plat?plat:o.ter!=null?plat.querySelectorAll('.d-tr>.p-terrain')[o.ter]:caseDe(o.cs[0],o.cs[1],o.cs[2],plat);if(!z)return;let e=z;
     if(o.mini)e=z.querySelector(':scope>.mini:not(.d-fantome):not(.d-vieux)')||z;
     if(o.eclat)z.append(e=mk('span',o.classe));else if(o.texte)z.append(e=mk('span',o.classe,o.texte));else e.classList.add(o.classe);
     if(o.c)e.style.setProperty('--c',o.c);e.style.animationDuration=o.ms+'ms';e.style.animationDelay=(o.t-t)+'ms'});
@@ -391,7 +417,7 @@ function bandeau(s,qui){
     const J=s.j[p],b=mk('div','d-j '+(p===BAS()?'toi':'lui')+(dr?' dr':'')+(qui===p?' actif':'')),id=mk('div','d-id'),c=mk('div','d-cpt'),l1=mk('div','d-l1');b.dataset.p=p;
     c.append(cpt('main','Main',J.main.length),pile(cpt('deck','Deck',J.deck.length),p,'deck','le deck'),pile(cpt('defausse','Défausse',J.defausse.length),p,'defausse','la défausse'),pile(cpt('enclume','Forge',J.forge.length),p,'forge','la Forge'));
     l1.append(mk('div','d-nom',nom(p)));
-    if(qui===p){l1.append(mk('span','d-badge',src==='joueur'&&p===E.moi?'À toi de jouer':'À lui de jouer'));const e=mk('span','d-ener');e.append(u.ico('enclume'),'Énergie ');e.append(mk('b','',String(J.energie)));c.lastChild.replaceWith(pile(e,p,'forge','la Forge'))}
+    if(qui===p){l1.append(mk('span','d-badge',src==='joueur'&&p===E.moi?'À toi de jouer':src==='rejeu'?'Joue':'À lui de jouer'));const e=mk('span','d-ener');e.append(u.ico('enclume'),'Énergie ');e.append(mk('b','',String(J.energie)));c.lastChild.replaceWith(pile(e,p,'forge','la Forge'))}
     id.append(l1,c);b.append(avatar(p),id);return b;
   };
   const pts=(n,clic)=>{const w=mk('span','d-pts');for(let i=1;i<=3;i++){const x=mk('i',i<n?'fait':i===n?'on':'');
@@ -1011,7 +1037,7 @@ function fermer(){
   if(src==='demo')demo.stop();
   if(src==='joueur'){const cf=document.querySelector('.chat.flottant');if(cf&&D.contains(cf)){cf.classList.remove('mq-chatw');document.body.append(cf)}
     document.documentElement.classList.remove('dif-joueur');try{if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}catch(e){}}
-  D.remove();D=null;scene=null;E=null;src=null;suivi=null;document.documentElement.classList.remove('dif-ouvert');
+  desStop();D.remove();D=null;scene=null;E=null;src=null;suivi=null;document.documentElement.classList.remove('dif-ouvert');
 }
 
 /* ---------- Vue spectateur : bouton « Mode diffusion » et mise a jour en direct ---------- */
@@ -1080,7 +1106,7 @@ const rejeu={
   maj(){const r=this.info();if(r)vitesseAnims(r.vitesse);if(!D||src!=='rejeu')return;const b=scene.querySelector('.d-coin');if(b)b.replaceWith(coinRejeu())},
   /* retour arriere ou saut : animations coupees, vue repeinte comme a une arrivee en cours de partie */
   saut(etat){if(!D||src!=='rejeu')return;clearTimeout(suivi.popT);clearTimeout(finVol);if(suivi.pile)U().cacheApercu();
-    suivi=neufSuivi();suivi.calme=true;if(couche){couche.getAnimations({subtree:true}).forEach(a=>a.cancel());couche.textContent=''}
+    desStop();suivi=neufSuivi();suivi.calme=true;if(couche){couche.getAnimations({subtree:true}).forEach(a=>a.cancel());couche.textContent=''}
     if(etat)E.etat=etat;peindre();suivi.calme=false},
   /* etat des fenetres pour la lecture : 'attente' (etoiles en vol avant la fenetre), 'manche', 'partie' ou null */
   pop(){if(!suivi)return null;if(suivi.popT)return 'attente';return suivi.pop&&suivi.vu?suivi.vu.type:null},
@@ -1093,7 +1119,8 @@ function coinRejeu(){
   const r=rejeu.info()||{pos:0,total:0,manche:1,vitesse:1,lecture:false,fin:false},z=mk('div','d-z d-coin'),B=mk('div','d-bloc d-rj'),bas=mk('div','d-bas');
   B.setAttribute('role','toolbar');B.setAttribute('aria-label','Rejeu');
   const r1=mk('div','d-rj-l'),ps=mk('div','d-rj-pos');ps.append(mk('b','','Coup '+r.pos+' / '+r.total),mk('span','',' - Manche '+r.manche));r1.append(ps);
-  const bt=(t,cl,lib,n,off)=>{const b=mk('button','sc-btn '+cl,t);b.type='button';if(lib)b.setAttribute('aria-label',lib);b.disabled=!!off;b.onclick=()=>rejeu.cmd(n);return b};
+  const chev=d=>'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="'+(d<0?'M15 4 7 12l8 8':'M9 4l8 8-8 8')+'" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const bt=(t,cl,lib,n,off)=>{const b=mk('button','sc-btn '+cl,t==='‹'||t==='›'?null:t);if(t==='‹'||t==='›')b.innerHTML=chev(t==='‹'?-1:1);b.type='button';if(lib)b.setAttribute('aria-label',lib);b.disabled=!!off;b.onclick=()=>rejeu.cmd(n);return b};
   const au=r.pos>=r.total,r2=mk('div','d-rj-cmd');
   r2.append(bt('Début','sc-secondaire','Aller au début','debut',r.pos<=0),bt('‹','sc-secondaire d-rj-fl','Coup précédent','prec',r.pos<=0),
     bt(r.lecture?'Pause':au?'Revoir':'Lecture','d-rj-pp',r.lecture?'Mettre en pause':au?'Revoir depuis le début':'Lancer la lecture','lecture'),

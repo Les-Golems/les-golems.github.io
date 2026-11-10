@@ -616,3 +616,14 @@ html.dif-ouvert #passer{display:none!important}
 #dif .d-trait{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
 #dif .d-sc .bascule{display:inline-block}
 @media (prefers-reduced-motion:reduce){#dif .p-case>.mini.d-fantome.fx-fantome{animation:fondu 1.1s linear both}}
+/* 0.6 : lancers de des de la 0.4 (#des) dans la couche de #dif ; l'ancien #des ne s'affiche plus sous la vue */
+html.dif-ouvert #des{display:none!important}
+#dif .d-des{position:absolute;left:960px;top:540px;transform:translate(-50%,-50%);width:300px;box-sizing:border-box;background:var(--panneau);border:2px solid var(--or);border-radius:16px 11px 17px 10px;padding:14px 16px;text-align:center;box-shadow:0 12px 34px rgba(0,0,0,.7)}
+#dif .d-des .faces{display:flex;justify-content:center;gap:14px;margin:8px 0}
+#dif .d-des svg{display:block;width:84px;height:84px}
+#dif .d-des.roule svg{animation:deTourne .27s linear infinite}
+#dif .d-des h3{margin:0;font-size:19px;color:var(--bleu)}
+#dif .d-des p{margin:0;font:400 24px/1.2 var(--titre);color:var(--or);min-height:29px}
+@media (prefers-reduced-motion:reduce){#dif .d-des.roule svg{animation:none}}
+#dif.rj .d-rj-cmd .d-rj-fl svg{display:block;margin:auto}
+#dif .d-couche>.d-des{z-index:5}
