@@ -138,5 +138,6 @@ html.clair .st-lc.st-duo :is(.st-np,b,.st-nom span,.st-nom b){color:#fff}
 html.clair .st-duo{--vert:#5fd68a;--ambre:#f0a35e;--rouge-texte-clair:#ff9c8a;--gris-taux:#c2ccd2;--blanc:#fff}
 /* Mode daltonien : symbole du taux reduit, sur la meme ligne ; le debordement part a gauche pour garder les chiffres alignes a droite */
 .st-pv{display:flex;justify-content:flex-end;align-items:baseline;white-space:nowrap}.st-pc{white-space:nowrap}
-body.daltonien :is(.st-pv,.st-pc)::before{font-size:.6em}
 body.daltonien .st-lc{grid-template-columns:28px 32px 42px minmax(0,1fr) 30px 46px}
+/* 0.6a : note du tableau des Joueurs posee dans la marge basse du panneau (hors flux) : ne prend aucune hauteur a la liste, nombre de lignes inchange. */
+.st-p{position:relative}.st-note.st-pied{position:absolute;left:18px;right:18px;bottom:2px;margin:0;padding:0;font-size:12px;line-height:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

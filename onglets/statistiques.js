@@ -210,10 +210,10 @@ function dessineStats(RT){
       .sort((a,b)=>b.pct-a.pct||b.n-a.n||a.p.localeCompare(b.p,'fr')).map((x,i)=>({...x,place:i+1}));
     const moi=moiUid?compteursMode(mesPmSt,'amicale'):null,gj='st-gjo';
     let h=enc([['Parties',R.length.toLocaleString('fr-FR'),'entre joueurs'],['Tes victoires',moi&&moi.n?pcSt(moi.v,moi.n)+' %':'-',moi&&moi.n?moi.v+' sur '+moi.n:'aucune partie'],['Classés',String(J.length),J.length>1?'joueurs':'joueur']]);
-    h+=`<div class="st-th ${gj}"><span class="r">#</span><span>Joueur (5 min.)</span><span class="r">Parties</span><span class="c">V - D</span><span class="r">Vict.</span></div><div class="st-corps">`;
+    h+=`<div class="st-th ${gj}"><span class="r">#</span><span>Joueur</span><span class="r">Parties</span><span class="c">V - D</span><span class="r">Vict.</span></div><div class="st-corps">`;
     const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10),AU=autresSt(V,gj,3);if(!V.length&&!AU)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
     V.forEach(x=>h+=`<div class="st-ln st-cl ${gj}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.p)}"><span class="st-rk">${x.place}</span><span class="st-jg" data-av="${escSt(x.uid)}"><span class="st-ps" title="${escSt(x.p)}">${hlSt(x.p)}</span></span><span class="r st-n">${x.n}</span><span class="c st-n">${x.v} - ${x.d}</span><span class="r">${tauxSt(x.pct,x.n)}</span></div>`);
-    return tete('Joueurs')+h+AU+'</div>';
+    return tete('Joueurs')+h+AU+'</div><p class="st-note st-pied">Classement à partir de 5 parties.</p>';
   }
   /* ---- Colonne 1 : Joueurs (Entraînement) : taux contre chaque niveau (profil public) ---- */
   function robots(){
@@ -223,10 +223,10 @@ function dessineStats(RT){
     /* 0.6.2 : entrainement par niveau, compteurs complets publies (compteursMode, les memes que le profil). */
     const J=(statsJoueurs||[]).map(x=>{const pm=x.uid===moiUid?mesPmSt:compteursPublies(statsProfils[x.uid],sidSt);if(!pm||compteursMode(pm,'entrainement').n<5)return null;const o={};niv.forEach(k=>{const c=compteursMode(pm,'entrainement',k);o[k]={n:c.n,v:c.v}});return {...x,o}}).filter(x=>x&&niv.some(k=>x.o[k].n))
       .sort((a,b)=>pk(b,'difficile')-pk(a,'difficile')||pk(b,'normal')-pk(a,'normal')||pk(b,'facile')-pk(a,'facile')||a.p.localeCompare(b.p,'fr')).map((x,i)=>({...x,place:i+1}));
-    h+=`<div class="st-th ${gr}"><span class="r">#</span><span>Joueur (5 min.)</span><span class="r">Facile</span><span class="r">Normal</span><span class="r">Difficile</span></div><div class="st-corps">`;
+    h+=`<div class="st-th ${gr}"><span class="r">#</span><span>Joueur</span><span class="r">Facile</span><span class="r">Normal</span><span class="r">Difficile</span></div><div class="st-corps">`;
     const V=statsQ?J.filter(x=>okSt(x.p)):J.slice(0,10),AU=autresSt(V,gr,3);if(!V.length&&!AU)h+=`<div class="st-vide">${statsQ?VIDE_RECH:VIDE_ST}</div>`;
     V.forEach(x=>h+=`<div class="st-ln st-cl ${gr}${cls(x,x.uid===moiUid)}" tabindex="0" role="button" data-uid="${escSt(x.uid)}" aria-label="Profil de ${escSt(x.p)}"><span class="st-rk">${x.place}</span><span class="st-jg" data-av="${escSt(x.uid)}"><span class="st-ps" title="${escSt(x.p)}">${hlSt(x.p)}</span></span>${niv.map(k=>`<span class="r">${tauxSt(pcSt(x.o[k].v,x.o[k].n),x.o[k].n)}</span>`).join('')}</div>`);
-    return tete('Joueurs')+h+AU+'</div>';
+    return tete('Joueurs')+h+AU+'</div><p class="st-note st-pied">Classement à partir de 5 parties.</p>';
   }
   /* ---- Cartes : Meilleures (10 parties minimum) | Plus jouées ---- */
   const MIN_CARTES=10,lc=[...A.cartes].map(([id,o])=>{const c=CARTES.find(y=>y[0]===id);return c&&M.CARTES[id]?{id,c,n:o.n,p:pcSt(o.v,o.n)}:null}).filter(Boolean);
