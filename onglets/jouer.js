@@ -590,10 +590,17 @@ const ATTENTE_ROBOT=120000;let robotT2=0,creeSrv=0,creeLu='';
    (jamais de verification sans fin). cree est ecoute en continu par le salon (onCree) : sa valeur relance le bandeau des qu'elle arrive. */
 let creeT0=0,creeCode='',creeOk='',creeEnvoi=false,creePanne=false,creeEssai=0;
 function reposeCree(){const s=r;if(!s||!s.poseCree||creeEnvoi)return;creeEnvoi=true;s.poseCree().catch(e=>console.warn('salon classe',e)).then(()=>{creeEnvoi=false})}
-function creeEnPanne(){creePanne=true;alerte('erreurJeu','Heure d\'ouverture du salon classé impossible à enregistrer : vérifie ta connexion.',{bouton:{texte:'Réessayer',action:()=>{alerte('erreurJeu','');creePanne=false;creeT0=Date.now();creeEssai=0;creeEnvoi=false;reposeCree();creeLu='';majBandeauRobot()}}})}
+function creeEnPanne(){creePanne=true;alerte('erreurJeu','Heure d\'ouverture du salon classé impossible à enregistrer : vérifie ta connexion.',{bouton:{texte:'Réessayer',action:()=>{alerte('erreurJeu','');creePanne=false;creeT0=Date.now();creeEssai=0;creeEnvoi=false;reposeCree();creeLu='';arrGardeCree();majBandeauRobot()}}})}
 function finPanneCree(){if(creePanne){creePanne=false;alerte('erreurJeu','')}}
+/* Garde-fou unique : 20 s apres l'entree (ou apres Reessayer) sans heure serveur de cree connue, quelle que soit la raison (lecture pendante, creeOk pose sans creeSrv),
+   nouvelle lecture et nouvelle ecriture, puis 3 s plus tard creeEnPanne si rien n'est arrive. Annule a la sortie du salon. */
+let creeGarde=0;
+function stopGardeCree(){clearTimeout(creeGarde);creeGarde=0}
+function arrGardeCree(){stopGardeCree();const s=r,c=code;if(!s||!c)return;const connue=()=>r!==s||code!==c||(creeSrv>0&&creeLu===c&&creeOk===c);
+  creeGarde=setTimeout(()=>{if(connue()){creeGarde=0;return}creeOk='';creeLu='';creeEssai=0;creeEnvoi=false;reposeCree();majBandeauRobot();
+    creeGarde=setTimeout(()=>{creeGarde=0;if(connue())return;if(!creePanne)creeEnPanne();majBandeauRobot()},3000)},20000)}
 function lisCreeSalon(){const s=r,c=code;if(!s||!s.lisCree)return;
-  if(c!==creeCode){creeCode=c;creeOk='';creeT0=Date.now();creeEssai=0;finPanneCree()}
+  if(c!==creeCode){creeCode=c;creeOk='';creeT0=Date.now();creeEssai=0;finPanneCree();arrGardeCree()}
   if(creeOk!==c){const t=Date.now()-creeT0;if(t-creeEssai>=5000){creeEssai=t;reposeCree()}if(t>=15000&&!creePanne)creeEnPanne()}
   if(creeLu===c)return;creeLu=c;
   s.lisCree().then(v=>{if(r!==s||code!==c)return;if(v>0){creeSrv=v;creeOk=c;finPanneCree();majBandeauRobot()}else{creeLu='';robotT2=setTimeout(majBandeauRobot,1000)}})}
@@ -602,7 +609,7 @@ function majBandeauRobot(){
   {const g=$('salonClasseTag');g.hidden=!r&&!code;g.textContent=salonClasse?'Classée':'Amicale';g.classList.toggle('cl',salonClasse)}
   clearTimeout(robotT2);robotT2=0;
   const seul=!!r&&!partie&&salonClasse&&createur&&ordre(r.peers()).length<2;
-  if(!seul){z.hidden=true;finPanneCree();return}
+  if(!seul){z.hidden=true;finPanneCree();if(!r){stopGardeCree();creeCode=''}return}
   if(creeLu!==code){creeSrv=0}
   lisCreeSalon();
   const C=GolemsClasse,j=profilClasse(),R=C.ROBOTS[C.niveauRobot(j.elo)],reste=C.robotsRestants(j.robots),t=z.querySelector('span'),b=$('affronterGolem'),ms=creeSrv&&creeLu===code?ATTENTE_ROBOT-(room.heure()-creeSrv):ATTENTE_ROBOT-(Date.now()-entree)+1000;
