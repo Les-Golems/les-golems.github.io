@@ -38,4 +38,14 @@ const gardeStats = a => {
   return '(' + a + '.exists() ? (' + N + ' >= ' + n0 + ' && ' + N + ' <= ' + n0 + ' + ' + PAS_MAX + ' && ' + V + ' >= ' + v0 + ' && ' + V + ' - ' + v0 + ' <= ' + N + ' - ' + n0 + ') : ' + N + ' <= ' + PAS_MAX + ')';
 };
 
-module.exports = { COMPTE, UID_ROMAIN, ROMAIN, dansSalon, MAINTENANT, CODE, SEPT_JOURS, pseudoReel, racineApres, gardeStats };
+// Tops 5 des résumés par mode (profils/pm et classe/historique/modes) : dk decks (nom, e = éléments séparés par des virgules,
+// 5 au plus : 32 caractères au plus), cb cartes, mv MVP. Une seule définition pour les deux nœuds (commun/profil.js écrit les mêmes valeurs).
+const NB = "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000";
+const CARTE = { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" };
+const TOPS_MODE = {
+  "dk": { "$i": { ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['nom', 'n', 'v'])", "nom": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" }, "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)" }, "n": { ".validate": NB }, "v": { ".validate": NB }, "$autre": { ".validate": false } } },
+  "cb": { "$i": { ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": CARTE, "n": { ".validate": NB }, "v": { ".validate": NB }, "$autre": { ".validate": false } } },
+  "mv": { "$i": { ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['c', 'n'])", "c": CARTE, "n": { ".validate": NB }, "$autre": { ".validate": false } } }
+};
+
+module.exports = { TOPS_MODE, COMPTE, UID_ROMAIN, ROMAIN, dansSalon, MAINTENANT, CODE, SEPT_JOURS, pseudoReel, racineApres, gardeStats };

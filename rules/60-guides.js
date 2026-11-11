@@ -1,6 +1,6 @@
 // Guides (votes, guides publiés par les joueurs, lien de partage) et pastille « N en ligne » du bandeau (0.6).
 // r = racine des données ("root" ou "root.child('essai')"), voir 00-communs.js.
-const { COMPTE, MAINTENANT, ROMAIN, racineApres } = require('./00-communs');
+const { COMPTE, MAINTENANT, ROMAIN, racineApres, pseudoReel } = require('./00-communs');
 const fs = require('fs'), path = require('path'), vm = require('vm');
 
 // Guides écrits dans le code (liste GUIDES d'onglets/guides.js, source unique) : id (sinon yt, sinon 'g'+rang) et pseudo de
@@ -55,7 +55,7 @@ module.exports = r => ({
         ".validate": "newData.hasChildren(['u', 'p', 'ty', 'ti', 'd1', 't', 'm']) && (newData.child('ty').val() === 'v' ? newData.hasChild('yt') : newData.hasChild('tx'))",
         // L'auteur ne change jamais (sauf par Romain, qui peut publier au nom de l'auteur d'un guide du code).
         "u": { ".validate": `newData.isString() && (!data.exists() || newData.val() === data.val() || ${ROMAIN})` },
-        "p": { ".validate": `newData.val() === ${r}.child('joueurs').child(newData.parent().child('u').val()).child('pseudo').val()` },
+        "p": { ".validate": pseudoReel(r, "newData.parent().child('u').val()") },
         "ty": { ".validate": "newData.val() === 'v' || newData.val() === 't'" },
         "ti": { ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 80" },
         "yt": { ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{11}$/)" },
@@ -83,15 +83,10 @@ module.exports = r => ({
       ".read": "auth != null && auth.uid === $uid",
       ".write": `${COMPTE} && auth.uid === $uid && newData.exists()`,
       ".validate": `newData.hasChildren(['d', 'n', 't']) && newData.child('t').val() === now && ((!data.exists() || now - data.child('d').val() >= ${JOUR}) ? (newData.child('d').val() === now && newData.child('n').val() === 1) : (newData.child('d').val() === data.child('d').val() && newData.child('n').val() === data.child('n').val() + 1 && newData.child('n').val() <= ${MAX_JOUR}))`,
-      "$autre": { ".validate": "$autre === 'd' || $autre === 'n' || $autre === 't'" }
-    }
-  },
-
-  // Propositions de guides (relecture par l'équipe, avant le 10 nov.) : plus écrites ; les anciennes sont lues et effacées par Romain seul.
-  "propositionsGuides": {
-    ".read": ROMAIN,
-    "$id": {
-      ".write": `${ROMAIN} && !newData.exists()`
+      "d": { ".validate": "newData.isNumber()" },
+      "n": { ".validate": "newData.isNumber() && newData.val() % 1 === 0" },
+      "t": { ".validate": "newData.isNumber()" },
+      "$autre": { ".validate": false }
     }
   },
 

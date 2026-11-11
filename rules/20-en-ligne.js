@@ -75,7 +75,7 @@ module.exports = r => ({
       // Verrou de partie : les deux uid engagés, posé au démarrage par un joueur présent.
       // Ensuite seuls ces deux comptes peuvent écrire dans le salon (un tiers voit « salon complet »).
       // Un engagé peut l'effacer (adversaire parti), ce qui rouvre le salon.
-      // 0.6.1 : g = graine de la partie engagée (texte). Salon classé : g obligatoire, les deux engagés connectés à la création,
+      // 0.6a : g = graine de la partie engagée (texte). Salon classé : g obligatoire, les deux engagés connectés à la création,
       // et le verrou n'est levé qu'une fois la partie classée de cette graine écrite (une seule partie par engagement).
       "engages": {
         ".write": `${COMPTE} && ((!data.exists() && newData.hasChild(auth.uid) && (${r}.child('salons').child($code).child('cl').val() !== true || newData.hasChild('g'))) || (data.hasChild(auth.uid) && !newData.exists() && (${r}.child('salons').child($code).child('cl').val() !== true || !data.hasChild('g') || ${r}.child('classe').child('parties').child($code + '-' + data.child('g').val()).exists())))`,
@@ -179,7 +179,7 @@ module.exports = r => ({
       },
 
       // 0.6 : salon CLASSÉ (cl = true), posé ou retiré par un joueur présent avant le début de la partie ; jamais changé ensuite.
-      // 0.6.1 : hote = uid du créateur du salon, posé une fois par lui, présent ; seul l'hôte pose ou retire cl.
+      // 0.6a : hote = uid du créateur du salon, posé une fois par lui, présent ; seul l'hôte pose ou retire cl.
       "hote": {
         ".write": `${COMPTE} && !data.exists() && newData.val() === auth.uid && ${dansSalon(r)}`,
         ".validate": "newData.isString()"

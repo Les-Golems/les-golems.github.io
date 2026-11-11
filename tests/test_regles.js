@@ -431,6 +431,7 @@ async function scenarioClasse(P, c, R) {
   // Limite de 10 par 24 h : le 1er est publié, 9 de plus passent, le 11e est refusé.
   for (let n = 2; n <= 10; n++) await attendu(ici('guide n° ' + n + ' du jour'), true, publie(A, 'gn' + n + '-' + t, fiche(A.uid, pA, { ty: 't', yt: null, tx: 'Plan ' + n }), n, lu.d));
   await attendu(ici('11e guide du jour'), false, publie(A, 'gn11-' + t, fiche(A.uid, pA), 11, lu.d));
+  await attendu(ici('compteur avec un enfant en trop'), false, req(A, 'PATCH', '', { [GF('gx' + t) + '/fiche']: fiche(A.uid, pA), [CG]: { d: lu.d, n: 11, t: HEURE, x: 1 } }));
   await attendu(ici('compteur d\'un autre'), false, req(A, 'PUT', P + 'compteurGuides/' + B.uid, { d: HEURE, n: 1, t: HEURE }));
   // Modification : l'auteur et Romain, pas un autre compte ; t et u ne changent pas.
   const ft = (await fetch(`${DB}/${GF(ga)}/fiche.json?${NS}`).then(x => x.json())).t;
@@ -456,11 +457,12 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('guide du code retiré par son auteur'), true, req(bel, 'PUT', GF(yb) + '/sup', true));
   await attendu(ici('guide officiel retiré par Romain'), true, req(R, 'PUT', GF('bien-debuter') + '/sup', true));
   await req('admin', 'DELETE', GF(yb)); await req('admin', 'DELETE', GF('bien-debuter') + '/sup'); await req('admin', 'DELETE', P + 'pseudos/bellock');
-  // Anciennes propositions : plus d'écriture ; Romain lit et efface.
+  // 0.6a : propositionsGuides retiré des règles : ni lu ni écrit par personne, Romain compris (console Firebase seulement).
   const PG = P + 'propositionsGuides/';
   await attendu(ici('proposition (relecture retirée)'), false, req(A, 'PUT', PG + 'pa' + t, { u: A.uid, p: pA, ty: 'v', ti: 'Magma rapide', yt: 'Xk29fQ_r7Ls', d1: 'GOL2-KgMPA8ADDAgA', t: HEURE }));
   await attendu(ici('propositions lues par un joueur'), false, req(A, 'GET', PG));
-  await attendu(ici('propositions lues par Romain'), true, req(R, 'GET', PG));
+  await attendu(ici('propositions lues par Romain'), false, req(R, 'GET', PG));
+  await attendu(ici('proposition effacée par Romain'), false, req(R, 'DELETE', PG + 'pa' + t));
 
   // En ligne (invités compris).
   await attendu(ici('invité se signale en ligne'), true, req(G, 'PUT', P + 'enligne/' + G.uid, HEURE));

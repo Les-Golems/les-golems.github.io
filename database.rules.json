@@ -1006,13 +1006,13 @@
                       ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
                     },
                     "e": {
-                      ".validate": "newData.isString() && newData.val().length <= 80"
+                      ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)"
                     },
                     "n": {
-                      ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
+                      ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
                     },
                     "v": {
-                      ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
+                      ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
                     },
                     "$autre": {
                       ".validate": false
@@ -1026,10 +1026,10 @@
                       ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
                     },
                     "n": {
-                      ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
+                      ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
                     },
                     "v": {
-                      ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
+                      ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
                     },
                     "$autre": {
                       ".validate": false
@@ -1043,7 +1043,7 @@
                       ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
                     },
                     "n": {
-                      ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
+                      ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
                     },
                     "$autre": {
                       ".validate": false
@@ -1223,15 +1223,18 @@
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && newData.exists()",
         ".validate": "newData.hasChildren(['d', 'n', 't']) && newData.child('t').val() === now && ((!data.exists() || now - data.child('d').val() >= 86400000) ? (newData.child('d').val() === now && newData.child('n').val() === 1) : (newData.child('d').val() === data.child('d').val() && newData.child('n').val() === data.child('n').val() + 1 && newData.child('n').val() <= 10))",
+        "d": {
+          ".validate": "newData.isNumber()"
+        },
+        "n": {
+          ".validate": "newData.isNumber() && newData.val() % 1 === 0"
+        },
+        "t": {
+          ".validate": "newData.isNumber()"
+        },
         "$autre": {
-          ".validate": "$autre === 'd' || $autre === 'n' || $autre === 't'"
+          ".validate": false
         }
-      }
-    },
-    "propositionsGuides": {
-      ".read": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1')",
-      "$id": {
-        ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1') && !newData.exists()"
       }
     },
     "enligne": {
@@ -2242,13 +2245,13 @@
                         ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
                       },
                       "e": {
-                        ".validate": "newData.isString() && newData.val().length <= 80"
+                        ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)"
                       },
                       "n": {
-                        ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
+                        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
                       },
                       "v": {
-                        ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
+                        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
                       },
                       "$autre": {
                         ".validate": false
@@ -2262,10 +2265,10 @@
                         ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
                       },
                       "n": {
-                        ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
+                        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
                       },
                       "v": {
-                        ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
+                        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
                       },
                       "$autre": {
                         ".validate": false
@@ -2279,7 +2282,7 @@
                         ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)"
                       },
                       "n": {
-                        ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
+                        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
                       },
                       "$autre": {
                         ".validate": false
@@ -2459,15 +2462,18 @@
           ".read": "auth != null && auth.uid === $uid",
           ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && newData.exists()",
           ".validate": "newData.hasChildren(['d', 'n', 't']) && newData.child('t').val() === now && ((!data.exists() || now - data.child('d').val() >= 86400000) ? (newData.child('d').val() === now && newData.child('n').val() === 1) : (newData.child('d').val() === data.child('d').val() && newData.child('n').val() === data.child('n').val() + 1 && newData.child('n').val() <= 10))",
+          "d": {
+            ".validate": "newData.isNumber()"
+          },
+          "n": {
+            ".validate": "newData.isNumber() && newData.val() % 1 === 0"
+          },
+          "t": {
+            ".validate": "newData.isNumber()"
+          },
           "$autre": {
-            ".validate": "$autre === 'd' || $autre === 'n' || $autre === 't'"
+            ".validate": false
           }
-        }
-      },
-      "propositionsGuides": {
-        ".read": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1')",
-        "$id": {
-          ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1') && !newData.exists()"
         }
       },
       "enligne": {

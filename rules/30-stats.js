@@ -1,6 +1,6 @@
 // Statistiques publiques : classement, profils, archive des parties.
 // r = racine des données ("root" ou "root.child('essai')"), voir 00-communs.js.
-const { COMPTE, MAINTENANT, pseudoReel } = require('./00-communs');
+const { COMPTE, MAINTENANT, pseudoReel, TOPS_MODE } = require('./00-communs');
 
 module.exports = r => ({
   // Classement public (onglet Statistiques, colonne Joueurs) : classement/{uid} = pseudo p, victoires v, parties n (toutes ses parties).
@@ -54,9 +54,10 @@ module.exports = r => ({
       "pv": { ".validate": "newData.hasChildren()", "$i": { ".validate": "$i.matches(/^[0-9]$/) && newData.hasChildren(['p', 'n', 'v'])", "p": { ".validate": "newData.isString() && newData.val().matches(/^[0-9a-z.]{1,12}$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "o": { "$niv": { ".validate": "$niv.matches(/^(facile|normal|difficile)$/) && newData.hasChildren(['n', 'v'])", "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().parent().parent().child('n').val()" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= newData.parent().child('n').val()" }, "$autre": { ".validate": false } } }, "$autre": { ".validate": false } } },
       // 0.6 : résumé public PAR MODE (classee, amicale, entrainement), 50 dernières parties du compte : n, v, d, b meilleure série,
       // s série en cours (signée), r 10 dernières (V, D, N), el part des éléments en %, tops 5 : dk decks, cb cartes, mv MVP.
-      // 0.6.2 : pmf = 2 : pm tiré des compteurs complets (toutes les parties) ; pm porte aussi facile, normal, difficile (entraînement par niveau).
+      // 0.6a : pmf = 2 : pm tiré des compteurs complets (toutes les parties) ; pm porte aussi facile, normal, difficile (entraînement par niveau).
       "pmf": { ".validate": "newData.isNumber() && newData.val() === 2" },
-      // 0.6.3 : pm = compteurs de la saison pms (absent = saison 0) ; jamais au-delà de la saison en cours.
+      // 0.6a : pm = compteurs de la saison pms (absent = saison 0) ; jamais au-delà de la saison en cours.
+      // pms est borné par classe/saison/id (saison en cours), posé par 50-classe.js.
       "pms": { ".validate": `newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= ${r}.child('classe').child('saison').child('id').val()` },
       "pm": {
         "$m": {
@@ -68,9 +69,7 @@ module.exports = r => ({
           "s": { ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -1000 && newData.val() <= 1000" },
           "r": { ".validate": "newData.isString() && newData.val().matches(/^[VDN]{0,10}$/)" },
           "el": { "$e": { ".validate": "$e.matches(/^[a-z]{1,12}$/) && newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" } },
-          "dk": { "$i": { ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['nom', 'n', 'v'])", "nom": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" }, "e": { ".validate": "newData.isString() && newData.val().matches(/^[a-z,]{0,40}$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000" }, "$autre": { ".validate": false } } },
-          "cb": { "$i": { ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['c', 'n', 'v'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000" }, "v": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000" }, "$autre": { ".validate": false } } },
-          "mv": { "$i": { ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['c', 'n'])", "c": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{3}e?$/)" }, "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000" }, "$autre": { ".validate": false } } },
+          ...TOPS_MODE,
           "$autre": { ".validate": false }
         }
       },
