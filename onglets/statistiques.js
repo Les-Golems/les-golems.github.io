@@ -283,7 +283,7 @@ function dessineStats(RT){
     h+=`</div><div class="st-th st-sh2 ${ge}"><span>Duo</span>${ths('d',statsTriDuo)}</div><div class="st-els2">`;
     const D=[];for(let i=0;i<E.length;i++)for(let j=i+1;j<E.length;j++){const k=[E[i],E[j]].sort();D.push({k,nom:NOMS_EL_ST[k[0]]+' et '+NOMS_EL_ST[k[1]],o:A.duos.get(k.join('+'))})}
     if(R.length)D.sort(tri(statsTriDuo)).forEach(x=>h+=ligne(x.k.join(','),x.nom,x.o));
-    return h+'</div>';
+    return h+'</div><p class="st-note">Vict. : part des parties gagnées par les decks qui jouent cet élément (ou ce duo). Decks : part des decks qui le jouent.</p>';
   }
   /* ---- Rendu des colonnes (la recherche ne redessine que les colonnes) ---- */
   function peintCols(){
