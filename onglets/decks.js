@@ -233,6 +233,8 @@ function dkVues(d){
   /* Numéro décroissant : la base passe toujours avant son évolution (comme le tri par nom). */
   const pos=new Map(L.map((x,i)=>[x,i])),bz=id=>{const B=C[id]&&C[id].base;return B&&pos.has(B)?B:id};
   return L.map((x,i)=>[x,pos.get(bz(x)),bz(x)===x?0:1,i]).sort((p,q)=>p[1]-q[1]||p[2]-q[2]||p[3]-q[3]).map(p=>p[0])}
+/* Bouton rouge : modele unique btn danger (celui d'Abandonner). */
+const btnRouge=(t,f)=>{const b=el('button','btn danger',t);b.type='button';b.onclick=f;return b};
 const btnDk=(t,cl,f)=>{const b=el('button','sc-btn'+(cl?' '+cl:''),t);b.type='button';if(f)b.onclick=f;return b};
 const alerteDk=(t,info,cl)=>{const a=el('div','sc-alerte '+(info?'sc-info':'sc-erreur')+(cl?' '+cl:''));a.setAttribute('role',info?'status':'alert');a.append(el('i'));const s=el('span');if(typeof t==='string')s.textContent=t;else s.append(...t);a.append(s);return a};
 function selVueDk(){const s=el('div','sc-sel dk-vue');s.setAttribute('role','group');s.setAttribute('aria-label','Vue');
@@ -364,13 +366,13 @@ function panneauDk(R,d,l){
      Bouton grise, raison au survol ; un clic affiche le bandeau ponctuel au-dessus de la grille (comme le + refuse). */
   else{const k=Object.keys(d.cartes).find(k=>+d.cartes[k]>MAX_EX);if(k){const t=M.CARTES[k]?M.CARTES[k].nom:k;du.classList.add('dk-gris');du.setAttribute('aria-disabled','true');du.title=t+' x'+d.cartes[k]+', '+MAX_EX+' exemplaires au plus';
     du.onclick=()=>{msgDkId=null;msgDk='Copie impossible : '+t+' x'+d.cartes[k]+', '+MAX_EX+' exemplaires au plus. Corrige le deck avant de le dupliquer.';peintDecks()}}}
-  r2.append(du,btnDk('Supprimer','dk-danger',()=>confirmeSuppr(d,l)));R.append(r1,r2);
+  r2.append(du,btnRouge('Supprimer',()=>confirmeSuppr(d,l)));R.append(r1,r2);
 }
 function fenDk(id){$(id)?.remove();const v=el('div','voile dk-voile'),f=el('div','sc-fenetre dk-fen');v.id=id;v.append(f);v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');
   const prec=document.activeElement,esc=e=>{if(e.key==='Escape'&&$('vue').hidden)ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc);if(prec&&prec.isConnected)prec.focus()};addEventListener('keydown',esc);
   v.onclick=e=>{if(e.target===v)ferme()};document.body.append(v);v.hidden=false;return {v,f,ferme}}
 function confirmeSuppr(d,l){const {v,f,ferme}=fenDk('popSuppr'),t=el('h3','sc-fen-titre','Supprimer le deck '+d.nom+' ?');t.id='suTitre';v.setAttribute('aria-labelledby','suTitre');
-  const a=el('div','sc-fen-actions'),ok=btnDk('Supprimer','dk-danger',()=>{gardeDecks(lesDecks().filter(x=>x.id!==d.id));deckVu=null;ferme();peintDecks()}),an=btnDk('Annuler','sc-secondaire',ferme);
+  const a=el('div','sc-fen-actions'),ok=btnRouge('Supprimer',()=>{gardeDecks(lesDecks().filter(x=>x.id!==d.id));deckVu=null;ferme();peintDecks()}),an=btnDk('Annuler','sc-secondaire',ferme);
   a.append(ok,an);f.append(t,el('p','dk-fen-p','Le deck et ses '+nbCartesDk(totalDeck(d))+' seront effacés. Cette action est définitive.'),a);an.focus()}
 /* Tester des placements : le bac a sable dans une fenetre, Fermer en bas a droite */
 /* Partage de deck par code : GOL1- + base64 URL de "nom\ntexte du deck" (format 1). */
