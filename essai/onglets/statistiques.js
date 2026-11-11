@@ -86,6 +86,7 @@ const MODES_ST=[['classees','Classées','classées'],['amicales','Amicales','ami
 const modeRes=r=>r&&(r.cl===true||r.m==='classee')?'classees':/^golem-/.test(String(r&&r.m||''))?'entrainement':'amicales';
 let statsMode='classees',statsQ='',statsQBrut='',statsTriC=lire('golems.tri.statsCartes')==='1'?1:0, /* tris memorises sur l'appareil */statsClasse=null,statsAjuste=null,statsLarg=0;
 {const t=lire('golems.tri.stats');if(t)statsTri=t} /* tri des terrains memorise (inconnu : taux, voir terrains()) */
+let statsTriEl=lire('golems.tri.statsEl')||'taux',statsTriDuo=lire('golems.tri.statsDuo')||'n'; /* tris des elements et des duos, memorises de meme */
 addEventListener('resize',()=>{if(statsAjuste&&innerWidth!==statsLarg){statsLarg=innerWidth;statsAjuste()}});
 const escSt=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const normSt=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
@@ -248,17 +249,22 @@ function dessineStats(RT){
     if(!L.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:R.length?'Il faut au moins '+MIN_CARTES+' parties par carte.':VIDE_FILTRES}</div>`;
     L.forEach(x=>{const c=x.c,C=M.CARTES[x.id],v=c[1].indexOf(', '),ps=v<0?c[1]:c[1].slice(0,v),ti=v<0?'':c[1].slice(v+2),ani=estAnimal(c),f=forceAff(C);
       const cl=c[2].length===2?` st-duo" style="--a:var(--fm-${c[2][0]});--b:var(--fm-${c[2][1]})`:ani?' st-ani':'';
-      h+=`<div class="st-lc${cl}" tabindex="0" role="button" data-id="${escSt(x.id)}" title="${escSt(c[1])}" aria-label="${escSt(c[1])}, ${pl(x.n,'partie')}${x.p==null?'':', '+x.p+' % de victoires'}"><span class="st-cf" data-ico="enclume">${C.cout}</span>${ani?'<span class="st-mot">Animal</span>':`<span class="st-cf${f&&f.includes(',')?' st-dec':''}" data-ico="force">${f==null?'':f}</span><span class="st-els" data-els="${c[2].join(',')}"></span>`}<span class="st-nom"><span>${hlSt(ps)}</span>${ti?`<span class="st-ti" style="color:${coulT(c)}">${hlSt(ti)}</span>`:''}</span><span class="st-np">${x.n}</span><span class="st-pv ${couleurTaux(x.p,x.n)}">${x.p==null?'-':x.p+' %'}</span></div>`});
+      h+=`<div class="st-lc${cl}" tabindex="0" role="button" data-id="${escSt(x.id)}" title="${escSt(c[1])}" aria-label="${escSt(c[1])}, ${pl(x.n,'partie')}${x.p==null?'':', '+x.p+' % de victoires'}"><span class="st-cf" data-ico="enclume">${C.cout}</span>${ani?`<span class="st-mot">Animal</span><span class="st-els st-ela" data-els="${((window.GolemsDonnees.interface.elementAnimal||{})[c[0]]||[]).join(',')}"></span>`:`<span class="st-cf${f&&f.includes(',')?' st-dec':''}" data-ico="force">${f==null?'':f}</span><span class="st-els" data-els="${c[2].join(',')}"></span>`}<span class="st-nom"><span>${hlSt(ps)}</span>${ti?`<span class="st-ti" style="color:${coulT(c)}">${hlSt(ti)}</span>`:''}</span><span class="st-np">${x.n}</span><span class="st-pv ${couleurTaux(x.p,x.n)}">${x.p==null?'-':x.p+' %'}</span></div>`});
     return h+'</div>';
   }
   /* ---- Terrains : tri par colonne ---- */
   const TT_ST={pts:'Points du terrain',taux:'Victoire du conquérant : part des conquêtes où le joueur qui remporte le terrain gagne aussi la partie',moy:'Points rapportés en moyenne sur une partie',eg:'Part des manches à égalité'};
   if(!TT_ST[statsTri])statsTri='taux';
+  /* En-tete triable commun (Terrains, Elements, Duos) : g = groupe, cur = cle de tri active */
+  const thTri=(g,cur,k,t,c,ti)=>`<button type="button" class="st-tri ${c}${cur===k?' on':''}" data-g="${g}" data-k="${k}" title="${ti}" aria-pressed="${cur===k}">${t}${cur===k?'<small> ▾</small>':''}</button>`;
+  const TT_EL={n:'Nombre de parties',taux:'Taux de victoire',dk:'Part des decks qui contiennent cet élément'};
+  if(!TT_EL[statsTriEl])statsTriEl='taux';if(!TT_EL[statsTriDuo])statsTriDuo='n';
+  const TRI_ST={t:['golems.tri.stats',k=>statsTri=k],e:['golems.tri.statsEl',k=>statsTriEl=k],d:['golems.tri.statsDuo',k=>statsTriDuo=k]};
   function terrains(){
     let L=[...A.terr].map(([nom,o])=>{const T=M.TERRAINS.find(t=>t.nom===nom);return {nom,pts:T?T.pts|0:0,n:o.n,c:o.c,taux:pcSt(o.cv,o.c),moy:o.n?Math.round(10*o.q/o.n)/10:null,eg:pcSt(o.e,o.m)}}).filter(x=>x.n);
     const v=x=>x==null?-1:x;L.sort((a,b)=>v(b[statsTri])-v(a[statsTri])||a.nom.localeCompare(b.nom,'fr'));
     if(statsQ)L=L.filter(x=>okSt(x.nom));
-    const th=(k,t,c)=>`<button type="button" class="st-tri ${c}${statsTri===k?' on':''}" data-k="${k}" title="${TT_ST[k]}" aria-pressed="${statsTri===k}">${t}${statsTri===k?'<small> ▾</small>':''}</button>`;
+    const th=(k,t,c)=>thTri('t',statsTri,k,t,c,TT_ST[k]);
     let h=tete('Terrains')+`<div class="st-th st-tht"><span>Terrain</span>${th('pts','Pts','c')}${th('taux','Vict.','r')}${th('moy','Moy.','r')}${th('eg','Égal.','r')}</div><div class="st-corps">`;
     if(!L.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:R.length?VIDE_ST:VIDE_FILTRES}</div>`;
     L.forEach(x=>h+=`<div class="st-lt" tabindex="0" role="button" data-t="${escSt(x.nom)}" aria-label="${escSt(x.nom)}"><span class="st-ps" title="${escSt(x.nom)} - ${pl(x.n,'partie')}">${hlSt(x.nom)}</span><span class="st-pz" data-ico="coupe">${x.pts}</span><span class="r">${tauxSt(x.taux,x.c)}</span><span class="r st-n">${x.moy==null?'-':x.moy.toFixed(1).replace('.',',')}</span><span class="r st-n">${x.eg==null?'-':x.eg+' %'}</span></div>`);
@@ -268,13 +274,16 @@ function dessineStats(RT){
   function elements(){
     const ge='st-gel',nd=Math.max(1,R.reduce((s,r)=>s+(/^golem-/.test(r.m)?1:2),0)),E=Object.keys(NOMS_EL_ST),tx=o=>o&&o.n?o.v/o.n:-1;
     const ligne=(ic,nom,o)=>`<div class="st-ln ${ge}"><span class="st-pk" data-els="${ic}"><span class="st-nm">${nom}</span></span><span class="r st-n">${o?o.n:0}</span><span class="r">${tauxSt(o?pcSt(o.v,o.n):null,o?o.n:0)}</span><span class="r st-n">${o?Math.round(100*o.n/nd):0} %</span></div>`;
-    let h=tete('Éléments')+`<div class="st-th ${ge}"><span>Élément</span><span class="r">Parties</span><span class="r">Vict.</span><span class="r" title="Part des decks qui contiennent cet élément">Decks</span></div><div class="st-els1">`;
+    /* meme tri que les Terrains : decroissant, egalites par nom */
+    const val=(o,k)=>k==='taux'?tx(o):o?o.n:0,tri=k=>(a,b)=>val(b.o,k)-val(a.o,k)||a.nom.localeCompare(b.nom,'fr');
+    const ths=(g,cur)=>thTri(g,cur,'n','Parties','r',TT_EL.n)+thTri(g,cur,'taux','Vict.','r',TT_EL.taux)+thTri(g,cur,'dk','Decks','r',TT_EL.dk);
+    let h=tete('Éléments')+`<div class="st-th ${ge}"><span>Élément</span>${ths('e',statsTriEl)}</div><div class="st-els1">`;
     if(!R.length)h+=`<div class="st-vide">${VIDE_FILTRES}</div>`;
-    else E.map(e=>({e,o:A.els.get(e)})).sort((a,b)=>tx(b.o)-tx(a.o)).forEach(x=>h+=ligne(x.e,NOMS_EL_ST[x.e],x.o));
-    h+=`</div><div class="st-th st-sh2 ${ge}"><span>Duo</span><span class="r">Parties</span><span class="r">Vict.</span><span class="r">Decks</span></div><div class="st-els2">`;
-    const D=[];for(let i=0;i<E.length;i++)for(let j=i+1;j<E.length;j++){const k=[E[i],E[j]].sort();D.push({k,o:A.duos.get(k.join('+'))})}
-    if(R.length)D.sort((a,b)=>(b.o?b.o.n:0)-(a.o?a.o.n:0)).forEach(x=>h+=ligne(x.k.join(','),NOMS_EL_ST[x.k[0]]+' et '+NOMS_EL_ST[x.k[1]],x.o));
-    return h+'</div>';
+    else E.map(e=>({e,nom:NOMS_EL_ST[e],o:A.els.get(e)})).sort(tri(statsTriEl)).forEach(x=>h+=ligne(x.e,x.nom,x.o));
+    h+=`</div><div class="st-th st-sh2 ${ge}"><span>Duo</span>${ths('d',statsTriDuo)}</div><div class="st-els2">`;
+    const D=[];for(let i=0;i<E.length;i++)for(let j=i+1;j<E.length;j++){const k=[E[i],E[j]].sort();D.push({k,nom:NOMS_EL_ST[k[0]]+' et '+NOMS_EL_ST[k[1]],o:A.duos.get(k.join('+'))})}
+    if(R.length)D.sort(tri(statsTriDuo)).forEach(x=>h+=ligne(x.k.join(','),x.nom,x.o));
+    return h+'</div><p class="st-note">Vict. : part des parties gagnées par les decks qui jouent cet élément (ou ce duo). Decks : part des decks qui le jouent.</p>';
   }
   /* ---- Rendu des colonnes (la recherche ne redessine que les colonnes) ---- */
   function peintCols(){
@@ -288,19 +297,19 @@ function dessineStats(RT){
       clic(n,()=>ouvreProfil(statsMode==='classees'&&C?{uid:u,p:C.pseudo,v:C.v|0,n:(C.v|0)+(C.d|0)}:{uid:u,p:J?J.p:C?C.pseudo:'',v:J?J.v:0,n:J?J.n:0}))});
     g.querySelectorAll('.st-lc[data-id]').forEach(n=>{const c=CARTES.find(y=>y[0]===n.dataset.id),src=imgV('cartes/'+c[0]+'.jpg');clic(n,()=>{cacheApercu();dernier=n;zoom(src,c[1],statZoomCarte(c[0]))});n.onmouseenter=()=>montreApercu(n,src);n.onmouseleave=cacheApercu});
     g.querySelectorAll('.st-lt[data-t]').forEach(n=>{const T=M.TERRAINS.find(t=>t.nom===n.dataset.t);if(!T)return;clic(n,()=>zoomTerrain(T));n.onmouseenter=()=>montreApercu(n,srcTerrain(T));n.onmouseleave=cacheApercu});
-    g.querySelectorAll('.st-tri').forEach(b=>b.onclick=()=>{statsTri=b.dataset.k;ecrire('golems.tri.stats',statsTri);peintCols();const n=g.querySelector('.st-tri[data-k="'+statsTri+'"]');if(n)n.focus()});
+    g.querySelectorAll('.st-tri').forEach(b=>b.onclick=()=>{const gr=b.dataset.g,k=b.dataset.k,T=TRI_ST[gr];T[1](k);ecrire(T[0],k);peintCols();const n=g.querySelector('.st-tri[data-g="'+gr+'"][data-k="'+k+'"]');if(n)n.focus()});
     g.querySelectorAll('.st-tric button').forEach((b,i)=>b.onclick=()=>{statsTriC=i;ecrire('golems.tri.statsCartes',String(i));peintCols();const n=g.querySelectorAll('.st-tric button')[i];if(n)n.focus()});
     g.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a==='jouer')onglet('jouer');else{ouvrePseudo();if(a==='cree')modeCompte(true)}});
     if(statsAjuste)statsAjuste();
   }
-  /* Hauteurs (PC) : Éléments garde sa hauteur naturelle, au moins jusqu'au bas de l'écran ; les 3 autres colonnes s'alignent ;
+  /* Hauteurs (PC) : Éléments garde sa hauteur naturelle (Duos suit Éléments, le vide passe en bas), au moins jusqu'au bas de l'écran ; les 3 autres colonnes s'alignent ;
      listes en nombre entier de lignes visibles (l'espace restant est réparti entre les lignes). */
   statsAjuste=()=>{if(!g.isConnected||!g.offsetParent)return;
     const pE=P[3],sh=pE.querySelector('.st-sh2');P.forEach(p=>p.style.height='');if(sh)sh.style.marginTop='';
     P.slice(0,3).forEach(p=>{const c=p.querySelector('.st-corps');if(c){c.style.removeProperty('--L');c.style.removeProperty('--g')}});
     if(!matchMedia('(min-width:1200px)').matches)return;
     const nat=pE.offsetHeight,He=Math.max(nat,Math.floor(innerHeight-24-(g.getBoundingClientRect().top+scrollY)));
-    if(sh)sh.style.marginTop=(10+He-nat)+'px';P.forEach(p=>p.style.height=He+'px');
+    P.forEach(p=>p.style.height=He+'px');
     P.slice(0,3).forEach(p=>{const c=p.querySelector('.st-corps');if(!c)return;const H=c.clientHeight;
       if(c.querySelector('.st-lc,.st-lt')){const n=Math.floor((H+4)/48);if(n>1)c.style.setProperty('--g',((H-n*44)/(n-1))+'px')}
       else if(c.querySelector('.st-ln')){const n=Math.floor(H/44);if(n)c.style.setProperty('--L',(H/n)+'px')}

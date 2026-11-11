@@ -80,6 +80,7 @@ html.clair{--st-sz-rg:#715335;--st-rg-am:var(--r-amethyste);--st-rg-to:var(--r-t
 .st-corps.st-defile{padding-right:6px}
 #stats mark{background:rgba(1,193,240,.35);color:inherit;border-radius:2px}
 /* Éléments */
+.st-note{margin:auto 0 0;padding-top:12px;font-size:12.5px;line-height:1.35;color:var(--doux)}
 .st-sh2{height:auto;padding-top:12px;padding-bottom:5px;margin-top:10px;border-top:1px solid rgba(1,193,240,.35)}
 .st-pk{display:flex;align-items:center;gap:4px;min-width:0}.st-pk img{width:22px;height:22px;flex:none}
 .st-nm{margin-left:4px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -95,7 +96,8 @@ html.clair{--st-sz-rg:#715335;--st-rg-am:var(--r-amethyste);--st-rg-to:var(--r-t
 .st-nom{font-weight:700;min-width:0;display:flex;flex-direction:column;line-height:1.15;text-shadow:0 1px 3px #0a121a}.st-nom>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .st-ti{font-size:12px;-webkit-text-stroke:2.5px #0a121a;paint-order:stroke fill}
 .st-np,.st-pv{font:400 14px/1 var(--titre);text-align:right;-webkit-text-stroke:3px #0a121a;paint-order:stroke fill}.st-np{color:#fff}
-.st-mot{grid-column:span 2;font:800 11px/1 var(--corps);letter-spacing:.04em;text-transform:uppercase;color:#fff}
+.st-mot{white-space:nowrap;font:800 11px/1 var(--corps);letter-spacing:.04em;text-transform:uppercase;color:#fff}body:not(.daltonien) .st-mot{visibility:hidden}
+.st-ela{padding-left:21px} /* animal : son element (interface.elementAnimal) a la place du picto de droite des Golems ; mot Animal en mode daltonien seulement */
 .st-thc{grid-template-columns:28px 32px 42px minmax(0,1fr) 30px 38px;gap:2px;padding:0 6px;font-size:10.5px;letter-spacing:.02em;margin-bottom:6px}
 /* Terrains */
 .st-lt{display:grid;grid-template-columns:minmax(0,1fr) 36px 46px 38px 44px;align-items:center;gap:6px;height:var(--L);margin:0 0 var(--g,4px);padding:0 8px;border-radius:7px 5px 8px 4px;background:linear-gradient(90deg,rgba(1,193,240,.30) 0%,rgba(1,193,240,.10) 45%,var(--panneau2) 80%);font-size:14px;box-sizing:border-box}
@@ -134,3 +136,7 @@ html.clair .st-lc.st-duo{box-shadow:inset 0 0 0 999px rgba(10,18,26,.46)}
 html.clair .st-lc.st-duo :is(.st-np,b,.st-nom span,.st-nom b){color:#fff}
 /* 0.6a clair : lignes sur degrade sombre (.st-duo) : taux aux couleurs du mode sombre (charte : textes sur degrade inchanges). */
 html.clair .st-duo{--vert:#5fd68a;--ambre:#f0a35e;--rouge-texte-clair:#ff9c8a;--gris-taux:#c2ccd2;--blanc:#fff}
+/* Mode daltonien : symbole du taux reduit, sur la meme ligne ; le debordement part a gauche pour garder les chiffres alignes a droite */
+.st-pv{display:flex;justify-content:flex-end;align-items:baseline;white-space:nowrap}.st-pc{white-space:nowrap}
+body.daltonien :is(.st-pv,.st-pc)::before{font-size:.6em}
+body.daltonien .st-lc{grid-template-columns:28px 32px 42px minmax(0,1fr) 30px 46px}
