@@ -1076,7 +1076,11 @@ function envoieAttente1(id){
   if(!x)return Promise.resolve(true);
   /* 0.6a : pas de reponse en 15 s (reponse perdue sans fermeture du socket) : nouvelle connexion forcee, le SDK renvoie l'ecriture. */
   let tard=false;const t=setTimeout(()=>{tard=true;nonEnregistre(true);try{room.compte.relance&&room.compte.relance()}catch(e){}},15000);
-  const h=x.h?room.compte.ajouteHisto([x.h]).then(()=>majAttente(id,y=>{delete y.h}),e=>{if(e&&e.code==='golems/trop-long')majAttente(id,y=>{delete y.h});throw e}):null;
+  /* 0.6a : variation ecrite entre-temps (histoClasse -> majHisto) : un envoi reste sans reponse puis renvoye a la reconnexion ecraserait
+     l'entree plus recente ; l'entree a jour est donc reecrite apres l'accuse de cet envoi. */
+  const c0=x.h?JSON.stringify(x.h.classe||null):'';
+  const h=x.h?room.compte.ajouteHisto([x.h]).then(()=>{majAttente(id,y=>{delete y.h});
+    try{const m=(room.compte.donnees().historique||[]).find(y=>y&&y.id===id);if(m&&m.classe&&JSON.stringify(m.classe)!==c0&&room.compte.majHisto)room.compte.majHisto(m).catch(e=>console.warn('historique',e))}catch(e){}},e=>{if(e&&e.code==='golems/trop-long')majAttente(id,y=>{delete y.h});throw e}):null;
   const z=x.r&&room.ecritResume?room.ecritResume(id,x.r).then(()=>{archivee(id);majAttente(id,y=>{delete y.r})}):null;
   return Promise.allSettled([h,z]).then(v=>{clearTimeout(t);const ok=v.every(e=>e.status==='fulfilled');
     v.forEach(e=>{if(e.status==='rejected')console.warn('Partie non enregistrée',e.reason)});
