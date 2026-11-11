@@ -334,7 +334,7 @@ const tf=c=>'translate('+c.x+'px,'+c.y+'px) scale('+c.w/200+')';
 function carteVol(src){const d=el('div','v-carte'),i=el('img');i.src=src;i.alt='';d.append(i);$('scene').append(d);return d}
 function vol(de,vers,src,ms,delai){
   if(vite()||REDUIT.matches||!de||!vers)return;
-  if(document.documentElement.classList.contains('dif-joueur'))return; /* vue joueur : le vol est celui de diffusion.js (pas de double) */
+  if(document.documentElement.classList.contains('dif-joueur'))return; /* vue joueur : le vol est celui de vue/diffusion-animations.js (pas de double) */
   const d=carteVol(src),a=d.animate([{transform:tf(cadre(de,56))},{transform:tf(cadre(vers,56))}],{duration:T(ms),delay:T(delai||0),easing:'cubic-bezier(.3,.7,.3,1)',fill:'both'});
   a.finished.finally(()=>d.remove()).catch(()=>{});
 }
@@ -346,7 +346,7 @@ function valTerrain(Mx,s,k){const T=s.terrains[k],v=Mx.ptsTerrain?Mx.ptsTerrain(
 const srcTerrain=T=>imgV('cartes/t'+String(window.GolemsMoteur.TERRAINS.findIndex(x=>x.nom===T.nom)+1).padStart(3,'0')+'.jpg');
 /* Carte jouee : grande au centre environ 1,5 s, puis glissade vers sa case. */
 function montreGrand(c,de,vers){
-  if(vite()||document.documentElement.classList.contains('dif-joueur'))return 0; /* vue joueur : « Derniere carte jouee » et le vol de diffusion.js suffisent */
+  if(vite()||document.documentElement.classList.contains('dif-joueur'))return 0; /* vue joueur : « Derniere carte jouee » et le vol de vue/diffusion-animations.js suffisent */
   /* Ordinateur : la carte s'affiche dans la zone d'apercu sous les piles, puis glisse vers sa case. */
   const zo=zoneEl(),zi=zo&&zo.querySelector('.p-ap-img'),zr=zi&&zi.getBoundingClientRect(); /* 0.4a : cadre de l'image de la zone (carte a gauche, texte a droite) */
   if(zo&&zr.height>120&&zr.bottom>0&&zr.top<innerHeight){

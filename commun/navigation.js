@@ -49,7 +49,7 @@ addEventListener('hashchange',lienGuides);addEventListener('load',()=>setTimeout
 /* 0.6 : bandeau superieur B3 (maquette 32 - Bandeau superieur). Pastille « N en ligne » (affichage seul), capsule du compte
    (clic = profil, ou connexion pour un invite : commun/compte.js), menu Affichage (theme + couleurs), porte de deconnexion. */
 /* Couleurs : selecteur [Standard] [Daltonien], le meme partout (bandeau, barre d'outils de la partie, diffusion). Remplace
-   l'ancien interrupteur oui/non : window.interDal (appele par vue/partie.js et diffusion.js) rend ce selecteur.
+   l'ancien interrupteur oui/non : window.interDal (appele par vue/partie.js et vue/diffusion.js) rend ce selecteur.
    body.daltonien affiche les reperes ; memorise sur l'appareil (golems.daltonien). La case cachee #daltonienCase reste pour vue/partie.js. */
 const AIDE_DAL="Ajoute des repères en plus des couleurs : flèches sur la Force modifiée, « ! » sur une carte fautive, mot « Animal » dans les listes.";
 const DAL={K:'golems.daltonien',on:false};

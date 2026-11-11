@@ -1,6 +1,6 @@
 /* Test (etape 8) : aucun code de carte ('001', '002e', '901'...) ni nom de terrain compare en dur dans le code d'interface.
    L'interface lit les fiches (cartes/donnees/*.js) : effetDe(id,type), effetTerrain(T,type), idsAvecEffet(type) (commun/outils.js).
-   Fichiers verifies : commun/, onglets/, vue/, aide.js, diffusion.js, spectateur*.js, presence.js. Commentaires ignores.
+   Fichiers verifies : commun/, onglets/, vue/, aide.js, spectateur*.js, presence.js. Commentaires ignores.
    Detecte : un code de carte entre guillemets ou dans un chemin ('001', "002e", 'cartes/001.jpg') ; un nom de terrain compare (=== 'Le Cirque', 'La Faille'===...).
    Les textes affiches et les lignes du journal du moteur qui citent un nom (« KaTarN perd 4 de Force. ») ne sont pas des comparaisons de code : non concernes.
    Usage : node tests/test_ids_interface.js (depuis la racine du site). */
@@ -18,7 +18,7 @@ const TERRAINS_PERMIS={
 };
 const fichiers=[];
 for(const d of ['commun','onglets','vue'])for(const f of fs.readdirSync(path.join(R,d)))if(f.endsWith('.js'))fichiers.push(d+'/'+f);
-for(const f of fs.readdirSync(R))if(/^(aide|diffusion|presence|spectateur[^.]*)\.js$/.test(f))fichiers.push(f);
+for(const f of fs.readdirSync(R))if(/^(aide|presence|spectateur[^.]*)\.js$/.test(f))fichiers.push(f);
 const sansCommentaires=t=>t.replace(/\/\*[\s\S]*?\*\//g,m=>m.replace(/[^\n]/g,' '));
 const RE_CODE=/(['"`\/])(0\d\d(?:e)?|9\d\d)(?=['"`.])/g;
 const noms=D.terrains.liste.map(T=>T.nom.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');

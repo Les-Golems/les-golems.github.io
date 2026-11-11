@@ -63,7 +63,7 @@ window.golemsCharge=l=>document.write(l.map(([t,u,m])=>t==='css'?'<link rel="sty
 window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
 document.documentElement.style.setProperty('--verso','url("'+imgV('cartes/verso.jpg')+'")');
 document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[data-src]').forEach(i=>{i.src=imgV(i.dataset.src)}));</script>
-<script>golemsCharge([['css','spectateur.css'],['css','diffusion.css'],['css','aide.css']])</script>
+<script>golemsCharge([['css','spectateur.css'],['css','css/diffusion.css'],['css','aide.css']])</script>
 <meta name="apple-mobile-web-app-title" content="Golems">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <script>golemsCharge([['css','css/chargement.css']])</script>
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
 </div>
 <button class="btn sec" id="gPasser" type="button" hidden>Passer le tutoriel</button>
 <script>window.golemsSalon=new Promise(f=>{window.__golemsSalonPret=f;setTimeout(()=>f(null),15000)});</script>
-<script>golemsCharge([['js','salon-firebase.js','type="module"'],['js','spectateur.js','type="module"'],['js','spectateur-ui.js','defer'],['js','diffusion.js','defer'],['js','aide.js','defer'],['js','cartes/donnees/golems.js'],['js','cartes/donnees/animaux.js'],['js','cartes/donnees/terrains.js'],['js','cartes/donnees/index.js'],['js','cartes/effets/golems.js'],['js','cartes/effets/animaux.js'],['js','cartes/effets/terrains.js'],['js','cartes/effets/index.js'],['js','moteur.js'],['js','presence.js','defer']])</script>
+<script>golemsCharge([['js','salon-firebase.js','type="module"'],['js','spectateur.js','type="module"'],['js','spectateur-ui.js','defer'],['js','vue/diffusion-animations.js','defer'],['js','vue/diffusion.js','defer'],['js','aide.js','defer'],['js','cartes/donnees/golems.js'],['js','cartes/donnees/animaux.js'],['js','cartes/donnees/terrains.js'],['js','cartes/donnees/index.js'],['js','cartes/effets/golems.js'],['js','cartes/effets/animaux.js'],['js','cartes/effets/terrains.js'],['js','cartes/effets/index.js'],['js','moteur.js'],['js','presence.js','defer']])</script>
 <script>golemsCharge([['js','cartes/donnees/interface.js'],['js','versions-cartes.js'],['js','commun/etat.js'],['js','commun/outils.js'],['js','commun/alertes.js'],['js','commun/classe.js'],['js','commun/compte.js'],['js','onglets/guides.js'],['js','commun/navigation.js'],['js','onglets/nouveautes.js'],['js','onglets/cartes.js'],['js','onglets/jouer.js'],['js','vue/partie.js'],['js','onglets/statistiques.js'],['js','onglets/historique.js'],['js','commun/profil.js'],['js','onglets/decks.js'],['js','vue/joueur.js'],['js','onglets/tutoriel.js'],['js','commun/raccords.js'],['js','onglets/regles.js'],['js','commun/version.js'],['js','commun/demarrage.js']])</script>
 <script>(function(){ /* Crochet des outils de test (cdp.py, captures.py inserent __g juste avant la fin) ; le code du site est dans commun/, onglets/ et vue/. */
 })();

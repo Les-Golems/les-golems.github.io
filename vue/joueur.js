@@ -415,7 +415,7 @@ function montreApercu(z,src){
 function zoomTerrain(T){cacheApercu();dernier=null;zoom(srcTerrain(T),T.nom+'. '+T.texte,statZoomTerrain(T))}
 /* Zoom d'un terrain en partie : le terrain en grand, a droite deux blocs de memes dimensions (adversaire en haut, toi en bas).
    Toujours 3 lignes (une par case, « Case vide » discret), cartes en lignes condensees (comme le panneau Decks), Force finale en couleur du joueur.
-   Valeurs = M.valeurDecompte (comme diffusion.js) ; total en bas de chaque bloc = « n contre m » de la tuile (M.colonnes). */
+   Valeurs = M.valeurDecompte (comme vue/diffusion.js) ; total en bas de chaque bloc = « n contre m » de la tuile (M.colonnes). */
 function ligneZt(c){
   const C=M.carte(c),cc=CARTES.find(z=>z[0]===C.id),q=el('button','dl-ligne'),co=el('span','dl-cout'),fo=el('span','dl-force'),e=el('span','dl-els'),els=C.el||[],src=imgV('cartes/'+C.id+'.jpg');q.type='button';
   if(els.length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+els[0]+')');q.style.setProperty('--b','var(--fm-'+els[1]+')')}else if(C.animal)q.classList.add('dl-animal');
@@ -860,7 +860,7 @@ function affiche(){
   poseFx();
   zoneSurvol=null;zoneMaj();if(partie.rejeu)barreRejeu();
   scrollTo(0,hautPage);
-  if(window.DIFFUSION&&DIFFUSION.joueur)DIFFUSION.joueur(); /* 0.5 : vue joueur sur ordinateur (diffusion.js) */
+  if(window.DIFFUSION&&DIFFUSION.joueur)DIFFUSION.joueur(); /* 0.5 : vue joueur sur ordinateur (vue/diffusion.js) */
 }
 const LARGE=matchMedia('(min-width:900px)');
 /* Zone d'apercu (ordinateur, 1200 px et plus) : carte survolee ou choisie de la main, sinon derniere carte posee par l'adversaire. */

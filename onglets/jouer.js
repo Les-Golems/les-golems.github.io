@@ -344,7 +344,7 @@ function peintChat(l){
   if(bas||!rep)ul.scrollTop=ul.scrollHeight;
 }
 /* 0.4 : couleur du pseudo selon le role dans le salon (places de spectateur.js) : createur dore, adversaire bleu, spectateur gris clair avec un oeil.
-   Role au survol. Auteur parti du salon : couleur neutre, sans role. Sert aussi au chat de la vue spectateur (diffusion.js). */
+   Role au survol. Auteur parti du salon : couleur neutre, sans role. Sert aussi au chat de la vue spectateur (vue/diffusion.js). */
 const ROLES_CHAT={createur:'Créateur',adversaire:'Adversaire',spectateur:'Spectateur'};
 function roleChat(u){
   if(!u)return '';
