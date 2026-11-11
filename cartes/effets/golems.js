@@ -437,7 +437,7 @@ const types={
     note:(r,s,p,l,k,g,G,vs,el,b)=>el.forEach(e=>{const n=vs.find(n=>carte(n.c).el.includes(e));if(n)b('trait',p,g.c,p,n.c)})},
   /* Counter-pick et Full synergie (037, 037e) : cercle +2 au lieu de +1 */
   cercle:{cercle2:true},
-  /* Vic222 : Info tchat (042) en jeu sur le terrain k : tout Golem allie de ce terrain (lui compris) a le cercle a +2. Jamais plus de +2. */
+  /* Vic2222 : Info tchat (042) en jeu sur le terrain k : tout Golem allie de ce terrain (lui compris) a le cercle a +2. Jamais plus de +2. */
   cercleTerrain:{cercle2Terrain:true},
   /* GeneralBrioche : Grand General (020), +bonus par exemplaire allie dans la meme colonne, autre ligne (cumulatif, pas sur lui) */
   bonusColonne:{colonneBonus:r=>r.bonus},

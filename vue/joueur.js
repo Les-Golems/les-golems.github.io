@@ -214,9 +214,9 @@ function detailForce(s,p,l,k){
     const v=M.doubleUp(G,l,k,id),nP=M.CARTES[M.DUO[id]].nom;
     ajoute(v?'Double up ? : seul avec '+M.nomDetail(M.carte(v.c))+' sur '+(G[l].includes(v)?'sa ligne':'son terrain'):'Double up ? : pas seul avec '+nP+' sur sa ligne ni son terrain',v?M.REGLAGE_DUO.doubleUp:0)}
   {const r=effetTerrain(s.terrains[k],'paire');if(r&&M.golemsIci&&M.golemsIci(s,p,k)===r.n)ajoute(s.terrains[k].nom+' : exactement '+r.n+' Golems ici',r.bonus)} /* 0.4a */
-  const h=s.j[1-p].grille[l][k],hC=h?M.carte(h.c):null,dom=hC?C.el.find(e=>hC.el.includes(M.DOMINE[e])):null,c2=dom&&(M.cercle2?M.cercle2(G,k,id):CERCLE_2.includes(id)),c2n=CERCLE_2.includes(id)?', Counter-pick':', Info tchat'; /* Vic222 : +2 aussi dans sa colonne */
+  const h=s.j[1-p].grille[l][k],hC=h?M.carte(h.c):null,dom=hC?C.el.find(e=>hC.el.includes(M.DOMINE[e])):null,c2=dom&&(M.cercle2?M.cercle2(G,k,id):CERCLE_2.includes(id)),c2n=CERCLE_2.includes(id)?', Counter-pick':', Info tchat'; /* Vic2222 : +2 aussi dans sa colonne */
   ajoute(dom?'Cercle : '+NOMS_EL[dom]+' domine '+NOMS_EL[M.DOMINE[dom]]+' ('+M.nomDetail(hC)+' en face)'+(c2?c2n:''):hC&&!hC.animal?'Cercle : '+M.nomDetail(hC)+' en face, pas de domination':'Cercle : aucun Golem en face',dom?(c2?2:1):0,dom?(c2?'+2':'+1'):'+0');
-  {const r=effetDe(id,'immunite',r=>r.unique);if(r)a.append(lg(r.nom,g.cdb?'utilisée':'disponible'))} /* Vic222 : bouclier unique (g.cdb une fois utilisé) */
+  {const r=effetDe(id,'immunite',r=>r.unique);if(r)a.append(lg(r.nom,g.cdb?'utilisée':'disponible'))} /* Vic2222 : bouclier unique (g.cdb une fois utilisé) */
   if(fa!==somme)ajoute('Autres effets',fa-somme); /* filet : le total affiché reste celui du moteur */
   const t=lg('Force actuelle',String(fa),'tot'),sf=sensForce(fa,g.f);if(sf)t.lastChild.classList.add(sf);a.append(t);
   return [a];

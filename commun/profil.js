@@ -33,7 +33,7 @@ function mdTops(X,x,idMvp){const w=x.res==='Victoire';
   if(typeof d.nom==='string'&&d.nom)add('dk',d.nom.slice(0,40),els.join(','));
   {let t=typeof d.cartes==='string'?d.cartes:'';try{if(!t&&d.nom==='Test')t=deckDefautTxt(vPartie(x))}catch(e){}
    const ids=new Set(),re=/([0-9]{3}e?)[1-3]/g;let r;while((r=re.exec(t)))ids.add(r[1]);ids.forEach(id=>add('c',id))}
-  if(typeof x.mvp==='string'&&x.mvp){const id=idMvp[x.mvp];if(id)add('mv',id)}
+  if(typeof x.mvp==='string'&&x.mvp){const id=idMvp[((globalThis.GolemsDonnees||{}).nomActuel||(n=>n))(x.mvp)];if(id)add('mv',id)}
   ['dk','c','mv'].forEach(k=>{if(X[k].length>MD_MAX)X[k]=X[k].sort((a,b)=>b[1]-a[1]).slice(0,MD_MAX)})}
 function mdIdMvp(){const o={};try{Object.values(M.CARTES).forEach(C=>{o[C.base?M.CARTES[C.base].nom+' ('+C.nom+')':C.nom]=C.base||C.id})}catch(e){}return o}
 /* n, v, d de chaque compteur depuis les totaux du cumul o (parties deja comptees) ; h0 = parties de l'historique deja comptees. */
@@ -118,7 +118,7 @@ function cumulAjoute(c,l,ctx){
     /* Cartes : liste du deck notee dans la partie ; paquet de test (deck note "Test" sans liste) : ses cartes (30 depuis 0.3). */
     {let t=d&&typeof d.cartes==='string'?d.cartes:'';if(!t&&d&&d.nom==='Test')t=deckDefautTxt(vPartie(x)); /* composition de la version de la partie (33 cartes jusqu'a 0.2c) */
      const ids=new Set(),re=/([0-9]{3}e?)[1-3]/g;let r;while((r=re.exec(t)))ids.add(r[1]);[...ids].forEach((id,i)=>add('c',id,Math.min(i,999)))}
-    if(typeof x.mvp==='string'&&x.mvp)add('mv',x.mvp.slice(0,60),0);
+    if(typeof x.mvp==='string'&&x.mvp)add('mv',((globalThis.GolemsDonnees||{}).nomActuel||(n=>n))(x.mvp).slice(0,60),0);
     {const a=String(x.adv||'');if(a)add('a',a.slice(0,20),0)}
     {const vm=x.moteur||(x.rejeu&&x.rejeu.v);if(typeof vm==='string'&&vm){const e=add('ve',vm.slice(0,40),0);for(let i=4;i<10;i++)e[i]=e[i]|0;
        const n=/^Golem \((facile|normal|difficile)\)$/.exec(String(x.adv||''));if(n){const j=4+2*['facile','normal','difficile'].indexOf(n[1]);e[j]++;if(w)e[j+1]++}}}
@@ -146,7 +146,7 @@ function resumeCumul(c){
    R.cm=L.filter(x=>x.n>=3&&!pris.has(x.c)).sort((a,b)=>pct(a)-pct(b)||b.n-a.n).slice(0,3)}
   /* MVP : uniquement des cartes Golem connues du moteur (nom ou nom evolue). */
   {const id={};Object.values(M.CARTES).forEach(C=>{id[C.base?M.CARTES[C.base].nom+' ('+C.nom+')':C.nom]=C.id});
-   const m=new Map();T('mv').forEach(e=>{const k=id[e[0]];if(!k)return;const o=m.get(k)||{c:k,n:0,v:0};o.n+=e[1];o.v+=e[2];m.set(k,o)});
+   const m=new Map();T('mv').forEach(e=>{const k=id[((globalThis.GolemsDonnees||{}).nomActuel||(n=>n))(e[0])];if(!k)return;const o=m.get(k)||{c:k,n:0,v:0};o.n+=e[1];o.v+=e[2];m.set(k,o)});
    R.mv=[...m.values()].sort((a,b)=>b.n-a.n||pct(b)-pct(a)).slice(0,3)}
   {const A=T('a');R.o={};NIV_ORDI.forEach(([k])=>{const e=A.find(x=>x[0]==='Golem ('+k+')');R.o[k]={n:e?e[1]:0,v:e?e[2]:0}});
    R.jo=A.filter(e=>!/^Golem \(/.test(e[0])).map(e=>({p:e[0],n:e[1],v:e[2]})).sort((a,b)=>b.n-a.n||pct(b)-pct(a)).slice(0,3)}
@@ -256,7 +256,7 @@ function pfStats(liste,mode,dif,depuis){
     {let t=typeof d.cartes==='string'?d.cartes:'';try{if(!t&&d.nom==='Test')t=deckDefautTxt(vPartie(x))}catch(e){}
      const ids=new Set(),re=/([0-9]{3}e?)[1-3]/g;let r;while((r=re.exec(t)))ids.add(r[1]);
      ids.forEach(id=>{const o=cb.get(id)||{c:id,n:0,v:0};o.n++;if(w)o.v++;cb.set(id,o)})}
-    if(typeof x.mvp==='string'&&x.mvp){const id=idMvp[x.mvp]||x.mvp,o=mv.get(id)||{c:id,n:0};o.n++;mv.set(id,o)}});
+    if(typeof x.mvp==='string'&&x.mvp){const id=idMvp[((globalThis.GolemsDonnees||{}).nomActuel||(n=>n))(x.mvp)]||x.mvp,o=mv.get(id)||{c:id,n:0};o.n++;mv.set(id,o)}});
   R.serie=cur;R.der=R.der.slice(-10);
   const tot=Object.values(el).reduce((a,b)=>a+b,0);
   if(tot){R.els=ordre.filter(y=>el[y]).map(y=>[y,Math.round(100*el[y]/tot)]).sort((a,b)=>b[1]-a[1]);const s=R.els.reduce((a,y)=>a+y[1],0);R.els[0][1]+=100-s}

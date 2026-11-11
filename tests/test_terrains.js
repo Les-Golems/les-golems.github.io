@@ -5,7 +5,7 @@ const ANC=['Le Buzzer','Le Camp','L\'Écran du MJ','La Boutique','La Faille','La
 const NOUV=['L\'École','Le Karaoké','Les Pronos','Le Cirque','Le Tournoi','Le Versus'];
 const T=n=>({...M.TERRAINS.find(x=>x.nom===n)});
 /* ids : KaTarN 0 (magma foudre), Alrevan 6 (brume roche), Cyrdan 12 (cristal roche, voisins +1), Roi du Karaoke 15, Trigas 24 (foudre brume),
-   K-Chan 30 (magma cristal), SuperFishman 51 (roche cristal), Titom76 57 (brume foudre), Kiwi 69 (animal de Titom76), Vic222 108 (cristal roche) */
+   K-Chan 30 (magma cristal), SuperFishman 51 (roche cristal), Titom76 57 (brume foudre), Kiwi 69 (animal de Titom76), Vic2222 108 (cristal roche) */
 const KA=0,AL=6,CY=12,RK=15,TR=24,KC=30,SF=51,TI=57,KI=69,VI=108;
 const res=[];
 const nouv=(noms,manche)=>{const s=M.nouvelle(5,['','']);s.phase='jeu';s.mull=[true,true];s.premier=0;s.tour=1;s.joueur=0;s.manche=manche||1;
@@ -118,7 +118,7 @@ const R0={liste:null,force:null,cirque:'tarte'},regle=o=>Object.assign(M.REGLAGE
   // noteBonus : aucun Trait ni cercle explique au Cirque
   s.stats.ev=[];M.noteBonus(s);ok(!s.stats.ev.some(e=>e.t==='b'&&(e.y==='trait'||e.y==='cercle')&&e.p!==undefined&&s.j[e.p].grille[0][0]&&s.j[e.p].grille[0][0].c===e.r),'bilan : pas de Trait ni de cercle au Cirque');
   ok(s.stats.ev.some(e=>e.t==='b'&&e.y==='trait'&&e.r===TR),'bilan : Trigas recoit le Trait de KaTarN');ok(s.stats.ev.some(e=>e.t==='b'&&e.y==='voisins'&&e.r===AL),'bilan : Cyrdan donne +1');
-  // cercle +2 (Vic222) : rien non plus
+  // cercle +2 (Vic2222) : rien non plus
   s=nouv(['Le Cirque','L\'Écran du MJ','La Boutique']);pose(s,0,SF,1,0,0);pose(s,1,KA,8,0,0);eq(M.forceDe(s,0,0,0),1,'Counter-pick : pas de cercle au Cirque');
   s.terrains[0]=T('Le Camp');eq(M.forceDe(s,0,0,0),3,'ailleurs : +2');
   // gagnant : au moins 1 Golem, un seul camp, egalite, Golem hors decompte

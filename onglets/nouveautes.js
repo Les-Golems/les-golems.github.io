@@ -48,6 +48,7 @@ const DETAILS_VERSIONS={
     "Profils accessibles : le profil de n'importe quel joueur s'ouvre, et la recherche de Statistiques trouve désormais tous les joueurs.",
     "Choix mémorisés : Publique/Privée, filtres et tris sont conservés sur l'appareil, même après un rechargement."]}],
   corrections:[
+   "Vic222 s'appelle désormais Vic2222 (nom corrigé, carte inchangée). Les anciennes parties s'affichent sous le nouveau nom.",
    "Animations de partie rétablies : pioche, pose, Forge, Défausse et étoiles de fin de manche reviennent.",
    "Profil : Meilleurs decks, Meilleures cartes et MVP se remplissent de nouveau, y compris avec les anciennes parties. Un profil de plus de 50 parties s'affiche correctement. Les blocs encore vides indiquent « Pas encore assez de parties ». La saison passée apparaît sur le badge.",
    "Statistiques : chiffres par saison justes, 100 % sur une seule ligne, taux lisibles en mode daltonien. Le message « Lecture impossible » n'apparaît plus à tort.",
