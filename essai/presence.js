@@ -1,5 +1,5 @@
 /* Les Golems 0.5 : déconnexion en partie en ligne (window.DECO).
-   - Présence : salons/{code}/pres/{uid} = { c, t } (salon-firebase.js). États vus d'ici :
+   - Présence : salons/{code}/pres/{uid} = { c, t } (firebase/salon.js). États vus d'ici :
        ok   connecté
        att  « Reconnexion » : coupure de moins de 10 s, sans minuteur (aussi ma propre coupure, de mon côté)
        off  « Hors ligne » : au-delà, minuteur de 60 s chez l'adversaire, puis défaite par abandon du déconnecté

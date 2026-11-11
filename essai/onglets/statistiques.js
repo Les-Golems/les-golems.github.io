@@ -3,17 +3,6 @@
 /* Filtre Adversaires : niveaux de l'ordinateur et parties entre joueurs, tous allumes par defaut, jamais tous eteints. */
 const ADV_ST=[['facile','Facile','var(--js-taux-haut)'],['normal','Normal','var(--js-taux-moyen)'],['difficile','Difficile','var(--js-taux-bas)'],['ligne','Entre joueurs','var(--js-ligne)']];let statsAdv=new Set(ADV_ST.map(x=>x[0]));
 const modeSt=r=>r.m==='ligne'?'ligne':String(r.m||'').replace(/^golem-/,'');
-/* Deck par defaut (deck du robot, ancien paquet de test), en texte de deck : 30 cartes depuis 0.3 (33 avant). Le camp du robot est ignore dans les Statistiques. */
-const DECK_TEST=M.DECK_DEFAUT?{...M.DECK_DEFAUT}:Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])),DECK_TEST_TXT=M.deckTexte(DECK_TEST);
-/* Deck par defaut d'une partie selon la version de son moteur : jusqu'a 0.2c, celui des moteurs archives (moteurs/moteur-<v>.js : pas de DECK_DEFAUT,
-   TYPES_TEST a 3 exemplaires, 33 cartes) ; texte lu dans le moteur archive s'il est deja charge, sinon meme composition ecrite ici. */
-const DECK_ANCIEN_TXT=M.deckTexte(Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])));
-function deckDefautTxt(v){
-  v=typeof v==='string'?versionMoteur(v):'';if(!v||v===M0.VERSION)return DECK_TEST_TXT;
-  const A=moteursCharges[v]&&moteursCharges[v].__m;if(A)return A.deckTexte(A.DECK_DEFAUT||Object.fromEntries((A.TYPES_TEST||A.TYPES).map(t=>[t,3])));
-  return MOTEURS_ARCHIVES.indexOf(v)>=0&&MOTEURS_ARCHIVES.indexOf(v)<MOTEURS_ARCHIVES.indexOf('0.3')?DECK_ANCIEN_TXT:DECK_TEST_TXT;
-}
-const vPartie=x=>x&&(x.moteur||(x.rejeu&&x.rejeu.v));
 /* Force affichee dans les listes : cartes a des, Force moyenne (forceMoy : reelle des 30 lancers, sinon theorique 3,5 et 6,4), une decimale. Affichage seulement. */
 function forceAff(C){if(C.force!=null)return String(C.force);const v=forceMoy(C.id);return v==null?null:v.toFixed(1).replace('.',',')}
 const NOMS_EL_ST={magma:'Magma',cristal:'Cristal',foudre:'Foudre',brume:'Brume',roche:'Roche'};

@@ -43,14 +43,13 @@ addEventListener('hashchange',lienGuides);addEventListener('load',()=>setTimeout
 
 
 /* 0.6 : onglets de la refonte (maquette 32, B3) : Nouveautes, Jouer, Decks, Statistiques, Comment jouer, etires sur toute la largeur.
-   TODO vagues suivantes : Historique dans Jouer (Jouer / Mes parties), Cartes dans Decks (Decks / Cartes), Guides dans Comment jouer
-   (Regles / Guides). En attendant, leurs boutons restent masques ; les sections restent ouvrables par onglet('historique') etc. */
+   Boutons Historique et Cartes masques (suite de la refonte : voir Reste a faire.md) ; les sections restent ouvrables par onglet('historique') etc. */
 ['t-historique','t-cartes'].forEach(i=>{const b=$(i);if(b)b.hidden=true});
 
 /* 0.6 : bandeau superieur B3 (maquette 32 - Bandeau superieur). Pastille « N en ligne » (affichage seul), capsule du compte
    (clic = profil, ou connexion pour un invite : commun/compte.js), menu Affichage (theme + couleurs), porte de deconnexion. */
 /* Couleurs : selecteur [Standard] [Daltonien], le meme partout (bandeau, barre d'outils de la partie, diffusion). Remplace
-   l'ancien interrupteur oui/non : window.interDal (appele par vue/partie.js et diffusion.js) rend ce selecteur.
+   l'ancien interrupteur oui/non : window.interDal (appele par vue/partie.js et vue/diffusion.js) rend ce selecteur.
    body.daltonien affiche les reperes ; memorise sur l'appareil (golems.daltonien). La case cachee #daltonienCase reste pour vue/partie.js. */
 const AIDE_DAL="Ajoute des repères en plus des couleurs : flèches sur la Force modifiée, « ! » sur une carte fautive, mot « Animal » dans les listes.";
 const DAL={K:'golems.daltonien',on:false};
@@ -82,7 +81,7 @@ function menuAff(o){const m=$('menuAffichage'),b=$('btnAffichage');m.hidden=!o;b
 $('btnAffichage').onclick=e=>{e.stopPropagation();menuAff($('menuAffichage').hidden)};
 document.addEventListener('click',e=>{if(!$('menuAffichage').hidden&&!e.target.closest('.bd-affw'))menuAff(false)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('menuAffichage').hidden){menuAff(false);$('btnAffichage').focus()}});
-/* Pastille « N en ligne » : visiteurs de enligne/ (invites compris), ecrits par salon-firebase.js. Affichage seul, non cliquable.
+/* Pastille « N en ligne » : visiteurs de enligne/ (invites compris), ecrits par firebase/salon.js. Affichage seul, non cliquable.
    Repli (ancienne base sans enligne/) : comptes presents dans hall/ (room.peers). */
 function majEnLigne(){const p=$('enLigne');let n=0;
   try{n=room&&room.enLigneN?room.enLigneN():0;if(!n&&room&&room.peers)n=room.peers().length}catch(e){n=0}

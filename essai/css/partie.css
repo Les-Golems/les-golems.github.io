@@ -2,6 +2,8 @@
 /* Mode clair (0.6a) : variables de role de la partie. Sombre = valeurs d'origine ; clair = maquette 46 A3. */
 :root{--pts-fait:#0d6f88;--fenetre-fx:#101a24;--fx-texte:#c9d3dc;--vert-ani:#7be07f;--croix:#9aa;--trait-doux:rgba(42,63,80,.55);--alerte-fond:#2a1b20;
   --case-fond:var(--panneau);--case-bord:var(--trait);--p-joue-texte:var(--encre);--lui-titre-fonce:var(--lui);--case-style:solid;--case-ep:1px;--pile-vide-fond:none;--pile-vide-bord:0;--pile-vide-texte:var(--doux)}
+/* Blason de Force du zoom (badgeForce, vue/joueur.js) : 10 pans en relief, chiffre blanc (egal), vert (au-dessus), rouge (en dessous). Dessin de la carte imprimee : identiques en mode clair. */
+:root{--force-pan1:#bf6049;--force-pan2:#8a3524;--force-pan3:#d27a5e;--force-pan4:#a4452f;--force-pan5:#d27a5e;--force-pan6:#70291b;--force-pan7:#551d13;--force-pan8:#a4452f;--force-pan9:#d27a5e;--force-pan10:#efb096;--force-plus:#3ee86a;--force-moins:#ff3b30;--force-egal:#fff}
 html.clair{--pts-fait:color-mix(in srgb,var(--bleu) 45%,var(--fond));--fenetre-fx:var(--panneau);--fx-texte:var(--texte);--vert-ani:var(--vert);--croix:var(--doux);--trait-doux:rgba(61,83,102,.22);--alerte-fond:#fbe9e8;
   --case-fond:#edf1f5;--case-bord:#8a9cab;--p-joue-texte:#fff;--lui-titre-fonce:#8f3209;--case-style:dashed;--case-ep:1.5px;--pile-vide-fond:#cfd8e0;--pile-vide-bord:1.5px dashed #6d8293;--pile-vide-texte:var(--texte)}
 html.clair .p-grille.mienne{--case-fond:#e7f3f8}
@@ -66,7 +68,7 @@ html.clair :is(#jouer,#vueDetail){--moi:#086f95;--lui:var(--adverse-texte)}
 @media (max-width:699px){#aniDet{grid-template-columns:1fr 1fr;font-size:15px;padding:44px 14px 14px;gap:12px}#aniDet .t{grid-column:1/-1}#aniDet h3{font-size:30px}#aniDet h3.an{font-size:26px}#aniDet img{max-width:150px}}
 .p-case{position:relative;height:var(--h);padding:0;border:var(--case-ep) var(--case-style) var(--case-bord);background:var(--case-fond);overflow:hidden;min-width:0;display:block;width:100%;color:var(--doux);font-size:15px;line-height:1.2;border-radius:13px 9px 14px 8px/9px 13px 8px 14px}
 .p-case:disabled{cursor:default;border-style:dashed;background:transparent}
-/* Contour dore des evolutions (jeu, spectateur, bac a sable, Historique) : vrai contour de 3 px, coins arrondis de la case dedans et dehors, comme diffusion.css. Cible et choisie (plus bas) passent devant. */
+/* Contour dore des evolutions (jeu, spectateur, bac a sable, Historique) : vrai contour de 3 px, coins arrondis de la case dedans et dehors, comme css/diffusion.css. Cible et choisie (plus bas) passent devant. */
 .p-case.evo{border:1px solid var(--trait)}
 /* 0.5 evolutions visibles (maquette 8 - Evolutions visibles, v2) : pseudo du Golem de base sur une ligne (« … »), blanc pour une base, dore pour une evolution ;
    contour dore en calque (meme taille de tuile) ; etoile ★ a droite du cout, seulement en mode daltonien */

@@ -5,7 +5,7 @@
    Hors historique, profil et sauvegarde (voir calcule et sauve). */
 const GUIDE={graine:19445,deck:'0013001e30023002e300430073007e30183'};
 const gJ=()=>partie.etat.j[partie.moi],gG=(l,k)=>gJ().grille[l][k],gId=(l,k)=>gG(l,k)&&M.carte(gG(l,k).c).id;
-/* 0.6 : sur ordinateur, la vue joueur (#dif, diffusion.js) remplace l'ecran #partie (cache) ; la main y est redessinee
+/* 0.6 : sur ordinateur, la vue joueur (#dif, vue/diffusion.js) remplace l'ecran #partie (cache) ; la main y est redessinee
    (boutons .d-main [data-c]) et les boutons d'action y sont deplaces (.mq-btns). Les cibles listent les deux ecrans : on garde la premiere visible. */
 const gSlot=c=>'#dif .d-main button[data-c="'+c+'"],.p-slot[data-c="'+c+'"]';
 /* visible : a une taille, et n'est pas reste dans #partie sous la vue joueur ouverte */
@@ -76,7 +76,7 @@ function arreteGuide(){
   clearInterval(tuto.T);tuto.b.remove();tuto.a.remove();tuto.f.remove();tuto=null;$('gPasser').hidden=true;
 }
 function etapeG(){return tuto&&ETAPES[tuto.i]}
-/* 0.6a : la vue joueur (#dif, diffusion.js) anime hors de la file fileA : carte en vol (.d-vole, case .d-vol jusqu'a l'atterrissage),
+/* 0.6a : la vue joueur (#dif, vue/diffusion.js) anime hors de la file fileA : carte en vol (.d-vole, case .d-vol jusqu'a l'atterrissage),
    puis liens, bonus, eclat d'evolution. La bulle attend leur fin ; le halo de la derniere carte posee (.d-halo) et les animations
    sans fin ne comptent pas. Filet : jamais plus de 8 s d'attente pour une meme etape (bulle jamais bloquee). */
 function gPose(){

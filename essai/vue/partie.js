@@ -7,6 +7,17 @@ const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b','0.2b.1',
 const versionMoteur=v=>v==='0.2a'?'0.2':v;
 const rejeuPossible=R=>!!(R&&typeof R.v==='string'&&Number.isInteger(R.graine)&&Array.isArray(R.j)&&(versionMoteur(R.v)===M0.VERSION||MOTEURS_ARCHIVES.includes(versionMoteur(R.v))));
 const moteursCharges={};
+/* Deck par defaut (deck du robot, ancien paquet de test), en texte de deck : 30 cartes depuis 0.3 (33 avant). Le camp du robot est ignore dans les Statistiques. */
+const DECK_TEST=M.DECK_DEFAUT?{...M.DECK_DEFAUT}:Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])),DECK_TEST_TXT=M.deckTexte(DECK_TEST);
+/* Deck par defaut d'une partie selon la version de son moteur : jusqu'a 0.2c, celui des moteurs archives (moteurs/moteur-<v>.js : pas de DECK_DEFAUT,
+   TYPES_TEST a 3 exemplaires, 33 cartes) ; texte lu dans le moteur archive s'il est deja charge, sinon meme composition ecrite ici. */
+const DECK_ANCIEN_TXT=M.deckTexte(Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])));
+function deckDefautTxt(v){
+  v=typeof v==='string'?versionMoteur(v):'';if(!v||v===M0.VERSION)return DECK_TEST_TXT;
+  const A=moteursCharges[v]&&moteursCharges[v].__m;if(A)return A.deckTexte(A.DECK_DEFAUT||Object.fromEntries((A.TYPES_TEST||A.TYPES).map(t=>[t,3])));
+  return MOTEURS_ARCHIVES.indexOf(v)>=0&&MOTEURS_ARCHIVES.indexOf(v)<MOTEURS_ARCHIVES.indexOf('0.3')?DECK_ANCIEN_TXT:DECK_TEST_TXT;
+}
+const vPartie=x=>x&&(x.moteur||(x.rejeu&&x.rejeu.v));
 function chargeMoteur(v){
   v=versionMoteur(v);
   if(v===M0.VERSION)return Promise.resolve(M0);
@@ -323,7 +334,7 @@ const tf=c=>'translate('+c.x+'px,'+c.y+'px) scale('+c.w/200+')';
 function carteVol(src){const d=el('div','v-carte'),i=el('img');i.src=src;i.alt='';d.append(i);$('scene').append(d);return d}
 function vol(de,vers,src,ms,delai){
   if(vite()||REDUIT.matches||!de||!vers)return;
-  if(document.documentElement.classList.contains('dif-joueur'))return; /* vue joueur : le vol est celui de diffusion.js (pas de double) */
+  if(document.documentElement.classList.contains('dif-joueur'))return; /* vue joueur : le vol est celui de vue/diffusion-animations.js (pas de double) */
   const d=carteVol(src),a=d.animate([{transform:tf(cadre(de,56))},{transform:tf(cadre(vers,56))}],{duration:T(ms),delay:T(delai||0),easing:'cubic-bezier(.3,.7,.3,1)',fill:'both'});
   a.finished.finally(()=>d.remove()).catch(()=>{});
 }
@@ -335,7 +346,7 @@ function valTerrain(Mx,s,k){const T=s.terrains[k],v=Mx.ptsTerrain?Mx.ptsTerrain(
 const srcTerrain=T=>imgV('cartes/t'+String(window.GolemsMoteur.TERRAINS.findIndex(x=>x.nom===T.nom)+1).padStart(3,'0')+'.jpg');
 /* Carte jouee : grande au centre environ 1,5 s, puis glissade vers sa case. */
 function montreGrand(c,de,vers){
-  if(vite()||document.documentElement.classList.contains('dif-joueur'))return 0; /* vue joueur : « Derniere carte jouee » et le vol de diffusion.js suffisent */
+  if(vite()||document.documentElement.classList.contains('dif-joueur'))return 0; /* vue joueur : « Derniere carte jouee » et le vol de vue/diffusion-animations.js suffisent */
   /* Ordinateur : la carte s'affiche dans la zone d'apercu sous les piles, puis glisse vers sa case. */
   const zo=zoneEl(),zi=zo&&zo.querySelector('.p-ap-img'),zr=zi&&zi.getBoundingClientRect(); /* 0.4a : cadre de l'image de la zone (carte a gauche, texte a droite) */
   if(zo&&zr.height>120&&zr.bottom>0&&zr.top<innerHeight){
@@ -1054,7 +1065,7 @@ function enregistrePartie(s){
   if(l.some(x=>x.id===id))return;
   const o=archiveResume(s,id);
   enregistreDans(l,s,id);
-  {const k=partie.classe,c=k&&k.res;if(k&&l[0]&&l[0].id===id){l[0].mode='classee';l[0].classe=c?{elo:c.avant,delta:c.delta,eloAdv:k.eloAdv,robot:!!k.robot}:{robot:!!k.robot};if(k.robot)l[0].classe.niveau=k.robot;if(!(c&&c.ecrit))l[0].classe.attente=true}} /* 0.6.1 : etiquette d'apres partie.classe ; variation « en attente » tant que non ecrite */ /* 0.6 : etiquette Classee (+ Golem) de l'Historique ; c, de, ro dans Firebase (salon-firebase.js) */
+  {const k=partie.classe,c=k&&k.res;if(k&&l[0]&&l[0].id===id){l[0].mode='classee';l[0].classe=c?{elo:c.avant,delta:c.delta,eloAdv:k.eloAdv,robot:!!k.robot}:{robot:!!k.robot};if(k.robot)l[0].classe.niveau=k.robot;if(!(c&&c.ecrit))l[0].classe.attente=true}} /* 0.6.1 : etiquette d'apres partie.classe ; variation « en attente » tant que non ecrite */ /* 0.6 : etiquette Classee (+ Golem) de l'Historique ; c, de, ro dans Firebase (firebase/compte.js) */
   if(compteCo()){const x={id,u:room.compte.uid(),h:l[0]};if(o)x.r=o;majAttente(id,y=>Object.assign(y,x));envoieAttente(id);return}
   ecrire('golems.historique',JSON.stringify(l.slice(0,50)));
 }
@@ -1119,7 +1130,7 @@ function uneParGraine(l){const vu=new Set();return l.filter(r=>{if(r.m!=='ligne'
 function enregistreDans(l,s,id){
   const me=partie.moi,lui=1-me,w=s.fin.gagnant,nm=p=>p===me?'Toi':nomJ(p),B=M.bilan(s);
   const ps=pseudo||'Joueur',np=p=>p===me?ps:nomJ(p);
-  l.unshift({id,date:Date.now(),adv:partie.local?'Golem ('+partie.niveau+')':nomJ(lui),res:w===null?'Match nul':w===me?'Victoire':'Défaite',abandon:s.fin.abandon===undefined?undefined:s.fin.abandon===me?'moi':'adv',deckVide:s.fin.deckVide===undefined?undefined:s.fin.deckVide===me?'moi':'adv',score:s.j[me].score+' - '+s.j[lui].score,mvp:B.mvp?B.mvp.carte:'',
+  l.unshift({id,date:Date.now(),adv:partie.local?'Golem ('+partie.niveau+')':nomJ(lui),res:titreFin(w,me),abandon:s.fin.abandon===undefined?undefined:s.fin.abandon===me?'moi':'adv',deckVide:s.fin.deckVide===undefined?undefined:s.fin.deckVide===me?'moi':'adv',score:s.j[me].score+' - '+s.j[lui].score,mvp:B.mvp?B.mvp.carte:'',
     pseudo:ps,deck:deckJoue(),advNom:lui===1-me?nomJ(lui):'',
     moteur:M.VERSION,rejeu:{v:M.VERSION,graine:partie.graine,moi:me,decks:(partie.decks||['','']).slice(),j:(me===0?[partie.mien,partie.sien]:[partie.sien,partie.mien]).map(x=>M.ecritJournal(x))},
     manches:parManche(s).map(o=>lignesManche(o,np)),mvpLigne:ligneMvp(B),

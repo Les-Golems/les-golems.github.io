@@ -344,7 +344,7 @@ function peintChat(l){
   if(bas||!rep)ul.scrollTop=ul.scrollHeight;
 }
 /* 0.4 : couleur du pseudo selon le role dans le salon (places de spectateur.js) : createur dore, adversaire bleu, spectateur gris clair avec un oeil.
-   Role au survol. Auteur parti du salon : couleur neutre, sans role. Sert aussi au chat de la vue spectateur (diffusion.js). */
+   Role au survol. Auteur parti du salon : couleur neutre, sans role. Sert aussi au chat de la vue spectateur (vue/diffusion.js). */
 const ROLES_CHAT={createur:'Créateur',adversaire:'Adversaire',spectateur:'Spectateur'};
 function roleChat(u){
   if(!u)return '';
@@ -507,7 +507,7 @@ function encartEntrainement(){
     const d=c3(lib,txtTaux(t),l.length+' partie'+(l.length>1?'s':''));colore(d,t,l.length);z.append(d)});
 }
 /* Pastille du deck de l'Entrainement : nom + teinte des elements, clic = fenetre de choix du deck. */
-function majPilDeck(){const d=deckChoisi(),b=$('jDeck'),nom=d.id?d.nom:'Deck par défaut'; /* pas de deck choisi : « Deck par défaut », comme la fenetre de choix (deckChoisi le nomme « Test ») */
+function majPilDeck(){const d=deckChoisi(),b=$('jDeck'),nom=d.id?d.nom:window.GolemsDonnees.interface.nomDeckDefaut; /* pas de deck choisi : libelle de cartes/donnees/interface.js, comme la fenetre de choix */
   b.querySelector('span').textContent=nom;b.style.setProperty('--j-teinte',teinte(elsPrincipaux(d.texte),'90deg'));b.title='Deck : '+nom+' (changer)'}
 $('jDeck').onclick=()=>choisirDeck(majPilDeck,'Choisir ce deck','Entraînement contre le Golem');
 /* Invite (final_invite) : tuiles Classee et Amicale floutees sous un verrou, liste floutee avec Se connecter / Creer un compte. */
@@ -584,13 +584,14 @@ $('jPages').querySelector('.nv-suiv').onclick=()=>{jPage++;peintListe()};
 
 /* Salon classe (36 variante B) : bandeau d'information des l'ouverture ; compte a rebours de 2 min sans adversaire,
    puis « Golem X - Elo N, points divises par 2, k sur 5 aujourd'hui » et le bouton « Affronter un Golem » ; limite atteinte. */
-const ATTENTE_ROBOT=120000;let robotT2=0,creeSrv=0,creeLu='';
+const ATTENTE_ROBOT=120000,MARGE_ROBOT=3000; /* marge : room.heure() estime l'heure du serveur (decalage a la latence pres) ; sans elle, bouton parfois montre quelques centaines de ms avant que la regle (cree <= now - 120000) ne l'accepte */
+let robotT2=0,creeSrv=0,creeLu='';
 /* La regle serveur exige cree <= now - 120000, cree et now en heure SERVEUR : le delai part de cree lu en base, compare a l'heure serveur estimee (room.heure = horloge locale + .info/serverTimeOffset). */
 /* cree absent (ecriture coupee) : nouvel essai d'ecriture toutes les 5 s ; au bout de 15 s sans heure lue, bandeau d'erreur avec Reessayer
    (jamais de verification sans fin). cree est ecoute en continu par le salon (onCree) : sa valeur relance le bandeau des qu'elle arrive. */
 let creeT0=0,creeCode='',creeOk='',creeEnvoi=false,creePanne=false,creeEssai=0;
 /* relance=true (Reessayer, garde-fou) : nouvel essai meme si un envoi semble en cours (relanceCree : nouvelle connexion forcee, puis essai ;
-   salon-firebase n'a jamais qu'un essai de cree a la fois). Echec : bandeau du salon en etat d'echec avec son propre Reessayer, en meme temps que l'alerte. */
+   firebase/salon.js n'a jamais qu'un essai de cree a la fois). Echec : bandeau du salon en etat d'echec avec son propre Reessayer, en meme temps que l'alerte. */
 function reposeCree(relance){const s=r;if(!s||!s.poseCree||(creeEnvoi&&!relance))return;creeEnvoi=true;(relance&&s.relanceCree?s.relanceCree():s.poseCree()).catch(e=>console.warn('salon classe',e)).then(()=>{creeEnvoi=false})}
 function reessaieCree(){alerte('erreurJeu','');creePanne=false;creeOk='';creeT0=Date.now();creeEssai=0;reposeCree(true);creeLu='';arrGardeCree();majBandeauRobot()}
 function creeEnPanne(){creePanne=true;alerte('erreurJeu','Heure d\'ouverture du salon classé impossible à enregistrer : vérifie ta connexion.',{bouton:{texte:'Réessayer',action:reessaieCree}});majBandeauRobot()}
@@ -615,7 +616,7 @@ function majBandeauRobot(){
   if(!seul){z.hidden=true;finPanneCree();if(!r){stopGardeCree();creeCode=''}return}
   if(creeLu!==code){creeSrv=0}
   lisCreeSalon();
-  const C=GolemsClasse,j=profilClasse(),R=C.ROBOTS[C.niveauRobot(j.elo)],reste=C.robotsRestants(j.robots),t=z.querySelector('span'),b=$('affronterGolem'),ms=creeSrv&&creeLu===code?ATTENTE_ROBOT-(room.heure()-creeSrv):ATTENTE_ROBOT-(Date.now()-entree)+1000;
+  const C=GolemsClasse,j=profilClasse(),R=C.ROBOTS[C.niveauRobot(j.elo)],reste=C.robotsRestants(j.robots),t=z.querySelector('span'),b=$('affronterGolem'),ms=creeSrv&&creeLu===code?ATTENTE_ROBOT+MARGE_ROBOT-(room.heure()-creeSrv):ATTENTE_ROBOT-(Date.now()-entree)+1000;
   z.hidden=false;{const rc=$('reessayerCree');if(rc)rc.hidden=!creePanne}
   if(creePanne){t.textContent='Salon classé : heure d\'ouverture non enregistrée. Vérifie ta connexion.';b.hidden=true;return}
   if(reste<=0){t.textContent='Limite atteinte : '+C.ROBOTS_PAR_JOUR+' parties contre un Golem par jour en classée. Reviens demain ou attends un adversaire.';b.hidden=true;return}

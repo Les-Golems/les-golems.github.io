@@ -1,4 +1,4 @@
-/* Vue diffusion (0.3a) : ecran 1920 x 1080 pour un stream, mis a l'echelle proportionnellement (diffusion.js).
+/* Vue diffusion (0.3a) : ecran 1920 x 1080 pour un stream, mis a l'echelle proportionnellement (vue/diffusion.js).
    Maquette validee : variante g15 (grilles reduites de 15 %), cercle c1 (gros pictos, sans titre).
    Tout est sous #dif : rien ne touche au reste du site. */
 /* Mode clair (0.6a) : variables de role de la diffusion, du spectateur et du rejeu. Sombre = valeurs d'origine ; clair = maquette 46 A3. */
@@ -634,7 +634,7 @@ html.dif-ouvert #des{display:none!important}
 #dif.rj .d-rj-cmd .d-rj-fl svg{display:block;margin:auto}
 #dif .d-couche>.d-des{z-index:5}
 
-/* ---------- 0.6a : animations de la maquette 47 (diffusion.js, anA / anCalque), dans la couche #dif .d-couche ---------- */
+/* ---------- 0.6a : animations de la maquette 47 (vue/diffusion-animations.js, anA / anCalque), dans la couche #dif .d-couche ---------- */
 /* Couleurs des animations : variables de role, memes valeurs en clair (effets poses sur les cartes et sur un voile sombre). */
 :root{--an-or:#f1c35a;--an-or-rgb:241,195,90;--an-vert:#5fd68a;--an-vert-rgb:95,214,138;--an-rose:#d6336c;--an-rose-rgb:214,51,108;--an-rouge:#ff4d4f;--an-rouge-rgb:255,77,79;--an-texte:#eaf4f8;--an-vert-past:#7be07f;--an-fond-bandeau:rgba(10,18,26,.88);--an-trait:#fff4d6}
 #dif .d-couche .an-abs{position:absolute;box-sizing:border-box;pointer-events:none}
