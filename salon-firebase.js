@@ -104,10 +104,18 @@ async function ouvre() {
   // minutes) ; un joueur qui joue paraît alors absent plus de 60 s et perd par abandon. Coupé, on relance la connexion
   // toutes les 3 s (goOffline puis goOnline remet le délai au minimum) ; les écritures en attente sont gardées.
   let relance = null;
-  const relanceCo = () => { relance = null; if (enLigne || (typeof navigator !== "undefined" && navigator.onLine === false)) { if (!enLigne) relance = setTimeout(relanceCo, 3000); return; }
-    relance = -1; try { goOffline(db); goOnline(db); } catch (e) {} relance = setTimeout(relanceCo, 3000); };
+  const relanceCo = () => {
+    relance = null;
+    if (enLigne) return;
+    // Toujours coupé : prochain essai dans 3 s. Le minuteur est posé AVANT goOffline/goOnline, pour que l'événement
+    // .info/connected qu'ils déclenchent (hors ligne) n'en lance pas un second.
+    relance = setTimeout(relanceCo, 3000);
+    // Navigateur hors ligne : inutile de relancer la connexion, on revérifie seulement.
+    if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+    try { goOffline(db); goOnline(db); } catch (e) {}
+  };
   onValue(ref(db, ".info/connected"), s => { enLigne = s.val() === true;
-    if (enLigne) { if (relance && relance !== -1) clearTimeout(relance); if (relance !== -1) relance = null; } else if (!relance) relance = setTimeout(relanceCo, 1500);
+    if (enLigne) { clearTimeout(relance); relance = null; } else if (!relance) relance = setTimeout(relanceCo, 1500);
     ecouteCo.forEach(f => f()); });
   // Écart entre l'horloge locale et celle du serveur (déconnexion : minuteurs comptés en heure serveur).
   let decalage = 0;

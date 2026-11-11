@@ -15,6 +15,8 @@ function alerte(cible,texte,o){
 }
 function alerteInfo(cible,texte,o){return alerte(cible,texte,Object.assign({},o,{info:true}))}
 function alerteTexte(cible){const z=typeof cible==='string'?document.getElementById(cible):cible,s=z&&z.querySelector('.sc-alerte>span');return s?s.textContent:''}
+/* Confirmation d'abandon ou de sortie de partie (vue/joueur.js, onglets/historique.js) : confirmeFen puis oui() si accepte. */
+function confirmeAbandon(msg,oui,titre,bouton){confirmeFen({titre:titre||'Abandonner la partie ?',texte:msg,action:bouton||'Abandonner'}).then(v=>{if(v)oui()})}
 function confirmeFen(o){
   return new Promise(fin=>{
     const f=document.createElement('div');f.className='bd-fond';

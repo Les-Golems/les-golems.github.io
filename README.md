@@ -15,7 +15,9 @@ Chaque partie de l'historique enregistre la version de son moteur (`moteur` et `
 Règle, à chaque nouvelle version du moteur :
 1. Changer `VERSION` en tête de `moteur.js`.
 2. Copier le nouveau `moteur.js` tel quel dans `moteurs/moteur-<nouvelle version>.js` (les anciennes archives ne sont jamais modifiées ni supprimées).
-3. Ajouter la nouvelle version à la liste `MOTEURS_ARCHIVES` dans `index.html`.
+3. Ajouter la nouvelle version à la liste `MOTEURS_ARCHIVES` dans `vue/partie.js`.
+
+Le numéro du moteur (VERSION de moteur.js) ne change que si une règle du jeu change ; il ne suit pas la version du site.
 
 Sans archive, les parties de cette version affichent « Rejeu indisponible ». Les parties de la version 0.1 n'ont pas de journaux (le rejeu date de la 0.2) : elles ne peuvent pas être rejouées.
 
@@ -49,7 +51,7 @@ Le site supporte les réinitialisations partielles : si `pseudos/<pseudo>` a ét
 
 Servi depuis `localhost` ou `127.0.0.1`, le site se branche automatiquement sur l'émulateur Firebase (Auth 127.0.0.1:9099, Realtime Database 127.0.0.1:9000, projet de démonstration `demo-les-golems`), jamais sur la vraie base. En ligne (github.io), rien ne change.
 
-1. Prérequis : Java 21 (Eclipse Temurin) et le binaire autonome `firebase-tools-win.exe` dans `../13 - Outils/firebase/`.
+1. Prérequis : Java 21 (Eclipse Temurin) et le binaire autonome `firebase-tools-win.exe` dans `../6 - Outils et simulations/1 - Outils/1 - Firebase/`.
 2. `powershell -ExecutionPolicy Bypass -File lancer_emulateur.ps1` (charge `database.rules.json`, voir `firebase.json` et `.firebaserc`).
 3. Dans un autre terminal : `python -m http.server 8000 --bind 127.0.0.1`, puis http://127.0.0.1:8000
 4. Ctrl+C arrête l'émulateur ; comptes et données de test disparaissent. Comptes d'essai notés dans `tests/comptes_emulateur.txt`.
@@ -61,7 +63,7 @@ Pour tester contre la vraie base, il faut désormais servir le site sous un autr
 
 ## Site d'essai et publication
 Le site d'essai https://les-golems.github.io/essai/ utilise le préfixe Firebase essai/ (comptes, salons, decks, historique), des clés locales préfixées essai. et affiche « Essai » dans le titre et l'en-tête. Procédure :
-1. Ressources\13 - Outils\publier_essai.ps1 : copie index.html, *.js, moteurs/, cartes/, avatars/, icônes, manifest et og.jpg dans essai/ (sans tests/, .git ni fichiers Firebase locaux). Pousser.
+1. Ressources\6 - Outils et simulations\1 - Outils\publier_essai.ps1 (ou `node outils/generer_essai.js`) : copie index.html, *.js, moteurs/, cartes/, avatars/, icônes, manifest et og.jpg dans essai/ (sans tests/, .git ni fichiers Firebase locaux). Pousser.
 2. Tester sur https://les-golems.github.io/essai/.
-3. Ressources\13 - Outils\publier_public.ps1 : recopie essai/ vers la racine. Pousser.
+3. Ressources\6 - Outils et simulations\1 - Outils\publier_public.ps1 : recopie essai/ vers la racine. Pousser.
 Aucun des deux scripts ne lance git : ils listent les fichiers copiés.

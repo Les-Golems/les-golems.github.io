@@ -317,7 +317,6 @@ function pasRejeu(){
 function finRejeu(){clearTimeout(rejeuT);rejeuT=0;finPartie();const b=$('barreRejeu');if(b)b.remove();$('accueil').hidden=false;onglet('historique')}
 window.__golemsRejeu=()=>partie&&partie.rejeu?{pos:partie.rejeu.pos,total:partie.rejeu.seq.length,fin:!!(partie.etat&&partie.etat.fin),manche:partie.etat?partie.etat.manche:1,vitesse:partie.rejeu.vitesse,lecture:!!partie.rejeu.lecture,dif:!!partie.rejeu.dif}:null;
 /* Confirmations au modele de la deconnexion (commun/alertes.js, confirmeFen) : titre en question, phrase, [Action] [Annuler]. */
-function confirmeAbandon(msg,oui,titre,bouton){confirmeFen({titre:titre||'Abandonner la partie ?',texte:msg,action:bouton||'Abandonner'}).then(v=>{if(v)oui()})}
 function confirmePage(box,titre,oui,texte,bouton){confirmeFen({titre,texte,action:bouton||'Supprimer'}).then(v=>{if(v)oui()})}
 /* ----- Liste : filtres (selecteur sc-sel), lignes, pagination a place fixe en bas a droite.
    Grand ecran : le bloc descend jusqu'au bas de l'ecran, autant de lignes qu'il en tient (14 au plus) ; telephone : 14 par page. */

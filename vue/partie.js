@@ -7,6 +7,17 @@ const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b','0.2b.1',
 const versionMoteur=v=>v==='0.2a'?'0.2':v;
 const rejeuPossible=R=>!!(R&&typeof R.v==='string'&&Number.isInteger(R.graine)&&Array.isArray(R.j)&&(versionMoteur(R.v)===M0.VERSION||MOTEURS_ARCHIVES.includes(versionMoteur(R.v))));
 const moteursCharges={};
+/* Deck par defaut (deck du robot, ancien paquet de test), en texte de deck : 30 cartes depuis 0.3 (33 avant). Le camp du robot est ignore dans les Statistiques. */
+const DECK_TEST=M.DECK_DEFAUT?{...M.DECK_DEFAUT}:Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])),DECK_TEST_TXT=M.deckTexte(DECK_TEST);
+/* Deck par defaut d'une partie selon la version de son moteur : jusqu'a 0.2c, celui des moteurs archives (moteurs/moteur-<v>.js : pas de DECK_DEFAUT,
+   TYPES_TEST a 3 exemplaires, 33 cartes) ; texte lu dans le moteur archive s'il est deja charge, sinon meme composition ecrite ici. */
+const DECK_ANCIEN_TXT=M.deckTexte(Object.fromEntries(M.TYPES_TEST.map(t=>[t,3])));
+function deckDefautTxt(v){
+  v=typeof v==='string'?versionMoteur(v):'';if(!v||v===M0.VERSION)return DECK_TEST_TXT;
+  const A=moteursCharges[v]&&moteursCharges[v].__m;if(A)return A.deckTexte(A.DECK_DEFAUT||Object.fromEntries((A.TYPES_TEST||A.TYPES).map(t=>[t,3])));
+  return MOTEURS_ARCHIVES.indexOf(v)>=0&&MOTEURS_ARCHIVES.indexOf(v)<MOTEURS_ARCHIVES.indexOf('0.3')?DECK_ANCIEN_TXT:DECK_TEST_TXT;
+}
+const vPartie=x=>x&&(x.moteur||(x.rejeu&&x.rejeu.v));
 function chargeMoteur(v){
   v=versionMoteur(v);
   if(v===M0.VERSION)return Promise.resolve(M0);
