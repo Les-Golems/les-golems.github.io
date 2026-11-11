@@ -384,7 +384,7 @@ html.clair .dk-tuile .rs{color:#ffd0ca}
 .dk-plein{width:100%;margin-top:14px!important;flex:none}
 .dk-ligne{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;flex:none}
 .dk-ligne .sc-btn{width:100%;padding:0 8px}
-.dk-danger{background:var(--rouge);color:#fff;box-shadow:0 2px 0 #8c2224}
+.dk-danger{background:#cf2d30;color:#fff;box-shadow:0 2px 0 #8c2224}
 /* Catalogue */
 .dk-f{display:flex;align-items:center;gap:12px;flex:none;min-width:0}
 .dk-f+.dk-f{margin-top:12px}
