@@ -28,7 +28,7 @@ decksConseilles:[
  {nom:"Contrôle",cartes:{"001":3,"001e":3,"009":3,"009e":2,"018":3,"018e":2,"013":3,"013e":3,"008":3,"036":3,"029":2},
   txt:"Affaiblis les Golems d'en face avec Slim K, Glad, Apo, La Fan enflammée et Le pomplard, et freine leurs évolutions avec Elessar."},
  {nom:"Soutien",cartes:{"903":1,"003":3,"003e":3,"020":3,"020e":1,"013":3,"013e":3,"042":3,"025":3,"037":2,"008":2,"008e":3},
-  txt:"Groupe tes Golems Cristal et Roche : Cyrdan, GénéralBrioche, Indra et Vic222 renforcent leurs voisins, et L'attachiante soigne les blessés."},
+  txt:"Groupe tes Golems Cristal et Roche : Cyrdan, GénéralBrioche, Indra et Vic2222 renforcent leurs voisins, et L'attachiante soigne les blessés."},
  {nom:"Combo",cartes:{"015":3,"015e":2,"016":2,"016e":3,"036":3,"036e":2,"035":3,"035e":3,"007":3,"007e":2,"026":1,"026e":1,"013":2},
   txt:"Forge Bellock et Loxim pour qu'ils se cherchent l'un l'autre, nourris ta Forge avec Trigas et Spom, et fais grandir tes Golems avec JackJoy et le Drafteur."}
 ],

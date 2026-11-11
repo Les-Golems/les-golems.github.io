@@ -947,7 +947,7 @@ function texteHisto(x){return VD.texteDiscord(VD.deHisto(x),'B')}
 function bonusPrevu(s,me,c,l,k){
   const G=s.j[me].grille,C=M.carte(c),vs=[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([x,y])=>G[x]&&G[x][y]).filter(Boolean);
   const trait=C.el.reduce((t,e)=>{const n=vs.filter(v=>M.carte(v.c).el.includes(e)).length;return t+(M.TRAIT_CUMULE?n:Math.min(n,1))},0),f=s.j[1-me].grille[l][k];
-  const dom=f&&C.el.some(e=>M.carte(f.c).el.includes(M.DOMINE[e])),c2=M.cercle2?M.cercle2(G,k,C.id)||!!effetDe(C.id,'cercleTerrain'):CERCLE_2.includes(C.id),o={trait,cercle:dom?(c2?2:1):0}; /* Vic222 : Info tchat dans la colonne */
+  const dom=f&&C.el.some(e=>M.carte(f.c).el.includes(M.DOMINE[e])),c2=M.cercle2?M.cercle2(G,k,C.id)||!!effetDe(C.id,'cercleTerrain'):CERCLE_2.includes(C.id),o={trait,cercle:dom?(c2?2:1):0}; /* Vic2222 : Info tchat dans la colonne */
   if(effetDe(C.id,'synergie')){const n=C.el.filter(e=>vs.some(v=>M.carte(v.c).el.includes(e))).length;if(n)o.synergie=n}
   if(effetDe(C.id,'forceParGolem',r=>r.compte==='element')&&M.foudres){const n=M.foudres(G)-(G[l][k]&&M.carte(G[l][k].c).el.includes('foudre')?1:0)+(C.el.includes('foudre')?1:0);if(n)o.survolte=n}
   if(effetDe(C.id,'forceParGolem',r=>r.compte==='dessus')&&M.kekwait){const n=M.kekwait(G,l,k);if(n)o.kekwait=n} /* Shifukuro : KEKWait */

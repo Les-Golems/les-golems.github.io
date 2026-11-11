@@ -19,8 +19,8 @@ function versionAff(x){const v=x&&(x.moteur||(x.rejeu&&x.rejeu.v));if(typeof v==
 function advAff(a){const m=/^Golem \((.+)\)$/.exec(a||'');return m?'Golem ('+m[1].charAt(0).toUpperCase()+m[1].slice(1)+')':String(a||'')}
 /* Carte du detail : pictos d'elements puis pseudo (★ si evolution) et titre en dessous, comme la liste condensee des decks. */
 /* Nom complet comme sur la carte (« K-Chan, Reine du tilt »), d'apres CARTES. */
-function nomComplet(nom){const C=Object.values(M0.CARTES).find(z=>M0.nomDetail(z)===nom||z.nom===nom),c=C&&CARTES.find(z=>z[0]===C.id);return c?c[1]:String(nom)}
-function carteHisto(nom){
+function nomComplet(nom){nom=((globalThis.GolemsDonnees||{}).nomActuel||(n=>n))(nom);const C=Object.values(M0.CARTES).find(z=>M0.nomDetail(z)===nom||z.nom===nom),c=C&&CARTES.find(z=>z[0]===C.id);return c?c[1]:String(nom)}
+function carteHisto(nom){nom=((globalThis.GolemsDonnees||{}).nomActuel||(n=>n))(nom);
   const C=Object.values(M0.CARTES).find(z=>M0.nomDetail(z)===nom||z.nom===nom),c=C&&CARTES.find(z=>z[0]===C.id),b=el('span','h-crt'),e=el('span','h-cels'),nm=el('span','h-cnom');
   if(!c){nm.append(el('span','h-cps',String(nom)));b.append(nm);return b}
   c[2].forEach(x=>e.append(picto(x)));
@@ -38,7 +38,7 @@ function carteHisto(nom){
 const H_NIV={facile:'Facile',normal:'Normal',difficile:'Difficile'};
 const H_ELS=/^(magma|cristal|foudre|brume|roche)$/;
 let filtreHisto=lire('golems.filtre.histo')||'toutes'; /* filtre memorise sur l'appareil (inconnu : Toutes, voir peintHisto) */
-const carteDe=nom=>nom?Object.values(M0.CARTES).find(c=>M0.nomDetail(c)===nom||c.nom===nom)||null:null;
+const carteDe=nom=>(nom=((globalThis.GolemsDonnees||{}).nomActuel||(n=>n))(nom))?Object.values(M0.CARTES).find(c=>M0.nomDetail(c)===nom||c.nom===nom)||null:null;
 /* Couleur d'une carte : son premier element (un animal prend celui de son maitre). */
 const elCarte=C=>!C?null:(C.el&&C.el[0])||(C.maitre&&M0.CARTES[C.maitre]&&M0.CARTES[C.maitre].el[0])||null;
 const nivHisto=a=>{const m=/^Golem \((facile|normal|difficile)\)$/i.exec(a||'');return m?NIV_ORDI.find(n=>n[0]===m[1].toLowerCase()):null};
