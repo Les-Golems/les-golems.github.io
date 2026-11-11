@@ -81,7 +81,7 @@ function menuAff(o){const m=$('menuAffichage'),b=$('btnAffichage');m.hidden=!o;b
 $('btnAffichage').onclick=e=>{e.stopPropagation();menuAff($('menuAffichage').hidden)};
 document.addEventListener('click',e=>{if(!$('menuAffichage').hidden&&!e.target.closest('.bd-affw'))menuAff(false)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('menuAffichage').hidden){menuAff(false);$('btnAffichage').focus()}});
-/* Pastille « N en ligne » : visiteurs de enligne/ (invites compris), ecrits par salon-firebase.js. Affichage seul, non cliquable.
+/* Pastille « N en ligne » : visiteurs de enligne/ (invites compris), ecrits par firebase/salon.js. Affichage seul, non cliquable.
    Repli (ancienne base sans enligne/) : comptes presents dans hall/ (room.peers). */
 function majEnLigne(){const p=$('enLigne');let n=0;
   try{n=room&&room.enLigneN?room.enLigneN():0;if(!n&&room&&room.peers)n=room.peers().length}catch(e){n=0}

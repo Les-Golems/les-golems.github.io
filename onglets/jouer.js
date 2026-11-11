@@ -590,7 +590,7 @@ const ATTENTE_ROBOT=120000;let robotT2=0,creeSrv=0,creeLu='';
    (jamais de verification sans fin). cree est ecoute en continu par le salon (onCree) : sa valeur relance le bandeau des qu'elle arrive. */
 let creeT0=0,creeCode='',creeOk='',creeEnvoi=false,creePanne=false,creeEssai=0;
 /* relance=true (Reessayer, garde-fou) : nouvel essai meme si un envoi semble en cours (relanceCree : nouvelle connexion forcee, puis essai ;
-   salon-firebase n'a jamais qu'un essai de cree a la fois). Echec : bandeau du salon en etat d'echec avec son propre Reessayer, en meme temps que l'alerte. */
+   firebase/salon.js n'a jamais qu'un essai de cree a la fois). Echec : bandeau du salon en etat d'echec avec son propre Reessayer, en meme temps que l'alerte. */
 function reposeCree(relance){const s=r;if(!s||!s.poseCree||(creeEnvoi&&!relance))return;creeEnvoi=true;(relance&&s.relanceCree?s.relanceCree():s.poseCree()).catch(e=>console.warn('salon classe',e)).then(()=>{creeEnvoi=false})}
 function reessaieCree(){alerte('erreurJeu','');creePanne=false;creeOk='';creeT0=Date.now();creeEssai=0;reposeCree(true);creeLu='';arrGardeCree();majBandeauRobot()}
 function creeEnPanne(){creePanne=true;alerte('erreurJeu','Heure d\'ouverture du salon classé impossible à enregistrer : vérifie ta connexion.',{bouton:{texte:'Réessayer',action:reessaieCree}});majBandeauRobot()}

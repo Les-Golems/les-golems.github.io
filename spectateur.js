@@ -2,7 +2,7 @@
 // Modèle : salons/{code}/siege = uid de l'adversaire (pris par transaction) ;
 //          salons/{code}/spectateurs/{uid} = { p: pseudo, t: heure serveur }.
 // j1 = le créateur (entrée de joueurs qui n'est pas le siège) ; un spectateur n'écrit jamais dans joueurs ni coups.
-// Même version du SDK que salon-firebase.js : même application, même base (émulateur compris).
+// Même version du SDK que firebase/compte.js et firebase/salon.js : même application, même base (émulateur compris).
 import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getDatabase, ref, onValue, get, set, remove, push, onDisconnect, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -245,7 +245,7 @@ const SPEC = {
   forfaits: () => forfaitsJ,
   heure: () => Date.now() + decalage,
   onChat(f) { ecoutesChat.push(f); f(chat); },
-  // Chat d'un spectateur (les joueurs gardent r.dit de salon-firebase.js).
+  // Chat d'un spectateur (les joueurs gardent r.dit de firebase/salon.js).
   async dit(m) {
     m = String(m || "").replace(/\s+/g, " ").trim().slice(0, 200);
     if (!m || !actif) return;

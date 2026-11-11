@@ -3,7 +3,7 @@
    sur l'historique de l'appareil (50 dernieres parties) pour un invite.
    Le meme resume est publie (profils/{uid}) : la fenetre d'un autre joueur affiche exactement ses chiffres. */
 const NIV_ORDI=[['facile','var(--js-taux-haut)'],['normal','var(--js-taux-moyen)'],['difficile','var(--js-taux-bas)']];
-/* Cumuls (texte JSON ecrit par salon-firebase.js) : f format, n parties, v victoires, d defaites, s serie signee
+/* Cumuls (texte JSON ecrit par firebase/compte.js) : f format, n parties, v victoires, d defaites, s serie signee
    (sd : date de la partie qui l'a fixee), k parties comptees, tables de lignes [cle, parties, victoires, rang, ...] :
    dk decks (+ elements), c cartes, mv MVP (nom), a adversaires, ve versions du moteur (+ parties et victoires contre
    l'ordinateur facile, normal, difficile). Rang = ordre de derniere apparition, il departage les egalites comme avant.
@@ -158,7 +158,7 @@ function resumeCumul(c){
    R.pv=versStats([...m.keys()].map(v=>({v}))).map(p=>m.get(p)).slice(0,10)}
   return R;
 }
-/* Resume publie (salon-firebase.js) : cumuls c du compte completes par les parties de l'historique l pas encore comptees ;
+/* Resume publie (firebase/compte.js) : cumuls c du compte completes par les parties de l'historique l pas encore comptees ;
    sans cumuls (invite, ancien fichier), l'historique seul. */
 function resumeProfil(l,c,ctx){c=c&&typeof c==='object'?c:null;const cu=cumulAjoute(c,l,ctx)||c,R=resumeCumul(cu);R.pm=resumeModes(cu&&cu.md);R.pmf=2;{const k=cu&&cu.md&&cu.md.sa|0;if(k>0)R.pms=k}return R}
 /* 0.6.2 : resume public PAR MODE et PAR NIVEAU (profils/<uid>/pm, pmf = 2, rules/30-stats.js) tire des compteurs complets md :

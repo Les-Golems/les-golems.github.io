@@ -2,15 +2,15 @@
 /* Site d'essai : regenere essai/ comme copie exacte du site (racine du depot), servie a l'adresse /essai/.
    node outils/generer_essai.js
    Le code reconnait /essai/ tout seul : commun/outils.js (cles locales prefixees, pastille SITE D'ESSAI)
-   et salon-firebase.js (prefixe essai/ dans Firebase). Rien a modifier a la main dans essai/.
+   et firebase/compte.js (prefixe essai/ dans Firebase). Rien a modifier a la main dans essai/.
    Copie : fichiers de la racine (html, js, css, json, images, manifeste) sauf configuration Firebase,
-   et les dossiers css/ commun/ onglets/ vue/ cartes/ moteurs/ avatars/ ; des videos, seules les affiches .jpg
+   et les dossiers css/ commun/ firebase/ onglets/ vue/ cartes/ moteurs/ avatars/ ; des videos, seules les affiches .jpg
    (les .mp4 sont lourds : l'onglet Nouveautes de l'essai les lit donc sans video).
    Jamais copies : tests/ outils/ rules/ essai/ _tmp/ .git, database.rules.json, firebase.json, scripts .ps1, README. */
 'use strict';
 const fs=require('fs'),path=require('path');
 const RACINE=path.resolve(__dirname,'..'),CIBLE=path.join(RACINE,'essai');
-const DOSSIERS=['css','commun','onglets','vue','cartes','moteurs','avatars','images'];
+const DOSSIERS=['css','commun','firebase','onglets','vue','cartes','moteurs','avatars','images'];
 const EXT_RACINE=/\.(html|js|css|json|png|jpg|ico|webmanifest)$/i;
 const EXCLUS_RACINE=new Set(['database.rules.json','firebase.json']);
 let n=0;

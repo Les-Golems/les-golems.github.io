@@ -1065,7 +1065,7 @@ function enregistrePartie(s){
   if(l.some(x=>x.id===id))return;
   const o=archiveResume(s,id);
   enregistreDans(l,s,id);
-  {const k=partie.classe,c=k&&k.res;if(k&&l[0]&&l[0].id===id){l[0].mode='classee';l[0].classe=c?{elo:c.avant,delta:c.delta,eloAdv:k.eloAdv,robot:!!k.robot}:{robot:!!k.robot};if(k.robot)l[0].classe.niveau=k.robot;if(!(c&&c.ecrit))l[0].classe.attente=true}} /* 0.6.1 : etiquette d'apres partie.classe ; variation « en attente » tant que non ecrite */ /* 0.6 : etiquette Classee (+ Golem) de l'Historique ; c, de, ro dans Firebase (salon-firebase.js) */
+  {const k=partie.classe,c=k&&k.res;if(k&&l[0]&&l[0].id===id){l[0].mode='classee';l[0].classe=c?{elo:c.avant,delta:c.delta,eloAdv:k.eloAdv,robot:!!k.robot}:{robot:!!k.robot};if(k.robot)l[0].classe.niveau=k.robot;if(!(c&&c.ecrit))l[0].classe.attente=true}} /* 0.6.1 : etiquette d'apres partie.classe ; variation « en attente » tant que non ecrite */ /* 0.6 : etiquette Classee (+ Golem) de l'Historique ; c, de, ro dans Firebase (firebase/compte.js) */
   if(compteCo()){const x={id,u:room.compte.uid(),h:l[0]};if(o)x.r=o;majAttente(id,y=>Object.assign(y,x));envoieAttente(id);return}
   ecrire('golems.historique',JSON.stringify(l.slice(0,50)));
 }
