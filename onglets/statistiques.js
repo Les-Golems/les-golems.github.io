@@ -302,14 +302,14 @@ function dessineStats(RT){
     g.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a==='jouer')onglet('jouer');else{ouvrePseudo();if(a==='cree')modeCompte(true)}});
     if(statsAjuste)statsAjuste();
   }
-  /* Hauteurs (PC) : Éléments garde sa hauteur naturelle, au moins jusqu'au bas de l'écran ; les 3 autres colonnes s'alignent ;
+  /* Hauteurs (PC) : Éléments garde sa hauteur naturelle (Duos suit Éléments, le vide passe en bas), au moins jusqu'au bas de l'écran ; les 3 autres colonnes s'alignent ;
      listes en nombre entier de lignes visibles (l'espace restant est réparti entre les lignes). */
   statsAjuste=()=>{if(!g.isConnected||!g.offsetParent)return;
     const pE=P[3],sh=pE.querySelector('.st-sh2');P.forEach(p=>p.style.height='');if(sh)sh.style.marginTop='';
     P.slice(0,3).forEach(p=>{const c=p.querySelector('.st-corps');if(c){c.style.removeProperty('--L');c.style.removeProperty('--g')}});
     if(!matchMedia('(min-width:1200px)').matches)return;
     const nat=pE.offsetHeight,He=Math.max(nat,Math.floor(innerHeight-24-(g.getBoundingClientRect().top+scrollY)));
-    if(sh)sh.style.marginTop=(10+He-nat)+'px';P.forEach(p=>p.style.height=He+'px');
+    P.forEach(p=>p.style.height=He+'px');
     P.slice(0,3).forEach(p=>{const c=p.querySelector('.st-corps');if(!c)return;const H=c.clientHeight;
       if(c.querySelector('.st-lc,.st-lt')){const n=Math.floor((H+4)/48);if(n>1)c.style.setProperty('--g',((H-n*44)/(n-1))+'px')}
       else if(c.querySelector('.st-ln')){const n=Math.floor(H/44);if(n)c.style.setProperty('--L',(H/n)+'px')}
