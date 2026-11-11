@@ -43,7 +43,6 @@ const SVG_LECTURE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v1
 const SVG_POUCE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 21h4V9H2v12zm20-11a2 2 0 0 0-2-2h-6.3l1-4.6v-.3c0-.4-.2-.8-.4-1.1L13.2 1 6.6 7.6C6.2 8 6 8.5 6 9v10a2 2 0 0 0 2 2h9c.8 0 1.5-.5 1.8-1.2l3-7.1.2-.7v-2z"/></svg>';
 const SVG_LIEN='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 9.5l3-3M7 4.5l1.2-1.2a2.8 2.8 0 0 1 4 4L11 8.5M9 11.5l-1.2 1.2a2.8 2.8 0 0 1-4-4L5 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 const SVG_EXT='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3H3v10h10v-3M9 2h5v5M14 2L7 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const gdMk=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const gdNorm=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const gdMois={janv:0,'févr':1,mars:2,avr:3,mai:4,juin:5,juil:6,'août':7,sept:8,oct:9,nov:10,'déc':11};
 const gdJour=g=>{if(g.ms)return g.ms;const m=/(\d+) (\S+?)\.? (\d{4})/.exec(g.date)||[];return new Date(+m[3],gdMois[m[2]]??0,+m[1]).getTime()||0};
@@ -124,7 +123,7 @@ function majPointGd(){
   if(gdListeVisible()){const m=Math.max(0,...gdTous().filter(gdNouveau).map(g=>g.ms));if(m>GN.vu){GN.vu=m;ecrire('golems.guidesVu',String(m))}}
   const n=!gdListeVisible()&&gdTous().some(g=>gdNouveau(g)&&g.ms>GN.vu);
   [[$('t-regles'),'o-nvpt gd-pt'],[document.querySelector('#cjSel>button[data-v="guides"]'),'o-nvpt gd-pt gd-ptsel']].forEach(([b,c])=>{if(!b)return;
-    const p=b.querySelector('.gd-pt');if(n&&!p){const s=gdMk('span',c);s.setAttribute('aria-hidden','true');b.append(s)}else if(!n&&p)p.remove();
+    const p=b.querySelector('.gd-pt');if(n&&!p){const s=el('span',c);s.setAttribute('aria-hidden','true');b.append(s)}else if(!n&&p)p.remove();
     b.title=n?'Nouveau guide publié':''});
 }
 if(window.golemsSalon)Promise.resolve(window.golemsSalon).then(r=>{if(!r||!r.guides)return;GD.room=r;
@@ -141,26 +140,26 @@ function gdListe(){
 function gdVer(d,g){const s=etqVersionDeck(g.v||V_DECK_ANCIEN,d.cartes);s.classList.add('gd-ver');
   if(!d.ok){s.classList.add('vx-diff');s.title='Hors règles actuelles : '+d.raisons.map(x=>x.t).join(' ');s.setAttribute('aria-label',s.title)}return s}
 function gdItem(g){
-  const li=gdMk('li'),b=gdMk('button','gd-li'+(g===GD.cur?' on':''));b.type='button';b.setAttribute('aria-pressed',String(g===GD.cur));
-  const mi=gdMk('span','gd-mi'+(g.texte?' t':''));if(g.texte)mi.textContent='TEXTE';else{const i=gdMk('img');i.src='https://i.ytimg.com/vi/'+g.yt+'/mqdefault.jpg';i.alt='';i.loading='lazy';mi.append(i)}
-  const tx=gdMk('span','gd-lt'),t=gdMk('b','',g.titre),s=gdMk('small');t.title=g.titre;
-  const sc=gdScore(g);s.append(gdMk('span','gd-sc',(sc>0?'+':'')+sc));const D=gdInfo(g);if(D.length&&!D[0].err)s.append(gdVer(D.find(x=>!x.ok)||D[0],g));
-  if(g.officiel)s.append(gdMk('span','gd-tag','Officiel'));s.append(g.auteur+' - '+g.date.replace(/ \d{4}$/,''));
-  tx.append(t,s);b.append(mi,tx);if(gdNouveau(g)){const p=gdMk('span','o-nvpt gd-ptli');p.setAttribute('aria-hidden','true');b.append(p);b.title='Nouveau guide'} /* pastille de l'onglet, coin haut droit, ne decale rien */b.onclick=()=>{GD.cur=g;gdOuvert(g);gdAlerte(false);peintGuidesCJ()};li.append(b);return li;
+  const li=el('li'),b=el('button','gd-li'+(g===GD.cur?' on':''));b.type='button';b.setAttribute('aria-pressed',String(g===GD.cur));
+  const mi=el('span','gd-mi'+(g.texte?' t':''));if(g.texte)mi.textContent='TEXTE';else{const i=el('img');i.src='https://i.ytimg.com/vi/'+g.yt+'/mqdefault.jpg';i.alt='';i.loading='lazy';mi.append(i)}
+  const tx=el('span','gd-lt'),t=el('b','',g.titre),s=el('small');t.title=g.titre;
+  const sc=gdScore(g);s.append(el('span','gd-sc',(sc>0?'+':'')+sc));const D=gdInfo(g);if(D.length&&!D[0].err)s.append(gdVer(D.find(x=>!x.ok)||D[0],g));
+  if(g.officiel)s.append(el('span','gd-tag','Officiel'));s.append(g.auteur+' - '+g.date.replace(/ \d{4}$/,''));
+  tx.append(t,s);b.append(mi,tx);if(gdNouveau(g)){const p=el('span','o-nvpt gd-ptli');p.setAttribute('aria-hidden','true');b.append(p);b.title='Nouveau guide'} /* pastille de l'onglet, coin haut droit, ne decale rien */b.onclick=()=>{GD.cur=g;gdOuvert(g);gdAlerte(false);peintGuidesCJ()};li.append(b);return li;
 }
 /* Noms de cartes cites dans un guide texte : meme composant que le journal (texteLog, clic = zoom). */
 function gdNoms(r){if(typeof texteLog!=='function')return;const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT),L=[];while(w.nextNode())L.push(w.currentNode);
   L.forEach(t=>{if(!t.data.trim()||t.parentNode.closest('h4,.j-lien'))return;const s=texteLog(t.data);if(s.querySelector('.j-lien'))t.replaceWith(...s.childNodes)})}
 function gdAlerte(on,txt){const z=$('gdAlq');if(!z)return;z.replaceChildren();if(!on)return;
-  const a=gdMk('div','sc-alerte sc-info sc-une-ligne');a.setAttribute('role','status');a.append(gdMk('i'),gdMk('span','',txt||'Guide : lien copié. Colle-le sur Discord.'));z.append(a)}
+  const a=el('div','sc-alerte sc-info sc-une-ligne');a.setAttribute('role','status');a.append(el('i'),el('span','',txt||'Guide : lien copié. Colle-le sur Discord.'));z.append(a)}
 const gdLien=g=>location.origin+location.pathname+'?guide='+encodeURIComponent(g.id);
 function gdCopie(g){const u=gdLien(g),fin=()=>gdAlerte(true);
-  (navigator.clipboard?.writeText?navigator.clipboard.writeText(u):Promise.reject()).then(fin,()=>{const t=gdMk('textarea');t.value=u;document.body.append(t);t.select();try{document.execCommand('copy')}catch(e){}t.remove();fin()})}
+  (navigator.clipboard?.writeText?navigator.clipboard.writeText(u):Promise.reject()).then(fin,()=>{const t=el('textarea');t.value=u;document.body.append(t);t.select();try{document.execCommand('copy')}catch(e){}t.remove();fin()})}
 function gdArrete(){const e=$('gdEcran');if(e&&e.querySelector('iframe'))peintEcran(GD.cur)}
 function peintEcran(g){const e=$('gdEcran');if(!e)return;e.replaceChildren();
-  const z=gdMk('button','gd-vid');z.type='button';z.setAttribute('aria-label','Lire la vidéo « '+g.titre+' »');
-  const i=gdMk('img');i.src='https://i.ytimg.com/vi/'+g.yt+'/hqdefault.jpg';i.alt='';const p=gdMk('span','gd-lec');p.innerHTML=SVG_LECTURE;z.append(i,p);
-  z.onclick=()=>{const f=gdMk('iframe');f.src='https://www.youtube-nocookie.com/embed/'+g.yt+'?autoplay=1&rel=0';f.title=g.titre;f.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';f.allowFullscreen=true;z.replaceWith(f)};
+  const z=el('button','gd-vid');z.type='button';z.setAttribute('aria-label','Lire la vidéo « '+g.titre+' »');
+  const i=el('img');i.src='https://i.ytimg.com/vi/'+g.yt+'/hqdefault.jpg';i.alt='';const p=el('span','gd-lec');p.innerHTML=SVG_LECTURE;z.append(i,p);
+  z.onclick=()=>{const f=el('iframe');f.src='https://www.youtube-nocookie.com/embed/'+g.yt+'?autoplay=1&rel=0';f.title=g.titre;f.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';f.allowFullscreen=true;z.replaceWith(f)};
   e.append(z)}
 /* Supprimer (auteur ou Romain) : fenetre de confirmation de la charte [Supprimer] [Annuler]. Guide du code : retire (sup) ; guide publie : efface. */
 async function gdSupprime(g){
@@ -173,38 +172,38 @@ async function gdSupprime(g){
 /* Bandeau des guides (#gdAlq) : un seul noeud, garde d'un rendu a l'autre et place aussi dans le panneau vide (liste filtree vide apres une modification ou une suppression). */
 const GD_ALQ=(()=>{const z=document.createElement('div');z.className='gd-alq';z.id='gdAlq';return z})();
 function gdDetail(g){
-  const P=$('gdDet');P.replaceChildren();if(!g){P.append(GD_ALQ,gdMk('p','gd-vide','Aucun guide ne correspond.'));return}
-  const ph=gdMk('div','gd-ph'),h=gdMk('h3','',g.titre);h.title=g.titre;ph.append(h);if(g.officiel)ph.append(gdMk('span','gd-tag','Officiel'));
-  if(gdPeut(g)){const ge=gdMk('div','gd-gest'),mo=gdMk('button','sc-btn sc-tertiaire','Modifier'),su=gdMk('button','sc-btn sc-tertiaire','Supprimer');mo.type=su.type='button';
+  const P=$('gdDet');P.replaceChildren();if(!g){P.append(GD_ALQ,el('p','gd-vide','Aucun guide ne correspond.'));return}
+  const ph=el('div','gd-ph'),h=el('h3','',g.titre);h.title=g.titre;ph.append(h);if(g.officiel)ph.append(el('span','gd-tag','Officiel'));
+  if(gdPeut(g)){const ge=el('div','gd-gest'),mo=el('button','sc-btn sc-tertiaire','Modifier'),su=el('button','sc-btn sc-tertiaire','Supprimer');mo.type=su.type='button';
     mo.onclick=()=>ouvrePropGuide(g);su.onclick=()=>gdSupprime(g);ge.append(mo,su);ph.append(ge)}
-  const r2=gdMk('div','gd-r2'),me=gdMk('div','gd-meta'),av=gdMk('i','gd-av',g.officiel?'':(g.auteur[0]||'?'));
-  if(g.officiel){const im=gdMk('img');im.src=imgV('cartes/logo.png');im.alt='';av.append(im)}
-  me.append(av,gdMk('b','gd-aut',g.auteur),gdMk('span','','-'),gdMk('span','gd-date',g.date));if(g.texte)me.append(gdMk('span','','-'),gdMk('span','',g.min+' min de lecture'));
-  const ac=gdMk('div','gd-act'),vo=gdMk('div','gd-vo'),C=gdComptes(g),v=C.mien;
+  const r2=el('div','gd-r2'),me=el('div','gd-meta'),av=el('i','gd-av',g.officiel?'':(g.auteur[0]||'?'));
+  if(g.officiel){const im=el('img');im.src=imgV('cartes/logo.png');im.alt='';av.append(im)}
+  me.append(av,el('b','gd-aut',g.auteur),el('span','','-'),el('span','gd-date',g.date));if(g.texte)me.append(el('span','','-'),el('span','',g.min+' min de lecture'));
+  const ac=el('div','gd-act'),vo=el('div','gd-vo'),C=gdComptes(g),v=C.mien;
   [[1,'Guide utile',C.haut],[-1,'Guide peu utile',C.bas]].forEach(([s,t,n])=>{
-    const b=gdMk('button','sc-btn sc-tertiaire gd-vb'+(v===s?' on':''));b.type='button';b.title=t;b.setAttribute('aria-label',t+' ('+n+')');b.setAttribute('aria-pressed',String(v===s));
+    const b=el('button','sc-btn sc-tertiaire gd-vb'+(v===s?' on':''));b.type='button';b.title=t;b.setAttribute('aria-label',t+' ('+n+')');b.setAttribute('aria-pressed',String(v===s));
     b.innerHTML=s>0?SVG_POUCE:'<span class="gd-bas">'+SVG_POUCE+'</span>';b.append(String(n));b.onclick=()=>gdVoter(g,s);vo.append(b)});
-  const cp=gdMk('button','sc-btn sc-secondaire gd-cp','Copier le lien ');cp.type='button';cp.insertAdjacentHTML('beforeend',SVG_LIEN);cp.onclick=()=>gdCopie(g);
+  const cp=el('button','sc-btn sc-secondaire gd-cp','Copier le lien ');cp.type='button';cp.insertAdjacentHTML('beforeend',SVG_LIEN);cp.onclick=()=>gdCopie(g);
   ac.append(vo,cp);
-  if(!g.texte){const y=gdMk('a','sc-btn sc-secondaire gd-yt','Voir sur YouTube ');y.href='https://www.youtube.com/watch?v='+g.yt;y.target='_blank';y.rel='noopener';y.insertAdjacentHTML('beforeend',SVG_EXT);ac.append(y)}
+  if(!g.texte){const y=el('a','sc-btn sc-secondaire gd-yt','Voir sur YouTube ');y.href='https://www.youtube.com/watch?v='+g.yt;y.target='_blank';y.rel='noopener';y.insertAdjacentHTML('beforeend',SVG_EXT);ac.append(y)}
   r2.append(me,ac);
   const alq=GD_ALQ;
   /* Bande du deck : fond aux couleurs de ses elements, selecteur s'il y a deux versions, compteur x/30, version, Importer le deck */
-  const D=gdInfo(g),d=D[g.dk],st=gdMk('div','gd-strip');
-  if(D.length>1){const s=gdMk('div','sc-sel sc-petit gd-dsel');s.setAttribute('role','group');s.setAttribute('aria-label','Version du deck');
-    g.decks.forEach((x,j)=>{const b=gdMk('button','',x.onglet||x.nom);b.type='button';b.setAttribute('aria-pressed',String(j===g.dk));b.onclick=()=>{g.dk=j;peintGuidesCJ()};s.append(b)});st.append(s)}
-  else{const n=gdMk('div','gd-dn'+(D.length?'':' vide'));n.append(gdMk('small','','Deck'),gdMk('b','',D.length?g.decks[0].nom:'Aucun deck à importer'));if(D.length)n.lastChild.title=g.decks[0].nom;st.append(n)}
+  const D=gdInfo(g),d=D[g.dk],st=el('div','gd-strip');
+  if(D.length>1){const s=el('div','sc-sel sc-petit gd-dsel');s.setAttribute('role','group');s.setAttribute('aria-label','Version du deck');
+    g.decks.forEach((x,j)=>{const b=el('button','',x.onglet||x.nom);b.type='button';b.setAttribute('aria-pressed',String(j===g.dk));b.onclick=()=>{g.dk=j;peintGuidesCJ()};s.append(b)});st.append(s)}
+  else{const n=el('div','gd-dn'+(D.length?'':' vide'));n.append(el('small','','Deck'),el('b','',D.length?g.decks[0].nom:'Aucun deck à importer'));if(D.length)n.lastChild.title=g.decks[0].nom;st.append(n)}
   if(d&&!d.err){const E=d.els.map(x=>x[0]);st.style.background=E.length>1?'linear-gradient(120deg,'+E.map(e=>'color-mix(in srgb,var(--'+e+') 60%,#0a121a)').join(',')+')':'color-mix(in srgb,var(--'+E[0]+') 60%,#0a121a)';st.classList.add('dg');
-    const pe=gdMk('div','gd-els');d.els.forEach(([e,n])=>{const s=gdMk('span','gd-el');s.title=nomEl(e);s.append(picto(e),gdMk('b','',String(n)));pe.append(s)});
-    st.append(pe,gdMk('span','gd-ct',d.n+'/30'),gdVer(d,g))}
-  else if(d&&d.err)st.append(gdMk('span','gd-err',d.err));
-  st.append(gdMk('span','gd-esp'));
-  if(d&&!d.err){const im=gdMk('button','sc-btn gd-imp','Importer le deck');im.type='button';im.setAttribute('aria-label','Importer le deck « '+g.decks[g.dk].nom+' »');im.onclick=()=>ouvreDeckLien(d.code);st.append(im)}
+    const pe=el('div','gd-els');d.els.forEach(([e,n])=>{const s=el('span','gd-el');s.title=nomEl(e);s.append(picto(e),el('b','',String(n)));pe.append(s)});
+    st.append(pe,el('span','gd-ct',d.n+'/30'),gdVer(d,g))}
+  else if(d&&d.err)st.append(el('span','gd-err',d.err));
+  st.append(el('span','gd-esp'));
+  if(d&&!d.err){const im=el('button','sc-btn gd-imp','Importer le deck');im.type='button';im.setAttribute('aria-label','Importer le deck « '+g.decks[g.dk].nom+' »');im.onclick=()=>ouvreDeckLien(d.code);st.append(im)}
   let corps;
-  if(g.texte){corps=gdMk('div','gd-txtB');const t=gdMk('div','gd-txt');t.innerHTML=g.texte;corps.append(t)}
-  else{corps=gdMk('div','gd-ecran');corps.id='gdEcran'}
+  if(g.texte){corps=el('div','gd-txtB');const t=el('div','gd-txt');t.innerHTML=g.texte;corps.append(t)}
+  else{corps=el('div','gd-ecran');corps.id='gdEcran'}
   P.append(ph,r2,alq,st,corps);if(g.texte)gdEnrichit(corps.firstChild);
-  if(!g.texte&&g.desc){const t=gdMk('div','gd-txt gd-desc');t.innerHTML=g.desc;P.append(t);gdEnrichit(t)}
+  if(!g.texte&&g.desc){const t=el('div','gd-txt gd-desc');t.innerHTML=g.desc;P.append(t);gdEnrichit(t)}
   if(!g.texte)peintEcran(g);
 }
 /* garde : repeinture venue de la base ou d'un vote, sur le meme guide : le bandeau ponctuel (publie, supprime, lien copie) reste ;
@@ -216,7 +215,7 @@ function peintGuidesCJ(garde){
   if(GD.cur&&!GD.fait){GD.page=Math.floor(L.indexOf(GD.cur)/GD.par)}GD.fait=true;GD.page=Math.max(0,Math.min(GD.page,n-1));
   $('gdNb').textContent=L.length+(L.length>1?' guides':' guide');
   const ol=$('gdLst');ol.replaceChildren(...L.slice(GD.page*GD.par,(GD.page+1)*GD.par).map(gdItem));
-  if(!L.length)ol.append(gdMk('li','gd-vide','Aucun guide ne correspond.'));
+  if(!L.length)ol.append(el('li','gd-vide','Aucun guide ne correspond.'));
   $('gdNum').textContent=(GD.page+1)+'/'+n;$('gdPrec').disabled=GD.page===0;$('gdSuiv').disabled=GD.page>=n-1;
   /* Guide deja affiche (meme id, video en cours) : le detail n'est repeint que s'il change, sauf l'alerte qui reste. */
   const avant=$('gdDet').dataset.id;if(!(garde===true&&avant===(GD.cur?.id||'')))GD_ALQ.replaceChildren();gdDetail(GD.cur);$('gdDet').dataset.id=GD.cur?.id||'';
@@ -242,7 +241,7 @@ function cjInit(){
   $('cjRech').oninput=()=>{const v=$('cjRech').value;CJ_RECH[CJ.vue]=v;
     if(CJ.vue==='regles')window.golemsRegles?.cherche(v);else{GD.q=gdNorm(v.trim());GD.page=0;GD.cur=null;peintGuidesCJ()}};
   /* Filtres des guides : elements (tous ceux choisis presents dans le deck), type */
-  const fe=$('gdEls');['magma','cristal','foudre','brume','roche'].forEach(e=>{const b=gdMk('button','gd-e3');b.type='button';b.style.setProperty('--c','var(--'+e+')');
+  const fe=$('gdEls');['magma','cristal','foudre','brume','roche'].forEach(e=>{const b=el('button','gd-e3');b.type='button';b.style.setProperty('--c','var(--'+e+')');
     b.title=nomEl(e);b.setAttribute('aria-pressed','false');b.setAttribute('aria-label',nomEl(e));b.append(picto(e));
     b.onclick=()=>{GD.els.has(e)?GD.els.delete(e):GD.els.add(e);b.setAttribute('aria-pressed',String(GD.els.has(e)));GD.page=0;GD.cur=null;peintGuidesCJ()};fe.append(b)});
   document.querySelectorAll('#gdType>button').forEach(b=>b.onclick=()=>{GD.type=b.dataset.t;document.querySelectorAll('#gdType>button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));GD.page=0;GD.cur=null;peintGuidesCJ()});
@@ -267,48 +266,48 @@ const SVG_CADENAS='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10
 function gdMajProp(){const b=$('gdProp');if(!b)return;const co=compteCo();b.className='sc-btn gd-prop'+(co?'':' sc-secondaire');b.innerHTML=(co?'':'<span class="gd-pcad">'+SVG_CADENAS+'</span>')+'Publier un guide'}
 const gdYt=u=>{u=String(u||'').trim();const m=/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/|\/live\/)([A-Za-z0-9_-]{11})(?![A-Za-z0-9_-])/.exec(u)||/^([A-Za-z0-9_-]{11})$/.exec(u);return m?m[1]:''};
 function gdTuileDeck(d){
-  const t=gdMk('div','gd-strip dg gd-tf'),E=elsOrdre(d);t.style.background=fondDeck(E);
-  const n=gdMk('div','gd-dn');n.append(gdMk('small','','Deck'),gdMk('b','',d.nom));n.lastChild.title=d.nom;
-  const pe=gdMk('div','gd-els');
-  E.forEach(e=>{const s=gdMk('span','gd-el'),q=Object.keys(d.cartes).filter(k=>+d.cartes[k]>0&&(M.CARTES[k]?.el||[]).includes(e)).reduce((x,k)=>x+(+d.cartes[k]),0);
-    s.title=nomEl(e);s.append(picto(e),gdMk('b','',String(q)));pe.append(s)});
-  t.append(n,pe,gdMk('span','gd-ct',totalDeck(d)+'/30'),etqVersionDeck(d.v||V_DECK_ANCIEN,d.cartes));return t;
+  const t=el('div','gd-strip dg gd-tf'),E=elsOrdre(d);t.style.background=fondDeck(E);
+  const n=el('div','gd-dn');n.append(el('small','','Deck'),el('b','',d.nom));n.lastChild.title=d.nom;
+  const pe=el('div','gd-els');
+  E.forEach(e=>{const s=el('span','gd-el'),q=Object.keys(d.cartes).filter(k=>+d.cartes[k]>0&&(M.CARTES[k]?.el||[]).includes(e)).reduce((x,k)=>x+(+d.cartes[k]),0);
+    s.title=nomEl(e);s.append(picto(e),el('b','',String(q)));pe.append(s)});
+  t.append(n,pe,el('span','gd-ct',totalDeck(d)+'/30'),etqVersionDeck(d.v||V_DECK_ANCIEN,d.cartes));return t;
 }
 function ouvrePropGuide(g){
   $('gdPFen')?.remove();
-  const co=compteCo(),v=gdMk('div','voile gd-pvoile'),f=gdMk('div','sc-fenetre gd-pfen');
+  const co=compteCo(),v=el('div','voile gd-pvoile'),f=el('div','sc-fenetre gd-pfen');
   v.id='gdPFen';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-labelledby','gdPT');
-  const h=gdMk('h3','sc-fen-titre',g?'Modifier le guide':'Publier un guide');h.id='gdPT';const msg=gdMk('div','gd-pmsg');f.append(h,msg);
+  const h=el('h3','sc-fen-titre',g?'Modifier le guide':'Publier un guide');h.id='gdPT';const msg=el('div','gd-pmsg');f.append(h,msg);
   const ferme=()=>{v.remove();$('gdProp')?.focus()};v.onclick=e=>{if(e.target===v)ferme()};v.onkeydown=e=>{if(e.key==='Escape'&&!$('popDeck'))ferme()};
   const choisi=()=>{const id=lire('golems.deckChoisi')||'';return lesDecks().find(x=>x.id===id)||null};
   /* Deck deja publie (Modifier) : repris de son code, garde tel quel s'il n'est pas change. */
   const duGuide=j=>{const x=g&&gdInfo(g)[j];return x&&!x.err?{nom:x.nom,cartes:x.cartes,v:g.v||V_DECK_ANCIEN,code:x.code}:null};
   const P=g?{ty:g.texte?'t':'v',d1:duGuide(0),d2:duGuide(1)}:{ty:'v',d1:co?choisi():null,d2:null};
-  const corps=gdMk('div','gd-pcorps'),info=gdMk('div','gd-pinfo');
+  const corps=el('div','gd-pcorps'),info=el('div','gd-pinfo');
   alerteInfo(info,g?'La modification est publiée tout de suite pour tous les joueurs.':'Ton guide est publié tout de suite pour tous les joueurs.').classList.add('sc-une-ligne');
-  const fl=gdMk('div','gd-fl'),lab=(t,s)=>{const l=gdMk('label','',t);if(s)l.append(gdMk('small','',s));return l};
-  const ty=gdMk('div','sc-sel gd-pty');ty.setAttribute('role','group');ty.setAttribute('aria-label','Type de guide');
-  [['v','Vidéo'],['t','Texte']].forEach(([k,t])=>{const b=gdMk('button','',t);b.type='button';b.dataset.k=k;b.onclick=()=>{P.ty=k;maj()};ty.append(b)});
-  const ti=gdMk('input','gd-ch');ti.maxLength=80;ti.placeholder='Titre de ton guide';ti.setAttribute('aria-label','Titre');
-  const yt=gdMk('input','gd-ch');yt.placeholder='https://www.youtube.com/watch?v=...';yt.setAttribute('aria-label','Lien YouTube');
-  const tx=gdMk('textarea','gd-ch');tx.maxLength=4000;tx.placeholder='Explique ton plan de jeu, tes choix de cartes, les terrains que tu vises...';tx.setAttribute('aria-label','Texte');
+  const fl=el('div','gd-fl'),lab=(t,s)=>{const l=el('label','',t);if(s)l.append(el('small','',s));return l};
+  const ty=el('div','sc-sel gd-pty');ty.setAttribute('role','group');ty.setAttribute('aria-label','Type de guide');
+  [['v','Vidéo'],['t','Texte']].forEach(([k,t])=>{const b=el('button','',t);b.type='button';b.dataset.k=k;b.onclick=()=>{P.ty=k;maj()};ty.append(b)});
+  const ti=el('input','gd-ch');ti.maxLength=80;ti.placeholder='Titre de ton guide';ti.setAttribute('aria-label','Titre');
+  const yt=el('input','gd-ch');yt.placeholder='https://www.youtube.com/watch?v=...';yt.setAttribute('aria-label','Lien YouTube');
+  const tx=el('textarea','gd-ch');tx.maxLength=4000;tx.placeholder='Explique ton plan de jeu, tes choix de cartes, les terrains que tu vises...';tx.setAttribute('aria-label','Texte');
   if(g){ti.value=g.titre;if(g.yt)yt.value='https://www.youtube.com/watch?v='+g.yt;tx.value=gdTexteBrut(g).slice(0,4000)}
-  const lYt=lab('Lien YouTube'),lTx=lab('Texte'),d1=gdMk('div','gd-ldk'),d2=gdMk('div','gd-ldk');
+  const lYt=lab('Lien YouTube'),lTx=lab('Texte'),d1=el('div','gd-ldk'),d2=el('div','gd-ldk');
   /* Choix d'un deck : fenetre de deck unique (B6) ; le deck choisi pour jouer est remis tel quel ensuite. */
   const prend=k=>{const av=lire('golems.deckChoisi')||'';
     choisirDeck(()=>{const d=choisi();ecrire('golems.deckChoisi',av);if(typeof majChoixDeck==='function')majChoixDeck();if(d)P[k]=d;maj()},'Choisir ce deck','Deck à importer avec ton guide');
     const pd=$('popDeck');if(pd)pd.style.zIndex=60};
   const ligneDk=(z,k)=>{z.replaceChildren();const d=P[k];
     if(d)z.append(gdTuileDeck(d));
-    else{const t=gdMk('div','gd-strip gd-tf'),n=gdMk('div','gd-dn vide');n.append(gdMk('small','','Deck'),gdMk('b','',k==='d1'?'Aucun deck choisi':'Aucune 2e version'));t.append(n);z.append(t)}
-    const b=gdMk('button','sc-btn sc-secondaire',k==='d2'&&d?'Retirer':d?'Changer':'Choisir');b.type='button';b.onclick=()=>{if(k==='d2'&&d){P.d2=null;maj()}else prend(k)};z.append(b)};
+    else{const t=el('div','gd-strip gd-tf'),n=el('div','gd-dn vide');n.append(el('small','','Deck'),el('b','',k==='d1'?'Aucun deck choisi':'Aucune 2e version'));t.append(n);z.append(t)}
+    const b=el('button','sc-btn sc-secondaire',k==='d2'&&d?'Retirer':d?'Changer':'Choisir');b.type='button';b.onclick=()=>{if(k==='d2'&&d){P.d2=null;maj()}else prend(k)};z.append(b)};
   fl.append(lab('Type'),ty,lab('Titre'),ti,lYt,yt,lab('Deck à importer','version 1'),d1,lab('2e version','facultative'),d2,lTx,tx);
-  const rg=gdMk('div','sc-fen-actions'),ok=gdMk('button','sc-btn','Publier'),an=gdMk('button','sc-btn sc-secondaire','Annuler');
+  const rg=el('div','sc-fen-actions'),ok=el('button','sc-btn','Publier'),an=el('button','sc-btn sc-secondaire','Annuler');
   ok.type=an.type='button';an.onclick=ferme;rg.append(ok,an);
   function maj(){
     ty.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===P.ty)));
     const vid=P.ty==='v';lYt.hidden=yt.hidden=!vid;
-    lTx.replaceChildren('Texte');if(vid)lTx.append(gdMk('small','','facultatif pour une vidéo'));
+    lTx.replaceChildren('Texte');if(vid)lTx.append(el('small','','facultatif pour une vidéo'));
     ligneDk(d1,'d1');ligneDk(d2,'d2');
   }
   ok.onclick=async()=>{
@@ -332,11 +331,11 @@ function ouvrePropGuide(g){
   corps.append(info,fl,rg);
   if(co)f.append(corps);
   else{
-    const w=gdMk('div','gd-verrou');corps.classList.add('gd-flou');corps.setAttribute('aria-hidden','true');corps.inert=true;
-    const c=gdMk('div','gd-cad'),ic=gdMk('span','gd-cadi');ic.innerHTML=SVG_CADENAS;
-    const r=gdMk('div','sc-rangee'),a=gdMk('button','sc-btn','Se connecter'),b=gdMk('button','sc-btn sc-secondaire','Créer un compte');a.type=b.type='button';
+    const w=el('div','gd-verrou');corps.classList.add('gd-flou');corps.setAttribute('aria-hidden','true');corps.inert=true;
+    const c=el('div','gd-cad'),ic=el('span','gd-cadi');ic.innerHTML=SVG_CADENAS;
+    const r=el('div','sc-rangee'),a=el('button','sc-btn','Se connecter'),b=el('button','sc-btn sc-secondaire','Créer un compte');a.type=b.type='button';
     a.onclick=()=>{ferme();ouvrePseudo()};b.onclick=()=>{ferme();ouvrePseudo();modeCompte(true)};r.append(a,b);
-    c.append(ic,gdMk('b','','Un compte est nécessaire pour publier un guide'),gdMk('span','','Connecte-toi pour publier une vidéo ou un texte.'),r);
+    c.append(ic,el('b','','Un compte est nécessaire pour publier un guide'),el('span','','Connecte-toi pour publier une vidéo ou un texte.'),r);
     w.append(corps,c);f.append(w);
   }
   maj();v.append(f);document.body.append(v);(co?ti:f.querySelector('.gd-cad .sc-btn')).focus();

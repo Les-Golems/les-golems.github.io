@@ -1130,7 +1130,7 @@ function uneParGraine(l){const vu=new Set();return l.filter(r=>{if(r.m!=='ligne'
 function enregistreDans(l,s,id){
   const me=partie.moi,lui=1-me,w=s.fin.gagnant,nm=p=>p===me?'Toi':nomJ(p),B=M.bilan(s);
   const ps=pseudo||'Joueur',np=p=>p===me?ps:nomJ(p);
-  l.unshift({id,date:Date.now(),adv:partie.local?'Golem ('+partie.niveau+')':nomJ(lui),res:w===null?'Match nul':w===me?'Victoire':'Défaite',abandon:s.fin.abandon===undefined?undefined:s.fin.abandon===me?'moi':'adv',deckVide:s.fin.deckVide===undefined?undefined:s.fin.deckVide===me?'moi':'adv',score:s.j[me].score+' - '+s.j[lui].score,mvp:B.mvp?B.mvp.carte:'',
+  l.unshift({id,date:Date.now(),adv:partie.local?'Golem ('+partie.niveau+')':nomJ(lui),res:titreFin(w,me),abandon:s.fin.abandon===undefined?undefined:s.fin.abandon===me?'moi':'adv',deckVide:s.fin.deckVide===undefined?undefined:s.fin.deckVide===me?'moi':'adv',score:s.j[me].score+' - '+s.j[lui].score,mvp:B.mvp?B.mvp.carte:'',
     pseudo:ps,deck:deckJoue(),advNom:lui===1-me?nomJ(lui):'',
     moteur:M.VERSION,rejeu:{v:M.VERSION,graine:partie.graine,moi:me,decks:(partie.decks||['','']).slice(),j:(me===0?[partie.mien,partie.sien]:[partie.sien,partie.mien]).map(x=>M.ecritJournal(x))},
     manches:parManche(s).map(o=>lignesManche(o,np)),mvpLigne:ligneMvp(B),

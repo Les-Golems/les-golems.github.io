@@ -234,22 +234,22 @@ if(document.fonts){const pre=()=>document.fonts.load(ANTON).catch(()=>0);if(docu
 /* Hexagone de Force de la carte redessiné à l'identique par-dessus l'image (force() de generer_cartes.py : pans en relief, Impact 323,28,
    décalages par chiffre), avec la Force actuelle : blanc si égale à la base, vert au-dessus, rouge en dessous (mêmes teintes que la grille). */
 const FORCE_SIL='M281.2 52 L318.8 52 Q398.7 112 499.75 126 L499.75 390 L325.85 512 L295.3 534 L280 547 L100.25 390 L100.25 126 Q201.3 112 281.2 52Z',
-  FORCE_PANS=[['M300 98 L285 98 Q210 152 144 164 L144 370 L281 490 Z','#bf6049'],['M300 98 L315 98 Q390 152 456 164 L456 367 L281 490 Z','#8a3524'],
-    ['M281.2 52 L300 52 L300 98 L285 98Z','#d27a5e'],['M300 52 L318.8 52 L315 98 L300 98Z','#a4452f'],
-    ['M318.8 52 Q398.7 112 499.75 126 L456 164 Q390 152 315 98Z','#d27a5e'],['M499.75 126 L499.75 390 L456 367 L456 164Z','#70291b'],
-    ['M499.75 390 L325.85 512 L295.3 534 L280 547 L281 490 L456 367Z','#551d13'],['M280 547 L100.25 390 L144 370 L281 490Z','#a4452f'],
-    ['M100.25 390 L100.25 126 L144 164 L144 370Z','#d27a5e'],['M100.25 126 Q201.3 112 281.2 52 L285 98 Q210 152 144 164Z','#efb096']],
+  FORCE_PANS=[['M300 98 L285 98 Q210 152 144 164 L144 370 L281 490 Z','--force-pan1'],['M300 98 L315 98 Q390 152 456 164 L456 367 L281 490 Z','--force-pan2'],
+    ['M281.2 52 L300 52 L300 98 L285 98Z','--force-pan3'],['M300 52 L318.8 52 L315 98 L300 98Z','--force-pan4'],
+    ['M318.8 52 Q398.7 112 499.75 126 L456 164 Q390 152 315 98Z','--force-pan5'],['M499.75 126 L499.75 390 L456 367 L456 164Z','--force-pan6'],
+    ['M499.75 390 L325.85 512 L295.3 534 L280 547 L281 490 L456 367Z','--force-pan7'],['M280 547 L100.25 390 L144 370 L281 490Z','--force-pan8'],
+    ['M100.25 390 L100.25 126 L144 164 L144 370Z','--force-pan9'],['M100.25 126 Q201.3 112 281.2 52 L285 98 Q210 152 144 164Z','--force-pan10']],
   FORCE_DEC=[[-.01,32.39],[3.04,32.86],[-2.27,33.46],[1.33,31.67],[.42,32.71],[-.63,30.92],[-2.37,32.71],[-.79,32.86],[.24,32.69],[-2.37,32.55]],
-  FORCE_COUL={plus:'#3ee86a',moins:'#ff3b30','':'#fff'};
+  FORCE_COUL={plus:'var(--force-plus)',moins:'var(--force-moins)','':'var(--force-egal)'}; /* couleurs : variables --force-* de css/partie.css */
 function badgeForce(fa,f){
   const t=String(fa),sf=sensForce(fa,f),d=t.length>1?[0,32.3]:FORCE_DEC[+t]||[0,32.3],
     L=Math.min(330,[...t].reduce((a,x)=>a+(x>='0'&&x<='9'?ENC_CH[+x]:x==='-'?26:22)*323.28/88,0)),k=el('span','force-zoom');
   k.setAttribute('role','img');k.setAttribute('aria-label','Force actuelle '+t+(sf?', Force de base '+f:''));
   k.innerHTML='<svg viewBox="0 0 750 1050" aria-hidden="true"><svg x="611.1" y="24" width="116.9" height="135" viewBox="71 35 458 529" preserveAspectRatio="xMidYMin meet" overflow="visible">'
-    +FORCE_PANS.map(([p,c])=>'<path d="'+p+'" fill="'+c+'" stroke="'+c+'" stroke-width="1.5" stroke-linejoin="round"/>').join('')
+    +FORCE_PANS.map(([p,c])=>'<path d="'+p+'" style="fill:var('+c+');stroke:var('+c+')" stroke-width="1.5" stroke-linejoin="round"/>').join('')
     +'<path d="M160 180 Q222 166 288 116" fill="none" stroke="#ffe3d6" stroke-opacity=".55" stroke-width="7" stroke-linecap="round"/>'
     +'<path d="'+FORCE_SIL+'" fill="none" stroke="#0b0a10" stroke-width="34" stroke-linejoin="round"/>'
-    +'<text x="'+(300+d[0])+'" y="'+(396+d[1])+'" text-anchor="middle" textLength="'+L.toFixed(1)+'" lengthAdjust="spacingAndGlyphs" fill="'+FORCE_COUL[sf]+'" stroke="#0b0a10" stroke-width="44.08" stroke-linejoin="round" paint-order="stroke" style="font:400 301px Anton,Impact,\'Lilita One\',sans-serif">'+t+'</text></svg></svg>';
+    +'<text x="'+(300+d[0])+'" y="'+(396+d[1])+'" text-anchor="middle" textLength="'+L.toFixed(1)+'" lengthAdjust="spacingAndGlyphs" stroke="#0b0a10" stroke-width="44.08" stroke-linejoin="round" paint-order="stroke" style="fill:'+FORCE_COUL[sf]+';font:400 301px Anton,Impact,\'Lilita One\',sans-serif">'+t+'</text></svg></svg>';
   attendAnton(k);return k;
 }
 /* 0.5 : animal attache sous son maitre (affichage valide, piste A des maquettes « 12 - Animaux attachés »).
@@ -631,7 +631,7 @@ function affiche(){
   let btnRejouer=null,btnPartage=null;
   if(s.fin){
     const f=el('div','bloc p-fin'),w=s.fin.gagnant;
-    f.append(el('h3',w===null?'f-n':w===me?'f-v':'f-d',w===null?'Match nul':w===me?'Victoire':'Défaite'));
+    f.append(el('h3',w===null?'f-n':w===me?'f-v':'f-d',titreFin(w,me)));
     if(s.fin.abandon!==undefined)f.append(el('p','p-abandon',(s.fin.abandon===me?(pseudo||'Toi'):nomJ(lui))+' a abandonné'));
     if(s.fin.deckVide!==undefined)f.append(el('p','p-abandon',(w===me?'Victoire':'Victoire de '+nomJ(lui))+' par deck vide')); /* 0.4 : le perdant devait piocher, deck vide */
     f.append(el('p','',J.score+' à '+s.j[lui].score+(s.fin.departage?', '+departageTxt(s,me,lui):'')));

@@ -2,6 +2,8 @@
 /* Mode clair (0.6a) : variables de role de la partie. Sombre = valeurs d'origine ; clair = maquette 46 A3. */
 :root{--pts-fait:#0d6f88;--fenetre-fx:#101a24;--fx-texte:#c9d3dc;--vert-ani:#7be07f;--croix:#9aa;--trait-doux:rgba(42,63,80,.55);--alerte-fond:#2a1b20;
   --case-fond:var(--panneau);--case-bord:var(--trait);--p-joue-texte:var(--encre);--lui-titre-fonce:var(--lui);--case-style:solid;--case-ep:1px;--pile-vide-fond:none;--pile-vide-bord:0;--pile-vide-texte:var(--doux)}
+/* Blason de Force du zoom (badgeForce, vue/joueur.js) : 10 pans en relief, chiffre blanc (egal), vert (au-dessus), rouge (en dessous). Dessin de la carte imprimee : identiques en mode clair. */
+:root{--force-pan1:#bf6049;--force-pan2:#8a3524;--force-pan3:#d27a5e;--force-pan4:#a4452f;--force-pan5:#d27a5e;--force-pan6:#70291b;--force-pan7:#551d13;--force-pan8:#a4452f;--force-pan9:#d27a5e;--force-pan10:#efb096;--force-plus:#3ee86a;--force-moins:#ff3b30;--force-egal:#fff}
 html.clair{--pts-fait:color-mix(in srgb,var(--bleu) 45%,var(--fond));--fenetre-fx:var(--panneau);--fx-texte:var(--texte);--vert-ani:var(--vert);--croix:var(--doux);--trait-doux:rgba(61,83,102,.22);--alerte-fond:#fbe9e8;
   --case-fond:#edf1f5;--case-bord:#8a9cab;--p-joue-texte:#fff;--lui-titre-fonce:#8f3209;--case-style:dashed;--case-ep:1.5px;--pile-vide-fond:#cfd8e0;--pile-vide-bord:1.5px dashed #6d8293;--pile-vide-texte:var(--texte)}
 html.clair .p-grille.mienne{--case-fond:#e7f3f8}

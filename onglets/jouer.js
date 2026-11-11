@@ -507,7 +507,7 @@ function encartEntrainement(){
     const d=c3(lib,txtTaux(t),l.length+' partie'+(l.length>1?'s':''));colore(d,t,l.length);z.append(d)});
 }
 /* Pastille du deck de l'Entrainement : nom + teinte des elements, clic = fenetre de choix du deck. */
-function majPilDeck(){const d=deckChoisi(),b=$('jDeck'),nom=d.id?d.nom:'Deck par défaut'; /* pas de deck choisi : « Deck par défaut », comme la fenetre de choix (deckChoisi le nomme « Test ») */
+function majPilDeck(){const d=deckChoisi(),b=$('jDeck'),nom=d.id?d.nom:window.GolemsDonnees.interface.nomDeckDefaut; /* pas de deck choisi : libelle de cartes/donnees/interface.js, comme la fenetre de choix */
   b.querySelector('span').textContent=nom;b.style.setProperty('--j-teinte',teinte(elsPrincipaux(d.texte),'90deg'));b.title='Deck : '+nom+' (changer)'}
 $('jDeck').onclick=()=>choisirDeck(majPilDeck,'Choisir ce deck','Entraînement contre le Golem');
 /* Invite (final_invite) : tuiles Classee et Amicale floutees sous un verrou, liste floutee avec Se connecter / Creer un compte. */

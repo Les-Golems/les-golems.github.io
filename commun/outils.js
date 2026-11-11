@@ -16,6 +16,12 @@ function memeVersion(v){return v===M.VERSION||(M.VERSION==='0.2'&&v==='0.2a')||(
 
 /* Declarations remontees ici depuis un fichier charge plus tard : elles servent des le chargement (avant, une seule portee les hissait). */
 function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+/* Nombre accorde : pluriel(1,'carte') = « 1 carte », pluriel(2,'carte') = « 2 cartes ». */
+const pluriel=(n,mot)=>n+' '+mot+(n>1?'s':'');
+/* Fin de partie, textes communs (vue/joueur.js, vue/partie.js, diffusion.js) : titre selon le gagnant w (null = match nul) vu par me ;
+   phrase du bandeau de fin : nom null = « Tu remportes / Tu perds la partie », sinon « <nom> remporte / perd la partie ». */
+const titreFin=(w,me)=>w===null?'Match nul':w===me?'Victoire':'Défaite';
+const phraseFin=(gagne,nom)=>nom==null?(gagne?'Tu remportes la partie':'Tu perds la partie'):nom+(gagne?' remporte la partie':' perd la partie');
 /* Oeil des champs de code (type password) : affiche ou masque le code tape, meme icone que le zoom des cartes.
    Focus et curseur gardes ; autocomplete intact ; remasque a l'envoi (gestionnaire de mots de passe) et a la fermeture de la fenetre. */
 

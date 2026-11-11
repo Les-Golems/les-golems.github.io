@@ -83,6 +83,10 @@ bacDes:{1:[4],2:[3,4]},
 /* MODELE DES ELEMENTS (source unique, lue par tout le code d'interface : aide.js, vue/joueur.js, diffusion.js, commun/compte.js, commun/profil.js, commun/demarrage.js).
    ordre = ordre du cercle ; nom = libelle affiche ; texte = teinte du titre et du nom d'effet sur la carte imprimee (TEXTE_ELT de generer_cartes.py) ;
    image cartes/<id>.png ; couleur de fond CSS var(--fm-<id>). Mode clair (0.6a) : var(--txt-*, valeur sombre), variables definies seulement dans html.clair (css/base.css). couleursCarte : autres couleurs des cartes imprimees (generer_cartes.py, generer_animaux.py, generer_terrains.py). */
+/* Nom affiche du deck par defaut (deckChoisi le nomme « Test » dans les donnees des parties). */
+nomDeckDefaut:'Deck par défaut',
+/* Poussiere de la destruction d'une carte (diffusion.js, anBrise) : teintes chaudes de roche et de magma. */
+poussiere:['#c64213','#ee6a2c','#896b10','#f2cb2e','#3a2a20','#e8d9b0'],
 elements:{
  ordre:['magma','cristal','foudre','brume','roche'],
  magma:{nom:'Magma',texte:'var(--txt-magma,#ffb52a)'},cristal:{nom:'Cristal',texte:'var(--txt-cristal,#ffa8d6)'},foudre:{nom:'Foudre',texte:'var(--txt-foudre,#ffe36e)'},brume:{nom:'Brume',texte:'var(--txt-brume,#c9b6f2)'},roche:{nom:'Roche',texte:'var(--txt-roche,#ecbc8c)'}
