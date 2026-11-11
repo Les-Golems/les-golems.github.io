@@ -2,7 +2,7 @@
 :root{--pret-off-fond:#3a444d;--pret-off-texte:#8d98a2;--pf-bloc:rgba(26,42,56,.4);--bulle-fond:#121d29;--dc-els:#d5e3ea;--vert-m:#7fe3a0;--vd-info-fond:#12303b;--vd-info-texte:#d6f6ff}
 html.clair{--pret-off-fond:#cdd6dd;--pret-off-texte:#5f6e79;--pf-bloc:rgba(236,240,243,.7);--bulle-fond:#f4f6f8;--dc-els:#4c5e6b;--vert-m:#157443;--vd-info-fond:#dcedf3;--vd-info-texte:#04678b}
 /* Reprises du 3 nov. */
-.btn.danger{--bord:#7a1d1d;background:linear-gradient(#e2574c,#b9342b);color:#fff}
+.btn.danger{--bord:#7a1d1d;background:linear-gradient(#cd453b,#b9342b);color:#fff}
 #popAbandon .boite p{margin:0 0 16px}#popAbandon .p-btns .btn{flex:1 1 0}
 .p-fin h3.f-v{color:var(--vert-v)}.p-fin h3.f-d{color:var(--rouge-d)}.p-fin h3.f-n{color:var(--gris-nul)}
 .b-fin{padding:16px;border:1px solid var(--trait);border-radius:10px}
