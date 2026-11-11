@@ -205,6 +205,21 @@
     n.maj = HORODATAGE;
     var u = {}; u['classe/joueurs/' + uid] = n; u['classe/parties/' + id + '/fait/' + uid] = true; return u;
   }
+  /* Entrée d'historique reconstruite depuis classe/parties/<id> (son écriture par la page a été perdue) : résultat, adversaire,
+     variation écrite ; ni rejeu ni détail des manches. id = <graine>-<t> (même graine que l'entrée d'origine : une seule partie
+     comptée dans les cumuls). rt: 1 marque l'entrée reconstruite (remplacée par l'entrée complète si celle-ci arrive ensuite).
+     null si la partie n'est pas exploitable. advNom : pseudo de l'adversaire (facultatif). */
+  function entreeRattrapee(p, uid, advNom) {
+    if (!p || (p.a !== uid && p.b !== uid) || !/^-?[0-9]{1,12}$/.test(String(p.gr)) || !Number.isFinite(p.t)) return null;
+    var t = Math.round(p.t), estA = p.a === uid, delta = estA ? p.deltaA : p.deltaB, robot = p.robot === true;
+    if (!/^[0-9]{10,14}$/.test(String(t))) return null;
+    var niv = robot ? String(p.b).replace(/^robot-/, '') : '', nom = robot ? 'Golem (' + niv + ')' : String(advNom || 'Adversaire').slice(0, 24);
+    var c = { elo: estA ? p.eloA : p.eloB, delta: delta, eloAdv: estA ? p.eloB : p.eloA, robot: robot };
+    if (robot && /^(facile|normal|difficile)$/.test(niv)) c.niveau = niv;
+    if (!Number.isInteger(delta)) c.attente = true;
+    return { id: String(p.gr) + '-' + t, date: t, adv: nom, advNom: robot ? '' : nom, res: p.gagnant === uid ? 'Victoire' : 'Défaite',
+      score: '', mvp: '', mode: 'classee', classe: c, rt: 1 };
+  }
   function salonClasse() { return { cl: true, cree: HORODATAGE }; }
   function niveauRobot(elo) { return elo < 900 ? 'facile' : elo < 1150 ? 'normal' : 'difficile'; }
   function salonRobot(uid, elo) { return { u: uid, n: niveauRobot(elo), t: HORODATAGE }; }
@@ -305,7 +320,7 @@
             if (conf) { try { await appliqueUn(id, adv, o); } catch (e) {} }
           }
         }
-        if (ok) res.push({ id: id, gr: String(p.gr), delta: p.a === u ? p.deltaA : p.deltaB });
+        if (ok) res.push({ id: id, gr: String(p.gr), delta: p.a === u ? p.deltaA : p.deltaB, partie: p });
       }
       return res;
     }
@@ -396,7 +411,7 @@
 
   var API = {
     HORODATAGE: HORODATAGE, numJour: numJour, idPartie: idPartie, creePartie: creePartie, creePartieRobot: creePartieRobot,
-    confirmation: confirmation, application: application, salonClasse: salonClasse, niveauRobot: niveauRobot, salonRobot: salonRobot,
+    confirmation: confirmation, application: application, salonClasse: salonClasse, entreeRattrapee: entreeRattrapee, niveauRobot: niveauRobot, salonRobot: salonRobot,
     ligneClassement: ligneClassement, sansNuls: sansNuls, service: service,
     ELO_DEPART: ELO_DEPART, K_DEBUT: K_DEBUT, K_ENSUITE: K_ENSUITE, PARTIES_K_DEBUT: PARTIES_K_DEBUT, PLACEMENT: PLACEMENT,
     ROBOTS_PAR_JOUR: ROBOTS_PAR_JOUR, RANGS: RANGS, ROBOTS: ROBOTS, SAISONS: SAISONS,

@@ -171,6 +171,14 @@ function base(uid,pseudo,db){
     F.ecrit=async()=>{throw new Error('hors ligne')};ok(!(await SF.appliqueUn('s1-7','zz')),'profil absent : false');
     let k=0;const H=base('ub','Bob',db3);H.pause=async()=>{k++};H.ecrit=async()=>{throw new Error('hors ligne')};db3.classe.joueurs.ub=C.nouveauJoueur(0);delete db3.classe.parties['s1-7'].fait.ub;
     ok(!(await C.service(H).appliqueUn('s1-7','ub',{essais:3})),'toujours coupé : false');eq(k,2,'réessayé');}
+  { // 0.6a : entrée d'historique reconstruite depuis classe/parties (écriture de l'historique perdue)
+    const P={a:'ua',b:'ub',gagnant:'ub',eloA:1000,eloB:1010,deltaA:-15,deltaB:15,robot:false,saison:0,t:1794383222353,sa:'s1',gr:'-42'};
+    const xb=C.entreeRattrapee(P,'ub','Alice'),xa=C.entreeRattrapee(P,'ua','');
+    eq(xb.id,'-42-1794383222353');ok(/^-?[0-9]{1,12}-[0-9]{10,14}$/.test(xb.id),'id accepté par la règle');eq(xb.res,'Victoire');eq(xb.classe.delta,15);eq(xb.adv,'Alice');eq(xb.mode,'classee');eq(xb.rt,1);
+    eq(xa.res,'Défaite');eq(xa.classe.delta,-15);eq(xa.adv,'Adversaire');ok(!xa.classe.attente);
+    const R={...P,b:'robot-normal',gagnant:'ua',deltaB:undefined,robot:true},xr=C.entreeRattrapee(R,'ua');eq(xr.adv,'Golem (normal)');eq(xr.classe.niveau,'normal');eq(xr.res,'Victoire');
+    eq(C.entreeRattrapee(P,'zz'),null,'joueur absent');eq(C.entreeRattrapee({...P,t:{'.sv':'timestamp'}},'ua'),null,'heure non écrite');
+    eq(C.entreeRattrapee({...P,deltaB:undefined},'ub').classe.attente,true,'variation absente : en attente');}
   res.push('reprise');
   res.push('service');
   console.log('test_classe : '+nv+' vérifications OK ('+res.join(', ')+')');

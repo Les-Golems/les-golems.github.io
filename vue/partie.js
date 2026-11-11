@@ -182,7 +182,23 @@ async function reprendFins(){
     const hs=(room.compte.donnees().historique||[]).concat(litListe(ATTENTE).filter(y=>y&&y.u===u&&y.h).map(y=>y.h));
     for(const r of l){if(!Number.isInteger(r.delta))continue;if(typeof attenteClasse==='function')attenteClasse(r.id,false);
       for(const h of hs)if(h&&h.classe&&typeof h.id==='string'&&h.id.indexOf(r.gr+'-')===0&&(h.classe.attente||h.classe.delta!==r.delta))histoClasse(h.id,r.delta)}
+    await histoRattrape(u,l);
   }catch(e){console.warn('classe',e)}
+}
+/* 0.6a : classee appliquee (fait/<moi>) dont l'entree d'historique n'a jamais ete ecrite (ecriture perdue sous coupures) :
+   entree reconstruite depuis classe/parties, une seule fois (relue sur le serveur, une entree par graine), sans toucher a l'Elo.
+   Seulement les parties recentes (3 jours) et plus recentes que la plus ancienne des 50 gardees : les anciennes sont sans effet.
+   Une entree complete encore en attente sur cet appareil (golems.enAttente) est laissee a son envoi. */
+async function histoRattrape(u,l){
+  if(!compteCo()||room.compte.uid()!==u||!room.compte.rattrapeHisto)return;
+  const C=window.GolemsClasse,h=room.compte.donnees().historique||[],att=litListe(ATTENTE).filter(y=>y&&y.u===u&&y.h).map(y=>String(y.h.id));
+  const min=h.length>=50?Math.min(...h.map(x=>+x.date||0)):0,deb=Date.now()-3*86400000;let n=0;
+  for(const r of l){const p=r.partie;if(!p||!(+p.t>=deb&&+p.t>min)||att.some(i=>i.indexOf(r.gr+'-')===0))continue;
+    try{if(await room.compte.aHistoServeur(r.gr))continue;
+      const adv=p.a===u?p.b:p.a;let nom='';if(p.robot!==true)try{const c=await room.classeBase().lit('classe/classement/'+adv);nom=c&&typeof c.pseudo==='string'?c.pseudo:''}catch(e){}
+      if(!nom&&p.robot!==true)try{nom=await room.lit('joueurs/'+adv+'/pseudo')||''}catch(e){}
+      const x=C.entreeRattrapee(p,u,nettoie(String(nom||'')));if(x&&await room.compte.rattrapeHisto(x))n++}catch(e){console.warn('historique',e)}}
+  if(n&&!$('historique').hidden&&typeof peintHisto==='function')peintHisto();
 }
 /* Reconnexion : reprise des classees en attente (sans attendre le prochain chargement). */
 if(window.golemsSalon)Promise.resolve(window.golemsSalon).then(x=>{if(x&&x.onConnection)x.onConnection(()=>{if(x.connected&&x.connected()&&compteCo()&&!reprendFins.cours){reprendFins.cours=true;reprendFins().finally(()=>{reprendFins.cours=false;if(typeof chargeClasse==='function')chargeClasse()})}})}).catch(()=>{});
@@ -1058,7 +1074,8 @@ function envoieAttente(id){
 function envoieAttente1(id){
   const u=compteCo()?room.compte.uid():'',x=litListe(ATTENTE).find(y=>y&&y.id===id&&y.u===u);
   if(!x)return Promise.resolve(true);
-  let tard=false;const t=setTimeout(()=>{tard=true;nonEnregistre(true)},15000);
+  /* 0.6a : pas de reponse en 15 s (reponse perdue sans fermeture du socket) : nouvelle connexion forcee, le SDK renvoie l'ecriture. */
+  let tard=false;const t=setTimeout(()=>{tard=true;nonEnregistre(true);try{room.compte.relance&&room.compte.relance()}catch(e){}},15000);
   const h=x.h?room.compte.ajouteHisto([x.h]).then(()=>majAttente(id,y=>{delete y.h}),e=>{if(e&&e.code==='golems/trop-long')majAttente(id,y=>{delete y.h});throw e}):null;
   const z=x.r&&room.ecritResume?room.ecritResume(id,x.r).then(()=>{archivee(id);majAttente(id,y=>{delete y.r})}):null;
   return Promise.allSettled([h,z]).then(v=>{clearTimeout(t);const ok=v.every(e=>e.status==='fulfilled');

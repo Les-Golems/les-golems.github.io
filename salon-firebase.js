@@ -21,7 +21,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, setPersistence, browserSessionPersistence, browserLocalPersistence,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, goOffline, goOnline, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, orderByValue, endAt, limitToFirst, limitToLast, equalTo, runTransaction, connectDatabaseEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, goOffline, goOnline, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, orderByValue, orderByKey, startAt, endAt, limitToFirst, limitToLast, equalTo, runTransaction, connectDatabaseEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { firebaseConfig as configEnLigne } from "./firebase-config.js";
 
 // Servi depuis localhost ou 127.0.0.1 : émulateur Firebase local (projet de démonstration
@@ -507,14 +507,42 @@ async function ouvre() {
       // En dernier recours, l'essentiel seulement (résultat, score, adversaire) : la partie compte toujours.
       const texte = texteHisto;
       const trop = [];
-      entrees.forEach(x => { const t = x && x.id && texte(x); if (x && x.id && !t) trop.push(x.id); if (t && !donnees.historique.some(y => y.id === x.id)) { donnees.historique.push(x); ajoutes.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; marqueClassee(maj[x.id], x); } });
+      // Classée : une seule entrée par graine. Une entrée reconstruite (rt, rattrapeHisto) cède la place à l'entrée complète.
+      const grH = id => String(id).slice(0, String(id).lastIndexOf("-")), clH = y => !!y && (y.mode === "classee" || !!y.classe);
+      entrees.forEach(x => { const t = x && x.id && texte(x); if (x && x.id && !t) trop.push(x.id); if (t && !donnees.historique.some(y => y.id === x.id)) {
+        if (clH(x)) { const g = grH(x.id), m = donnees.historique.filter(y => y && clH(y) && grH(y.id) === g);
+          if (m.some(y => !y.rt) || (x.rt && m.length)) return;
+          m.forEach(y => { donnees.historique.splice(donnees.historique.indexOf(y), 1); maj[y.id] = null; }); }
+        donnees.historique.push(x); ajoutes.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; marqueClassee(maj[x.id], x); } });
       donnees.historique.sort((a, b) => b.date - a.date);
       donnees.historique.splice(MAX_HISTO).forEach(x => { maj[x.id] = null; });
       for (const k in maj) if (maj[k] && !donnees.historique.some(y => y.id === k)) delete maj[k];
-      if (Object.keys(maj).length) await update(ref(db, P + "joueurs/" + moi + "/historique"), maj);
+      // Échec : les entrées sortent de la copie en mémoire, sinon le nouvel essai (même page) les croirait écrites.
+      if (Object.keys(maj).length) {
+        try { await update(ref(db, P + "joueurs/" + moi + "/historique"), maj); }
+        catch (e) { ajoutes.forEach(x => { const i = donnees.historique.indexOf(x); if (i >= 0) donnees.historique.splice(i, 1); }); throw e; }
+      }
       compte.publieStats(ajoutes);
       // Plus d'échec silencieux : la page affiche « Partie non enregistrée ».
       if (trop.length) throw Object.assign(new Error("historique trop long"), { code: "golems/trop-long" });
+    },
+    // 0.6a : nouvelle connexion forcée (écriture restée sans réponse, socket resté ouvert) : le SDK renvoie les écritures en attente.
+    relance() { try { goOffline(db); goOnline(db); } catch (e) {} },
+    // 0.6a : entrée d'historique d'une classée (graine gr) relue SUR LE SERVEUR : true si elle y est. Sert au rattrapage :
+    // la copie en mémoire peut contenir une entrée dont l'écriture a été perdue (coupure, réponse jamais reçue).
+    async aHistoServeur(gr) {
+      if (!compte.connecte()) return true;
+      const g = String(gr), v = (await get(query(ref(db, P + "joueurs/" + moi + "/historique"), orderByKey(), startAt(g + "-"), endAt(g + "-~")))).val() || {};
+      return Object.keys(v).some(k => k.slice(0, k.lastIndexOf("-")) === g);
+    },
+    // 0.6a : (ré)écrit une entrée absente du serveur : la copie en mémoire de même graine (écriture perdue) est retirée d'abord.
+    // Relu sur le serveur juste avant : jamais de doublon. Renvoie true si l'entrée a été écrite.
+    async rattrapeHisto(x) {
+      if (!compte.connecte() || !x || !x.id) return false;
+      const g = String(x.id).slice(0, String(x.id).lastIndexOf("-"));
+      if (await compte.aHistoServeur(g)) return false;
+      donnees.historique = donnees.historique.filter(y => !(y && String(y.id).slice(0, String(y.id).lastIndexOf("-")) === g));
+      await compte.ajouteHisto([x]); return donnees.historique.some(y => y.id === x.id);
     },
     // 0.6.1 : réécrit une entrée déjà enregistrée (variation classée écrite après coup : fin de « en attente »).
     async majHisto(x) {
