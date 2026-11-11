@@ -44,7 +44,7 @@ async function scenario(P) {
   const nom = s => s + (t % 100000);
   const pA = nom('Alice'), pB = nom('Bob'), pX = nom('Xav');
 
-  // Comptes : pseudo réservé et pseudo du compte dans la même écriture (comme salon-firebase.js creer()).
+  // Comptes : pseudo réservé et pseudo du compte dans la même écriture (comme firebase/compte.js creer()).
   for (const [u, p] of [[A, pA], [B, pB], [X, pX]]) {
     await attendu(ici('création du compte ' + p), true,
       req(u, 'PATCH', '', { [P + 'pseudos/' + p.toLowerCase()]: u.uid, [P + 'joueurs/' + u.uid + '/pseudo']: p, [P + 'joueurs/' + u.uid + '/cree']: t }));
@@ -58,7 +58,7 @@ async function scenario(P) {
   await attendu(ici('classement de X sous son pseudo'), true, req(X, 'PUT', P + 'classement/' + X.uid, { p: pX, v: 0, n: 1 }));
 
   // Compte de plus de 50 parties sans stats publiées (PAS_MAX = 50) : écriture directe refusée, paliers de 50 acceptés
-  // (salon-firebase.js ecritStats), puis classement et profil publiés.
+  // (firebase/compte.js ecritStats), puis classement et profil publiés.
   const Y = await compte(`y${t}${tag}@test.invalid`), pY = nom('Yan');
   await attendu(ici('création du compte ' + pY), true, req(Y, 'PATCH', '', { [P + 'pseudos/' + pY.toLowerCase()]: Y.uid, [P + 'joueurs/' + Y.uid + '/pseudo']: pY, [P + 'joueurs/' + Y.uid + '/cree']: t }));
   await attendu(ici('stats 120 parties en une écriture'), false, req(Y, 'PUT', P + 'joueurs/' + Y.uid + '/stats', { v: 70, n: 120 }));
@@ -118,7 +118,7 @@ async function scenario(P) {
   await attendu(ici('chat du spectateur'), true, req(X, 'POST', S + '/chat', { a: X.uid, p: pX, t: HEURE, m: 'Allez' }));
   await attendu(ici('siège après engagement (spectateur non engagé)'), false, req(X, 'PUT', S + '/siege', X.uid));
 
-  // Fin de partie (ordre de salon-firebase.js : historique, cumul, stats, classement, profil ; resume à part).
+  // Fin de partie (ordre de firebase/compte.js : historique, cumul, stats, classement, profil ; resume à part).
   const id = '5-' + t;
   await attendu(ici('historique'), true, req(A, 'PATCH', P + 'joueurs/' + A.uid + '/historique', { [id]: { d: t, x: '{"id":"' + id + '"}' } }));
   await attendu(ici('cumul'), true, req(A, 'PUT', P + 'joueurs/' + A.uid + '/cumul', '{"n":1}'));
@@ -318,7 +318,7 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('robot : victoire appliquée'), true, req(X, 'PATCH', '', appR({ elo: 1020, parties: 1, partiesTotal: 1, v: 1 }, { jour: '2026-11-09', j: jour, n: 1 })));
   await attendu(ici('partie robot sans gagnant (nul)'), false, req(X, 'PUT', CL + 'parties/' + rid + 'n', { ...pr, gagnant: 'nul', deltaA: 0, eloA: 1020 }));
   // Point 3 (tests en ligne du 9 nov.) : une fin de classée change l'Elo entre la lecture et l'écriture du profil public.
-  // L'ancien Elo est refusé ; le site relit classe/joueurs puis réécrit (salon-firebase.js, publieProfil) : accepté.
+  // L'ancien Elo est refusé ; le site relit classe/joueurs puis réécrit (firebase/compte.js, publieProfil) : accepté.
   await req('admin', 'PATCH', J(A), { elo: 1048 });
   await attendu(ici('profil après une classée, Elo affiché périmé'), false, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, el: 1032 }));
   await attendu(ici('profil après une classée, Elo affiché relu'), true, req(A, 'PUT', P + 'profils/' + A.uid, { ...prof, el: 1048 }));
@@ -328,6 +328,11 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('bandeau robot après 5 classées du jour'), false, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));
   await req('admin', 'PATCH', J(X), { robots: { jour: '2026-11-08', j: jour - 1, n: 5 } });
   await attendu(ici('bandeau robot le lendemain'), true, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));
+  { /* 0.6a : coupure juste après l'envoi : joueurs/<uid> effacé par le serveur, pres/<uid> gardé à c:false ; la transaction renvoyée passe */
+    await req('admin', 'DELETE', S3 + '/robot'); await req('admin', 'DELETE', S3 + '/joueurs/' + X.uid); await req('admin', 'PUT', S3 + '/pres/' + X.uid, { c: false, t: Date.now() });
+    await attendu(ici('bandeau robot, joueurs effacé à la coupure (pres seul)'), true, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));
+    await req('admin', 'DELETE', S3 + '/robot'); await req('admin', 'DELETE', S3 + '/pres/' + X.uid);
+    await attendu(ici('bandeau robot, salon quitté (ni joueurs ni pres)'), false, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE })); }
 
   // Fin de saison : instantané, écusson, remise à mi-chemin.
   await attendu(ici('instantané avant la fin de la saison'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { saison: 0, elo: 1032, rang: 'topaze', placementFini: true }));

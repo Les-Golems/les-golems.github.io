@@ -3,7 +3,7 @@
    « Copier le lien » entre les votes et « Voir sur YouTube », bandeau « Guide : lien copié. Colle-le sur Discord. », bande du deck a importer, video ou texte).
    Lien partage : ?guide=<id> ouvre Comment jouer > Guides sur ce guide.
    Ancien onglet Guides retire : onglet('guides') et le lien #guides ouvrent Comment jouer > Guides (commun/navigation.js).
-   Votes partages (0.6) : guides/<id>/votes/<uid> en ligne (salon-firebase.js, room.guides ; regle rules/60-guides.js). Invite : son vote reste sur l'appareil.
+   Votes partages (0.6) : guides/<id>/votes/<uid> en ligne (firebase/salon.js, room.guides ; regle rules/60-guides.js). Invite : son vote reste sur l'appareil.
    Guides publies (10 nov., sans relecture) : guides/<id>/fiche en ligne, affiches avec ceux du code ; une fiche sur un guide du code le remplace (modification),
    guides/<id>/sup le retire. Modifier et Supprimer : l'auteur (uid de la fiche, ou pseudo d'un guide du code) et Romain (KaTarN). */
 /* yt : identifiant YouTube ; titre, auteur et date releves a la main (aucune requete a YouTube au chargement) ; decks : liens ?deck= du site ; v : version des decks.

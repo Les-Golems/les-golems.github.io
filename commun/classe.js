@@ -232,7 +232,7 @@
   }
 
   /* ----- Branchement Firebase : service(B), B = { lit(chemin), ecrit(maj multi-chemins), uid(), pseudo() }.
-     Chemins relatifs à la racine des données (le préfixe essai/ est ajouté par salon-firebase.js).
+     Chemins relatifs à la racine des données (le préfixe essai/ est ajouté par firebase/compte.js).
      Chaque étape relit Firebase : aucune valeur locale n'est crue. Les échecs (règles, hors ligne) remontent à l'appelant. */
   function service(B) {
     function m1(chemin, val) { var u = {}; u[chemin] = val; return u; }

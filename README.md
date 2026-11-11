@@ -4,7 +4,7 @@ Jeu de cartes communautaire du Discord Les Golems, jouable dans le navigateur : 
 
 - `index.html`, `moteur.js`, `cartes/` : l'interface et le moteur de jeu.
 - `vue/diffusion.js` (vue diffusion, vue joueur sur ordinateur, rejeu et sa barre), `vue/diffusion-animations.js` (animations et vols de cartes, chargé avant) et `css/diffusion.css` : l'écran 1920 x 1080 de la partie.
-- `salon-firebase.js` : comptes (pseudo + code secret), données des joueurs et jeu en ligne à deux (Firebase Realtime Database).
+- `firebase/` : comptes (pseudo + code secret, `compte.js`), decks (`decks.js`) et jeu en ligne à deux (`salon.js`, point d'entrée) sur Firebase Realtime Database.
 - `firebase-config.js` : configuration publique du projet Firebase (non secrète).
 - `database.rules.json` : règles de sécurité de la base, à coller dans la console Firebase (Realtime Database > Règles > Publier).
 - `tests/test_moteur.js` : tests du moteur (Node, ou Chrome headless avec un petit harnais).
