@@ -234,12 +234,12 @@ function dessineStats(RT){
     let L=statsTriC===0?lc.filter(x=>x.n>=MIN_CARTES).sort((a,b)=>b.p-a.p||b.n-a.n):lc.slice().sort((a,b)=>b.n-a.n||b.p-a.p);
     if(statsQ)L=(statsTriC===0?L.concat(lc.filter(x=>x.n<MIN_CARTES).sort((a,b)=>b.n-a.n)):L).filter(x=>okSt(x.c[1]));
     const sel=`<div class="sc-sel sc-petit st-tric" role="group" aria-label="Tri des cartes"><button type="button" aria-pressed="${statsTriC===0}">Meilleures</button><button type="button" aria-pressed="${statsTriC===1}">Plus jouées</button></div>`;
-    let h=tete('Cartes',sel)+`<div class="st-th st-thc"><span title="Coût" data-ico="enclume"></span><span title="Force" data-ico="force"></span><span></span><span>${statsTriC===0?'Carte ('+MIN_CARTES+' min.)':'Carte'}</span><span class="r" title="Parties">Part.</span><span class="r" title="Taux de victoire">Vict.</span></div><div class="st-corps">`;
+    let h=tete('Cartes',sel)+`<div class="st-th st-thc"><span title="Coût" data-ico="enclume"></span><span title="Force" data-ico="force"></span><span></span><span>Carte</span><span class="r" title="Parties">Part.</span><span class="r" title="Taux de victoire">Vict.</span></div><div class="st-corps">`;
     if(!L.length)h+=`<div class="st-vide">${statsQ?VIDE_RECH:R.length?'Il faut au moins '+MIN_CARTES+' parties par carte.':VIDE_FILTRES}</div>`;
     L.forEach(x=>{const c=x.c,C=M.CARTES[x.id],v=c[1].indexOf(', '),ps=v<0?c[1]:c[1].slice(0,v),ti=v<0?'':c[1].slice(v+2),ani=estAnimal(c),f=forceAff(C);
       const cl=c[2].length===2?` st-duo" style="--a:var(--fm-${c[2][0]});--b:var(--fm-${c[2][1]})`:ani?' st-ani':'';
       h+=`<div class="st-lc${cl}" tabindex="0" role="button" data-id="${escSt(x.id)}" title="${escSt(c[1])}" aria-label="${escSt(c[1])}, ${pl(x.n,'partie')}${x.p==null?'':', '+x.p+' % de victoires'}"><span class="st-cf" data-ico="enclume">${C.cout}</span>${ani?`<span class="st-mot">Animal</span><span class="st-els st-ela" data-els="${((window.GolemsDonnees.interface.elementAnimal||{})[c[0]]||[]).join(',')}"></span>`:`<span class="st-cf${f&&f.includes(',')?' st-dec':''}" data-ico="force">${f==null?'':f}</span><span class="st-els" data-els="${c[2].join(',')}"></span>`}<span class="st-nom"><span>${hlSt(ps)}</span>${ti?`<span class="st-ti" style="color:${coulT(c)}">${hlSt(ti)}</span>`:''}</span><span class="st-np">${x.n}</span><span class="st-pv ${couleurTaux(x.p,x.n)}">${x.p==null?'-':x.p+' %'}</span></div>`});
-    return h+'</div>';
+    return h+'</div>'+(statsTriC===0?`<p class="st-note st-pied">Classement à partir de ${MIN_CARTES} parties.</p>`:'');
   }
   /* ---- Terrains : tri par colonne ---- */
   const TT_ST={pts:'Points du terrain',taux:'Victoire du conquérant : part des conquêtes où le joueur qui remporte le terrain gagne aussi la partie',moy:'Points rapportés en moyenne sur une partie',eg:'Part des manches à égalité'};
