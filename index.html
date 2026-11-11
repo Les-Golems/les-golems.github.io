@@ -31,6 +31,10 @@
 window.GOLEMS_VERSION=x&&x.build?{v:String(x.v||''),build:String(x.build),type:String(x.type||'version')}:null;
 window.IMG_V=window.GOLEMS_VERSION?window.GOLEMS_VERSION.build:String(Date.now());
 const a=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
+/* Modules ES : leurs imports entre eux (./compte.js, ./decks.js, ../firebase-config.js) n'ont pas de ?v=. La carte d'imports, posee avant
+   tout module, leur donne le meme ?v=<build> qu'au reste : apres une publication, jamais un ancien module en cache mele aux nouveaux. */
+{const b=new URL('.',document.baseURI).href,o={};['firebase-config.js','firebase/compte.js','firebase/decks.js','firebase/salon.js'].forEach(u=>{o[b+u]=a(b+u)});
+  const m=document.createElement('script');m.type='importmap';m.textContent=JSON.stringify({imports:o});document.head.append(m)}
 /* Repli de chargement (0.6) : un script qui echoue (reseau) ou dont le symbole cle manque apres chargement est recharge une fois
    avec ?r= unique (XHR synchrone puis script en ligne : l'ordre est garde) ; sinon la page est rechargee UNE seule fois
    (garde-fou sessionStorage golems.secours, efface quand tout est la). */
