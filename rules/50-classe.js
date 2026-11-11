@@ -23,9 +23,8 @@
 // RESTE FALSIFIABLE sans Cloud Functions : la valeur exacte du delta (bornée par K, signe imposé par le résultat, pas la formule) ;
 // le résultat d'une partie contre un robot (déclaré par le joueur : gain borné à K/2, 5 par jour) ; un tricheur qui refuse
 // de confirmer sa défaite bloque la partie pour les deux (sauf forfait) ; le jour de Paris suit l'heure d'hiver (décalage d'1 h l'été).
-const { COMPTE, UID_ROMAIN, MAINTENANT, CODE, racineApres, pseudoReel } = require('./00-communs');
+const { COMPTE, ROMAIN, MAINTENANT, CODE, racineApres, pseudoReel } = require('./00-communs');
 
-const ROMAIN = `auth != null && auth.uid === '${UID_ROMAIN}'`;
 const ENTIER = "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0";
 const JOUR = 86400000, DECALAGE = 3600000;
 // Rang d'après un Elo (seuils validés le 9 nov.).

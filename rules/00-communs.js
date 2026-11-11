@@ -8,6 +8,8 @@
 const COMPTE = "auth != null && auth.token.firebase.sign_in_provider === 'password'";
 // Compte de Romain (KaTarN), reconnu par son uid.
 const UID_ROMAIN = 'doSJZ1I6ixVUFejD842Jz2JrkFs1';
+// Romain (KaTarN) connecté : droits d'administration.
+const ROMAIN = `(auth != null && auth.uid === '${UID_ROMAIN}')`;
 // Heure du serveur imposée.
 const MAINTENANT = 'newData.val() === now';
 // Code de salon : 3 à 8 lettres minuscules ou chiffres.
@@ -20,6 +22,9 @@ const pseudoReel = (r, uid) => `newData.val() === ${r}.child('joueurs').child(${
 
 // Racine des données APRÈS l'écriture, en remontant de n crans depuis newData (même préfixe que le nœud écrit).
 // Seul moyen de voir une autre partie d'une écriture multiple (ex. pseudos/ et joueurs/ posés ensemble à la création).
+// L'utilisateur est dans le salon $code : parmi ses joueurs, ou présent (pres/<uid>) même si joueurs/<uid> vient d'être effacé.
+const dansSalon = r => `(${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) || ${r}.child('salons').child($code).child('pres').hasChild(auth.uid))`;
+
 const racineApres = n => 'newData' + '.parent()'.repeat(n);
 
 // Garde-fou des statistiques publiques : par rapport à la valeur précédente (expression a, nœud avec n et v),
@@ -33,4 +38,4 @@ const gardeStats = a => {
   return '(' + a + '.exists() ? (' + N + ' >= ' + n0 + ' && ' + N + ' <= ' + n0 + ' + ' + PAS_MAX + ' && ' + V + ' >= ' + v0 + ' && ' + V + ' - ' + v0 + ' <= ' + N + ' - ' + n0 + ') : ' + N + ' <= ' + PAS_MAX + ')';
 };
 
-module.exports = { COMPTE, UID_ROMAIN, MAINTENANT, CODE, SEPT_JOURS, pseudoReel, racineApres, gardeStats };
+module.exports = { COMPTE, UID_ROMAIN, ROMAIN, dansSalon, MAINTENANT, CODE, SEPT_JOURS, pseudoReel, racineApres, gardeStats };

@@ -1,6 +1,6 @@
 // Guides (votes, guides publiés par les joueurs, lien de partage) et pastille « N en ligne » du bandeau (0.6).
 // r = racine des données ("root" ou "root.child('essai')"), voir 00-communs.js.
-const { COMPTE, MAINTENANT, UID_ROMAIN, racineApres } = require('./00-communs');
+const { COMPTE, MAINTENANT, ROMAIN, racineApres } = require('./00-communs');
 const fs = require('fs'), path = require('path'), vm = require('vm');
 
 // Guides écrits dans le code (liste GUIDES d'onglets/guides.js, source unique) : id (sinon yt, sinon 'g'+rang) et pseudo de
@@ -15,7 +15,6 @@ function guidesCode() {
   return G;
 }
 const G = guidesCode();
-const ROMAIN = `(auth != null && auth.uid === '${UID_ROMAIN}')`;
 // $g est un guide du code.
 const DU_CODE = '(' + G.map(x => `$g === '${x.id}'`).join(' || ') + ')';
 // Le compte connecté est l'auteur d'un guide du code, reconnu par son pseudo (pseudos/<pseudo minuscule>).

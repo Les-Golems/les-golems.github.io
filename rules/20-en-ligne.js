@@ -1,6 +1,6 @@
 // Jeu en ligne : accueil, activité des salons, annonces, salons.
 // r = racine des données ("root" ou "root.child('essai')"), voir 00-communs.js.
-const { COMPTE, MAINTENANT, CODE, SEPT_JOURS, pseudoReel } = require('./00-communs');
+const { COMPTE, MAINTENANT, CODE, SEPT_JOURS, pseudoReel, dansSalon } = require('./00-communs');
 const { aujourdhui } = require('./50-classe');
 
 module.exports = r => ({
@@ -28,7 +28,7 @@ module.exports = r => ({
     "$code": {
       // pres/<uid> aussi (écrit par ce seul uid, gardé à c:false par le serveur à la coupure) : le renvoi par le SDK, après une coupure,
       // d'un set envoyé juste avant arrive quand joueurs/<uid> est déjà effacé ; il n'est plus refusé.
-      ".write": `${COMPTE} && ((newData.exists() && (${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) || ${r}.child('salons').child($code).child('pres').hasChild(auth.uid))) || (!newData.exists() && data.val() < now - ${SEPT_JOURS}))`,
+      ".write": `${COMPTE} && ((newData.exists() && ${dansSalon(r)}) || (!newData.exists() && data.val() < now - ${SEPT_JOURS}))`,
       ".validate": `$code.matches(${CODE}) && ${MAINTENANT}`
     }
   },
@@ -38,7 +38,7 @@ module.exports = r => ({
   "annonces": {
     ".read": `${COMPTE}`,
     "$code": {
-      ".write": `${COMPTE} && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid || !${r}.child('salons').child($code).child('joueurs').hasChild(data.child('u').val())) && (${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) || ${r}.child('salons').child($code).child('pres').hasChild(auth.uid))) || (!newData.exists() && (data.child('u').val() === auth.uid || ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid))))`,
+      ".write": `${COMPTE} && ((newData.exists() && newData.child('u').val() === auth.uid && (!data.exists() || data.child('u').val() === auth.uid || !${r}.child('salons').child($code).child('joueurs').hasChild(data.child('u').val())) && ${dansSalon(r)}) || (!newData.exists() && (data.child('u').val() === auth.uid || ${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid))))`,
       ".validate": `$code.matches(${CODE}) && newData.hasChildren(['u', 'p', 't'])`,
       "u": { ".validate": "newData.val() === auth.uid" },
       "p": { ".validate": `newData.isString() && ${pseudoReel(r, 'auth.uid')}` },
@@ -181,16 +181,16 @@ module.exports = r => ({
       // 0.6 : salon CLASSÉ (cl = true), posé ou retiré par un joueur présent avant le début de la partie ; jamais changé ensuite.
       // 0.6.1 : hote = uid du créateur du salon, posé une fois par lui, présent ; seul l'hôte pose ou retire cl.
       "hote": {
-        ".write": `${COMPTE} && !data.exists() && newData.val() === auth.uid && (${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) || ${r}.child('salons').child($code).child('pres').hasChild(auth.uid))`,
+        ".write": `${COMPTE} && !data.exists() && newData.val() === auth.uid && ${dansSalon(r)}`,
         ".validate": "newData.isString()"
       },
       "cl": {
-        ".write": `${COMPTE} && ${r}.child('salons').child($code).child('hote').val() === auth.uid && (${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) || ${r}.child('salons').child($code).child('pres').hasChild(auth.uid)) && !${r}.child('salons').child($code).child('engages').exists()`,
+        ".write": `${COMPTE} && ${r}.child('salons').child($code).child('hote').val() === auth.uid && ${dansSalon(r)} && !${r}.child('salons').child($code).child('engages').exists()`,
         ".validate": "newData.isBoolean()"
       },
       // 0.6 : ouverture du salon (heure serveur), posée une fois par un joueur présent : sert au délai du bandeau robot.
       "cree": {
-        ".write": `${COMPTE} && !data.exists() && (${r}.child('salons').child($code).child('joueurs').hasChild(auth.uid) || ${r}.child('salons').child($code).child('pres').hasChild(auth.uid))`,
+        ".write": `${COMPTE} && !data.exists() && ${dansSalon(r)}`,
         ".validate": `${MAINTENANT}`
       },
       // 0.6 : bandeau « Affronter un Golem » d'un salon classé : 2 min après l'ouverture, sans adversaire engagé,

@@ -785,7 +785,7 @@
     "nouveautes": {
       "epingles": {
         ".read": true,
-        ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
+        ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1')",
         ".validate": "newData.hasChildren()",
         "$i": {
           ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)"
@@ -795,7 +795,7 @@
     "classe": {
       "saison": {
         ".read": true,
-        ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
+        ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1')",
         ".validate": "newData.hasChildren(['id', 'nom', 'debut'])",
         "id": {
           ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 999"
@@ -815,7 +815,7 @@
       },
       "saisons": {
         ".read": true,
-        ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
+        ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1')",
         "$s": {
           ".validate": "$s.matches(/^[0-9]{1,3}$/) && newData.hasChildren(['nom', 'debut'])",
           "nom": {
@@ -971,7 +971,7 @@
         ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
         "$s": {
           "$uid": {
-            ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1' || (auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && !data.exists() && newData.exists() && $s.matches(/^[0-9]{1,3}$/) && root.child('classe').child('joueurs').child($uid).child('saison').val() + '' === $s && root.child('classe').child('saison').child('id').val() > root.child('classe').child('joueurs').child($uid).child('saison').val() && newData.child('elo').val() === root.child('classe').child('joueurs').child($uid).child('elo').val() && newData.child('placementFini').val() === (root.child('classe').child('joueurs').child($uid).child('parties').val() >= 5) && !newData.hasChild('place'))",
+            ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1') || (auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && !data.exists() && newData.exists() && $s.matches(/^[0-9]{1,3}$/) && root.child('classe').child('joueurs').child($uid).child('saison').val() + '' === $s && root.child('classe').child('saison').child('id').val() > root.child('classe').child('joueurs').child($uid).child('saison').val() && newData.child('elo').val() === root.child('classe').child('joueurs').child($uid).child('elo').val() && newData.child('placementFini').val() === (root.child('classe').child('joueurs').child($uid).child('parties').val() >= 5) && !newData.hasChild('place'))",
             ".validate": "newData.hasChildren(['saison', 'elo', 'rang', 'placementFini']) && newData.child('saison').val() + '' === $s && newData.child('rang').val() === (newData.child('elo').val() >= 1400 ? 'diamant' : newData.child('elo').val() >= 1250 ? 'rubis' : newData.child('elo').val() >= 1150 ? 'emeraude' : newData.child('elo').val() >= 1050 ? 'saphir' : newData.child('elo').val() >= 950 ? 'topaze' : 'amethyste')",
             "saison": {
               ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
@@ -1140,7 +1140,7 @@
         ".read": true,
         "$uid": {
           "$s": {
-            ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1' || (auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && newData.exists())",
+            ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1') || (auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && newData.exists())",
             ".validate": "newData.hasChild('saison') && newData.child('saison').val() + '' === $s && root.child('classe').child('instantanes').child($s).child($uid).child('placementFini').val() === true && (newData.hasChild('place') === newData.hasChild('ecu')) && (!newData.hasChild('place') || (newData.child('place').val() === root.child('classe').child('instantanes').child($s).child($uid).child('place').val() && newData.child('ecu').val() === (newData.child('place').val() === 1 ? 'or' : newData.child('place').val() <= 3 ? 'argent' : 'bronze')))",
             "saison": {
               ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
@@ -2021,7 +2021,7 @@
       "nouveautes": {
         "epingles": {
           ".read": true,
-          ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
+          ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1')",
           ".validate": "newData.hasChildren()",
           "$i": {
             ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)"
@@ -2031,7 +2031,7 @@
       "classe": {
         "saison": {
           ".read": true,
-          ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
+          ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1')",
           ".validate": "newData.hasChildren(['id', 'nom', 'debut'])",
           "id": {
             ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 999"
@@ -2051,7 +2051,7 @@
         },
         "saisons": {
           ".read": true,
-          ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1'",
+          ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1')",
           "$s": {
             ".validate": "$s.matches(/^[0-9]{1,3}$/) && newData.hasChildren(['nom', 'debut'])",
             "nom": {
@@ -2207,7 +2207,7 @@
           ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
           "$s": {
             "$uid": {
-              ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1' || (auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && !data.exists() && newData.exists() && $s.matches(/^[0-9]{1,3}$/) && root.child('essai').child('classe').child('joueurs').child($uid).child('saison').val() + '' === $s && root.child('essai').child('classe').child('saison').child('id').val() > root.child('essai').child('classe').child('joueurs').child($uid).child('saison').val() && newData.child('elo').val() === root.child('essai').child('classe').child('joueurs').child($uid).child('elo').val() && newData.child('placementFini').val() === (root.child('essai').child('classe').child('joueurs').child($uid).child('parties').val() >= 5) && !newData.hasChild('place'))",
+              ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1') || (auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && !data.exists() && newData.exists() && $s.matches(/^[0-9]{1,3}$/) && root.child('essai').child('classe').child('joueurs').child($uid).child('saison').val() + '' === $s && root.child('essai').child('classe').child('saison').child('id').val() > root.child('essai').child('classe').child('joueurs').child($uid).child('saison').val() && newData.child('elo').val() === root.child('essai').child('classe').child('joueurs').child($uid).child('elo').val() && newData.child('placementFini').val() === (root.child('essai').child('classe').child('joueurs').child($uid).child('parties').val() >= 5) && !newData.hasChild('place'))",
               ".validate": "newData.hasChildren(['saison', 'elo', 'rang', 'placementFini']) && newData.child('saison').val() + '' === $s && newData.child('rang').val() === (newData.child('elo').val() >= 1400 ? 'diamant' : newData.child('elo').val() >= 1250 ? 'rubis' : newData.child('elo').val() >= 1150 ? 'emeraude' : newData.child('elo').val() >= 1050 ? 'saphir' : newData.child('elo').val() >= 950 ? 'topaze' : 'amethyste')",
               "saison": {
                 ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"
@@ -2376,7 +2376,7 @@
           ".read": true,
           "$uid": {
             "$s": {
-              ".write": "auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1' || (auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && newData.exists())",
+              ".write": "(auth != null && auth.uid === 'doSJZ1I6ixVUFejD842Jz2JrkFs1') || (auth != null && auth.token.firebase.sign_in_provider === 'password' && auth.uid === $uid && newData.exists())",
               ".validate": "newData.hasChild('saison') && newData.child('saison').val() + '' === $s && root.child('essai').child('classe').child('instantanes').child($s).child($uid).child('placementFini').val() === true && (newData.hasChild('place') === newData.hasChild('ecu')) && (!newData.hasChild('place') || (newData.child('place').val() === root.child('essai').child('classe').child('instantanes').child($s).child($uid).child('place').val() && newData.child('ecu').val() === (newData.child('place').val() === 1 ? 'or' : newData.child('place').val() <= 3 ? 'argent' : 'bronze')))",
               "saison": {
                 ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0"

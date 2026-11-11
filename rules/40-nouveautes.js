@@ -1,6 +1,6 @@
 // Nouveautés : blocs épinglés par Romain.
 // r = racine des données ("root" ou "root.child('essai')"), voir 00-communs.js.
-const { UID_ROMAIN } = require('./00-communs');
+const { ROMAIN } = require('./00-communs');
 
 module.exports = r => ({
   // Nouveautés (0.4) : blocs épinglés, nouveautes/epingles = { "0": id, "1": id } (2 au plus ; "aucun" = rien d'épinglé ;
@@ -9,7 +9,7 @@ module.exports = r => ({
   "nouveautes": {
     "epingles": {
       ".read": true,
-      ".write": `auth != null && auth.uid === '${UID_ROMAIN}'`,
+      ".write": ROMAIN,
       ".validate": "newData.hasChildren()",
       "$i": { ".validate": "($i === '0' || $i === '1') && newData.isString() && newData.val().matches(/^[a-z0-9.-]{1,40}$/)" }
     }
