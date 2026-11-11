@@ -589,15 +589,18 @@ const ATTENTE_ROBOT=120000;let robotT2=0,creeSrv=0,creeLu='';
 /* cree absent (ecriture coupee) : nouvel essai d'ecriture toutes les 5 s ; au bout de 15 s sans heure lue, bandeau d'erreur avec Reessayer
    (jamais de verification sans fin). cree est ecoute en continu par le salon (onCree) : sa valeur relance le bandeau des qu'elle arrive. */
 let creeT0=0,creeCode='',creeOk='',creeEnvoi=false,creePanne=false,creeEssai=0;
-function reposeCree(){const s=r;if(!s||!s.poseCree||creeEnvoi)return;creeEnvoi=true;s.poseCree().catch(e=>console.warn('salon classe',e)).then(()=>{creeEnvoi=false})}
-function creeEnPanne(){creePanne=true;alerte('erreurJeu','Heure d\'ouverture du salon classé impossible à enregistrer : vérifie ta connexion.',{bouton:{texte:'Réessayer',action:()=>{alerte('erreurJeu','');creePanne=false;creeT0=Date.now();creeEssai=0;creeEnvoi=false;reposeCree();creeLu='';arrGardeCree();majBandeauRobot()}}})}
+/* relance=true (Reessayer, garde-fou) : nouvel essai meme si un envoi semble en cours (relanceCree : nouvelle connexion forcee, puis essai ;
+   salon-firebase n'a jamais qu'un essai de cree a la fois). Echec : bandeau du salon en etat d'echec avec son propre Reessayer, en meme temps que l'alerte. */
+function reposeCree(relance){const s=r;if(!s||!s.poseCree||(creeEnvoi&&!relance))return;creeEnvoi=true;(relance&&s.relanceCree?s.relanceCree():s.poseCree()).catch(e=>console.warn('salon classe',e)).then(()=>{creeEnvoi=false})}
+function reessaieCree(){alerte('erreurJeu','');creePanne=false;creeOk='';creeT0=Date.now();creeEssai=0;reposeCree(true);creeLu='';arrGardeCree();majBandeauRobot()}
+function creeEnPanne(){creePanne=true;alerte('erreurJeu','Heure d\'ouverture du salon classé impossible à enregistrer : vérifie ta connexion.',{bouton:{texte:'Réessayer',action:reessaieCree}});majBandeauRobot()}
 function finPanneCree(){if(creePanne){creePanne=false;alerte('erreurJeu','')}}
 /* Garde-fou unique : 20 s apres l'entree (ou apres Reessayer) sans heure serveur de cree connue, quelle que soit la raison (lecture pendante, creeOk pose sans creeSrv),
    nouvelle lecture et nouvelle ecriture, puis 3 s plus tard creeEnPanne si rien n'est arrive. Annule a la sortie du salon. */
 let creeGarde=0;
 function stopGardeCree(){clearTimeout(creeGarde);creeGarde=0}
 function arrGardeCree(){stopGardeCree();const s=r,c=code;if(!s||!c)return;const connue=()=>r!==s||code!==c||(creeSrv>0&&creeLu===c&&creeOk===c);
-  creeGarde=setTimeout(()=>{if(connue()){creeGarde=0;return}creeOk='';creeLu='';creeEssai=0;creeEnvoi=false;reposeCree();majBandeauRobot();
+  creeGarde=setTimeout(()=>{if(connue()){creeGarde=0;return}creeOk='';creeLu='';creeEssai=0;reposeCree(true);majBandeauRobot();
     creeGarde=setTimeout(()=>{creeGarde=0;if(connue())return;if(!creePanne)creeEnPanne();majBandeauRobot()},3000)},20000)}
 function lisCreeSalon(){const s=r,c=code;if(!s||!s.lisCree)return;
   if(c!==creeCode){creeCode=c;creeOk='';creeT0=Date.now();creeEssai=0;finPanneCree();arrGardeCree()}
@@ -613,12 +616,14 @@ function majBandeauRobot(){
   if(creeLu!==code){creeSrv=0}
   lisCreeSalon();
   const C=GolemsClasse,j=profilClasse(),R=C.ROBOTS[C.niveauRobot(j.elo)],reste=C.robotsRestants(j.robots),t=z.querySelector('span'),b=$('affronterGolem'),ms=creeSrv&&creeLu===code?ATTENTE_ROBOT-(room.heure()-creeSrv):ATTENTE_ROBOT-(Date.now()-entree)+1000;
-  z.hidden=false;
+  z.hidden=false;{const rc=$('reessayerCree');if(rc)rc.hidden=!creePanne}
+  if(creePanne){t.textContent='Salon classé : heure d\'ouverture non enregistrée. Vérifie ta connexion.';b.hidden=true;return}
   if(reste<=0){t.textContent='Limite atteinte : '+C.ROBOTS_PAR_JOUR+' parties contre un Golem par jour en classée. Reviens demain ou attends un adversaire.';b.hidden=true;return}
-  if(ms<=0&&!(creeSrv&&creeLu===code)){t.textContent=creePanne?'Salon classé : heure d\'ouverture non enregistrée. Clique sur Réessayer.':'Salon classé : personne n\'a encore rejoint. Vérification de l\'heure du salon…';b.hidden=true;if(!robotT2)robotT2=setTimeout(majBandeauRobot,1000);return}
+  if(ms<=0&&!(creeSrv&&creeLu===code)){t.textContent='Salon classé : personne n\'a encore rejoint. Vérification de l\'heure du salon…';b.hidden=true;if(!robotT2)robotT2=setTimeout(majBandeauRobot,1000);return}
   if(ms>0){const s=Math.ceil(ms/1000);t.textContent='Salon classé : personne n\'a encore rejoint. Un Golem te sera proposé dans '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+'.';b.hidden=true;robotT2=setTimeout(majBandeauRobot,(ms%1000)+20);return}
   t.textContent='Salon classé : personne n\'a rejoint. Affronte le '+R.nom+' - Elo '+R.elo+', points divisés par 2, '+C.compteRobot(j.robots).n+' sur '+C.ROBOTS_PAR_JOUR+' aujourd\'hui.';b.hidden=false;
 }
+{const rc=$('reessayerCree');if(rc)rc.onclick=reessaieCree}
 $('affronterGolem').onclick=async()=>{
   const b=$('affronterGolem');if(b.disabled)return;b.disabled=true;try{await affronterGolem()}finally{b.disabled=false} /* 0.6.1 : un seul lancement au double clic */
 };

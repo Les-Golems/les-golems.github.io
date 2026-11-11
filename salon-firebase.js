@@ -628,7 +628,7 @@ async function ouvre() {
     }
     // Annonce publique (annonces/{code}) : effacée à la déconnexion du créateur.
     const annRef = ref(db, P + "annonces/" + code); salonsOuverts.add(code);
-    let annonceOn = false, presOk = false, annonceO = null, annonceRearme = false, versRobot = false, creeAFaire = false, presConf = false, clOk = false, annoncePosee = false; // annoncePosee : une écriture d'annonce est partie (à effacer en sortant, même sans accusé) // annonceO : dernière annonce publiée (réécrite à la reconnexion) ; creeAFaire : heure d'ouverture du salon classé pas encore écrite (réessayée à la reconnexion)
+    let annonceOn = false, presOk = false, annonceO = null, annonceRearme = false, versRobot = false, creeAFaire = false, presConf = false, clOk = false, hoteOk = false, annoncePosee = false; // annoncePosee : une écriture d'annonce est partie (à effacer en sortant, même sans accusé) // annonceO : dernière annonce publiée (réécrite à la reconnexion) ; creeAFaire : heure d'ouverture du salon classé pas encore écrite (réessayée à la reconnexion)
     function ecrit() { return update(moiRef, { ...pres, t: serverTimestamp() }); }
     // Présence de connexion (0.5, déconnexion) : salons/{code}/pres/{uid} = { c: connecté, t: heure serveur du dernier changement }.
     // Le serveur écrit c:false lui-même à la coupure (onDisconnect) ; l'adversaire en tire « reconnexion » puis « hors ligne ».
@@ -646,6 +646,12 @@ async function ouvre() {
     // Heure d'ouverture du salon classé (cree) écoutée en continu (jamais un get qui peut rester pendant pendant une coupure) ; désabonnée par stop.
     let creeV = 0; const ecouteCree = [];
     stop.push(onValue(ref(db, base + "/cree"), s => { creeV = +s.val() || 0; if (!fini) ecouteCree.forEach(f => { try { f(creeV); } catch (e) {} }); }, () => {}));
+    let creeEnCours = null; // essai de poseCree en cours (un seul à la fois, voir poseCree)
+    async function poseCree1() { if (fini || !creeAFaire) return true; if (!presConf || !enLigne) return false; // réessayé par reco après la présence
+        // hote confirmé une fois suffit : le réécrire à chaque essai provoquait sous coupures une déconnexion (presConf faux) avant cree, à chaque essai.
+        if (!hoteOk) { try { const x = await ajoute(ref(db, base + "/hote"), uid); hoteOk = x.committed || x.snapshot.val() === uid; } catch (e) {} }
+        if (!clOk) { if (fini || !presConf) return false; await set(ref(db, base + "/cl"), true); clOk = true; }
+        if (fini || !presConf) return false; await ajoute(ref(db, base + "/cree"), serverTimestamp()); creeAFaire = false; return true; }
     // onDisconnect réarmé puis c:true. La réponse du serveur à onDisconnect peut se perdre dans une coupure (promesse jamais
     // tenue) : sans réponse en 3 s, connecté, on recommence (onDisconnect rejoué, idempotent).
     function presCo() {
@@ -735,12 +741,14 @@ async function ouvre() {
       // cree : échec (coupure) remonté à l'appelant et réessayé à chaque reconnexion (creeAFaire) ; poseCree() pour un nouvel essai à la demande.
       // Sans attendre cree : l'entrée au salon ne reste jamais suspendue à une écriture coupée (reprise par reco et par la page).
       async marqueClasse() { creeAFaire = true; salon.poseCree().catch(e => console.warn('salon classe', e)); },
-      // hote, cl puis cree, tout repris à chaque essai (une coupure peut faire tomber n'importe laquelle des trois écritures).
-      async poseCree() { if (fini || !creeAFaire) return true; if (!presConf || !enLigne) return false; // réessayé par reco après la présence
-        try { await ajoute(ref(db, base + "/hote"), uid); } catch (e) {}
-        if (!clOk) { if (fini || !presConf) return false; await set(ref(db, base + "/cl"), true); clOk = true; }
-        if (fini || !presConf) return false; await ajoute(ref(db, base + "/cree"), serverTimestamp()); creeAFaire = false; return true; },
-      // Heure d'ouverture du salon classé (cree, heure serveur ; 0 si absente) : base du délai de 2 min avant le Golem.
+      // hote (une fois confirmé), cl puis cree, repris à chaque essai (une coupure peut faire tomber n'importe laquelle des trois écritures).
+      // Un seul essai à la fois (reco, marqueClasse et la page en lancent) : deux transactions sur cree en même temps, la 2e voyait la valeur
+      // encore en vol de la 1re, s'arrêtait sans écrire et marquait cree comme fait ; la 1re coupée, cree n'était plus jamais écrit
+      // (bandeau « Vérification de l'heure du salon… » et Réessayer sans effet). Un appel pendant un essai attend la fin de celui-ci.
+      poseCree() { if (!creeEnCours) creeEnCours = poseCree1().finally(() => { creeEnCours = null; }); return creeEnCours; },
+      // Réessayer : une écriture de cree restée sans réponse (socket resté ouvert) bloque l'essai en cours : nouvelle connexion forcée
+      // (le SDK fait échouer la transaction envoyée, qui est relancée), puis nouvel essai.
+      relanceCree() { if (fini) return Promise.resolve(true); if (creeAFaire && enLigne) { try { goOffline(db); goOnline(db); } catch (e) {} } return salon.poseCree(); },
       lisCree() { return Promise.resolve(creeV); },
       onCree(f) { ecouteCree.push(f); },
       async estClasse() { try { return (await get(ref(db, base + "/cl"))).val() === true; } catch (e) { return false; } },
