@@ -1,6 +1,6 @@
 // Données des comptes des Golems (Firebase) : decks à emplacement fixe (lisDecks, ecritDecks) et écritures sûres sous coupures
 // (ajoute, ecritPlusieurs). Découpé de salon-firebase.js (lot E de l'audit 0.6a) : code déplacé sans changement.
-import { ref, update, remove, set, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { ref, update, remove, set, get, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { compte, donnees, moi, db, P } from "./compte.js";
 
 const MAX_DECKS = 12;
@@ -9,11 +9,18 @@ const MAX_DECKS = 12;
 // est renvoyé par le SDK à la reconnexion, et la règle le refuse alors que la valeur est écrite. D'où une transaction
 // qui n'écrit que si la valeur est absente (rejouée sur la valeur du serveur), relancée après une coupure (« disconnect ») :
 // elle attend la reconnexion puis relit le serveur. Rend le résultat (committed, snapshot = valeur du serveur sinon).
-export async function ajoute(r, val) {
+// tenace (résultats d'une partie : résumé, classe/parties) : sous coupures répétées, trois essais coupés d'affilée faisaient échouer
+// une écriture que le SDK aurait faite à la reconnexion suivante (« Partie : résultat non enregistré » à tort). Tenace, chaque
+// coupure attend la reconnexion puis relance, sans limite : seul un refus des règles (ou une autre erreur) remonte.
+export async function ajoute(r, val, tenace) {
   for (let k = 0; ; k++) {
     try { return await runTransaction(r, v => v === null ? val : undefined, { applyLocally: false }); }
-    catch (e) { if (k >= 2 || !/disconnect/.test(String(e && e.message))) throw e; }
+    catch (e) { if ((!tenace && k >= 2) || !/disconnect/.test(String(e && e.message))) throw e; if (tenace) await reconnecte(); }
   }
+}
+// Promesse tenue à la prochaine connexion au serveur (tout de suite si déjà connecté).
+function reconnecte() {
+  return new Promise(f => { let ok = false; const fin = onValue(ref(db, ".info/connected"), s => { if (s.val() === true && !ok) { ok = true; f(); setTimeout(() => fin(), 0); } }); });
 }
 // Écriture multi-chemins (atomique, pas de transaction possible sur plusieurs chemins) : même renvoi refusé après une coupure.
 // Refus : chaque chemin relu sur le serveur ; tous égaux à ce qui était envoyé (heure serveur = un nombre) = écriture déjà appliquée.

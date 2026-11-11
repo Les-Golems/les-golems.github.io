@@ -138,7 +138,7 @@ async function ouvre() {
       lit: p => get(ref(db, P + p)).then(s => s.val()),
       // Ajouts seuls (partie, confirmation, partie appliquée, instantané) : transaction (déjà là = fait) ; le reste : multi-chemins.
       ecrit: async m => { const ks = Object.keys(m);
-        if (ks.length === 1 && m[ks[0]] !== null && /^classe\/(parties\/[^/]+(\/(ok|fait)\/[^/]+)?|instantanes\/[^/]+\/[^/]+)$/.test(ks[0])) { await ajoute(ref(db, P + ks[0]), m[ks[0]]); return; }
+        if (ks.length === 1 && m[ks[0]] !== null && /^classe\/(parties\/[^/]+(\/(ok|fait)\/[^/]+)?|instantanes\/[^/]+\/[^/]+)$/.test(ks[0])) { await ajoute(ref(db, P + ks[0]), m[ks[0]], true); return; }
         const o = {}; for (const k in m) o[P + k] = m[k]; return ecritPlusieurs(o); }
     }),
     onPeers(f, g) { ecouteHall.push(f); if (g) { hallPerdu.push(g); if (hallErreur) setTimeout(g, 0); } },
@@ -190,8 +190,8 @@ async function ouvre() {
       // Transaction (écrit seulement si absent) plutôt que get + set : un set déjà appliqué mais dont la réponse est perdue
       // (coupure juste après l'envoi) est renvoyé par le SDK à la reconnexion, et la règle (ajout seulement) le refusait.
       // La transaction est rejouée sur la valeur du serveur : résumé déjà là = rien à écrire.
-      // Coupure pendant la transaction (erreur « disconnect ») : relancée, elle attend la reconnexion puis relit le serveur.
-      return (await ajoute(r, { ...o, d: serverTimestamp() })).committed;
+      // Coupure pendant la transaction (erreur « disconnect ») : relancée à chaque reconnexion, sans limite (ajoute tenace).
+      return (await ajoute(r, { ...o, d: serverTimestamp() }, true)).committed;
     },
     // Les n résumés les plus récents (2000 par défaut), du plus ancien au plus récent, avec leur clé (id = graine-début).
     async litResumes(n) {

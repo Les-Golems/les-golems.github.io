@@ -328,6 +328,11 @@ async function scenarioClasse(P, c, R) {
   await attendu(ici('bandeau robot après 5 classées du jour'), false, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));
   await req('admin', 'PATCH', J(X), { robots: { jour: '2026-11-08', j: jour - 1, n: 5 } });
   await attendu(ici('bandeau robot le lendemain'), true, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));
+  { /* 0.6a : coupure juste après l'envoi : joueurs/<uid> effacé par le serveur, pres/<uid> gardé à c:false ; la transaction renvoyée passe */
+    await req('admin', 'DELETE', S3 + '/robot'); await req('admin', 'DELETE', S3 + '/joueurs/' + X.uid); await req('admin', 'PUT', S3 + '/pres/' + X.uid, { c: false, t: Date.now() });
+    await attendu(ici('bandeau robot, joueurs effacé à la coupure (pres seul)'), true, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE }));
+    await req('admin', 'DELETE', S3 + '/robot'); await req('admin', 'DELETE', S3 + '/pres/' + X.uid);
+    await attendu(ici('bandeau robot, salon quitté (ni joueurs ni pres)'), false, req(X, 'PUT', S3 + '/robot', { u: X.uid, n: 'normal', t: HEURE })); }
 
   // Fin de saison : instantané, écusson, remise à mi-chemin.
   await attendu(ici('instantané avant la fin de la saison'), false, req(A, 'PUT', CL + 'instantanes/0/' + A.uid, { saison: 0, elo: 1032, rang: 'topaze', placementFini: true }));
