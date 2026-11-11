@@ -95,7 +95,8 @@ html.clair{--st-sz-rg:#715335;--st-rg-am:var(--r-amethyste);--st-rg-to:var(--r-t
 .st-nom{font-weight:700;min-width:0;display:flex;flex-direction:column;line-height:1.15;text-shadow:0 1px 3px #0a121a}.st-nom>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .st-ti{font-size:12px;-webkit-text-stroke:2.5px #0a121a;paint-order:stroke fill}
 .st-np,.st-pv{font:400 14px/1 var(--titre);text-align:right;-webkit-text-stroke:3px #0a121a;paint-order:stroke fill}.st-np{color:#fff}
-.st-mot{grid-column:span 2;font:800 11px/1 var(--corps);letter-spacing:.04em;text-transform:uppercase;color:#fff}
+.st-mot{white-space:nowrap;font:800 11px/1 var(--corps);letter-spacing:.04em;text-transform:uppercase;color:#fff}body:not(.daltonien) .st-mot{visibility:hidden}
+.st-ela{padding-left:21px} /* animal : son element (interface.elementAnimal) a la place du picto de droite des Golems ; mot Animal en mode daltonien seulement */
 .st-thc{grid-template-columns:28px 32px 42px minmax(0,1fr) 30px 38px;gap:2px;padding:0 6px;font-size:10.5px;letter-spacing:.02em;margin-bottom:6px}
 /* Terrains */
 .st-lt{display:grid;grid-template-columns:minmax(0,1fr) 36px 46px 38px 44px;align-items:center;gap:6px;height:var(--L);margin:0 0 var(--g,4px);padding:0 8px;border-radius:7px 5px 8px 4px;background:linear-gradient(90deg,rgba(1,193,240,.30) 0%,rgba(1,193,240,.10) 45%,var(--panneau2) 80%);font-size:14px;box-sizing:border-box}
