@@ -67,6 +67,9 @@ const DETAILS_VERSIONS={
    "Parties en ligne : une coupure brève de connexion ne fait plus déclarer un joueur absent à tort, ni perdant par abandon. La partie reste visible dans « Parties en ligne » après la reconnexion de son créateur.",
    "Classées : le résultat d'une partie, forfait compris, est toujours compté pour les deux joueurs, même après une coupure : il est rattrapé automatiquement au retour.",
    "Classée contre le Golem : le bouton « Affronter un Golem » apparaît bien après 2 minutes, même après une coupure. Le salon ne reste plus bloqué sur « Vérification de l'heure du salon » : en cas d'échec, un message clair propose Réessayer.",
+   "Salon classé : l'heure d'ouverture du salon se vérifie de façon plus fiable en cas de coupure. Réessayer relance vraiment la vérification, et le bandeau d'échec affiche son propre bouton Réessayer.",
+   "Historique classé : une partie classée absente de l'historique y est ajoutée au chargement du site ou à la reconnexion, sans toucher à l'Elo. Une ligne à jour n'est plus écrasée par un envoi en retard.",
+   "Bouton Supprimer : dans Decks, il reprend le bouton rouge d'Abandonner. Texte de Supprimer et d'Abandonner plus lisible, dans tous les modes d'affichage.",
    "Fenêtres : à la fermeture du détail d'une partie ou du zoom d'une carte, la navigation au clavier reprend là où elle était.",
    "Récompenses de saison : le texte de la médaille Pionnier tient sur deux lignes."],
   regles:[]
