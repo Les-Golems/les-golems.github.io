@@ -43,8 +43,7 @@ addEventListener('hashchange',lienGuides);addEventListener('load',()=>setTimeout
 
 
 /* 0.6 : onglets de la refonte (maquette 32, B3) : Nouveautes, Jouer, Decks, Statistiques, Comment jouer, etires sur toute la largeur.
-   TODO vagues suivantes : Historique dans Jouer (Jouer / Mes parties), Cartes dans Decks (Decks / Cartes), Guides dans Comment jouer
-   (Regles / Guides). En attendant, leurs boutons restent masques ; les sections restent ouvrables par onglet('historique') etc. */
+   Boutons Historique et Cartes masques (suite de la refonte : voir Reste a faire.md) ; les sections restent ouvrables par onglet('historique') etc. */
 ['t-historique','t-cartes'].forEach(i=>{const b=$(i);if(b)b.hidden=true});
 
 /* 0.6 : bandeau superieur B3 (maquette 32 - Bandeau superieur). Pastille « N en ligne » (affichage seul), capsule du compte
