@@ -10,27 +10,29 @@
 //
 // Arborescence :
 //   pseudos/{pseudo minuscule}  uid du propriétaire
-//   joueurs/{uid}               pseudo, avatarId, cree, importe, decks/0..11, historique/{id} {d, x},
+//   joueurs/{uid}               pseudo, avatarId, cree, importe, decks/0..11 (emplacements fixes), ordreDecks (ordre affiché), historique/{id} {d, x},
 //                               cumul (texte JSON : cumuls de toutes les parties, fabriqués par la page)
 //   profils/{uid}               résumé public du profil (chiffres de la fenêtre de compte), m = profil privé
 //   hall/{uid}                  présence dans l'accueil (pseudo, salon, quitte), comptes seulement
 //   salons/{code}/joueurs/{uid} présence dans le salon (pseudo, arrivee, sid, pret, deck,
 //                               graine, jg, adv, veut, quitte, v = version du site), effacée par onDisconnect
-//   salons/{code}/coups/{push}  journal : un coup par entrée, jamais modifié
+//   salons/{code}/coups/{uid_sid_g_n}  journal (anciennes parties : push) : un coup par entrée, jamais modifié
 //                               { a: uid auteur, s: sid, g: graine, n: rang, c: code du coup }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, setPersistence, browserSessionPersistence, browserLocalPersistence,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, orderByValue, endAt, limitToFirst, limitToLast, equalTo, runTransaction, connectDatabaseEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, goOffline, goOnline, ref, onValue, update, remove, push, set, onDisconnect, serverTimestamp, get, query, orderByChild, orderByValue, orderByKey, startAt, endAt, limitToFirst, limitToLast, equalTo, runTransaction, connectDatabaseEmulator } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { firebaseConfig as configEnLigne } from "./firebase-config.js";
 
 // Servi depuis localhost ou 127.0.0.1 : émulateur Firebase local (projet de démonstration
 // demo-les-golems, voir lancer_emulateur.ps1). Jamais en ligne.
 const EMULATEUR = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 const HOTE_EMU = "127.0.0.1";
+// Ports de l'émulateur : 9000 (base) et 9099 (Auth), ou ceux de la clé locale golems.emuPorts = "base,auth" (tests sur un 2e émulateur).
+const PORTS_EMU = (() => { try { const m = /^(\d{4,5}),(\d{4,5})$/.exec(localStorage.getItem("golems.emuPorts") || ""); if (m) return [+m[1], +m[2]]; } catch (e) {} return [9000, 9099]; })();
 const firebaseConfig = EMULATEUR
   ? { apiKey: "demo-cle", authDomain: "demo-les-golems.firebaseapp.com", projectId: "demo-les-golems",
-      databaseURL: `http://${HOTE_EMU}:9000?ns=demo-les-golems-default-rtdb` }
+      databaseURL: `http://${HOTE_EMU}:${PORTS_EMU[0]}?ns=demo-les-golems-default-rtdb` }
   : configEnLigne;
 
 const CHAMPS_HALL = ["pseudo", "salon", "quitte"];
@@ -81,8 +83,8 @@ async function ouvre() {
   const auth = getAuth(app);
   const db = getDatabase(app);
   if (EMULATEUR) {
-    connectAuthEmulator(auth, `http://${HOTE_EMU}:9099`, { disableWarnings: true });
-    connectDatabaseEmulator(db, HOTE_EMU, 9000);
+    connectAuthEmulator(auth, `http://${HOTE_EMU}:${PORTS_EMU[1]}`, { disableWarnings: true });
+    connectDatabaseEmulator(db, HOTE_EMU, PORTS_EMU[0]);
   }
   // Un compte reste connecté (stockage local) ; un invité vit le temps de l'onglet.
   await auth.authStateReady();
@@ -95,11 +97,50 @@ async function ouvre() {
   const signale = () => ecouteCompte.forEach(f => { try { f(); } catch (e) {} });
 
   let enLigne = false;
+  // Salons ouverts dans cette page (annonce légitime) ; les autres annonces de mon uid sont orphelines (nettoyées par annonces()).
+  const salonsOuverts = new Set(), orphelinesVues = new Set();
   const ecouteCo = [];
-  onValue(ref(db, ".info/connected"), s => { enLigne = s.val() === true; ecouteCo.forEach(f => f()); });
+  // Coupures répétées : le SDK espace ses reconnexions (délai x1,3 à chaque connexion de moins de 30 s, jusqu'à plusieurs
+  // minutes) ; un joueur qui joue paraît alors absent plus de 60 s et perd par abandon. Coupé, on relance la connexion
+  // toutes les 3 s (goOffline puis goOnline remet le délai au minimum) ; les écritures en attente sont gardées.
+  let relance = null;
+  const relanceCo = () => { relance = null; if (enLigne || (typeof navigator !== "undefined" && navigator.onLine === false)) { if (!enLigne) relance = setTimeout(relanceCo, 3000); return; }
+    relance = -1; try { goOffline(db); goOnline(db); } catch (e) {} relance = setTimeout(relanceCo, 3000); };
+  onValue(ref(db, ".info/connected"), s => { enLigne = s.val() === true;
+    if (enLigne) { if (relance && relance !== -1) clearTimeout(relance); if (relance !== -1) relance = null; } else if (!relance) relance = setTimeout(relanceCo, 1500);
+    ecouteCo.forEach(f => f()); });
   // Écart entre l'horloge locale et celle du serveur (déconnexion : minuteurs comptés en heure serveur).
   let decalage = 0;
   onValue(ref(db, ".info/serverTimeOffset"), s => { decalage = +s.val() || 0; });
+
+  // Écritures « ajout seulement » (règles !data.exists()) : un set déjà appliqué dont la réponse se perd dans une coupure
+  // est renvoyé par le SDK à la reconnexion, et la règle le refuse alors que la valeur est écrite. D'où une transaction
+  // qui n'écrit que si la valeur est absente (rejouée sur la valeur du serveur), relancée après une coupure (« disconnect ») :
+  // elle attend la reconnexion puis relit le serveur. Rend le résultat (committed, snapshot = valeur du serveur sinon).
+  async function ajoute(r, val) {
+    for (let k = 0; ; k++) {
+      try { return await runTransaction(r, v => v === null ? val : undefined, { applyLocally: false }); }
+      catch (e) { if (k >= 2 || !/disconnect/.test(String(e && e.message))) throw e; }
+    }
+  }
+  // Écriture multi-chemins (atomique, pas de transaction possible sur plusieurs chemins) : même renvoi refusé après une coupure.
+  // Refus : chaque chemin relu sur le serveur ; tous égaux à ce qui était envoyé (heure serveur = un nombre) = écriture déjà appliquée.
+  function pareil(a, b) {
+    if (b && typeof b === "object" && b[".sv"] === "timestamp") return typeof a === "number";
+    if (b === null || b === undefined) return a === null || a === undefined;
+    if (typeof b !== "object") return a === b;
+    if (!a || typeof a !== "object") return false;
+    const kb = Object.keys(b).filter(k => b[k] !== null && b[k] !== undefined);
+    return kb.every(k => pareil(a[k], b[k])) && Object.keys(a).every(k => kb.includes(k));
+  }
+  async function ecritPlusieurs(maj) {
+    try { await update(ref(db), maj); }
+    catch (e) {
+      if (!/permission/i.test(String(e && (e.code || e.message)))) throw e;
+      const ok = (await Promise.all(Object.keys(maj).map(async c => pareil((await get(ref(db, c))).val(), maj[c])))).every(Boolean);
+      if (!ok) throw e;
+    }
+  }
 
   // Accueil : seulement pour un compte ; arrêté puis relancé à chaque changement de compte.
   let hallRef = null, hallStop = null, hallPres = {}, hallPeers = [], hallErreur = false;
@@ -152,7 +193,55 @@ async function ouvre() {
   majEnligne();
 
   // Données du compte
-  function versListe(o) { return Object.values(o || {}).filter(Boolean); }
+  // 0.6a : decks à emplacement fixe (decks/<i> ne bouge plus) et ordre d'affichage à part (ordreDecks = ids séparés par des virgules).
+  // decksBase = ce que la base contient (id -> { s: emplacement, o: deck normalisé }), sert à n'écrire que ce qui change.
+  let decksBase = new Map(), ordreBase = "", fileDecks = Promise.resolve();
+  const normeDeck = d => {
+    const c = {}; for (const k in d.cartes || {}) if (+d.cartes[k] > 0) c[k] = +d.cartes[k];
+    const o = { id: String(d.id), nom: String(d.nom || "").slice(0, 24) || "Deck", cartes: c };
+    if (typeof d.v === "string" && /^[0-9a-z.]{1,10}$/.test(d.v)) o.v = d.v;
+    return o;
+  };
+  function lisDecks(brut, ordre) {
+    decksBase = new Map(); ordreBase = typeof ordre === "string" ? ordre : "";
+    const l = [];
+    for (const k of Object.keys(brut || {})) {
+      const d = brut[k]; if (!d || typeof d !== "object" || typeof d.id !== "string" || decksBase.has(d.id)) continue;
+      const x = { id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0, ...(d.v ? { v: d.v } : {}) };
+      decksBase.set(d.id, { s: +k, o: normeDeck(x) }); l.push(x);
+    }
+    const rang = new Map(ordreBase.split(",").filter(Boolean).map((id, i) => [id, i]));
+    l.sort((a, b) => (rang.has(a.id) ? rang.get(a.id) : 99 + decksBase.get(a.id).s) - (rang.has(b.id) ? rang.get(b.id) : 99 + decksBase.get(b.id).s));
+    return l;
+  }
+  async function ecritDecksFile(l0) {
+    if (!compte.connecte()) return;
+    const l = l0.slice(0, MAX_DECKS); donnees.decks = l;
+    const rac = P + "joueurs/" + moi + "/decks/", ids = new Set(l.map(d => String(d.id))), refuses = [];
+    let erreur = null;
+    const essaie = async (nom, f) => { try { await f(); } catch (e) { console.warn("decks", nom, e); erreur = erreur || e; refuses.push(nom); } };
+    for (const [id, b] of [...decksBase]) if (!ids.has(id)) await essaie(b.o.nom, async () => { await remove(ref(db, rac + b.s)); decksBase.delete(id); });
+    for (const d of l) {
+      const n = normeDeck(d), b = decksBase.get(n.id);
+      if (!b) {
+        const pris = new Set([...decksBase.values()].map(x => x.s));
+        let s = 0; while (pris.has(s)) s++;
+        if (s >= MAX_DECKS) { refuses.push(n.nom); erreur = erreur || new Error("emplacements pleins"); continue; }
+        await essaie(n.nom, async () => { await set(ref(db, rac + s), { ...n, t: Date.now() }); decksBase.set(n.id, { s, o: n }); });
+        continue;
+      }
+      const maj = {};
+      if (n.nom !== b.o.nom) maj.nom = n.nom;
+      if ((n.v || null) !== (b.o.v || null)) maj.v = n.v || null;
+      for (const k of new Set([...Object.keys(n.cartes), ...Object.keys(b.o.cartes)])) if (n.cartes[k] !== b.o.cartes[k]) maj["cartes/" + k] = n.cartes[k] || null;
+      if (!Object.keys(maj).length) continue;
+      maj.t = Date.now();
+      await essaie(n.nom, async () => { await update(ref(db, rac + b.s), maj); b.o = n; });
+    }
+    const ordre = l.map(d => String(d.id)).filter(id => decksBase.has(id)).join(",");
+    if (ordre !== ordreBase) await essaie("ordre", async () => { await set(ref(db, P + "joueurs/" + moi + "/ordreDecks"), ordre || null); ordreBase = ordre; });
+    if (erreur) throw Object.assign(new Error("decks non enregistrés"), { code: erreur.code || "", refuses });
+  }
   function lisCumul(t) { if (typeof t !== "string") return null; try { const c = JSON.parse(t); return c && typeof c === "object" ? c : null; } catch (e) { return null; } }
   async function chargeDonnees() {
     if (!estCompte()) { donnees = null; return; }
@@ -163,7 +252,7 @@ async function ouvre() {
       avatarImg: typeof v.avatarImg === "string" ? v.avatarImg : "",
       importe: !!v.importe,
       cree: +v.cree || 0,
-      decks: versListe(v.decks).map(d => ({ id: d.id, nom: d.nom, cartes: d.cartes || {}, t: d.t || 0, ...(d.v ? { v: d.v } : {}) })),
+      decks: lisDecks(v.decks, v.ordreDecks),
       historique: Object.keys(v.historique || {}).map(k => { try { return JSON.parse(v.historique[k].x); } catch (e) { return null; } })
         .filter(x => x && x.id).sort((a, b) => (+b.date || 0) - (+a.date || 0)),
       cumul: lisCumul(v.cumul),
@@ -203,12 +292,15 @@ async function ouvre() {
     const f = async () => {
       if (!compte.connecte() || !cumuleur) return false;
       const qui = moi, l = (extra || []).concat(donnees.historique);
-      try { if (!cumuleur(donnees.cumul, l)) return false; } catch (e) { console.warn("cumul", e); return false; }
+      // 0.6.3 : compteurs par saison : la saison en cours (classe/saison, lecture publique) déclenche la bascule (remise à zéro, archive).
+      let saison = null;
+      try { const s = (await get(ref(db, P + "classe/saison"))).val(); if (s && Number.isInteger(s.id)) saison = { id: s.id, debut: +s.debut || 0 }; } catch (e) {}
+      try { if (!cumuleur(donnees.cumul, l, saison ? { saison } : undefined)) return false; } catch (e) { console.warn("cumul", e); return false; }
       // 0.6.2 : compteurs par mode à (re)construire (md absent ou en retard) : profil classé et, si l'historique ne contient
       // plus toutes les classées, classées contre le robot lues dans classe/parties (lecture seule).
-      let ctx = null; const c0 = donnees.cumul;
+      let ctx = saison ? { saison } : null; const c0 = donnees.cumul;
       if (c0 && c0.f === 1 && (+c0.k || 0) > 0 && !(c0.md && c0.md.k === c0.k)) {
-        ctx = {};
+        ctx = ctx || {};
         try { const j = (await get(ref(db, P + "classe/joueurs/" + qui))).val(); if (j && Number.isFinite(j.v) && Number.isFinite(j.d)) ctx.cl = { v: j.v, d: j.d }; } catch (e) {}
         const nh = donnees.historique.filter(x => x && (x.mode === "classee" || x.cl === true)).length;
         if (ctx.cl && ctx.cl.v + ctx.cl.d > nh) {
@@ -277,13 +369,27 @@ async function ouvre() {
     },
     // Résumé public des parties (joueurs/{uid}/stats = { v: victoires, n: parties }) et classement, sur toutes les parties
     // (cumuls), après ajout au cumul des parties qui viennent d'être écrites (extra). Sans la page : l'historique seul.
+    // Stats publiques puis classement. Règle PAS_MAX (rules/00-communs.js) : n monte de 50 au plus par écriture ; un compte
+    // de plus de 50 parties sans stats publiées monte donc par paliers de 50 (v suit, sans jamais dépasser la hausse de n).
+    async ecritStats(v, n) {
+      const chemin = ref(db, P + "joueurs/" + moi + "/stats");
+      let a = null; try { a = (await get(chemin)).val(); } catch (e) {}
+      if (!a || typeof a !== "object") { try { a = (await get(ref(db, P + "classement/" + moi))).val(); } catch (e) {} }
+      let n0 = a && Number.isFinite(a.n) ? a.n : 0, v0 = a && Number.isFinite(a.v) ? a.v : 0, ok = true;
+      if (n < n0 || v < v0 || v - v0 > n - n0) { n0 = 0; v0 = 0; } // valeur précédente incohérente : écriture directe (refusée si la règle l'exige)
+      for (let i = 0; i < 2000; i++) {
+        const n1 = Math.min(n, n0 + 50), v1 = Math.max(v0, v - (n - n1));
+        try { await set(chemin, { v: v1, n: n1 }); } catch (e) { console.warn("stats", e); ok = false; break; }
+        n0 = n1; v0 = v1; if (n1 >= n) break;
+      }
+      try { await set(ref(db, P + "classement/" + moi), { p: donnees.pseudo, v, n }); } catch (e) { if (ok) console.warn("classement", e); }
+    },
     async publieStats(extra) {
       if (!compte.connecte()) return;
       await rattrape(extra);
       if (resumeur) { await compte.publieProfil(); return; }
       const h = donnees.historique, v = h.filter(x => x.res === "Victoire").length;
-      try { await set(ref(db, P + "joueurs/" + moi + "/stats"), { v, n: h.length }); } catch (e) {}
-      try { await set(ref(db, P + "classement/" + moi), { p: donnees.pseudo, v, n: h.length }); } catch (e) {}
+      await compte.ecritStats(v, h.length);
     },
     // Résumé public du profil : fabriqué par la page (mêmes calculs que la fenêtre de compte), sur toutes les parties,
     // publié à la connexion et à chaque fin de partie, avec stats et classement (mêmes n et v).
@@ -298,13 +404,12 @@ async function ouvre() {
       let r; try { r = resumeur(donnees.historique.slice(), donnees.cumul || null); } catch (e) { console.warn("profil", e); return false; }
       if (!r) return false;
       if (r.n > 0) {
-        try { await set(ref(db, P + "joueurs/" + moi + "/stats"), { v: r.v, n: r.n }); } catch (e) {}
-        try { await set(ref(db, P + "classement/" + moi), { p: donnees.pseudo, v: r.v, n: r.n }); } catch (e) {}
+        await compte.ecritStats(r.v, r.n);
       }
       const o = { p: donnees.pseudo, m: !!donnees.masque, n: r.n, v: r.v, d: r.d, t: serverTimestamp() };
       // 0.6 : profil privé (masque) : ni date de création (cr) ni Elo (el).
       if (donnees.cree && !donnees.masque) o.cr = donnees.cree;
-      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv", "pm", "pmf"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
+      if (!donnees.masque) for (const k of ["s", "dk", "cb", "cm", "mv", "o", "jo", "pv", "pm", "pmf", "pms"]) if (r[k] !== undefined && r[k] !== null) o[k] = r[k];
       // 0.6 : Elo classé affiché (placement fini seulement, règle profils/el).
       const lisEl = async () => { delete o.el; if (donnees.masque) return; try { const j = (await get(ref(db, P + "classe/joueurs/" + moi))).val(); if (j && j.parties >= 5 && Number.isFinite(j.elo)) o.el = j.elo; } catch (e) {} };
       await lisEl();
@@ -384,17 +489,14 @@ async function ouvre() {
         await signInAnonymously(auth);
       });
     },
-    // Decks : la liste entière est réécrite (12 au plus, emplacements 0 à 11).
-    async ecritDecks(l) {
-      if (!compte.connecte()) return;
-      const o = {};
-      l.slice(0, MAX_DECKS).forEach((d, i) => {
-        const c = {}; for (const k in d.cartes || {}) if (+d.cartes[k] > 0) c[k] = +d.cartes[k];
-        o[i] = { id: String(d.id), nom: String(d.nom).slice(0, 24) || "Deck", cartes: c, t: Date.now() };
-        if (typeof d.v === "string" && /^[0-9a-z.]{1,10}$/.test(d.v)) o[i].v = d.v;
-      });
-      donnees.decks = l.slice(0, MAX_DECKS);
-      await set(ref(db, P + "joueurs/" + moi + "/decks"), o);
+    // Decks (0.6a) : chaque écriture ne touche que ce qui change, deck par deck (ajout, suppression, champs modifiés),
+    // puis l'ordre (ordreDecks) à part. Un ancien deck refusé par les règles (ex. 5 exemplaires) ne bloque plus le reste :
+    // seule SA modification échoue. Échec : erreur avec refuses = noms des decks non enregistrés (la page affiche le bandeau) ;
+    // decksBase reste l'état de la base, la prochaine écriture renvoie tout ce qui diffère encore.
+    ecritDecks(l) {
+      const p = fileDecks.then(() => ecritDecksFile(l));
+      fileDecks = p.catch(() => {});
+      return p;
     },
     // Historique : ajoute les entrées, puis purge au-delà des 50 plus récentes (liste et replays).
     // Les cumuls (profil, classement) comptent toutes les parties, même celles purgées aussitôt.
@@ -405,14 +507,42 @@ async function ouvre() {
       // En dernier recours, l'essentiel seulement (résultat, score, adversaire) : la partie compte toujours.
       const texte = texteHisto;
       const trop = [];
-      entrees.forEach(x => { const t = x && x.id && texte(x); if (x && x.id && !t) trop.push(x.id); if (t && !donnees.historique.some(y => y.id === x.id)) { donnees.historique.push(x); ajoutes.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; marqueClassee(maj[x.id], x); } });
+      // Classée : une seule entrée par graine. Une entrée reconstruite (rt, rattrapeHisto) cède la place à l'entrée complète.
+      const grH = id => String(id).slice(0, String(id).lastIndexOf("-")), clH = y => !!y && (y.mode === "classee" || !!y.classe);
+      entrees.forEach(x => { const t = x && x.id && texte(x); if (x && x.id && !t) trop.push(x.id); if (t && !donnees.historique.some(y => y.id === x.id)) {
+        if (clH(x)) { const g = grH(x.id), m = donnees.historique.filter(y => y && clH(y) && grH(y.id) === g);
+          if (m.some(y => !y.rt) || (x.rt && m.length)) return;
+          m.forEach(y => { donnees.historique.splice(donnees.historique.indexOf(y), 1); maj[y.id] = null; }); }
+        donnees.historique.push(x); ajoutes.push(x); maj[x.id] = { d: +x.date || Date.now(), x: t }; marqueClassee(maj[x.id], x); } });
       donnees.historique.sort((a, b) => b.date - a.date);
       donnees.historique.splice(MAX_HISTO).forEach(x => { maj[x.id] = null; });
       for (const k in maj) if (maj[k] && !donnees.historique.some(y => y.id === k)) delete maj[k];
-      if (Object.keys(maj).length) await update(ref(db, P + "joueurs/" + moi + "/historique"), maj);
+      // Échec : les entrées sortent de la copie en mémoire, sinon le nouvel essai (même page) les croirait écrites.
+      if (Object.keys(maj).length) {
+        try { await update(ref(db, P + "joueurs/" + moi + "/historique"), maj); }
+        catch (e) { ajoutes.forEach(x => { const i = donnees.historique.indexOf(x); if (i >= 0) donnees.historique.splice(i, 1); }); throw e; }
+      }
       compte.publieStats(ajoutes);
       // Plus d'échec silencieux : la page affiche « Partie non enregistrée ».
       if (trop.length) throw Object.assign(new Error("historique trop long"), { code: "golems/trop-long" });
+    },
+    // 0.6a : nouvelle connexion forcée (écriture restée sans réponse, socket resté ouvert) : le SDK renvoie les écritures en attente.
+    relance() { try { goOffline(db); goOnline(db); } catch (e) {} },
+    // 0.6a : entrée d'historique d'une classée (graine gr) relue SUR LE SERVEUR : true si elle y est. Sert au rattrapage :
+    // la copie en mémoire peut contenir une entrée dont l'écriture a été perdue (coupure, réponse jamais reçue).
+    async aHistoServeur(gr) {
+      if (!compte.connecte()) return true;
+      const g = String(gr), v = (await get(query(ref(db, P + "joueurs/" + moi + "/historique"), orderByKey(), startAt(g + "-"), endAt(g + "-~")))).val() || {};
+      return Object.keys(v).some(k => k.slice(0, k.lastIndexOf("-")) === g);
+    },
+    // 0.6a : (ré)écrit une entrée absente du serveur : la copie en mémoire de même graine (écriture perdue) est retirée d'abord.
+    // Relu sur le serveur juste avant : jamais de doublon. Renvoie true si l'entrée a été écrite.
+    async rattrapeHisto(x) {
+      if (!compte.connecte() || !x || !x.id) return false;
+      const g = String(x.id).slice(0, String(x.id).lastIndexOf("-"));
+      if (await compte.aHistoServeur(g)) return false;
+      donnees.historique = donnees.historique.filter(y => !(y && String(y.id).slice(0, String(y.id).lastIndexOf("-")) === g));
+      await compte.ajouteHisto([x]); return donnees.historique.some(y => y.id === x.id);
     },
     // 0.6.1 : réécrit une entrée déjà enregistrée (variation classée écrite après coup : fin de « en attente »).
     async majHisto(x) {
@@ -483,7 +613,8 @@ async function ouvre() {
       if (typeof j !== "string" || typeof sid !== "string" || !Number.isInteger(g)) return;
       const liste = window.GolemsMoteur.litJournal(j), cle = sid + "|" + g;
       for (let n = pousses[cle] || 0; n < liste.length; n++) {
-        await set(push(ref(db, base + "/coups")), { a: uid, s: sid, g: g, n: n, c: liste[n] });
+        // Clé fixe par coup (joueur, partie, rang) : un renvoi après coupure retombe sur la même clé (ajout seul), jamais un 2e push.
+        await ajoute(ref(db, base + "/coups/" + uid + "_" + String(sid).replace(/[.#$\/\[\]]/g, "_") + "_" + g + "_" + n), { a: uid, s: sid, g: g, n: n, c: liste[n] });
         pousses[cle] = n + 1;
       }
     }
@@ -496,21 +627,44 @@ async function ouvre() {
       set(ref(db, P + "activite/" + code), serverTimestamp()).catch(() => { touche0 = 0; });
     }
     // Annonce publique (annonces/{code}) : effacée à la déconnexion du créateur.
-    const annRef = ref(db, P + "annonces/" + code);
-    let annonceOn = false, presOk = false;
+    const annRef = ref(db, P + "annonces/" + code); salonsOuverts.add(code);
+    let annonceOn = false, presOk = false, annonceO = null, annonceRearme = false, versRobot = false, creeAFaire = false, presConf = false, clOk = false, hoteOk = false, annoncePosee = false; // annoncePosee : une écriture d'annonce est partie (à effacer en sortant, même sans accusé) // annonceO : dernière annonce publiée (réécrite à la reconnexion) ; creeAFaire : heure d'ouverture du salon classé pas encore écrite (réessayée à la reconnexion)
     function ecrit() { return update(moiRef, { ...pres, t: serverTimestamp() }); }
     // Présence de connexion (0.5, déconnexion) : salons/{code}/pres/{uid} = { c: connecté, t: heure serveur du dernier changement }.
     // Le serveur écrit c:false lui-même à la coupure (onDisconnect) ; l'adversaire en tire « reconnexion » puis « hors ligne ».
     const presRef = ref(db, base + "/pres/" + uid);
-    let etats = {}, forfaits = {};
+    let etats = {}, forfaits = {}, presN = 0;
     const ecouteDeco = [];
     const notifieDeco = () => { if (!fini) ecouteDeco.forEach(f => { try { f(); } catch (e) {} }); };
-    stop.push(onValue(ref(db, base + "/pres"), s => { etats = s.val() || {}; notifieDeco(); }, () => {}));
+    // Micro-coupure : l'onDisconnect de l'ancienne connexion peut être joué par le serveur APRÈS la réécriture c:true de la
+    // reconnexion (ou la réponse de onDisconnect se perdre et bloquer presCo) : ma présence reste c:false alors que je joue,
+    // et l'adversaire prononce le forfait au bout de 60 s. Toute présence c:false vue pour moi pendant que je suis connecté est réécrite.
+    stop.push(onValue(ref(db, base + "/pres"), s => { etats = s.val() || {}; const m = etats[uid];
+      if (enLigne && !fini && m && m.c === false) presCo();
+      notifieDeco(); }, () => {}));
     stop.push(onValue(ref(db, base + "/forfait"), s => { forfaits = s.val() || {}; notifieDeco(); }, () => {}));
+    // Heure d'ouverture du salon classé (cree) écoutée en continu (jamais un get qui peut rester pendant pendant une coupure) ; désabonnée par stop.
+    let creeV = 0; const ecouteCree = [];
+    stop.push(onValue(ref(db, base + "/cree"), s => { creeV = +s.val() || 0; if (!fini) ecouteCree.forEach(f => { try { f(creeV); } catch (e) {} }); }, () => {}));
+    let creeEnCours = null; // essai de poseCree en cours (un seul à la fois, voir poseCree)
+    async function poseCree1() { if (fini || !creeAFaire) return true; if (!presConf || !enLigne) return false; // réessayé par reco après la présence
+        // hote confirmé une fois suffit : le réécrire à chaque essai provoquait sous coupures une déconnexion (presConf faux) avant cree, à chaque essai.
+        if (!hoteOk) { try { const x = await ajoute(ref(db, base + "/hote"), uid); hoteOk = x.committed || x.snapshot.val() === uid; } catch (e) {} }
+        if (!clOk) { if (fini || !presConf) return false; await set(ref(db, base + "/cl"), true); clOk = true; }
+        if (fini || !presConf) return false; await ajoute(ref(db, base + "/cree"), serverTimestamp()); creeAFaire = false; return true; }
+    // onDisconnect réarmé puis c:true. La réponse du serveur à onDisconnect peut se perdre dans une coupure (promesse jamais
+    // tenue) : sans réponse en 3 s, connecté, on recommence (onDisconnect rejoué, idempotent).
     function presCo() {
-      return onDisconnect(presRef).set({ c: false, t: serverTimestamp() }).then(() => set(presRef, { c: true, t: serverTimestamp() })).catch(() => {});
+      const n = ++presN;
+      const essai = setTimeout(() => { if (n === presN && enLigne && !fini) presCo(); }, 3000);
+      return onDisconnect(presRef).set({ c: false, t: serverTimestamp() }).then(() => { if (n === presN) clearTimeout(essai); return set(presRef, { c: true, t: serverTimestamp() }); }).catch(() => {});
     }
-    const reco = () => { if (enLigne && !fini) { onDisconnect(moiRef).remove(); ecrit().catch(() => {}); presCo(); } };
+    // Reconnexion : présence réécrite, puis annonce publiée réécrite (effacée par le serveur à la coupure ; la règle exige joueurs/<uid>, d'où l'attente de ecrit()).
+    // presConf : joueurs/<uid> confirmé par le serveur depuis la dernière connexion. Faux dès la coupure (le serveur l'efface) : annonce et cree
+    // n'écrivent qu'avec presConf vrai, sinon leur écriture partirait avant la présence à la reconnexion et serait refusée (permission_denied).
+    const reco = () => { if (!enLigne) presConf = false; if (enLigne && !fini) { onDisconnect(moiRef).remove(); const e = ecrit().then(() => { if (enLigne) presConf = true; }); presCo();
+      if (creeAFaire) e.then(() => salon.poseCree()).catch(() => {}); // la règle de cree exige joueurs/<uid> : après ecrit()
+      if (annonceOn && annonceO && !versRobot) { annonceRearme = true; const o = annonceO; e.then(() => { if (!fini && annonceO === o) return salon.annonce(o); }).catch(() => {}); } else e.catch(() => {}); } };
     ecouteCo.push(reco);
 
     await onDisconnect(moiRef).remove();
@@ -523,7 +677,7 @@ async function ouvre() {
       // Uids engagés dans la partie (lecture ponctuelle).
       async engages() { try { return (await get(ref(db, base + "/engages"))).val() || {}; } catch (e) { return {}; } },
       // Défaite par abandon d'un adversaire hors ligne depuis plus de 70 s (vérifié aussi par les règles de la base).
-      declareForfait(u, g) { return set(ref(db, base + "/forfait/" + g), { u, t: serverTimestamp() }); },
+      declareForfait(u, g) { return ajoute(ref(db, base + "/forfait/" + g), { u, t: serverTimestamp() }); },
       // Autre appareil du même compte : on lâche le salon sans effacer la présence (elle est à lui maintenant).
       async lache() {
         fini = true;
@@ -562,8 +716,11 @@ async function ouvre() {
             // salon classé : partie de l'ancienne graine pas encore écrite = verrou pas encore levable, on attend sans essayer
             if (e && e.g && (await get(ref(db, base + "/cl"))).val() === true && !(await get(ref(db, P + "classe/parties/" + code + "-" + e.g))).exists()) throw 0;
             if (e) await remove(ref(db, base + "/engages"));
-            await set(ref(db, base + "/engages"), o);
-            return true;
+            const x = await ajoute(ref(db, base + "/engages"), o);
+            if (x.committed) return true;
+            const v = x.snapshot.val(); // posé entre-temps (ou renvoi déjà appliqué) : le même verrou = fait, sinon nouvel essai
+            if (v && v[uid] && (!o.g || v.g === o.g)) return true;
+            throw 0;
           } catch (e) { await new Promise(r => setTimeout(r, 2000)); }
         }
         return false;
@@ -573,16 +730,34 @@ async function ouvre() {
       async dit(m) {
         m = String(m || "").replace(/\s+/g, " ").trim().slice(0, 200);
         if (!m || !donnees || !donnees.pseudo) return;
-        await set(push(ref(db, base + "/chat")), { a: uid, p: donnees.pseudo, t: serverTimestamp(), m });
+        await ajoute(push(ref(db, base + "/chat")), { a: uid, p: donnees.pseudo, t: serverTimestamp(), m });
       },
-      async libere() { try { await remove(ref(db, base + "/engages")); } catch (e) {} },
+      // Verrou levé seulement s'il existe encore et me compte (l'adversaire parti l'a peut-être déjà levé : sinon refus des règles).
+      async libere() { try { const e = (await get(ref(db, base + "/engages"))).val(); if (!e || !e[uid]) return; await remove(ref(db, base + "/engages")); } catch (e) {} },
       // 0.6 : salon classé. marqueClasse : cl = true et heure d'ouverture (cree, une fois) ; estClasse : lecture de cl ;
       // poseRobot(o) : bandeau « Affronter un Golem » (o = GolemsClasse.salonRobot), à poser avant de quitter le salon.
       // 0.6.1 : hote = créateur du salon (seul à pouvoir poser cl), posé à la création de tout salon.
-      async marqueHote() { try { await set(ref(db, base + "/hote"), uid); } catch (e) {} },
-      async marqueClasse() { try { await set(ref(db, base + "/hote"), uid); } catch (e) {} await set(ref(db, base + "/cl"), true); try { await set(ref(db, base + "/cree"), serverTimestamp()); } catch (e) {} },
+      async marqueHote() { try { await ajoute(ref(db, base + "/hote"), uid); } catch (e) {} },
+      // cree : échec (coupure) remonté à l'appelant et réessayé à chaque reconnexion (creeAFaire) ; poseCree() pour un nouvel essai à la demande.
+      // Sans attendre cree : l'entrée au salon ne reste jamais suspendue à une écriture coupée (reprise par reco et par la page).
+      async marqueClasse() { creeAFaire = true; salon.poseCree().catch(e => console.warn('salon classe', e)); },
+      // hote (une fois confirmé), cl puis cree, repris à chaque essai (une coupure peut faire tomber n'importe laquelle des trois écritures).
+      // Un seul essai à la fois (reco, marqueClasse et la page en lancent) : deux transactions sur cree en même temps, la 2e voyait la valeur
+      // encore en vol de la 1re, s'arrêtait sans écrire et marquait cree comme fait ; la 1re coupée, cree n'était plus jamais écrit
+      // (bandeau « Vérification de l'heure du salon… » et Réessayer sans effet). Un appel pendant un essai attend la fin de celui-ci.
+      poseCree() { if (!creeEnCours) creeEnCours = poseCree1().finally(() => { creeEnCours = null; }); return creeEnCours; },
+      // Réessayer : une écriture de cree restée sans réponse (socket resté ouvert) bloque l'essai en cours : nouvelle connexion forcée
+      // (le SDK fait échouer la transaction envoyée, qui est relancée), puis nouvel essai.
+      relanceCree() { if (fini) return Promise.resolve(true); if (creeAFaire && enLigne) { try { goOffline(db); goOnline(db); } catch (e) {} } return salon.poseCree(); },
+      lisCree() { return Promise.resolve(creeV); },
+      onCree(f) { ecouteCree.push(f); },
       async estClasse() { try { return (await get(ref(db, base + "/cl"))).val() === true; } catch (e) { return false; } },
-      poseRobot(o) { return set(ref(db, base + "/robot"), o); },
+      // Bandeau robot : ajout seulement ; déjà posé par moi (renvoi après coupure) = fait.
+      // versRobot : départ contre le Golem engagé, le salon va être quitté : plus aucune (ré)annonce (la règle la refuserait).
+      async poseRobot(o) { versRobot = true;
+        try { const x = await ajoute(ref(db, base + "/robot"), o); const v = x.committed ? null : x.snapshot.val();
+          if (!x.committed && !(v && v.u === uid && v.n === o.n)) throw Object.assign(new Error("robot"), { code: "PERMISSION_DENIED" }); }
+        catch (e) { versRobot = false; throw e; } },
       async presence(p) {
         const { j, ...reste } = p;
         if ("pseudo" in reste) reste.pseudo = donnees && donnees.pseudo || null;
@@ -590,7 +765,7 @@ async function ouvre() {
         for (const k in pres) if (pres[k] === null) delete pres[k];
         // null efface le champ côté base
         const maj = { ...filtre(reste, CHAMPS_SALON), t: serverTimestamp() };
-        await update(moiRef, maj); presOk = true;
+        await update(moiRef, maj); presOk = true; if (enLigne) presConf = true;
         touche();
         if (j !== undefined && j !== null) await envoieJournal(j);
       },
@@ -600,7 +775,8 @@ async function ouvre() {
       async annonce(o) {
         // Salon quitté (robot lancé, sortie) : plus d'annonce, la règle la refuserait (joueur absent du salon).
         // Avant l'écriture de joueurs/<uid> : refusée aussi ; majSalon la republie après presence().
-        if (o && (fini || !presOk)) return false; // false : rien d'écrit, l'appelant réessaiera
+        if (o && (fini || versRobot || !presOk || !presConf || !enLigne)) return false; // false : rien d'écrit, l'appelant réessaiera
+        annonceO = o || null;
         if (o) {
           const v = { u: uid, p: donnees && donnees.pseudo || "", a: donnees && donnees.avatarId || "", d: String(o.d || "").slice(0, 24), e: String(o.e || "").slice(0, 60), t: serverTimestamp() };
           if (!v.a) delete v.a; if (!v.d) delete v.d; if (!v.e) delete v.e;
@@ -615,12 +791,31 @@ async function ouvre() {
           if (annonceOn) {
             const { t, ...maj } = v;
             for (const k of ["a", "d", "e", "v", "w", "q", "n", "g", "m", "k", "f", "cl", "el"]) if (!(k in maj)) maj[k] = null;
-            try { await update(annRef, maj); return; } catch (e) { /* annonce effacée entre-temps : republiée */ }
+            // Annonce absente (effacée à la coupure) : update refusé (t manquant), alors republiée par set.
+            const ex = annonceRearme ? (await get(annRef).catch(() => null)) : true;
+            if (fini || versRobot || !presConf) return false; // salon quitté pendant la lecture (robot lancé, fin) : plus rien à annoncer
+            if (ex === true || (ex && ex.exists())) {
+              // Transaction plutôt qu'update : une annonce effacée par le serveur pendant une coupure n'est jamais mise à jour
+              // (update refusé et journalisé « permission_denied » au renvoi) ; elle est alors republiée par set.
+              try {
+                const r = await runTransaction(annRef, cur => { if (!cur || cur.u !== uid) return undefined; const x = { ...cur }; for (const k in maj) { if (maj[k] === null) delete x[k]; else x[k] = maj[k]; } return x; }, { applyLocally: false });
+                if (r.committed) { if (annonceRearme) { annonceRearme = false; await onDisconnect(annRef).remove(); } return; }
+              } catch (e) { /* annonce effacée entre-temps : republiée */ }
+            }
           }
           // onDisconnect posé APRÈS l'écriture : la règle de retrait (u = moi) est alors vraie (sinon PERMISSION_DENIED).
-          const pose = !annonceOn;
-          await set(annRef, v); annonceOn = true;
-          if (pose) await onDisconnect(annRef).remove();
+          // Reconnexion : l'ancien onDisconnect a servi (annonce effacée), il est reposé.
+          const pose = !annonceOn || annonceRearme;
+          if (fini || versRobot || !presConf) return false;
+          // Effacement à la déconnexion posé AVANT l'écriture (créateur présent : la règle de retrait est vraie) : une annonce dont l'accusé
+          // se perd dans une coupure ne reste jamais orpheline si la page se ferme.
+          annoncePosee = true; try { await onDisconnect(annRef).remove(); } catch (e) {}
+          if (fini || versRobot) return false;
+          await set(annRef, v);
+          // Salon quitté pendant l'écriture (leave n'a pas vu l'annonce) : retirée aussitôt (u = moi).
+          if (fini || versRobot) { try { await remove(annRef); } catch (e) {} return false; }
+          annonceOn = true;
+          if (pose) { annonceRearme = false; await onDisconnect(annRef).remove(); }
         } else {
           // Le créateur ou un joueur présent peut retirer l'annonce (salon complet).
           const v = annonceOn ? true : (await get(annRef).catch(() => null));
@@ -628,14 +823,15 @@ async function ouvre() {
           if (annonceOn) { try { await onDisconnect(annRef).cancel(); } catch (e) {} annonceOn = false; }
         }
       },
+      // Sortie : nettoyage garanti même sous coupure. Les onDisconnect d'effacement restent posés (le serveur efface si la page se ferme
+      // avant les accusés) ; celui de pres passe de c:false à l'effacement ; les effacements directs partent en parallèle.
       async leave() {
-        if (annonceOn) { annonceOn = false; try { await onDisconnect(annRef).cancel(); await remove(annRef); } catch (e) {} }
-        fini = true;
+        fini = true; // d'abord : une réannonce de reconnexion en cours s'arrête avant d'écrire (salon quitté, partie finie)
+        const ann = annonceOn || annoncePosee; annonceOn = false; annoncePosee = false; salonsOuverts.delete(code);
         stop.forEach(f => f());
         const i = ecouteCo.indexOf(reco); if (i >= 0) ecouteCo.splice(i, 1);
-        await onDisconnect(moiRef).cancel();
-        try { await onDisconnect(presRef).cancel(); await remove(presRef); } catch (e) {}
-        await remove(moiRef);
+        try { await onDisconnect(presRef).remove(); } catch (e) {}
+        await Promise.all([ann ? remove(annRef).catch(() => {}) : null, remove(presRef).catch(() => {}), remove(moiRef).catch(() => {})]);
       }
     };
     return salon;
@@ -661,7 +857,10 @@ async function ouvre() {
       uid: () => moi,
       pseudo: () => donnees ? donnees.pseudo : "",
       lit: p => get(ref(db, P + p)).then(s => s.val()),
-      ecrit: m => { const o = {}; for (const k in m) o[P + k] = m[k]; return update(ref(db), o); }
+      // Ajouts seuls (partie, confirmation, partie appliquée, instantané) : transaction (déjà là = fait) ; le reste : multi-chemins.
+      ecrit: async m => { const ks = Object.keys(m);
+        if (ks.length === 1 && m[ks[0]] !== null && /^classe\/(parties\/[^/]+(\/(ok|fait)\/[^/]+)?|instantanes\/[^/]+\/[^/]+)$/.test(ks[0])) { await ajoute(ref(db, P + ks[0]), m[ks[0]]); return; }
+        const o = {}; for (const k in m) o[P + k] = m[k]; return ecritPlusieurs(o); }
     }),
     onPeers(f, g) { ecouteHall.push(f); if (g) { hallPerdu.push(g); if (hallErreur) setTimeout(g, 0); } },
     onConnection(f, g) { ecouteCo.push(f); },
@@ -680,6 +879,11 @@ async function ouvre() {
     annonces(f) {
       return onValue(ref(db, P + "annonces"), s => {
         const v = s.val() || {};
+        // Annonce orpheline de mon uid (salon quitté sous coupure, page fermée) : retirée si je ne suis plus connecté à ce salon.
+        for (const k in v) if (v[k] && v[k].u === moi && !salonsOuverts.has(k) && !orphelinesVues.has(k)) {
+          orphelinesVues.add(k);
+          get(ref(db, P + "salons/" + k + "/pres/" + moi)).then(p => { const x = p.val(); if (!(x && x.c === true) && !salonsOuverts.has(k)) return remove(ref(db, P + "annonces/" + k)); }).catch(() => { orphelinesVues.delete(k); });
+        }
         f(Object.keys(v).map(k => ({ code: k, ...v[k] })).filter(x => typeof x.u === "string").sort((a, b) => (+b.t || 0) - (+a.t || 0)));
       }, () => f([]));
     },
@@ -704,9 +908,11 @@ async function ouvre() {
     async ecritResume(id, o) {
       if (!estCompte() || !/^-?[0-9]{1,12}-[0-9]{13}$/.test(id)) return false;
       const r = ref(db, P + "resume/" + id);
-      if ((await get(r)).exists()) return false;
-      await set(r, { ...o, d: serverTimestamp() });
-      return true;
+      // Transaction (écrit seulement si absent) plutôt que get + set : un set déjà appliqué mais dont la réponse est perdue
+      // (coupure juste après l'envoi) est renvoyé par le SDK à la reconnexion, et la règle (ajout seulement) le refusait.
+      // La transaction est rejouée sur la valeur du serveur : résumé déjà là = rien à écrire.
+      // Coupure pendant la transaction (erreur « disconnect ») : relancée, elle attend la reconnexion puis relit le serveur.
+      return (await ajoute(r, { ...o, d: serverTimestamp() })).committed;
     },
     // Les n résumés les plus récents (2000 par défaut), du plus ancien au plus récent, avec leur clé (id = graine-début).
     async litResumes(n) {
@@ -734,16 +940,20 @@ async function ouvre() {
         try { return (await get(ref(db, P + "pseudos/katarn"))).val() === moi; } catch (e) { return false; }
       }
     },
-    // 0.6 : votes des guides (rules/60-guides.js) : guides/<id>/votes/<uid> = 1 ou -1, lus par tous, écrits par un compte pour lui seul.
-    // ecoute(f) : f({ id: { uid: 1 | -1 } }) à chaque changement ({} si illisible) ; vote(id, v) : v = 1, -1, ou 0 pour retirer.
-    // uid() : uid du compte connecté (null en invité).
+    // 0.6 : guides (rules/60-guides.js) : guides/<id> = { votes: { uid: 1 | -1 }, fiche: guide publié ou modifié, sup: guide du code retiré }.
+    // ecoute(f) : f(votes, fiches, retires) à chaque changement : votes { id: { uid: v } }, fiches { id: fiche }, retires { id: true }.
+    // vote(id, v) : v = 1, -1, ou 0 pour retirer. uid() : uid du compte connecté (null en invité). pseudo() : son pseudo.
     guides: {
       ecoute(f) {
         return onValue(ref(db, P + "guides"), s => {
-          const v = s.val() || {}, o = {};
-          for (const g in v) { const w = v[g] && v[g].votes; if (w && typeof w === "object") { o[g] = {}; for (const u in w) if (w[u] === 1 || w[u] === -1) o[g][u] = w[u]; } }
-          f(o);
-        }, () => f({}));
+          const v = s.val() || {}, o = {}, F = {}, S = {};
+          for (const g in v) {
+            const w = v[g] && v[g].votes; if (w && typeof w === "object") { o[g] = {}; for (const u in w) if (w[u] === 1 || w[u] === -1) o[g][u] = w[u]; }
+            if (v[g] && v[g].fiche && typeof v[g].fiche === "object") F[g] = v[g].fiche;
+            if (v[g] && v[g].sup === true) S[g] = true;
+          }
+          f(o, F, S);
+        }, () => f({}, {}, {}));
       },
       vote(id, v) {
         if (!estCompte()) return Promise.reject(new Error("compte"));
@@ -751,13 +961,34 @@ async function ouvre() {
         return v === 1 || v === -1 ? set(r, v) : remove(r);
       },
       uid: () => estCompte() ? moi : null,
-      // Proposition de guide (rules/60-guides.js, propositionsGuides) : o = { ty: 'v'|'t', ti, yt?, tx?, d1, d2? } ; rend la clé écrite.
-      async propose(o) {
+      pseudo: () => estCompte() && donnees ? donnees.pseudo : "",
+      // Publication sans relecture (10 nov.) : o = { ty: 'v'|'t', ti, yt?, tx?, d1, d2?, v? (version des decks) }.
+      // id absent : nouveau guide (clé push) et compteur des 24 h (10 au plus, erreur code "golems/limite") ; rend l'id.
+      // id présent : modification (auteur ou Romain) ; auteurCode = pseudo de l'auteur d'un guide du code sans fiche (Romain publie à son nom).
+      async publie(o, id, auteurCode) {
         if (!estCompte() || !donnees) throw new Error("compte");
-        const x = { u: moi, p: donnees.pseudo, ty: o.ty, ti: o.ti, d1: o.d1, t: serverTimestamp() };
-        for (const k of ["yt", "tx", "d2"]) if (o[k]) x[k] = o[k];
-        const r = push(ref(db, P + "propositionsGuides"));
-        await set(r, x); return r.key;
+        const x = { ty: o.ty, ti: o.ti, d1: o.d1, m: serverTimestamp() };
+        for (const k of ["yt", "tx", "d2", "v"]) if (o[k]) x[k] = o[k];
+        if (!id) {
+          const c = (await get(ref(db, P + "compteurGuides/" + moi))).val(), maint = Date.now() + decalage;
+          const neuf = !c || maint - c.d >= 86400000, n = neuf ? 1 : c.n + 1;
+          if (n > 10) throw Object.assign(new Error("limite"), { code: "golems/limite" });
+          id = push(ref(db, P + "guides")).key;
+          await ecritPlusieurs({ [P + "guides/" + id + "/fiche"]: { ...x, u: moi, p: donnees.pseudo, t: serverTimestamp() },
+            [P + "compteurGuides/" + moi]: { d: neuf ? serverTimestamp() : c.d, n, t: serverTimestamp() } });
+          return id;
+        }
+        const a = (await get(ref(db, P + "guides/" + id + "/fiche"))).val();
+        let u = a ? a.u : moi;
+        if (!a && auteurCode) { const w = (await get(ref(db, P + "pseudos/" + clePseudo(auteurCode)))).val(); if (w) u = w; }
+        const p = u === moi ? donnees.pseudo : (await get(ref(db, P + "joueurs/" + u + "/pseudo"))).val();
+        await set(ref(db, P + "guides/" + id + "/fiche"), { ...x, u, p, t: a ? a.t : serverTimestamp() });
+        return id;
+      },
+      // Suppression : guide publié = guides/<id> entier (votes compris) ; guide du code = sup (retiré du site).
+      supprime(id, duCode) {
+        if (!estCompte()) return Promise.reject(new Error("compte"));
+        return duCode ? set(ref(db, P + "guides/" + id + "/sup"), true) : remove(ref(db, P + "guides/" + id));
       }
     },
     // Lecture brute (tests locaux) : soumise aux mêmes règles que le reste.

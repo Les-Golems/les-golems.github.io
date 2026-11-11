@@ -205,6 +205,21 @@
     n.maj = HORODATAGE;
     var u = {}; u['classe/joueurs/' + uid] = n; u['classe/parties/' + id + '/fait/' + uid] = true; return u;
   }
+  /* Entrée d'historique reconstruite depuis classe/parties/<id> (son écriture par la page a été perdue) : résultat, adversaire,
+     variation écrite ; ni rejeu ni détail des manches. id = <graine>-<t> (même graine que l'entrée d'origine : une seule partie
+     comptée dans les cumuls). rt: 1 marque l'entrée reconstruite (remplacée par l'entrée complète si celle-ci arrive ensuite).
+     null si la partie n'est pas exploitable. advNom : pseudo de l'adversaire (facultatif). */
+  function entreeRattrapee(p, uid, advNom) {
+    if (!p || (p.a !== uid && p.b !== uid) || !/^-?[0-9]{1,12}$/.test(String(p.gr)) || !Number.isFinite(p.t)) return null;
+    var t = Math.round(p.t), estA = p.a === uid, delta = estA ? p.deltaA : p.deltaB, robot = p.robot === true;
+    if (!/^[0-9]{10,14}$/.test(String(t))) return null;
+    var niv = robot ? String(p.b).replace(/^robot-/, '') : '', nom = robot ? 'Golem (' + niv + ')' : String(advNom || 'Adversaire').slice(0, 24);
+    var c = { elo: estA ? p.eloA : p.eloB, delta: delta, eloAdv: estA ? p.eloB : p.eloA, robot: robot };
+    if (robot && /^(facile|normal|difficile)$/.test(niv)) c.niveau = niv;
+    if (!Number.isInteger(delta)) c.attente = true;
+    return { id: String(p.gr) + '-' + t, date: t, adv: nom, advNom: robot ? '' : nom, res: p.gagnant === uid ? 'Victoire' : 'Défaite',
+      score: '', mvp: '', mode: 'classee', classe: c, rt: 1 };
+  }
   function salonClasse() { return { cl: true, cree: HORODATAGE }; }
   function niveauRobot(elo) { return elo < 900 ? 'facile' : elo < 1150 ? 'normal' : 'difficile'; }
   function salonRobot(uid, elo) { return { u: uid, n: niveauRobot(elo), t: HORODATAGE }; }
@@ -232,7 +247,8 @@
         var n = nouveauJoueur(s.id); n.maj = HORODATAGE;
         await B.ecrit(m1('classe/joueurs/' + u, n)); j = await B.lit('classe/joueurs/' + u);
       } else if (j.saison < s.id) {
-        if (!enPlacement(j) && !(await B.lit('classe/instantanes/' + j.saison + '/' + u))) {
+        // 0.6.3 : instantané pour tout joueur (les trois modes) ; la récompense reste réservée au placement fini.
+        if (!(await B.lit('classe/instantanes/' + j.saison + '/' + u))) {
           var st = opts.stats ? await opts.stats(j.saison) : {};
           await B.ecrit(m1('classe/instantanes/' + j.saison + '/' + u, sansNuls(instantaneSaison(j.saison, j, st))));
         }
@@ -264,13 +280,49 @@
       }
       return n;
     }
-    /* Applique la partie id au profil de qui, une seule fois (déjà faite : true). */
-    async function appliqueUn(id, qui) {
-      var p = await B.lit('classe/parties/' + id); if (!p) return false;
-      if (p.fait && p.fait[qui]) return true;
-      var j = await B.lit('classe/joueurs/' + qui); if (!j) return false;
-      try { await B.ecrit(application(qui, j, id, p)); } catch (e) { return false; }
-      return true;
+    /* Applique la partie id au profil de qui, une seule fois (déjà faite : true). Garanti autant que possible :
+       une écriture refusée ou coupée (réseau) est relue puis réessayée (o.essais fois, 6 par défaut, pauses croissantes) ;
+       fait/<qui> relu sur le serveur fait foi (écriture passée malgré une erreur = réussie). */
+    var pauseDefaut = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+    async function appliqueUn(id, qui, o) {
+      o = o || {};
+      var n = o.essais || 6, pause = o.pause || B.pause || pauseDefaut;
+      for (var k = 0; k < n; k++) {
+        try {
+          var p = await B.lit('classe/parties/' + id); if (!p) return false;
+          if (p.fait && p.fait[qui]) return true;
+          var j = await B.lit('classe/joueurs/' + qui); if (!j) return false;
+          try { await B.ecrit(application(qui, j, id, p)); return true; }
+          catch (e) { if (await B.lit('classe/parties/' + id + '/fait/' + qui)) return true; }
+        } catch (e) {}
+        if (k < n - 1) await pause(Math.min(4000, 400 * Math.pow(2, k)));
+      }
+      return false;
+    }
+    /* Reprise (chargement, reconnexion) : toutes les classées de la saison en cours où je figure sans fait/<moi> sont appliquées
+       à mon profil (sans confirmation automatique : les règles refusent une défaite non confirmée hors forfait) ; une partie
+       entre joueurs déjà confirmée par le perdant (ou gagnée par forfait) est aussi appliquée à l'adversaire s'il manque.
+       Renvoie [{ id, gr, delta }] : mes parties appliquées de la saison (delta écrit), pour l'historique. */
+    async function rattrape(o) {
+      o = o || {};
+      var u = B.uid(), s = await saisonCourante(); if (!u || !s) return [];
+      var tout = (await B.lit('classe/parties')) || {}, res = [];
+      for (var id in tout) {
+        var p = tout[id];
+        if (!p || p.saison !== s.id || (p.a !== u && p.b !== u)) continue;
+        var ok = !!(p.fait && p.fait[u]);
+        if (!ok) ok = await appliqueUn(id, u, o);
+        if (p.robot !== true && p.gagnant !== 'nul') {
+          var adv = p.a === u ? p.b : p.a, perd = perdantDe(p);
+          if (!(p.fait && p.fait[adv])) {
+            var conf = !!(p.ok && p.ok[perd]);
+            if (!conf && p.gagnant === u) { try { var f = await B.lit('salons/' + p.sa + '/forfait/' + p.gr); conf = !!(f && f.u === perd); } catch (e) {} }
+            if (conf) { try { await appliqueUn(id, adv, o); } catch (e) {} }
+          }
+        }
+        if (ok) res.push({ id: id, gr: String(p.gr), delta: p.a === u ? p.deltaA : p.deltaB, partie: p });
+      }
+      return res;
     }
     /* Applique la partie id au profil de qui (moi par défaut). Renvoie true si c'est fait (ou déjà fait).
        Partie entre joueurs reprise par son PERDANT (fin normale ou nouvel essai au chargement) : il confirme si besoin,
@@ -335,25 +387,31 @@
       if (o.gagnant !== o.a && o.gagnant !== o.b) throw sansGagnant();
       var u = B.uid(), id = idPartie(o.sa, o.gr), perd = o.gagnant === o.a ? o.b : o.a;
       if (u !== o.gagnant) return { id: id, fait: false };
-      var p = await B.lit('classe/parties/' + id);
-      if (!p) {
-        var s = await saisonCourante(), pa = await B.lit('classe/joueurs/' + o.a), pb = await B.lit('classe/joueurs/' + o.b);
-        if (!s || !pa || !pb) throw new Error('classe/profil');
-        try { await B.ecrit(m1('classe/parties/' + id, creePartie({ sa: o.sa, gr: o.gr, a: o.a, b: o.b, profilA: pa, profilB: pb, gagnant: o.gagnant, saison: s.id }).partie)); } catch (e) {}
-        p = await B.lit('classe/parties/' + id); if (!p) throw new Error('classe/partie');
+      // Création de la partie réessayée (coupure pendant la lecture ou l'écriture) ; la dernière erreur remonte.
+      var p = null, pause = o.pause || B.pause || pauseDefaut;
+      for (var k = 0; !p; k++) {
+        try {
+          p = await B.lit('classe/parties/' + id);
+          if (!p) {
+            var s = await saisonCourante(), pa = await B.lit('classe/joueurs/' + o.a), pb = await B.lit('classe/joueurs/' + o.b);
+            if (!s || !pa || !pb) throw new Error('classe/profil');
+            try { await B.ecrit(m1('classe/parties/' + id, creePartie({ sa: o.sa, gr: o.gr, a: o.a, b: o.b, profilA: pa, profilB: pb, gagnant: o.gagnant, saison: s.id }).partie)); } catch (e) {}
+            p = await B.lit('classe/parties/' + id); if (!p) throw new Error('classe/partie');
+          }
+        } catch (e) { if (k >= 5) throw e; await pause(Math.min(4000, 400 * Math.pow(2, k))); }
       }
-      var fait = await appliqueUn(id, u);
-      try { await appliqueUn(id, perd); } catch (e) {}
+      var fait = await appliqueUn(id, u), lui = false;
+      try { lui = await appliqueUn(id, perd); } catch (e) {}
       try { await publieClassement(await B.lit('classe/joueurs/' + u)); } catch (e) {}
-      return { id: id, fait: fait, partie: p };
+      return { id: id, fait: fait, faitAdv: lui, partie: p };
     }
     return { saisonCourante: saisonCourante, profil: profil, publieClassement: publieClassement, recompenses: recompenses,
-      applique: applique, attends: attends, finRobot: finRobot, finJoueurs: finJoueurs, finForfait: finForfait };
+      applique: applique, appliqueUn: appliqueUn, rattrape: rattrape, attends: attends, finRobot: finRobot, finJoueurs: finJoueurs, finForfait: finForfait };
   }
 
   var API = {
     HORODATAGE: HORODATAGE, numJour: numJour, idPartie: idPartie, creePartie: creePartie, creePartieRobot: creePartieRobot,
-    confirmation: confirmation, application: application, salonClasse: salonClasse, niveauRobot: niveauRobot, salonRobot: salonRobot,
+    confirmation: confirmation, application: application, salonClasse: salonClasse, entreeRattrapee: entreeRattrapee, niveauRobot: niveauRobot, salonRobot: salonRobot,
     ligneClassement: ligneClassement, sansNuls: sansNuls, service: service,
     ELO_DEPART: ELO_DEPART, K_DEBUT: K_DEBUT, K_ENSUITE: K_ENSUITE, PARTIES_K_DEBUT: PARTIES_K_DEBUT, PLACEMENT: PLACEMENT,
     ROBOTS_PAR_JOUR: ROBOTS_PAR_JOUR, RANGS: RANGS, ROBOTS: ROBOTS, SAISONS: SAISONS,

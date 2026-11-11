@@ -29,8 +29,8 @@ const ICONES={
  manche:'<path fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" d="M16 6H50V30C50 42 42 50 33 58C23 50 16 42 16 30Z"/><path fill="currentColor" d="M33 15L37 25L47 26L39 33L42 43L33 37L24 43L27 33L19 26L29 25Z"/>',
  tour:'<path fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="M16 5H50M16 59H50M20 5V15C20 25 33 26 33 32C33 38 20 39 20 49V59M46 5V15C46 25 33 26 33 32C33 38 46 39 46 49V59"/><path fill="currentColor" d="M26 18H40L33 28ZM24 57C25 48 31 45 33 42C35 45 41 48 42 57Z"/>',
  coupe:'<svg viewBox="-6 -6 312 318" width="100%" height="100%" aria-hidden="true">'+ETOILE_G+'</svg>',
- main:'<g fill="#1a2a38" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><rect x="9" y="17" width="23" height="36" rx="4" transform="rotate(-18 20 35)"/><rect x="34" y="17" width="23" height="36" rx="4" transform="rotate(18 45 35)"/><rect x="21" y="9" width="24" height="38" rx="4"/></g>',
- deck:'<g fill="#1a2a38" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><rect x="23" y="5" width="30" height="42" rx="4"/><rect x="17" y="11" width="30" height="42" rx="4"/><rect x="11" y="17" width="30" height="42" rx="4"/></g>',
+ main:'<g fill="var(--panneau2)" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><rect x="9" y="17" width="23" height="36" rx="4" transform="rotate(-18 20 35)"/><rect x="34" y="17" width="23" height="36" rx="4" transform="rotate(18 45 35)"/><rect x="21" y="9" width="24" height="38" rx="4"/></g>',
+ deck:'<g fill="var(--panneau2)" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><rect x="23" y="5" width="30" height="42" rx="4"/><rect x="17" y="11" width="30" height="42" rx="4"/><rect x="11" y="17" width="30" height="42" rx="4"/></g>',
  oeil:'<path fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round" d="M4 33C14 17 23 12 33 12S52 17 62 33C52 49 43 54 33 54S14 49 4 33Z"/><circle cx="33" cy="33" r="10" fill="currentColor"/>',
  defausse:'<g fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"><rect x="13" y="7" width="38" height="50" rx="5" transform="rotate(7 32 32)"/><path d="M23 23L41 41M41 23L23 41"/></g>'};
 function ico(n){const s=document.createElement('span');s.className='ico';s.setAttribute('aria-hidden','true');s.innerHTML=n==='enclume'?enclumeB():'<svg viewBox="0 0 66 66">'+ICONES[n]+'</svg>';return s}
@@ -139,7 +139,7 @@ async function envoieClasse(c,w,gr){
       const o={sa:c.sa,gr,a:c.a,b:c.b,gagnant:w===0?c.a:w===1?c.b:null};
       /* 0.6.1 : forfait de l'adversaire (salons/<sa>/forfait/<gr>.u = perdant) : le gagnant ecrit la partie et les deux profils. */
       const f=o.gagnant===u?await room.lit('salons/'+c.sa+'/forfait/'+gr).catch(()=>null):null,perd=o.gagnant===c.a?c.b:c.a;
-      if(o.gagnant===u&&f&&f.u===perd){const r=await S.finForfait(o);if(r.fait)j=await room.classeBase().lit('classe/joueurs/'+u)}
+      if(o.gagnant===u&&f&&f.u===perd){finEnAttente(u,o,true,true);const r=await S.finForfait(o);if(r.fait&&r.faitAdv)finEnAttente(u,o,false);if(r.fait)j=await room.classeBase().lit('classe/joueurs/'+u)}
       else if(o.gagnant===u)j=await S.attends(id);
       else{finEnAttente(u,o,true);const r=await S.finJoueurs(o);if(r.fait){finEnAttente(u,o,false);j=await room.classeBase().lit('classe/joueurs/'+u)}}
     }
@@ -156,7 +156,7 @@ function histoClasse(hid,delta){
 }
 /* Fins de classees du perdant pas encore ecrites (coupure avant ou pendant l'ecriture) : rejouees au chargement. */
 const FINS_CL='golems.classeFins';
-function finEnAttente(u,o,on){const id=GolemsClasse.idPartie(o.sa,o.gr),l=litListe(FINS_CL).filter(x=>x&&x.id!==id);if(on)l.unshift({id,u,o});ecrire(FINS_CL,JSON.stringify(l.slice(0,20)))}
+function finEnAttente(u,o,on,ff){const id=GolemsClasse.idPartie(o.sa,o.gr),l=litListe(FINS_CL).filter(x=>x&&x.id!==id);if(on)l.unshift(ff?{id,u,o,f:1}:{id,u,o}); /* f : victoire par forfait (le gagnant ecrit les deux profils) */ecrire(FINS_CL,JSON.stringify(l.slice(0,20)))}
 /* 0.6.1 : classee contre le robot aussi gardee (r = { sa, gr, niveau, gagne }) tant que finRobot n'a pas abouti. */
 function finRobotAttente(u,o,on){const id='r:'+GolemsClasse.idPartie(o.sa,o.gr),l=litListe(FINS_CL).filter(x=>x&&x.id!==id);if(on)l.unshift({id,u,r:o});ecrire(FINS_CL,JSON.stringify(l.slice(0,20)))}
 /* 0.6.1 : classee contre le robot laissee en cours (onglet ferme, rechargement) : comptee comme une defaite (abandon). */
@@ -173,9 +173,35 @@ async function reprendFins(){
   for(const x of litListe(FINS_CL).filter(y=>y&&y.u===u&&(y.o||y.r)))
     try{
       if(x.r){const r=await S.finRobot(x.r);if(r.fait){finRobotAttente(u,x.r,false);if(typeof attenteClasse==='function')attenteClasse(r.id,false)}continue}
+      if(x.f){const r=await S.finForfait(x.o);if(r.fait&&r.faitAdv)finEnAttente(u,x.o,false);if(r.fait&&typeof attenteClasse==='function')attenteClasse(r.id,false);continue}
       const r=await S.finJoueurs(x.o);if(r.fait){finEnAttente(u,x.o,false);if(typeof attenteClasse==='function')attenteClasse(r.id,false)}
     }catch(e){console.warn('classe',e)}
+  /* Reprise garantie : toute classee de la saison ou je figure sans fait/<moi> est appliquee (et la part de l'adversaire si
+     le perdant a confirme ou a ete declare forfait) ; la variation ecrite remplace « en attente » dans l'historique. */
+  try{const l=await S.rattrape();if(!l.length||room.compte.uid()!==u)return;
+    const hs=(room.compte.donnees().historique||[]).concat(litListe(ATTENTE).filter(y=>y&&y.u===u&&y.h).map(y=>y.h));
+    for(const r of l){if(!Number.isInteger(r.delta))continue;if(typeof attenteClasse==='function')attenteClasse(r.id,false);
+      for(const h of hs)if(h&&h.classe&&typeof h.id==='string'&&h.id.indexOf(r.gr+'-')===0&&(h.classe.attente||h.classe.delta!==r.delta))histoClasse(h.id,r.delta)}
+    await histoRattrape(u,l);
+  }catch(e){console.warn('classe',e)}
 }
+/* 0.6a : classee appliquee (fait/<moi>) dont l'entree d'historique n'a jamais ete ecrite (ecriture perdue sous coupures) :
+   entree reconstruite depuis classe/parties, une seule fois (relue sur le serveur, une entree par graine), sans toucher a l'Elo.
+   Seulement les parties recentes (3 jours) et plus recentes que la plus ancienne des 50 gardees : les anciennes sont sans effet.
+   Une entree complete encore en attente sur cet appareil (golems.enAttente) est laissee a son envoi. */
+async function histoRattrape(u,l){
+  if(!compteCo()||room.compte.uid()!==u||!room.compte.rattrapeHisto)return;
+  const C=window.GolemsClasse,h=room.compte.donnees().historique||[],att=litListe(ATTENTE).filter(y=>y&&y.u===u&&y.h).map(y=>String(y.h.id));
+  const min=h.length>=50?Math.min(...h.map(x=>+x.date||0)):0,deb=Date.now()-3*86400000;let n=0;
+  for(const r of l){const p=r.partie;if(!p||!(+p.t>=deb&&+p.t>min)||att.some(i=>i.indexOf(r.gr+'-')===0))continue;
+    try{if(await room.compte.aHistoServeur(r.gr))continue;
+      const adv=p.a===u?p.b:p.a;let nom='';if(p.robot!==true)try{const c=await room.classeBase().lit('classe/classement/'+adv);nom=c&&typeof c.pseudo==='string'?c.pseudo:''}catch(e){}
+      if(!nom&&p.robot!==true)try{nom=await room.lit('joueurs/'+adv+'/pseudo')||''}catch(e){}
+      const x=C.entreeRattrapee(p,u,nettoie(String(nom||'')));if(x&&await room.compte.rattrapeHisto(x))n++}catch(e){console.warn('historique',e)}}
+  if(n&&!$('historique').hidden&&typeof peintHisto==='function')peintHisto();
+}
+/* Reconnexion : reprise des classees en attente (sans attendre le prochain chargement). */
+if(window.golemsSalon)Promise.resolve(window.golemsSalon).then(x=>{if(x&&x.onConnection)x.onConnection(()=>{if(x.connected&&x.connected()&&compteCo()&&!reprendFins.cours){reprendFins.cours=true;reprendFins().finally(()=>{reprendFins.cours=false;if(typeof chargeClasse==='function')chargeClasse()})}})}).catch(()=>{});
 /* 0.6 : deck du Golem tire dans la reserve (decks conseilles) a partir de la graine de la partie : meme graine = meme deck, rejeux exacts (le deck est aussi garde dans partie.decks). Partie guidee : deck fixe (onglets/tutoriel.js). */
 function deckRobot(g){
   const R=(window.GolemsDonnees.interface.decksConseilles)||[];if(!R.length)return '';
@@ -1039,11 +1065,22 @@ function majAttente(id,f){const l=litListe(ATTENTE).filter(x=>x&&typeof x.id==='
 function nonEnregistre(on){$('nonEnr').hidden=!on}
 $('nonEnrOk').onclick=()=>nonEnregistre(false);
 function archivee(id){const l=litListe('golems.archives');if(!l.includes(id)){l.unshift(id);ecrire('golems.archives',JSON.stringify(l.slice(0,200)))}}
+/* Un seul envoi a la fois par partie : un 2e appel (abandon classe contre le robot, nouvel essai) reprend l'envoi en cours (sinon resume ecrit deux fois : refus). */
+const envoisCours=new Map();
 function envoieAttente(id){
+  if(envoisCours.has(id))return envoisCours.get(id);
+  const p=envoieAttente1(id);envoisCours.set(id,p);p.then(()=>envoisCours.delete(id),()=>envoisCours.delete(id));return p;
+}
+function envoieAttente1(id){
   const u=compteCo()?room.compte.uid():'',x=litListe(ATTENTE).find(y=>y&&y.id===id&&y.u===u);
   if(!x)return Promise.resolve(true);
-  let tard=false;const t=setTimeout(()=>{tard=true;nonEnregistre(true)},15000);
-  const h=x.h?room.compte.ajouteHisto([x.h]).then(()=>majAttente(id,y=>{delete y.h}),e=>{if(e&&e.code==='golems/trop-long')majAttente(id,y=>{delete y.h});throw e}):null;
+  /* 0.6a : pas de reponse en 15 s (reponse perdue sans fermeture du socket) : nouvelle connexion forcee, le SDK renvoie l'ecriture. */
+  let tard=false;const t=setTimeout(()=>{tard=true;nonEnregistre(true);try{room.compte.relance&&room.compte.relance()}catch(e){}},15000);
+  /* 0.6a : variation ecrite entre-temps (histoClasse -> majHisto) : un envoi reste sans reponse puis renvoye a la reconnexion ecraserait
+     l'entree plus recente ; l'entree a jour est donc reecrite apres l'accuse de cet envoi. */
+  const c0=x.h?JSON.stringify(x.h.classe||null):'';
+  const h=x.h?room.compte.ajouteHisto([x.h]).then(()=>{majAttente(id,y=>{delete y.h});
+    try{const m=(room.compte.donnees().historique||[]).find(y=>y&&y.id===id);if(m&&m.classe&&JSON.stringify(m.classe)!==c0&&room.compte.majHisto)room.compte.majHisto(m).catch(e=>console.warn('historique',e))}catch(e){}},e=>{if(e&&e.code==='golems/trop-long')majAttente(id,y=>{delete y.h});throw e}):null;
   const z=x.r&&room.ecritResume?room.ecritResume(id,x.r).then(()=>{archivee(id);majAttente(id,y=>{delete y.r})}):null;
   return Promise.allSettled([h,z]).then(v=>{clearTimeout(t);const ok=v.every(e=>e.status==='fulfilled');
     v.forEach(e=>{if(e.status==='rejected')console.warn('Partie non enregistrée',e.reason)});
@@ -1065,9 +1102,9 @@ function archiveResume(s,id){
     t[k]={n:String(T.nom).slice(0,40),r:e.map(x=>x.gagnant===0||x.gagnant===1?String(x.gagnant):(r=>!!r&&x.manche<r.manche)(effetTerrain(T,'derniereManche'))?'-':x.forces[0]===x.forces[1]?'=':'-').join('').slice(0,3)||'-',q:Math.min(20,e.reduce((a,x)=>a+(+x.points||0),0))}});
   const o={v:String(M.VERSION).slice(0,12),m:partie.local?'golem-'+partie.niveau:'ligne',...(partie.classe?{cl:true}:{}),g:w===0||w===1?w:-1,pg:w===p0,a:s.fin.abandon!==undefined,
     s0:Math.min(30,s.j[0].score),s1:Math.min(30,s.j[1].score),mvp:B.mvp?String(B.mvp.carte).slice(0,40):'',t};
-  [0,1].forEach(p=>{const k=M.lisDeck(s.decks[p])?s.decks[p]:'';o['k'+p]=k;o['e'+p]=elsTexte(k).join(',')});
-  /* Partie contre un Golem : le robot joue le deck par defaut, enregistre sous son texte (30 cartes depuis 0.3, 33 avant ; camp ignore par agregeStats). */
-  if(partie.local){const r=1-partie.moi;if(!o['k'+r])o['k'+r]=DECK_TEST_TXT}
+  /* Deck par defaut (texte vide : joueur sans deck choisi, robot) : enregistre sous son texte (30 cartes depuis 0.3, 33 avant), sinon cartes et elements perdus pour les Statistiques. */
+  const kDef=M.DECK_DEFAUT?M.deckTexte(M.DECK_DEFAUT):DECK_TEST_TXT;
+  [0,1].forEach(p=>{const k=M.lisDeck(s.decks[p])?s.decks[p]:kDef;o['k'+p]=k;o['e'+p]=elsTexte(k).join(',')});
   /* Forces reellement tirees par les cartes a de (type forceAuDe : Alrevan 1 de, KEKWRevan 2 des), des deux camps ; cle = code de la carte. Lignes du journal du moteur. */
   {const dr={},id1=idsAvecEffet('forceAuDe',r=>r.des===1)[0],id2=idsAvecEffet('forceAuDe',r=>r.des===2)[0];(s.log||[]).forEach(x=>{const t=String(x[1]);let m=/^Alrevan lance le dé : Force (\d+)\.$/.exec(t),id=id1;
      if(!m){m=/^Alrevan \(KEKWRevan\) lance \d+ et \d+ : Force (\d+)\.$/.exec(t);id=id2}

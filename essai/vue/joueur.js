@@ -26,7 +26,9 @@ function quitteAvecConfirmation(){
   if(!partie||partie.rejeu||!partie.etat||partie.etat.fin||partie.tuto){quitteBouton();return}
   if(!partie.local&&r){quitteBouton();return}
   if(partie.classe){quitteBouton();return} /* 0.6.1 : classee contre le robot : abandon enregistre (quitteBouton) */
-  confirmeAbandon('La partie en cours sera perdue.',()=>{if(partie)quitteBouton()},'Quitter la partie ?','Quitter');
+  /* Entrainement contre le robot : abandon joue (comme la classee contre le robot), fin normale affichee (defaite, Revanche, historique) ; on reste sur l'ecran de fin. */
+  const p=partie,enCours=()=>partie===p&&p.local&&!p.classe&&!p.rejeu&&!p.tuto&&p.etat&&!p.etat.fin;
+  confirmeAbandon('La partie en cours sera perdue.',()=>{if(!enCours()){if(partie)quitteBouton();return}p.mien.push(M.code({t:'a'}));sel=null;calcule()},'Quitter la partie ?','Quitter');
 }
 function quitteBouton(){
   /* 0.6.1 : classee contre le robot en cours : abandon joue (defaite, Elo, historique), ecriture attendue avant de quitter. */
@@ -382,21 +384,23 @@ const NOMS_LOG=(()=>{const m=new Map(),D=window.GolemsDonnees,cs=Object.values(M
   cs.forEach(C=>mets(av(C),{E:C}));M.TERRAINS.forEach(T=>{const n=av(T);if(n.length<40)mets(n,{ET:T})});
   const e=[...m.keys()].sort((a,b)=>b.length-a.length).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
   return {m,re:new RegExp('(?<![\\p{L}\\p{N}])('+e.join('|')+')(?![\\p{L}\\p{N}])','gu')}})();
-function lienLog(nom){
+/* Forme courte (charte, 10 nov.) : journaux, bilans de manche, ecran de fin, detail d'une partie de l'Historique : « Trigas », « Trigas ★ » pour l'evolution. */
+function nomCourt(C){return C.base&&M.CARTES[C.base]?M.CARTES[C.base].nom+' ★':C.nom}
+function lienLog(nom,court){
   const o=NOMS_LOG.m.get(nom),K=window.GolemsDonnees.interface.couleursTexte,C=o.C||o.E,T=o.T||o.ET;
-  const lib=o.C?window.GolemsDonnees.nomLong(C.id)+(C.base?' ★':''):o.T?T.nom:nom;
-  const b=el('button','j-lien'+(o.C&&C.base?' j-evo':''),lib);b.type='button';
+  const lib=o.C?(court?nomCourt(C):window.GolemsDonnees.nomLong(C.id)+(C.base?' ★':'')):o.T?T.nom:nom;
+  const b=el('button','j-lien'+(o.C&&C.base?' j-evo':''),lib);b.type='button';if(court&&o.C)b.title=window.GolemsDonnees.nomLong(C.id); /* titre au survol */
   b.style.color=o.E||o.ET?K.effet:T?K.terrain:C.animal?K.animal:C.base?K.evolution:K.golem;
-  if(T){b.onclick=()=>zoomTerrain(T);b.onmouseenter=()=>montreApercu(b,srcTerrain(T))}
-  else{const src=imgV('cartes/'+C.id+'.jpg');b.onclick=()=>{cacheApercu();dernier=null;zoom(src,C.nom)};b.onmouseenter=()=>montreApercu(b,src)}
+  if(T){b.onclick=()=>{zoomTerrain(T);if(!b.closest('#vue'))dernier=b};b.onmouseenter=()=>montreApercu(b,srcTerrain(T))}
+  else{const src=imgV('cartes/'+C.id+'.jpg');b.onclick=()=>{cacheApercu();if(!b.closest('#vue'))dernier=b;zoom(src,C.nom)};b.onmouseenter=()=>montreApercu(b,src)}
   b.onmouseleave=cacheApercu;return b;
 }
 /* sauf(o) : vrai pour un nom a laisser en texte (zoom : la carte zoomee elle-meme) */
-function texteLog(x,sauf){
+function texteLog(x,sauf,court){
   const s=el('span','');let d=0;
   /* Ponctuation qui suit un lien (point, virgule...) collee a lui : un bouton laisse sinon le navigateur couper la ligne juste avant. */
   for(const m of x.matchAll(NOMS_LOG.re)){if(sauf&&sauf(NOMS_LOG.m.get(m[0])))continue;s.append(x.slice(d,m.index));d=m.index+m[0].length;
-    const p=/^[.,;:!?)…]+/.exec(x.slice(d)),b=lienLog(m[0]);
+    const p=/^[.,;:!?)…]+/.exec(x.slice(d)),b=lienLog(m[0],court);
     if(p){const n=el('span','j-colle');n.append(b,p[0]);s.append(n);d+=p[0].length}else s.append(b)}
   s.append(x.slice(d));return s;
 }
@@ -424,7 +428,7 @@ function ligneZt(c){
 }
 function zoomTerrainJeu(s,k,me){
   const T=s.terrains[k],cc=M.colonnes(s)[k];cacheApercu();dernier=null;
-  const pan=p=>{const moi=p===me,coul=moi?'var(--bleu)':'var(--magma)',a=el('section','zt-camp '+(moi?'toi':'lui')),h=el('h3','',nomJ(p)+(moi?' (toi)':'')),ol=el('ol','zt-l');h.style.color=coul;a.append(h);
+  const pan=p=>{const moi=p===me,coul=moi?'var(--moi-texte,var(--bleu))':'var(--lui-texte,var(--magma))',a=el('section','zt-camp '+(moi?'toi':'lui')),h=el('h3','',nomJ(p)+(moi?' (toi)':'')),ol=el('ol','zt-l');h.style.color=coul;a.append(h);
     for(let l=0;l<3;l++){const g=s.j[p].grille[l][k],li=el('li');
       if(!g){li.className='zt-vide';li.append(el('span','','Case vide'))}
       else{const v=M.valeurDecompte(s,p,l,k),f=el('span','zt-v'),fb=el('b','',String(v));fb.style.color=coul;f.append(ico('force'),fb);f.setAttribute('role','img');f.setAttribute('aria-label','Force '+v);
@@ -826,7 +830,7 @@ function affiche(){
     /* 0.4a : ligne à la couleur du joueur (liseré à gauche), nom du joueur en gras à sa couleur */
     let t=ligneLog(p,x,me)+(causes.get(e)||''),q=null;
     if(p!==null){d.classList.add(p===me?'j-moi':'j-lui');const pr=(p===me?'Toi':nomJ(p))+' : ';if(t.startsWith(pr)){q=el('b','j-qui',pr.slice(0,-3));t=t.slice(pr.length-3)}}
-    const sp=texteLog(t);if(q)sp.prepend(q);d.append(ico(n),sp);li.append(d)});
+    const sp=texteLog(t,null,true);if(q)sp.prepend(q);d.append(ico(n),sp);li.append(d)});
   jo.append(su,nav,li);
   const pied=el('div','p-pied'),q=el('button','btn sec plein','Quitter la partie');q.type='button';q.onclick=quitteBouton;pied.append(q);
   let enTuto=false;try{enTuto=!!tuto}catch(e){}

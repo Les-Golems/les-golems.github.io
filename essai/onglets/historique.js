@@ -7,6 +7,7 @@ function deckJoue(){
 function bandeauDeck(d){
   if(!d||typeof d.nom!=='string')return el('span','h-deck h-sans','Deck non noté');
   const b=el('span','h-deck',d.nom==='Test'&&!d.cartes?'Deck par défaut':d.nom),e=(Array.isArray(d.els)?d.els:[]).filter(x=>/^(magma|cristal|foudre|brume|roche)$/.test(x));
+  b.title=b.textContent;
   b.style.background=e.length>1?'linear-gradient(90deg,'+e.map((x,i)=>'var(--fm-'+x+') '+Math.round(100*i/(e.length-1))+'%').join(',')+')':e.length?'var(--fm-'+e[0]+')':'var(--panneau2)';
   return b;
 }
@@ -36,7 +37,7 @@ function carteHisto(nom){
      bilan[].cartes[i][5] : pseudo du maitre d'un animal (sinon lu dans CARTES : maitre) */
 const H_NIV={facile:'Facile',normal:'Normal',difficile:'Difficile'};
 const H_ELS=/^(magma|cristal|foudre|brume|roche)$/;
-let filtreHisto='toutes';
+let filtreHisto=lire('golems.filtre.histo')||'toutes'; /* filtre memorise sur l'appareil (inconnu : Toutes, voir peintHisto) */
 const carteDe=nom=>nom?Object.values(M0.CARTES).find(c=>M0.nomDetail(c)===nom||c.nom===nom)||null:null;
 /* Couleur d'une carte : son premier element (un animal prend celui de son maitre). */
 const elCarte=C=>!C?null:(C.el&&C.el[0])||(C.maitre&&M0.CARTES[C.maitre]&&M0.CARTES[C.maitre].el[0])||null;
@@ -45,6 +46,8 @@ const modeHisto=x=>x.mode||(x.classe?'classee':nivHisto(x.adv)?'entrainement':'a
 const resCl=x=>x.res==='Victoire'?'v':x.res==='Défaite'?'d':'n';
 const pictosH=(els,cl)=>{const s=el('span','hl-pts'+(cl?' '+cl:''));(Array.isArray(els)?els:[]).filter(e=>H_ELS.test(e)).forEach(e=>s.append(picto(e)));return s};
 const elsDeckH=x=>x.deck&&x.deck.nom==='Test'&&!x.deck.cartes?elsTexte(deckDefautTxt(vPartie(x))):(x.deck&&Array.isArray(x.deck.els)?x.deck.els:[]);
+/* Nom de deck coupe au bord : nom complet au survol. */
+const dnH=t=>{const s=el('span','hd-dn',t);if(t)s.title=t;return s};
 const nomDeckH=d=>!d||typeof d.nom!=='string'?'Deck non noté':d.nom==='Test'&&!d.cartes?'Deck par défaut':d.nom;
 function resHisto(x){return el('span','hl-res '+resCl(x),x.res==='Match nul'?'Nul':x.res)}
 /* Etiquettes : Classee (doree), Amicale, Entrainement ; classee contre un Golem = « Classee » + pastille grise « Golem » (variante D). */
@@ -80,12 +83,17 @@ function scoreHisto(x,cl){
   return z;
 }
 /* MVP : nom de la carte dans la couleur de son premier element, ★ apres une evolution (audit 34, J11). */
-function mvpHisto(nom){
+function mvpHisto(nom,court){
   const z=el('span','hl-mvp');z.append(el('span','hl-mvpe','MVP'));
-  const C=carteDe(nom),b=el('b','',C?C.nom+(C.base?' ★':''):(nom||'-'));
-  if(C&&elCarte(C))b.style.color='var(--'+elCarte(C)+')';if(C&&C.base)b.title=C.nom+' (évolution de '+((M0.CARTES[C.base]||{}).nom||'-')+')';else b.title=b.textContent;
+  const C=carteDe(nom),b=el('b','',C?(court?courtH(C):C.nom+(C.base?' ★':'')):(nom||'-'));
+  if(C&&elCarte(C))b.style.color='var(--txt-'+elCarte(C)+',var(--'+elCarte(C)+'))';if(C&&C.base)b.title=C.nom+' (évolution de '+((M0.CARTES[C.base]||{}).nom||'-')+')';else b.title=b.textContent;
+  if(C&&court){b.title=window.GolemsDonnees.nomLong(C.id);zoomH(b,C)}
   z.append(b);return z;
 }
+/* 0.6a : forme courte des noms dans le detail d'une partie (charte, 10 nov.) : « Trigas », « Trigas ★ », nom complet au survol, clic = zoom */
+const courtH=C=>C.base&&M0.CARTES[C.base]?M0.CARTES[C.base].nom+' ★':C.nom;
+function zoomH(b,C){b.classList.add('hd-zoom');b.setAttribute('role','button');b.tabIndex=0;b.setAttribute('aria-label','Agrandir '+window.GolemsDonnees.nomLong(C.id));
+  const f=e=>{if(e)e.stopPropagation();if(typeof zoom==='function')zoom(imgV('cartes/'+C.id+'.jpg'),C.nom)};b.onclick=f;b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f(e)}}}
 /* 0.6 : partie sans date (ou date illisible) : « - » et non « Invalid Date » */
 const dateOk=t=>t!=null&&t!==''&&Number.isFinite(new Date(t).getTime());
 const dateH=t=>dateOk(t)?new Date(t).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}):'-';
@@ -107,9 +115,9 @@ function detailHisto(x){
   const moi=el('span','hl-adv');
   if(x.classe&&Number.isFinite(x.classe.elo))moi.append(el('span','hl-elo',String(Math.round(x.classe.elo+(+x.classe.delta||0)))));
   moi.append(el('b','hd-moi',ps),avHisto(ps,elsDeckH(x)));
-  g.append(moi,pictosH(elsDeckH(x)),el('span','hd-dn',nomDeckH(x.deck)));
+  g.append(moi,pictosH(elsDeckH(x)),dnH(nomDeckH(x.deck)));
   c.append(scoreHisto(x,'hd-sc'));const dl=deltaHisto(x);if(dl)c.append(dl);
-  if(x.deckAdv&&typeof x.deckAdv.nom==='string')dr.append(el('span','hd-dn',x.deckAdv.nom),pictosH(x.deckAdv.els));
+  if(x.deckAdv&&typeof x.deckAdv.nom==='string')dr.append(dnH(x.deckAdv.nom),pictosH(x.deckAdv.els));
   dr.append(advHisto(x,true));
   ff.append(g,c,dr);d.append(ff);
   if(Array.isArray(x.manches)){
@@ -124,10 +132,10 @@ function detailHisto(x){
     const u=el('ul','hd-ancien');(Array.isArray(x.detail)?x.detail:[]).filter(s=>!/infligés 0, subis 0, morts causées 0, morts subies 0/.test(s)).forEach(s=>u.append(el('li','',String(s).replace(/\bToi\b/g,ps).trim())));d.append(u);
   }
   /* Actions : Replay | Partager le resume | Copier les donnees | Fermer */
-  const z=el('div','sc-fen-actions hd-act'),esc=e=>{if(e.key==='Escape')ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc)};
+  const z=el('div','sc-fen-actions hd-act'),prec=document.activeElement,esc=e=>{if(e.key==='Escape'&&$('vue').hidden)ferme()},ferme=r=>{v.remove();removeEventListener('keydown',esc,true);if(r!==false&&prec&&prec.isConnected)prec.focus()};
   const bt=(txt,cl)=>{const b=el('button','sc-btn'+(cl?' '+cl:''),txt);b.type='button';z.append(b);return b};
   const ok=rejeuPossible(x.rejeu),q=bt('','hd-rj');q.append(el('span','hd-rj-i','▶'),'Replay');
-  if(ok)q.onclick=()=>{ferme();lanceRejeu(x)};else{q.disabled=true;q.title=x.rejeu?'Replay impossible : partie d\'une ancienne version, plus relisible.':'Replay impossible : partie enregistrée sans ses journaux.'}
+  if(ok)q.onclick=()=>{ferme(false);lanceRejeu(x)};else{q.disabled=true;q.title=x.rejeu?'Replay impossible : partie d\'une ancienne version, plus relisible.':'Replay impossible : partie enregistrée sans ses journaux.'}
   const sh=bt('Partager le résumé','sc-secondaire');sh.id='partageHisto';sh.onclick=()=>partageFin(sh,texteHisto(x));
   /* Copier les donnees : meme format que l'ancien bouton de fin de partie (donneesHisto). Calcul lance a l'ouverture : la copie reste dans le clic. Repli : zone de texte. */
   const cd=bt('Copier les données','sc-secondaire'),msg=el('div','hd-msg'),rp=el('textarea','r-repli');
@@ -136,8 +144,8 @@ function detailHisto(x){
   const copieD=o=>{copie(o.txt,cd,'Copier les données',()=>{rp.value=o.txt;rp.hidden=false;rp.focus();rp.select()});
     if(o.brut){alerteInfo(msg,'Copie : données brutes de la partie copiées ('+o.brut+'). Colle-les à KaTarN (Romain).');msg.hidden=false}};
   cd.onclick=()=>{if(pret)copieD(pret);else dh.then(copieD)};
-  const f=bt('Fermer','sc-secondaire fermer');f.onclick=ferme;
-  v.onclick=e=>{if(e.target===v)ferme()};addEventListener('keydown',esc);
+  const f=bt('Fermer','sc-secondaire fermer');f.onclick=()=>ferme();
+  v.onclick=e=>{if(e.target===v)ferme()};addEventListener('keydown',esc,true); /* capture : lu avant la fermeture du zoom (cartes.js) */
   d.append(z,msg,rp);v.append(d);document.body.append(v);f.focus({preventScroll:true});
 }
 /* Manches en tuiles : terrains, points, gagnant et Forces (si la partie les porte), sinon les lignes enregistrees. */
@@ -166,7 +174,7 @@ function manchesHisto(x,ps,lui,moiN){
 /* MVP du detail : nom colore (★ si evolution), puis le calcul du score, picto bouclier devant « Force » (audit 34, J17). */
 function mvpDetail(x){
   const p=el('p','hd-mvp');if(!x.mvp){p.append(el('span','hl-mvpe','MVP'),' Aucun');return p}
-  p.append(mvpHisto(x.mvp));
+  p.append(mvpHisto(x.mvp,true));
   const q=(x.mvpLigne||'').match(/score .*/);
   if(q){const s=el('span','hd-mvps'),i=q[0].indexOf('Force');
     if(i<0)s.textContent=q[0];else{const f=ico('force');f.classList.add('hd-force');s.append(q[0].slice(0,i),f,q[0].slice(i))}
@@ -187,7 +195,7 @@ function bilanHisto(x,ps,lui,moiN,golem,tout){
       const k=res.findIndex(r=>{const D=carteDe(r[0]);return r[0]===mt||(D&&(D.nom===mt||(D.base&&(M0.CARTES[D.base]||{}).nom===mt)))});
       a=a.slice();a.sous=k>=0;if(k>=0)res.splice(k+1,0,a);else res.push(a)});
     return res};
-  const nomC=(r,droite)=>{const C=carteDe(r[0]),td=el('td','hd-cc'),n=el('span','hd-cn'+(C&&C.base?' evo':C&&C.animal?' ani':''),C?C.nom:String(r[0]));n.title=n.textContent;
+  const nomC=(r,droite)=>{const C=carteDe(r[0]),td=el('td','hd-cc'),n=el('span','hd-cn'+(C&&C.base?' evo':C&&C.animal?' ani':''),C?courtH(C):String(r[0]));n.title=C?window.GolemsDonnees.nomLong(C.id):n.textContent;if(C)zoomH(n,C);
     const p=C?pictosH(C.el&&C.el.length?C.el:[elCarte(C)]):el('span');if(droite)td.append(n,p);else td.append(p,n);return td};
   const H=['Infligés','Subis','Morts causées','Morts subies'];
   const table=(R,droite)=>{const t=el('table','hd-tab'+(droite?' d':'')),cg=el('colgroup'),tr=el('tr');
@@ -196,7 +204,7 @@ function bilanHisto(x,ps,lui,moiN,golem,tout){
     R.forEach(r=>{const l=el('tr',r.sous?'sous':''),v=r.slice(1,5).map(n=>el('td',+n?'':'z',String(+n||0)));
       if(droite){v.reverse().forEach(y=>l.append(y));l.append(nomC(r,1))}else{l.append(nomC(r,0));v.forEach(y=>l.append(y))}t.append(l)});
     return t};
-  const tete=(nom,cl,deck,els,droite)=>{const h=el('div','hd-bt '+(droite?'d':'g')),b=el('b',cl,nom),p=pictosH(els),n=el('span','hd-dn',deck||'');
+  const tete=(nom,cl,deck,els,droite)=>{const h=el('div','hd-bt '+(droite?'d':'g')),b=el('b',cl,nom),p=pictosH(els),n=dnH(deck||'');
     if(droite)h.append(n,p,b);else h.append(b,p,n);return h};
   const w=el('div','hd-bil'),sg=el('div','hd-side g'),sd=el('div','hd-side d');
   sg.append(tete(ps,'hd-moi',nomDeckH(x.deck),elsDeckH(x),0),table(lignes(Jm),0));
@@ -228,16 +236,54 @@ async function lanceRejeu(x,confirme){
   onglet('jouer');
   lancer(R.graine,R.moi===1?1:0,'',{mien:[],sien:[],decks,advNom:x.advNom||String(x.adv||'Adversaire'),local:true,
     rejeu:{seq,j,pos:0,n:[0,0],lecture:true,vitesse:1}});
-  barreRejeu();pasRejeu();
+  ouvreRejeuDif();pasRejeu();
 }
+/* 0.6 : rejeu dans la vue #dif (maquette 45 B) sur ordinateur, si le moteur de la partie fournit ce que lit la vue ; sinon ancien ecran et ancienne barre */
+const ECRAN_RJ=matchMedia('(min-width:1200px) and (min-height:600px)');
+function rejeuDifOk(Mx){
+  if(!['carte','colonnes','forceDe','attendus','valeurDecompte','nouvelle','rejoue'].every(f=>typeof Mx[f]==='function')||!Mx.CARTES||!Array.isArray(Mx.TERRAINS))return false;
+  try{const dk=Mx.deckTexte&&Mx.DECK_DEFAUT?Mx.deckTexte(Mx.DECK_DEFAUT):'',s=Mx.nouvelle(1,[dk,dk]);return !!(s&&s.stats&&Array.isArray(s.stats.t)&&Array.isArray(s.stats.ev)&&Array.isArray(s.log)&&Array.isArray(s.reperes)&&'manche' in s&&'tour' in s)}catch(e){return false}
+}
+function ouvreRejeuDif(){
+  const R=partie&&partie.rejeu;if(!R)return;
+  if(window.DIFFUSION&&DIFFUSION.rejeu&&ECRAN_RJ.matches&&rejeuDifOk(M)){
+    R.dif=true;partie.recapVu=99; /* les fins de manche passent par les fenetres de la vue */
+    DIFFUSION.rejeu.ouvre({etat:partie.etat,noms:[nomJ(0),nomJ(1)],avatars:[0,1].map(p=>p===partie.moi&&typeof monAvatar==='function'?monAvatar():''),moi:partie.moi});
+  }else barreRejeu();
+}
+/* Position k du rejeu (0..N) : journaux coupes, puis calcul depuis la graine. Seule l'avance d'un coup est animee. */
+function vaA(k){
+  const R=partie&&partie.rejeu;if(!R)return;
+  k=Math.max(0,Math.min(R.seq.length,k|0));const saut=k!==R.pos+1,n=[0,0];
+  for(let i=0;i<k;i++)n[R.seq[i]]++;
+  R.pos=k;R.n=n;
+  partie.mien=R.j[partie.moi].slice(0,n[partie.moi]);partie.sien=R.j[1-partie.moi].slice(0,n[1-partie.moi]);
+  if(saut){arreteAnim();arreteDes();fermeRecap()}
+  if(saut||R.dif){partie.lusM=partie.mien.length;partie.lusS=partie.sien.length} /* vue #dif : l'ancien ecran cache n'anime rien */
+  calcule();
+  if(saut&&R.dif&&window.DIFFUSION)DIFFUSION.rejeu.saut(partie.etat);
+  barreRejeu();
+}
+window.__golemsRejeuCmd=(nom,val)=>{
+  const R=partie&&partie.rejeu;if(!R)return;
+  if(nom==='quitter'){finRejeu();return}
+  if(nom==='lecture'){if(!R.lecture&&R.pos>=R.seq.length){vaA(0);R.lecture=true}else R.lecture=!R.lecture;R.h=null;barreRejeu();pasRejeu();return}
+  if(nom==='vitesse'){R.vitesse=[1,2,4].includes(+val)?+val:1;R.h=null;barreRejeu();pasRejeu();return}
+  R.lecture=false;R.h=null;clearTimeout(rejeuT);rejeuT=0;
+  if(R.dif&&window.DIFFUSION)DIFFUSION.rejeu.fermePop();
+  if(nom==='debut')vaA(0);else if(nom==='fin')vaA(R.seq.length);else if(nom==='prec')vaA(R.pos-1);else if(nom==='suiv')vaA(R.pos+1);
+  barreRejeu();
+};
 function barreRejeu(){
+  if(partie&&partie.rejeu&&partie.rejeu.dif){const o=$('barreRejeu');if(o)o.remove();if(window.DIFFUSION)DIFFUSION.rejeu.maj();return}
   let b=$('barreRejeu');if(!b){b=el('div','barreRejeu');b.id='barreRejeu';b.setAttribute('role','toolbar');b.setAttribute('aria-label','Replay');document.body.append(b)}
   const R=partie&&partie.rejeu;if(!R){b.remove();return}
+  if(R.dif){b.remove();if(window.DIFFUSION)DIFFUSION.rejeu.maj();return}
   b.textContent='';
   const bt=(t,f,lib)=>{const q=el('button','btn sec',t);q.type='button';if(lib)q.setAttribute('aria-label',lib);q.onclick=f;b.append(q);return q};
   b.append(el('b','','Replay'),el('span','r-pos',R.pos+' / '+R.seq.length));
-  bt(R.lecture?'Pause':'Lecture',()=>{R.lecture=!R.lecture;if(R.lecture&&R.pos>=R.seq.length)return relanceRejeu();barreRejeu();pasRejeu()});
-  const vt=bt('',()=>{R.vitesse=R.vitesse===1?2:R.vitesse===2?4:1;barreRejeu();pasRejeu()},'Changer la vitesse');vt.append(el('span','r-long','Vitesse '),'x'+R.vitesse);
+  bt(R.lecture?'Pause':'Lecture',()=>{R.lecture=!R.lecture;R.h=null;if(R.lecture&&R.pos>=R.seq.length)return relanceRejeu();barreRejeu();pasRejeu()});
+  const vt=bt('',()=>{R.vitesse=R.vitesse===1?2:R.vitesse===2?4:1;R.h=null;barreRejeu();pasRejeu()},'Changer la vitesse');vt.append(el('span','r-long','Vitesse '),'x'+R.vitesse);
   bt('Quitter',finRejeu,'Quitter le replay');
   /* Ordinateur : sous la zone d'apercu, dans la colonne du joueur ; ailleurs, barre flottante en bas. */
   const po=ZONE.matches&&document.querySelector('#partie .p-poste:has(.p-apercu)');
@@ -248,16 +294,28 @@ function pasRejeu(){
   clearTimeout(rejeuT);rejeuT=0;
   const R=partie&&partie.rejeu;if(!R)return;
   if(!R.lecture||R.pos>=R.seq.length){if(R.pos>=R.seq.length)R.lecture=false;barreRejeu();return}
+  /* Horloge absolue : R.h = heure prevue du prochain coup (debut du coup precedent + sa duree prevue / vitesse) ; le delai compense
+     le temps reellement passe (calcul, peinture), minimum 0. R.h nul = recalage : premier coup un intervalle apres maintenant (lecture, vitesse, sauts) ; apres une fenetre de manche, coup aussitot ;
+     retard de plus d'un intervalle (onglet en arriere-plan...) : recalage aussi, sans rafale de coups. */
+  const v=R.vitesse,now=performance.now();if(R.h==null)R.h=now+900/v;else if(R.h<now-900/v)R.h=now;
+  const st0=R.dif&&window.DIFFUSION?DIFFUSION.rejeu.pop():null,enPop=st0==='manche',enAtt=st0==='attente',
+    re=R.dif&&!enPop&&!enAtt?DIFFUSION.rejeu.reste():0, /* animation ajoutee apres le coup (etoiles...) : sondage 150/vitesse au plus ; fin des animations a 30 ms pres */
+    joue=f=>{const t0=R.h;f(t0);const fin=t0+900/v,a=R.dif&&window.DIFFUSION?performance.now()+DIFFUSION.rejeu.reste()-30:0;R.h=Math.max(fin,a);pasRejeu()};
   rejeuT=setTimeout(()=>{
     if(!partie||partie.rejeu!==R)return;
+    if(R.dif){const st=DIFFUSION.rejeu.pop();
+      const r2=DIFFUSION.rejeu.reste(),t2=performance.now();
+      if(st==='attente'||r2>30){R.h=Math.max(R.h,t2+(st==='attente'?0:r2-30));pasRejeu();return} /* attente non prevue (animation lancee apres la peinture, etoiles) : l'horloge avance d'autant, pas de rattrapage en rafale */
+      if(st==='manche'){if(enPop){DIFFUSION.rejeu.fermePop();R.h=performance.now();joue(t=>{DIFFUSION.rejeu.debut(t);vaA(R.pos+1)})}else pasRejeu();return}
+      joue(t=>{DIFFUSION.rejeu.debut(t);vaA(R.pos+1)});return}
     if(!$('recap').hidden){const c=$('continuer');if(c)c.click();pasRejeu();return}
     if(desActif||animCours){pasRejeu();return}
-    const p=R.seq[R.pos],c=R.j[p][R.n[p]];R.n[p]++;R.pos++;
-    (p===partie.moi?partie.mien:partie.sien).push(c);calcule();barreRejeu();pasRejeu();
-  },(!$('recap').hidden?2500:900)/R.vitesse);
+    joue(()=>{const p=R.seq[R.pos],c=R.j[p][R.n[p]];R.n[p]++;R.pos++;
+      (p===partie.moi?partie.mien:partie.sien).push(c);calcule();barreRejeu()});
+  },R.dif?(enPop?2500/v:enAtt?150/v:Math.max(R.h-now,re>30?Math.min(150/v,re-30):0,0)):!$('recap').hidden?2500/v:(desActif||animCours)?30:Math.max(0,R.h-now));
 }
 function finRejeu(){clearTimeout(rejeuT);rejeuT=0;finPartie();const b=$('barreRejeu');if(b)b.remove();$('accueil').hidden=false;onglet('historique')}
-window.__golemsRejeu=()=>partie&&partie.rejeu?{pos:partie.rejeu.pos,total:partie.rejeu.seq.length,fin:!!(partie.etat&&partie.etat.fin)}:null;
+window.__golemsRejeu=()=>partie&&partie.rejeu?{pos:partie.rejeu.pos,total:partie.rejeu.seq.length,fin:!!(partie.etat&&partie.etat.fin),manche:partie.etat?partie.etat.manche:1,vitesse:partie.rejeu.vitesse,lecture:!!partie.rejeu.lecture,dif:!!partie.rejeu.dif}:null;
 /* Confirmations au modele de la deconnexion (commun/alertes.js, confirmeFen) : titre en question, phrase, [Action] [Annuler]. */
 function confirmeAbandon(msg,oui,titre,bouton){confirmeFen({titre:titre||'Abandonner la partie ?',texte:msg,action:bouton||'Abandonner'}).then(v=>{if(v)oui()})}
 function confirmePage(box,titre,oui,texte,bouton){confirmeFen({titre,texte,action:bouton||'Supprimer'}).then(v=>{if(v)oui()})}
@@ -287,7 +345,7 @@ function peintHisto(){
   /* Filtres : un seul selecteur, nombre de parties de chaque filtre */
   const fz=$('hFiltres');fz.textContent='';
   FILTRES_H.forEach(([k,lib,f])=>{const q=el('button','',lib);q.type='button';q.setAttribute('aria-pressed',String(k===F[0]));q.append(el('i','',String(tout.filter(f).length)));
-    q.onclick=()=>{if(filtreHisto===k)return;filtreHisto=k;pageHisto=0;peintHisto()};fz.append(q)});
+    q.onclick=()=>{if(filtreHisto===k)return;filtreHisto=k;ecrire('golems.filtre.histo',k);pageHisto=0;peintHisto()};fz.append(q)});
   const z=sec.querySelector('.h-pied .nv-pages');
   if(!z.dataset.pret){z.dataset.pret='1';z.querySelector('.nv-prec').onclick=()=>{pageHisto--;peintHisto()};z.querySelector('.nv-suiv').onclick=()=>{pageHisto++;peintHisto()}}
   b.textContent='';

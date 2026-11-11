@@ -208,7 +208,9 @@ function majAnnonce(l){
 /* Design B (0.4) : tuiles teintees. Avant la partie (parties ouvertes, salon) : teinte neutre, rien du deck n'est revele.
    Parties en cours : degrade d'apres les elements des decks des deux joueurs. */
 const TEINTE_NEUTRE='linear-gradient(135deg,#4a5a68,#26323d)';
-function teinte(els,sens){const l=(els||[]).filter(e=>NOMS_EL[e]);if(!l.length)return TEINTE_NEUTRE;
+/* Elements connus : lus ici dans cartes/donnees/interface.js (charge avant ce fichier), jamais via NOMS_EL de vue/joueur.js (charge apres : ReferenceError si la liste est peinte pendant le chargement, boucle t() en fin de fichier). */
+const estElementJ=e=>window.GolemsDonnees.interface.elements.ordre.includes(e);
+function teinte(els,sens){const l=(els||[]).filter(estElementJ);if(!l.length)return TEINTE_NEUTRE;
   const c=l.map(e=>'color-mix(in srgb,var(--'+e+') 70%,#0a121a)');if(c.length===1)c.push(c[0]);return 'linear-gradient('+(sens||'135deg')+','+c.join(',')+')'}
 /* Elements principaux d'un deck (texte, '' = deck par defaut) : par nombre de cartes, ceux qui couvrent au moins 30 % du deck, 2 au moins, 3 au plus. */
 function elsPrincipaux(t){
@@ -225,7 +227,7 @@ function boutonObserver(x,off){const b=el('button','btn sec po-obs');b.type='but
 /* Parties en cours (0.4) : parties publiques lancees et pas finies, une ligne chacune (joueurs, manche, score, spectateurs, Observer). */
 /* Parties ouvertes (variante C) : places libres en cartes (Rejoindre / Observer), puis salons complets en lignes (Observer). */
 function tauxCourt(s){return s&&s.n?Math.round(100*s.v/s.n)+' % de victoires - '+s.n+' partie'+(s.n>1?'s':''):s===false?'…':'Aucune partie jouée'}
-function colTaux(z,s){if(!s||!s.n)return;const p=100*s.v/s.n;z.style.color=p>=55?'#6fd08c':p>=45?'var(--or)':'#ef7a6c'}
+function colTaux(z,s){if(!s||!s.n)return;const p=100*s.v/s.n;z.style.color=p>=55?'var(--js-taux-haut)':p>=45?'var(--js-or-taux)':'var(--js-taux-bas2)'}
 setInterval(()=>{if(!$('jouer').hidden&&!r)peintListe()},30000);
 function estPret(p){return p.sameTab?jePret:p.presence.pret===true}
 function texteCompte(){const n=compteFin-Date.now();return n>0?'La partie démarre dans '+Math.ceil(n/1000)+' s':'La partie démarre'}
@@ -388,7 +390,7 @@ async function entre(c,opt){
     if(window.SPEC&&!specAnn){specAnn=true;SPEC.onChange(()=>{if(r)majAnnonce(ordre(r.peers()));if(!$('salon').hidden)majSpecs()})} /* 0.6 : compteur de spectateurs a jour (SPEC n'existe pas encore au chargement de ce fichier) */ /* spectateurs comptes dans l'annonce */
     if(window.SPEC){const rl=await SPEC.entrer(c,{createur,observer:!!(opt&&opt.observer)});if(rl==='spec'){specBranche();r=null;code=c;$('codeSalon').textContent=c.toUpperCase();$('accueil').hidden=true;$('salon').hidden=false;occupe=false;majEtat();return}}
     const s=await room.join(c);
-    r=s;code=c;entree=Date.now();
+    r=s;code=c;entree=Date.now();if(s.onCree)s.onCree(()=>{if(r===s){creeLu='';majBandeauRobot()}});
     /* 0.6 classe : le createur marque le salon (cl, cree) ; les autres lisent cl (entree par code ou reprise) ; profil classe pret avant la partie. */
     if(s.marqueClasse&&!(createur&&salonClasse&&!sv))salonClasse=await s.estClasse();
     if(salonClasse)await chargeClasse();
@@ -428,7 +430,9 @@ $('jVue').querySelectorAll('button').forEach(b=>b.onclick=()=>jVue(b.dataset.v))
 new MutationObserver(()=>{if(!$('historique').hidden&&$('jVue').parentNode!==$('historique'))jVue('historique');else if(!$('jouer').hidden&&$('jVue').parentNode!==$('jouer'))jVue('parties')}).observe(document.body,{attributes:true,attributeFilter:['hidden'],subtree:true});
 
 /* Publique / Privee des tuiles Classee et Amicale (selecteur sc-sel, J14) ; la case cachee salonPublicCase reste lue par creerSalon (commun/raccords.js). */
-function selPub(id){const z=$(id),b=[...z.querySelectorAll('button')];b.forEach((x,i)=>x.onclick=()=>{b.forEach((y,k)=>y.setAttribute('aria-pressed',k===i?'true':'false'))});return ()=>b[0].getAttribute('aria-pressed')==='true'}
+function selPub(id){const z=$(id),b=[...z.querySelectorAll('button')],cle='golems.pub.'+id,pose=i=>b.forEach((y,k)=>y.setAttribute('aria-pressed',k===i?'true':'false'));
+  {const m=lire(cle);if(m==='0'||m==='1')pose(+m)} /* choix memorise sur l'appareil */
+  b.forEach((x,i)=>x.onclick=()=>{pose(i);ecrire(cle,String(i))});return ()=>b[0].getAttribute('aria-pressed')==='true'}
 const pubClasse=selPub('pubClasse'),pubAmicale=selPub('pubAmicale');
 let salonClasse=false; /* salon classe en cours (createur, ou joueur entre par une annonce classee) */
 $('creer').addEventListener('click',()=>{salonClasse=false;$('salonPublicCase').checked=pubAmicale();choixDeckCtx={lib:'Créer le salon',ctx:'Partie amicale',t:Date.now()}},true);
@@ -472,7 +476,7 @@ function imgRang(id){return imgV('images/rangs/'+id+'.png')}
 const pcJ=(v,n)=>n?Math.round(100*v/n):null;
 function c3(lib,val,sous,cl){const d=el('div','j-c3'),b=el('b',cl||'',val);b.title=val;d.append(el('i','',lib),b,el('small','',sous));return d}
 const txtTaux=t=>t===null?'-':t+' %';
-function colore(d,t,n){const b=d.querySelector('b');if(t!==null)b.style.color=couleurTaux.valeur(t,n)}
+function colore(d,t,n){const b=d.querySelector('b');b.classList.remove('sc-sym-vert','sc-sym-ambre','sc-sym-rouge');if(t!==null){b.style.color=couleurTaux.valeur(t,n);b.classList.add(couleurTaux(t,n).replace('sc-taux-','sc-sym-'))}}
 function partiesDe(f){const l=typeof lesParties==='function'?lesParties():[];return l.filter(x=>{try{return f(typeof modeHisto==='function'?modeHisto(x):'',x)}catch(e){return false}})}
 /* Encart Classee : embleme, rang + Elo (barre vers le rang suivant), prochain rang, victoires (couleurTaux, J13). Placement : n sur 5. */
 function encartClasse(j){
@@ -481,7 +485,7 @@ function encartClasse(j){
   const im=el('img','j-emb');im.src=imgRang(A.placement?'placement':R.id);im.alt=R.nom;
   const r=c3('Rang',A.placement?'Placement':R.nom,A.placement?(A.n+' sur '+A.sur+' parties'):'Elo '+Math.round(j.elo),'rg');
   if(!A.placement&&suiv){const bas=Number.isFinite(R.min)?R.min:suiv.min-100,p=Math.max(0,Math.min(100,100*(j.elo-bas)/(suiv.min-bas))),br=el('span','j-barre'),u=el('u');u.style.width=p+'%';br.append(u);r.append(br)}
-  const pr=A.placement?c3('Prochain rang','-','après le placement'):suiv?c3('Prochain rang',Math.ceil(suiv.min-j.elo)+' pts','avant '+suiv.nom):c3('Prochain rang','-','rang le plus haut');
+  const pr=A.placement?c3('Prochain rang','-','après le placement'):suiv?c3('Prochain rang',(n=>n+(n>1?' pts':' pt'))(Math.ceil(suiv.min-j.elo)),'avant '+suiv.nom):c3('Prochain rang','-','rang le plus haut');
   const n=(j.v||0)+(j.d||0),t=pcJ(j.v||0,n),v=c3('Victoires',txtTaux(t),(j.v||0)+' sur '+n+' partie'+(n>1?'s':''));colore(v,t,n);
   z.append(im,r,pr,v);
 }
@@ -503,7 +507,8 @@ function encartEntrainement(){
     const d=c3(lib,txtTaux(t),l.length+' partie'+(l.length>1?'s':''));colore(d,t,l.length);z.append(d)});
 }
 /* Pastille du deck de l'Entrainement : nom + teinte des elements, clic = fenetre de choix du deck. */
-function majPilDeck(){const d=deckChoisi(),b=$('jDeck');b.querySelector('span').textContent=d.nom;b.style.setProperty('--j-teinte',teinte(elsPrincipaux(d.texte),'90deg'));b.title='Deck : '+d.nom+' (changer)'}
+function majPilDeck(){const d=deckChoisi(),b=$('jDeck'),nom=d.id?d.nom:'Deck par défaut'; /* pas de deck choisi : « Deck par défaut », comme la fenetre de choix (deckChoisi le nomme « Test ») */
+  b.querySelector('span').textContent=nom;b.style.setProperty('--j-teinte',teinte(elsPrincipaux(d.texte),'90deg'));b.title='Deck : '+nom+' (changer)'}
 $('jDeck').onclick=()=>choisirDeck(majPilDeck,'Choisir ce deck','Entraînement contre le Golem');
 /* Invite (final_invite) : tuiles Classee et Amicale floutees sous un verrou, liste floutee avec Se connecter / Creer un compte. */
 const VERROU='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>';
@@ -523,7 +528,7 @@ function majTuiles(){
 }
 
 /* Parties en ligne : une ligne par partie (ouverte, complete, en cours), filtres Toutes / Ouvertes / En cours / Classees, pages de 6. */
-let jFiltre='toutes',jPage=0;const J_PAR_PAGE=6;
+let jFiltre=(k=>['toutes','ouvertes','encours','classees'].includes(k)?k:'toutes')(lire('golems.filtre.jouer')),jPage=0; /* filtre memorise sur l'appareil */const J_PAR_PAGE=6;
 const OEIL_J='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 function etatAnn(x){return x.g===true?'e':typeof x.w==='string'?'c':'o'}
 function filtreAnn(l,f){return f==='ouvertes'?l.filter(x=>etatAnn(x)==='o'):f==='encours'?l.filter(x=>etatAnn(x)==='e'):f==='classees'?l.filter(x=>x.cl===true):l}
@@ -531,7 +536,7 @@ function peintFiltres(l){
   const z=$('jFiltres');z.textContent='';
   [['toutes','Toutes'],['ouvertes','Ouvertes'],['encours','En cours'],['classees','Classées']].forEach(([k,lib])=>{
     const b=el('button','',lib+' ');b.type='button';b.append(el('b','j-nb',String(filtreAnn(l,k).length)));b.setAttribute('aria-pressed',k===jFiltre?'true':'false');
-    b.onclick=()=>{jFiltre=k;jPage=0;peintListe()};z.append(b)});
+    b.onclick=()=>{jFiltre=k;jPage=0;ecrire('golems.filtre.jouer',k);peintListe()};z.append(b)});
 }
 function joueurLigne(nom,av,els,elo,gauche){
   const s=el('span','j-j'+(gauche?' g':'')),pi=el('span','j-els');(els||[]).forEach(z=>{const i=picto(z);i.width=i.height=16;i.title=nomEl(z);pi.append(i)});
@@ -551,7 +556,7 @@ function peintListe(){
   if(!l.length)g.append(el('li','j-vide',jFiltre==='toutes'?'Aucune partie en ligne. Crée la tienne !':'Aucune partie dans ce filtre.'));
   l.slice(jPage*J_PAR_PAGE,(jPage+1)*J_PAR_PAGE).forEach(x=>{
     const et=etatAnn(x),mien=aMoi(x),li=el('li','j-p'+(mien?' mien':'')),nom=nettoie(typeof x.p==='string'?x.p:'')||'Joueur',nq=nettoie(typeof x.q==='string'?x.q:'')||'Joueur';
-    const ea=String(x.e||'').split(',').filter(z=>NOMS_EL[z]).slice(0,3),eb=String(x.f||'').split(',').filter(z=>NOMS_EL[z]).slice(0,3);
+    const ea=String(x.e||'').split(',').filter(estElementJ).slice(0,3),eb=String(x.f||'').split(',').filter(estElementJ).slice(0,3);
     const tz=e=>e?'color-mix(in srgb,var(--'+e+') 26%,var(--panneau2))':'var(--panneau2)';
     if(et==='e')li.style.setProperty('--j-teinte','linear-gradient(90deg,'+tz(ea[0])+','+tz(eb[0])+')');
     else if(ea[0])li.style.setProperty('--j-teinte','linear-gradient(90deg,'+tz(ea[0])+',var(--panneau2) 70%)');
@@ -579,28 +584,57 @@ $('jPages').querySelector('.nv-suiv').onclick=()=>{jPage++;peintListe()};
 
 /* Salon classe (36 variante B) : bandeau d'information des l'ouverture ; compte a rebours de 2 min sans adversaire,
    puis « Golem X - Elo N, points divises par 2, k sur 5 aujourd'hui » et le bouton « Affronter un Golem » ; limite atteinte. */
-const ATTENTE_ROBOT=120000;let robotT2=0;
+const ATTENTE_ROBOT=120000;let robotT2=0,creeSrv=0,creeLu='';
+/* La regle serveur exige cree <= now - 120000, cree et now en heure SERVEUR : le delai part de cree lu en base, compare a l'heure serveur estimee (room.heure = horloge locale + .info/serverTimeOffset). */
+/* cree absent (ecriture coupee) : nouvel essai d'ecriture toutes les 5 s ; au bout de 15 s sans heure lue, bandeau d'erreur avec Reessayer
+   (jamais de verification sans fin). cree est ecoute en continu par le salon (onCree) : sa valeur relance le bandeau des qu'elle arrive. */
+let creeT0=0,creeCode='',creeOk='',creeEnvoi=false,creePanne=false,creeEssai=0;
+/* relance=true (Reessayer, garde-fou) : nouvel essai meme si un envoi semble en cours (relanceCree : nouvelle connexion forcee, puis essai ;
+   salon-firebase n'a jamais qu'un essai de cree a la fois). Echec : bandeau du salon en etat d'echec avec son propre Reessayer, en meme temps que l'alerte. */
+function reposeCree(relance){const s=r;if(!s||!s.poseCree||(creeEnvoi&&!relance))return;creeEnvoi=true;(relance&&s.relanceCree?s.relanceCree():s.poseCree()).catch(e=>console.warn('salon classe',e)).then(()=>{creeEnvoi=false})}
+function reessaieCree(){alerte('erreurJeu','');creePanne=false;creeOk='';creeT0=Date.now();creeEssai=0;reposeCree(true);creeLu='';arrGardeCree();majBandeauRobot()}
+function creeEnPanne(){creePanne=true;alerte('erreurJeu','Heure d\'ouverture du salon classé impossible à enregistrer : vérifie ta connexion.',{bouton:{texte:'Réessayer',action:reessaieCree}});majBandeauRobot()}
+function finPanneCree(){if(creePanne){creePanne=false;alerte('erreurJeu','')}}
+/* Garde-fou unique : 20 s apres l'entree (ou apres Reessayer) sans heure serveur de cree connue, quelle que soit la raison (lecture pendante, creeOk pose sans creeSrv),
+   nouvelle lecture et nouvelle ecriture, puis 3 s plus tard creeEnPanne si rien n'est arrive. Annule a la sortie du salon. */
+let creeGarde=0;
+function stopGardeCree(){clearTimeout(creeGarde);creeGarde=0}
+function arrGardeCree(){stopGardeCree();const s=r,c=code;if(!s||!c)return;const connue=()=>r!==s||code!==c||(creeSrv>0&&creeLu===c&&creeOk===c);
+  creeGarde=setTimeout(()=>{if(connue()){creeGarde=0;return}creeOk='';creeLu='';creeEssai=0;reposeCree(true);majBandeauRobot();
+    creeGarde=setTimeout(()=>{creeGarde=0;if(connue())return;if(!creePanne)creeEnPanne();majBandeauRobot()},3000)},20000)}
+function lisCreeSalon(){const s=r,c=code;if(!s||!s.lisCree)return;
+  if(c!==creeCode){creeCode=c;creeOk='';creeT0=Date.now();creeEssai=0;finPanneCree();arrGardeCree()}
+  if(creeOk!==c){const t=Date.now()-creeT0;if(t-creeEssai>=5000){creeEssai=t;reposeCree()}if(t>=15000&&!creePanne)creeEnPanne()}
+  if(creeLu===c)return;creeLu=c;
+  s.lisCree().then(v=>{if(r!==s||code!==c)return;if(v>0){creeSrv=v;creeOk=c;finPanneCree();majBandeauRobot()}else{creeLu='';robotT2=setTimeout(majBandeauRobot,1000)}})}
 function majBandeauRobot(){
   const z=$('bandeauRobot');if(!z)return;
   {const g=$('salonClasseTag');g.hidden=!r&&!code;g.textContent=salonClasse?'Classée':'Amicale';g.classList.toggle('cl',salonClasse)}
   clearTimeout(robotT2);robotT2=0;
   const seul=!!r&&!partie&&salonClasse&&createur&&ordre(r.peers()).length<2;
-  if(!seul){z.hidden=true;return}
-  const C=GolemsClasse,j=profilClasse(),R=C.ROBOTS[C.niveauRobot(j.elo)],reste=C.robotsRestants(j.robots),t=z.querySelector('span'),b=$('affronterGolem'),ms=ATTENTE_ROBOT-(Date.now()-entree);
-  z.hidden=false;
+  if(!seul){z.hidden=true;finPanneCree();if(!r){stopGardeCree();creeCode=''}return}
+  if(creeLu!==code){creeSrv=0}
+  lisCreeSalon();
+  const C=GolemsClasse,j=profilClasse(),R=C.ROBOTS[C.niveauRobot(j.elo)],reste=C.robotsRestants(j.robots),t=z.querySelector('span'),b=$('affronterGolem'),ms=creeSrv&&creeLu===code?ATTENTE_ROBOT-(room.heure()-creeSrv):ATTENTE_ROBOT-(Date.now()-entree)+1000;
+  z.hidden=false;{const rc=$('reessayerCree');if(rc)rc.hidden=!creePanne}
+  if(creePanne){t.textContent='Salon classé : heure d\'ouverture non enregistrée. Vérifie ta connexion.';b.hidden=true;return}
   if(reste<=0){t.textContent='Limite atteinte : '+C.ROBOTS_PAR_JOUR+' parties contre un Golem par jour en classée. Reviens demain ou attends un adversaire.';b.hidden=true;return}
+  if(ms<=0&&!(creeSrv&&creeLu===code)){t.textContent='Salon classé : personne n\'a encore rejoint. Vérification de l\'heure du salon…';b.hidden=true;if(!robotT2)robotT2=setTimeout(majBandeauRobot,1000);return}
   if(ms>0){const s=Math.ceil(ms/1000);t.textContent='Salon classé : personne n\'a encore rejoint. Un Golem te sera proposé dans '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+'.';b.hidden=true;robotT2=setTimeout(majBandeauRobot,(ms%1000)+20);return}
   t.textContent='Salon classé : personne n\'a rejoint. Affronte le '+R.nom+' - Elo '+R.elo+', points divisés par 2, '+C.compteRobot(j.robots).n+' sur '+C.ROBOTS_PAR_JOUR+' aujourd\'hui.';b.hidden=false;
 }
+{const rc=$('reessayerCree');if(rc)rc.onclick=reessaieCree}
 $('affronterGolem').onclick=async()=>{
   const b=$('affronterGolem');if(b.disabled)return;b.disabled=true;try{await affronterGolem()}finally{b.disabled=false} /* 0.6.1 : un seul lancement au double clic */
 };
 async function affronterGolem(){
   const j=profilClasse(),sa=code;if(!GolemsClasse.peutAffronterRobot(j.robots)){majBandeauRobot();return}
   /* Bandeau robot pose dans le salon (regles : 2 min, sans adversaire, 5 par jour) avant de le quitter. */
-  try{if(!r||!r.poseRobot)throw new Error('salon');await r.poseRobot(GolemsClasse.salonRobot(room.compte.uid(),j.elo))}
-  catch(e){console.warn(e);alerte('erreurJeu','Partie classée impossible : Golem refusé par le serveur. Réessaie dans un instant.');return}
-  await sortie('');lanceClasseRobot(j,sa);
+  /* Bandeau robot : nouvel essai toutes les 2 s pendant 12 s sous coupure (refus du serveur : arret tout de suite), puis erreur avec Reessayer. */
+  try{let k=0;for(;;){if(!r||!r.poseRobot||code!==sa)throw new Error('salon');try{await r.poseRobot(GolemsClasse.salonRobot(room.compte.uid(),j.elo));break}catch(e){if(++k>=6||/PERMISSION_DENIED/i.test(String(e&&(e.code||e.message))))throw e;await new Promise(f=>setTimeout(f,2000))}}}
+  catch(e){console.warn(e);creeLu='';majBandeauRobot();alerte('erreurJeu',e&&/PERMISSION_DENIED/i.test(String(e.code||e.message))?'Golem pas encore disponible : le serveur n\'a pas encore validé les 2 minutes d\'attente. Réessaie dans un instant.':'Connexion coupée : le Golem n\'a pas pu être lancé. Réessaie dans un instant.',{bouton:{texte:'Réessayer',action:()=>{alerte('erreurJeu','');$('affronterGolem').click()}}});return}
+  /* Sortie du salon bornee a 3 s : sous coupure, leave() attend des accuses du serveur ; la partie contre le Golem ne doit jamais attendre en silence. */
+  await Promise.race([sortie(''),new Promise(f=>setTimeout(f,3000))]);lanceClasseRobot(j,sa);
 }
 
 /* Colonne des spectateurs du salon (refonte v2) : 5 lignes au plus, puis « +N autres » ; « Aucun spectateur » si vide. */

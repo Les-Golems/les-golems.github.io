@@ -1,8 +1,10 @@
 /* Onglet Nouveautes : notes de version, feuille de route, fenetre des details. */
+:root{--fdr-tard:#c9d6de;--fdr-etat-fond:#3a4b59;--fdr-etat-texte:#dfe8ee}
+html.clair{--fdr-tard:#15222d;--fdr-etat-fond:#cdd6dd;--fdr-etat-texte:#15222d}
 /* Nouveautes */
 @media (max-width:440px){.onglets button{font-size:15.5px;padding:12px 2px}}
 .note{background:var(--panneau);border:1px solid var(--trait);border-radius:10px;padding:14px 16px;margin-bottom:10px}
-.note h3{font-size:19px;color:var(--bleu)}
+.note h3{font-size:19px;color:var(--bleu-titre)}
 .note time{display:block;color:var(--doux);font-size:14px;margin-bottom:6px}
 .note ul{margin:0;padding-left:20px}
 .nv-ligne{margin-top:4px}
@@ -18,23 +20,23 @@
 @media (max-width:359px){.note>h3::before{display:none}.nv-etq{position:static;float:right;margin:1px 0 0 8px}}
 /* Nouveautes 0.4 : epingles (epingle doree dans le titre), Feuille de route (lisere dore, frise verticale, pastilles d'etat), tuile de pagination,
    epingle de Romain (son compte seulement) en haut a droite, l'etiquette de version se decale a sa gauche. */
-.note .nv-pin{display:inline-block;width:.9em;height:.9em;margin-right:6px;vertical-align:-.08em;color:var(--or)}
+.note .nv-pin{display:inline-block;width:.9em;height:.9em;margin-right:6px;vertical-align:-.08em;color:var(--or-texte)}
 .note .nv-pin svg{display:block;width:100%;height:100%;fill:currentColor}
 .note.nv-fdr{border-left:4px solid var(--or);padding-left:14px}
-.nv-fdr h3{color:var(--or)}.nv-fdr>h3::before{display:none}
+.nv-fdr h3{color:var(--or-texte)}.nv-fdr>h3::before{display:none}
 .nv-fdr .fdr-sous{color:var(--doux);font-size:14px;margin:0 0 10px}
 .fdr-l{list-style:none;margin:0;padding:0}
 .fdr-l li{position:relative;display:flex;align-items:center;gap:10px;padding:5px 0 5px 26px;min-height:36px}
-.fdr-l li::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:2px;background:#2a3f50}
+.fdr-l li::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:2px;background:var(--trait)}
 .fdr-l li:first-child::before{top:50%}.fdr-l li:last-child::before{bottom:50%}
-.fdr-pt{position:absolute;left:1px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:#3d4e5d;border:2px solid var(--panneau);box-shadow:0 0 0 2px #3d4e5d}
+.fdr-pt{position:absolute;left:1px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--btn-g1);border:2px solid var(--panneau);box-shadow:0 0 0 2px var(--btn-g1)}
 .fdr-proche .fdr-pt{background:var(--panneau);border-color:var(--bleu);box-shadow:0 0 0 2px var(--bleu),0 0 8px rgba(1,193,240,.6)}
 .fdr-prevu .fdr-pt{background:var(--or);box-shadow:0 0 0 2px var(--or)}
 .fdr-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
 .fdr-t small{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--doux)}
 .fdr-t b{font-size:15.5px;color:var(--texte)}
-.fdr-tard .fdr-t b{color:#c9d6de}
-.fdr-etat{flex:none;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:800;line-height:1.35;white-space:nowrap;background:#3a4b59;color:#dfe8ee}
+.fdr-tard .fdr-t b,.fdr-precedente .fdr-t b{color:var(--fdr-tard)}
+.fdr-etat{flex:none;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:800;line-height:1.35;white-space:nowrap;background:var(--fdr-etat-fond);color:var(--fdr-etat-texte)}
 .fdr-proche .fdr-etat{background:var(--bleu);color:var(--encre)}
 .fdr-prevu .fdr-etat{background:var(--or);color:var(--encre)}
 /* Version actuelle : pastille pleine verte, etiquette verte pleine */
@@ -48,9 +50,9 @@
 /* Fenetre des details d'une version : en-tete fixe, rubriques qui defilent, Fermer en bas. */
 .dv-boite{max-width:620px;width:calc(100vw - 32px);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);padding:0;overflow:hidden;display:flex;flex-direction:column;text-align:left}
 .dv-tete{flex:none;padding:16px 20px 10px;border-bottom:1px solid var(--trait)}
-.dv-tete h2{margin:0;color:var(--bleu);font-size:26px}.dv-tete time{display:block;color:var(--doux);font-size:14px}
+.dv-tete h2{margin:0;color:var(--bleu-titre);font-size:26px}.dv-tete time{display:block;color:var(--doux);font-size:14px}
 .dv-corps{flex:1;min-height:0;overflow-y:auto;padding:12px 20px 8px;scrollbar-width:thin;scrollbar-color:#3d4e5d transparent}
-.dv-corps h3{font-size:19px;color:var(--or);margin:14px 0 6px}.dv-corps h3:first-child{margin-top:2px}
+.dv-corps h3{font-size:19px;color:var(--or-texte);margin:14px 0 6px}.dv-corps h3:first-child{margin-top:2px}
 .dv-corps ul{margin:0;padding-left:20px}.dv-corps li{margin:4px 0;font-size:15.5px;line-height:1.4;overflow-wrap:anywhere}.dv-corps li ul{margin:4px 0 2px}
 .dv-vide{margin:0;color:var(--doux);font-size:15px}
 .dv-pied{flex:none;justify-content:center;padding:10px 20px 14px;border-top:1px solid var(--trait)}

@@ -1,12 +1,15 @@
 /* Compte et avatars : avatar, galerie, import et cadrage d'image, fenetre pseudo et code secret. */
 /* Avatar : rond avec initiale sur une couleur tiree du pseudo. avatarId (futur choix en galerie, a stocker plus tard dans la presence ou Firebase) : si fourni, image avatars/<id>.png a la place. */
 const AVATAR_COULEURS=window.GolemsDonnees.interface.elements.ordre.map(e=>"--fm-"+e); /* modele des elements : cartes/donnees/interface.js */
+/* Avatars introuvables (ancien identifiant, 404) : retenus pour la session, l'image n'est plus jamais redemandee, l'initiale s'affiche d'emblee. */
+const AVATARS_ABSENTS=new Set();
 function avatarDe(nom,avatarId){
   const n=String(nom||"").trim()||"?",a=el("span","avatar");a.setAttribute("aria-hidden","true");
   let h=0;for(const c of n.toLowerCase())h=(h*31+c.codePointAt(0))>>>0;
   a.style.background="var("+AVATAR_COULEURS[h%AVATAR_COULEURS.length]+")";
   const imp=typeof avatarId==='string'&&/^data:image\/(jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(avatarId);
-  if(imp||avatarId&&/^[a-z0-9_-]{1,40}$/.test(avatarId)){const i=document.createElement("img");i.alt="";i.src=imp?avatarId:imgV("avatars/"+avatarId+".jpg");i.onerror=()=>{i.remove();a.textContent=Array.from(n)[0]};a.append(i)}
+  if(imp||avatarId&&/^[a-z0-9_-]{1,40}$/.test(avatarId)&&!AVATARS_ABSENTS.has(avatarId)){const i=document.createElement("img");i.alt="";i.src=imp?avatarId:imgV("avatars/"+avatarId+".jpg");
+    i.onerror=()=>{i.onerror=null;if(!imp)AVATARS_ABSENTS.add(avatarId);i.remove();a.textContent=Array.from(n)[0]};a.append(i)}
   else a.textContent=Array.from(n)[0];
   return a;
 }
@@ -70,6 +73,8 @@ async function ouvreGalerie(){
   if(!listeAvatars){try{listeAvatars=await (await fetch('avatars/avatars.json',{cache:'no-cache'})).json()}catch(e){listeAvatars=[]}}
   const cur=monAvatar();GAL.img=monImage();GAL.actuel=/^data:/.test(cur)?'__img':cur;GAL.choix=GAL.actuel;GAL.imp=false;
   galPeint();
+  /* 1re ouverture : police des titres pas encore chargee, on redessine une fois prete (initiale du grand apercu). */
+  if(document.fonts&&document.fonts.status!=='loaded')document.fonts.ready.then(()=>{if(!$('galerieAvatar').hidden&&!GAL.imp)galPeint()});
   $('galerieAvatar').hidden=false;document.documentElement.classList.add('galOuverte');
   const g=$('galGrille');g.scrollTop=0;(g.querySelector('[aria-pressed="true"]')||g.firstChild).focus({preventScroll:true});
 }
@@ -145,8 +150,14 @@ function modeCompte(c){
 function ouvrePseudo(){
   if(r){alerte('erreurJeu','Salon en cours : changement de compte indisponible dans un salon. Quitte le salon d\'abord.');return}
   modeCompte(false);$('pseudo').value=lire('golems.pseudo')||'';$('codeSecret').value='';
+  if($('popPseudo').hidden)origPseudo=document.activeElement;
   $('popPseudo').hidden=false;$('pseudo').focus();
 }
+/* Fermeture commune (Echap, clic sur le fond, Plus tard, connexion reussie) : focus rendu au bouton d'origine. */
+let origPseudo=null;
+function fermePseudo(){$('popPseudo').hidden=true;const o=origPseudo;origPseudo=null;if(o&&o.isConnected&&o!==document.body&&o.focus)o.focus()}
+$('popPseudo').onclick=e=>{if(e.target.id==='popPseudo')fermePseudo()};
+$('popPseudo').onkeydown=e=>{if(e.key==='Escape')fermePseudo()};
 /* Capsule : mon profil (connecte) ou connexion (invite). Ecoute en capture : le pseudo n'est plus un bouton a part (role=button pose par profil.js, retire dans majMoi). */
 $('capsuleMoi').addEventListener('click',e=>{e.stopPropagation();e.preventDefault();if(compteCo()){if(typeof ouvreProfil==='function')ouvreProfil()}else ouvrePseudo()},true);
 /* Porte de deconnexion : fenetre de confirmation [Se déconnecter] [Annuler] (sc-fenetre). */
@@ -166,7 +177,7 @@ $('decoOui').onclick=async()=>{const b=$('decoOui');b.disabled=true;alerteDeco('
   try{await room.compte.deconnecter()}catch(e){console.warn(e);b.disabled=false;alerteDeco('Déconnexion : serveur injoignable. Réessaie dans un instant.');return}
   b.disabled=false;$('fenDeco').hidden=true};
 $('basculeCompte').onclick=()=>modeCompte(!modeCreer);
-$('plusTard').onclick=()=>{ecrire('golems.invite','1');$('popPseudo').hidden=true};
+$('plusTard').onclick=()=>{ecrire('golems.invite','1');fermePseudo()};
 $('formPseudo').onsubmit=async e=>{
   e.preventDefault();
   const p=$('pseudo').value,c=$('codeSecret').value,err=$('erreurPseudo');
@@ -178,13 +189,13 @@ $('formPseudo').onsubmit=async e=>{
   $('entrer').disabled=true;alerteInfo(err,modeCreer?'Connexion : création du compte en cours. Patiente un instant.':'Connexion : connexion au compte en cours. Patiente un instant.');
   const m=modeCreer?await room.compte.creer(p,c):await room.compte.connecter(p,c);
   $('entrer').disabled=false;alerte(err,m);
-  if(!m){$('popPseudo').hidden=true;$('codeSecret').value='';ecrire('golems.pseudo',room.compte.pseudo())}
+  if(!m){fermePseudo();$('codeSecret').value='';ecrire('golems.pseudo',room.compte.pseudo())}
 };
 /* Apres chaque changement de compte : pseudo, decks, historique, proposition d'import. */
 function surCompte(){
   pseudo=compteCo()?room.compte.pseudo():'';
   majMoi();majEtat();majChoixDeck();
-  if(!$('decks').hidden)peintDecks();if(!$('historique').hidden)peintHisto();
+  if(!$('decks').hidden)peintDecks();if(!$('historique').hidden)peintHisto();if(!$('stats').hidden)peintStats();
   if(compteCo())proposeImport();
 }
 majMoi();

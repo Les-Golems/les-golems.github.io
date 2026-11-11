@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Jeu de cartes communautaire">
 <meta name="theme-color" content="#0a121a">
+<script>/* Theme (0.6a) : applique avant tout CSS, sans flash sombre ; choix memorise sur l'appareil (golems.theme), voir commun/navigation.js. */try{if(localStorage.getItem('golems.theme')==='clair'){document.documentElement.classList.add('clair');document.querySelector('meta[name=theme-color]').content='#e4e9ee'}}catch(e){}</script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Les Golems">
 <meta property="og:title" content="Les Golems">
@@ -38,7 +39,17 @@ const r=u=>u+'?r='+Date.now().toString(36)+Math.random().toString(36).slice(2,8)
 window.golemsManque=s=>{try{return new Function('return typeof '+s)()==='undefined'}catch(e){return false}}; /* zone morte (script parti puis arrete) : present */
 window.golemsSecours=pourquoi=>{let n=0;try{n=+sessionStorage.getItem(S)||0}catch(e){}
   console.error('Chargement : '+pourquoi+(n?' ; deja recharge une fois, arret.':' ; rechargement de la page.'));
-  if(n)return;try{sessionStorage.setItem(S,'1')}catch(e){return}location.reload()};
+  if(n){avis();return}try{sessionStorage.setItem(S,'1')}catch(e){avis();return}window.golemsRecharge=1;location.reload()};
+/* Deja recharge une fois et toujours incomplet : bandeau clair (bouton Recharger) au lieu d'une page cassee. */
+const avis=()=>{if(window.golemsAvis)return;window.golemsAvis=1;const f=()=>{const d=document.createElement('div');d.setAttribute('role','alert');
+  d.style.cssText='position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:99999;max-width:calc(100% - 32px);box-sizing:border-box;padding:10px 14px;border-radius:10px;background:#3a1416;border:2px solid #ea7a6c;color:#fff;font:700 15px/1.35 sans-serif;display:flex;gap:12px;align-items:center';
+  d.textContent='Chargement incomplet : un fichier du site n’a pas pu être chargé. Vérifie ta connexion puis recharge la page.';
+  const b=document.createElement('button');b.type='button';b.textContent='Recharger';b.style.cssText='flex:none;padding:6px 14px;border-radius:8px;border:0;background:#ea7a6c;color:#0a121a;font:800 15px sans-serif;cursor:pointer';
+  b.onclick=()=>{try{sessionStorage.removeItem(S)}catch(e){}location.reload()};d.append(b);document.body.append(d)};
+  document.body?f():document.addEventListener('DOMContentLoaded',f)};
+/* Script qui plante faute d'un symbole d'un fichier manquant (ReferenceError pendant le chargement) : meme repli ; erreurs suivantes tues pendant le rechargement. */
+window.addEventListener('error',e=>{if(window.golemsPret)return;if(window.golemsRecharge||window.golemsAvis){e.preventDefault();return}
+  if(e.error instanceof ReferenceError){e.preventDefault();golemsSecours('script interrompu ('+e.message+')')}});
 window.golemsRepare=(e,u,m)=>{if(e.dataset.r)return;e.dataset.r='1';
   if(m){const x=document.createElement('script');if(/module/.test(m))x.type='module';x.src=r(u);x.dataset.r='1';x.onerror=()=>golemsSecours(u+' introuvable');document.head.append(x);return}
   try{const q=new XMLHttpRequest();q.open('GET',r(u),false);q.send();if(q.status!==200)throw new Error('HTTP '+q.status);
@@ -46,7 +57,7 @@ window.golemsRepare=(e,u,m)=>{if(e.dataset.r)return;e.dataset.r='1';
     if(SYMB[u]&&golemsManque(SYMB[u]))throw new Error(SYMB[u]+' absent');console.warn('Chargement : '+u+' recharge (?r=).')}catch(x){golemsSecours(u+' en echec'+(x&&x.message?' ('+x.message+')':''))}};
 window.golemsVerifie=(e,u,m)=>{if(!m&&SYMB[u]&&golemsManque(SYMB[u]))golemsRepare(e,u,m)};
 window.golemsFin=()=>{const k=['$','ETOILE_G','M','onglet','lancer','affiche','lanceGuide','peintDecks'].filter(golemsManque);
-  if(k.length)golemsSecours('symboles absents : '+k.join(', '));else try{sessionStorage.removeItem(S)}catch(e){}};
+  window.golemsPret=1;if(k.length)golemsSecours('symboles absents : '+k.join(', '));else try{sessionStorage.removeItem(S)}catch(e){}};
 const h=(u,m)=>'(this,\''+u+'\',\''+(m||'').replace(/"/g,'')+'\')'; /* attributs : sans guillemets doubles (type="module") */
 window.golemsCharge=l=>document.write(l.map(([t,u,m])=>t==='css'?'<link rel="stylesheet" href="'+a(u)+'">':'<script'+(m?' '+m:'')+' src="'+a(u)+'"'+(/module/.test(m||'')?'':' onerror="golemsRepare'+h(u,m)+'" onload="golemsVerifie'+h(u,m)+'"')+'><\/script>').join(''));})();
 window.imgV=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
@@ -69,7 +80,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
     <button class="bd-capsule" id="capsuleMoi" type="button"><span class="bd-rg" id="rangMoi" hidden><img alt="" width="32" height="32"><span id="rangElo"></span></span><span class="bd-sep" hidden></span><span class="bd-id"><b id="pseudoAffiche"></b><span class="bd-sc" id="sousConnexion" hidden>Se connecter</span></span><span class="avatar" id="avatarMoi" aria-hidden="true"></span></button>
     <span class="bd-affw"><button class="bd-b bd-carre" id="btnAffichage" type="button" title="Affichage" aria-label="Affichage" aria-expanded="false" aria-controls="menuAffichage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
       <div class="bd-menu" id="menuAffichage" role="dialog" aria-label="Affichage" hidden><h4>Affichage</h4>
-        <div class="bd-lig bd-lig-theme" hidden><span class="bd-et">Thème</span><div class="sc-sel sc-large bd-sel" id="selTheme" role="group" aria-label="Thème"><button type="button" aria-pressed="true" data-v="sombre">Sombre</button><button type="button" aria-pressed="false" data-v="clair" hidden>Clair</button></div></div>
+        <div class="bd-lig bd-lig-theme"><span class="bd-et">Thème</span><div class="sc-sel sc-large bd-sel" id="selTheme" role="group" aria-label="Thème"><button type="button" aria-pressed="true" data-v="sombre">Sombre</button><button type="button" aria-pressed="false" data-v="clair">Clair</button></div></div>
         <div class="bd-lig"><span class="bd-et">Couleurs</span><div class="sc-sel sc-large bd-sel" id="selCouleurs" role="group" aria-label="Couleurs"></div></div>
       </div></span>
     <button class="bd-b bd-carre" id="modifierPseudo" type="button" title="Se déconnecter" aria-label="Se déconnecter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></svg></button>
@@ -111,7 +122,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
       <div class="gd-tri"><span class="cj-lib">Trier</span><div class="sc-sel sc-petit" id="gdTri" role="group" aria-label="Trier les guides"><button type="button" data-t="notes" aria-pressed="true">Les mieux notés</button><button type="button" data-t="recents" aria-pressed="false">Les plus récents</button></div></div>
       <ol class="gd-lst" id="gdLst"></ol>
       <div class="gd-pag" role="navigation" aria-label="Pages des guides"><button type="button" id="gdPrec" title="Page précédente" aria-label="Page précédente">‹</button><span id="gdNum">1/1</span><button type="button" id="gdSuiv" title="Page suivante" aria-label="Page suivante">›</button></div>
-      <button class="sc-btn gd-prop" id="gdProp" type="button">Proposer un guide</button>
+      <button class="sc-btn gd-prop" id="gdProp" type="button">Publier un guide</button>
     </section>
     <section class="gd-p" id="gdDet" aria-live="polite"></section>
   </div>
@@ -178,7 +189,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
     </div>
     <div class="bloc" id="salon" hidden>
       <div class="sl-haut"><div><small>Code du salon</small><div class="j-codeL"><div class="code" id="codeSalon"></div><span class="j-tag cl" id="salonClasseTag" hidden>Classée</span></div></div><div class="sl-copies"><button class="btn btnCode" id="copieCode" type="button">Copier le code</button><button class="btn btnCode" id="copieLien" type="button">Copier le lien</button></div></div>
-      <div class="sc-alerte sc-info sc-une-ligne j-robot" id="bandeauRobot" hidden><i></i><span></span><button class="sc-btn sc-tertiaire" id="affronterGolem" type="button" hidden>Affronter un Golem</button></div>
+      <div class="sc-alerte sc-info sc-une-ligne j-robot" id="bandeauRobot" hidden><i></i><span></span><button class="sc-btn sc-tertiaire" id="affronterGolem" type="button" hidden>Affronter un Golem</button><button class="sc-btn sc-tertiaire" id="reessayerCree" type="button" hidden>Réessayer</button></div>
       <div class="sl-cadre"><div class="sl-scene"><div id="joueurs" class="sl-duo"></div><div class="sl-compte" id="slCompte" aria-hidden="true" hidden></div></div>
       <div class="sl-specs" id="slSpecs"></div></div>
       <div class="sl-bas"><p class="sl-face" id="faceAFace" hidden></p>

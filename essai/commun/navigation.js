@@ -32,7 +32,8 @@ function ajusteNotes(){if(typeof peintNotes!=="function")return;ajustePage('nouv
 function ajusteHisto(){if(typeof peintHisto!=="function")return;ajustePage('historique',()=>document.querySelector('#histo .h-grille')||(peintHisto(),document.querySelector('#histo .h-grille')),v=>lignesPage=v,peintHisto,14)}
 /* 0.6.1 : peintHisto recree les images de #histo, dont le load relancait tout() en boucle (clignotement, clics de filtre perdus) :
    ces load sont ignores, et un redimensionnement ne recalcule que si la hauteur utile (taille de fenetre) change vraiment. */
-{let t=0,cle='';const tout=f=>{const k=innerWidth+'x'+innerHeight;if(f!==true&&k===cle)return;clearTimeout(t);t=setTimeout(()=>{cle=innerWidth+'x'+innerHeight;ajusteNotes();ajusteHisto()},120)};
+/* Pas avant la fin de l'analyse de la page : ajusteNotes (onglets/nouveautes.js) et ajusteHisto (onglets/historique.js) sont charges apres ce fichier ; fonts.ready ou une image peuvent arriver pendant le chargement (ReferenceError). Le passage du 'load' fait le premier ajustement. */
+{let t=0,cle='';const tout=f=>{if(document.readyState==='loading')return;const k=innerWidth+'x'+innerHeight;if(f!==true&&k===cle)return;clearTimeout(t);t=setTimeout(()=>{cle=innerWidth+'x'+innerHeight;ajusteNotes();ajusteHisto()},120)};
   addEventListener('resize',()=>tout());
   ['nouveautes','historique'].forEach(x=>$(x).addEventListener('load',e=>{if(e.target.tagName==='IMG'&&!e.target.closest('#histo')&&!document.querySelector('#gdBlocs [data-joue="1"]'))tout(true)},true));document.fonts?.ready.then(()=>tout(true));addEventListener('load',()=>tout(true))}
 
@@ -67,8 +68,15 @@ remplitSelDal($('selCouleurs'));
 $('daltonienCase').addEventListener('change',e=>choisitDal(e.target.checked));
 addEventListener('storage',e=>{if(e.key===DAL.K)appDal(e.newValue==='1')});
 appDal(DAL.on);
-/* Theme : [Sombre] seul tant que le mode clair n'existe pas (ligne Thème masquée en 0.6, mode clair en 0.6a). TODO mode clair : montrer le bouton, html.clair, golems.theme. */
-$('selTheme').querySelectorAll('button').forEach(b=>b.onclick=()=>$('selTheme').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b))));
+/* Theme (0.6a) : [Sombre] [Clair]. html.clair (variables de css/base.css), memorise sur l'appareil (golems.theme) ; deja pose
+   avant le CSS par le petit script d'index.html (pas de flash sombre). */
+const THEME={K:'golems.theme'};
+function appTheme(v){const c=v==='clair';document.documentElement.classList.toggle('clair',c);
+  const m=document.querySelector('meta[name=theme-color]');if(m)m.content=c?'#e4e9ee':'#0a121a';
+  $('selTheme').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===(c?'clair':'sombre'))))}
+$('selTheme').querySelectorAll('button').forEach(b=>b.onclick=()=>{appTheme(b.dataset.v);try{localStorage.setItem(THEME.K,b.dataset.v)}catch(e){}});
+addEventListener('storage',e=>{if(e.key===THEME.K)appTheme(e.newValue==='clair'?'clair':'sombre')});
+appTheme(document.documentElement.classList.contains('clair')?'clair':'sombre');
 /* Menu Affichage : s'ouvre par-dessus (position absolue), rien ne bouge ; ferme au clic dehors et sur Echap. */
 function menuAff(o){const m=$('menuAffichage'),b=$('btnAffichage');m.hidden=!o;b.setAttribute('aria-expanded',String(o))}
 $('btnAffichage').onclick=e=>{e.stopPropagation();menuAff($('menuAffichage').hidden)};

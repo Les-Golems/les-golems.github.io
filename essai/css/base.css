@@ -6,12 +6,29 @@
   --rouge:#ff4d4f;--rouge-texte:#ffd0ca;--adverse:#ee6a2c;--ambre:#f0a35e;--vert:#5fd68a;--gris-taux:#8a9aa6;--info-bord:#1f8fb0;
   --magma:#ee6a2c;--cristal:#f086c0;--foudre:#f2cb2e;--brume:#a9a6d6;--roche:#b98c5e;
   --fm-magma:#c64213;--fm-cristal:#ac4f81;--fm-foudre:#896b10;--fm-brume:#776895;--fm-roche:#936547;
+  /* Mode clair (0.6a) : --fond = fond de page, separe de --encre (encre posee sur le bleu et l'or, identique dans les deux themes).
+     Variables de role : en sombre elles valent les couleurs d'origine ; html.clair les redefinit (charte_clair.md, maquette 46 A3). */
+  --fond:#0a121a;--fond-partie:#0a121a;--gris-b1:#3b4b59;--gris-b2:#26323c;--blanc:#fff;--ombre-tertiaire:#0d161e;
+  --bleu-titre:#01C1F0;--or-texte:#f1c35a;--rouge-texte-clair:#ff4d4f;--adverse-texte:#ee6a2c;--danger:#ff4d4f;
+  --r-amethyste:#d6a8ff;--r-topaze:#ffe58a;--r-saphir:#8fc3ff;--r-emeraude:#9ff0b8;--r-rubis:#ff9aa6;--r-diamant:#eaf4f8;
+  --lisere:transparent;--cadre-carte:none;--voile:rgba(5,10,15,.7);
   --titre:'Lilita One',Impact,sans-serif;--corps:'Nunito Sans',system-ui,sans-serif;
+  color-scheme:dark;
+}
+/* Theme clair (charte_clair.md : une couleur par role, la meme sur tous les ecrans). Images jamais modifiees. */
+html.clair{color-scheme:light;
+  --fond:#e4e9ee;--fond-partie:#dde3e9;--panneau:#f4f6f8;--panneau2:#ecf0f3;--trait:#c3ced7;--gris-b1:#e6ebef;--gris-b2:#cdd6dd;
+  --texte:#15222d;--doux:#4c5e6b;--bleu-titre:#04678b;--or-texte:#7a5a06;--rouge-texte-clair:#c41f26;--erreur:#c41f26;--rouge-texte:#8f1418;
+  --vert:#157443;--ambre:#9a4f00;--adverse-texte:#b5430f;--gris-taux:#5f6e79;--danger:#cf2d30;--blanc:#15222d;--ombre-tertiaire:#b3bfc9;
+  --r-amethyste:#8133c9;--r-topaze:#84620a;--r-saphir:#1b62c4;--r-emeraude:#11753f;--r-rubis:#c41f3a;--r-diamant:#3f6f8c;
+  /* Noms de cartes et d'effets en texte (cartes/donnees/interface.js : var(--txt-*, couleur sombre)) : variantes foncees, 4,5:1 sur panneau. */
+  --txt-magma:#a8460c;--txt-cristal:#a8326f;--txt-foudre:#7a5a06;--txt-brume:#6a3fb8;--txt-roche:#8a5a2b;--txt-evo:#7a5a06;--txt-animal:#157443;--txt-terrain:#0b6d8a;--moi-texte:#086f95;--lui-texte:var(--adverse-texte);
+  --lisere:#3d5366;--cadre-carte:0 0 0 1.5px #3d5366,0 2px 3px rgba(10,18,26,.35),0 6px 14px rgba(10,18,26,.22);--voile:rgba(10,18,26,.45);
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%;scrollbar-gutter:stable}
-body{margin:0;background:var(--encre);color:var(--texte);font:400 16px/1.55 var(--corps);overflow-x:hidden}
+body{margin:0;background:var(--fond);color:var(--texte);font:400 16px/1.55 var(--corps);overflow-x:hidden}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
@@ -23,18 +40,18 @@ h1,h2,h3{font-family:var(--titre);font-weight:400;line-height:1.15;margin:0}
 h1{font-size:26px;flex:1;min-width:0}
 .moi{display:flex;align-items:center;gap:8px;min-width:0;font-size:14px;color:var(--doux)}
 .moi b{color:var(--texte);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px}
-.lien{background:none;border:0;padding:6px 0;color:var(--bleu);font-weight:700;font-size:14px;text-decoration:underline}
-nav{position:sticky;top:0;z-index:5;background:var(--encre);border-bottom:1px solid var(--trait)}
+.lien{background:none;border:0;padding:6px 0;color:var(--bleu-titre);font-weight:700;font-size:14px;text-decoration:underline}
+nav{position:sticky;top:0;z-index:5;background:var(--fond);border-bottom:1px solid var(--trait)}
 .onglets{display:flex;gap:4px}
 .onglets button{flex:1;max-width:180px;background:none;border:0;border-bottom:3px solid transparent;padding:12px 8px;font-family:var(--titre);font-size:18px;color:var(--doux)}
-.onglets button[aria-selected=true]{color:var(--bleu);border-color:var(--bleu)}
+.onglets button[aria-selected=true]{color:var(--bleu-titre);border-color:var(--bleu)}
 main{padding-block:24px 48px}
 h2{font-size:28px;margin-bottom:6px}
 .intro{color:var(--doux);margin:0 0 20px}
 
 details{background:var(--panneau);border:1px solid var(--trait);border-radius:10px;margin-bottom:10px}
 summary{cursor:pointer;padding:14px 16px 14px 0;margin-left:34px}
-summary h3{display:inline;font-size:19px;color:var(--bleu)}
+summary h3{display:inline;font-size:19px;color:var(--bleu-titre)}
 summary span{display:block;color:var(--doux);font-size:14.5px}
 .corps{padding:0 16px 8px 34px;max-width:760px}
 .corps ul,.corps ol{margin:0 0 12px;padding-left:20px}
@@ -45,19 +62,19 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 .an-carte{position:absolute;left:0;top:0;width:84.85%;height:100%}
 .an-carte>img{display:block;width:100%;height:100%;border-radius:12px}
 .an-liens{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible}
-.an-liens rect{fill:none;stroke:#fff;stroke-width:1.2}
-.an-liens path{fill:none;stroke:var(--bleu);stroke-width:1.2}
-.an-liens circle{fill:var(--bleu)}
+.an-liens rect{fill:none;stroke:var(--blanc);stroke-width:1.2}
+.an-liens path{fill:none;stroke:var(--bleu-titre);stroke-width:1.2}
+.an-liens circle{fill:var(--bleu-titre)}
 .an-liens text{fill:var(--encre);font-size:12.5px;font-weight:800;text-anchor:middle}
 .annote ol{list-style:none;margin:0;padding:0;display:grid;grid-auto-rows:1fr;height:392px}
 .annote li{margin:0;display:flex;align-items:center;gap:8px;font-size:14.5px;line-height:1.25}
 .annote li>i{display:none;flex:none;width:20px;height:20px;border-radius:50%;background:var(--bleu);color:var(--encre);font-size:12px;font-weight:800;font-style:normal;line-height:20px;text-align:center}
 .corps ol.etapes{list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin:0 0 14px;padding:0}
 .corps .etapes li{position:relative;margin:0;background:var(--panneau2);border:1px solid var(--trait);border-radius:10px;padding:10px 8px;text-align:center;font-size:13.5px;line-height:1.25;color:var(--doux)}
-.etapes b{display:block;font-family:var(--titre);font-weight:400;font-size:17px;color:var(--bleu);margin-bottom:3px}
+.etapes b{display:block;font-family:var(--titre);font-weight:400;font-size:17px;color:var(--bleu-titre);margin-bottom:3px}
 .etapes li:not(:last-child)::after{content:"";position:absolute;right:-14px;top:50%;width:9px;height:9px;border-top:2px solid var(--bleu);border-right:2px solid var(--bleu);transform:translateY(-50%) rotate(45deg)}
 .cercle-el{display:block;width:min(340px,100%);height:auto;margin:0 auto 12px}
-.cercle-el>path{fill:none;stroke:var(--bleu);stroke-width:2.5}
+.cercle-el>path{fill:none;stroke:var(--bleu-titre);stroke-width:2.5}
 .cercle-el text{fill:var(--texte);font-weight:700;font-size:15px;text-anchor:middle}
 .face{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 12px}
 .face figure{margin:0;width:104px;text-align:center;font-size:13.5px;font-weight:700}
@@ -105,8 +122,8 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 
 /* Boutons principal (bleu) et secondaire (gris) : 46 px, Lilita 18 px, relief 2 px ; tertiaire 30 px / 14 px. Rangee : 12 px entre boutons. */
 .sc-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0 20px;border:0;border-radius:10px;font:400 18px/1 var(--titre);white-space:nowrap;background:var(--bleu);color:var(--encre);box-shadow:0 2px 0 #0a7fa0}
-.sc-btn.sc-secondaire{background:#3b4b59;color:var(--texte);box-shadow:0 2px 0 #26323c}
-.sc-btn.sc-tertiaire{height:30px;padding:0 12px;font-size:14px;border-radius:8px;background:var(--panneau2);color:var(--texte);box-shadow:0 2px 0 #0d161e}
+.sc-btn.sc-secondaire{background:var(--gris-b1);color:var(--texte);box-shadow:0 2px 0 var(--gris-b2)}
+.sc-btn.sc-tertiaire{height:30px;padding:0 12px;font-size:14px;border-radius:8px;background:var(--panneau2);color:var(--texte);box-shadow:0 2px 0 var(--ombre-tertiaire)}
 .sc-rangee{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .sc-rangee>.sc-pousse{margin-left:auto}
 
@@ -124,14 +141,14 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 .sc-alerte+.sc-alerte{margin-top:8px}
 .sc-fen-texte{margin:0 0 4px;font:400 15px/1.4 var(--corps);color:var(--texte)}
 .boite .sc-alerte>span,.galBoite .sc-alerte>span,.bd-fen .sc-alerte>span{-webkit-line-clamp:4} /* fenetres etroites : texte valide entier */
-.sc-copie{display:block;width:100%;box-sizing:border-box;margin-top:8px;font:13px/1.35 monospace;background:var(--encre);color:var(--texte);border:1px solid var(--trait);border-radius:8px;padding:6px 8px;resize:vertical}
+.sc-copie{display:block;width:100%;box-sizing:border-box;margin-top:8px;font:13px/1.35 monospace;background:var(--fond);color:var(--texte);border:1px solid var(--trait);border-radius:8px;padding:6px 8px;resize:vertical}
 .sc-alerte>i{flex:none;width:20px;height:20px;border-radius:50%;font:800 13px/20px var(--corps);font-style:normal;text-align:center;color:var(--encre)}
 .sc-alerte>span{flex:1;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .sc-alerte>.sc-btn{flex:none}
 .sc-alerte.sc-erreur{background:rgba(255,77,79,.12);border-color:var(--rouge);color:var(--rouge-texte)}
 .sc-alerte.sc-erreur>i{background:var(--rouge);color:#fff}
 .sc-alerte.sc-erreur>i::before{content:"!"}
-.sc-alerte.sc-info{background:rgba(1,193,240,.10);border-color:var(--info-bord);color:#fff}
+.sc-alerte.sc-info{background:rgba(1,193,240,.10);border-color:var(--info-bord);color:var(--blanc)}
 .sc-alerte.sc-info>i{background:var(--bleu)}
 .sc-alerte.sc-info>i::before{content:"i"}
 .sc-alerte.sc-deux-lignes{height:56px}
@@ -141,4 +158,12 @@ summary span{display:block;color:var(--doux);font-size:14.5px}
 .sc-titre-bloc{font:400 22px/1.15 var(--titre);color:var(--texte);margin:0 0 12px;padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:25px}
 
 /* Couleurs de taux (voir couleurTaux dans commun/outils.js). */
-.sc-taux-vert{color:var(--vert)}.sc-taux-ambre{color:var(--ambre)}.sc-taux-rouge{color:var(--rouge)}.sc-taux-gris{color:var(--gris-taux)}.sc-taux-neutre{color:#fff}
+.sc-taux-vert{color:var(--vert)}.sc-taux-ambre{color:var(--ambre)}.sc-taux-rouge{color:var(--rouge-texte-clair)}.sc-taux-gris{color:var(--gris-taux)}.sc-taux-neutre{color:var(--blanc)}
+/* Mode daltonien : symbole devant chaque taux colore (bon, moyen, faible) ; sc-sym-* = symbole seul, pour un taux colore autrement (anneau, style). */
+body.daltonien :is(.sc-taux-vert,.sc-sym-vert)::before{content:'▲\00a0'}body.daltonien :is(.sc-taux-ambre,.sc-sym-ambre)::before{content:'●\00a0'}body.daltonien :is(.sc-taux-rouge,.sc-sym-rouge)::before{content:'▼\00a0'}
+
+/* Variables des couleurs du JS (0.6a) : couleurs autrefois ecrites en dur dans onglets/, commun/, vue/. Sombre = valeurs d'origine. */
+:root{--js-taux-haut:#6fd08c;--js-taux-moyen:#f3d163;--js-taux-bas:#ea7a6c;--js-taux-bas2:#ef7a6c;--js-or-taux:#f1c35a;--js-ligne:#7fd8f5;
+  --js-r-diamant:#ffffff;--js-r-pionnier:#bfe9ff;--js-anneau:rgba(255,255,255,.10);--js-pointille:#3a5263;--js-case:#0f1a24}
+html.clair{--js-taux-haut:#157443;--js-taux-moyen:#84620a;--js-taux-bas:#c41f26;--js-taux-bas2:#c41f26;--js-or-taux:#7a5a06;--js-ligne:#04678b;
+  --js-r-diamant:#3f6f8c;--js-r-pionnier:#04678b;--js-anneau:rgba(10,18,26,.10);--js-pointille:#9aabb8;--js-case:#dde3e9}
