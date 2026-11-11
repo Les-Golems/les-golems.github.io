@@ -15,7 +15,7 @@ const MC={
   enface:{t:'En face',d:'Le Golem adverse sur le même terrain et la même ligne que le tien.',va:['domine','cercle']},
   taligne:{t:'Ta ligne / ton terrain',d:'Ta ligne, ce sont les 3 cases d\'une même rangée de ta grille. Ton terrain, ce sont les 3 cases de ta colonne sous ce terrain.',va:['enface','voisin']},
   domine:{t:'Domine',d:'Chaque élément en domine un autre : Magma domine Cristal, qui domine Foudre, qui domine Brume, qui domine Roche, qui domine Magma.',va:['cercle']},
-  cercle:{t:'Cercle',d:'+1 de Force si un de tes éléments domine un élément du Golem en face. Jamais plus de +1, sauf si une carte le dit (+2 avec SuperFishman, Monsieur Poisson, ou pour les alliés du terrain de Vic222).',cercle:1,va:['domine','enface']},
+  cercle:{t:'Cercle',d:'+1 de Force si un de tes éléments domine un élément du Golem en face. Jamais plus de +1, sauf si une carte le dit (+2 avec SuperFishman, Monsieur Poisson, ou pour les alliés du terrain de Vic2222).',cercle:1,va:['domine','enface']},
   trait:{t:'Trait',d:'Pour chacun de tes 2 éléments, tu gagnes +1 de Force par voisin qui a aussi cet élément, sans plafond. Si tu perds un voisin, tu perds aussitôt ce bonus.',va:['voisin']},
   degats:{t:'Dégâts',d:'Perdre de la Force, c\'est subir des dégâts. Ils restent d\'une manche à l\'autre et ne disparaissent que si le Golem est amélioré ou soigné par un effet (L\'attachiante).',va:['detruit']},
   detruit:{t:'Détruit',d:'À 0 de Force ou moins, ton Golem va aussitôt à la défausse, et tous ceux qui tombent à 0 partent en même temps. Il perd tout ce qu\'il portait, et son animal va aussi à la défausse. Ses voisins perdent le bonus qu\'il leur donnait.',va:['degats','defausse']},
