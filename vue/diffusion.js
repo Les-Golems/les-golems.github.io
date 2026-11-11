@@ -761,8 +761,8 @@ function popPartie(s,pp){
   if(src==='spec'&&F.abandon!==undefined&&(w===0||w===1)){vic.append(mk('h2','pp-neutre','Fin par abandon'));const duo=mk('div','pp-duo');
     [w,1-w].forEach(p=>{const j=mk('div','pp-dj'+(p===w?' g':'')),n=mk('span','pp-dn',nom(p)),a=avatar(p);if(p!==w)a.classList.add('dk-gris');n.style.color=COL[p];
       j.append(a,n,mk('span','dk-tag '+(p===w?'v':'d'),p===w?'Vainqueur':'Abandon'));duo.append(j)});vic.append(duo)}
-  else if(w===0||w===1){vic.style.setProperty('--c',COL[w]);const h=mk('h2','','Victoire '+d_(nom(w))+nom(w));h.style.color=COL[w];vic.append(avatar(w),titreFin(h))}
-  else vic.append(titreFin(mk('h2','','Match nul')));
+  else if(w===0||w===1){vic.style.setProperty('--c',COL[w]);const h=mk('h2','','Victoire '+d_(nom(w))+nom(w));h.style.color=COL[w];vic.append(avatar(w),titreClasse(h))}
+  else vic.append(titreClasse(mk('h2','','Match nul')));
   if(F.abandon!==undefined)vic.append(mk('p','pp-sous',nom(F.abandon)+(F.quitte?' a quitté la partie':' a abandonné')));
   else if(F.deckVide!==undefined)vic.append(mk('p','pp-sous','Victoire par deck vide : '+nom(F.deckVide)+' n\'avait plus de carte à piocher')); /* 0.4 */
   else if(F.departage&&F.scores[0]===F.scores[1])vic.append(mk('p','pp-sous','Égalité de points : départage à la Force'));
@@ -786,7 +786,7 @@ function popPartie(s,pp){
 }
 /* 0.6 : partie classee (vue joueur) : pastille « Classée » (J05) a cote du titre, encart de rang sous le MVP (maquette 21, classe a-e). */
 const classeFin=()=>{const u=U(),P=src==='joueur'&&u?u.partie:null;return P&&P.classe?P.classe:null};
-function titreFin(h){if(!classeFin())return h;const z=mk('div','pp-titre');z.append(h,mk('span','pp-cl','Classée'));return z}
+function titreClasse(h){if(!classeFin())return h;const z=mk('div','pp-titre');z.append(h,mk('span','pp-cl','Classée'));return z}
 function rangFin(pp){
   const c=classeFin(),C=window.GolemsClasse;if(!c||!c.res||!C)return;
   const x=c.res,A=C.affichage(x.profil),R=A.placement?A.estime:A.rang,i=C.RANGS.indexOf(R),suiv=C.RANGS[i+1],b=mk('div','pp-rang'),im=mk('img','pp-remb');

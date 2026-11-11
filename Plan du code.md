@@ -23,19 +23,20 @@ Une nouvelle carte va dans le fichier de son type, un nouvel effet dans le fichi
 | `versions-cartes.js` | Version de la **dernière modification** de chaque carte (`window.VERSIONS_CARTES`, code -> version). À renseigner à chaque patch qui change une carte. L'étiquette de version d'un deck passe en rouge (vx-diff) si une de ses cartes a changé depuis la version du deck (interface seule). |
 | `moteur.js` | Moteur pur des règles (sans affichage), chargé en page et sous Node. Lit les fiches et les effets, ne teste jamais un code de carte. Contient `VERSION`. |
 | `moteurs/` | Archives gelées `moteur-<version>.js` pour rejouer les anciennes parties. Jamais modifiées ni supprimées. |
-| `firebase/` | Liaison Firebase (modules), découpée au lot E de l'audit 0.6a : `salon.js` (point d'entrée chargé par index.html : connexion à la base et reconnexion, accueil, présence, pastille « en ligne », salons, partie en ligne, annonces, classé, guides, épingles ; expose `window.golemsSalon` comme avant), `compte.js` (seule initialisation Firebase `ouvreCompte`, émulateur, préfixe `essai/` automatique sur le site d'essai, connexion invité ou compte, pseudo, profil, avatar, historique et rattrapage `rattrapeHisto`, cumuls, objet `compte`), `decks.js` (decks à emplacement fixe `lisDecks`/`ecritDecks`, écritures sûres sous coupures `ajoute`/`ecritPlusieurs`). Imports entre eux sans `?v=` (comme `firebase-config.js`). |
+| `firebase/` | Liaison Firebase (modules), découpée au lot E de l'audit 0.6a : `salon.js` (point d'entrée chargé par index.html : connexion à la base et reconnexion, accueil, présence, pastille « en ligne », salons, partie en ligne, annonces, classé, guides, épingles ; expose `window.golemsSalon` comme avant), `compte.js` (seule initialisation Firebase `ouvreCompte`, émulateur, préfixe `essai/` automatique sur le site d'essai, connexion invité ou compte, pseudo, profil, avatar, historique et rattrapage `rattrapeHisto`, cumuls, objet `compte`), `decks.js` (decks à emplacement fixe `lisDecks`/`ecritDecks`, écritures sûres sous coupures `ajoute`/`ecritPlusieurs`). Leurs imports entre eux (et vers `firebase-config.js`) sont écrits sans `?v=` : la carte d'imports posée en tête d'index.html leur donne le `?v=` du build (jamais d'ancien module en cache après une publication). |
 | `presence.js` | Présence et déconnexion en ligne. |
 | `spectateur.js`, `spectateur-ui.js`, `spectateur.css` | Vue spectateur. |
 | `vue/diffusion.js`, `vue/diffusion-animations.js`, `css/diffusion.css` | Vue diffusion (grand écran), vue joueur sur ordinateur et, depuis la 0.6, rejeu sur ordinateur (`DIFFUSION.rejeu`, commandes dans le coin droit ; calcul et `vaA(k)` dans `onglets/historique.js`). Effets de cases de la 0.4 (`effetsCases`, classes de `css/partie.css`). `vue/diffusion.js` : affichage (peinture, bandeau, plateau, fenêtres de fin, chat), rejeu et sa barre, démonstration, `window.DIFFUSION`. `vue/diffusion-animations.js` (chargé juste avant, sans état propre : `window.DiffusionAnimations(I)` reçoit l'état de la vue par des getters `suivi`, `scene`, `couche`, `KV`, `src`, `E`, `D`, `GRAND` et rend ses fonctions) : rectangles dans le repère de la scène (`rectScene`, `rectPile`, `rectMain`, `rectVers`, `rectScore`), vols de cartes et d'étoiles (`lanceVols`, `lanceVol`, `etoileVol`, `atterrit`) et 0.6a, animations de la maquette 47 (`anEvo`, `anAnimal`, `anBrise`, `anOnde`, `anRecup`, `anFrappe`, `anBonus`, `anCopie`, `anFavori`, `anBandeau` ; file `suivi.an`, `lanceAn`), styles `an-*` et `fx-rebond/tremble/past/saute` en fin de `css/diffusion.css` ; mentions de tuile `.d-past` (animal, Favori). Forme courte des noms : `texteLog(x,sauf,true)` (vue/joueur.js, `nomCourt`). |
 | `aide.js`, `aide.css` | Aide « ? » et panneaux d'explication. |
 | `firebase-config.js` | Configuration publique Firebase. |
 | `database.rules.json` | Règles Firebase **générées** (voir section 3), jamais retouchées à la main. |
-| `avatars/`, `videos/`, icônes, `manifest.webmanifest`, `og.jpg` | Ressources du site. |
+| `avatars/`, `images/` (rangs et récompenses du classé), `videos/`, icônes, `manifest.webmanifest`, `og.jpg` | Ressources du site. |
 | `essai/` | Site d'essai **généré** (copie du site) : ne jamais le modifier à la main. |
 | `outils/publier.js` | Publication : `version` ou `correctif`. |
-| `outils/generer_essai.js` | Régénère `essai/`. |
+| `outils/generer_essai.js` | Régénère `essai/` (racine, et dossiers `css/`, `commun/`, `firebase/`, `onglets/`, `vue/`, `cartes/`, `moteurs/`, `avatars/`, `images/`). |
 | `tests/` | Tests (Node) et corpus de référence (`tests/reference/`). |
-| `lancer_emulateur.ps1` | Émulateur Firebase local (tests en ligne). |
+| `rules/` | Blocs des règles Firebase et générateur (voir section 3). |
+| `lancer_emulateur.ps1`, `firebase.json`, `.firebaserc` | Émulateur Firebase local (tests en ligne). |
 
 ## 2. Ordre de chargement (index.html)
 
@@ -85,12 +86,14 @@ Un nouveau fichier JS ou CSS doit être ajouté à la liste `golemsCharge` d'ind
 
 - `tests/reference/comparer.js` : 540 parties de référence, doit répondre « identique » après tout changement qui ne doit pas modifier le jeu.
 - `tests/test_ids_moteur.js`, `tests/test_ids_interface.js` : aucun code ni nom de carte en dur.
-- `tests/test_moteur.js`, `test_animaux.js`, `test_leq.js`, `test_terrains.js`, `test_encodage.js` : règles du moteur.
+- `tests/test_moteur.js`, `test_animaux.js`, `test_leq.js`, `test_terrains.js`, `test_encodage.js`, `test_elccino.js` : règles du moteur.
+- `tests/test_compteurs.js` : compteurs par mode du profil (commun/profil.js).
+- `tests/test_classe.js` : parties classées (commun/classe.js). `tests/test_regles.js` : règles Firebase sur l'émulateur. `tests/test_rejeu.html` : rejeu en navigateur.
 - Hors dépôt (`6 - Outils et simulations\1 - Outils\3 - Tests du site`) : harnais Chrome headless (`cdp.py`, `t_moteur.py` ; variable `GOLEMS_SITE` pour tester un autre dossier que « 4 - Site GitHub »).
 
 ## 6. Socle commun 0.6 (css/base.css, commun/outils.js)
 
-Composants de la charte graphique, préfixe `sc-`, à utiliser par tous les écrans refaits. Les anciennes classes (`.pastille`, `.btn`...) restent valides tant que les écrans ne sont pas adaptés. Démonstration : `_tmp/socle_demo.html`.
+Composants de la charte graphique, préfixe `sc-`, à utiliser par tous les écrans refaits. Les anciennes classes (`.pastille`, `.btn`...) restent valides tant que les écrans ne sont pas adaptés. 
 
 | Nom | Usage |
 |---|---|

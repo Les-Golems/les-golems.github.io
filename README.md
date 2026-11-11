@@ -64,7 +64,7 @@ Pour tester contre la vraie base, il faut désormais servir le site sous un autr
 
 ## Site d'essai et publication
 Le site d'essai https://les-golems.github.io/essai/ utilise le préfixe Firebase essai/ (comptes, salons, decks, historique), des clés locales préfixées essai. et affiche « Essai » dans le titre et l'en-tête. Procédure :
-1. Ressources\6 - Outils et simulations\1 - Outils\publier_essai.ps1 (ou `node outils/generer_essai.js`) : copie index.html, *.js, moteurs/, cartes/, avatars/, icônes, manifest et og.jpg dans essai/ (sans tests/, .git ni fichiers Firebase locaux). Pousser.
+1. Ressources\6 - Outils et simulations\1 - Outils\publier_essai.ps1 (ou `node outils/generer_essai.js`) : copie index.html, les fichiers de la racine et les dossiers css/, commun/, firebase/, onglets/, vue/, cartes/, moteurs/, avatars/, images/ dans essai/ (sans tests/, outils/, rules/, .git ni fichiers Firebase locaux ; des vidéos, seules les affiches). Pousser.
 2. Tester sur https://les-golems.github.io/essai/.
 3. Ressources\6 - Outils et simulations\1 - Outils\publier_public.ps1 : recopie essai/ vers la racine. Pousser.
 Aucun des deux scripts ne lance git : ils listent les fichiers copiés.
