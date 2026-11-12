@@ -37,7 +37,7 @@ function versionALaDate(t){if(!(t>0))return '';let v='';sortiesVersions().forEac
 const DETAILS_VERSIONS={
  'Version 0.7':{
   nouveautes:[
-   "Premier patch d'équilibrage : les écarts se resserrent autour de 50 %. Éléments entre 49 et 52 % de victoires, duos d'éléments tous entre 46 et 54 %.",
+   "Premier patch d'équilibrage : 22 cartes modifiées après étude des statistiques. Éléments, duos d'éléments et Golems : écarts resserrés pour les rapprocher de 50 % de victoires.",
    {t:"Reworks :",l:[
     "{{Alrevan, Le High Roller Originel}} : <<Tout ou rien>> : à la pose, lance 1 dé. Sur 4 ou plus, les autres Golems alliés ici gagnent +1 de Force. Sinon, ton prochain Golem coûte 1 de moins.",
     "{{Alrevan, KEKWRevan ★}} : <<High Roll>> : à la pose, lance 2 dés. Gagne leur différence en énergie. Sur un double, les autres Golems alliés ici gagnent sa valeur en Force.",
