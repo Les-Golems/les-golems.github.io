@@ -404,13 +404,16 @@ function texteLog(x,sauf,court){
     if(p){const n=el('span','j-colle');n.append(b,p[0]);s.append(n);d+=p[0].length}else s.append(b)}
   s.append(x.slice(d));return s;
 }
-function cacheApercu(){$('apercu').hidden=true}
-function montreApercu(z,src){
+function cacheApercu(){$('apercu').hidden=true;const q=$('apercuCq');if(q)q.remove()}
+/* calque : enclume du cout reel (badgeSurcout) posee sur l'apercu, comme sur la carte en main */
+function montreApercu(z,src,calque){
   if(!SURVOL.matches)return;
   const a=$('apercu'),r=z.getBoundingClientRect(),H=420;
   a.src=src;a.hidden=false;
   a.style.left=Math.max(8,Math.min(innerWidth-308,r.left+r.width/2-150))+'px';
   a.style.top=(r.bottom+8+H<innerHeight?r.bottom+8:Math.max(8,r.top-H-8))+'px';
+  {const q=$('apercuCq');if(q)q.remove()}
+  if(calque){const q=el('div','apercu-cq');q.id='apercuCq';q.append(calque);q.style.cssText='position:fixed;pointer-events:none;width:300px;aspect-ratio:5/7;left:'+a.style.left+';top:'+a.style.top+';z-index:'+(+getComputedStyle(a).zIndex+1||16);document.body.append(q)}
 }
 function zoomTerrain(T){cacheApercu();dernier=null;zoom(srcTerrain(T),T.nom+'. '+T.texte,statZoomTerrain(T))}
 /* Zoom d'un terrain en partie : le terrain en grand, a droite deux blocs de memes dimensions (adversaire en haut, toi en bas).
@@ -439,13 +442,14 @@ function zoomTerrainJeu(s,k,me){
     a.append(ol,tt);return a};
   zoom(srcTerrain(T),T.nom+'. '+T.texte,[pan(1-me),pan(me)]);
 }
-/* Elessar (Réalisation de l'âge) : surcoût d'une évolution pour le joueur p, lu dans le moteur (coutPose ; 0 sans Elessar adverse en jeu).
+/* Écart entre le coût réel d'une carte en main et son coût imprimé, pour le joueur p, lu dans le moteur (coutPose) : positif = surcoût
+   (Elessar, Réalisation de l'âge, sur les évolutions), négatif = réduction (0.7 : prochain Golem ou prochaine carte moins chère), 0 sinon.
    Lu sur une colonne sans La Boutique : depuis le moteur 0.2b.2 elle réduit aussi les évolutions, son -1 s'affiche sur la case (Améliorer N), pas sur la carte en main. */
-function surcout(s,p,c){const C=M.carte(c);if(!s||!C.base)return 0;const k=s.terrains.findIndex(T=>!effetTerrain(T,'reduction'));return M.coutPose(s,p,c,0,k<0?0:k)-C.cout}
-/* Explication du surcoût (survol, zoom, aria-label) : +1 par Elessar adverse. */
-const causeSurcout=n=>"Réalisation de l'âge "+(n>1?'de '+n+' Elessar adverses':"d'Elessar adverse")+', +'+n+'.';
+function surcout(s,p,c){if(!s||!s.j||!s.j[p])return 0;const C=M.carte(c),k=s.terrains.findIndex(T=>!effetTerrain(T,'reduction'));return M.coutPose(s,p,c,0,k<0?0:k)-C.cout}
+/* Explication de l'écart (survol, zoom, aria-label) : +1 par Elessar adverse, ou réduction en cours. */
+const causeSurcout=n=>n>0?"Réalisation de l'âge "+(n>1?'de '+n+' Elessar adverses':"d'Elessar adverse")+', +'+n+'.':'réduction en cours, '+n+'.';
 function txtSurcout(C,n){return 'Coûte '+(C.cout+n)+' énergie au lieu de '+C.cout+' : '+causeSurcout(n)}
-function detailSurcout(C,n){if(!(n>0))return undefined;const p=el('p','surcout-txt');p.append(el('b','','Coûte '+(C.cout+n)+' énergie'),' au lieu de '+C.cout+' : '+causeSurcout(n));return [p]}
+function detailSurcout(C,n){if(!n)return undefined;const p=el('p','surcout-txt'+(n<0?' reduite':''));p.append(el('b','','Coûte '+(C.cout+n)+' énergie'),' au lieu de '+C.cout+' : '+causeSurcout(n));return [p]}
 /* Enclume de la carte redessinée à l'identique par-dessus l'image (cout() de generer_cartes.py : silhouette, dégradés, Impact 88, décalages par chiffre),
    avec le vrai coût en rouge : le chiffre imprimé disparaît dessous. Repère de la carte 750 x 1050. textLength = chasse d'Impact (Anton ramenée à la même largeur). */
 const ENC_SIL='M50 14 L170 14 L170 52 L140 58 Q130 78 136 100 L158 114 L158 148 L42 148 L42 114 L64 100 Q70 78 60 58 L52 56 Q20 50 6 16Z',
@@ -460,23 +464,23 @@ function badgeSurcout(C,n){
     +'<linearGradient id="'+i+'f" x1="0" y1="20" x2="0" y2="148" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4b545d"/><stop offset="1" stop-color="#2d343b"/></linearGradient></defs>'
     +'<g clip-path="url(#'+i+'c)"><rect width="180" height="160" fill="url(#'+i+'f)"/><path d="M100 0 H180 V160 H100Z" fill="#000" fill-opacity=".2"/><path d="'+ENC_SIL+'" fill="none" stroke="url(#'+i+'b)" stroke-width="20"/></g>'
     +'<path d="'+ENC_SIL+'" fill="none" stroke="#0b0a10" stroke-width="10" stroke-linejoin="round"/></g></svg>'
-    +'<svg viewBox="0 0 750 1050" aria-hidden="true">'+ENC_G+'<text x="'+(100+d[0])+'" y="'+(114+d[1])+'" text-anchor="middle" textLength="'+L+'" lengthAdjust="spacingAndGlyphs" fill="#ff3b30" stroke="#0b0a10" stroke-width="12" stroke-linejoin="round" paint-order="stroke" style="font:400 81.93px Anton,Impact,\'Lilita One\',sans-serif">'+t+'</text></g></svg>';
+    +'<svg viewBox="0 0 750 1050" aria-hidden="true">'+ENC_G+'<text x="'+(100+d[0])+'" y="'+(114+d[1])+'" text-anchor="middle" textLength="'+L+'" lengthAdjust="spacingAndGlyphs" fill="'+(n<0?'#5fd68a':'#ff3b30')+'" stroke="#0b0a10" stroke-width="12" stroke-linejoin="round" paint-order="stroke" style="font:400 81.93px Anton,Impact,\'Lilita One\',sans-serif">'+t+'</text></g></svg>';
   attendAnton(k);return k;
 }
 /* Même enclume rouge sur la carte agrandie (zoom, œil, bouton Voir) : le dessin est au repère 750 x 1050, il suit la taille de l'image. */
-const calqueSurcout=(C,n)=>n>0?[badgeSurcout(C,n)]:null;
+const calqueSurcout=(C,n)=>n?[badgeSurcout(C,n)]:null;
 function mainVue(ids,opts){
   const m=el('div','p-main'),s=partie&&partie.etat,sp=opts.p!==undefined?opts.p:partie&&partie.moi;m.style.setProperty('--n',Math.max(7,ids.length)); /* 0.4a : 7 places au moins, au-dela les cartes se resserrent (hauteur fixe sur ordinateur) */
   ids.forEach(c=>{
     const C=M.carte(c),b=el('button','p-carte');b.type='button';
     const i=el('img');i.src=imgV('cartes/'+C.id+'.jpg');i.alt=C.nom;b.append(i);
     const rz=opts.raison&&opts.raison(c),sc=surcout(s,sp,c);
-    if(sc>0){b.classList.add('surtaxe');b.append(badgeSurcout(C,sc));b.title=txtSurcout(C,sc)}
-    if(rz){b.classList.add('grisee');b.append(el('span','raison',rz.court));b.title=rz.long+(sc>0?' Coût imprimé '+C.cout+' : '+causeSurcout(sc):'')}
+    if(sc){b.classList.add(sc>0?'surtaxe':'reduite');b.dataset.ec=(sc>0?'+':'')+sc;b.append(badgeSurcout(C,sc));b.title=txtSurcout(C,sc)} /* 0.7 : reduction en vert, meme enclume que le surcout */
+    if(rz){b.classList.add('grisee');b.append(el('span','raison',rz.court));b.title=rz.long+(sc?' Coût imprimé '+C.cout+' : '+causeSurcout(sc):'')}
     if(opts.presse)b.setAttribute('aria-pressed',opts.presse(c));
     if(opts.clic){b.dataset.act='carte';b.onclick=()=>opts.clic(c)}else b.onclick=()=>{dernier=null;zoom(i.src,C.nom,detailSurcout(C,sc),calqueSurcout(C,sc))};
     const z=el('div','p-slot'); /* 0.4a : plus d'oeil ; carte choisie : bouton Voir, ordinateur : zone d'aperçu */
-    z.dataset.c=c;z.onmouseenter=()=>{if(zoneEl()&&SURVOL.matches){zoneSurvol=c;zoneMaj()}else montreApercu(z,imgV('cartes/'+C.id+'.jpg'))};
+    z.dataset.c=c;z.onmouseenter=()=>{if(zoneEl()&&SURVOL.matches){zoneSurvol=c;zoneMaj()}else montreApercu(z,imgV('cartes/'+C.id+'.jpg'),sc?badgeSurcout(C,sc):null)};
     z.onmouseleave=()=>{cacheApercu();if(zoneSurvol!==null){zoneSurvol=null;zoneMaj()}};
     z.append(b);m.append(z);
   });
@@ -783,7 +787,7 @@ function affiche(){
     const C=sel!==null?M.carte(sel):null;
     const rs=c=>raisonPose(s,me,c,leg),rz=sel!==null?rs(sel):null;
     const pc=el('div','p-consigne');
-    if(C){pc.append(M.nomDetail(C)+(C.animal?', animal de compagnie de '+M.CARTES[C.maitre].nom:'')+', coût '+(C.cout+surcout(s,me,sel))+(surcout(s,me,sel)>0?" (Réalisation de l'âge : +"+surcout(s,me,sel)+')':'')+(C.force!=null?', Force '+C.force:'')+'. '+C.texte+(C.animal&&!rz?' Pose-le sur une case dorée, voisine de '+M.CARTES[C.maitre].nom+'.':''));if(rz)pc.append(el('em','',rz.long));
+    if(C){pc.append(M.nomDetail(C)+(C.animal?', animal de compagnie de '+M.CARTES[C.maitre].nom:'')+', coût '+(C.cout+surcout(s,me,sel))+(surcout(s,me,sel)>0?" (Réalisation de l'âge : +"+surcout(s,me,sel)+')':surcout(s,me,sel)<0?' (réduction : '+surcout(s,me,sel)+')':'')+(C.force!=null?', Force '+C.force:'')+'. '+C.texte+(C.animal&&!rz?' Pose-le sur une case dorée, voisine de '+M.CARTES[C.maitre].nom+'.':''));if(rz)pc.append(el('em','',rz.long));
       {const kv=indexTerrainEffet(s,'unSeul');if(!C.animal&&!C.base&&kv>=0&&M.golemsIci(s,me,kv))pc.prepend(el('em','versus-non',s.terrains[kv].nom+' : un seul Golem par joueur, tu peux seulement remplacer le tien. '))}}
     else if(J.main.some(c=>!rs(c)))pc.append('Touche une carte, puis une case dorée.');
     else pc.append('Aucune pose possible ce tour. Termine ton tour.');
@@ -904,7 +908,7 @@ function zoneMaj(){
   else ph.append(nm);
   const t=C.texte||'',i=t.indexOf(' : ');if(i>0)ef.append(el('b','',t.slice(0,i)),t.slice(i));else ef.textContent=t;
   const chip=(l,v)=>{const x=el('span');x.append(l+' ',el('b','',v));return x};
-  ch.append(chip('Coût',String(C.cout)));
+  {const n=!der&&s.j[partie.moi].main.includes(c)?surcout(s,partie.moi,c):0,v=chip('Coût',String(C.cout+n));if(n)v.lastChild.className=n<0?'reduite':'surtaxe';ch.append(v)} /* meme cout que la carte en main (surcout ou reduction) */
   if(C.animal)ch.append(el('span','','Animal'));else{ch.append(chip('Force',C.force==null?'au dé':String(C.force)));if((C.el||[]).length){const e=el('span','p-ap-els');C.el.forEach(x=>e.append(picto(x)));ch.append(e)}}
 }
 LARGE.addEventListener('change',()=>{if(partie)affiche()});
