@@ -1,5 +1,6 @@
 // Commun a generer_corpus.js et comparer.js : parties robot contre robot a graines fixes.
-const M=require('../../moteur.js');
+/* GOLEMS_MOTEUR=moteurs/moteur-<v>.js : compare le corpus avec un moteur archive (preuve qu'une archive rejoue la version qu'elle gele). */
+const M=require(process.env.GOLEMS_MOTEUR?require('path').resolve(__dirname,'../..',process.env.GOLEMS_MOTEUR):'../../moteur.js');
 const NIVEAUX=['facile','normal','difficile'],PAR_PAIRE=60,LOT=90;
 function lcg(g){return n=>{g=(Math.imul(g,1103515245)+12345)|0;return (g>>>8)%n}}
 /* Deck tire a graine fixe, valide selon les regles 0.5 : erreurDeck, elements (4 max), evolutions et animaux avec leur base. */

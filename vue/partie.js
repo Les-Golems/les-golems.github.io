@@ -3,7 +3,7 @@
 /* M : moteur en service. Le rejeu le remplace le temps de la partie par le moteur archive de sa version (moteurs/moteur-<v>.js). */
 const M0=window.GolemsMoteur;let M=M0;
 /* Versions archivees dans moteurs/ : en ajouter une a chaque nouvelle version du moteur (voir README). */
-const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c','0.3','0.4','0.5'];
+const MOTEURS_ARCHIVES=['0.2','0.2.1','0.2.2','0.2a.1','0.2a.2','0.2b','0.2b.1','0.2b.2','0.2c','0.3','0.4','0.5','0.6'];
 const versionMoteur=v=>v==='0.2a'?'0.2':v;
 const rejeuPossible=R=>!!(R&&typeof R.v==='string'&&Number.isInteger(R.graine)&&Array.isArray(R.j)&&(versionMoteur(R.v)===M0.VERSION||MOTEURS_ARCHIVES.includes(versionMoteur(R.v))));
 const moteursCharges={};
