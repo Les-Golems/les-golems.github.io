@@ -614,6 +614,11 @@ function elessarEstime(s,p){
   let n=0;s.j[1-p].grille.forEach(L=>L.forEach(g=>{if(golem(g)&&!carte(g.c).base&&M.TYPES.some(t=>CARTES[t].base===carte(g.c).id))n++}));
   return .1+.1*Math.min(3,n);
 }
+/* Full synergie estimee (pose ou copie) : reduction par element du Golem en (l,k) partage avec ses voisins allies (2 maximum) */
+function synergieEstime(c,p,l,k){const G=c.j[p].grille,h=G[l][k];if(!h)return 0;const vs=M.voisinsCases(G,l,k).map(([x,y])=>G[x][y]);
+  return VAL_REDUC*Math.min(2,carte(h.c).el.filter(e=>vs.some(v=>carte(v.c).el.includes(e))).length)}
+/* KEKWait estime (pose ou copie) : .1 par carte de la defausse (nd cartes) remelangee, selon les allies au-dessus de (l,k) */
+function kekwaitEstime(c,p,l,k,nd){const h=c.j[p].grille[l][k];return h?.1*Math.min(kekwait(c.j[p].grille,l,k)+(aniDessus(h)?1:0),nd):0}
 const elementsDe=(r,etat,q)=>etat.j[q].grille.flat().filter(h=>h&&elDe(r,h.c)).length; /* La Bretagne : Golems de ses elements dans la grille q */
 const robot={
   pertesFinManche:{estime:(r,c,p,l,k,copie)=>{if(copie&&c.manche<3)c.j[p].grille[l][k].d+=r.degats}}, /* KaTarN copie : -4 a chaque fin de manche */
@@ -648,9 +653,8 @@ const robot={
   toutOuRien:{robotPose:(r,s,p,a,apres,g)=>g+.5*gainIci(apres,p,a.l,a.k,1)+.5*VAL_REDUC,robotCopie:(r,c,p,l,k)=>.5*gainIci(c,p,l,k,1)+.5*VAL_REDUC},
   highRoll:{robotPose:(r,s,p,a,apres,g)=>g+(1/6)*gainIci(apres,p,a.l,a.k,3.5)+(s.j[p].main.length>1?.15*35/18:0),robotCopie:(r,c,p,l,k)=>(1/6)*gainIci(c,p,l,k,3.5)+(c.j[p].main.length>1?.15*35/18:0)},
   counterPick:{robotPose:(r,s,p,a,apres,g)=>{const h=apres.j[p].grille[a.l][a.k];return h&&domine(apres,p,a.l,a.k,h)?g+VAL_REDUC:g},robotCopie:(r,c,p,l,k)=>{const h=c.j[p].grille[l][k];return h&&domine(c,p,l,k,h)?VAL_REDUC:0}},
-  synergieForge:{robotPose:(r,s,p,a,apres,g)=>{const G=apres.j[p].grille,h=G[a.l][a.k];if(!h)return g;const vs=M.voisinsCases(G,a.l,a.k).map(([x,y])=>G[x][y]);
-    return g+VAL_REDUC*Math.min(2,carte(h.c).el.filter(e=>vs.some(v=>carte(v.c).el.includes(e))).length)}},
-  kekwaitPose:{robotPose:(r,s,p,a,apres,g)=>{const h=apres.j[p].grille[a.l][a.k];if(!h)return g;return g+.1*Math.min(kekwait(apres.j[p].grille,a.l,a.k)+(aniDessus(h)?1:0),s.j[p].defausse.length)}},
+  synergieForge:{robotPose:(r,s,p,a,apres,g)=>g+synergieEstime(apres,p,a.l,a.k),robotCopie:(r,c,p,l,k)=>synergieEstime(c,p,l,k)},
+  kekwaitPose:{robotPose:(r,s,p,a,apres,g)=>g+kekwaitEstime(apres,p,a.l,a.k,s.j[p].defausse.length),robotCopie:(r,c,p,l,k)=>kekwaitEstime(c,p,l,k,c.j[p].defausse.length)},
   /* On flip : pioche 1 (~.3), puis 1 chance sur 2 environ : forge (+.3) ou protection (.3, ancienne valeur de Mode Avion) */
   onFlip:{robotPoseFin:(r,s,p,a,g)=>s.j[p].deck.length?g+.3+.3:g},
   infoTchat:{robotPoseFin:(r,s,p,a,g)=>s.j[p].deck.length?g+.15:g},
