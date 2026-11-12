@@ -68,6 +68,12 @@ function deckChoisi(){
   const o={};for(const k in d.cartes)if(+d.cartes[k]>0)o[k]=+d.cartes[k];
   return {id:d.id,nom:d.nom,texte:M.deckTexte(o)};
 }
+/* 0.7 : deck choisi devenu invalide (ex. 5 elements depuis les nouveaux elements) : la partie prend le deck par defaut, mais le joueur est prevenu
+   (ecran Jouer, salon, fenetre de choix) tant qu'il ne l'a pas corrige ou n'a pas choisi un autre deck. Motif = texte court de raisonsDeck (memes regles que M.erreurDeck). */
+function deckInvalideChoisi(){const id=lire('golems.deckChoisi')||'';if(!id||decksJouables().some(x=>x.id===id))return null;const d=lesDecks().find(x=>x.id===id);if(!d)return null;const R=raisonsDeck(d);return R.length?{d,R}:null}
+const texteDeckInvalide=x=>'Ton deck « '+x.d.nom+' » est invalide ('+x.R[0].c+') : le deck par défaut est choisi à sa place.';
+function corrigeDeck(id){vueDk='decks';deckVu=id;msgDk=null;msgInfoDk=null;onglet('decks')}
+function majAlerteDeck(){const x=deckInvalideChoisi();['deckInvalideJouer','deckInvalideSalon'].forEach(z=>{const c=$(z);if(!c)return;c.hidden=!x;alerte(c,x?texteDeckInvalide(x):'',x?{bouton:{texte:'Corriger le deck',action:()=>corrigeDeck(x.d.id)}}:null)})}
 function majChoixDeck(){
   const l=decksJouables(),c=deckChoisi();
   document.querySelectorAll('.selDeck').forEach(s=>{
@@ -75,6 +81,7 @@ function majChoixDeck(){
     l.forEach(d=>{const o=el('option','',d.nom+' ('+pluriel(totalDeck(d),'carte')+')');o.value=d.id;s.append(o)});
     s.value=c.id;s.disabled=s.id==='deckSalon'&&jePret;
   });
+  majAlerteDeck();
 }
 document.querySelectorAll('.selDeck').forEach(s=>s.onchange=()=>{ecrire('golems.deckChoisi',s.value);majChoixDeck()});
 document.querySelectorAll('.choixDeck').forEach(d=>d.hidden=true);
@@ -90,13 +97,14 @@ function choisirDeck(suite,libOk,ctx){
   const {v,f,ferme}=fenDk('popDeck');f.classList.add('cd-fen');
   const h=el('h3','sc-fen-titre','Choisis ton deck');h.id='cdTitre';v.setAttribute('aria-labelledby','cdTitre');f.append(h);
   if(ctx)f.append(el('p','cd-ctx',ctx));
+  {const xi=deckInvalideChoisi();if(xi){const z=el('div','cd-alerte');alerte(z,texteDeckInvalide(xi),{bouton:{texte:'Corriger le deck',action:()=>{ferme();corrigeDeck(xi.d.id)}}});f.append(z)}}
   const g=el('div','cd-grille');g.setAttribute('role','listbox');g.setAttribute('aria-labelledby','cdTitre');f.append(g);
-  let sel=deckChoisi().id;const tuiles=[];
+  let sel=deckChoisi().id,touche=false;const tuiles=[]; /* touche : clic sur une tuile ; sans clic, Jouer garde le choix enregistre (et l'alerte de deck invalide) */
   const marque=()=>tuiles.forEach(x=>{x.t.classList.toggle('sel',x.id===sel);x.t.setAttribute('aria-selected',String(x.id===sel))});
   const tuile=(id,o)=>{
     const t=tuileDk(o),off=!!(o.R&&o.R.length);t.setAttribute('role','option');t.tabIndex=off?-1:0;
     if(off){t.classList.add('cd-off');t.setAttribute('aria-disabled','true')}
-    else{t.onclick=()=>{sel=id;marque();majBtns()};t.ondblclick=()=>{sel=id;go()};t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();sel=id;marque();majBtns()}}}
+    else{t.onclick=()=>{sel=id;touche=true;marque();majBtns()};t.ondblclick=()=>{sel=id;touche=true;go()};t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();sel=id;touche=true;marque();majBtns()}}}
     tuiles.push({id,t});g.append(t);
   };
   tuile('',{nom:'Deck par défaut',els:M.TYPES?[...new Set(M.TYPES.flatMap(k=>M.CARTES[k].el))]:[],nb:M.TAILLE_DECK,R:[],v:M.VERSION});
@@ -107,7 +115,7 @@ function choisirDeck(suite,libOk,ctx){
   if(L.length>=MAX_DECKS){nv.disabled=true;nv.title=MAX_DECKS+' decks au plus'}
   nv.onclick=()=>{const L2=lesDecks();if(L2.length>=MAX_DECKS)return;const x={id:nouveauSid(),nom:'Deck '+(L2.length+1),cartes:{},v:M.VERSION};gardeDecks(L2.concat(x));ferme();vueDk='decks';deckVu=x.id;msgDk=null;onglet('decks')};
   g.append(nv);
-  const go=()=>{ecrire('golems.deckChoisi',sel);majChoixDeck();ferme();suite()};
+  const go=()=>{if(touche||sel!==deckChoisi().id)ecrire('golems.deckChoisi',sel);majChoixDeck();ferme();suite()};
   const ac=el('div','sc-fen-actions'),ok=el('button','sc-btn',libOk||'Jouer'),md=el('button','sc-btn sc-secondaire','Modifier ce deck'),an=el('button','sc-btn sc-secondaire','Annuler');
   ok.type=md.type=an.type='button';ok.onclick=go;an.onclick=ferme;
   md.onclick=()=>{if(!sel)return;ferme();vueDk='decks';deckVu=sel;msgDk=null;msgInfoDk=null;onglet('decks')};

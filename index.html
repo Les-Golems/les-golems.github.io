@@ -150,6 +150,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
     <div class="erreur" id="erreurJeu"></div>
     <div class="sc-sel j-vue" id="jVue" role="group" aria-label="Vue de l'onglet Jouer"><button type="button" data-v="parties" aria-pressed="true">Parties</button><button type="button" data-v="historique" aria-pressed="false">Historique</button></div>
     <div id="accueil">
+      <div class="j-dkinv" id="deckInvalideJouer" hidden></div>
       <div class="j-tuiles">
       <div class="bloc j-tuile" id="blocClasse">
         <h3 class="sc-titre-bloc">Classée</h3>
@@ -194,6 +195,7 @@ document.addEventListener('DOMContentLoaded',()=>document.querySelectorAll('img[
     <div class="bloc" id="salon" hidden>
       <div class="sl-haut"><div><small>Code du salon</small><div class="j-codeL"><div class="code" id="codeSalon"></div><span class="j-tag cl" id="salonClasseTag" hidden>Classée</span></div></div><div class="sl-copies"><button class="btn btnCode" id="copieCode" type="button">Copier le code</button><button class="btn btnCode" id="copieLien" type="button">Copier le lien</button></div></div>
       <div class="sc-alerte sc-info sc-une-ligne j-robot" id="bandeauRobot" hidden><i></i><span></span><button class="sc-btn sc-tertiaire" id="affronterGolem" type="button" hidden>Affronter un Golem</button><button class="sc-btn sc-tertiaire" id="reessayerCree" type="button" hidden>Réessayer</button></div>
+      <div class="j-dkinv" id="deckInvalideSalon" hidden></div>
       <div class="sl-cadre"><div class="sl-scene"><div id="joueurs" class="sl-duo"></div><div class="sl-compte" id="slCompte" aria-hidden="true" hidden></div></div>
       <div class="sl-specs" id="slSpecs"></div></div>
       <div class="sl-bas"><p class="sl-face" id="faceAFace" hidden></p>
