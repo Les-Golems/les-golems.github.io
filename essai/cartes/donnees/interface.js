@@ -17,33 +17,33 @@ aVenir:[
  ['023','Kun_Mamba'],['024','MrTitou'],['027','Merser'],['028','Nadzu'],
  ['030','Cyd'],['031','Obsess'],['032','Marech'],['033','Greeny'],['034','Harentros'],
  ['038','TortueGourmande'],['039','TortueVéloce'],['040','PoulpeHome']],
-/* Decks conseilles (0.6) : 6 archetypes valides de 30 cartes, copies dans les decks du joueur (invite compris) ; aussi la reserve des robots (tirage au hasard). */
+/* Decks conseilles (0.6 ; 0.7 : Montée en puissance, Attaque rapide et Soutien refaits pour 4 elements, optimises par simulation) : 6 archetypes valides de 30 cartes, copies dans les decks du joueur (invite compris) ; aussi la reserve des robots (tirage au hasard). */
 decksConseilles:[
- {nom:"Montée en puissance",cartes:{"007":3,"007e":3,"026":1,"026e":2,"041":2,"041e":1,"015":3,"016":3,"016e":3,"002":3,"002e":3,"015e":3},
-  txt:"Pioche avec Trigas, Titom76 et Velnen, prends de l'énergie avec Maître du bilig, puis pose tes gros Golems (KEKWRevan, Loxim, Le Ace de Aiges, Aiges Captain) pour finir fort."},
- {nom:"Attaque rapide",cartes:{"903":1,"001":3,"029":3,"009":3,"009e":2,"025":3,"020":3,"020e":3,"018":3,"035":3,"037":3},
-  txt:"Pose KaTarN, Apo et Glad dès la manche 1, serre tes Golems autour de GénéralBrioche et Shifukuro, et renforce-les en forgeant JackJoy."},
+ {nom:"Montée en puissance",cartes:{"901":1,"007":3,"007e":3,"026":3,"026e":3,"015":3,"015e":2,"016":3,"016e":3,"002":3,"002e":3},
+  txt:"Pioche avec Trigas, Titom76 et Kiwi, prends de l'énergie avec Maître du bilig, puis pose tes gros Golems (KEKWRevan, Loxim, Le Ace de Aiges, Aiges Captain) pour finir fort."},
+ {nom:"Attaque rapide",cartes:{"001":3,"001e":1,"029":3,"029e":2,"009":3,"009e":3,"020":3,"020e":3,"018":3,"035":3,"037":3},
+  txt:"Pose KaTarN, Apo et Glad dès la manche 1, serre tes Golems autour de GénéralBrioche, et renforce-les en forgeant JackJoy."},
  {nom:"Meule",cartes:{"901":1,"004":3,"004e":2,"026":3,"026e":2,"007":3,"007e":3,"001":3,"001e":2,"018":3,"018e":2,"036":3},
   txt:"Vide le deck adverse avec Le Q et Titom76, tiens la grille avec KaTarN et Elessar, et laisse chaque pioche impossible marquer pour toi."},
  {nom:"Contrôle",cartes:{"001":3,"001e":3,"009":3,"009e":2,"018":3,"018e":2,"013":3,"013e":3,"008":3,"036":3,"029":2},
   txt:"Affaiblis les Golems d'en face avec Slim K, Glad, Apo, La Fan enflammée et Le pomplard, et freine leurs évolutions avec Elessar."},
- {nom:"Soutien",cartes:{"903":1,"003":3,"003e":3,"020":3,"020e":1,"013":3,"013e":3,"042":3,"025":3,"037":2,"008":2,"008e":3},
+ {nom:"Soutien",cartes:{"903":1,"003":3,"003e":2,"020":3,"020e":2,"013":3,"013e":3,"042":2,"042e":2,"025":3,"008":3,"008e":3},
   txt:"Groupe tes Golems Cristal et Roche : Cyrdan, GénéralBrioche, Indra et Vic2222 renforcent leurs voisins, et L'attachiante soigne les blessés."},
  {nom:"Combo",cartes:{"015":3,"015e":2,"016":2,"016e":3,"036":3,"036e":2,"035":3,"035e":3,"007":3,"007e":2,"026":1,"026e":1,"013":2},
   txt:"Forge Bellock et Loxim pour qu'ils se cherchent l'un l'autre, nourris ta Forge avec Trigas et Spom, et fais grandir tes Golems avec JackJoy et le Drafteur."}
 ],
 /* Bac a sable : ce qui est compte ou non pour chaque carte posee (code -> texte). */
 bacNotes:{
- '001':'Jeunesse éphémère : Force de la manche 1 ; la perte de 4 en fin de manche n\'est pas comptée.',
+ '001':'Jeunesse éphémère : Force de la manche 1 ; la perte de 6 en fin de manche n\'est pas comptée.',
  '001e':'Rap God touche la ligne adverse : non compté.',
- '002':'Tout ou rien : choisis le résultat du dé, ou relance-le.',
- '002e':'High Roll : choisis les 2 dés (un double vaut un seul dé), ou relance-les.',
+ '002':'Tout ou rien : dé à la pose (+1 aux autres Golems alliés ici, ou ton prochain Golem coûte 1 de moins), non compté.',
+ '002e':'High Roll : dés à la pose (énergie, ou bonus aux autres Golems alliés ici sur un double), non comptés.',
  '003':'Tournoi annexe compté : +1 à chaque voisin.',
  '003e':'Palmarès : +1 aux voisins compté ; les +2 points de fin de manche ne le sont pas.',
  '004':'Jour de pêche vise le deck adverse : sans effet sur la Force.',
  '004e':'Il suffit : la destruction des cartes en plusieurs exemplaires n\'est pas comptée.',
  '007':'Spam (pioche et Forge) : sans effet sur la Force.',
- '007e':'Mode Avion (protection) : sans effet ici.',
+ '007e':'On flip (pioche, Forge ou protection) : sans effet ici.',
  '008':'Rage : il faut subir des dégâts, non comptée.',
  '008e':"Love inconditionnel (soin d'un Golem blessé) : sans effet ici.",
  '013':'Soutien inconditionnel compté : choisis son favori (+1).',
@@ -52,8 +52,8 @@ bacNotes:{
  '009e':'Menfou palu (protection) : sans effet ici.',
  '029':'Gamba : dé à la pose (1 ou 2 : -2 ; 5 ou 6 : vise le Golem en face), non compté.',
  '029e':'Déguisement compté : choisis le voisin copié, son effet en jeu est gardé.',
- '037':'Counter-pick (cercle) : il faut un Golem en face, non compté.',
- '037e':'Full synergie : +1 par élément partagé compté ; le cercle +2 ne l\'est pas.',
+ '037':'Counter-pick (prochain Golem moins cher) : il faut un Golem en face, non compté.',
+ '037e':'Full synergie : le cercle +2 et la réduction de ta prochaine carte ne sont pas comptés.',
  '026':'La Bretagne (pioche) : sans effet sur la Force.',
  '026e':'Caramel à volonté (énergie) : sans effet sur la Force.',
  '036':'Forge éclair : sans effet sur la Force.',
@@ -78,8 +78,6 @@ bacNotes:{
  '020':'Grand Général compté : +1 aux autres Golems alliés de sa colonne.',
  '020e':"Bonus d'adjacence compté : +1 par voisin allié."
 },
-/* Bac a sable : valeurs des des par defaut, selon le nombre de des de l'effet forceAuDe (Alrevan 4 ; KEKWRevan 3 et 4). */
-bacDes:{1:[4],2:[3,4]},
 /* MODELE DES ELEMENTS (source unique, lue par tout le code d'interface : aide.js, vue/joueur.js, vue/diffusion.js, commun/compte.js, commun/profil.js, commun/demarrage.js).
    ordre = ordre du cercle ; nom = libelle affiche ; texte = teinte du titre et du nom d'effet sur la carte imprimee (TEXTE_ELT de generer_cartes.py) ;
    image cartes/<id>.png ; couleur de fond CSS var(--fm-<id>). Mode clair (0.6a) : var(--txt-*, valeur sombre), variables definies seulement dans html.clair (css/base.css). couleursCarte : autres couleurs des cartes imprimees (generer_cartes.py, generer_animaux.py, generer_terrains.py). */

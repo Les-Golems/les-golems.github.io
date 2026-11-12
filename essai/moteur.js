@@ -1,7 +1,7 @@
 /* Les Golems : moteur pur, sans affichage. Etat = f(graine, journaux). Charge en page et en Node. */
 (function(racine){
 'use strict';
-const VERSION='0.6';const TRAIT_CUMULE=true; /* 0.2.1 : Trait cumule (+1 par voisin allie par element partage), plus de match nul. 0.2.2 : coup 'a' = abandon (a tout moment, hors tour). 0.2a.1 : Indra (013, 013e), favori et coup 'g'. 0.2a.2 : Glad (009, 009e), Slam (coup 'h') et Menfou palu. 0.2b : K-Chan (008) Magma + Brume au lieu de Magma + Roche. Apo (029, 029e), SuperFishman (037, 037e), Titom76 (026, 026e), coups 'k' (Deguisement) et 'z' (Caramel), carte 62 codee '_'. Spom (036, 036e), coup 'j' (Forge eclair), cartes 63 et plus codees '~' + 1 caractere. Kiwi (901), premier animal de compagnie (carte 69, '~6') : pose a cote de son maitre (Titom76), Mignonitude avant le decompte (g.hors), erreurDeck : 1 exemplaire et son maitre dans le deck. Elessar (018, cartes 72-74, '~9' a '~b') et Le pomplard (018e, cartes 75-77, '~c' a '~e'). Velnen : Velnen (041, cartes 78-80, '~f' a '~h', Graine de Golem : +1 a la pioche de chaque tour, cumulatif) et Le chansonnier (041e, cartes 81-83, '~i' a '~k', Imitation, coup 'i'). Shifukuro : Shifukuro (025, cartes 84-86, '~l' a '~n', KEKWait : +1 de Force par Golem allie au-dessus, dans forceDe) et Le moderateur (025e, cartes 87-89, '~o' a '~q', meandyou : attente 'u', coup 'e' pour echanger, 'v' pour passer). Bellock/Loxim : Bellock (015, cartes 90-92, '~r' a '~t'), Aiges Captain (015e, 93-95, '~u' a '~w'), Loxim (016, 96-98, '~x' a '~z'), Le Ace de Aiges (016e, 99-101, '~A' a '~C'). Comeback et Winstreak (+1 ou +2 de Force par manche perdue ou remportee sur son terrain, lues dans s.resultats) ; « si tu forges cette carte » (Forge, Forge eclair, Spam) : partenaire cherche dans le deck, attente 'r' et coup 'r' + carte s'il y a deux versions ; Double up ? des evolutions (+REGLAGE_DUO.doubleUp). 0.2b.1 : Bellock/Loxim, le partenaire est pioche au hasard parmi tous ses exemplaires du deck (bases et evolutions, generateur du joueur), plus d'attente 'r' ni de coup 'r'. 0.2b.2 : La Boutique reduit aussi les evolutions (pose, remplacement et evolution, jamais un animal), minimum 0 sur le cout total apres la surtaxe d'Elessar 0.2c : simple renommage de 0.2b.2 pour suivre la version du site, aucune regle ne change (sauvegardes 0.2b.2 reprises, rejeux 0.2b.2 par moteurs/moteur-0.2b.2.js). JackJoy : JackJoy (035, cartes 102-104, '~D' a '~F', Sub offert) et Drafteur experimente (035e, 105-107, '~G' a '~I', Draft diff) ; bonus g.sub (partie) et g.dr (manche), attente 'l' et coup 'l' + ligne + colonne pour la cible. Vic2222 : Vic2222 (042, cartes 108-110, '~J' a '~L', Info tchat : cercle +2 pour les Golems allies de sa colonne) et son evolution (042e, 111-113, '~M' a '~O', Chance du debutant : bouclier unique, g.cdb une fois use). Deck par defaut a 30 cartes (DECK_DEFAUT, TAILLE_DECK 30). 0.4 : deck vide, un joueur qui doit piocher alors que son deck est vide perd aussitot la partie (pioche carte par carte, s.fin.deckVide = le perdant ; rejeux 0.3 par moteurs/moteur-0.3.js). Puis regle de la meule : chaque carte a piocher sur deck vide donne 1 point a l'adversaire, la partie continue (plus de s.fin.deckVide ; evenement de stats t:'dv'). */
+const VERSION='0.7';const TRAIT_CUMULE=true; /* 0.2.1 : Trait cumule (+1 par voisin allie par element partage), plus de match nul. 0.2.2 : coup 'a' = abandon (a tout moment, hors tour). 0.2a.1 : Indra (013, 013e), favori et coup 'g'. 0.2a.2 : Glad (009, 009e), Slam (coup 'h') et Menfou palu. 0.2b : K-Chan (008) Magma + Brume au lieu de Magma + Roche. Apo (029, 029e), SuperFishman (037, 037e), Titom76 (026, 026e), coups 'k' (Deguisement) et 'z' (Caramel), carte 62 codee '_'. Spom (036, 036e), coup 'j' (Forge eclair), cartes 63 et plus codees '~' + 1 caractere. Kiwi (901), premier animal de compagnie (carte 69, '~6') : pose a cote de son maitre (Titom76), Mignonitude avant le decompte (g.hors), erreurDeck : 1 exemplaire et son maitre dans le deck. Elessar (018, cartes 72-74, '~9' a '~b') et Le pomplard (018e, cartes 75-77, '~c' a '~e'). Velnen : Velnen (041, cartes 78-80, '~f' a '~h', Graine de Golem : +1 a la pioche de chaque tour, cumulatif) et Le chansonnier (041e, cartes 81-83, '~i' a '~k', Imitation, coup 'i'). Shifukuro : Shifukuro (025, cartes 84-86, '~l' a '~n', KEKWait : +1 de Force par Golem allie au-dessus, dans forceDe) et Le moderateur (025e, cartes 87-89, '~o' a '~q', meandyou : attente 'u', coup 'e' pour echanger, 'v' pour passer). Bellock/Loxim : Bellock (015, cartes 90-92, '~r' a '~t'), Aiges Captain (015e, 93-95, '~u' a '~w'), Loxim (016, 96-98, '~x' a '~z'), Le Ace de Aiges (016e, 99-101, '~A' a '~C'). Comeback et Winstreak (+1 ou +2 de Force par manche perdue ou remportee sur son terrain, lues dans s.resultats) ; « si tu forges cette carte » (Forge, Forge eclair, Spam) : partenaire cherche dans le deck, attente 'r' et coup 'r' + carte s'il y a deux versions ; Double up ? des evolutions (+REGLAGE_DUO.doubleUp). 0.2b.1 : Bellock/Loxim, le partenaire est pioche au hasard parmi tous ses exemplaires du deck (bases et evolutions, generateur du joueur), plus d'attente 'r' ni de coup 'r'. 0.2b.2 : La Boutique reduit aussi les evolutions (pose, remplacement et evolution, jamais un animal), minimum 0 sur le cout total apres la surtaxe d'Elessar 0.2c : simple renommage de 0.2b.2 pour suivre la version du site, aucune regle ne change (sauvegardes 0.2b.2 reprises, rejeux 0.2b.2 par moteurs/moteur-0.2b.2.js). JackJoy : JackJoy (035, cartes 102-104, '~D' a '~F', Sub offert) et Drafteur experimente (035e, 105-107, '~G' a '~I', Draft diff) ; bonus g.sub (partie) et g.dr (manche), attente 'l' et coup 'l' + ligne + colonne pour la cible. Vic2222 : Vic2222 (042, cartes 108-110, '~J' a '~L', Info tchat : cercle +2 pour les Golems allies de sa colonne) et son evolution (042e, 111-113, '~M' a '~O', Chance du debutant : bouclier unique, g.cdb une fois use). Deck par defaut a 30 cartes (DECK_DEFAUT, TAILLE_DECK 30). 0.4 : deck vide, un joueur qui doit piocher alors que son deck est vide perd aussitot la partie (pioche carte par carte, s.fin.deckVide = le perdant ; rejeux 0.3 par moteurs/moteur-0.3.js). Puis regle de la meule : chaque carte a piocher sur deck vide donne 1 point a l'adversaire, la partie continue (plus de s.fin.deckVide ; evenement de stats t:'dv'). */
 /* Le Q (refonte, 6 nov.) : Brume + Magma. Le Q (004) Jour de peche, attente 'q' (adv:1) sur le deck adverse, coup 'c' = carte defaussee ;
    Seul contre tous (004e, cout 7, Force 1) Il suffit, balayage des cartes en plusieurs exemplaires de chaque grille (ilSuffit). Plus d'Analyse ni d'Optimisation. */
 const POIDS_MVP={force:1,bonus:1,degats:1,morts:3};
@@ -227,7 +227,7 @@ function declenche(s,nom,e){s.stats.act.push({m:s.manche,nom,e})}
 /* Seul point de controle du ciblage : tout effet de carte passe par ici. Les terrains n'y passent pas. */
 function ciblable(s,p,l,k,src){
   const g=s.j[p].grille[l][k];
-  return golem(g)&&!(aProp(idEff(g),'intouchable')&&src!==p); /* Mode Avion */
+  return golem(g)&&!(g.prot&&aProp(idEff(g),'protection')&&src!==p); /* 0.7 : protection gagnee en jeu (g.prot, On flip du Roi du Mobile), lue sur l'effet porte (copie comprise) */
 }
 function blesse(s,p,l,k,n,src){
   const g=s.j[p].grille[l][k];
@@ -308,8 +308,9 @@ function debutTour(s){
 function coutPose(s,p,c,l,k){
   const evo=!!carte(c).base;
   let v=coutCarte(carte(c)); /* animaux : REGLAGE_ANIMAUX.cout */
-  if(evo)v+=elessars(s.j[1-p].grille); /* surtaxe des evolutions (Realisation de l'age adverse en jeu, cumulatif) ; pas un ciblage (Mode Avion n'y change rien) */
-  if(!carte(c).animal)v-=somme(effsT(s,k),'reduction'); /* La Boutique (0.2b.2) : « Jouer un Golem ici » = poser, remplacer et faire evoluer ; pas un animal */
+  if(evo)v+=elessars(s.j[1-p].grille); /* surtaxe des evolutions (Realisation de l'age adverse en jeu, cumulatif) ; pas un ciblage (la protection On flip n'y change rien) */
+  if(!carte(c).animal)v-=somme(effsT(s,k),'reduction')+(s.j[p].reduc||0); /* La Boutique (0.2b.2) : « Jouer un Golem ici » = poser, remplacer et faire evoluer ; pas un animal. 0.7 : J.reduc, ton prochain Golem coute moins (Tout ou rien, Counter-pick) */
+  v-=s.j[p].reducCarte||0; /* 0.7 : J.reducCarte, ta prochaine carte (animal compris) coute moins (Full synergie) */
   return Math.max(0,v); /* minimum 0, sur le cout total (surtaxe comprise) */
 }
 const interditManche=(C,s)=>effs(C.id).some(e=>e.T.interdit&&e.T.interdit(e.r,s)); /* carte posable seulement a certaines manches (par la carte, pas l'effet) */
@@ -417,9 +418,11 @@ function voisinsCases(G,l,k){return [[l-1,k],[l+1,k],[l,k-1],[l,k+1]].filter(([a
 function agit(s,p,a){
   const J=s.j[p],C=carte(a.c),occ=J.grille[a.l][a.k],cout=coutPose(s,p,a.c,a.l,a.k);
   s.stats.ev.push({t:'p',cp:p,cc:a.c,n:cout,m:s.manche});
-  const sur=C.base?elessars(s.j[1-p].grille):0,red=coutCarte(C)+sur-cout; /* 0.2b.2 : surtaxe d'Elessar et reduction de La Boutique annoncees chacune (une evolution peut avoir les deux) */
+  const sur=C.base?elessars(s.j[1-p].grille):0,rq=C.animal?0:(J.reduc||0),rc=J.reducCarte||0,red=coutCarte(C)+sur-cout-rq-rc; /* 0.2b.2 : surtaxe d'Elessar et reduction de La Boutique annoncees chacune (une evolution peut avoir les deux) */
   if(red>0)declenche(s,s.terrains[a.k].nom,'Coût réduit de '+red+' pour '+nomDetail(C));
   if(sur>0)F.annonceSurtaxe(s,p,C,sur); /* Realisation de l'age */
+  if(rc){J.reducCarte=0;const re=Math.min(rc,Math.max(0,coutCarte(C)+sur-rq));declenche(s,'Réduction carte','Coût -'+re+' pour '+nomDetail(C));dire(s,p,nomDetail(C)+' coûte '+re+' de moins (prochaine carte, réduction consommée'+(re<rc?', plancher à 0':'')+').')} /* 0.7 : plancher 0, aucune energie rendue */
+  if(rq){J.reduc=0;declenche(s,'Réduction','Coût -'+rq+' pour '+nomDetail(C));dire(s,p,nomDetail(C)+' coûte '+rq+' de moins.')}
   if(C.base&&occ.d>0)s.stats.ev.push({t:'r',cp:p,cc:a.c,n:occ.d,y:'evolution'});
   J.energie-=cout;J.aAgi=true;J.main.splice(J.main.indexOf(a.c),1);
   if(C.animal&&REGLAGE_ANIMAUX.attache){occ.ani={c:a.c};dire(s,p,'pose '+C.nom+' sous '+nomDetail(carte(occ.c))+'.');animalHook(C,'poseAnimal',s,p);return} /* animal attache : sous son maitre, aucune case */
@@ -709,13 +712,12 @@ function risqueDeck(s,p,id,gr,g){
   const manque=(q,n,gq,gq0)=>Math.max(0,n-D[q])+Math.max(0,piochesAVenir(s,q,gq)-Math.max(0,D[q]-n))-Math.max(0,piochesAVenir(s,q,gq0)-D[q]);
   return POINT_DECK_VIDE*(manque(1-p,lui,ga,ga)-manque(p,moi,g,g0));
 }
-const forceEstimee=id=>{const e=effs(id).find(e=>e.T.forceEstimee);return e?e.T.forceEstimee(e.r):undefined}; /* robot : Force moyenne d'une Force aleatoire (Alrevan) */
 function gainCoup(s,p,a,v0){
   const f=c=>{const G=c.j[p].grille;
     if(a.t==='p'){
       const C=carte(a.c);
       if(C.animal&&REGLAGE_ANIMAUX.attache){G[a.l][a.k].ani={c:a.c};return} /* animal attache : +1 a son maitre */
-      const old=G[a.l][a.k],fe=forceEstimee(C.id);G[a.l][a.k]={c:a.c,f:fe!==undefined?fe:C.force,d:0};
+      const old=G[a.l][a.k];G[a.l][a.k]={c:a.c,f:C.force,d:0};
       if(C.base&&aProp(C.id,'favoriBonus')&&old&&old.fav!==undefined)G[a.l][a.k].fav=old.fav; /* le favori survit a l'evolution d'Indra */
       if(C.base&&old)G.forEach(L=>L.forEach(h=>{if(h&&h.fav===old.c)h.fav=a.c}));
       if(!C.animal)for(const e of effsT(s,a.k))if(e.T.estimePose)e.T.estimePose(e.r,c,p,a); /* terrain (Le Versus) */
@@ -749,7 +751,6 @@ function mignonEstime(c,p){
 function gainCopie(c,p,l,k,id){
   const E=effs(id);
   const f=d=>{const G=d.j[p].grille[l][k];if(!G)return;G.cp=id;
-    const fe=forceEstimee(id);if(fe!==undefined)G.f=fe;
     for(const e of E)if(e.T.estime)e.T.estime(e.r,d,p,l,k,true);
   };
   let v=valeur(simule(c,f),p)+E.reduce((t,e)=>t+(e.r.valeurCopie||0),0);
@@ -763,13 +764,8 @@ function choixCopie(s,p,l){
   l.forEach(a=>{const x=gainCopie(s,p,il,ik,idEff(s.j[p].grille[a.l][a.k]));if(x>v){v=x;m=a}});
   return m;
 }
-/* Velnen : valeur d'une Imitation (copie de id) pour le chansonnier en (l,k). Des d'Alrevan : moyenne sur tous les tirages
-   (le risque d'un mauvais de compte), le reste comme le Deguisement (gainCopie). */
-function valeurImitation(c,p,l,k,id){
-  const e=effs(id).find(e=>e.T.tirages);if(!e)return gainCopie(c,p,l,k,id);
-  const fs=e.T.tirages(e.r); /* Forces possibles (Alrevan, KEKWRevan) */
-  return fs.reduce((t,x)=>t+valeur(simule(c,d=>{const G=d.j[p].grille[l][k];if(G){G.cp=id;G.f=x}}),p),0)/fs.length;
-}
+/* Velnen : valeur d'une Imitation (copie de id) pour le chansonnier en (l,k), comme le Deguisement (gainCopie). 0.7 : plus de Force aleatoire (ancien Alrevan). */
+function valeurImitation(c,p,l,k,id){return gainCopie(c,p,l,k,id)}
 /* Imitation du robot : copie seulement si elle vaut mieux que de refuser (KaTarN avant la manche 3, de d'Alrevan trop risque... : refus). */
 function choixImitation(s,p){
   const [l,k]=s.attente.i,h=s.j[1-p].grille[l][k],id=golem(h)?idEff(h):null;
@@ -856,7 +852,7 @@ function robotFort(s,p,l,t){
 /* Registre des effets : outils internes donnes aux fichiers d'effets (M), puis effets de chaque fiche. */
 const insensible=h=>effs(idEff(h)).some(e=>e.T.protege&&!e.r.unique); /* robot : Menfou palu (toute perte adverse annulee) */
 const protegeRobot=h=>effs(idEff(h)).some(e=>e.T.protege&&(!e.r.unique||!h.cdb)); /* robot : perte adverse annulee (Menfou palu, Chance du debutant pas encore utilisee) */
-const M={carte,golem,animal,CARTES,TYPES,effs,idEff,gainCopie,valeurImitation,gainEchange,caseDeCarte,favBonus,effetPose,voisinsCases,estVersus,choixCopie,choixImitation,choixMeandyou,meilleur,valeur,simule,parUtilite,forgeForte,forgePreferee,legales,coutPose,insensible,alea,REGLAGE_ANIMAUX,mignonEstime,REGLAGE_TERRAINS,golemsIci,kAvec,statsSansTerrain,gagnantColonne,ecart,colonnes,forceDe,retire,protegeRobot,dire,declenche,note,nomDetail,blesse,ciblable,de,pioche,melange,orphelins,nettoie,forgee,debutTour,estCopieur:id=>!!COPIEURS[id]};
+const M={carte,golem,animal,CARTES,TYPES,effs,idEff,gainCopie,valeurImitation,gainEchange,caseDeCarte,favBonus,effetPose,voisinsCases,estVersus,choixCopie,choixImitation,choixMeandyou,meilleur,valeur,simule,parUtilite,forgeForte,forgePreferee,legales,coutPose,insensible,alea,REGLAGE_ANIMAUX,mignonEstime,REGLAGE_TERRAINS,golemsIci,kAvec,statsSansTerrain,gagnantColonne,ecart,colonnes,forceDe,retire,protegeRobot,dire,declenche,note,nomDetail,blesse,ciblable,de,DOMINE,inverseIci,utilite,pioche,melange,orphelins,nettoie,forgee,debutTour,estCopieur:id=>!!COPIEURS[id]};
 R=FX.construit(M);F=R.fonctions;const ACT={},ATT={};for(const x in R.actions)ACT[x]=R.actions[x];for(const x in R.attentes)ATT[x]=R.attentes[x];
 for(const T of TERRAINS)EFFT[T.nom]=[].concat(T.effet||[]).map(r=>{const X=R.types[r.type];if(!X)throw new Error('type d\'effet inconnu '+r.type+' ('+T.nom+')');return {T:X,r}});
 const {cirqueInv,tarteX,miseTotale,stT,stV,cfTarte,versusPose,chatsPioche}=F;

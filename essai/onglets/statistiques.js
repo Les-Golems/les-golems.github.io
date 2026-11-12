@@ -3,8 +3,8 @@
 /* Filtre Adversaires : niveaux de l'ordinateur et parties entre joueurs, tous allumes par defaut, jamais tous eteints. */
 const ADV_ST=[['facile','Facile','var(--js-taux-haut)'],['normal','Normal','var(--js-taux-moyen)'],['difficile','Difficile','var(--js-taux-bas)'],['ligne','Entre joueurs','var(--js-ligne)']];let statsAdv=new Set(ADV_ST.map(x=>x[0]));
 const modeSt=r=>r.m==='ligne'?'ligne':String(r.m||'').replace(/^golem-/,'');
-/* Force affichee dans les listes : cartes a des, Force moyenne (forceMoy : reelle des 30 lancers, sinon theorique 3,5 et 6,4), une decimale. Affichage seulement. */
-function forceAff(C){if(C.force!=null)return String(C.force);const v=forceMoy(C.id);return v==null?null:v.toFixed(1).replace('.',',')}
+/* Force affichee dans les listes (0.7 : plus de carte a Force au de ; animal : aucune). Affichage seulement. */
+function forceAff(C){return C.force!=null?String(C.force):null}
 const NOMS_EL_ST={magma:'Magma',cristal:'Cristal',foudre:'Foudre',brume:'Brume',roche:'Roche'};
 /* Patch du site d'une version du moteur : table unique pour les anciens moteurs,
    puis tout moteur nomme d'apres une version du site (0.2a.1, 0.2b...) est regroupe sous elle. */

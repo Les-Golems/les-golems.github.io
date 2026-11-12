@@ -62,7 +62,7 @@ function prepareAnims(s,premier,nev0){
   for(let i=Math.max(0,nev0);i<ev.length;i++){const e=ev[i];if(e.t==='p')pose=e;else if(e.t==='m')morts.push(e);else if(e.t==='r'&&e.y!=='evolution')X.recup.push(e);else if(e.t==='d')X.degs.push(e)}
   let t0=t; /* debut des effets de cette action : a l'arrivee de la carte posee */
   /* Choix a faire tout de suite par ce joueur (Elccino : Cafe du matin, La taupe) : pas de vol, la tuile est deja en place pendant le choix */
-  const A=s.attente,choix=src==='joueur'&&A&&A.p===E.moi&&(A.t==='cafe'||A.t==='taupe');
+  const A=s.attente,choix=src==='joueur'&&A&&A.p===E.moi&&(A.t==='cafe'||A.t==='taupe'||A.t==='vic');
   if(choix&&suivi.vol){suivi.vol=null;if(couche)couche.querySelectorAll('.d-vole').forEach(i=>i.remove())}
   if(pose&&scene){const x=chercheCarte(s,pose.cp,pose.cc);
     if(x&&!REDUIT.matches&&!choix){
@@ -87,12 +87,20 @@ function prepareAnims(s,premier,nev0){
    arrive, fx-evo (eclat d'evolution), traits entre cartes (.v-lien) + fx-lien, bonus « +n », degat « -n » + frappe, secoue,
    compte « +n » et fx-hors au decompte, bascule (Energie, score). Memes classes CSS que la 0.4 (css/partie.css). */
 /* Lancers de des (0.4 : #des) : Alrevan, KEKWRevan, Le Plateau de Jeu, Gamba d'Apo ; meme fenetre, dans la couche de #dif */
-const DES_RE=[[/^Alrevan lance le dé : Force (\d+)\.$/,m=>['Alrevan',[+m[1]],'Force '+m[1]]],
+const maj=t=>t.charAt(0).toUpperCase()+t.slice(1);
+/* 0.7 : Tout ou rien (1 de), High Roll (2 des), On flip (1 de) : lignes du journal du moteur 0.7, nom de la carte qui agit (ou de son copieur) en tete.
+   Les deux premieres expressions (Force au de, avant la 0.7) ne servent plus qu'aux rejeux des parties anciennes. */
+const DES_RE=[[/^(.+) : Tout ou rien \((\d)\)(?:, | : )(.+)\.$/,m=>[m[1]+' (Tout ou rien)',[+m[2]],maj(m[3])]],
+  [/^(.+) : High Roll \((\d) et (\d)\), (.+)\.$/,m=>[m[1]+' (High Roll)',[+m[2],+m[3]],maj(m[4])]],
+  [/^(.+) : On flip, (?:deck vide, )?dé (\d)(?:, | : )(.+)\.$/,m=>[m[1]+' (On flip)',[+m[2]],maj(m[3])]],
+  [/^Alrevan lance le dé : Force (\d+)\.$/,m=>['Alrevan',[+m[1]],'Force '+m[1]]],
   [/^Alrevan \(KEKWRevan\) lance (\d) et (\d) : Force (\d+)\.$/,m=>['Alrevan (KEKWRevan)',[+m[1],+m[2]],'Force '+m[3]]],
   [/^Le Plateau de Jeu lance (\d) : (.+)\.$/,m=>['Le Plateau de Jeu',[+m[1]],m[2]]],
   [/^(Apo|(?:Apo \(Maître du déguisement\)|Velnen \(Le chansonnier\)) \(Gamba\)) lance (\d) : (.+)\.$/,m=>[m[1]==='Apo'?'Apo (Gamba)':m[1],[+m[2]],m[3].charAt(0).toUpperCase()+m[3].slice(1)]]];
 const desF={L:[],t:0,el:null,iv:0};
 function des(s,t0){const n0=suivi.nlog!=null?suivi.nlog:s.log.length;
+  /* rejeu : un nouveau coup remplace les lancers des coups precedents encore en file (avance pas a pas plus rapide que les des) */
+  if(src==='rejeu'&&n0<s.log.length){desF.L=[];desF.fin=0;if(desF.cur){clearTimeout(desF.t);clearInterval(desF.iv);desF.cur=null}}
   let t=Math.max(t0,desF.fin||0);
   for(let i=n0;i<s.log.length;i++){const[p,x]=s.log[i];for(const[re,f]of DES_RE){const m=re.exec(x);if(m){const[nm,v,r]=f(m);desF.L.push({p,nm,v,r,t});t+=(REDUIT.matches?1700:2700)/KV;break}}}
   desF.fin=t;if(!desF.cur)desSuite()}
@@ -454,7 +462,8 @@ function zoomCarte(c){
   let det=null;
   if(C.animal&&typeof u.detailAnimal==='function')det=u.detailAnimal(C);
   else if(typeof u.lg==='function'){const a=mk('section');a.append(mk('h3','','Force'),u.lg('Force de base',C.force!=null?String(C.force):'aucune'),u.lg('Coût',String(C.cout)));if(C.texte)a.append(u.effetCouleur?u.effetCouleur(C,'p',''):mk('p','',C.texte));det=[a]}
-  u.zoom(u.srcC(c),C.nom,det);
+  const s=E&&E.etat,p=s&&s.j?[0,1].find(q=>s.j[q].main.includes(c)):undefined,n=p!==undefined&&u.surcout?u.surcout(s,p,c):0; /* carte en main : meme cout que sur la main (surcout ou reduction) */
+  u.zoom(u.srcC(c),C.nom,n?(det||[]).concat(u.detailSurcout?u.detailSurcout(C,n):[]):det,n?[u.badgeSurcout(C,n)]:undefined);
 }
 function main(s,p,top,joue){
   const z=mk('div','d-z d-col'+(p===BAS()?' bas':'')),J=s.j[p],h=mk('div','d-tm '+(p===BAS()?'toi':'lui'),src==='joueur'&&p===E.moi?'Ta main':'Main '+d_(nom(p))+nom(p));
@@ -466,15 +475,16 @@ function main(s,p,top,joue){
   J.main.forEach((c,k)=>{const C=M().carte(c),b=mk('button'),i=mk('img');b.type='button';b.dataset.c=c;b.style.width=w+'px';b.style.height=Math.round(w*1.4)+'px';if(k)b.style.marginLeft=gp+'px';
     i.src=U().srcC(c);i.alt=C.nom;b.setAttribute('aria-label','Agrandir '+M().nomDetail(C));b.onclick=()=>zoomCarte(c);b.append(i);
     if(C.base){const st=mk('span','evs','★');st.setAttribute('aria-hidden','true');b.append(st)} /* 0.5 : evolution, etoile centree sur les chiffres cout / Force (les deux modes) */
+    if(!jr&&U().surcout){const n=U().surcout(s,p,c);if(n){b.classList.add(n>0?'surtaxe':'reduite');b.append(U().badgeSurcout(C,n))}} /* spectateur et rejeu : cout reel (surcout ou reduction) lu dans le moteur, comme la vue joueur */
     /* vue joueur : la carte reprend l'etat de la vraie main (grisee, surcout, choisie) et le clic passe par elle */
     const v=jr&&document.querySelector('#partie .p-poste .p-slot[data-c="'+c+'"]>.p-carte');
-    if(v){['grisee','surtaxe'].forEach(x=>b.classList.toggle(x,v.classList.contains(x)));if(v.title)b.title=v.title;
+    if(v){['grisee','surtaxe','reduite'].forEach(x=>b.classList.toggle(x,v.classList.contains(x)));if(v.title)b.title=v.title;
       if(v.hasAttribute('aria-pressed'))b.setAttribute('aria-pressed',v.getAttribute('aria-pressed'));
       b.setAttribute('aria-label',(v.dataset.act?'Jouer ':'Agrandir ')+M().nomDetail(C));
       [...v.children].forEach(x=>{if(x.tagName!=='IMG')b.append(x.cloneNode(true))});b.onclick=()=>v.click();
       /* apercu au survol (comme l'ancienne main) et oeil : la carte en grand sans la jouer */
       const sl=v.parentNode,oe=sl&&sl.querySelector('.oeil');
-      if(U().SURVOL&&U().SURVOL.matches){b.onmouseenter=()=>U().montreApercu(b,i.src);b.onmouseleave=()=>U().cacheApercu()}
+      if(U().SURVOL&&U().SURVOL.matches){b.onmouseenter=()=>{const n=U().surcout?U().surcout(s,p,c):0;U().montreApercu(b,i.src,n?U().badgeSurcout(C,n):null)};b.onmouseleave=()=>U().cacheApercu()}
       if(oe&&v.dataset.act){const o=mk('span','oeil');o.setAttribute('role','button');o.setAttribute('aria-label','Agrandir '+C.nom);o.innerHTML=oe.innerHTML;
         o.onclick=e=>{e.stopPropagation();oe.click()};b.append(o)}}
     r.append(b)});
@@ -500,13 +510,13 @@ function derniere(s){
   const u=U(),Mo=M(),z=mk('div','d-z d-bloc d-der'),tx=mk('div','d-txt'),d=suivi.der;
   /* vue joueur, choix de carte a faire (Cafe du matin, La taupe) : « Choisis une carte » a la place de la derniere carte jouee ; le clic passe par la vraie vue (.p-choix) */
   const A0=s.attente;
-  if(src==='joueur'&&A0&&A0.p===E.moi&&(A0.t==='cafe'||A0.t==='taupe')){
-    z.classList.add('d-choix');tx.append(mk('div','d-h','Choisis une carte'));const r=mk('div','d-main');
+  if(src==='joueur'&&A0&&A0.p===E.moi&&(A0.t==='cafe'||A0.t==='taupe'||A0.t==='vic')){ /* 0.7 : Info tchat (vic), la carte regardee, choix par les boutons de la vue */
+    z.classList.add('d-choix');tx.append(mk('div','d-h',A0.t==='vic'?'Première carte de ton deck':'Choisis une carte'));const r=mk('div','d-main');
     /* cartes a 103 x 144 (taille de la main) sur toute la largeur de la zone (755 px utiles) ; trop nombreuses : chevauchement, jamais reduites */
     const nO=A0.options.length,ec=nO>1?Math.min(8,Math.floor((755-103*nO)/(nO-1))):0;
-    A0.options.forEach((c,k)=>{const C=Mo.carte(c),b=mk('button'),im=mk('img');b.type='button';im.src=imgV('cartes/'+C.id+'.jpg');im.alt=C.nom;b.setAttribute('aria-label','Choisir '+Mo.nomDetail(C));
+    A0.options.forEach((c,k)=>{const C=Mo.carte(c),b=mk('button'),im=mk('img');b.type='button';im.src=imgV('cartes/'+C.id+'.jpg');im.alt=C.nom;b.setAttribute('aria-label',(A0.t==='vic'?'Agrandir ':'Choisir ')+Mo.nomDetail(C));
       b.style.width='103px';b.style.height='144px';if(k)b.style.marginLeft=ec+'px';b.append(im);
-      b.onclick=()=>{const v=document.querySelector('#partie .p-choix .p-slot[data-c="'+c+'"]>.p-carte');if(v)v.click()};r.append(b)});
+      b.onclick=A0.t==='vic'?()=>zoomCarte(c):()=>{const v=document.querySelector('#partie .p-choix .p-slot[data-c="'+c+'"]>.p-carte');if(v)v.click()};r.append(b)});
     tx.append(r);z.append(tx);return z;
   }
   tx.append(mk('div','d-h','Dernière carte jouée'));
@@ -968,9 +978,9 @@ function telephone(P){
     const b=mk('div','mqa-b'),fe=mk('button','mqb-b','Fermer');fe.type='button';fe.onclick=()=>o.remove();
     if(x.dataset.act&&!x.classList.contains('grisee')){const okb=mk('button','mqb-b plein',forge?'Forger':'Jouer');okb.type='button';okb.onclick=()=>{o.remove();x.click()};b.append(fe,okb)}else b.append(fe);
     const sl=x.parentNode,oe=sl&&sl.querySelector('.oeil');if(oe){const z2=mk('button','mqb-b','Détails');z2.type='button';z2.onclick=()=>{o.remove();oe.click()};b.prepend(z2)}
-    const ra=x.querySelector('.raison');o.append(im,mk('p','','Carte '+(i+1)+' sur '+cartes.length+(x.classList.contains('surtaxe')?' - surcoût':'')+(ra?' - '+ra.textContent:'')),b);
+    const ra=x.querySelector('.raison');o.append(im,mk('p','','Carte '+(i+1)+' sur '+cartes.length+(x.classList.contains('surtaxe')?' - surcoût':x.classList.contains('reduite')?' - coût réduit':'')+(ra?' - '+ra.textContent:'')),b);
     o.onclick=ev=>{if(ev.target===o)o.remove()};document.body.append(o);r.querySelectorAll('button').forEach(y=>y.classList.remove('choisi'));if(r.children[i])r.children[i].classList.add('choisi')};
-  cartes.forEach((x,i)=>{const b=mk('button');b.type='button';if(x.classList.contains('surtaxe'))b.className='surtaxe';if(x.classList.contains('grisee'))b.classList.add('grisee');const im=mk('img');im.src=x.querySelector('img').src;im.alt=x.querySelector('img').alt||'';b.append(im);
+  cartes.forEach((x,i)=>{const b=mk('button');b.type='button';if(x.classList.contains('surtaxe'))b.className='surtaxe';if(x.classList.contains('reduite'))b.className='reduite';if(x.dataset.ec)b.dataset.ec=x.dataset.ec;if(x.classList.contains('grisee'))b.classList.add('grisee');const im=mk('img');im.src=x.querySelector('img').src;im.alt=x.querySelector('img').alt||'';b.append(im);
     {const sl=x.parentNode,cc=sl&&sl.dataset.c,C=cc!=null&&M().carte(+cc);if(C&&C.base){const st=mk('span','evs','★');st.setAttribute('aria-hidden','true');b.append(st)}} /* evolution : etoile a cote du cout */
     b.onclick=()=>ouvre(x,i);r.append(b)});
   const g=mk('div','mqb-g','›');Mm.append(r,g);const majG=()=>{g.style.display=r.scrollLeft+r.clientWidth>=r.scrollWidth-2?'none':'flex'};r.addEventListener('scroll',majG);
@@ -1094,7 +1104,7 @@ const rejeu={
   /* heure prevue du coup qui va etre peint (horloge absolue du rejeu) */
   debut(t){coupT=t},
   /* temps restant jusqu'a la fin prevue des animations lancees (ms), pour cadencer la lecture : durees declarees, jamais mesurees */
-  reste(){if(!suivi)return 0;const t=performance.now();let f=suivi.prevu||0;if(suivi.vol)f=Math.max(f,suivi.vol.fin);suivi.etArr.forEach(a=>f=Math.max(f,a.t));return Math.max(0,f-t)}
+  reste(){if(!suivi)return 0;const t=performance.now();let f=suivi.prevu||0;if(suivi.vol)f=Math.max(f,suivi.vol.fin);suivi.etArr.forEach(a=>f=Math.max(f,a.t));if(desF.cur||desF.L.length)f=Math.max(f,desF.fin||0);return Math.max(0,f-t)}
 };
 function coinRejeu(){
   const r=rejeu.info()||{pos:0,total:0,manche:1,vitesse:1,lecture:false,fin:false},z=mk('div','d-z d-coin'),B=mk('div','d-bloc d-rj'),bas=mk('div','d-bas');

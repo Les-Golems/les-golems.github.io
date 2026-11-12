@@ -7,7 +7,7 @@ const DATE_V06='9 novembre 2026';
 /* Date de publication de la 0.6a : A REMPLACER LE JOUR J (ex. '11 novembre 2026'), bloc de version et Details. */
 const DATE_V06A='11 novembre 2026';
 /* Date de publication de la 0.7 : A REMPLIR LE JOUR J (ex. '13 novembre 2026'), bloc de version et Details. */
-const DATE_V07='';
+const DATE_V07='12 novembre 2026';
 const NOUVEAUTES=[
  {version:'Version 0.7',date:DATE_V07,notes:["Premier patch d'équilibrage","[[rework]] 6 cartes retravaillées","[[nerf]] 4 cartes affaiblies","[[buff]] 9 cartes renforcées","Nouveaux éléments pour 4 Golems","Plus de Golems à 1 de coût","Café du matin de {{Elccino}} corrigé","Ordre des éléments revu"]},
  {version:'Version 0.6a',date:DATE_V06A,notes:["Mode clair, dans le menu Affichage","Nouvelles animations : évolution, animal, destruction, victoire et plus","Rejeu corrigé dans la nouvelle interface de partie","Guides éditables : publication, modification ou suppression","Classement des decks par glisser-déposer","Profil et Statistiques corrigés","Nouveaux avatars disponibles","Nombreux bugs corrigés"]},
@@ -23,7 +23,7 @@ const NOUVEAUTES=[
 ];
 /* 0.6.1 : calendrier des sorties, tire de NOUVEAUTES (version et date de chaque bloc) ; heure de mise en ligne des builds connus
    (journal de main) pour departager deux versions du meme jour. Sert a l'Historique : version deduite de la date d'une partie ancienne. */
-const HEURES_SORTIE={'0.2a':'09:40','0.2b':'09:45','0.2c':'11:01','0.3':'18:40','0.4':'10:09','0.5':'14:48','0.5a':'12:52','0.6':'19:46','0.6a':'11:15','0.7':''}; /* 0.7 : heure de mise en ligne A REMPLIR LE JOUR J (ex. '18:30') */
+const HEURES_SORTIE={'0.2a':'09:40','0.2b':'09:45','0.2c':'11:01','0.3':'18:40','0.4':'10:09','0.5':'14:48','0.5a':'12:52','0.6':'19:46','0.6a':'11:15','0.7':'19:35'}; /* 0.7 : heure de mise en ligne A REMPLIR LE JOUR J (ex. '18:30') */
 const MOIS_FR=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 function sortiesVersions(){
   return NOUVEAUTES.map(n=>{const v=String(n.version).replace(/^Version /,''),m=/^(\d{1,2}) (\S+) (\d{4})$/.exec(String(n.date||'')),mo=m?MOIS_FR.indexOf(m[2]):-1;if(mo<0)return null;
