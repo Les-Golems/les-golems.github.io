@@ -39,17 +39,17 @@ const DETAILS_VERSIONS={
   nouveautes:[
    "Premier patch d'équilibrage : les écarts se resserrent autour de 50 %. Éléments entre 49 et 52 % de victoires, duos d'éléments tous entre 46 et 54 %.",
    {t:"Reworks :",l:[
-    "{{Alrevan, Le High Roller Originel}} : Tout ou rien : à la pose, lance 1 dé. Sur 4 ou plus, les autres Golems alliés ici gagnent +1 de Force. Sinon, ton prochain Golem coûte 1 de moins.",
-    "{{Alrevan, KEKWRevan ★}} : High Roll : à la pose, lance 2 dés. Gagne leur différence en énergie. Sur un double, les autres Golems alliés ici gagnent sa valeur en Force.",
-    "{{SuperFishman, Elosit Master}} : Counter-pick : à la pose, si tu domines le Golem en face, ton prochain Golem coûte 1 de moins.",
-    "{{SuperFishman, Monsieur Poisson ★}} : Full synergie : si tu domines le Golem en face, gagne +2 de Force au lieu de +1. La prochaine carte que tu joues coûte 1 de moins par élément partagé avec tes voisins (2 maximum).",
-    "{{Shifukuro, Le chatteur}} : KEKWait : à la pose, mélange dans ton deck 1 carte de ta défausse par Golem allié au-dessus de toi. Gagne +1 de Force par Golem allié au-dessus de toi ici.",
-    "{{Trigas, Le Roi du Mobile ★}} : On flip : à la pose, pioche 1 carte et lance 1 dé. Si son coût est plus bas, forge-la. Sinon, les effets de cartes adverses ne peuvent plus te cibler."]},
+    "{{Alrevan, Le High Roller Originel}} : <<Tout ou rien>> : à la pose, lance 1 dé. Sur 4 ou plus, les autres Golems alliés ici gagnent +1 de Force. Sinon, ton prochain Golem coûte 1 de moins.",
+    "{{Alrevan, KEKWRevan ★}} : <<High Roll>> : à la pose, lance 2 dés. Gagne leur différence en énergie. Sur un double, les autres Golems alliés ici gagnent sa valeur en Force.",
+    "{{SuperFishman, Elosit Master}} : <<Counter-pick>> : à la pose, si tu domines le Golem en face, ton prochain Golem coûte 1 de moins.",
+    "{{SuperFishman, Monsieur Poisson ★}} : <<Full synergie>> : si tu domines le Golem en face, gagne +2 de Force au lieu de +1. La prochaine carte que tu joues coûte 1 de moins par élément partagé avec tes voisins (2 maximum).",
+    "{{Shifukuro, Le chatteur}} : <<KEKWait>> : à la pose, mélange dans ton deck 1 carte de ta défausse par Golem allié au-dessus de toi. Gagne +1 de Force par Golem allié au-dessus de toi ici.",
+    "{{Trigas, Le Roi du Mobile ★}} : <<On flip>> : à la pose, pioche 1 carte et lance 1 dé. Si son coût est plus bas, forge-la. Sinon, les effets de cartes adverses ne peuvent plus te cibler."]},
    {t:"Nerfs :",l:[
     "{{KaTarN}} : perd 6 de Force à chaque fin de manche.",
     "{{Shifukuro, Le modérateur ★}}",
-    "{{Vic2222}} : nouvel effet Info tchat, regarde la première carte de ton deck à la pose.",
-    "{{Vic2222, Baby gamer ★}} : Chance du débutant, et tu pioches 1 carte."]},
+    "{{Vic2222}} : nouvel effet <<Info tchat>>, regarde la première carte de ton deck à la pose.",
+    "{{Vic2222, Baby gamer ★}} : <<Chance du débutant>>, et tu pioches 1 carte."]},
    {t:"Buffs :",l:[
     "{{Bellock}}, {{Bellock, Aiges Captain ★}}, {{GénéralBrioche}}, {{Titom76}}, {{Titom76, Maître du bilig ★}}, {{Elccino}}, {{Velnen, Le chansonnier ★}}, {{Loxim}}, {{Loxim, Le Ace de Aiges ★}}."]},
    {t:"Nouveaux éléments :",l:[
@@ -59,13 +59,13 @@ const DETAILS_VERSIONS={
     "{{SuperFishman}} (Foudre, Roche)"]},
    "Plus de Golems à 1 de coût, pour jouer dès le tour 1.",
    "Decks conseillés mis à jour pour les nouveaux éléments.",
-   "Le Golem adverse sait copier les nouveaux effets (Imitation, Déguisement).",
+   "Le Golem adverse sait copier les nouveaux effets (<<Imitation>>, <<Déguisement>>).",
    "Ordre des éléments inversé sur {{Le Q}}, {{Le Q, Seul contre tous ★}}, {{Trigas}} et {{Trigas, Le Roi du Mobile ★}}. Sans effet en jeu aujourd'hui."],
   regles:[
-   "Réductions de coût : elles se cumulent. Celle de ton prochain Golem s'applique au prochain Golem joué, en pose, remplacement ou évolution ; celle de ta prochaine carte (Full synergie) s'applique à la prochaine carte jouée, animal compris. Un coût ne descend jamais sous 0.",
-   "On flip : si le deck est vide, rien n'est pioché et tu es protégé."],
+   "Réductions de coût : elles se cumulent. Celle de ton prochain Golem s'applique au prochain Golem joué, en pose, remplacement ou évolution ; celle de ta prochaine carte (<<Full synergie>>) s'applique à la prochaine carte jouée, animal compris. Un coût ne descend jamais sous 0.",
+   "<<On flip>> : si le deck est vide, rien n'est pioché et tu es protégé."],
   corrections:[
-   "Café du matin ({{Elccino}}) : une partie ne plante plus au début d'une manche quand plusieurs Cafés du matin se suivent."]},
+   "<<Café du matin>> ({{Elccino}}) : une partie ne plante plus au début d'une manche quand plusieurs Cafés du matin se suivent."]},
  'Version 0.6a':{
   nouveautes:[
    "Mode clair : un nouveau thème clair pour tout le site, à choisir dans Affichage (compatible avec le mode daltonien).",
@@ -448,7 +448,9 @@ function texteNv(s,parens){
   const T=/^\[\[(buff|nerf|rework)\]\] /.exec(s);
   if(T){const f=document.createDocumentFragment(),e=document.createElement('span');e.className='nv-tag t-'+T[1];e.textContent=T[1][0].toUpperCase()+T[1].slice(1);
     f.append(e,' : ',texteNv(s.slice(T[0].length),parens));return f}
-  const f=document.createDocumentFragment();String(s).split(/\{\{([^}]+)\}\}/).forEach((x,i)=>{if(i%2)f.append(lienNv(x));else if(x)f.append(textePictos(x,parens))});return f;
+  /* 0.7 : <<Nom>> = nom d'effet, en gras, couleur effet (couleursTexte.effet, charte). */
+  const f=document.createDocumentFragment();String(s).split(/\{\{([^}]+)\}\}|<<([^>]+)>>/).forEach((x,i)=>{if(x==null)return;if(i%3===1)f.append(lienNv(x));
+    else if(i%3===2){const b=document.createElement('b');b.textContent=x;b.style.color=window.GolemsDonnees?.interface?.couleursTexte?.effet||'';f.append(b)}else if(x)f.append(textePictos(x,parens))});return f;
 }
 /* Fenetre « Détails » : note de patch complete d'une version, en trois rubriques. Fermer, Echap ou clic dehors. */
 const RUBRIQUES_VERSION=[['nouveautes','Nouveautés'],['regles','Équilibrage et règles'],['corrections','Corrections'],['avenir','À venir']];
