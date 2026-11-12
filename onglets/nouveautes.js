@@ -6,7 +6,11 @@ const DATE_V05='7 novembre 2026';
 const DATE_V06='9 novembre 2026';
 /* Date de publication de la 0.6a : A REMPLACER LE JOUR J (ex. '11 novembre 2026'), bloc de version et Details. */
 const DATE_V06A='11 novembre 2026';
+/* Date de publication de la 0.7 : A REMPLIR LE JOUR J (ex. '13 novembre 2026'), bloc de version et Details. */
+const DATE_V07='';
 const NOUVEAUTES=[
+ /* EMPLACEMENT DU BLOC 0.7 : coller ici l'entree de entree_nouveautes_0.7.js (session Equilibrage, avec la video), date:DATE_V07.
+    Elle sera epinglee seule (EPINGLE_VERSION ci-dessous) ; ajouter aussi ses Details en tete de DETAILS_VERSIONS et sa video dans NOUVEAUX_GOLEMS. */
  {version:'Version 0.6a',date:DATE_V06A,notes:["Mode clair, dans le menu Affichage","Nouvelles animations : évolution, animal, destruction, victoire et plus","Rejeu corrigé dans la nouvelle interface de partie","Guides éditables : publication, modification ou suppression","Classement des decks par glisser-déposer","Profil et Statistiques corrigés","Nouveaux avatars disponibles","Nombreux bugs corrigés"]},
  {version:'Version 0.6',date:DATE_V06,notes:["Nouvelle interface","Parties classées (6 rangs, saison 0)","Récompenses : médaille Pionnier, écus du top 10","Nouveau Golem : {{Elccino}} (Brume, Cristal)","Nouvel animal : {{Uki}}, l'animal de Shifukuro (Roche)","6 decks conseillés, un par archétype","Le Golem adverse joue l'un d'eux au hasard","Nouveau mot-clé : Récupérer"]},
  {version:'Version 0.5a',date:'8 novembre 2026',notes:["Sur ordinateur, les piles Deck, Forge et Défausse s'ouvrent de nouveau","Sur téléphone, les compteurs des bandeaux affichent les cartes","Ton deck se consulte trié par nom, avec le nombre d'exemplaires","Le deck adverse n'est plus consultable, seul son nombre de cartes s'affiche"]},
@@ -20,7 +24,7 @@ const NOUVEAUTES=[
 ];
 /* 0.6.1 : calendrier des sorties, tire de NOUVEAUTES (version et date de chaque bloc) ; heure de mise en ligne des builds connus
    (journal de main) pour departager deux versions du meme jour. Sert a l'Historique : version deduite de la date d'une partie ancienne. */
-const HEURES_SORTIE={'0.2a':'09:40','0.2b':'09:45','0.2c':'11:01','0.3':'18:40','0.4':'10:09','0.5':'14:48','0.5a':'12:52','0.6':'19:46','0.6a':'11:15'};
+const HEURES_SORTIE={'0.2a':'09:40','0.2b':'09:45','0.2c':'11:01','0.3':'18:40','0.4':'10:09','0.5':'14:48','0.5a':'12:52','0.6':'19:46','0.6a':'11:15','0.7':''}; /* 0.7 : heure de mise en ligne A REMPLIR LE JOUR J (ex. '18:30') */
 const MOIS_FR=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 function sortiesVersions(){
   return NOUVEAUTES.map(n=>{const v=String(n.version).replace(/^Version /,''),m=/^(\d{1,2}) (\S+) (\d{4})$/.exec(String(n.date||'')),mo=m?MOIS_FR.indexOf(m[2]):-1;if(mo<0)return null;
@@ -468,11 +472,10 @@ NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t)
    page 1 = epingles + recents ; pages suivantes : 6 blocs chacune, sans epingles. Fleches < x / n > a droite de la ligne d'intro
    (alignees sur le bord droit de la grille), masquees s'il n'y a qu'une page ; changer de page remonte en haut de la liste. */
 const FEUILLE_DE_ROUTE=[
- {v:'0.6',nom:'Nouvelle interface et parties classées',etat:'precedente'},
- {v:'0.6a',nom:'Mode clair, rejeu et guides des joueurs',etat:'actuelle'},
- {nom:'Tournois',etat:'tard'},
- {nom:'Nouveau type de carte : Événements',etat:'tard'},
- {nom:'Équilibrage',etat:'tard'},
+ {v:'0.7',nom:'Équilibrage et bug corrigé (Café du matin)',etat:'actuelle'},
+ {nom:'Tournoi',etat:'tard'},
+ {nom:'Nouveau type de carte',etat:'tard'},
+ {nom:'Équilibrages',etat:'tard'},
  {v:'1.0',nom:'Sortie officielle',etat:'tard'}
 ];
 const ETATS_FDR={precedente:'Version précédente',actuelle:'Version actuelle',proche:'Prochaine mise à jour',prevu:'Prévu',tard:'Plus tard'};
@@ -485,7 +488,7 @@ const NV={page:0,par:6,blocs:[...$('notes').children]}; /* blocs : ordre d'origi
   [...N.children].forEach(a=>{const v=a.querySelector('.nv-etq')?.textContent||'';a.dataset.id=(a.classList.contains('nv-golem')?'video-':'')+v});
   const f=mk('article','note nv-fdr'),h=mk('h3'),ol=mk('ol','fdr-l');f.dataset.id='feuille-de-route';
   h.append('Feuille de route');f.append(h,mk('p','fdr-sous','Les prochaines étapes du jeu, dans l’ordre prévu.'));
-  FEUILLE_DE_ROUTE.forEach(x=>{const li=mk('li','fdr-'+x.etat),t=mk('div','fdr-t');
+  FEUILLE_DE_ROUTE.forEach(x=>{const li=mk('li','fdr-'+x.etat),t=mk('div','fdr-t');if(!matchMedia('(min-width:700px)').matches)li.style.minHeight='42px'; /* 0.7 : lignes plus espacees (ordinateur : 5 lignes reparties sur la hauteur du bloc) */
     if(x.v)t.append(mk('small','','Version '+x.v));t.append(mk('b','',x.nom));li.append(mk('span','fdr-pt'),t,mk('span','fdr-etat',ETATS_FDR[x.etat]));ol.append(li)});
   f.append(ol);N.prepend(f);
 }
@@ -496,11 +499,13 @@ function unitesNotes(){
     if(b&&va&&va===b.querySelector('.nv-etq')?.textContent&&a.classList.contains('nv-golem')!==b.classList.contains('nv-golem')){U.push([a,b]);i++}else U.push([a])}
   return U;
 }
+const EPINGLE_VERSION='0.7';
 function epinglesNotes(){
   const ids=new Set([...$('notes').querySelectorAll(':scope>article.note')].map(a=>a.dataset.id));
   /* 0.5 (decision de Romain) : epingles AUTOMATIQUES. 1 = Feuille de route, 2 = bloc de la version la plus recente (NOUVEAUTES[0]) ;
      a chaque nouvelle version l'ancienne se desepingle seule. Les epingles de Firebase (nouveautes/epingles) sont ignorees. */
-  const l=['feuille-de-route','v'+String(NOUVEAUTES[0].version).replace(/^Version /,'')];
+  /* 0.7 : seul le bloc de EPINGLE_VERSION est epingle (0.6a desepinglee) ; tant que le bloc 0.7 n'est pas colle, seule la Feuille de route l'est. */
+  const l=['feuille-de-route','v'+EPINGLE_VERSION];
   return l.filter(x=>ids.has(x));
 }
 function peintNotes0(){
