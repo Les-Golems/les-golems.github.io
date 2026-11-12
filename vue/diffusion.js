@@ -92,7 +92,7 @@ const maj=t=>t.charAt(0).toUpperCase()+t.slice(1);
    Les deux premieres expressions (Force au de, avant la 0.7) ne servent plus qu'aux rejeux des parties anciennes. */
 const DES_RE=[[/^(.+) : Tout ou rien \((\d)\)(?:, | : )(.+)\.$/,m=>[m[1]+' (Tout ou rien)',[+m[2]],maj(m[3])]],
   [/^(.+) : High Roll \((\d) et (\d)\), (.+)\.$/,m=>[m[1]+' (High Roll)',[+m[2],+m[3]],maj(m[4])]],
-  [/^(.+) : On flip, (?:deck vide, )?dé (\d), (.+)\.$/,m=>[m[1]+' (On flip)',[+m[2]],maj(m[3])]],
+  [/^(.+) : On flip, (?:deck vide, )?dé (\d)(?:, | : )(.+)\.$/,m=>[m[1]+' (On flip)',[+m[2]],maj(m[3])]],
   [/^Alrevan lance le dé : Force (\d+)\.$/,m=>['Alrevan',[+m[1]],'Force '+m[1]]],
   [/^Alrevan \(KEKWRevan\) lance (\d) et (\d) : Force (\d+)\.$/,m=>['Alrevan (KEKWRevan)',[+m[1],+m[2]],'Force '+m[3]]],
   [/^Le Plateau de Jeu lance (\d) : (.+)\.$/,m=>['Le Plateau de Jeu',[+m[1]],m[2]]],
