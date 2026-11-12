@@ -473,8 +473,8 @@ NOUVEAUX_GOLEMS.forEach(g=>{const mk=(t,c,x)=>{const e=document.createElement(t)
    (alignees sur le bord droit de la grille), masquees s'il n'y a qu'une page ; changer de page remonte en haut de la liste. */
 const FEUILLE_DE_ROUTE=[
  {v:'0.7',nom:'Équilibrage et bug corrigé (Café du matin)',etat:'actuelle'},
- {nom:'Tournoi',etat:'tard'},
- {nom:'Nouveau type de carte',etat:'tard'},
+ {nom:'Tournois',etat:'tard'},
+ {nom:'Nouveau type de carte : Événements',etat:'tard'},
  {nom:'Équilibrages',etat:'tard'},
  {v:'1.0',nom:'Sortie officielle',etat:'tard'}
 ];
