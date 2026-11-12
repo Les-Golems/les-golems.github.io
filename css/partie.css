@@ -151,10 +151,10 @@ body.daltonien .mini .evs{display:inline}
 @media (hover:none){.champ-code .oeil:not(.actif):hover{color:var(--bleu-titre);border-color:var(--trait)}}
 .champ-code>input::-ms-reveal{display:none}
 #apercu{position:fixed;z-index:15;width:300px;height:auto;aspect-ratio:5/7;border-radius:14px;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.75)}
-.p-carte .surcout{position:absolute;inset:0;line-height:0;pointer-events:none}
-.p-carte .surcout svg{position:absolute;inset:0;width:100%;height:100%}
+:is(.p-carte,.apercu-cq) .surcout{position:absolute;inset:0;line-height:0;pointer-events:none}
+:is(.p-carte,.apercu-cq) .surcout svg{position:absolute;inset:0;width:100%;height:100%}
 .p-carte.grisee .surcout .fond{filter:grayscale(.85) brightness(.55)}
-#vueDetail .surcout-txt{margin:0}#vueDetail .surcout-txt b{color:var(--rouge-texte-clair)}
+#vueDetail .surcout-txt{margin:0}#vueDetail .surcout-txt b{color:var(--rouge-texte-clair)}#vueDetail .surcout-txt.reduite b,.p-ap-chips b.reduite{color:var(--vert)}.p-ap-chips b.surtaxe{color:var(--rouge-texte-clair)}
 .p-carte .raison{position:absolute;left:3px;right:3px;top:42%;padding:3px 4px;border-radius:7px;background:rgba(5,10,15,.92);color:var(--or);font-size:12.5px;font-weight:800;line-height:1.15;text-align:center}
 .p-carte:hover{transform:translateY(-3px)}
 .p-carte[aria-pressed=true]{border-color:var(--bleu);transform:translateY(-5px);box-shadow:0 0 16px rgba(1,193,240,.6)}

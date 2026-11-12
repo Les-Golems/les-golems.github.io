@@ -460,7 +460,8 @@ function zoomCarte(c){
   let det=null;
   if(C.animal&&typeof u.detailAnimal==='function')det=u.detailAnimal(C);
   else if(typeof u.lg==='function'){const a=mk('section');a.append(mk('h3','','Force'),u.lg('Force de base',C.force!=null?String(C.force):'aucune'),u.lg('Coût',String(C.cout)));if(C.texte)a.append(u.effetCouleur?u.effetCouleur(C,'p',''):mk('p','',C.texte));det=[a]}
-  u.zoom(u.srcC(c),C.nom,det);
+  const s=E&&E.etat,p=s&&s.j?[0,1].find(q=>s.j[q].main.includes(c)):undefined,n=p!==undefined&&u.surcout?u.surcout(s,p,c):0; /* carte en main : meme cout que sur la main (surcout ou reduction) */
+  u.zoom(u.srcC(c),C.nom,n?(det||[]).concat(u.detailSurcout?u.detailSurcout(C,n):[]):det,n?[u.badgeSurcout(C,n)]:undefined);
 }
 function main(s,p,top,joue){
   const z=mk('div','d-z d-col'+(p===BAS()?' bas':'')),J=s.j[p],h=mk('div','d-tm '+(p===BAS()?'toi':'lui'),src==='joueur'&&p===E.moi?'Ta main':'Main '+d_(nom(p))+nom(p));
@@ -472,15 +473,16 @@ function main(s,p,top,joue){
   J.main.forEach((c,k)=>{const C=M().carte(c),b=mk('button'),i=mk('img');b.type='button';b.dataset.c=c;b.style.width=w+'px';b.style.height=Math.round(w*1.4)+'px';if(k)b.style.marginLeft=gp+'px';
     i.src=U().srcC(c);i.alt=C.nom;b.setAttribute('aria-label','Agrandir '+M().nomDetail(C));b.onclick=()=>zoomCarte(c);b.append(i);
     if(C.base){const st=mk('span','evs','★');st.setAttribute('aria-hidden','true');b.append(st)} /* 0.5 : evolution, etoile centree sur les chiffres cout / Force (les deux modes) */
+    if(!jr&&U().surcout){const n=U().surcout(s,p,c);if(n){b.classList.add(n>0?'surtaxe':'reduite');b.append(U().badgeSurcout(C,n))}} /* spectateur et rejeu : cout reel (surcout ou reduction) lu dans le moteur, comme la vue joueur */
     /* vue joueur : la carte reprend l'etat de la vraie main (grisee, surcout, choisie) et le clic passe par elle */
     const v=jr&&document.querySelector('#partie .p-poste .p-slot[data-c="'+c+'"]>.p-carte');
-    if(v){['grisee','surtaxe'].forEach(x=>b.classList.toggle(x,v.classList.contains(x)));if(v.title)b.title=v.title;
+    if(v){['grisee','surtaxe','reduite'].forEach(x=>b.classList.toggle(x,v.classList.contains(x)));if(v.title)b.title=v.title;
       if(v.hasAttribute('aria-pressed'))b.setAttribute('aria-pressed',v.getAttribute('aria-pressed'));
       b.setAttribute('aria-label',(v.dataset.act?'Jouer ':'Agrandir ')+M().nomDetail(C));
       [...v.children].forEach(x=>{if(x.tagName!=='IMG')b.append(x.cloneNode(true))});b.onclick=()=>v.click();
       /* apercu au survol (comme l'ancienne main) et oeil : la carte en grand sans la jouer */
       const sl=v.parentNode,oe=sl&&sl.querySelector('.oeil');
-      if(U().SURVOL&&U().SURVOL.matches){b.onmouseenter=()=>U().montreApercu(b,i.src);b.onmouseleave=()=>U().cacheApercu()}
+      if(U().SURVOL&&U().SURVOL.matches){b.onmouseenter=()=>{const n=U().surcout?U().surcout(s,p,c):0;U().montreApercu(b,i.src,n?U().badgeSurcout(C,n):null)};b.onmouseleave=()=>U().cacheApercu()}
       if(oe&&v.dataset.act){const o=mk('span','oeil');o.setAttribute('role','button');o.setAttribute('aria-label','Agrandir '+C.nom);o.innerHTML=oe.innerHTML;
         o.onclick=e=>{e.stopPropagation();oe.click()};b.append(o)}}
     r.append(b)});
@@ -974,9 +976,9 @@ function telephone(P){
     const b=mk('div','mqa-b'),fe=mk('button','mqb-b','Fermer');fe.type='button';fe.onclick=()=>o.remove();
     if(x.dataset.act&&!x.classList.contains('grisee')){const okb=mk('button','mqb-b plein',forge?'Forger':'Jouer');okb.type='button';okb.onclick=()=>{o.remove();x.click()};b.append(fe,okb)}else b.append(fe);
     const sl=x.parentNode,oe=sl&&sl.querySelector('.oeil');if(oe){const z2=mk('button','mqb-b','Détails');z2.type='button';z2.onclick=()=>{o.remove();oe.click()};b.prepend(z2)}
-    const ra=x.querySelector('.raison');o.append(im,mk('p','','Carte '+(i+1)+' sur '+cartes.length+(x.classList.contains('surtaxe')?' - surcoût':'')+(ra?' - '+ra.textContent:'')),b);
+    const ra=x.querySelector('.raison');o.append(im,mk('p','','Carte '+(i+1)+' sur '+cartes.length+(x.classList.contains('surtaxe')?' - surcoût':x.classList.contains('reduite')?' - coût réduit':'')+(ra?' - '+ra.textContent:'')),b);
     o.onclick=ev=>{if(ev.target===o)o.remove()};document.body.append(o);r.querySelectorAll('button').forEach(y=>y.classList.remove('choisi'));if(r.children[i])r.children[i].classList.add('choisi')};
-  cartes.forEach((x,i)=>{const b=mk('button');b.type='button';if(x.classList.contains('surtaxe'))b.className='surtaxe';if(x.classList.contains('grisee'))b.classList.add('grisee');const im=mk('img');im.src=x.querySelector('img').src;im.alt=x.querySelector('img').alt||'';b.append(im);
+  cartes.forEach((x,i)=>{const b=mk('button');b.type='button';if(x.classList.contains('surtaxe'))b.className='surtaxe';if(x.classList.contains('reduite'))b.className='reduite';if(x.dataset.ec)b.dataset.ec=x.dataset.ec;if(x.classList.contains('grisee'))b.classList.add('grisee');const im=mk('img');im.src=x.querySelector('img').src;im.alt=x.querySelector('img').alt||'';b.append(im);
     {const sl=x.parentNode,cc=sl&&sl.dataset.c,C=cc!=null&&M().carte(+cc);if(C&&C.base){const st=mk('span','evs','★');st.setAttribute('aria-hidden','true');b.append(st)}} /* evolution : etoile a cote du cout */
     b.onclick=()=>ouvre(x,i);r.append(b)});
   const g=mk('div','mqb-g','›');Mm.append(r,g);const majG=()=>{g.style.display=r.scrollLeft+r.clientWidth>=r.scrollWidth-2?'none':'flex'};r.addEventListener('scroll',majG);
