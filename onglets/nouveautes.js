@@ -9,7 +9,7 @@ const DATE_V06A='11 novembre 2026';
 /* Date de publication de la 0.7 : A REMPLIR LE JOUR J (ex. '13 novembre 2026'), bloc de version et Details. */
 const DATE_V07='';
 const NOUVEAUTES=[
- {version:'Version 0.7',date:DATE_V07,notes:["Premier patch d'équilibrage","Nouveaux éléments pour 4 Golems","[[rework]] 6 cartes retravaillées","[[buff]] 9 cartes renforcées","[[nerf]] 4 cartes affaiblies","Plus de Golems à 1 de coût","Café du matin de {{Elccino}} corrigé","Ordre des éléments revu"]},
+ {version:'Version 0.7',date:DATE_V07,notes:["Premier patch d'équilibrage","[[rework]] 6 cartes retravaillées","[[nerf]] 4 cartes affaiblies","[[buff]] 9 cartes renforcées","Nouveaux éléments pour 4 Golems","Plus de Golems à 1 de coût","Café du matin de {{Elccino}} corrigé","Ordre des éléments revu"]},
  {version:'Version 0.6a',date:DATE_V06A,notes:["Mode clair, dans le menu Affichage","Nouvelles animations : évolution, animal, destruction, victoire et plus","Rejeu corrigé dans la nouvelle interface de partie","Guides éditables : publication, modification ou suppression","Classement des decks par glisser-déposer","Profil et Statistiques corrigés","Nouveaux avatars disponibles","Nombreux bugs corrigés"]},
  {version:'Version 0.6',date:DATE_V06,notes:["Nouvelle interface","Parties classées (6 rangs, saison 0)","Récompenses : médaille Pionnier, écus du top 10","Nouveau Golem : {{Elccino}} (Brume, Cristal)","Nouvel animal : {{Uki}}, l'animal de Shifukuro (Roche)","6 decks conseillés, un par archétype","Le Golem adverse joue l'un d'eux au hasard","Nouveau mot-clé : Récupérer"]},
  {version:'Version 0.5a',date:'8 novembre 2026',notes:["Sur ordinateur, les piles Deck, Forge et Défausse s'ouvrent de nouveau","Sur téléphone, les compteurs des bandeaux affichent les cartes","Ton deck se consulte trié par nom, avec le nombre d'exemplaires","Le deck adverse n'est plus consultable, seul son nombre de cartes s'affiche"]},
@@ -38,11 +38,6 @@ const DETAILS_VERSIONS={
  'Version 0.7':{
   nouveautes:[
    "Premier patch d'équilibrage : les écarts se resserrent autour de 50 %. Éléments entre 49 et 52 % de victoires, duos d'éléments tous entre 46 et 54 %.",
-   {t:"Nouveaux éléments :",l:[
-    "{{Alrevan}} (Foudre, Cristal)",
-    "{{Shifukuro}} (Roche, Brume)",
-    "{{Vic2222}} (Cristal, Brume)",
-    "{{SuperFishman}} (Foudre, Roche)"]},
    {t:"Reworks :",l:[
     "{{Alrevan, Le High Roller Originel}} : Tout ou rien : à la pose, lance 1 dé. Sur 4 ou plus, les autres Golems alliés ici gagnent +1 de Force. Sinon, ton prochain Golem coûte 1 de moins.",
     "{{Alrevan, KEKWRevan ★}} : High Roll : à la pose, lance 2 dés. Gagne leur différence en énergie. Sur un double, les autres Golems alliés ici gagnent sa valeur en Force.",
@@ -50,13 +45,18 @@ const DETAILS_VERSIONS={
     "{{SuperFishman, Monsieur Poisson ★}} : Full synergie : si tu domines le Golem en face, gagne +2 de Force au lieu de +1. La prochaine carte que tu joues coûte 1 de moins par élément partagé avec tes voisins (2 maximum).",
     "{{Shifukuro, Le chatteur}} : KEKWait : à la pose, mélange dans ton deck 1 carte de ta défausse par Golem allié au-dessus de toi. Gagne +1 de Force par Golem allié au-dessus de toi ici.",
     "{{Trigas, Le Roi du Mobile ★}} : On flip : à la pose, pioche 1 carte et lance 1 dé. Si son coût est plus bas, forge-la. Sinon, les effets de cartes adverses ne peuvent plus te cibler."]},
-   {t:"Buffs :",l:[
-    "{{Bellock}}, {{Bellock, Aiges Captain ★}}, {{GénéralBrioche}}, {{Titom76}}, {{Titom76, Maître du bilig ★}}, {{Elccino}}, {{Velnen, Le chansonnier ★}}, {{Loxim}}, {{Loxim, Le Ace de Aiges ★}}."]},
    {t:"Nerfs :",l:[
     "{{KaTarN}} : perd 6 de Force à chaque fin de manche.",
     "{{Shifukuro, Le modérateur ★}}",
     "{{Vic2222}} : nouvel effet Info tchat, regarde la première carte de ton deck à la pose.",
     "{{Vic2222, Baby gamer ★}} : Chance du débutant, et tu pioches 1 carte."]},
+   {t:"Buffs :",l:[
+    "{{Bellock}}, {{Bellock, Aiges Captain ★}}, {{GénéralBrioche}}, {{Titom76}}, {{Titom76, Maître du bilig ★}}, {{Elccino}}, {{Velnen, Le chansonnier ★}}, {{Loxim}}, {{Loxim, Le Ace de Aiges ★}}."]},
+   {t:"Nouveaux éléments :",l:[
+    "{{Alrevan}} (Foudre, Cristal)",
+    "{{Shifukuro}} (Roche, Brume)",
+    "{{Vic2222}} (Cristal, Brume)",
+    "{{SuperFishman}} (Foudre, Roche)"]},
    "Plus de Golems à 1 de coût, pour jouer dès le tour 1.",
    "Decks conseillés mis à jour pour les nouveaux éléments.",
    "Le Golem adverse sait copier les nouveaux effets (Imitation, Déguisement).",
