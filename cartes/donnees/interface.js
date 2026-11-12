@@ -17,17 +17,17 @@ aVenir:[
  ['023','Kun_Mamba'],['024','MrTitou'],['027','Merser'],['028','Nadzu'],
  ['030','Cyd'],['031','Obsess'],['032','Marech'],['033','Greeny'],['034','Harentros'],
  ['038','TortueGourmande'],['039','TortueVéloce'],['040','PoulpeHome']],
-/* Decks conseilles (0.6) : 6 archetypes valides de 30 cartes, copies dans les decks du joueur (invite compris) ; aussi la reserve des robots (tirage au hasard). */
+/* Decks conseilles (0.6 ; 0.7 : Montée en puissance, Attaque rapide et Soutien refaits pour 4 elements, optimises par simulation) : 6 archetypes valides de 30 cartes, copies dans les decks du joueur (invite compris) ; aussi la reserve des robots (tirage au hasard). */
 decksConseilles:[
- {nom:"Montée en puissance",cartes:{"007":3,"007e":3,"026":1,"026e":2,"041":2,"041e":1,"015":3,"016":3,"016e":3,"002":3,"002e":3,"015e":3},
-  txt:"Pioche avec Trigas, Titom76 et Velnen, prends de l'énergie avec Maître du bilig, puis pose tes gros Golems (KEKWRevan, Loxim, Le Ace de Aiges, Aiges Captain) pour finir fort."},
- {nom:"Attaque rapide",cartes:{"903":1,"001":3,"029":3,"009":3,"009e":2,"025":3,"020":3,"020e":3,"018":3,"035":3,"037":3},
-  txt:"Pose KaTarN, Apo et Glad dès la manche 1, serre tes Golems autour de GénéralBrioche et Shifukuro, et renforce-les en forgeant JackJoy."},
+ {nom:"Montée en puissance",cartes:{"901":1,"007":3,"007e":3,"026":3,"026e":3,"015":3,"015e":2,"016":3,"016e":3,"002":3,"002e":3},
+  txt:"Pioche avec Trigas, Titom76 et Kiwi, prends de l'énergie avec Maître du bilig, puis pose tes gros Golems (KEKWRevan, Loxim, Le Ace de Aiges, Aiges Captain) pour finir fort."},
+ {nom:"Attaque rapide",cartes:{"001":3,"001e":1,"029":3,"029e":2,"009":3,"009e":3,"020":3,"020e":3,"018":3,"035":3,"037":3},
+  txt:"Pose KaTarN, Apo et Glad dès la manche 1, serre tes Golems autour de GénéralBrioche, et renforce-les en forgeant JackJoy."},
  {nom:"Meule",cartes:{"901":1,"004":3,"004e":2,"026":3,"026e":2,"007":3,"007e":3,"001":3,"001e":2,"018":3,"018e":2,"036":3},
   txt:"Vide le deck adverse avec Le Q et Titom76, tiens la grille avec KaTarN et Elessar, et laisse chaque pioche impossible marquer pour toi."},
  {nom:"Contrôle",cartes:{"001":3,"001e":3,"009":3,"009e":2,"018":3,"018e":2,"013":3,"013e":3,"008":3,"036":3,"029":2},
   txt:"Affaiblis les Golems d'en face avec Slim K, Glad, Apo, La Fan enflammée et Le pomplard, et freine leurs évolutions avec Elessar."},
- {nom:"Soutien",cartes:{"903":1,"003":3,"003e":3,"020":3,"020e":1,"013":3,"013e":3,"042":3,"025":3,"037":2,"008":2,"008e":3},
+ {nom:"Soutien",cartes:{"903":1,"003":3,"003e":2,"020":3,"020e":2,"013":3,"013e":3,"042":2,"042e":2,"025":3,"008":3,"008e":3},
   txt:"Groupe tes Golems Cristal et Roche : Cyrdan, GénéralBrioche, Indra et Vic2222 renforcent leurs voisins, et L'attachiante soigne les blessés."},
  {nom:"Combo",cartes:{"015":3,"015e":2,"016":2,"016e":3,"036":3,"036e":2,"035":3,"035e":3,"007":3,"007e":2,"026":1,"026e":1,"013":2},
   txt:"Forge Bellock et Loxim pour qu'ils se cherchent l'un l'autre, nourris ta Forge avec Trigas et Spom, et fais grandir tes Golems avec JackJoy et le Drafteur."}
