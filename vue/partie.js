@@ -495,7 +495,7 @@ function etapesLignes(L,av,s,lignes,a){
     const maj=t=>t.charAt(0).toUpperCase()+t.slice(1);
     m=/^(.+) : Tout ou rien \((\d)\)(?:, | : )(.+)\.$/.exec(x);if(m)des(p,m[1]+' (Tout ou rien)',[+m[2]],maj(m[3]));
     m=/^(.+) : High Roll \((\d) et (\d)\), (.+)\.$/.exec(x);if(m)des(p,m[1]+' (High Roll)',[+m[2],+m[3]],maj(m[4]));
-    m=/^(.+) : On flip, (?:deck vide, )?dé (\d), (.+)\.$/.exec(x);if(m)des(p,m[1]+' (On flip)',[+m[2]],maj(m[3]));
+    m=/^(.+) : On flip, (?:deck vide, )?dé (\d)(?:, | : )(.+)\.$/.exec(x);if(m)des(p,m[1]+' (On flip)',[+m[2]],maj(m[3]));
     /* Gamba d'Apo (029, ou copiee par le Maitre du deguisement ou Le chansonnier) : de, puis 2 degats a Apo (1-2) ou en face (5-6). Case d'Apo : la pose, ou l'attente de copie. */
     m=/^(Apo|(?:Apo \(Maître du déguisement\)|Velnen \(Le chansonnier\)) \(Gamba\)) lance (\d) : (.+)\.$/.exec(x);
     if(m){const v=+m[2],o=a&&a.t==='p'?[a.l,a.k]:a&&(a.t==='k'||a.t==='i')&&av.attente&&av.attente.i?av.attente.i:null;
