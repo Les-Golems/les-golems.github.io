@@ -99,6 +99,8 @@ const DES_RE=[[/^(.+) : Tout ou rien \((\d)\)(?:, | : )(.+)\.$/,m=>[m[1]+' (Tout
   [/^(Apo|(?:Apo \(Maître du déguisement\)|Velnen \(Le chansonnier\)) \(Gamba\)) lance (\d) : (.+)\.$/,m=>[m[1]==='Apo'?'Apo (Gamba)':m[1],[+m[2]],m[3].charAt(0).toUpperCase()+m[3].slice(1)]]];
 const desF={L:[],t:0,el:null,iv:0};
 function des(s,t0){const n0=suivi.nlog!=null?suivi.nlog:s.log.length;
+  /* rejeu : un nouveau coup remplace les lancers des coups precedents encore en file (avance pas a pas plus rapide que les des) */
+  if(src==='rejeu'&&n0<s.log.length){desF.L=[];desF.fin=0;if(desF.cur){clearTimeout(desF.t);clearInterval(desF.iv);desF.cur=null}}
   let t=Math.max(t0,desF.fin||0);
   for(let i=n0;i<s.log.length;i++){const[p,x]=s.log[i];for(const[re,f]of DES_RE){const m=re.exec(x);if(m){const[nm,v,r]=f(m);desF.L.push({p,nm,v,r,t});t+=(REDUIT.matches?1700:2700)/KV;break}}}
   desF.fin=t;if(!desF.cur)desSuite()}
@@ -1102,7 +1104,7 @@ const rejeu={
   /* heure prevue du coup qui va etre peint (horloge absolue du rejeu) */
   debut(t){coupT=t},
   /* temps restant jusqu'a la fin prevue des animations lancees (ms), pour cadencer la lecture : durees declarees, jamais mesurees */
-  reste(){if(!suivi)return 0;const t=performance.now();let f=suivi.prevu||0;if(suivi.vol)f=Math.max(f,suivi.vol.fin);suivi.etArr.forEach(a=>f=Math.max(f,a.t));return Math.max(0,f-t)}
+  reste(){if(!suivi)return 0;const t=performance.now();let f=suivi.prevu||0;if(suivi.vol)f=Math.max(f,suivi.vol.fin);suivi.etArr.forEach(a=>f=Math.max(f,a.t));if(desF.cur||desF.L.length)f=Math.max(f,desF.fin||0);return Math.max(0,f-t)}
 };
 function coinRejeu(){
   const r=rejeu.info()||{pos:0,total:0,manche:1,vitesse:1,lecture:false,fin:false},z=mk('div','d-z d-coin'),B=mk('div','d-bloc d-rj'),bas=mk('div','d-bas');
