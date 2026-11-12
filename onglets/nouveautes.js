@@ -60,7 +60,7 @@ const DETAILS_VERSIONS={
    "Plus de Golems à 1 de coût, pour jouer dès le tour 1.",
    "Decks conseillés mis à jour pour les nouveaux éléments.",
    "Le Golem adverse sait copier les nouveaux effets (<<Imitation>>, <<Déguisement>>).",
-   "Ordre des éléments inversé sur {{Le Q}}, {{Le Q, Seul contre tous ★}}, {{Trigas}} et {{Trigas, Le Roi du Mobile ★}}. Sans effet en jeu aujourd'hui."],
+   "Ordre des éléments inversé sur {{Le Q}}, {{Le Q, Seul contre tous ★}}, {{Trigas}} et {{Trigas, Le Roi du Mobile ★}}. Sans effet en jeu pour l'instant..."],
   regles:[
    "Réductions de coût : elles se cumulent. Celle de ton prochain Golem s'applique au prochain Golem joué, en pose, remplacement ou évolution ; celle de ta prochaine carte (<<Full synergie>>) s'applique à la prochaine carte jouée, animal compris. Un coût ne descend jamais sous 0.",
    "<<On flip>> : si le deck est vide, rien n'est pioché et tu es protégé."],
