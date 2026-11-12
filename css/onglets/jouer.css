@@ -83,6 +83,11 @@ html.clair{--j-barre-plein:#8a9cab;--vert-j:#157443;--j-nb-fond:#ffffff}
 .j-codeL{display:flex;align-items:center;gap:14px}
 .j-robot{margin:0 0 16px}
 .j-robot[hidden]{display:none}
+/* 0.7 : alerte « deck choisi invalide » (ecran Jouer, salon, fenetre de choix du deck) */
+.j-dkinv,#popDeck .cd-alerte{margin:0 0 16px}
+.j-dkinv[hidden]{display:none}
+.j-dkinv .sc-alerte>span,#popDeck .cd-alerte .sc-alerte>span{text-align:left}
+@media (max-width:600px){.j-dkinv .sc-alerte>span,#popDeck .cd-alerte .sc-alerte>span{-webkit-line-clamp:4}} /* telephone : le motif reste lisible en entier */
 @media (max-width:1079px){.j-tuiles{grid-template-columns:minmax(0,1fr)}.j-p{grid-template-columns:90px 80px minmax(0,1fr) 120px}.j-p .j-spec{display:none}.j-p .sc-btn{grid-column:4}}
 @media (max-width:699px){.j-p{grid-template-columns:minmax(0,1fr) auto;height:auto;padding:10px}.j-p .j-duo{grid-column:1/-1}.j-p .j-inf{display:none}.j-pub,.j-code,.j-pil{width:150px}}
 /* Passe animations */
