@@ -4,7 +4,8 @@ let nv=0;const ok=(c,m)=>{assert(c,m||'ok');nv++},eq=(a,b,m)=>{assert.strictEqua
 const T=n=>({...M.TERRAINS.find(x=>x.nom===n)});
 /* ids : KaTarN 0 (magma foudre), Alrevan 6 (brume roche), Cyrdan 12 (cristal roche), Trigas 24 (foudre brume), K-Chan 30 (magma cristal), Titom76 57 (brume foudre),
    Kiwi 69 (animal de Titom76), Monsieur Poisson 54 (roche cristal), Jacen et Jaina 123 (animal de KaTarN) */
-const KA=0,AL=6,CY=12,TR=24,KC=30,MP=54,TI=57,KI=69,JJ=123;
+const KA=0,AL=6,CY=12,TR=24,KC=30,MP=54,TI=57,KI=69,JJ=123; /* 0.7 : Alrevan devient Foudre + Cristal ; QB = Le Q 18 (Magma, Brume), Golem Brume sans effet passif, pour les Traits de Kiwi */
+const QB=18;
 const res=[];
 const nouv=(noms)=>{const s=M.nouvelle(5,['','']);s.phase='jeu';s.mull=[true,true];s.premier=0;s.tour=1;s.joueur=0;s.manche=1;
   s.j.forEach((J,p)=>{J.etapeForge=false;J.main=[];J.energie=0;J.deck=[90+p,91+p,92+p,93+p];J.defausse=[];J.forge=[];J.score=0;J.grille=[[null,null,null],[null,null,null],[null,null,null]]});
@@ -30,8 +31,8 @@ const DEF={...M.REGLAGE_ANIMAUX};assert.deepStrictEqual(DEF,{cout:0,element:fals
   res.push('cout');
 }
 { // 2. Trait : l'animal porte l'element principal de son maitre, +1 a chaque Golem allie voisin qui le partage ; il ne recoit rien
-  regle(NOU);let s=nouv();pose(s,0,TI,1,1,1);pose(s,0,KI,0,0,1,{maitre:TI});pose(s,0,AL,3,0,0);pose(s,0,KA,8,0,2);
-  eq(M.forceDe(s,0,0,0),3+1,'Alrevan (Brume) voisin de Kiwi : +1');eq(M.forceDe(s,0,0,2),8,'KaTarN (Magma, Foudre) : rien');eq(M.forceDe(s,0,1,1),1+1,'Titom76 (Brume) voisin de Kiwi : +1');eq(M.forceDe(s,0,0,1),0,'Kiwi : pas de Force');
+  regle(NOU);let s=nouv();pose(s,0,TI,1,1,1);pose(s,0,KI,0,0,1,{maitre:TI});pose(s,0,QB,3,0,0);pose(s,0,KA,8,0,2);
+  eq(M.forceDe(s,0,0,0),3+1,'Le Q (Brume) voisin de Kiwi : +1');eq(M.forceDe(s,0,0,2),8,'KaTarN (Magma, Foudre) : rien');eq(M.forceDe(s,0,1,1),1+1,'Titom76 (Brume) voisin de Kiwi : +1');eq(M.forceDe(s,0,0,1),0,'Kiwi : pas de Force');
   regle(ANC);eq(M.forceDe(s,0,0,0),3,'ancien : rien');eq(M.forceDe(s,0,1,1),1);regle(NOU);
   // cumule avec le Trait habituel ; plusieurs Golems ; Jacen et Jaina en Magma
   s=nouv();pose(s,0,KA,8,1,1);pose(s,0,JJ,0,1,0,{maitre:KA});pose(s,0,KC,2,0,0);pose(s,0,KC+1,2,2,0);
@@ -45,8 +46,8 @@ const DEF={...M.REGLAGE_ANIMAUX};assert.deepStrictEqual(DEF,{cout:0,element:fals
   // Cirque a Force inversee (reglage) : pas de Trait, rien de l'animal
   M.REGLAGE_TERRAINS.cirque='inverse';s=nouv(['Le Cirque','La Faille','Le Camp']);pose(s,0,AL,3,0,0);pose(s,0,TI,1,1,1);pose(s,0,KI,0,0,1,{maitre:TI});eq(M.forceDe(s,0,0,0),3,'ancien Cirque : pas de Trait');M.REGLAGE_TERRAINS.cirque='tarte';
   // bilan : Trait donne par l'animal, jamais MVP
-  s=nouv();pose(s,0,TI,1,1,1);pose(s,0,KI,0,0,1,{maitre:TI});pose(s,0,AL,3,0,0);s.stats.ev=[];M.noteBonus(s);
-  eq(s.stats.ev.filter(e=>e.t==='b'&&e.y==='trait'&&e.d===KI).length,2,'bilan : Kiwi donne 2 Trait (Alrevan, Titom76)');
+  s=nouv();pose(s,0,TI,1,1,1);pose(s,0,KI,0,0,1,{maitre:TI});pose(s,0,QB,3,0,0);s.stats.ev=[];M.noteBonus(s);
+  eq(s.stats.ev.filter(e=>e.t==='b'&&e.y==='trait'&&e.d===KI).length,2,'bilan : Kiwi donne 2 Trait (Le Q, Titom76)');
   res.push('Trait');
 }
 { // 3. robot : pose l'animal a 0 la ou il donne du Trait ; ne le forge plus en premier
@@ -81,7 +82,7 @@ const ATT={cout:1,element:false,kiwiApres:true,attache:true};
     ok(iK>=0&&iM>=0&&iD>=0,'journal');ok(iM<iD,'tirage avant le decompte');ok(apres?iK>iD:iK<iD,apres?'Kiwi part apres le decompte':'ancien : Kiwi part avant le decompte');
     ok(s.j[0].defausse.includes(KI)&&!s.j[0].grille[1][0],'Kiwi a la defausse');ok(s.stats.ev.some(e=>e.t==='h'),'Mignonitude jouee')}
   // nouveau modele a cases + kiwiApres : Kiwi encore la au decompte, son Trait compte
-  regle({cout:0,element:true,kiwiApres:true,attache:false});{const s=nouv();s.manche=3;pose(s,0,AL,3,0,1);pose(s,0,TI,1,1,1);pose(s,0,KI,0,0,0,{maitre:TI});fm(s);
+  regle({cout:0,element:true,kiwiApres:true,attache:false});{const s=nouv();s.manche=3;pose(s,0,QB,3,0,1);pose(s,0,TI,1,1,1);pose(s,0,KI,0,0,0,{maitre:TI});fm(s);
     ok(s.stats.ev.some(e=>e.t==='b'&&e.y==='trait'&&e.d===KI),'Trait de Kiwi note au decompte (il est encore la)')}
   regle(ANC);res.push('Kiwi apres le decompte');
 }

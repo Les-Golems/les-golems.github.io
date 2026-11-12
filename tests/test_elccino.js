@@ -15,7 +15,7 @@ const log=(s,re)=>s.log.some(x=>re.test(x[1]));
 const fm=s=>{s.joueur=1;s.premier=0;s.tour=3;s.j[1].etapeForge=false;M.applique(s,1,{t:'x'})};
 { // 0. cartes, rangs, codes
   const B=M.CARTES['021'],E=M.CARTES['021e'];deq(B.el,['brume','cristal']);deq(E.el,['brume','cristal']);eq(B.nom,'Elccino');eq(E.nom,'Agent double SOLAEGIS');eq(E.base,'021');
-  eq(B.cout,3);eq(B.force,1);eq(E.cout,4);eq(E.force,2);
+  eq(B.cout,2);eq(B.force,1);eq(E.cout,4);eq(E.force,2);
   eq(B.texte,'Café du matin : à la pose et à chaque début de manche, regarde les 2 premières cartes de ton deck, prends-en 1 et remets l\'autre sous ton deck. Puis un Golem allié gagne +1 de Force.');
   eq(E.texte,'La taupe : à la pose, regarde la main adverse et choisis-en 1 : ton adversaire la défausse. Un Golem allié gagne +2 de Force.');
   eq(M.TYPES.length,45);eq(M.TYPES.indexOf('021'),43);eq(M.TYPES.indexOf('021e'),44);eq(M.TYPES.indexOf('903'),42,'Uki inchange');eq(M.carte(EL).id,'021');eq(M.carte(SO).id,'021e');
@@ -87,5 +87,12 @@ const fm=s=>{s.joueur=1;s.premier=0;s.tour=3;s.j[1].etapeForge=false;M.applique(
     const r=M.rejoue(g,j,dk);eq(r.erreur,null);eq(JSON.stringify(r.etat),JSON.stringify(u),'rejeu Elccino '+g);M.bilan(u);
     if(u.stats.elc){c+=u.stats.elc.cafe.length;t+=u.stats.elc.taupe.length;b+=u.stats.elc.boost.length;dv+=u.stats.elc.cafe.reduce((a,x)=>a+x.v,0)}}
   ok(c>50&&t>10&&b>50&&dv===0,'Cafes '+c+', taupes '+t+', bonus '+b);res.push('parties ('+c+' Cafes, '+t+' taupes, '+b+' bonus)');
+}
+{ // 0.7 : bug du Cafe du matin (plantage 0.6 : 2 Cafes en file, chacun pris d'office et un seul Golem allie, boost() rappelait suiteCafe qui videait la file)
+  const s=nouv();s.j.forEach((J,p)=>{J.deck=[40+10*p]});pose(s,0,EL,1,0,0);pose(s,1,EL2,1,0,0);const n0=s.log.length;fm(s);
+  eq(s.manche,2);eq(s.attente,null);ok(!('cafes' in s),'file videe');eq(s.stats.elc.cafe.filter(x=>x.q==='manche').length,2,'2 Cafes de manche');
+  eq(s.j[0].grille[0][0].cf,1);eq(s.j[1].grille[0][0].cf,1);
+  eq(s.log.slice(n0).filter(x=>/n'a pas pu piocher/.test(x[1])).length,2,'debutTour une seule fois (2 pioches du premier joueur, pas 4)');deq(M.attendus(s),[s.joueur]);
+  res.push('bug du Cafe (0.7)');
 }
 console.log('Elccino OK : '+nv+' vérifications ('+res.join(', ')+')');

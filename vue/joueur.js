@@ -172,10 +172,10 @@ function lg(t,v,cl){const d=el('div','lg'+(cl?' '+cl:''));d.append(el('span','',
 const effId=g=>M.idEff?M.idEff(g):M.carte(g.c).id;
 /* Copieurs (badge « Copie X », detail de Force) : code -> nom de la capacite qui copie (meme liste que COPIEURS du moteur). */
 const COPIEUR={};idsAvecEffet('copie').forEach(id=>{const t=M0.CARTES[id].texte||'',i=t.indexOf(' :');COPIEUR[id]=i>0?t.slice(0,i):''}); /* type d'effet copie (fiches) -> nom de capacite (texte avant « : ») */
-const CERCLE_2=idsAvecEffet('cercle'); /* Counter-pick et Full synergie : cercle +2 (type d'effet cercle des fiches, comme le moteur) */
+const CERCLE_2=idsAvecEffet('cercle'); /* Full synergie : cercle +2 (type d'effet cercle des fiches, comme le moteur) */
 /* Comeback (Bellock, Aiges Captain) et Winstreak (Loxim, Le Ace de Aiges) : Force par manche, perdue (0) ou remportee (1) sur son terrain (meme table que DUO_MANCHE du moteur) */
 const DUO_MANCHE={};idsAvecEffet('forceParManche').forEach(id=>{const r=effetDe(id,'forceParManche');DUO_MANCHE[id]=[r.bonus,r.gagne?1:0]}); /* lu dans les fiches : [bonus, gagnee] */
-/* Couleur de la Force en jeu : 'plus' au-dessus de la Force de base (g.f, résultat du dé pour Alrevan), 'moins' en dessous. */
+/* Couleur de la Force en jeu : 'plus' au-dessus de la Force de base (g.f), 'moins' en dessous. */
 const sensForce=(fa,f)=>fa>f?'plus':fa<f?'moins':'';
 /* Nom de capacité d'une carte (texte avant « : », moteur en service M0 : les anciens textes disaient « En jeu »), pour dire d'où vient un bonus */
 const capa=id=>{const t=(M0.CARTES[id]||{}).texte||'';const i=t.indexOf(' :');return i>0?t.slice(0,i):''};
@@ -184,7 +184,7 @@ function detailForce(s,p,l,k){
   let somme=0;const ajoute=(t,n,v)=>{somme+=n;a.append(lg(t,v!==undefined?v:signe(n)))};
   a.append(el('h3','','Force'));
   if(COPIEUR[C.id]&&g.cp!==undefined)a.append(lg(g.cp?COPIEUR[C.id]+' : copie '+M.nomDetail(M.CARTES[g.cp]):COPIEUR[C.id]+' : rien à copier',''));
-  {const r=effetDe(id,'forceAuDe');ajoute(r?(r.des>1?'Résultat des dés':'Résultat du dé'):'Force de base',g.f,String(g.f))}
+  ajoute('Force de base',g.f,String(g.f));
   const vs=[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([x,y])=>G[x]&&G[x][y]).filter(Boolean);
   vs.forEach(v=>{const c=M.carte(v.c),e=effId(v);if(effetDe(e,'bonusVoisins'))ajoute((capa(e)||'Bonus')+' : voisin '+M.nomDetail(c)+(c.id!==e?' (copie de '+M0.CARTES[M0.CARTES[e].base||e].nom+')':''),1)});
   if(g.ra)ajoute('Rage',g.ra);
@@ -200,11 +200,11 @@ function detailForce(s,p,l,k){
   if(effetDe(id,'forceParGolem',r=>r.compte==='voisins')){const n=vs.filter(v=>!M.carte(v.c).animal).length;ajoute("Bonus d'adjacence"+(n?'':' : aucun voisin'),n)} /* Le civ player : +1 par voisin allie */
   if(g.sub&&g.sub.length)ajoute('Sub offert',g.sub.length); /* JackJoy : bonus recus, gardes jusqu'a la fin de la partie */
   if(g.dr&&g.dr.length)ajoute('Draft diff',g.dr.length);
+  if(g.bo)ajoute('Bonus de dé reçu',g.bo); /* 0.7 : Tout ou rien (Alrevan), double de High Roll (KEKWRevan) : g.bo, garde jusqu'a la fin de la partie */
   if(d>0)ajoute('Dégâts subis',-d);
   const gs=vs.filter(v=>!M.carte(v.c).animal);
   C.el.forEach(e=>{const n=gs.filter(v=>M.carte(v.c).el.includes(e)).map(v=>M.nomDetail(M.carte(v.c)));
     ajoute('Trait '+NOMS_EL[e]+(n.length?' : voisin '+n.join(', '):' : aucun voisin'),M.TRAIT_CUMULE?n.length:Math.min(n.length,1))}); /* 0.2.1 : +1 par voisin */
-  if(effetDe(id,'synergie')){const n=C.el.filter(e=>gs.some(v=>M.carte(v.c).el.includes(e))).length;if(n)ajoute(capa(id)+' : '+(n>1?'2 éléments partagés':'1 élément partagé'),n)}
   if(effetDe(id,'forceParGolem',r=>r.compte==='element')&&M.foudres){const n=M.foudres(G);if(n)ajoute(capa(id)+' : '+n+(n>1?' Golems Foudre':' Golem Foudre')+' en jeu',n)}
   if(effetDe(id,'forceParGolem',r=>r.compte==='dessus')&&M.kekwait){const n=M.kekwait(G,l,k);ajoute((capa(id)||'KEKWait')+' : '+(n?n+(n>1?' Golems alliés':' Golem allié'):'aucun Golem allié')+' au-dessus',n)} /* Shifukuro, ou Apo et chansonnier qui l'ont copié */
   if(DUO_MANCHE[id]&&M.duoManches){ /* Bellock et Loxim (ou Apo et chansonnier qui les ont copiés) : manches de ce terrain, lues dans s.resultats */
@@ -353,7 +353,7 @@ function grilleVue(s,p,cols,lignes,cible){
         if(mo){porte.append(el('span','act-l',mo[1]),el('span','act-c',mo[1]==='Remplacer'?'Remp.':'Amél.'),lib.texte.slice(mo[1].length));if(obsRemp)obsRemp.observe(porte)}else porte.textContent=lib.texte}
         else b.textContent=lib.texte}
       if(lib.bonus){
-        const B=lib.bonus,n=B.trait+B.cercle+(B.synergie||0)+(B.survolte||0)+(B.kekwait||0)+(B.comeback||0)+(B.winstreak||0)+(B.doubleup||0),det='Bonus prévu : Trait +'+B.trait+', cercle +'+B.cercle+(B.synergie?', Full synergie +'+B.synergie:'')+(B.survolte?', Survolté +'+B.survolte:'')+(B.kekwait?', KEKWait +'+B.kekwait:'')+(B.comeback?', Comeback +'+B.comeback:'')+(B.winstreak?', Winstreak +'+B.winstreak:'')+(B.doubleup?', Double up ? +'+B.doubleup:''),h=el('small','p-hint','+'+n);
+        const B=lib.bonus,n=B.trait+B.cercle+(B.survolte||0)+(B.kekwait||0)+(B.comeback||0)+(B.winstreak||0)+(B.doubleup||0),det='Bonus prévu : Trait +'+B.trait+', cercle +'+B.cercle+(B.survolte?', Survolté +'+B.survolte:'')+(B.kekwait?', KEKWait +'+B.kekwait:'')+(B.comeback?', Comeback +'+B.comeback:'')+(B.winstreak?', Winstreak +'+B.winstreak:'')+(B.doubleup?', Double up ? +'+B.doubleup:''),h=el('small','p-hint','+'+n);
         h.dataset.n=n;porte.append(h);b.title=det;
         b.setAttribute('aria-label',(v?M.nomDetail(M.carte(v.c))+', ':'')+lib.texte+', '+det);
       }
@@ -674,6 +674,12 @@ function affiche(){
       :N+' (La taupe) : touche la carte de la main adverse que ton adversaire défausse.');
     choixCartes=mainVue(att.options,{p:att.t==='taupe'?lui:me,clic:c=>joue({t:'u',c})});
     pl.append(mainVue(J.main,{}));
+  }else if(att&&att.t==='vic'){ /* 0.7 : Info tchat (Vic2222, ou copieur) : la premiere carte de son deck, laissee dessus (coup 'i' o:1) ou mise dessous (o:0) */
+    con((att.src!==undefined?M.nomDetail(M.carte(att.src)):'Info tchat')+' (Info tchat) : voici la première carte de ton deck. Laisse-la dessus ou mets-la sous ton deck.');
+    choixCartes=mainVue(att.options,{});
+    pl.append(mainVue(J.main,{}));
+    const z=el('div','p-btns'),a1=leg.find(x=>x.t==='i'&&x.o===1),a0=leg.find(x=>x.t==='i'&&x.o===0);
+    const b1=bouton('Laisser dessus',()=>{if(a1)joue(a1)}),b0=bouton('Mettre dessous',()=>{if(a0)joue(a0)},true);b1.id='vicLaisser';b0.id='vicDessous';z.append(b1,b0);pl.append(z);
   }else if(att&&att.t==='boost'){
     con(M.nomDetail(M.carte(att.src))+' ('+att.nom+') : touche une case dorée pour choisir le Golem allié qui gagne +'+att.n+" de Force jusqu'à la fin de la partie.");
     pl.append(mainVue(J.main,{}));
@@ -812,7 +818,7 @@ function affiche(){
   piles.append(pile('deck','Deck',J.deck.length,tasPile(me,'deck')),pile('forge','Forge',J.forge.length,J.forge.slice()),pile('defausse','Défausse',J.defausse.length,J.defausse.slice().reverse()));
   {const d=piles.firstChild;if(d.classList.contains('clic')){const f=()=>voirPile(me,'deck');d.onclick=f;d.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}}}
   pl.append(piles);
-  if(choixCartes){const z=el('div','p-choix');z.append(el('p','p-ap-leg','Choisis une carte'),choixCartes);pl.append(z)}
+  if(choixCartes){const z=el('div','p-choix');z.append(el('p','p-ap-leg',att&&att.t==='vic'?'Première carte de ton deck':'Choisis une carte'),choixCartes);pl.append(z)}
   else if(ZONE.matches&&!s.fin){const ap=el('div','p-apercu'),fi=el('div','p-ap-img'),im=el('img'),tx=el('div','p-ap-txt');im.alt='';fi.append(im);
     /* 0.4a (variante A, style diffusion) : carte a gauche ; a droite titre, « X pose Y sur Z. », effet, Cout / Force / elements */
     tx.append(el('p','p-ap-leg'),el('p','p-ap-ph'),el('p','p-ap-ef'),el('div','p-ap-chips'));ap.append(fi,tx);pl.append(ap);

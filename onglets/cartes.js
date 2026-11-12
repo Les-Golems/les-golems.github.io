@@ -62,21 +62,7 @@ $('rechCarte').oninput=()=>maj();
 const TRI=[['','Numéro'],['cout','Coût'],['force','Force']];let fTri='',triDesc=false;
 pastilles($('filtreTri'),TRI,()=>fTri,v=>fTri=v);
 {const s=document.createElement('button');s.className='pastille';s.id='triSens';s.type='button';s.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span></span>';s.onclick=()=>{triDesc=!triDesc;maj()};const g=el('div','f-btns');g.append(s);$('filtreTri').after(g)}
-/* Force au de : moyenne reelle des lancers (forceMoy), sinon theorique (Alrevan 3,5 ; KEKWRevan 6,4). */
-const FORCE_TRI={};idsAvecEffet('forceAuDe').forEach(id=>{FORCE_TRI[id]=effetDe(id,'forceAuDe').estime}); /* estime des fiches */
-const valTri=(id,k)=>{const C=window.GolemsMoteur.CARTES[id];if(!C)return 99;return k==='force'?(C.force==null?forceMoy(id)??0:C.force):C.cout}; /* animal : ni Force ni de, trie a 0 */
-/* Moyenne reelle : forces tirees (champ dr des resumes deja charges pour les Statistiques), par code, 1 decimale ;
-   theorique tant qu'un code a moins de 30 lancers ou sans donnees (invite, hors ligne). Aucune lecture ni ecriture en plus. */
-let forceMoySrc=null,forceMoyVal={};
-function forceMoy(id){
-  if(!(id in FORCE_TRI))return null;
-  let L=null;try{L=statsData}catch(e){} /* statsData est declare plus bas */
-  if(L!==forceMoySrc){forceMoySrc=L;forceMoyVal={};const t={};
-    (Array.isArray(L)?L:[]).forEach(r=>{const d=r&&r.dr;if(!d||typeof d!=='object')return;
-      for(const k in FORCE_TRI)if(Array.isArray(d[k]))d[k].forEach(f=>{f=+f;if(Number.isInteger(f)&&f>=1&&f<=12){const x=t[k]=t[k]||{n:0,s:0};x.n++;x.s+=f}})});
-    for(const k in t)if(t[k].n>=30)forceMoyVal[k]=Math.round(10*t[k].s/t[k].n)/10}
-  return forceMoyVal[id]??FORCE_TRI[id];
-}
+const valTri=(id,k)=>{const C=window.GolemsMoteur.CARTES[id];if(!C)return 99;return k==='force'?(C.force==null?0:C.force):C.cout}; /* animal : ni Force ni de, trie a 0 */
 function trie(){
   const g=$('grille');
   if(!fTri){const ps=[...g.querySelectorAll('.paire')];if(triDesc)ps.reverse();ps.forEach(p=>g.append(p));

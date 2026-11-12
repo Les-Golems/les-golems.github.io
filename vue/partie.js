@@ -491,6 +491,11 @@ function etapesLignes(L,av,s,lignes,a){
     if(m)des(p,'Alrevan (KEKWRevan)',[+m[1],+m[2]],+m[3]);
     m=/^Le Plateau de Jeu lance (\d) : (.+)\.$/.exec(x);
     if(m)des(p,'Le Plateau de Jeu',[+m[1]],m[2]);
+    /* 0.7 : Tout ou rien, High Roll, On flip (meme fenetre de des ; texte du resultat tire du journal) */
+    const maj=t=>t.charAt(0).toUpperCase()+t.slice(1);
+    m=/^(.+) : Tout ou rien \((\d)\)(?:, | : )(.+)\.$/.exec(x);if(m)des(p,m[1]+' (Tout ou rien)',[+m[2]],maj(m[3]));
+    m=/^(.+) : High Roll \((\d) et (\d)\), (.+)\.$/.exec(x);if(m)des(p,m[1]+' (High Roll)',[+m[2],+m[3]],maj(m[4]));
+    m=/^(.+) : On flip, (?:deck vide, )?dé (\d), (.+)\.$/.exec(x);if(m)des(p,m[1]+' (On flip)',[+m[2]],maj(m[3]));
     /* Gamba d'Apo (029, ou copiee par le Maitre du deguisement ou Le chansonnier) : de, puis 2 degats a Apo (1-2) ou en face (5-6). Case d'Apo : la pose, ou l'attente de copie. */
     m=/^(Apo|(?:Apo \(Maître du déguisement\)|Velnen \(Le chansonnier\)) \(Gamba\)) lance (\d) : (.+)\.$/.exec(x);
     if(m){const v=+m[2],o=a&&a.t==='p'?[a.l,a.k]:a&&(a.t==='k'||a.t==='i')&&av.attente&&av.attente.i?av.attente.i:null;
@@ -948,7 +953,6 @@ function bonusPrevu(s,me,c,l,k){
   const G=s.j[me].grille,C=M.carte(c),vs=[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].map(([x,y])=>G[x]&&G[x][y]).filter(Boolean);
   const trait=C.el.reduce((t,e)=>{const n=vs.filter(v=>M.carte(v.c).el.includes(e)).length;return t+(M.TRAIT_CUMULE?n:Math.min(n,1))},0),f=s.j[1-me].grille[l][k];
   const dom=f&&C.el.some(e=>M.carte(f.c).el.includes(M.DOMINE[e])),c2=M.cercle2?M.cercle2(G,k,C.id)||!!effetDe(C.id,'cercleTerrain'):CERCLE_2.includes(C.id),o={trait,cercle:dom?(c2?2:1):0}; /* Vic2222 : Info tchat dans la colonne */
-  if(effetDe(C.id,'synergie')){const n=C.el.filter(e=>vs.some(v=>M.carte(v.c).el.includes(e))).length;if(n)o.synergie=n}
   if(effetDe(C.id,'forceParGolem',r=>r.compte==='element')&&M.foudres){const n=M.foudres(G)-(G[l][k]&&M.carte(G[l][k].c).el.includes('foudre')?1:0)+(C.el.includes('foudre')?1:0);if(n)o.survolte=n}
   if(effetDe(C.id,'forceParGolem',r=>r.compte==='dessus')&&M.kekwait){const n=M.kekwait(G,l,k);if(n)o.kekwait=n} /* Shifukuro : KEKWait */
   if(DUO_MANCHE[C.id]&&M.duoManches){const[x,w]=DUO_MANCHE[C.id],n=x*M.duoManches(s,me,k,!!w);if(n)o[w?'winstreak':'comeback']=n} /* Bellock et Loxim : manches deja jouees sur ce terrain */
@@ -1116,11 +1120,6 @@ function archiveResume(s,id){
   /* Deck par defaut (texte vide : joueur sans deck choisi, robot) : enregistre sous son texte (30 cartes depuis 0.3, 33 avant), sinon cartes et elements perdus pour les Statistiques. */
   const kDef=M.DECK_DEFAUT?M.deckTexte(M.DECK_DEFAUT):DECK_TEST_TXT;
   [0,1].forEach(p=>{const k=M.lisDeck(s.decks[p])?s.decks[p]:kDef;o['k'+p]=k;o['e'+p]=elsTexte(k).join(',')});
-  /* Forces reellement tirees par les cartes a de (type forceAuDe : Alrevan 1 de, KEKWRevan 2 des), des deux camps ; cle = code de la carte. Lignes du journal du moteur. */
-  {const dr={},id1=idsAvecEffet('forceAuDe',r=>r.des===1)[0],id2=idsAvecEffet('forceAuDe',r=>r.des===2)[0];(s.log||[]).forEach(x=>{const t=String(x[1]);let m=/^Alrevan lance le dé : Force (\d+)\.$/.exec(t),id=id1;
-     if(!m){m=/^Alrevan \(KEKWRevan\) lance \d+ et \d+ : Force (\d+)\.$/.exec(t);id=id2}
-     if(m){const f=+m[1];if(f>=1&&f<=12)(dr[id]=dr[id]||[]).length<30&&dr[id].push(f)}});
-   if(Object.keys(dr).length)o.dr=dr}
   /* Une seule fois par partie sur cet appareil, quel que soit le compte (la regle refuse aussi toute reecriture). */
   const vu=litListe('golems.archives');if(vu.includes(id))return null;
   return o;

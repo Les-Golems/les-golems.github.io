@@ -13,8 +13,8 @@ const log=(s,re)=>s.log.some(x=>re.test(x[1]));
 const PTS=M.POINT_DECK_VIDE!==undefined,videPerdu=(s,q)=>PTS?(!s.fin&&s.j[1-q].score>0):(!!s.fin&&s.fin.deckVide===q);
 { // 0. cartes
   const A=M.CARTES['004'],B=M.CARTES['004e'];
-  deq(A.el,['brume','magma']);eq(A.cout,2);eq(A.force,1);ok(/^Jour de pêche : à la pose, regarde les 2 premières cartes du deck adverse\. Défausses-en 1 et replace l'autre dessus\.$/.test(A.texte));
-  deq(B.el,['brume','magma']);eq(B.cout,7);eq(B.force,1);eq(B.nom,'Seul contre tous');eq(B.base,'004');ok(/^Il suffit : à la pose, détruis toutes tes cartes et toutes les cartes adverses posées en plusieurs exemplaires, toi compris\.$/.test(B.texte));
+  deq(A.el,['magma','brume']); /* 0.7 : ordre des elements */eq(A.cout,2);eq(A.force,1);ok(/^Jour de pêche : à la pose, regarde les 2 premières cartes du deck adverse\. Défausses-en 1 et replace l'autre dessus\.$/.test(A.texte));
+  deq(B.el,['magma','brume']);eq(B.cout,7);eq(B.force,1);eq(B.nom,'Seul contre tous');eq(B.base,'004');ok(/^Il suffit : à la pose, détruis toutes tes cartes et toutes les cartes adverses posées en plusieurs exemplaires, toi compris\.$/.test(B.texte));
   eq(M.carte(18).id,'004');eq(M.carte(23).id,'004e');eq(M.TYPES.length,45);res.push('cartes');
 }
 { // 1. Jour de peche, deck adverse a 2 cartes ou plus : choix, la carte choisie a la defausse adverse, l'autre reste dessus
@@ -50,13 +50,14 @@ const PTS=M.POINT_DECK_VIDE!==undefined,videPerdu=(s,q)=>PTS?(!s.fin&&s.j[1-q].s
   // Seul contre tous adverse en double : detruits ; le sien seul reste
   s=nouv();pose(s,0,Q,1,1,1);pose(s,1,QE+1,1,0,0);pose(s,1,QE+2,1,2,2);joue(s,QE,1,1);deq(ids(s,1),[]);deq(ids(s,0),[QE]);res.push('Le Q contre Le Q');
 }
-{ // 5. Mode Avion : protege chez l'adversaire (meme logique que Slim K), pas chez soi
-  let s=nouv();pose(s,0,Q,1,1,1);pose(s,1,RM,4,0,0);pose(s,1,RM+1,4,1,1);pose(s,1,TR,1,2,2);pose(s,1,TR+1,1,2,1);joue(s,QE,1,1);
-  deq(ids(s,1),[RM,RM+1],'2 Roi du Mobile adverses proteges, 2 Trigas detruits');ok(log(s,/sont protégés \(Mode Avion\)/));
+{ // 5. On flip (0.7, ex-Mode Avion) : Roi du Mobile protege (g.prot, de de la pose) chez l'adversaire (meme logique que Slim K), pas chez soi ; sans g.prot, rien
+  let s=nouv();pose(s,0,Q,1,1,1);pose(s,1,RM,4,0,0,{prot:true});pose(s,1,RM+1,4,1,1,{prot:true});pose(s,1,TR,1,2,2);pose(s,1,TR+1,1,2,1);joue(s,QE,1,1);
+  deq(ids(s,1),[RM,RM+1],'2 Roi du Mobile adverses proteges, 2 Trigas detruits');ok(log(s,/sont protégés \(On flip\)/));
+  s=nouv();pose(s,0,Q,1,1,1);pose(s,1,RM,4,0,0);pose(s,1,RM+1,4,1,1,{prot:true});joue(s,QE,1,1);deq(ids(s,1),[RM+1],'Roi du Mobile sans protection (de rate) : detruit');
   // Apo deguise en Roi du Mobile : protege ; l'autre Maitre du deguisement (meme carte) est detruit
-  s=nouv();pose(s,0,Q,1,1,1);pose(s,1,MD,3,0,0,{cp:'007e'});pose(s,1,MD+1,3,2,2,{cp:null});joue(s,QE,1,1);deq(ids(s,1),[MD],'Apo deguise en Mode Avion reste');
+  s=nouv();pose(s,0,Q,1,1,1);pose(s,1,MD,3,0,0,{cp:'007e',prot:true});pose(s,1,MD+1,3,2,2,{cp:null});joue(s,QE,1,1);deq(ids(s,1),[MD],'Apo deguise en Roi du Mobile protege reste');
   ok(!M.ciblable(s,1,0,0,0)&&M.ciblable(s,0,1,1,0));
-  s=nouv();pose(s,0,Q,1,1,1);pose(s,0,RM,4,0,0);pose(s,0,RM+1,4,2,2);joue(s,QE,1,1);deq(ids(s,0),[QE],'ses propres Roi du Mobile : detruits');res.push('Mode Avion');
+  s=nouv();pose(s,0,Q,1,1,1);pose(s,0,RM,4,0,0,{prot:true});pose(s,0,RM+1,4,2,2,{prot:true});joue(s,QE,1,1);deq(ids(s,0),[QE],'ses propres Roi du Mobile : detruits');res.push('On flip');
 }
 { // 6. copies : Maitre du deguisement (Apo) voisin de Seul contre tous, et Le chansonnier (Velnen) en face d'un Seul contre tous adverse
   let s=nouv();pose(s,0,QE,1,1,0);pose(s,0,GL,5,0,2);pose(s,0,GL+1,5,2,2);pose(s,1,AL,5,0,0);pose(s,1,AL+1,5,2,0);pose(s,0,AP,2,1,1);s.j[0].main=[MD];

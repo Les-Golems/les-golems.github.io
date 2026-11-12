@@ -62,7 +62,7 @@ function prepareAnims(s,premier,nev0){
   for(let i=Math.max(0,nev0);i<ev.length;i++){const e=ev[i];if(e.t==='p')pose=e;else if(e.t==='m')morts.push(e);else if(e.t==='r'&&e.y!=='evolution')X.recup.push(e);else if(e.t==='d')X.degs.push(e)}
   let t0=t; /* debut des effets de cette action : a l'arrivee de la carte posee */
   /* Choix a faire tout de suite par ce joueur (Elccino : Cafe du matin, La taupe) : pas de vol, la tuile est deja en place pendant le choix */
-  const A=s.attente,choix=src==='joueur'&&A&&A.p===E.moi&&(A.t==='cafe'||A.t==='taupe');
+  const A=s.attente,choix=src==='joueur'&&A&&A.p===E.moi&&(A.t==='cafe'||A.t==='taupe'||A.t==='vic');
   if(choix&&suivi.vol){suivi.vol=null;if(couche)couche.querySelectorAll('.d-vole').forEach(i=>i.remove())}
   if(pose&&scene){const x=chercheCarte(s,pose.cp,pose.cc);
     if(x&&!REDUIT.matches&&!choix){
@@ -87,7 +87,13 @@ function prepareAnims(s,premier,nev0){
    arrive, fx-evo (eclat d'evolution), traits entre cartes (.v-lien) + fx-lien, bonus « +n », degat « -n » + frappe, secoue,
    compte « +n » et fx-hors au decompte, bascule (Energie, score). Memes classes CSS que la 0.4 (css/partie.css). */
 /* Lancers de des (0.4 : #des) : Alrevan, KEKWRevan, Le Plateau de Jeu, Gamba d'Apo ; meme fenetre, dans la couche de #dif */
-const DES_RE=[[/^Alrevan lance le dé : Force (\d+)\.$/,m=>['Alrevan',[+m[1]],'Force '+m[1]]],
+const maj=t=>t.charAt(0).toUpperCase()+t.slice(1);
+/* 0.7 : Tout ou rien (1 de), High Roll (2 des), On flip (1 de) : lignes du journal du moteur 0.7, nom de la carte qui agit (ou de son copieur) en tete.
+   Les deux premieres expressions (Force au de, avant la 0.7) ne servent plus qu'aux rejeux des parties anciennes. */
+const DES_RE=[[/^(.+) : Tout ou rien \((\d)\)(?:, | : )(.+)\.$/,m=>[m[1]+' (Tout ou rien)',[+m[2]],maj(m[3])]],
+  [/^(.+) : High Roll \((\d) et (\d)\), (.+)\.$/,m=>[m[1]+' (High Roll)',[+m[2],+m[3]],maj(m[4])]],
+  [/^(.+) : On flip, (?:deck vide, )?dé (\d), (.+)\.$/,m=>[m[1]+' (On flip)',[+m[2]],maj(m[3])]],
+  [/^Alrevan lance le dé : Force (\d+)\.$/,m=>['Alrevan',[+m[1]],'Force '+m[1]]],
   [/^Alrevan \(KEKWRevan\) lance (\d) et (\d) : Force (\d+)\.$/,m=>['Alrevan (KEKWRevan)',[+m[1],+m[2]],'Force '+m[3]]],
   [/^Le Plateau de Jeu lance (\d) : (.+)\.$/,m=>['Le Plateau de Jeu',[+m[1]],m[2]]],
   [/^(Apo|(?:Apo \(Maître du déguisement\)|Velnen \(Le chansonnier\)) \(Gamba\)) lance (\d) : (.+)\.$/,m=>[m[1]==='Apo'?'Apo (Gamba)':m[1],[+m[2]],m[3].charAt(0).toUpperCase()+m[3].slice(1)]]];
@@ -500,13 +506,13 @@ function derniere(s){
   const u=U(),Mo=M(),z=mk('div','d-z d-bloc d-der'),tx=mk('div','d-txt'),d=suivi.der;
   /* vue joueur, choix de carte a faire (Cafe du matin, La taupe) : « Choisis une carte » a la place de la derniere carte jouee ; le clic passe par la vraie vue (.p-choix) */
   const A0=s.attente;
-  if(src==='joueur'&&A0&&A0.p===E.moi&&(A0.t==='cafe'||A0.t==='taupe')){
-    z.classList.add('d-choix');tx.append(mk('div','d-h','Choisis une carte'));const r=mk('div','d-main');
+  if(src==='joueur'&&A0&&A0.p===E.moi&&(A0.t==='cafe'||A0.t==='taupe'||A0.t==='vic')){ /* 0.7 : Info tchat (vic), la carte regardee, choix par les boutons de la vue */
+    z.classList.add('d-choix');tx.append(mk('div','d-h',A0.t==='vic'?'Première carte de ton deck':'Choisis une carte'));const r=mk('div','d-main');
     /* cartes a 103 x 144 (taille de la main) sur toute la largeur de la zone (755 px utiles) ; trop nombreuses : chevauchement, jamais reduites */
     const nO=A0.options.length,ec=nO>1?Math.min(8,Math.floor((755-103*nO)/(nO-1))):0;
-    A0.options.forEach((c,k)=>{const C=Mo.carte(c),b=mk('button'),im=mk('img');b.type='button';im.src=imgV('cartes/'+C.id+'.jpg');im.alt=C.nom;b.setAttribute('aria-label','Choisir '+Mo.nomDetail(C));
+    A0.options.forEach((c,k)=>{const C=Mo.carte(c),b=mk('button'),im=mk('img');b.type='button';im.src=imgV('cartes/'+C.id+'.jpg');im.alt=C.nom;b.setAttribute('aria-label',(A0.t==='vic'?'Agrandir ':'Choisir ')+Mo.nomDetail(C));
       b.style.width='103px';b.style.height='144px';if(k)b.style.marginLeft=ec+'px';b.append(im);
-      b.onclick=()=>{const v=document.querySelector('#partie .p-choix .p-slot[data-c="'+c+'"]>.p-carte');if(v)v.click()};r.append(b)});
+      b.onclick=A0.t==='vic'?()=>zoomCarte(c):()=>{const v=document.querySelector('#partie .p-choix .p-slot[data-c="'+c+'"]>.p-carte');if(v)v.click()};r.append(b)});
     tx.append(r);z.append(tx);return z;
   }
   tx.append(mk('div','d-h','Dernière carte jouée'));

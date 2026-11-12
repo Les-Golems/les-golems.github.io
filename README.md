@@ -13,10 +13,10 @@ Jeu de cartes communautaire du Discord Les Golems, jouable dans le navigateur : 
 
 Chaque partie de l'historique enregistre la version de son moteur (`moteur` et `rejeu.v`). Le rejeu recharge le moteur archivé `moteurs/moteur-<version>.js` de cette version, jamais le moteur courant si la version diffère : les rejeux restent possibles après les mises à jour.
 
-Règle, à chaque nouvelle version du moteur :
-1. Changer `VERSION` en tête de `moteur.js`.
-2. Copier le nouveau `moteur.js` tel quel dans `moteurs/moteur-<nouvelle version>.js` (les anciennes archives ne sont jamais modifiées ni supprimées).
-3. Ajouter la nouvelle version à la liste `MOTEURS_ARCHIVES` dans `vue/partie.js`.
+Règle, à chaque nouvelle version du moteur (depuis la 0.7) :
+1. AVANT tout changement, `node outils/archiver_moteur.js` : écrit `moteurs/moteur-<version actuelle>.js`, archive autonome qui contient le moteur ET les fiches et effets des cartes de cette version (depuis la 0.6, le moteur lit `cartes/donnees` et `cartes/effets` : copier `moteur.js` seul ne gèle plus les cartes). Les anciennes archives ne sont jamais modifiées ni supprimées.
+2. Vérifier l'archive : `GOLEMS_MOTEUR=moteurs/moteur-<version>.js node tests/reference/comparer.js` doit dire « identique ».
+3. Changer `VERSION` en tête de `moteur.js`, puis ajouter l'ancienne version à la liste `MOTEURS_ARCHIVES` dans `vue/partie.js`.
 
 Le numéro du moteur (VERSION de moteur.js) ne change que si une règle du jeu change ; il ne suit pas la version du site.
 

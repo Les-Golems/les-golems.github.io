@@ -556,13 +556,10 @@ function decklist(b,d,l){
 }
 /* Bac a sable de placement (editeur de deck). Notre cote seulement : une grille 3 x 3 et 3 terrains, les cartes du deck posees librement.
    Toute Force vient du moteur (M.forceDe, M.colonnes, M.coutPose, M.peutPoser) sur un etat minimal : grille adverse vide, manche 1, aucun resultat.
-   Donc : Force de base, Trait, Cyrdan, favori d'Indra, Survolte, KEKWait, Full synergie (partie Trait), Double up ? comptes ;
+   Donc : Force de base, Trait, Cyrdan, favori d'Indra, Survolte, KEKWait, Double up ? comptes ;
    cercle, effets sur le Golem en face, degats, Rage, Comeback, Winstreak, fin de manche : non comptes (il faut un adversaire ou une manche jouee).
-   Des (Alrevan, KEKWRevan) : resultat choisi (4 ; 3 et 4) ou relance au hasard, Force toujours entiere. Aucune ecriture : l'etat vit en memoire, par deck. */
+   Aucune ecriture : l'etat vit en memoire, par deck. */
 const bacs={};
-/* Des a la pose : nombre de des et valeurs par defaut ; resultat comme effetPose du moteur (2 des : leur somme, un double vaut un seul de). */
-const BAC_DES={};idsAvecEffet('forceAuDe').forEach(id=>{const v=window.GolemsDonnees.interface.bacDes[effetDe(id,'forceAuDe').des];if(v)BAC_DES[id]=v}); /* cartes a de (fiches) -> valeurs par defaut selon le nombre de des (cartes/donnees/interface.js) */
-const bacDeF=v=>v.length>1&&v[0]!==v[1]?v[0]+v[1]:v[0];
 const BAC_NOTE=window.GolemsDonnees.interface.bacNotes;
 const bacVide=()=>[[null,null,null],[null,null,null],[null,null,null]];
 const bacTirage=()=>M.TERRAINS.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,3);
@@ -601,7 +598,6 @@ function bacPose(B,l,k){
     else{B.selC=[l,k];B.mode='copie';return}
   }
   const id=M.idEff(g);
-  if(BAC_DES[id]&&!g.de){g.de=BAC_DES[id].slice();g.f=bacDeF(g.de)}
   if(M.FAV_BONUS[id]){
     if(g.fav!==undefined&&!B.G.flat().some(h=>h&&h.c===g.fav))delete g.fav;
     if(g.fav===undefined){
@@ -633,18 +629,6 @@ function bacPeut(B,a,b,l,k){
 function bacBouge(B,a,b,l,k){
   if(!bacPeut(B,a,b,l,k))return false;
   const g=B.G[a][b];B.G[a][b]=B.G[l][k];B.G[l][k]=g;return true;
-}
-/* Choix des des d'une carte posee (barre d'outils et fenetre de detail) : 1 a 6 par de, Relancer au hasard. */
-function bacDes(v,id,apres){
-  const z=el('div','bac-des');
-  v.de.forEach((x,i)=>{const r=el('div','bs');r.append(el('span','',v.de.length>1?'Dé '+(i+1)+' :':'Dé :'));
-    for(let n=1;n<=6;n++){const q=el('button','pastille',String(n));q.type='button';q.setAttribute('aria-pressed',String(x===n));q.setAttribute('aria-label',(v.de.length>1?'Dé '+(i+1):'Dé')+' : '+n);
-      q.onclick=()=>{v.de[i]=n;v.f=bacDeF(v.de);apres()};r.append(q)}
-    z.append(r)});
-  const r=el('div','bs'),q=el('button','pastille','Relancer');q.type='button';
-  q.onclick=()=>{v.de=v.de.map(()=>1+Math.floor(Math.random()*6));v.f=bacDeF(v.de);apres()};
-  r.append(q,el('span','',(effetDe(id,'forceAuDe',r=>r.des>1)?'Force des dés : ':'Force du dé : ')+v.f+(v.de.length>1&&v.de[0]===v.de[1]?' (double)':'')));z.append(r);
-  return z;
 }
 /* Terrain du bac en grand : ton camp seulement, lignes condensees (cout, Force, elements, nom + titre coupe par « … », titre complet au survol). */
 function zoomTerrainBac(s,k){
@@ -790,7 +774,6 @@ function bacFen(f,d,ferme){
   else if(B.selC)cible=(l,k)=>l===sa&&k===sb?{choisie:true,fait:()=>agrandir(l,k)}:null;
   const g=grilleVue(s,0,cols,[0,1,2],cible);g.classList.add('mienne');
   g.querySelectorAll('.p-case').forEach(q=>{const l=+q.dataset.l,k=+q.dataset.k,v=G[l][k];
-    if(v&&v.de&&BAC_DES[M.idEff(v)])q.querySelector('.mini').append(el('span','cp',(v.de.length>1?'Dés : '+v.de.join(' et '):'Dé : '+v.de[0])));
     if(v&&!q.classList.contains('cible')&&!q.classList.contains('choisie'))q.onclick=()=>{B.sel=null;B.selC=[l,k];B.mode=null;peint()};
     if(v){q.draggable=true;q.ondragstart=e=>{e.dataTransfer.setData('text/plain','c:'+l+','+k);e.dataTransfer.effectAllowed='move'}}
     q.ondragover=e=>{e.preventDefault();q.classList.add('survol')};q.ondragleave=()=>q.classList.remove('survol');
@@ -817,7 +800,6 @@ function bacFen(f,d,ferme){
   if(B.selC){const v=G[sa][sb],C=M.carte(v.c),id=M.idEff(v);dt.append(pzCarteBac(C,C.animal?null:M.forceDe(s,0,sa,sb)));
     const msg={bouge:'Touche une case libre (Ici) ou un autre Golem (Échanger).',fav:'Choisis son favori : touche un de tes Golems.',copie:'Déguisement : touche le voisin à copier.'}[B.mode];if(msg)dt.append(el('p','tp-msg',msg));
     const notes=[BAC_NOTE[C.id]];if(C.id!==id&&id&&BAC_NOTE[id])notes.push('Copie : '+BAC_NOTE[id]);const nt=notes.filter(Boolean).join(' ');if(nt)dt.append(el('p','',nt));
-    if(BAC_DES[id])dt.append(bacDes(v,id,peint));
     const bs=el('div','tp-acts'),bt=(x,fn,p)=>{const q=btnDk(x,'sc-tertiaire',fn);if(p!==undefined)q.setAttribute('aria-pressed',String(p));bs.append(q)};
     bt('Agrandir',()=>agrandir(sa,sb));bt('Déplacer',()=>{B.mode=B.mode==='bouge'?null:'bouge';peint()},B.mode==='bouge');
     bt('Retirer',()=>{bacRetire(B,sa,sb);B.selC=null;B.mode=null;peint()});
@@ -838,7 +820,7 @@ function bacFen(f,d,ferme){
   if(!MAIN)ac.append(btnDk('Tout effacer','sc-secondaire',()=>{B.G=bacVide();B.selC=null;B.mode=null;peint()}));
   ac.append(btnDk('Fermer','sc-secondaire sc-pousse',()=>{B.ouvert=false;ferme()}));f.append(ac);
   const m=el('details','bac-mention'),sm=el('summary','','Ce que le test compte : ton côté seulement, ni cercle des éléments, ni effet adverse, ni fin de manche.');m.append(sm,el('p','',
-    'Compté : Force, Trait, favori, copie, dés, Full synergie, Double up ?. Pas compté : cercle des éléments, effets sur l’adversaire, dégâts, Comeback et Winstreak, fin de manche, pioche et Forge. Les terrains donnent les points ; La Boutique baisse le coût.'));f.append(m);
+    'Compté : Force, Trait, favori, copie, Double up ?. Pas compté : cercle des éléments, effets à la pose (dés, réductions de coût), effets sur l’adversaire, dégâts, Comeback et Winstreak, fin de manche, pioche et Forge. Les terrains donnent les points ; La Boutique baisse le coût.'));f.append(m);
 }
 function ouvreTest(d,l){const {v,f,ferme}=fenDk('popTest');f.classList.add('dk-test');v.setAttribute('aria-labelledby','tpTitre');
   const B=bacDe(d);B.ouvert=true;bacFen(f,d,ferme);f.querySelector('.tp-mode button')?.focus()}

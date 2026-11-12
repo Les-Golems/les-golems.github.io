@@ -33,6 +33,7 @@ Une nouvelle carte va dans le fichier de son type, un nouvel effet dans le fichi
 | `avatars/`, `images/` (rangs et récompenses du classé), `videos/`, icônes, `manifest.webmanifest`, `og.jpg` | Ressources du site. |
 | `essai/` | Site d'essai **généré** (copie du site) : ne jamais le modifier à la main. |
 | `outils/publier.js` | Publication : `version` ou `correctif`. |
+| `outils/archiver_moteur.js` | Archive autonome du moteur de la version en cours (moteur + `cartes/donnees` + `cartes/effets`) dans `moteurs/`, avant une nouvelle version du moteur. |
 | `outils/generer_essai.js` | Régénère `essai/` (racine, et dossiers `css/`, `commun/`, `firebase/`, `onglets/`, `vue/`, `cartes/`, `moteurs/`, `avatars/`, `images/`). |
 | `tests/` | Tests (Node) et corpus de référence (`tests/reference/`). |
 | `rules/` | Blocs des règles Firebase et générateur (voir section 3). |
@@ -64,7 +65,7 @@ Un nouveau fichier JS ou CSS doit être ajouté à la liste `golemsCharge` d'ind
 | Règles Firebase | Blocs `rules/00-communs.js`, `10-comptes.js`, `20-en-ligne.js`, `30-stats.js`, `40-nouveautes.js`, `50-classe.js`, `60-guides.js`, plus `rules/lire-json.js` (lecture du JSON à commentaires et comparaison) ; `node rules/generer.js` fabrique `database.rules.json` (racine + miroir `essai/` identique au préfixe près) ; `node rules/generer.js --verifier` contrôle ; tests `tests/test_regles.js` (émulateur). Romain importe ensuite le fichier complet dans la console. |
 | Publication | `node outils/publier.js version 0.6` (nouveauté, carte, règle, équilibrage : message aux joueurs) ou `node outils/publier.js correctif` (affichage, texte : rechargement silencieux hors partie). Le correctif est refusé si `moteur.js`, `moteurs/`, `cartes/donnees/` (sauf `interface.js`) ou `cartes/effets/` ont changé depuis la dernière publication. |
 | Site d'essai | `node outils/generer_essai.js` (ou `publier_essai.ps1` des outils), puis Romain pousse. Adresse : `/essai/`. Le code reconnaît l'adresse seul (clés locales `essai.`, préfixe Firebase `essai/`, pastille « SITE D'ESSAI »). Les vidéos `.mp4` ne sont pas copiées (affiches seulement). |
-| Nouvelle version du moteur | Changer `VERSION` dans `moteur.js`, copier le moteur publié dans `moteurs/moteur-<version>.js`, ajouter la version à `MOTEURS_ARCHIVES` (`vue/partie.js`). |
+| Nouvelle version du moteur | AVANT tout changement : `node outils/archiver_moteur.js` (archive autonome `moteurs/moteur-<version>.js` : moteur + fiches + effets de la version, à vérifier par `GOLEMS_MOTEUR=moteurs/moteur-<version>.js node tests/reference/comparer.js`), puis changer `VERSION` dans `moteur.js` et ajouter l'ancienne version à `MOTEURS_ARCHIVES` (`vue/partie.js`). |
 
 ## 4. Ajouter une carte, pas à pas
 
@@ -86,7 +87,7 @@ Un nouveau fichier JS ou CSS doit être ajouté à la liste `golemsCharge` d'ind
 
 - `tests/reference/comparer.js` : 540 parties de référence, doit répondre « identique » après tout changement qui ne doit pas modifier le jeu.
 - `tests/test_ids_moteur.js`, `tests/test_ids_interface.js` : aucun code ni nom de carte en dur.
-- `tests/test_moteur.js`, `test_animaux.js`, `test_leq.js`, `test_terrains.js`, `test_encodage.js`, `test_elccino.js` : règles du moteur.
+- `tests/test_moteur.js`, `test_animaux.js`, `test_leq.js`, `test_terrains.js`, `test_encodage.js`, `test_elccino.js`, `test_equilibrage_07.js` (cartes revues et effets de la 0.7) : règles du moteur.
 - `tests/test_compteurs.js` : compteurs par mode du profil (commun/profil.js).
 - `tests/test_classe.js` : parties classées (commun/classe.js). `tests/test_regles.js` : règles Firebase sur l'émulateur. `tests/test_rejeu.html` : rejeu en navigateur.
 - Hors dépôt (`6 - Outils et simulations\1 - Outils\3 - Tests du site`) : harnais Chrome headless (`cdp.py`, `t_moteur.py` ; variable `GOLEMS_SITE` pour tester un autre dossier que « 4 - Site GitHub »).

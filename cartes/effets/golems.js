@@ -45,7 +45,7 @@ function jourDePeche(s,p,g){
 }
 /* Le Q : Il suffit (Seul contre tous, 004e, ou copieur). Chaque grille a part : carte exacte (id de la carte, base et evolution differentes ;
    un copieur compte comme sa propre carte) posee en 2 exemplaires ou plus sur la grille. Animaux jamais (1 par deck).
-   Renvoie {T : detruits [{q,l,k,c}], pr : proteges par Mode Avion (chez l'adversaire seulement, ciblable)}. Le Golem protege compte dans les exemplaires. */
+   Renvoie {T : detruits [{q,l,k,c}], pr : proteges par protection On flip (chez l'adversaire seulement, ciblable)}. Le Golem protege compte dans les exemplaires. */
 function doublons(s,p){
   const T=[],pr=[];
   [p,1-p].forEach(q=>{const G=s.j[q].grille,nb={};
@@ -61,29 +61,29 @@ function ilSuffit(s,p,g){
   const nm=x=>x.map(y=>nomDetail(carte(y.c))+(y.q===p?'':' (adverse)')).join(', ');
   M.declenche(s,'Il suffit',m+' allié'+(m>1?'s':'')+' et '+a+' adverse'+(a>1?'s':'')+' détruits');
   if(!T.length&&!pr.length){dire(s,p,n+', aucune carte posée en plusieurs exemplaires.');return}
-  dire(s,p,n+(T.length?', détruit '+nm(T):'')+(pr.length?(T.length?' ; ':', ')+nm(pr)+(pr.length>1?' sont protégés':' est protégé')+' (Mode Avion)':'')+'.');
+  dire(s,p,n+(T.length?', détruit '+nm(T):'')+(pr.length?(T.length?' ; ':', ')+nm(pr)+(pr.length>1?' sont protégés':' est protégé')+' (On flip)':'')+'.');
   T.forEach(x=>M.note(s,'m',1,{p,c:g.c,lib:'À la pose'},x.q,x.c));
   T.forEach(x=>{const J=s.j[x.q];x.ani=J.grille[x.l][x.k].ani;J.defausse.push(x.c);J.grille[x.l][x.k]=null});
   T.forEach(x=>M.orphelins(s,x.q,x.c,false,x.ani)); /* 0.6 : l'animal attache (Kiwi, Jacen et Jaina) va aussi a la defausse */
 }
 /* Elessar : Extinction du feu (Le pomplard, 018e, ou Maitre du deguisement qui l'a copiee), a la pose : chaque Golem adverse en jeu
-   qui a l'element r.el perd r.degats, comme une blessure. Mode Avion protege (ciblable), Menfou palu aussi (blesse). Les morts : nettoie, apres. */
+   qui a l'element r.el perd r.degats, comme une blessure. protection On flip protege (ciblable), Menfou palu aussi (blesse). Les morts : nettoie, apres. */
 function extinction(r,s,p,g){
   const G=s.j[1-p].grille,cs=[],pr=[],n=nomDetail(carte(g.c))+' : Extinction du feu';
   for(let a=0;a<3;a++)for(let b=0;b<3;b++){const h=G[a][b];if(golem(h)&&carte(h.c).el.includes(r.el))(M.ciblable(s,1-p,a,b,p)?cs:pr).push([a,b])}
   const nm=x=>x.map(([a,b])=>nomDetail(carte(G[a][b].c))).join(' et ');
   if(!cs.length&&!pr.length){dire(s,p,n+', aucun Golem Magma adverse.');return}
-  dire(s,p,n+(cs.length?', '+nm(cs)+(cs.length>1?' perdent':' perd')+' 1 de Force':'')+(pr.length?(cs.length?' ; ':', ')+nm(pr)+(pr.length>1?' sont protégés':' est protégé')+' (Mode Avion)':'')+'.');
+  dire(s,p,n+(cs.length?', '+nm(cs)+(cs.length>1?' perdent':' perd')+' 1 de Force':'')+(pr.length?(cs.length?' ; ':', ')+nm(pr)+(pr.length>1?' sont protégés':' est protégé')+' (On flip)':'')+'.');
   cs.forEach(([a,b])=>M.blesse(s,1-p,a,b,r.degats,{p,c:g.c,lib:'À la pose'}));
 }
-/* Gamba (Apo, 029) : 1 de. 1-2 : Apo perd 2. 5-6 : le Golem adverse en face perd 2 (Mode Avion le protege, Menfou palu aussi). Copieur : « (Gamba) ». */
+/* Gamba (Apo, 029) : 1 de. 1-2 : Apo perd 2. 5-6 : le Golem adverse en face perd 2 (protection On flip le protege, Menfou palu aussi). Copieur : « (Gamba) ». */
 function gamba(s,p,l,k,g){
   const v=M.de(s,p),n=nomDetail(carte(g.c))+(M.estCopieur(carte(g.c).id)?' (Gamba)':'');
   if(v<=2){dire(s,p,n+' lance '+v+' : perd 2 de Force.');M.blesse(s,p,l,k,2,{p,c:g.c,lib:'À la pose'});return}
   if(v<=4){dire(s,p,n+' lance '+v+' : rien ne se passe.');return}
   const h=s.j[1-p].grille[l][k];
   if(!golem(h)){dire(s,p,n+' lance '+v+' : aucun Golem en face.');return}
-  if(!M.ciblable(s,1-p,l,k,p)){dire(s,p,n+' lance '+v+' : '+nomDetail(carte(h.c))+' est protégé (Mode Avion).');return}
+  if(!M.ciblable(s,1-p,l,k,p)){dire(s,p,n+' lance '+v+' : '+nomDetail(carte(h.c))+' est protégé (On flip).');return}
   dire(s,p,n+' lance '+v+' : '+nomDetail(carte(h.c))+' perd 2 de Force.');
   M.blesse(s,1-p,l,k,2,{p,c:g.c,lib:'À la pose'});
 }
@@ -189,11 +189,11 @@ function choisitFavori(s,p,I,l,k){
   dire(s,p,nomDetail(carte(I.c))+' : '+nomDetail(carte(f.c))+' devient son favori (+'+M.favBonus(M.idEff(I))+' de Force).');
   if(e&&e.r.ragebait)ragebait(e.r,s,p,I,l,k);
 }
-/* Ragebait : degats au Golem adverse en face du favori, effet de carte cible (Mode Avion le protege). */
+/* Ragebait : degats au Golem adverse en face du favori, effet de carte cible (protection On flip le protege). */
 function ragebait(r,s,p,I,l,k){
   const h=s.j[1-p].grille[l][k];
   if(!golem(h)){dire(s,p,'Ragebait : aucun Golem en face du favori.');return}
-  if(!M.ciblable(s,1-p,l,k,p)){dire(s,p,'Ragebait : '+nomDetail(carte(h.c))+' est protégé (Mode Avion).');return}
+  if(!M.ciblable(s,1-p,l,k,p)){dire(s,p,'Ragebait : '+nomDetail(carte(h.c))+' est protégé (On flip).');return}
   dire(s,p,'Ragebait : '+nomDetail(carte(h.c))+' perd '+r.ragebait+' de Force.');
   M.blesse(s,1-p,l,k,r.ragebait,{p,c:I.c,lib:'À la pose'});
 }
@@ -203,7 +203,7 @@ function choixFavori(s,p,l){
   l.forEach(a=>{const g=s.j[p].grille[a.l][a.k],x=M.forceDe(s,p,a.l,a.k)+(carte(g.c).el.some(e=>el.includes(e))?2:0)+(evo&&M.ciblable(s,1-p,a.l,a.k,p)?1:0);if(x>v){v=x;m=a}});
   return m;
 }
-/* ---- Glad : Slam. Seuls les Golems adverses ciblables (Mode Avion exclu) ayant une case libre adjacente (haut, bas, gauche, droite, jamais en diagonale)
+/* ---- Glad : Slam. Seuls les Golems adverses ciblables (protection On flip exclu) ayant une case libre adjacente (haut, bas, gauche, droite, jamais en diagonale)
    sont proposes, vers chacune de ces cases. Si aucun n'en a : tout Golem adverse ciblable, [l,k,l,k], il reste en place et perd quand meme 1. */
 function slams(s,p){
   const G=s.j[1-p].grille,r=[],place=[];
@@ -235,7 +235,7 @@ function copie(s,p,l,k,g,a,b,q){ /* q : camp du Golem copie (le sien par defaut 
   M.effetPose(s,p,l,k,g);
 }
 /* Velnen : Imitation (Le chansonnier, 041e, cible:'face'), a la pose. Cible : le Golem adverse en face (meme terrain, meme ligne). Case vide ou animal : rien.
-   Mode Avion : rien (ciblable). Apo ou chansonnier en face qui n'a rien copie : rien. Sinon, choix 'i' : copier (1) ou refuser (0), toujours propose.
+   protection On flip : rien (ciblable). Apo ou chansonnier en face qui n'a rien copie : rien. Sinon, choix 'i' : copier (1) ou refuser (0), toujours propose.
    La copie est figee a la pose (g.cp) et se lit du point de vue du chansonnier (« adverse » = l'autre camp). */
 function imitation(s,p,l,k,g){
   const J=s.j[p],n=nomDetail(carte(g.c))+' : Imitation';
@@ -243,7 +243,7 @@ function imitation(s,p,l,k,g){
   if(J.grille[l][k]!==g)return;
   const h=s.j[1-p].grille[l][k];
   if(!golem(h)){g.cp=null;dire(s,p,n+', aucun Golem en face.');return}
-  if(!M.ciblable(s,1-p,l,k,p)){g.cp=null;dire(s,p,n+', '+nomDetail(carte(h.c))+' est protégé (Mode Avion).');return}
+  if(!M.ciblable(s,1-p,l,k,p)){g.cp=null;dire(s,p,n+', '+nomDetail(carte(h.c))+' est protégé (On flip).');return}
   if(!M.idEff(h)){g.cp=null;dire(s,p,n+', '+nomDetail(carte(h.c))+' n\'a rien à copier.');return}
   s.attente={t:'i',p,i:[l,k]};
 }
@@ -299,7 +299,7 @@ function choixPeche(s,p,l){const H={...s,j:s.j.map((K,i)=>i===1-p?{...K,main:[]}
    Regarde les 2 premieres cartes de son deck : attente 'cafe' (coup 'u' + carte prise), l'autre va tout en bas du deck. 1 carte : prise d'office.
    Deck vide : rien, ce n'est pas une pioche (aucun point). Puis un Golem allie au choix, lui compris, gagne +r.bonus (g.cf, jusqu'a la fin de la partie).
    La taupe (taupe, evolution ou copieur) : a la pose, regarde la main adverse, attente 'taupe' (coup 'u' + carte), l'adversaire la defausse (main vide : rien),
-   puis un Golem allie au choix gagne +r.bonus. Pas un ciblage de Golem (Mode Avion ne protege pas). Le Cafe du matin ne joue plus apres l'evolution.
+   puis un Golem allie au choix gagne +r.bonus. Pas un ciblage de Golem (protection On flip ne protege pas). Le Cafe du matin ne joue plus apres l'evolution.
    Bonus : attente 'boost' (coup 'q' + ligne + colonne) ; un seul Golem allie : d'office ; aucun : rien. g.cf garde a l'evolution, suit les deplacements,
    perdu au remplacement. Statistiques : s.stats.elc = {cafe, taupe, boost}, cree au premier effet. src : carte qui agit (Elccino ou copieur). */
 function stE(s){return s.stats.elc||(s.stats.elc={cafe:[],taupe:[],boost:[]})}
@@ -336,8 +336,9 @@ function cafesManche(s){
 }
 function suiteCafe(s){
   if(!s.cafes||s.attente)return;
-  while(s.cafes.length){const x=s.cafes.shift(),i=M.caseDeCarte(s,x.p,x.c);if(!i)continue;const e=aEffet(M.idEff(s.j[x.p].grille[i[0]][i[1]]),'cafeDuMatin');if(!e)continue;
+  while(s.cafes&&s.cafes.length){const x=s.cafes.shift(),i=M.caseDeCarte(s,x.p,x.c);if(!i)continue;const e=aEffet(M.idEff(s.j[x.p].grille[i[0]][i[1]]),'cafeDuMatin');if(!e)continue;
     cafe(s,x.p,x.c,'manche',e.r);if(s.attente)return}
+  if(!s.cafes)return; /* 0.7 : file deja videe par un appel imbrique (cafe sans choix -> boost d'office -> suiteCafe), qui a deja lance debutTour */
   delete s.cafes;M.debutTour(s);
 }
 /* Robot : Cafe, la carte la plus utile ; La taupe, la carte adverse la plus utile (il la voit) ; bonus, le Golem qui fait le plus monter la valeur du plateau. */
@@ -349,6 +350,43 @@ function choixElccino(s,p,l){
   l.forEach(a=>{const x=M.valeur(M.simule(F,c=>{const g=c.j[p].grille[a.l][a.k];g.cf=(g.cf||0)+A.n}),p)-v0;if(x>v){v=x;m=a}});
   return m;
 }
+/* ---- 0.7 (equilibrage valide le 12 nov. 2026).
+   reduc : ton prochain Golem coute J.reduc de moins (cumulatif, consomme par le prochain Golem joue : pose, remplacement ou evolution ; coutPose dans moteur.js).
+   g.bo : bonus de Force permanent recu (Tout ou rien, High Roll), garde a l'evolution, perdu au remplacement. */
+function reduit(s,p,n,src){if(n<=0)return;const J=s.j[p];J.reduc=(J.reduc||0)+n;M.declenche(s,src.split(' : ')[1]||src,'Prochain Golem -'+n);dire(s,p,src+' : ton prochain Golem coûte '+n+' de moins.')}
+function reduitCarte(s,p,n,src){if(n<=0)return;const J=s.j[p];J.reducCarte=(J.reducCarte||0)+n;M.declenche(s,src.split(' : ')[1]||src,'Prochaine carte -'+n);dire(s,p,src+' : ta prochaine carte coûte '+n+' de moins.')}
+/* Roi du Mobile (On flip) : pioche 1, lance 1 de ; cout de la carte piochee < de : forgee (comme Trigas, sans energie ce tour) ; sinon (egalite comprise) g.prot tant qu'il est en jeu */
+function onFlip(s,p,g){const J=s.j[p],n=nomDetail(carte(g.c))+' : On flip',av=J.main.length;M.pioche(s,p,1);const v=M.de(s,p);
+  if(J.main.length<=av){g.prot=true;M.declenche(s,'On flip','Dé '+v+' : protégé');dire(s,p,n+', deck vide, dé '+v+' : aucune carte piochée, ne peut plus être ciblé par les effets adverses.');return}
+  const c=J.main[J.main.length-1],co=carte(c).animal?M.REGLAGE_ANIMAUX.cout:carte(c).cout;
+  if(co<v){J.main.pop();J.forge.push(c);M.declenche(s,'On flip','Dé '+v+' : forge');dire(s,p,n+', dé '+v+', forge la carte piochée (coût '+co+').')}
+  else{g.prot=true;M.declenche(s,'On flip','Dé '+v+' : protégé');dire(s,p,n+', dé '+v+', coût '+co+' : ne peut plus être ciblé par les effets adverses.')}}
+function domine(s,p,l,k,g){const f=s.j[1-p].grille[l][k];return golem(f)&&!M.inverseIci(s,k)&&carte(g.c).el.some(e=>carte(f.c).el.includes(M.DOMINE[e]))}
+function autresIci(G,l,k){const r=[];for(let a=0;a<3;a++)if(a!==l&&golem(G[a][k]))r.push(a);return r}
+function bonusIci(s,p,l,k,n,src){const G=s.j[p].grille,r=autresIci(G,l,k);r.forEach(a=>{G[a][k].bo=(G[a][k].bo||0)+n});
+  dire(s,p,src+(r.length?', '+r.map(a=>nomDetail(carte(G[a][k].c))).join(' et ')+(r.length>1?' gagnent':' gagne')+' +'+n+' de Force.':', aucun autre Golem allié ici.'))}
+/* Robot : gain d'un bonus +n aux autres allies de la colonne k (etat c deja simule, la carte posee en (l,k)) */
+function gainIci(c,p,l,k,n){if(!c.j[p].grille[l][k])return 0;const v0=M.valeur(c,p);return M.valeur(M.simule(c,d=>{const G=d.j[p].grille;autresIci(G,l,k).forEach(a=>{G[a][k].bo=(G[a][k].bo||0)+n})}),p)-v0}
+const VAL_REDUC=.35; /* robot : valeur d'une reduction de 1 sur le prochain Golem */
+/* Alrevan (Tout ou rien) : 1 de. 4+ : +1 aux autres allies ici ; 1-3 : prochain Golem -1 */
+function toutOuRien(s,p,l,k,g){const v=M.de(s,p),n=nomDetail(carte(g.c))+' : Tout ou rien';
+  if(v>=4){M.declenche(s,'Tout ou rien','Dé '+v+' : +1 ici');bonusIci(s,p,l,k,1,n+' ('+v+')')}
+  else{M.declenche(s,'Tout ou rien','Dé '+v+' : réduction');reduit(s,p,1,n+' ('+v+')')}}
+/* KEKWRevan (High Roll) : 2 des, energie = difference ; double : +valeur aux autres allies ici */
+function highRoll(s,p,l,k,g){const a=M.de(s,p),b=M.de(s,p),n=nomDetail(carte(g.c))+' : High Roll ('+a+' et '+b+')';
+  if(a===b){M.declenche(s,'High Roll','Double '+a);bonusIci(s,p,l,k,a,n);return}
+  const e=Math.abs(a-b);s.j[p].energie+=e;M.declenche(s,'High Roll','+'+e+' énergie');dire(s,p,n+', gagne '+e+' énergie.')}
+/* Shifukuro (KEKWait) : a la pose, n = allies au-dessus (Uki compris) ; n cartes de la defausse (les plus utiles) melangees dans le deck */
+function kekwaitPose(s,p,l,k,g){const J=s.j[p],G=J.grille,n=kekwait(G,l,k)+(aniDessus(g)?1:0),m=Math.min(n,J.defausse.length),nm=nomDetail(carte(g.c))+' : KEKWait';
+  if(!m){dire(s,p,nm+(n?', défausse vide.':', aucun allié au-dessus.'));return}
+  const ch=M.parUtilite(s,p,J.defausse.slice()).slice(0,m);ch.forEach(c=>{J.defausse.splice(J.defausse.lastIndexOf(c),1);J.deck.push(c)});M.melange(s.rng,p,J.deck);
+  M.declenche(s,'KEKWait','Remélange '+m);dire(s,p,nm+', mélange '+m+' carte'+(m>1?'s':'')+' de sa défausse dans son deck.')}
+/* Vic2222 (Info tchat) : regarde la 1re carte du deck, attente 'vic' : coup 'i' o:1 (laisser dessus) ou o:0 (dessous) */
+function infoTchat(s,p,g){const D=s.j[p].deck,n=nomDetail(carte(g.c))+' : Info tchat';
+  if(!D.length){dire(s,p,n+', deck vide.');return}
+  dire(s,p,n+', regarde la première carte de son deck.');M.declenche(s,'Info tchat','Regarde 1');s.attente={t:'vic',p,options:[D[0]],src:g.c}}
+/* Robot : garde dessus une carte utile (utilite >= 3.5 : Golem de cout 3 ou moins, evolution dont la base est en jeu) */
+const vicGarde=(s,p,c)=>M.utilite(s,p,c)>=3.5;
 /* Attentes (s.attente.t) des Golems : coups proposes, application, choix du robot (X : etat vu par le robot, {fort:true} en Difficile). */
 const attentes={
   q:{legales:(s,p,a,J,r)=>a.options.forEach(c=>r.push({t:'c',c})), /* Le Q : Jour de peche, coup 'c' */
@@ -400,6 +438,9 @@ const attentes={
      applique:(s,p,a)=>{const A=s.attente,K=s.j[1-p];s.attente=null;K.main.splice(K.main.indexOf(a.c),1);K.defausse.push(a.c);stE(s).taupe.push({m:s.manche,p,c:a.c});
        dire(s,p,'La taupe : l\'adversaire défausse '+nomDetail(carte(a.c))+'.');boost(s,p,A.b,A.src,'La taupe')},
      robot:(s,p,l)=>choixElccino(s,p,l)},
+  vic:{legales:(s,p,a,J,r)=>r.push({t:'i',o:1},{t:'i',o:0}), /* Vic2222 : Info tchat, laisser (1) ou mettre dessous (0) */
+     applique:(s,p,a,J)=>{s.attente=null;if(!a.o&&J.deck.length){J.deck.push(J.deck.shift());dire(s,p,'Info tchat : met la carte sous son deck.')}else dire(s,p,'Info tchat : laisse la carte sur son deck.')},
+     robot:(s,p,l,X)=>({t:'i',o:s.j[p].deck.length&&vicGarde(s,p,s.j[p].deck[0])?1:0})},
   boost:{legales:(s,p,a,J,r)=>a.cases.forEach(([l,k])=>r.push({t:'q',l,k})), /* Elccino : Golem allie qui gagne le bonus */
      applique:(s,p,a)=>{const A=s.attente;s.attente=null;donneBoost(s,p,a.l,a.k,A.n,A.nom);suiteCafe(s)},
      robot:(s,p,l)=>choixElccino(s,p,l)}
@@ -431,12 +472,21 @@ const types={
     forceFin:(r,s,p,l,k,g,G,vs)=>r.apres?compte(r,G,l,k,vs,g):0,
     note:(r,s,p,l,k,g,G,vs,el,b)=>{if(!r.apres)noteCompte(r,p,l,k,g,G,vs,b)},
     noteFin:(r,s,p,l,k,g,G,vs,el,b)=>{if(r.apres)noteCompte(r,p,l,k,g,G,vs,b)}},
-  /* Full synergie (037e) : +1 par element partage par au moins un voisin, en plus du Trait (+2 maximum : 2 elements) */
-  synergie:{
-    force:(r,s,p,l,k,g,G,vs,el)=>{let v=0;el.forEach(e=>{if(vs.some(n=>carte(n.c).el.includes(e)))v++});return v},
-    note:(r,s,p,l,k,g,G,vs,el,b)=>el.forEach(e=>{const n=vs.find(n=>carte(n.c).el.includes(e));if(n)b('trait',p,g.c,p,n.c)})},
-  /* Counter-pick et Full synergie (037, 037e) : cercle +2 au lieu de +1 */
+  /* Full synergie (037e) : cercle +2 au lieu de +1 */
   cercle:{cercle2:true},
+  /* Counter-pick (037) : a la pose, si tu domines le Golem en face, ton prochain Golem coute 1 de moins */
+  counterPick:{poseApres:(r,s,p,l,k,g)=>{if(s.j[p].grille[l][k]===g&&domine(s,p,l,k,g))reduit(s,p,r.n||1,nomDetail(carte(g.c))+' : Counter-pick')}},
+  /* Full synergie (037e) : a la pose, prochaine Forge (cout du prochain Golem) -1 par element partage avec les voisins (2 maximum) */
+  synergieForge:{poseApres:(r,s,p,l,k,g)=>{const G=s.j[p].grille;if(G[l][k]!==g)return;const vs=M.voisinsCases(G,l,k).map(([a,b])=>G[a][b]);
+    const n=Math.min(2,carte(g.c).el.filter(e=>vs.some(h=>carte(h.c).el.includes(e))).length);
+    if(n)reduitCarte(s,p,n,nomDetail(carte(g.c))+' : Full synergie');else dire(s,p,nomDetail(carte(g.c))+' : Full synergie, aucun élément partagé.')}},
+  /* Alrevan (002) : Tout ou rien ; KEKWRevan (002e) : High Roll. Bonus recus g.bo. */
+  toutOuRien:{poseApres:(r,s,p,l,k,g)=>{if(s.j[p].grille[l][k]===g)toutOuRien(s,p,l,k,g)},forceRecue:g=>g.bo||0,evolution:(s,occ,g)=>{if(occ.bo)g.bo=occ.bo}},
+  highRoll:{poseApres:(r,s,p,l,k,g)=>{if(s.j[p].grille[l][k]===g)highRoll(s,p,l,k,g)}},
+  /* Shifukuro (025) : KEKWait, recyclage de la defausse a la pose */
+  kekwaitPose:{poseApres:(r,s,p,l,k,g)=>{if(s.j[p].grille[l][k]===g)kekwaitPose(s,p,l,k,g)}},
+  /* Vic2222 (042) : Info tchat, regarde la 1re carte du deck */
+  infoTchat:{poseApres:(r,s,p,l,k,g)=>{if(s.j[p].grille[l][k]===g&&!s.attente)infoTchat(s,p,g)}},
   /* Vic2222 : Info tchat (042) en jeu sur le terrain k : tout Golem allie de ce terrain (lui compris) a le cercle a +2. Jamais plus de +2. */
   cercleTerrain:{cercle2Terrain:true},
   /* GeneralBrioche : Grand General (020), +bonus par exemplaire allie dans la meme colonne, autre ligne (cumulatif, pas sur lui) */
@@ -463,11 +513,6 @@ const types={
     dire(s,p,ts.length?'Slim K : 1 dégât à '+ts.join(' et ')+'.':'Slim K : aucune cible sur la ligne adverse.');
     cs.forEach(c=>M.blesse(s,1-p,l,c,r.degats,{p,c:g.c,lib:'À la pose'}));
   }},
-  /* Alrevan (002, des:1) : Force = 1 de ; KEKWRevan (002e, des:2) : somme de 2 des, sur un double la valeur d'un seul. */
-  forceAuDe:{pose:(r,s,p,l,k,g)=>{
-    if(r.des===1){g.f=M.de(s,p);dire(s,p,'Alrevan lance le dé : Force '+g.f+'.');return}
-    const a=M.de(s,p),b=M.de(s,p);g.f=a===b?a:a+b;dire(s,p,'Alrevan (KEKWRevan) lance '+a+' et '+b+' : Force '+g.f+'.');
-  }},
   /* Roi du Karaoke (003e) : Palmares, fin de manche, +r.points si son joueur remporte le terrain qui rapporte le moins. */
   pointsTerrainMin:{finManche:(r,s,p,l,k,g,J,remporte)=>{if(remporte){J.score+=r.points;dire(s,p,'Cyrdan (Roi du Karaoké) : +'+r.points+' points.')}}},
   /* Le Q (004) : Jour de peche, apres les morts de la pose. */
@@ -480,8 +525,8 @@ const types={
     M.pioche(s,p,1); /* deck vide : 1 point a l'adversaire (journal : l'effet, puis le point) */
     if(s.j[p].main.length)s.attente={t:'s',p};
   }},
-  /* Roi du Mobile (007e) : Mode Avion, jamais cible par un effet de carte adverse (ciblable). */
-  intouchable:{intouchable:true},
+  /* Roi du Mobile (007e) : On flip a la pose ; protection : propriete lue par ciblable (moteur.js) quand le de l'a donnee (g.prot) */
+  onFlip:{protection:true,poseApres:(r,s,p,l,k,g)=>{if(s.j[p].grille[l][k]===g)onFlip(s,p,g)}},
   /* K-Chan (008) : Rage, chaque blessure survecue donne +1 de Force (r.max au plus) ; tranchee par nettoie, une fois la survie connue. */
   rage:{
     blessure:(r,g)=>{g.rp=(g.rp||0)+1},
@@ -491,7 +536,7 @@ const types={
   immunite:{protege:(r,s,p,g,src)=>{
     if(!(src&&src.p!==null&&src.p!==undefined&&src.p!==p))return false;
     if(r.unique){if(g.cdb)return false;g.cdb=1}
-    dire(s,p,nomDetail(carte(g.c))+' : '+r.nom+', ne perd pas de Force.');return true;
+    dire(s,p,nomDetail(carte(g.c))+' : '+r.nom+', ne perd pas de Force'+(r.pioche?' et pioche '+r.pioche+' carte':'')+'.');if(r.pioche)M.pioche(s,p,r.pioche);return true;
   }},
   /* Elessar (018) : Realisation de l'age, les evolutions adverses coutent r.cout de plus (cumulatif ; pas un ciblage). */
   surtaxeEvolution:{surtaxe:r=>r.cout},
@@ -547,7 +592,6 @@ const types={
   taupe:{poseApres:(r,s,p,l,k,g)=>taupe(s,p,g.c,r)},
 };
 /* ---- Robot : estimations par type d'effet (le robot ne voit que ce qu'un joueur voit).
-   forceEstimee(r) : Force moyenne d'une pose a Force aleatoire ; tirages(r) : toutes les Forces possibles (Imitation, moyenne exacte) ;
    estime(r,c,p,l,k,copie) : effet de pose simule sur la copie c du plateau (copie : estimation d'une copie, Deguisement ou Imitation) ;
    robotPose(r,s,p,a,apres,g,v0) : gain d'une pose, renvoie le nouveau gain (apres : plateau simule) ; robotPerte(r,s,p) : gain perdu quand la carte evolue ;
    robotPoseFin(r,s,p,a,g) : ajustements apres le cout ; robotCopie(r,c,p,l,k) : gain en plus d'une copie de cet effet ;
@@ -561,7 +605,7 @@ function gambaEstime(c,p,l,k){
 }
 /* Extinction du feu estimee (Golems de l'element adverses ciblables -1, Menfou palu exclu ; simule retire les morts). */
 function extinctionEstime(r,c,p){const G=c.j[1-p].grille;for(let a=0;a<3;a++)for(let b=0;b<3;b++){const h=G[a][b];if(golem(h)&&carte(h.c).el.includes(r.el)&&M.ciblable(c,1-p,a,b,p)&&!M.insensible(h))h.d+=r.degats}}
-/* Il suffit estime (copie du plateau) : les Golems detruits quittent les grilles, Mode Avion adverse garde. */
+/* Il suffit estime (copie du plateau) : les Golems detruits quittent les grilles, protection On flip adverse garde. */
 function ilSuffitEstime(c,p){doublons(c,p).T.forEach(x=>{c.j[x.q].grille[x.l][x.k]=null})}
 /* Realisation de l'age : petit bonus si l'adversaire jouera encore, selon ses Golems de base en jeu qui ont une evolution (seule information visible :
    le robot ne regarde ni la main ni le deck adverses). */
@@ -574,8 +618,6 @@ const elementsDe=(r,etat,q)=>etat.j[q].grille.flat().filter(h=>h&&elDe(r,h.c)).l
 const robot={
   pertesFinManche:{estime:(r,c,p,l,k,copie)=>{if(copie&&c.manche<3)c.j[p].grille[l][k].d+=r.degats}}, /* KaTarN copie : -4 a chaque fin de manche */
   degatsLigne:{estime:(r,c,p,l)=>c.j[1-p].grille[l].forEach((h,q)=>{if(M.ciblable(c,1-p,l,q,p)&&!M.insensible(h))h.d+=r.degats})},
-  forceAuDe:{forceEstimee:r=>r.estime,
-    tirages:r=>{const fs=[];for(let a=1;a<=6;a++){if(r.des===1)fs.push(a);else for(let b=1;b<=6;b++)fs.push(a===b?a:a+b)}return fs}},
   gamba:{estime:(r,c,p,l,k)=>gambaEstime(c,p,l,k)},
   perteElement:{estime:(r,c,p)=>extinctionEstime(r,c,p)},
   ilSuffit:{estime:(r,c,p)=>ilSuffitEstime(c,p)}, /* simule retire ensuite les morts en chaine */
@@ -601,6 +643,17 @@ const robot={
     compteRisque:(r,etat,q)=>elementsDe(r,etat,q),
     risque:(r,s,p,gr)=>[Math.min(r.max,gr[p]),Math.min(r.max,gr[1-p])]},
   energieTour:{robotPose:(r,s,p,a,apres,g)=>g+.4},
+  /* 0.7 : Tout ou rien (1 chance sur 2 : +1 ici, sinon reduction), High Roll (difference moyenne 35/18 d'energie si la main garde une carte ; double 1/6 : +3,5 ici),
+     Counter-pick / Full synergie (reduction si la condition est remplie a la pose), KEKWait (cartes recyclees), Info tchat (tri de la pioche). */
+  toutOuRien:{robotPose:(r,s,p,a,apres,g)=>g+.5*gainIci(apres,p,a.l,a.k,1)+.5*VAL_REDUC,robotCopie:(r,c,p,l,k)=>.5*gainIci(c,p,l,k,1)+.5*VAL_REDUC},
+  highRoll:{robotPose:(r,s,p,a,apres,g)=>g+(1/6)*gainIci(apres,p,a.l,a.k,3.5)+(s.j[p].main.length>1?.15*35/18:0),robotCopie:(r,c,p,l,k)=>(1/6)*gainIci(c,p,l,k,3.5)+(c.j[p].main.length>1?.15*35/18:0)},
+  counterPick:{robotPose:(r,s,p,a,apres,g)=>{const h=apres.j[p].grille[a.l][a.k];return h&&domine(apres,p,a.l,a.k,h)?g+VAL_REDUC:g},robotCopie:(r,c,p,l,k)=>{const h=c.j[p].grille[l][k];return h&&domine(c,p,l,k,h)?VAL_REDUC:0}},
+  synergieForge:{robotPose:(r,s,p,a,apres,g)=>{const G=apres.j[p].grille,h=G[a.l][a.k];if(!h)return g;const vs=M.voisinsCases(G,a.l,a.k).map(([x,y])=>G[x][y]);
+    return g+VAL_REDUC*Math.min(2,carte(h.c).el.filter(e=>vs.some(v=>carte(v.c).el.includes(e))).length)}},
+  kekwaitPose:{robotPose:(r,s,p,a,apres,g)=>{const h=apres.j[p].grille[a.l][a.k];if(!h)return g;return g+.1*Math.min(kekwait(apres.j[p].grille,a.l,a.k)+(aniDessus(h)?1:0),s.j[p].defausse.length)}},
+  /* On flip : pioche 1 (~.3), puis 1 chance sur 2 environ : forge (+.3) ou protection (.3, ancienne valeur de Mode Avion) */
+  onFlip:{robotPoseFin:(r,s,p,a,g)=>s.j[p].deck.length?g+.3+.3:g},
+  infoTchat:{robotPoseFin:(r,s,p,a,g)=>s.j[p].deck.length?g+.15:g},
   /* Realisation de l'age gagnee (pose), perdue en evoluant (robotPerte de la base) */
   surtaxeEvolution:{robotPose:(r,s,p,a,apres,g)=>g+elessarEstime(s,p),robotPerte:(r,s,p)=>elessarEstime(s,p),robotCopie:(r,c,p)=>elessarEstime(c,p)},
   /* Graine de Golem : cartes en plus aux tours suivants (perdue en evoluant) */

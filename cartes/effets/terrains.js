@@ -27,12 +27,12 @@ function cfTarte(s,k,c,w){
   E.tartes.forEach(x=>{if(x.m===s.manche&&x.mort)c0[1-x.p]+=x.f});
   E.cf.push({m:s.manche,k,nom:s.terrains[k].nom,w,w0:c0[0]!==c0[1]?(c0[0]>c0[1]?0:1):null,c:c.slice(),c0,n:[0,1].map(p=>M.golemsIci(s,p,k,true)),duo:[0,0],t:E.tartes.filter(x=>x.m===s.manche).length});
 }
-/* Le Versus : le Golem adverse ici (un seul au plus) perd r.perte de Force ; Mode Avion : rien ; GymRat, Chance du debutant : blesse. */
+/* Le Versus : le Golem adverse ici (un seul au plus) perd r.perte de Force ; protection On flip : rien ; GymRat, Chance du debutant : blesse. */
 function versusPose(s,p,k,y,g){
   const K=s.j[1-p].grille,l=[0,1,2].find(x=>golem(K[x][k])),E=stV(s);
   if(l===undefined){E.versus.push({m:s.manche,p,y,eff:0,mort:0,vide:1});return}
   const h=K[l][k],n=nomDetail(carte(h.c));
-  if(!M.ciblable(s,1-p,l,k,p)){dire(s,p,'Le Versus : '+n+' est protégé (Mode Avion).');E.versus.push({m:s.manche,p,y,eff:0,mort:0});return}
+  if(!M.ciblable(s,1-p,l,k,p)){dire(s,p,'Le Versus : '+n+' est protégé (On flip).');E.versus.push({m:s.manche,p,y,eff:0,mort:0});return}
   const d0=h.d;declenche(s,'Le Versus',n+' perd 1');dire(s,p,'Le Versus : '+n+' (adverse) perd 1 de Force.');
   M.blesse(s,1-p,l,k,1,{p,c:g.c,lib:'Le Versus'});const eff=h.d-d0;if(eff)M.nettoie(s);
   E.versus.push({m:s.manche,p,y,eff,mort:K[l][k]!==h?1:0});
@@ -50,7 +50,7 @@ const types={
     const libres=[0,1,2].filter(l=>!J.grille[l][kf]);
     for(let l=0;l<3;l++)for(let k=0;k<3;k++)if(k!==kf&&golem(J.grille[l][k]))libres.forEach(d=>res.push({t:'y',l,k,d}));
   }},
-  /* Le Cirque : tarte (action 'o', reglage REGLAGE_TERRAINS.cirque 'tarte' ou 'tarte_manche'), une fois par manche, Golem adverse ciblable ici (Mode Avion : jamais).
+  /* Le Cirque : tarte (action 'o', reglage REGLAGE_TERRAINS.cirque 'tarte' ou 'tarte_manche'), une fois par manche, Golem adverse ciblable ici (protection On flip : jamais).
      Variantes abandonnees (inverse, moins, premier) : Force inversee, sans Trait ni cercle, departages. */
   cirque:{
     actionsTerrain:(r,s,p,kc,J,res)=>{if(tarteX(s)&&J.tarte!==s.manche)for(let l=0;l<3;l++)if(M.ciblable(s,1-p,l,kc,p))res.push({t:'o',l})},
