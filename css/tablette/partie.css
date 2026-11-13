@@ -49,7 +49,12 @@ html.tel-joueur body:has(#barreRejeu) #partie .p-poste>.mqb-l{display:none!impor
 html.tel-joueur #partie .mini .nom{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.05}
 html.tel-joueur #partie .p-case>.fx-bonus{animation-name:bonusTab}
 html.tel-joueur #partie .mqb-r>button[data-nom]::before{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word}
-html.tel-joueur #partie .p-fin .h-tab .h-cti{white-space:normal;overflow:visible;text-overflow:clip}
+html.tel-joueur body:has(#barreRejeu) #partie{padding-bottom:68px!important}
+/* bilan par carte : icones, nom puis sous-titre sur toute la largeur de la colonne Carte (2 lignes au plus), rien ne deborde sur les chiffres */
+html.tel-joueur #partie .p-fin .h-tab .h-crt{flex-wrap:wrap;row-gap:2px}
+html.tel-joueur #partie .p-fin .h-tab .h-cnom{flex-wrap:wrap;flex:1 1 100%;min-width:0;max-width:100%}
+html.tel-joueur #partie .p-fin .h-tab .h-cps{white-space:normal;overflow-wrap:anywhere;min-width:0;max-width:100%}
+html.tel-joueur #partie .p-fin .h-tab .h-cti{flex:1 1 100%;max-width:100%;white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:normal}
 @keyframes bonusTab{0%{opacity:0;transform:translate(-50%,-20%) scale(.8)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-75%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%)}}
 
 /* ===== Tablette en portrait (768 x 1024) : main en une rangee de cartes 96 x 134, le reste inchange ===== */
@@ -59,6 +64,7 @@ html.tel-joueur #partie .mqb-r>button{flex:0 0 calc((100% - 48px)/7);min-width:0
 html.tel-joueur #partie .mqb-r>button img{width:100%}
 html.tel-joueur #partie .mqb-g{bottom:21px;width:30px;background:none;justify-content:center;padding:0}
 html.tel-joueur #partie .mqb-c{font-size:18px}html.tel-joueur #partie .mqb-c small{font-size:13px}
+html.tel-joueur .barreRejeu{left:0;right:0;bottom:0;width:auto;margin:0;border-radius:0;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
 }
 
 /* ===== Tablette en paysage (1024 x 768) : plateau a gauche, colonne de droite = etape, main sur deux rangees, cercle, journal ===== */
@@ -132,5 +138,6 @@ html.tel-joueur body:has(#barreRejeu) #partie .p-cote{padding-bottom:54px}
 html.tel-joueur .barreRejeu{left:auto;right:10px;width:352px;box-sizing:border-box;margin:0}
 /* bilan par carte de fin de partie : sous-titres des cartes masques (colonne de 352 px), noms seuls */
 html.tel-joueur #partie .p-fin .h-tab .h-cti{display:none}
+html.tel-joueur #partie .p-fin .h-tab .h-cps{white-space:normal;overflow-wrap:anywhere}
 }
 }

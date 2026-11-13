@@ -63,7 +63,6 @@ html.tel-joueur #partie .mini .nom{white-space:normal;overflow:visible;text-over
 html.tel-joueur #partie .p-case>.fx-bonus{font-size:24px;-webkit-text-stroke:3px #0a121a;animation-name:bonusTel}
 @keyframes bonusTel{0%{opacity:0;transform:translate(-50%,-20%) scale(.8)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-75%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%)}}
 /* bilan par carte : sous-titre des cartes sur plusieurs lignes (« Accro au Gac... » etait coupe) */
-html.tel-joueur #partie .p-fin .h-tab .h-cti{white-space:normal;overflow:visible;text-overflow:clip}
 /* partie en ligne (Chat) : la barre du haut prend une 2e ligne (48 px) ; cases plus basses d'autant pour que ton camp reste au-dessus de la barre de main */
 html.tel-joueur #partie:has(.mq-chat) .p-grille>.p-case{height:48px}
 /* pastille du Chat : ne monte plus sur le score de la ligne du dessus */
@@ -77,4 +76,14 @@ html.tel-joueur #partie .mqb-r>button[data-nom]::before{white-space:normal;overf
 /* noms sur deux lignes sous les cartes (+8 px) et pastille adverse sur sa propre ligne (+20 px) : cases du plateau plus basses (ton camp reste au-dessus de la barre) */
 html.tel-joueur #partie .p-grille>.p-case{height:51px}
 html.tel-joueur #partie:has(.mq-chat) .p-grille>.p-case{height:43px}
+/* rejeu : barre collee en bas sur toute la largeur, marge reservee sous le contenu (elle ne recouvre plus le bilan) */
+html.tel-joueur .barreRejeu{left:0;right:0;bottom:0;width:auto;margin:0;border-radius:0;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+/* ta ligne : nom en 14 px pour que la pastille et le point de connexion tiennent sur la meme ligne (la barre de main ne recouvre plus tes compteurs) */
+html.tel-joueur #partie .p-camp.toi .p-l1>b{font-size:14px;min-width:0}
+html.tel-joueur body:has(#barreRejeu) #partie{padding-bottom:68px!important}
+/* bilan par carte : icones, nom puis sous-titre sur toute la largeur de la colonne Carte (2 lignes au plus), rien ne deborde sur les chiffres */
+html.tel-joueur #partie .p-fin .h-tab .h-crt{flex-wrap:wrap;row-gap:2px}
+html.tel-joueur #partie .p-fin .h-tab .h-cnom{flex-wrap:wrap;flex:1 1 100%;min-width:0;max-width:100%}
+html.tel-joueur #partie .p-fin .h-tab .h-cps{white-space:normal;overflow-wrap:anywhere;min-width:0;max-width:100%}
+html.tel-joueur #partie .p-fin .h-tab .h-cti{flex:1 1 100%;max-width:100%;white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:normal}
 }
