@@ -68,4 +68,13 @@ html.tel-joueur #partie .p-fin .h-tab .h-cti{white-space:normal;overflow:visible
 html.tel-joueur #partie:has(.mq-chat) .p-grille>.p-case{height:48px}
 /* pastille du Chat : ne monte plus sur le score de la ligne du dessus */
 html.tel-joueur #partie .p-barre:has(.mq-chat) .mq-chat i{top:-3px;right:-7px}
+
+/* bandeau de l'adversaire : la pastille « A lui de jouer » passe a la ligne au lieu de recouvrir « Main de ... » (eventail a droite) */
+html.tel-joueur #partie .p-camp.lui .p-l1{flex-wrap:wrap;row-gap:3px;padding-right:150px}
+html.tel-joueur #partie .p-camp.lui .p-l1>b{min-width:0;overflow-wrap:anywhere}
+/* nom sous les cartes de la main : entier, sur deux lignes au besoin (plus d'ellipse) */
+html.tel-joueur #partie .mqb-r>button[data-nom]::before{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;font-size:11px;line-height:12px;min-height:24px;display:flex;align-items:flex-start;justify-content:center}
+/* noms sur deux lignes sous les cartes (+8 px) et pastille adverse sur sa propre ligne (+20 px) : cases du plateau plus basses (ton camp reste au-dessus de la barre) */
+html.tel-joueur #partie .p-grille>.p-case{height:51px}
+html.tel-joueur #partie:has(.mq-chat) .p-grille>.p-case{height:43px}
 }

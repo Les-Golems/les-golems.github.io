@@ -48,6 +48,7 @@ html.tel-joueur body:has(#barreRejeu) #partie .p-poste>.mqb-l{display:none!impor
 /* --- 0.7 mobile, retours du 13 nov. : aucun texte tronque, rien qui se chevauche --- */
 html.tel-joueur #partie .mini .nom{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.05}
 html.tel-joueur #partie .p-case>.fx-bonus{animation-name:bonusTab}
+html.tel-joueur #partie .mqb-r>button[data-nom]::before{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word}
 html.tel-joueur #partie .p-fin .h-tab .h-cti{white-space:normal;overflow:visible;text-overflow:clip}
 @keyframes bonusTab{0%{opacity:0;transform:translate(-50%,-20%) scale(.8)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-75%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%)}}
 
@@ -108,7 +109,7 @@ html.tel-joueur #partie .mqb-r{gap:6px;padding:0;margin-right:24px;scroll-snap-t
 html.tel-joueur #partie .mqb-r>button{flex:0 0 calc((100% - 24px)/5);min-width:0}
 html.tel-joueur #partie .mqb-r>button img{width:100%}
 html.tel-joueur #partie .mqb-g{width:24px;background:none;justify-content:center;padding:0}
-html.tel-joueur #partie .mqb-r>button[data-nom]::before{font-size:12px;line-height:15px}
+html.tel-joueur #partie .mqb-r>button[data-nom]::before{font-size:11px;line-height:12px;min-height:24px}
 html.tel-joueur #partie .mqb-g{bottom:19px}
 /* apercu d'une carte de la main : carte a gauche a la hauteur de l'ecran, texte et boutons a droite */
 html.tel-joueur #mqAp{display:grid;grid-template-columns:auto 260px;grid-template-rows:1fr auto;column-gap:20px;row-gap:12px;align-content:center;justify-content:center;padding:12px}

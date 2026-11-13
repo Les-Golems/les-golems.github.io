@@ -102,3 +102,17 @@
 #dkA .dk-tuile,#dkA .dk-tuile.inv{width:auto;min-width:0}
 #popTest .tp-2r .tp-mc{flex-wrap:wrap;overflow:visible;justify-content:flex-start}
 #dkA .dk-f .dk-couts{gap:4px;flex-wrap:nowrap}
+/* Noms longs : rien coupe (tuile, raison, sous-titre de la liste) */
+#dkA .dk-tuile,#dkA .dk-tuile.inv{height:auto;min-height:68px}
+#dkA .dk-tuile b,#dkA .dk-tuile .rs,#dkA .dk-tuile .dk-sous{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+#dkA .dl-titre{white-space:normal;overflow:visible;text-overflow:clip}
+/* Nom du deck ouvert entier, compteur des quantites entier, fenetres Partager et Importer */
+#dkA .dk-pan .dk-ent{flex-wrap:wrap;height:auto;row-gap:8px}
+#dkA .dk-pan .dk-ent .nm{flex:1 0 100%;white-space:normal;overflow:visible;text-overflow:clip;height:auto;overflow-wrap:anywhere}
+#dkA .dk-q{grid-template-columns:30px minmax(0,1fr) 30px}
+#dkA .dk-q>*{min-width:0;white-space:nowrap}
+.dk-voile .sc-fen-actions{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.dk-voile .sc-fen-actions>*{width:100%;margin-left:0;white-space:normal}
+.dk-voile .dk-fen-err,.dk-voile .dk-fen-err *{white-space:normal;overflow:visible;text-overflow:clip;height:auto}
+.dk-voile .sc-alerte,#dkA .sc-alerte{height:auto;min-height:56px}
+.dk-voile .sc-alerte>span,#dkA .sc-alerte>span{display:block;-webkit-line-clamp:unset;overflow:visible}

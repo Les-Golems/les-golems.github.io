@@ -15,3 +15,7 @@
 @media (min-width:768px) and (max-width:899px){
 #rgVue#rgVue :is(.an2,.el4,.an){grid-template-columns:minmax(0,1fr)!important}
 }
+@media (min-width:768px){
+#rgVue#rgVue .leg5,#rgVue#rgVue .ess .leg5.l1{flex-wrap:wrap;justify-content:flex-start;gap:6px 14px}
+#rgVue#rgVue .p:has(>#rgSom),#rgVue#rgVue .som{height:auto;max-height:none;flex:none;min-height:0;overflow:visible}
+}

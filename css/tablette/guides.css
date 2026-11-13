@@ -7,3 +7,10 @@
 .gd-li{height:auto;min-height:64px}
 .gd-meta{flex-wrap:wrap}
 }
+@media (min-width:768px){
+.gd-ph{height:auto;align-items:flex-start}
+.gd-ph h3{white-space:normal;overflow:visible;text-overflow:clip}
+.gd-r2{height:auto;flex-wrap:wrap;row-gap:10px}
+.gd-gest{flex-wrap:wrap;min-width:0}
+.gd-act{flex-wrap:wrap;flex:1 1 auto;min-width:0}
+}

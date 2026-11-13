@@ -22,3 +22,15 @@
 .pr-lg div{display:contents}
 .pr-lg div b{margin-left:8px;text-align:right}
 }
+/* Galerie d'avatars : noms sur 2 lignes plutot que « ... » (768 a 1079 px) */
+@media (min-width:768px){
+.av-tu .n{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.15;text-align:center;overflow-wrap:break-word}
+}
+/* Choix du deck en paysage (hauteur <= 500 px) : liste qui defile par tuiles entieres, boutons toujours visibles */
+@media (min-width:768px) and (max-height:500px){
+#popDeck .cd-fen{display:flex;flex-direction:column;max-height:calc(100dvh - 16px);margin-block:8px;padding-block:12px}
+#popDeck .cd-fen>*{flex:none}
+#popDeck .cd-ctx{margin-bottom:8px}
+#popDeck .cd-grille.cd-grille{flex:1 1 auto;min-height:0;max-height:none;scroll-snap-type:y mandatory;scroll-padding-top:4px}
+#popDeck .cd-grille>*{scroll-snap-align:start}
+}

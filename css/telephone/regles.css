@@ -16,3 +16,8 @@
 #rgVue .pied .sc-btn,#rgVue .pied .btn{min-width:0;width:100%;white-space:normal}
 #rgVue .ter{min-height:40px}
 #rgVue img,#rgVue svg{max-width:100%}
+/* Legende des elements : grille de 3, rien de coupe */
+#rgVue#rgVue .leg5,#rgVue#rgVue .ess .leg5.l1{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 10px;justify-content:stretch;font-size:14px}
+#rgVue#rgVue .leg5 span{white-space:nowrap;min-width:0}
+/* Sommaire : tout visible, pas de hauteur fixe */
+#rgVue#rgVue .p:has(>#rgSom),#rgVue#rgVue .som{height:auto;max-height:none;flex:none;min-height:0;overflow:visible}

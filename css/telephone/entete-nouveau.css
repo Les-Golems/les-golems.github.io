@@ -42,3 +42,5 @@ header .haut #majRecharger{position:relative}
 header .haut #majRecharger::after{content:"";position:absolute;inset:-5px 0}
 /* Pseudo jamais coupe : 2 lignes dans la capsule de 48 px si besoin */
 header .haut.haut .bd-capsule #pseudoAffiche{white-space:normal;overflow-wrap:normal;word-break:normal;line-height:1.2;max-height:2.4em;text-overflow:clip;overflow:hidden}
+/* Pastille v0.7 jamais rognee */
+header #verEtq.etq-v.ver-etq{min-width:max-content;overflow:visible;white-space:nowrap}

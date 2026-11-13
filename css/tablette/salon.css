@@ -8,3 +8,17 @@
 #salon .sl-haut .btnCode,.chat .cs .sc-btn,.chat .cs .btn{min-height:44px}
 #passerSpectateur{min-width:44px;min-height:44px}
 }
+
+/* Pseudos de 20 caracteres et message du salon : sur plusieurs lignes, rien de coupe */
+@media (min-width:768px){
+#joueurs .sl-pn,#joueurs .sl-pw,#joueurs .sl-pw>span,#joueurs .sl-nom{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}
+#joueurs .sl-nom{height:auto;line-height:1.15}
+#salon .sl-specs li,#salon .sl-specs li>*,#salon .sl-specs li b{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;min-width:0}
+.chat-liste b,.chat-info,.chat-info *{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+#salon .j-robot>span{-webkit-line-clamp:unset;display:block;white-space:normal;overflow:visible;text-overflow:clip}
+}
+@media (min-width:768px){
+#joueurs .sl-pw>em{white-space:nowrap!important;overflow-wrap:normal!important}
+.j-robot.j-robot,.j-robot.j-robot>span{-webkit-line-clamp:unset;white-space:normal;overflow:visible;text-overflow:clip;height:auto}
+.j-robot.j-robot>span{display:block}
+}

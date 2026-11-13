@@ -63,3 +63,14 @@
 /* Tuiles de cartes du profil : nom et sous-titre sous la rangee d'icones, sur toute la largeur (2 lignes au plus) */
 .pr-it .dl-ligne{row-gap:2px;padding-block:6px}
 .pr-it .dl-nom{grid-column:1/-1;grid-row:2}
+/* Alerte « Partie : resultat non enregistre » : texte entier sur plusieurs lignes */
+#nonEnr{height:auto;max-height:none;align-items:center}
+#nonEnr>span{display:block;flex:1 1 auto;min-width:0;white-space:normal;overflow:visible;text-overflow:clip;-webkit-line-clamp:unset;max-height:none}
+/* Choix du deck en paysage (hauteur <= 500 px) */
+@media (max-height:500px){
+#popDeck .cd-fen{display:flex;flex-direction:column;max-height:calc(100dvh - 16px);margin-block:8px;padding-block:12px}
+#popDeck .cd-fen>*{flex:none}
+#popDeck .cd-ctx{margin-bottom:8px}
+#popDeck .cd-grille.cd-grille{flex:1 1 auto;min-height:0;max-height:none;scroll-snap-type:y mandatory;scroll-padding-top:4px}
+#popDeck .cd-grille>*{scroll-snap-align:start}
+}
