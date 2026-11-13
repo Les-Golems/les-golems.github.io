@@ -7,3 +7,65 @@
 @media (max-width:760px){.grand.avecDetail{grid-template-columns:minmax(0,1fr)}.grand.avecDetail .vue-img{justify-self:center;width:min(308px,100%)}}
 @media (max-width:640px){.p-case .act .act-l{display:none}.p-case .act .act-c{display:inline}}
 @media (max-width:413px){.p-case .act:has(>.act-c){right:0;border-radius:0}.p-case:has(>.act>.act-c) .f{bottom:24px}}
+
+/* ===== 0.7 mobile : maquette 52 (partie, vue joueur au telephone en portrait). Bloc garde par sa propre media (le lien de index.html peut couvrir plus large). ===== */
+@media (max-width:767px){
+/* --- main : cartes 66 x 92 (au lieu de 44 x 62) et nom sous chaque carte (data-nom pose par telephone() dans vue/diffusion.js) --- */
+/* jamais de carte coupee : 5 cartes entieres dans la rangee (environ 63 x 88 a 375 px), defilement carte par carte, fleche dans une marge a droite */
+html.tel-joueur #partie .mqb-r{gap:6px;padding:2px 0 0;margin-right:24px;scroll-snap-type:x mandatory}
+html.tel-joueur #partie .mqb-r>button{flex:0 0 calc((100% - 24px)/5);min-width:0;height:auto;display:flex;flex-direction:column;align-items:center;gap:3px}
+html.tel-joueur #partie .mqb-r>button img{width:100%;height:auto;aspect-ratio:5/7;border-radius:6px}
+html.tel-joueur #partie .mqb-g{width:24px;background:none;justify-content:center;padding:0}
+html.tel-joueur #partie .mqb-r>button[data-nom]::before{content:attr(data-nom);order:2;display:block;width:100%;font:700 12px/16px var(--corps);color:var(--texte);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.tel-joueur #partie .mqb-r>button.grisee::before{color:var(--doux)}
+html.tel-joueur #partie .mqb-r>button .evs{font-size:12px;top:7px}
+html.tel-joueur #partie .mqb-r>button.reduite::after,html.tel-joueur #partie .mqb-r>button.surtaxe::after{font-size:13px;padding:3px 4px}
+html.tel-joueur #partie .mqb-g{bottom:19px}
+
+/* --- barre du haut : cibles de 40 px, « Chat » sur une ligne --- */
+html.tel-joueur #partie .p-outils .p-outil{width:40px!important;height:40px!important;min-width:40px!important}
+html.tel-joueur #partie .mq-chat,html.tel-joueur #partie .mq-q{height:40px!important;min-width:40px!important;white-space:nowrap}
+html.tel-joueur #partie .p-barre{padding-right:154px}
+/* partie en ligne (bouton Chat en plus) : les outils passent sur une 2e ligne de la barre, a droite */
+html.tel-joueur #partie .p-barre:has(.mq-chat){padding:2px 2px 48px;height:auto!important;min-height:96px}
+html.tel-joueur #partie .p-barre:has(.mq-chat)>.p-tourde{top:auto;bottom:3px;transform:none}
+
+/* --- hauteurs : le plateau entier tient au-dessus de la barre de main (812 - 186 = 626 px) --- */
+html.tel-joueur #partie .p-table{gap:8px}
+html.tel-joueur #partie .p-grille>.p-case{height:56px}
+html.tel-joueur #partie .p-terrains,html.tel-joueur #partie .p-terrain{height:70px}
+
+/* --- compteurs cliquables (Deck, Defausse, Forge) : zone de toucher portee a 40 px sans changer le dessin --- */
+html.tel-joueur #partie .p-compteur.clic{position:relative}
+html.tel-joueur #partie .p-compteur.clic::after{content:"";position:absolute;left:-3px;right:-3px;top:-9px;bottom:-9px}
+
+/* --- ligne Daltonien : boutons de 40 px --- */
+html.tel-joueur #partie .mq-dal .dal-inter>button{min-height:40px}
+
+/* --- partie guidee : la bulle se pose au-dessus de la barre de main quand elle est en bas (la main reste visible) --- */
+html.tel-joueur .tuto-bulle.bas,html.tel-joueur #tuto .bulle.bas{bottom:calc(var(--poste-h,190px) + 8px)!important}
+
+/* --- la barre de main passe SOUS les fenetres (aide 20, defausse 19, recap 13, absence 12) : avant, z-index 40 couvrait « Fermer » de l'aide --- */
+html.tel-joueur #partie .p-poste{z-index:11}
+
+/* --- fin de partie : le bloc resultat (Victoire / Defaite, score, Partager le resume, Rejouer) etait masque par .p-poste>*{display:none} --- */
+html.tel-joueur #partie .p-table.fini .p-poste>.p-fin{display:block!important;margin:4px 0}
+
+/* --- rejeu : meme vue que la partie (telephone() n'exclut plus partie.rejeu) ; la barre du rejeu sous la main, boutons de 40 px --- */
+html.tel-joueur body:has(#barreRejeu) #partie .p-poste{padding-bottom:58px}
+#barreRejeu#barreRejeu .btn{min-height:40px;min-width:40px}
+html.tel-joueur body:has(#barreRejeu) #partie .p-poste>.mqb-l{display:none!important}
+
+/* --- 0.7 mobile, retours du 13 nov. : aucun texte tronque, rien qui se chevauche --- */
+/* nom des Golems sur le plateau : sur deux lignes au besoin (« GeneralBrioche » etait coupe) */
+html.tel-joueur #partie .mini .nom{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;font-size:12px;line-height:1.05}
+/* « +1 » flottant : reste dans sa case (il montait sur les totaux des terrains) */
+html.tel-joueur #partie .p-case>.fx-bonus{font-size:24px;-webkit-text-stroke:3px #0a121a;animation-name:bonusTel}
+@keyframes bonusTel{0%{opacity:0;transform:translate(-50%,-20%) scale(.8)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-75%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%)}}
+/* bilan par carte : sous-titre des cartes sur plusieurs lignes (« Accro au Gac... » etait coupe) */
+html.tel-joueur #partie .p-fin .h-tab .h-cti{white-space:normal;overflow:visible;text-overflow:clip}
+/* partie en ligne (Chat) : la barre du haut prend une 2e ligne (48 px) ; cases plus basses d'autant pour que ton camp reste au-dessus de la barre de main */
+html.tel-joueur #partie:has(.mq-chat) .p-grille>.p-case{height:48px}
+/* pastille du Chat : ne monte plus sur le score de la ligne du dessus */
+html.tel-joueur #partie .p-barre:has(.mq-chat) .mq-chat i{top:-3px;right:-7px}
+}

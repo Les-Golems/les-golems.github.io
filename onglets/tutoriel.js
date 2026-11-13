@@ -7,7 +7,7 @@ const GUIDE={graine:19445,deck:'0013001e30023002e300430073007e30183'};
 const gJ=()=>partie.etat.j[partie.moi],gG=(l,k)=>gJ().grille[l][k],gId=(l,k)=>gG(l,k)&&M.carte(gG(l,k).c).id;
 /* 0.6 : sur ordinateur, la vue joueur (#dif, vue/diffusion.js) remplace l'ecran #partie (cache) ; la main y est redessinee
    (boutons .d-main [data-c]) et les boutons d'action y sont deplaces (.mq-btns). Les cibles listent les deux ecrans : on garde la premiere visible. */
-const gSlot=c=>'#dif .d-main button[data-c="'+c+'"],.p-slot[data-c="'+c+'"]';
+const gSlot=c=>'#dif .d-main button[data-c="'+c+'"],.p-slot[data-c="'+c+'"],.mqb-r>button[data-c="'+c+'"]';
 /* visible : a une taille, et n'est pas reste dans #partie sous la vue joueur ouverte */
 const gVis=x=>!!x&&x.getClientRects().length>0&&x.getBoundingClientRect().width>0&&!($('dif')&&x.closest('#partie'));
 function gCible(c){const l=[...document.querySelectorAll(c)];return l.find(gVis)||null}
@@ -20,9 +20,9 @@ const ETAPES=[
  {q:gMull,t:"Bienvenue ! Cette partie guidée t'apprend les bases contre un Golem Facile. Lis chaque bulle, puis fais ce qu'elle demande.",suiv:1},
  {q:gMull,c:'.p-grille.mienne',t:"Voici ta grille : 3 lignes et 3 colonnes. Celle du Golem est de l'autre côté, en miroir.",suiv:1},
  {q:gMull,c:'.p-terrains',t:"Chaque colonne correspond à un <b>terrain</b>. À la fin de chaque manche, le plus fort de la colonne conquiert le terrain et marque ses points.",suiv:1},
- {q:gMull,c:'#dif .d-main,.p-poste>.p-main',t:"Voici ta <b>main</b> : 5 cartes. Au départ, tu peux en remplacer jusqu'à 3. Ici, ta main est bonne.",suiv:1},
- {q:gMull,c:'#dif .mq-btns .btn,.p-poste>.p-btns .btn',t:"Touche <b>Garder ma main</b>.",f:s=>s.mull[partie.moi]},
- {q:gForge(1),c:'.pile.deck',t:"Ton tour commence par la <b>pioche</b> : tu prends 2 cartes de ton deck. Tu as maintenant 7 cartes en main.",suiv:1},
+ {q:gMull,c:'#dif .d-main,.p-poste>.p-main,.p-poste>.mqb-m',t:"Voici ta <b>main</b> : 5 cartes. Au départ, tu peux en remplacer jusqu'à 3. Ici, ta main est bonne.",suiv:1},
+ {q:gMull,c:'#dif .mq-btns .btn,.p-poste>.p-btns .btn,.p-poste>.mqb-l .mqb-b',t:"Touche <b>Garder ma main</b>.",f:s=>s.mull[partie.moi]},
+ {q:gForge(1),c:'.pile.deck,.p-camp.toi .c-deck',t:"Ton tour commence par la <b>pioche</b> : tu prends 2 cartes de ton deck. Tu as maintenant 7 cartes en main.",suiv:1},
  {q:gForge(1),c:gSlot(28),t:"Étape 1, la <b>Forge</b>. Touche <b>Roi du Mobile</b> pour le forger.",f:()=>sel===28||gJ().forge.length>=1},
  {q:gForge(1),c:'#forger',t:"Une carte forgée reste face cachée pour toujours et donne 1 énergie à chaque tour, dès ce tour. La Forge est ta seule source d'énergie. Touche <b>Forger</b>.",f:gForgee(1)},
  {q:gAct(1),c:'#dif .d-j.toi .d-ener,.p-camp.toi .c-enclume',t:"Tu as 1 <b>énergie</b>. Elle sert à payer le coût de tes cartes.",suiv:1},
@@ -122,6 +122,7 @@ function tickGuide(){
   b.hidden=false;placeGuide(z,!e.c||perdue);
 }
 function placeGuide(z,centre){
+  if(!centre&&z&&z.closest&&z.closest('.mqb-r'))z.scrollIntoView({block:'nearest',inline:'nearest'}); /* 0.7 mobile : carte visee dans la main defilante (vue telephone seulement) */
   const b=tuto.b,a=tuto.a,f=tuto.f,vw=document.documentElement.clientWidth,vh=innerHeight,bw=b.offsetWidth,bh=b.offsetHeight;
   const r=centre?{left:vw/2,right:vw/2,top:vh/2,bottom:vh/2,width:0,height:0}:z.getBoundingClientRect();
   a.hidden=centre;if(!centre)Object.assign(a.style,{left:r.left-4+'px',top:r.top-4+'px',width:r.width+8+'px',height:r.height+8+'px'});

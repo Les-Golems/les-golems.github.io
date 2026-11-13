@@ -1,1 +1,12 @@
 /* telephone historique : rempli par le codage 0.7 mobile */
+
+/* ---- Adaptation 0.7 mobile (<= 767 px) : filtres sur 2 colonnes, cibles 44 px, rien de coupe ---- */
+@media (max-width:767px){
+#historique .h-filtres.sc-sel,.h-filtres.sc-sel{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:4px}
+.h-filtres.sc-sel>button{height:auto;min-height:44px;padding:0 6px;white-space:nowrap;font-size:15px}
+}
+@media (max-width:767px){.hd-tn{white-space:normal;overflow:visible;text-overflow:clip}}
+@media (max-width:767px){
+.h-tete{flex-direction:column;align-items:stretch}
+.h-filtres.sc-sel{display:grid;grid-auto-flow:row;height:auto;width:100%;box-sizing:border-box}
+}

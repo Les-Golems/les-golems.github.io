@@ -1,1 +1,104 @@
-/* telephone decks : rempli par le codage 0.7 mobile */
+/* telephone/decks.css : Decks et Cartes au telephone (< 768 px), maquette 52 validee. */
+/* Base commune téléphone + tablette (recopiée dans les deux fichiers) */
+#listeDecks .dk-vue>button{height:40px}
+#listeDecks .dk-vue{height:48px}
+#dkA{height:auto!important;display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+#dkA.dk-cartes{grid-template-columns:minmax(0,1fr)}
+#dkA.dk-cartes .dk-col{display:none}
+/* Mes decks en bandeau défilant */
+#dkA .dk-col{display:grid;grid-template-columns:minmax(0,1fr);align-content:start}
+#dkA .dk-col>*{grid-column:1/-1}
+#dkA .dk-titre{margin:0 0 12px}
+#dkA .dk-dks{flex-direction:row;overflow-x:auto;overflow-y:hidden;gap:8px;padding:4px;margin:-4px;scroll-snap-type:x proximity;overscroll-behavior-x:contain}
+#dkA .dk-tuile,#dkA .dk-tuile.inv{flex:none;width:232px;height:68px;scroll-snap-align:start}
+#dkA .dk-tuile:not(.inv){grid-template-rows:auto auto}
+#dkA .dk-plein{margin-top:14px!important}
+/* Catalogue : cibles 40 px */
+#dkA .dk-p{height:40px;min-width:40px}
+#dkA .dk-couts .dk-p{min-width:40px}
+#dkA .dk-rech{height:40px}
+#dkA .e3{width:40px;height:40px}
+#dkA .dk-mode{height:46px;padding:3px}
+#dkA .dk-mode>button{height:40px}
+#dkA .dk-reinit{height:40px}
+#dkA .dk-q2 i{width:24px;height:24px;font-size:13px;position:relative}
+#dkA .dk-q2 i::before{content:'';position:absolute;inset:-8px}
+#dkA .dk-pp{scrollbar-width:none}
+#dkA .dk-pp::-webkit-scrollbar{display:none}
+#dkA .dk-gr{gap:12px;justify-content:stretch}
+#dkA .dk-c img{height:auto!important;aspect-ratio:5/7}
+#dkA .dk-q{height:42px;grid-template-columns:40px minmax(0,1fr) 40px}
+#dkA .dk-q button{height:40px}
+#dkA .dk-tn{height:42px}
+#dkA .dk-pied{height:40px}
+#dkA .dk-pag button{width:40px;height:40px}
+/* Panneau du deck */
+#dkA .dk-ent .cr{width:40px;height:40px}
+#dkA .dk-voir,#dkA .dk-verif .sc-btn{height:40px}
+#dkA .dk-verif{min-height:56px;height:auto}
+/* Tester des placements */
+#popTest .tp-mode{height:46px;padding:3px}
+#popTest .tp-mode>button{height:40px}
+#popTest .tp-chg{height:40px;bottom:-46px}
+#popTest .p-terrain{margin-bottom:48px}
+#popTest .bac-mention summary{min-height:40px}
+#dkA .dk-p{flex:none}
+#dkA .dk-pan .dl-pied{margin-top:16px}
+/* filtres : rangée 1 = recherche + Réinitialiser ; le séparateur devient un retour à la ligne */
+#dkA .dk-f{flex-wrap:wrap;row-gap:10px}
+#dkA .dk-rech{order:0;flex:1 1 0;min-width:0}
+#dkA .dk-reinit{order:1;margin-left:0!important;padding:0 14px}
+#dkA .dk-f>.dk-sep{order:2;flex:0 0 100%;width:auto;height:0;background:none}
+#dkA .dk-f>.dk-sep~.dk-lib{margin-top:-2px}
+#dkA .dk-f:first-child>.dk-lib,#dkA .dk-f:first-child>.dk-pp{order:3}
+#dkA .dk-f:first-child>.dk-sep~.dk-sep{display:none}
+#dkA .dk-f:nth-child(3)>.dk-sep~*{order:3}
+#popTest .tp-lib{white-space:normal;line-height:1.3}
+
+/* ===== Téléphone (< 768 px) ===== */
+#listeDecks .dk-barre{grid-template-columns:minmax(0,1fr)}
+#listeDecks .dk-vue{display:grid;width:100%;grid-template-columns:1fr 1fr}
+#dkA .bloc{padding:16px}
+#dkA .dk-pan{order:2}
+#dkA .dk-cat{order:3}
+#dkA .dk-tuile,#dkA .dk-tuile.inv{width:220px}
+#dkA .dk-ligne{gap:10px}
+/* filtres : libellé au-dessus, rangée de pastilles défilante */
+#dkA .dk-f{flex-wrap:wrap;gap:8px;row-gap:8px}
+#dkA .dk-f+.dk-f{margin-top:14px}
+#dkA .dk-f>.dk-lib{flex:0 0 100%;line-height:16px;height:16px;display:flex;align-items:center}
+#dkA .dk-f .dk-pp{flex:0 0 100%;min-width:0;overflow-x:auto;gap:6px;padding:0 0 2px}
+#dkA .dk-q2{flex:0 0 100%;height:24px}
+#dkA .e3s{flex:0 0 100%;justify-content:space-between}
+#dkA .dk-mode{flex:0 0 100%;display:grid;width:100%}
+#dkA .dk-couts{justify-content:space-between}
+#dkA .dk-gr{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+#dkA .dk-pan .dk-ent{flex-wrap:nowrap}
+/* Tester des placements : plein écran, une colonne */
+#popTest.voile{padding:0;align-items:stretch}
+#popTest .dk-fen.dk-test{width:100vw;max-width:100vw;min-height:100%;border-radius:0;border:0;padding:0 0 16px}
+#popTest .tp-h{flex-wrap:wrap;height:auto;padding:14px 16px;row-gap:10px}
+#popTest .tp-aide{white-space:normal}
+#popTest .tp-mode{margin-left:0;width:100%;display:grid}
+#popTest .tp-co{grid-template-columns:minmax(0,1fr);gap:16px;padding:16px 16px 0}
+#popTest .tp-bac{width:100%;--h:76px}
+#popTest .tp-bac .d-tr{margin-left:36px;gap:6px}
+#popTest .tp-bac .d-rg{grid-template-columns:28px minmax(0,1fr);gap:8px}
+#popTest .tp-bac .d-vt{font-size:20px}
+#popTest .tp-bac .p-grille{gap:6px}
+#popTest .tp-2r .tp-mc{max-height:none;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden}
+#popTest .tp-m{flex:none;width:72px}
+#popTest .tp-m img{width:72px;height:101px}
+#popTest .tp-pied{padding:0 16px;flex-wrap:wrap;gap:10px}
+#popTest .tp-pied .sc-btn{flex:1 1 calc(50% - 5px)}
+#popTest .tp-pied .sc-pousse{margin-left:0;flex-basis:100%}
+#popTest .bac-mention{margin:12px 16px 0}
+/* Retouches apres controle : pastilles a la ligne (rien de coupe au bord droit), indication de recherche lisible */
+#dkA .dk-f .dk-pp{flex-wrap:wrap;overflow:visible;row-gap:8px}
+#dkA .dk-rech::placeholder{font-size:13px}
+#dkA .dk-reinit{padding:0 10px}
+/* Aucune tuile ni carte coupee au bord : Mes decks en liste, cartes du deck de Tester des placements a la ligne */
+#dkA .dk-dks{display:grid;grid-template-columns:minmax(0,1fr);overflow:visible;margin:0;padding:0;scroll-snap-type:none}
+#dkA .dk-tuile,#dkA .dk-tuile.inv{width:auto;min-width:0}
+#popTest .tp-2r .tp-mc{flex-wrap:wrap;overflow:visible;justify-content:flex-start}
+#dkA .dk-f .dk-couts{gap:4px;flex-wrap:nowrap}

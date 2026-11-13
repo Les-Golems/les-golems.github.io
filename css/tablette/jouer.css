@@ -1,1 +1,10 @@
-/* tablette jouer : rempli par le codage 0.7 mobile */
+/* tablette jouer : adaptation 0.7 mobile (768-1079 px), enveloppee pour ne pas toucher le telephone */
+@media (min-width:768px){
+.j-tag:not(.cl){text-shadow:0 1px 1px rgba(0,0,0,.45)}
+.j-c3 b.sc-sym-rouge{color:#ff6b6d}
+.j-pil{box-shadow:inset 0 0 0 999px rgba(0,0,0,.25)}
+.sc-sel{height:48px}.sc-sel>button{height:40px}
+.j-p .sc-btn{min-height:44px}
+.j-c3 b,.j-c3 small{overflow:visible;text-overflow:clip;white-space:normal}
+}
+@media (min-width:768px){.j-p .j-duo b{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere}}

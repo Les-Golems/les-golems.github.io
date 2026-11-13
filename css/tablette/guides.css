@@ -1,1 +1,9 @@
-/* tablette guides : rempli par le codage 0.7 mobile */
+/* tablette guides : adaptation 0.7 mobile (768-1079 px) */
+@media (min-width:768px){
+.gd-e3{width:44px;height:44px}
+}
+@media (min-width:768px){
+.gd-li b,.gd-li small{white-space:normal;overflow:visible;text-overflow:clip}
+.gd-li{height:auto;min-height:64px}
+.gd-meta{flex-wrap:wrap}
+}

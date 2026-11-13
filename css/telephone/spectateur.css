@@ -1,1 +1,41 @@
-/* telephone spectateur : rempli par le codage 0.7 mobile */
+/* telephone/spectateur.css : vue spectateur (#dif hors vue joueur) au telephone en portrait (< 768 px), maquette 52 (0.7 mobile).
+   Au lieu de reduire la scene 1920 x 1080, ses blocs d'origine sont empiles et mis a l'echelle un par un par zoom. Aucun JS. */
+@media (max-width:767px){
+#dif:not(.jr){overflow-y:auto;overscroll-behavior:contain}
+#dif:not(.jr) .d-scene{transform:none!important;position:relative!important;width:auto!important;height:auto!important;display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 8px calc(16px + env(safe-area-inset-bottom))}
+#dif:not(.jr) .d-scene>.d-z,#dif:not(.jr) .d-ban>*{position:relative!important;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important;flex:none}
+#dif:not(.jr) .d-scene>.d-ban{display:contents}
+/* ordre de lecture : score, adversaire (haut), plateau, joueur du bas, derniere carte, actions, mains, cercle, outils */
+#dif:not(.jr) .d-ban>.d-mid{order:1;zoom:.62}
+#dif:not(.jr) .d-ban>.d-j.lui{order:2;zoom:.52}
+#dif:not(.jr) .d-scene>.d-plat{order:3;zoom:.53}
+#dif:not(.jr) .d-ban>.d-j.toi{order:4;zoom:.52}
+#dif:not(.jr) .d-scene>.d-der{order:5;zoom:.46}
+#dif:not(.jr) .d-scene>.d-act{order:6;zoom:.59;width:600px!important}
+#dif:not(.jr) .d-scene>.d-col:not(.bas){order:7;zoom:.46}
+#dif:not(.jr) .d-scene>.d-col.bas{order:8;zoom:.46}
+#dif:not(.jr) .d-scene>.d-cer{order:9;zoom:.6}
+#dif:not(.jr) .d-scene>.d-coin{order:10;zoom:.59;width:600px!important;height:auto!important}
+/* cibles de 40 px (tailles en px d'origine, avant zoom) : piles cliquables, pastilles « Revoir la fin de la manche », fleches du journal */
+#dif:not(.jr) .d-pile,#dif:not(.jr) .d-clic{position:relative}
+#dif:not(.jr) .d-pile::after{content:"";position:absolute;left:-4px;right:-4px;top:-30px;bottom:-30px}
+#dif:not(.jr) .d-mid .d-clic::after{content:"";position:absolute;inset:-22px}
+#dif:not(.jr) .d-act .d-ah button{min-height:70px;min-width:70px}
+#dif:not(.jr) .d-coin button{min-height:68px}
+#dif:not(.jr) .d-coin .dal-inter{height:auto!important;min-height:76px;align-items:stretch;padding:4px}
+/* animations de vol (reperes 1920) : sans objet dans la pile, la couche reste cachee */
+#dif:not(.jr) .d-couche{display:none}
+/* fenetres de la vue (fin de manche, fin de partie) : plein ecran, la boite a l'echelle */
+#dif:not(.jr) .pp-voile{position:fixed!important;inset:0!important;width:auto!important;height:auto!important;display:flex;align-items:center;justify-content:center;overflow-y:auto}
+#dif:not(.jr) .pp-voile>.pp{zoom:.62;width:560px!important;max-width:none!important;box-sizing:border-box;position:relative!important;left:auto!important;top:auto!important;transform:none!important;margin:auto}
+#dif:not(.jr) .pp-voile .pp-ters{grid-template-columns:minmax(0,1fr)!important}
+/* bas de la fenetre : gains et score en colonne, « Score » et lignes de bonus remis dans le flux (ils se superposaient) */
+#dif:not(.jr) .pp-voile .pp-bas{flex-direction:column;gap:22px;padding:26px 0}
+#dif:not(.jr) .pp-voile .pp-bas .pp-tot{display:flex;flex-direction:column;align-items:center}
+#dif:not(.jr) .pp-voile .pp-bas .pp-tot small,#dif:not(.jr) .pp-voile .pp-bas .pp-bonus{position:static;transform:none;margin:0 0 6px;white-space:normal;text-align:center}
+#dif:not(.jr) .pp-voile .pp>h2{font-size:38px;line-height:1.1;white-space:normal;text-wrap:balance;padding:62px 0 0;margin-top:0}
+#dif:not(.jr) .pp-voile .pp-ters>*{height:auto!important;min-height:0!important}
+#dif:not(.jr) .pp-voile .pp-fermer{min-height:66px;min-width:66px;padding:0 16px}
+/* la vue n'est plus reduite : plus d'invitation a tourner le telephone */
+#dif .d-tourne{display:none!important}
+}

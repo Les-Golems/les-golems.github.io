@@ -1,1 +1,17 @@
-/* tablette regles : rempli par le codage 0.7 mobile */
+/* tablette regles : adaptation 0.7 mobile (768-1079 px) : sommaire en pastilles sur plusieurs lignes au-dessus */
+@media (min-width:768px){
+#rgVue.g4{display:flex;flex-direction:column;gap:16px}
+#rgVue #rgSec{grid-column:auto;min-width:0}
+#rgVue .som{display:flex;flex-wrap:wrap;gap:8px;overflow:visible}
+#rgVue .som li{margin:0}
+#rgVue .som button{width:auto;height:44px;grid-template-columns:auto auto;background:var(--panneau2)}
+#rgVue .som button b{display:none}
+#rgVue .etapes{grid-template-columns:repeat(2,minmax(0,1fr))}
+#rgVue .et:nth-child(2n)::after{display:none}
+#rgVue .rg-corps{overflow:visible}
+#rgVue .ter{min-height:40px}
+#rgVue img,#rgVue svg{max-width:100%}
+}
+@media (min-width:768px) and (max-width:899px){
+#rgVue#rgVue :is(.an2,.el4,.an){grid-template-columns:minmax(0,1fr)!important}
+}

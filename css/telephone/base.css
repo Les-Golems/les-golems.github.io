@@ -1,1 +1,4 @@
 /* telephone base : rempli par le codage 0.7 mobile */
+/* PROPOSITION - telephone/base.css (< 768 px) : garde-fou. Un bloc trop large ne doit jamais elargir la zone visible
+   (sinon toutes les fenetres fixes se centrent sur une page plus large que l'ecran et sortent a droite). */
+html,body{overflow-x:clip}

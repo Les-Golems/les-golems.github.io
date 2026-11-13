@@ -431,10 +431,19 @@ async function ouvreProfil(autre){
   const bt=E('div','pr-btns'),f=E('button','sc-btn sc-secondaire','Fermer');f.type='button';bt.append(f);b.append(bt);
   const esc=e=>{if(e.key==='Escape'&&$('vue').hidden&&$('galerieAvatar').hidden)ferme()},ferme=()=>{cacheApercu();v.remove();removeEventListener('keydown',esc);if(moi)$('capsuleMoi').focus()};
   f.onclick=ferme;v.onclick=e=>{if(e.target===v)ferme()};addEventListener('keydown',esc);
-  v.append(b);document.body.append(v);f.focus();
+  v.append(b);document.body.append(v);if(matchMedia('(max-width:1079px)').matches){f.focus({preventScroll:true});v.scrollTop=0}else f.focus();
 }
 /* Avatar change depuis la galerie : le profil ouvert suit (gros avatar). */
 function majAvatarProfil(){const a=document.querySelector('#profilJoueur .pr-av .avatar');if(a)a.replaceWith(avatarDe(compteCo()?pseudo:'?',monAvatar()))}
 $('salonPublicCase').onchange=e=>{$('salonPublicTxt').textContent=e.target.checked?'Salon public':'Salon privé'};
 {const p=$('pseudoAffiche');p.setAttribute('role','button');p.tabIndex=0;p.title='Voir mon profil';p.classList.add('pf-lien');
  p.onclick=()=>ouvreProfil();p.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvreProfil()}}}
+
+/* Telephone et tablette (<= 1079 px) seulement : pseudo de la capsule jamais coupe. Coupure aux espaces (CSS) ;
+   si un mot reste trop large, la police diminue (14 px -> 8 px). Inerte au-dessus de 1079 px (style inline retire). */
+{const p=$('pseudoAffiche'),mq=matchMedia('(max-width:1079px)');let enCours=false;
+ const ajuste=()=>{if(enCours)return;enCours=true;p.style.fontSize='';
+  if(mq.matches&&p.clientWidth){const t=parseFloat(getComputedStyle(p).fontSize);for(let s=t;s>8&&(p.scrollWidth>p.clientWidth+1||p.scrollHeight>p.clientHeight+1);s-=.5)p.style.fontSize=(s-.5)+'px'}
+  enCours=false};
+ new MutationObserver(ajuste).observe(p,{childList:true,characterData:true,subtree:true});
+ mq.addEventListener('change',ajuste);addEventListener('resize',ajuste);requestAnimationFrame(ajuste)}

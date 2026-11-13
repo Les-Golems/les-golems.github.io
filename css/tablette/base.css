@@ -1,1 +1,5 @@
-/* tablette base : rempli par le codage 0.7 mobile */
+/* tablette base : 768 a 1079 px (fichier charge jusqu'a 1079 px, d'ou le @media) */
+@media (min-width:768px){
+/* PROPOSITION - tablette/base.css (768 a 1079 px) : meme garde-fou qu'au telephone (aucun bloc ne doit elargir la zone visible). */
+html,body{overflow-x:clip}
+}

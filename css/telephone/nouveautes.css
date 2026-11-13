@@ -5,3 +5,9 @@
 @media (max-width:359px){.note>h3::before{display:none}.nv-etq{position:static;float:right;margin:1px 0 0 8px}}
 @media (max-width:520px){.dv-tete{padding:12px 14px 8px}.dv-tete h2{font-size:23px}.dv-corps{padding:10px 14px 6px}.dv-corps li{font-size:15px}.dv-pied{padding:8px 14px 12px}}
 @media (max-width:359px){.note.a-det>.nv-etq{position:static;float:right;margin:1px 64px 0 8px}}
+
+/* ---- Adaptation 0.7 mobile (<= 767 px) : cibles 44 px ---- */
+@media (max-width:767px){
+.nv-prec,.nv-suiv{min-width:44px;min-height:44px}
+.note .sc-btn.sc-tertiaire{min-height:44px}
+}

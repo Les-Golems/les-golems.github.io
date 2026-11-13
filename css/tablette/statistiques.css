@@ -1,0 +1,8 @@
+/* tablette statistiques : adaptation 0.7 mobile (768-1079 px), enveloppee pour ne pas toucher le telephone */
+@media (min-width:768px){
+.st-mode{height:auto;padding:4px;box-sizing:border-box}
+.st-mode>button{min-height:40px;height:auto;padding:4px 4px;white-space:normal;line-height:1.15}
+.st-lc,.st-lt{height:auto;min-height:var(--L);padding-top:4px;padding-bottom:4px}
+.st-nm,.st-nom>span,.st-ps,.st-ti,.st-pl b,.st-lt>:first-child{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.st-note.st-pied{white-space:normal;position:static;margin-top:8px}
+}

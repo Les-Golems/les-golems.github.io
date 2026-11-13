@@ -944,10 +944,10 @@ function placeChat(){const cf=document.querySelector('.chat.flottant');if(!cf||!
 /* ---------- Vue joueur, telephone (0.5, maquette mqt2 v10) : #partie reste l'ecran, re-agence par html.tel-joueur ----------
    barre d'action collee en bas (etape + vrais boutons), main defilante avec fleche, apercu au toucher (Jouer / Fermer),
    barre du haut sur une ligne, eventail adverse dans le bandeau Golem, ligne « Daltonien » sous le Journal. */
-const TEL=matchMedia('(max-width:899px)');
+const TEL=matchMedia('(max-width:1079px)'); /* 0.7 mobile : vue telephone jusqu'a la tablette en paysage (1024) ; inerte a 1080 px et plus */
 function telephone(P){
   const H=document.documentElement,box=document.getElementById('partie');
-  const ok=P&&P.etat&&!P.rejeu&&TEL.matches&&box&&!box.hidden&&!(window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur());
+  const ok=P&&P.etat&&TEL.matches&&box&&!box.hidden&&!(window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur());
   H.classList.toggle('tel-joueur',!!ok);document.querySelectorAll('#mqAp').forEach(x=>x.remove());if(!ok)return;
   const u=U(),s=P.etat,moi=P.moi,lui=1-moi,att=s.fin?[]:M().attendus(s),aMoi=att.includes(moi),nomJ=u.nomJ;
   const camps={[moi]:box.querySelector('.p-camp.toi'),[lui]:box.querySelector('.p-camp.lui')};
@@ -981,7 +981,7 @@ function telephone(P){
     const ra=x.querySelector('.raison');o.append(im,mk('p','','Carte '+(i+1)+' sur '+cartes.length+(x.classList.contains('surtaxe')?' - surcoût':x.classList.contains('reduite')?' - coût réduit':'')+(ra?' - '+ra.textContent:'')),b);
     o.onclick=ev=>{if(ev.target===o)o.remove()};document.body.append(o);r.querySelectorAll('button').forEach(y=>y.classList.remove('choisi'));if(r.children[i])r.children[i].classList.add('choisi')};
   cartes.forEach((x,i)=>{const b=mk('button');b.type='button';if(x.classList.contains('surtaxe'))b.className='surtaxe';if(x.classList.contains('reduite'))b.className='reduite';if(x.dataset.ec)b.dataset.ec=x.dataset.ec;if(x.classList.contains('grisee'))b.classList.add('grisee');const im=mk('img');im.src=x.querySelector('img').src;im.alt=x.querySelector('img').alt||'';b.append(im);
-    {const sl=x.parentNode,cc=sl&&sl.dataset.c,C=cc!=null&&M().carte(+cc);if(C&&C.base){const st=mk('span','evs','★');st.setAttribute('aria-hidden','true');b.append(st)}} /* evolution : etoile a cote du cout */
+    {const sl=x.parentNode,cc=sl&&sl.dataset.c,C=cc!=null&&M().carte(+cc);b.dataset.nom=C?nomCourtC(C):im.alt;if(cc!=null)b.dataset.c=cc;if(C&&C.base){const st=mk('span','evs','★');st.setAttribute('aria-hidden','true');b.append(st)}} /* evolution : etoile a cote du cout */
     b.onclick=()=>ouvre(x,i);r.append(b)});
   const g=mk('div','mqb-g','›');Mm.append(r,g);const majG=()=>{g.style.display=r.scrollLeft+r.clientWidth>=r.scrollWidth-2?'none':'flex'};r.addEventListener('scroll',majG);
   po.append(L,Mm);requestAnimationFrame(majG);

@@ -7,3 +7,11 @@
   #partie .p-comptes{grid-template-columns:62px 68px 90px 66px}
 }
 @media (max-width:899px){#partie .p-cale{display:none}}
+
+/* 0.7 mobile : memes regles pour la vue telephone de 900 a 1079 px */
+@media (min-width:900px) and (max-width:1079px){
+:where(html.tel-joueur) #partie .p-tot{font-size:22px}
+:where(html.tel-joueur) #partie .p-camp{flex-wrap:wrap;row-gap:0}
+:where(html.tel-joueur) #partie .p-comptes{flex:1 0 100%;margin-left:0;grid-template-columns:62px 68px 90px 66px;justify-content:space-between}
+:where(html.tel-joueur) #partie .p-cale{display:none}
+}
