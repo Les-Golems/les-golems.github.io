@@ -56,7 +56,7 @@ const ETAPES=[
  {q:gAct(1,2),c:caseDe(0,1,1),t:"Touche le KaTarN du milieu pour l'<b>améliorer</b>.",f:()=>gId(1,1)==='001e'},
  {q:gAct(1,2),c:caseDe(0,1,1),t:"KaTarN part à la défausse et ses dégâts disparaissent. À la pose, Slim K inflige 1 dégât à chaque Golem de la ligne adverse.",suiv:1},
  {q:gAct(1,2),c:'#finTour',t:"Tu connais l'essentiel ! Termine ton tour, puis joue la suite de la partie comme tu veux.",suiv:'Compris',libre:1},
- {libre:1,q:s=>!!s.fin,c:'#dif .pp .pp-vic,.p-fin h3',fin:1,t:"Partie terminée, bravo ! Les <b>Règles</b> détaillent tout le reste, comme les effets des terrains."}
+ {libre:1,q:s=>!!s.fin,c:'#dif .pp .pp-vic,.p-fin h3',fin:1,/* attend Continuer : #recap ferme, ecran de fin visible */t:"Partie terminée, bravo ! Les <b>Règles</b> détaillent tout le reste, comme les effets des terrains."}
 ];
 const G_LIBRES='.p-outils button,.p-pied button,.oeil,#dif .mq-outils button,#dif .d-chat';
 function lanceGuide(){
@@ -98,7 +98,7 @@ function tickGuide(){
   if(!e){arreteGuide();return}
   const b=tuto.b,a=tuto.a,f=tuto.f;
   /* fin : la bulle attend aussi la fin de l'animation de fin de partie (le bouton Passer de l'animation a alors disparu) */
-  const calme=!animCours&&!verrou&&!desActif&&!fileA.length&&$('vue').hidden===!e.vue&&(e.fin||$('recap').hidden===!e.recap)&&$('vueTas').hidden&&$('aide').hidden&&gPose();
+  const calme=!animCours&&!verrou&&!desActif&&!fileA.length&&$('vue').hidden===!e.vue&&$('recap').hidden===!e.recap&&$('vueTas').hidden&&$('aide').hidden&&gPose();
   if(!(e&&calme&&(!e.q||e.q(s))&&!$('jouer').hidden)){b.hidden=a.hidden=f.hidden=true;return}
   /* Cible introuvable : la bulle se place au centre de l'ecran (sans anneau) au lieu de disparaitre, avec un avertissement en console. */
   let z=e.c?gCible(e.c):document.body,perdue=false;

@@ -1,0 +1,36 @@
+/* tablette menus : cibles tactiles de 32 px au moins et contrastes de 4,5 au moins hors partie (lot M2, 0.7 mobile, 768-1079 px) */
+@media (min-width:768px){
+/* Regles, Anatomie d'une carte : les libelles passent a la ligne au lieu de sortir de l'ecran */
+#rgVue .anl .lt{white-space:normal;overflow-wrap:break-word}
+#rgVue .lire4 .anl,#rgVue .lire4 #rgAnT .anl{grid-template-columns:minmax(0,max-content) minmax(72px,1fr)!important}
+/* Selecteurs compacts (Jouer, Historique, Guides, Statistiques) : boutons de 32 px */
+.sc-sel.sc-petit{height:auto;min-height:40px}
+.sc-sel.sc-petit>button{height:32px}
+/* Boutons tertiaires : 32 px */
+.sc-btn.sc-tertiaire{height:32px}
+/* Liens d'auteur des Nouveautes : zone de toucher elargie sans bouger le texte */
+button.nv-lien{position:relative}
+button.nv-lien::after{content:"";position:absolute;inset:-4px}
+/* Detail de partie : noms de cartes a agrandir, zone de toucher elargie */
+.hd-zoom{position:relative}
+.hd-zoom::after{content:"";position:absolute;inset:-7px -4px}
+/* Contrastes */
+.hl-tag.amicale{background:#5a6f82}
+.j-filtres>button:not([aria-pressed=true]) .j-nb{color:var(--texte)}
+.j-filtres>button[aria-pressed=true] .j-nb{background:rgba(255,255,255,.4)}
+.dl-col.dl-vide{opacity:1}
+.dl-col.dl-vide small,.dl-col.dl-vide .dl-pc{color:var(--doux)}
+body:has(#barreRejeu) #partie .p-tot{opacity:1}
+#rgVue .gr .fa,#rgVue .gr .fa .rg-mot{color:var(--encre)}
+
+/* Statistiques : en-tetes triables de 32 px */
+.st-th{height:auto;min-height:24px}
+.st-tri{min-height:32px}
+/* Contrastes (suite) : taux et symboles rouges, zeros du detail de partie, pastille i du bandeau de version */
+:root{--rouge-texte-clair:#ff5c5e}
+html:not(.clair) .hd-tab td.z{color:#8597a6}
+.majDispo>i{background:#157a98}
+/* Statistiques : fleche de tri sous l'intitule, pour ne plus deborder sur la colonne voisine */
+.st-tri{position:relative}
+.st-tri>small{position:absolute;left:0;right:0;bottom:1px;line-height:1;font-size:10px;text-align:inherit}
+}

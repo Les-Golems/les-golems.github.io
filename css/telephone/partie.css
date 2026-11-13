@@ -90,3 +90,13 @@ html.tel-joueur #partie .p-fin .h-tab .h-cnom{flex-wrap:wrap;flex:1 1 100%;min-w
 html.tel-joueur #partie .p-fin .h-tab .h-cps{white-space:normal;overflow-wrap:anywhere;min-width:0;max-width:100%}
 html.tel-joueur #partie .p-fin .h-tab .h-cti{flex:1 1 100%;max-width:100%;white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:normal}
 }
+/* detail d'un terrain : en colonne, le sous-titre prend la largeur de la ligne et finit par des points de suspension (align-items:baseline herite le laissait a sa largeur naturelle, coupe net) */
+@media (max-width:440px){#vueDetail .zt-l .dl-nom{align-items:stretch}#vueDetail .zt-l .dl-pseudo,#vueDetail .zt-l .dl-titre{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+/* bilan par carte : sous-titre a 2 lignes, termine par des points de suspension s'il est plus long */
+html.tel-joueur #partie .p-fin .h-tab .h-cti{text-overflow:ellipsis;overflow-wrap:anywhere}
+/* barre d'action a deux boutons (Info tchat : Laisser dessus / Mettre dessous) : l'etape sur sa ligne, les boutons en dessous */
+html.tel-joueur #partie .p-poste>.mqb-l:has(.mqb-b~.mqb-b){flex-wrap:wrap;row-gap:4px}
+html.tel-joueur #partie .p-poste>.mqb-l:has(.mqb-b~.mqb-b)>.mqb-c{flex:1 1 100%}
+html.tel-joueur #partie .p-poste>.mqb-l:has(.mqb-b~.mqb-b)>.mqb-b{flex:1 1 0;min-width:0}
+/* fin de manche : fenetre limitee a la hauteur de l ecran, defilement interne, Continuer colle en bas et toujours visible (main adverse de L Ecran du MJ) */
+#recap .boite{max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box}#recap #continuer{position:sticky;bottom:0;z-index:2;box-shadow:0 -10px 14px 4px var(--panneau,#121c26)}

@@ -157,7 +157,7 @@
       ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password' && query.orderByValue == true && query.limitToFirst <= 50",
       ".indexOn": ".value",
       "$code": {
-        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && (root.child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('salons').child($code).child('pres').hasChild(auth.uid))) || (!newData.exists() && data.val() < now - 604800000))",
+        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && (root.child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('salons').child($code).child('pres').hasChild(auth.uid))) || (!newData.exists() && (!data.exists() || data.val() < now - 604800000)))",
         ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.val() === now"
       }
     },
@@ -222,7 +222,7 @@
     "salons": {
       "$code": {
         ".validate": "$code.matches(/^[a-z0-9]{3,8}$/)",
-        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !newData.exists() && root.child('activite').child($code).val() < now - 604800000",
+        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !newData.exists() && (!data.exists() || root.child('activite').child($code).val() < now - 604800000)",
         ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
         "engages": {
           ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.hasChild(auth.uid) && (root.child('salons').child($code).child('cl').val() !== true || newData.hasChild('g'))) || (data.hasChild(auth.uid) && !newData.exists() && (root.child('salons').child($code).child('cl').val() !== true || !data.hasChild('g') || root.child('classe').child('parties').child($code + '-' + data.child('g').val()).exists())))",
@@ -1396,7 +1396,7 @@
         ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password' && query.orderByValue == true && query.limitToFirst <= 50",
         ".indexOn": ".value",
         "$code": {
-          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && (root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('essai').child('salons').child($code).child('pres').hasChild(auth.uid))) || (!newData.exists() && data.val() < now - 604800000))",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((newData.exists() && (root.child('essai').child('salons').child($code).child('joueurs').hasChild(auth.uid) || root.child('essai').child('salons').child($code).child('pres').hasChild(auth.uid))) || (!newData.exists() && (!data.exists() || data.val() < now - 604800000)))",
           ".validate": "$code.matches(/^[a-z0-9]{3,8}$/) && newData.val() === now"
         }
       },
@@ -1461,7 +1461,7 @@
       "salons": {
         "$code": {
           ".validate": "$code.matches(/^[a-z0-9]{3,8}$/)",
-          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !newData.exists() && root.child('essai').child('activite').child($code).val() < now - 604800000",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && !newData.exists() && (!data.exists() || root.child('essai').child('activite').child($code).val() < now - 604800000)",
           ".read": "auth != null && auth.token.firebase.sign_in_provider === 'password'",
           "engages": {
             ".write": "auth != null && auth.token.firebase.sign_in_provider === 'password' && ((!data.exists() && newData.hasChild(auth.uid) && (root.child('essai').child('salons').child($code).child('cl').val() !== true || newData.hasChild('g'))) || (data.hasChild(auth.uid) && !newData.exists() && (root.child('essai').child('salons').child($code).child('cl').val() !== true || !data.hasChild('g') || root.child('essai').child('classe').child('parties').child($code + '-' + data.child('g').val()).exists())))",

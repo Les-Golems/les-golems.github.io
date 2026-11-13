@@ -39,3 +39,12 @@
 /* la vue n'est plus reduite : plus d'invitation a tourner le telephone */
 #dif .d-tourne{display:none!important}
 }
+/* fenetre de fin : tableau des manches resserre pour tenir dans la fenetre (colonne Manche 3 et Total visibles) */
+#dif .pp-tab{margin-top:14px;font-size:20px;border-spacing:0 6px}
+#dif .pp-tab th{font-size:11px;padding:0 4px 4px;white-space:normal}
+#dif .pp-tab td{padding:8px 4px}
+#dif .pp-tab td:first-child{padding-left:6px}
+#dif .pp-tab td:last-child{font-size:26px;padding-right:8px}
+#dif .pp-tab .nm{gap:6px}
+#dif .pp-tab .nm span{max-width:84px}
+#dif .pp-tab .nm .avatar{width:28px;height:28px;font-size:14px}

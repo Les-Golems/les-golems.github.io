@@ -277,7 +277,7 @@ const S0=[
 {id:'precisions',t:'Précisions sur les cartes',h:'<div class="pg">'+[['Golem','Golems'],['Effet','Effets'],['Animal','Animaux'],['Terrain','Terrains']].map(([k,g])=>`<div class="grp">${g}</div>`+rang(PREC.filter(x=>x[1]===k).map(([n,t,d])=>`<div class="pr"><div class="prt"><b>${n}</b><span class="tg tg-${norm0(t)}">${t}</span></div><p>${d}</p></div>`),3,'prec')).join('')+'</div>'}];
 const S=S0;
 const norm=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
-const txt=h=>{const d=document.createElement('div');d.innerHTML=h;return d.textContent};
+const txt=h=>new DOMParser().parseFromString(h,'text/html').body.textContent; /* DOMParser : document inerte, les <img src="img/..."> bruts ne sont pas chargés (404 évités) */
 const nb=(h,q)=>q?norm(txt(h)).split(q).length-1:0;
 let cur=0,Q='';
 function rendre(){
@@ -330,7 +330,9 @@ function schemas(){const star=(x,y,z)=>`<svg x="${x}" y="${y}" width="${z}" heig
 const VAR=[['remportés','Remporter'],['remportes','Remporter'],['remporter','Remporter'],['remporte','Remporter'],['remportant','Remporter'],['ciblables','Ciblé'],['ciblable','Ciblé'],['mvp','MVP'],['défaussée','Défausse'],['défausse','Défausse'],['mulligan','Mulligan'],['classée','Classée'],['amicale','Amicale'],['favori','Favori'],['pioche','Pioche'],['manche','Manche'],['base','Base'],['main','Main'],['à la pose','À la pose'],['améliorer','Améliorer'],['animal de compagnie','Animal de compagnie'],['animaux','Animal de compagnie'],['animal','Animal de compagnie'],['cercle','Cercle'],['ciblé','Ciblé'],['copie','Copie'],['décompte','Décompte'],['dégâts','Dégâts'],['dégât','Dégâts'],['deck vide','Deck vide'],['en face','En face'],['en jeu','En jeu'],['énergie','Énergie'],['évolutions','Évolution'],['évolution','Évolution'],['évolue','Évolution'],['forge','Forge'],['forgent','Forge'],['force actuelle','Force actuelle'],['hors décompte','Hors décompte'],['ligne adverse','Ligne adverse'],['mise','Mise'],['poser','Poser'],['récupérer','Récupérer X'],['remplacer','Remplacer'],['remplaces','Remplacer'],['tarte','Tarte'],['trait','Trait'],['un seul golem','Un seul Golem'],['valeur variable','Valeur variable'],['voisins','Voisin'],['voisin','Voisin']];
 let PAGE=0,PSEC=-1;
 function paginer(){const c=$('rgCorps'),g=c.querySelector('.pg');const old=c.querySelector('.pag');if(old)old.remove();if(!g)return;g.querySelectorAll('.grp.suite').forEach(x=>x.remove());if(PSEC!==cur){PAGE=0;PSEC=cur}
- const B=[...g.children];B.forEach(e=>e.style.display='');c.style.overflow='hidden';const H=c.clientHeight-50;
+ const B=[...g.children];B.forEach(e=>e.style.display='');
+ if(matchMedia('(max-width:767px)').matches){c.style.overflow='';return} /* telephone : le corps suit son contenu et la page defile, pas de pages (sinon la derniere carte passe sous la pagination) */
+ c.style.overflow='hidden';const H=c.clientHeight-50;
  const pages=[];let pg=[],st=null;const T0=g.getBoundingClientRect().top;B.forEach(e=>{const r=e.getBoundingClientRect(),t=r.top-T0,bt=r.bottom-T0;if(st===null)st=t;
   if(bt-st>H&&pg.length){if(pg[pg.length-1].classList.contains('grp')){const x=pg.pop();pages.push(pg);pg=[x];st=x.getBoundingClientRect().top-T0}else{pages.push(pg);pg=[];st=t}}pg.push(e)});if(pg.length)pages.push(pg);
  if(pages.length<2){c.style.overflow='';return}PAGE=Math.min(PAGE,pages.length-1);

@@ -28,7 +28,7 @@ module.exports = r => ({
     "$code": {
       // pres/<uid> aussi (écrit par ce seul uid, gardé à c:false par le serveur à la coupure) : le renvoi par le SDK, après une coupure,
       // d'un set envoyé juste avant arrive quand joueurs/<uid> est déjà effacé ; il n'est plus refusé.
-      ".write": `${COMPTE} && ((newData.exists() && ${dansSalon(r)}) || (!newData.exists() && data.val() < now - ${SEPT_JOURS}))`,
+      ".write": `${COMPTE} && ((newData.exists() && ${dansSalon(r)}) || (!newData.exists() && (!data.exists() || data.val() < now - ${SEPT_JOURS})))`,
       ".validate": `$code.matches(${CODE}) && ${MAINTENANT}`
     }
   },
@@ -68,7 +68,7 @@ module.exports = r => ({
     "$code": {
       ".validate": `$code.matches(${CODE})`,
       // Effacement du salon entier (joueurs, coups, chat) seulement si sa dernière activité date de plus de 7 jours.
-      ".write": `${COMPTE} && !newData.exists() && ${r}.child('activite').child($code).val() < now - ${SEPT_JOURS}`,
+      ".write": `${COMPTE} && !newData.exists() && (!data.exists() || ${r}.child('activite').child($code).val() < now - ${SEPT_JOURS})`,
       // Lecture d'un salon (joueurs et coups) pour tout joueur connecté.
       ".read": `${COMPTE}`,
 

@@ -141,3 +141,9 @@ html.tel-joueur #partie .p-fin .h-tab .h-cti{display:none}
 html.tel-joueur #partie .p-fin .h-tab .h-cps{white-space:normal;overflow-wrap:anywhere}
 }
 }
+/* detail d'un terrain (768 a 1079 px) : pseudo puis sous-titre l'un sous l'autre, chacun sur toute la largeur et termine par des points de suspension (le sous-titre n'avait que ~19 px a cote du pseudo) */
+@media (min-width:768px){#vueDetail .zt-l .dl-nom{flex-direction:column;align-items:stretch;gap:0;font-size:14.5px;line-height:1.08}#vueDetail .zt-l .dl-pseudo,#vueDetail .zt-l .dl-titre{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#vueDetail .zt-l .dl-titre{font-size:12px}}
+/* fin de partie (900 a 1079 px) : Quitter / Partager / Rejouer dans le flux de la colonne de droite, sous la main, au lieu d'une barre fixe qui recouvrait le bas de la main */
+@media (min-width:900px){html.tel-joueur #partie .p-table.fini .p-pied{position:static;width:auto;padding:10px 0 4px;background:none;border-top:0}html.tel-joueur #partie .p-table.fini .p-cote{padding-bottom:16px}}
+/* fin de manche : fenetre limitee a la hauteur de l ecran, defilement interne, Continuer colle en bas et toujours visible (main adverse de L Ecran du MJ) */
+@media (min-width:768px){#recap .boite{max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box}#recap #continuer{position:sticky;bottom:0;z-index:2;box-shadow:0 -10px 14px 4px var(--panneau,#121c26)}}

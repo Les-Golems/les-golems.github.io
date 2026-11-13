@@ -149,9 +149,15 @@ async function envoieClasse(c,w,gr){
     else{
       const o={sa:c.sa,gr,a:c.a,b:c.b,gagnant:w===0?c.a:w===1?c.b:null};
       /* 0.6.1 : forfait de l'adversaire (salons/<sa>/forfait/<gr>.u = perdant) : le gagnant ecrit la partie et les deux profils. */
-      const f=o.gagnant===u?await room.lit('salons/'+c.sa+'/forfait/'+gr).catch(()=>null):null,perd=o.gagnant===c.a?c.b:c.a;
+      /* 0.7 : forfait lu d'abord en memoire (GOLEMS_PONT.r.forfaits(), deja recu puisque c'est lui qui a fini la partie), le reseau en secours.
+         Fin par abandon de l'adversaire sans forfait connu (lecture perdue sous coupure, ou abandon volontaire) : fin gardee {f:1}
+         AVANT toute attente, pour que reprendFins reessaie si le perdant n'ecrit jamais. */
+      const perd=o.gagnant===c.a?c.b:c.a,FF=()=>{try{const R=window.GOLEMS_PONT&&GOLEMS_PONT.r,x=R&&typeof R.forfaits==='function'&&R.forfaits();return x&&x[gr]||null}catch(e){return null}};
+      const ab=partie&&partie.etat&&partie.etat.fin&&partie.etat.fin.abandon!==undefined&&partie.etat.fin.abandon!==partie.moi;
+      let f=o.gagnant===u?FF():null;
+      if(o.gagnant===u&&!(f&&f.u===perd)){if(ab)finEnAttente(u,o,true,true);f=await room.lit('salons/'+c.sa+'/forfait/'+gr).catch(()=>null)||FF()}
       if(o.gagnant===u&&f&&f.u===perd){finEnAttente(u,o,true,true);const r=await S.finForfait(o);if(r.fait&&r.faitAdv)finEnAttente(u,o,false);if(r.fait)j=await room.classeBase().lit('classe/joueurs/'+u)}
-      else if(o.gagnant===u)j=await S.attends(id);
+      else if(o.gagnant===u){j=await S.attends(id);if(j&&ab)finEnAttente(u,o,false)}
       else{finEnAttente(u,o,true);const r=await S.finJoueurs(o);if(r.fait){finEnAttente(u,o,false);j=await room.classeBase().lit('classe/joueurs/'+u)}}
     }
     if(j){attenteClasse(id,false);
