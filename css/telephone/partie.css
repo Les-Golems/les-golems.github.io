@@ -76,6 +76,9 @@ html.tel-joueur #partie .mqb-r>button[data-nom]::before{white-space:normal;overf
 /* noms sur deux lignes sous les cartes (+8 px) et pastille adverse sur sa propre ligne (+20 px) : cases du plateau plus basses (ton camp reste au-dessus de la barre) */
 html.tel-joueur #partie .p-grille>.p-case{height:51px}
 html.tel-joueur #partie:has(.mq-chat) .p-grille>.p-case{height:43px}
+/* partie en ligne : ton panneau (2e ligne Main/Deck/Defausse/Forge) etait sous la barre de main : cases et terrains plus bas */
+html.tel-joueur #partie:has(.mq-chat) .p-grille>.p-case{height:38px}
+html.tel-joueur #partie:has(.mq-chat) .p-terrains,html.tel-joueur #partie:has(.mq-chat) .p-terrain{height:64px}
 /* rejeu : barre collee en bas sur toute la largeur, marge reservee sous le contenu (elle ne recouvre plus le bilan) */
 html.tel-joueur .barreRejeu{left:0;right:0;bottom:0;width:auto;margin:0;border-radius:0;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
 /* ta ligne : nom en 14 px pour que la pastille et le point de connexion tiennent sur la meme ligne (la barre de main ne recouvre plus tes compteurs) */
