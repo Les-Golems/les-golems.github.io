@@ -10,3 +10,9 @@
 .h-tete{flex-direction:column;align-items:stretch}
 .h-filtres.sc-sel{display:grid;grid-auto-flow:row;height:auto;width:100%;box-sizing:border-box}
 }
+/* 700-767 : meme ligne d'historique sur 2 rangees qu'a 375 */
+@media (max-width:767px){
+.hl-l{grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-areas:"res etq sp sc" "adv adv adv date";height:auto;row-gap:6px;padding:8px 10px}
+.hl-res{grid-area:res}.hl-etqs{grid-area:etq}.hl-scz{grid-area:sc}.hl-l>.hl-adv{grid-area:adv}.hl-date{grid-area:date;align-items:flex-end}
+.hl-deck,.hl-vs,.hl-mvp,.hl-ver,.hl-fl{display:none}
+}
