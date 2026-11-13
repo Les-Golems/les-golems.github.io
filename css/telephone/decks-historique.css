@@ -1,0 +1,6 @@
+/* telephone/decks-historique.css : règles téléphone (seuils <= 767 px) sorties de css/onglets/decks-historique.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:440px){.dl-courbe{grid-template-columns:repeat(7,minmax(0,38px));column-gap:6px}.dl-col i{width:22px}.dl-total{padding:0 4px}}
+@media (max-width:640px){.h-carte .h-deck{max-width:120px}}
+@media (max-width:480px){.hd-act.sc-fen-actions{grid-template-columns:1fr}
+}

@@ -1,0 +1,7 @@
+/* tablette/partie.css : règles tablette (seuils de 768 à 1079 px) sorties de css/partie.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:899px){.p-signal b{font-size:23px}}
+@media(max-width:899px){.p-table.fini .p-poste{order:-1}}
+@media (max-width:899px){#partie .p-tourde:has(.dal-inter){padding-right:172px}}
+@media (max-width:899px){.p-tourde{height:36px}.p-ener{font-size:25px}}
+@media (max-width:899px){.p-case .fav{right:calc(var(--f)*.82 + 5.7px)}.p-case .fav svg{width:15px;height:15px}}

@@ -1,0 +1,3 @@
+/* telephone/statistiques.css : règles téléphone (seuils <= 767 px) sorties de css/onglets/statistiques.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:640px){.st-g4,.st-barre{grid-template-columns:minmax(0,1fr)}.st-pat{justify-self:stretch}.st-pat-b{width:100%}}

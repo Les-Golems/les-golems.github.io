@@ -41,7 +41,7 @@ Une nouvelle carte va dans le fichier de son type, un nouvel effet dans le fichi
 
 ## 2. Ordre de chargement (index.html)
 
-1. CSS : `spectateur.css`, `css/diffusion.css`, `aide.css`, puis `css/chargement.css`, puis les autres `css/` et `css/onglets/`.
+1. CSS : `spectateur.css`, `css/diffusion.css`, `aide.css`, puis `css/chargement.css`, puis les autres `css/` et `css/onglets/`, puis `css/tablette/` et `css/telephone/` (section 7).
 2. Scripts du jeu : `firebase/salon.js` (module, qui importe `firebase/compte.js` et `firebase/decks.js`) et `spectateur.js` (modules), `spectateur-ui.js`, `vue/diffusion-animations.js` puis `vue/diffusion.js`, `aide.js` (différés), puis
    `cartes/donnees/golems.js`, `animaux.js`, `terrains.js`, `index.js`, puis `cartes/effets/golems.js`, `animaux.js`, `terrains.js`, `index.js`, puis `moteur.js`, puis `presence.js`.
    Les données et les effets doivent être chargés **avant** `moteur.js` (sinon le moteur s'arrête avec un message clair).
@@ -107,3 +107,30 @@ Composants de la charte graphique, préfixe `sc-`, à utiliser par tous les écr
 | `commun/alertes.js` : `alerte(cible,texte,{info,bouton})`, `alerteInfo`, `alerteTexte`, `confirmeFen({titre,texte,action})`, `confirmeAbandon(msg,oui,titre,bouton)` (abandon ou sortie de partie : vue/joueur.js, onglets/historique.js), `copieManuelle(cible,txt)` | Tous les messages du site (textes validés le 9 nov. 2026, « Titre : raison. Action. », dossier 08 - Interface générale\28 - Alertes) : bandeau `.sc-alerte` rouge (erreur) ou bleu (information) posé dans la zone de l'écran (`#erreurJeu`, `#erreurPseudo`, `#galMsg`/`#cadMsg` sous le titre de la fenêtre, `#histoAlerte`...) ; texte vide = efface. Confirmations (Supprimer, Abandonner, Quitter) au modèle de la déconnexion : titre en question, phrase, [Action] [Annuler] (`confirmeFen`, Promise). Plus aucun `alert()`, `prompt()`, `confirm()` natif. Chargé juste après commun/outils.js. |
 | `.sc-titre-bloc` | Titre de bloc commun (Lilita 22 px, une ligne, 12 px dessous) : même place dans tous les blocs (défaut J02). |
 | `couleurTaux(taux, parties, {neutre})` (commun/outils.js) et `.sc-taux-*` | Rend la classe : vert >= 50 %, ambre 40-49 %, rouge < 40 %, gris si moins de 5 parties ; `neutre:true` = blanc (classement des joueurs). `couleurTaux.valeur(...)` rend la couleur CSS. Taux en pourcentage 0-100. |
+
+## 7. Téléphone et tablette (rangement 0.7a, 13 nov. 2026)
+
+**Seuils.** Ordinateur = 1080 px et plus. Tablette = règles `@media (max-width:N)` avec N de 768 à 1079 px. Téléphone = N jusqu'à 767 px. Le seul media combiné rangé, `(orientation:portrait) and (max-width:899px)` (diffusion), ne vise que moins de 900 px : il est dans tablette/diffusion.css. Aucun seuil n'a été changé au rangement : chaque règle garde sa media query d'origine à l'intérieur de son nouveau fichier.
+
+**Fichiers.** `css/tablette/<écran>.css` et `css/telephone/<écran>.css`, un par fichier d'origine, chargés par index.html APRÈS tous les fichiers d'origine, avec `<link media="(max-width:...)">` (jamais lus sur ordinateur), dans l'ordre des fichiers d'origine (tablette puis téléphone) : tablette/diffusion, telephone/cartes, tablette/salon, telephone/salon, telephone/nouveautes, tablette/partie, telephone/partie, tablette/profil, telephone/profil, telephone/statistiques, tablette/decks-historique, telephone/decks-historique, telephone/entete, tablette/reprises, telephone/reprises, tablette/diffusion-partie. (salon = onglets/jouer-salon.css, entete = boutons-entete.css, diffusion-partie = partie-diffusion.css.) `golemsCharge` accepte un 3e élément pour un CSS : sa media query.
+
+**Règle.** La version ordinateur ne se modifie que dans les fichiers d'origine (`css/`, `css/onglets/`). Le téléphone et la tablette ne se modifient que dans `css/telephone/` et `css/tablette/`. Un nouveau fichier par écran s'ajoute à la liste de index.html, à sa place.
+
+**Restés dans les fichiers d'origine** (à ne pas oublier en codant le téléphone) : les `min-width`, `hover`, `prefers-reduced-motion`, `display-mode` ; les `max-width` de 1099, 1100 et 1199 px (touchent aussi l'ordinateur de 1080 à 1199 px : jouer-salon, partie, guides, profil, statistiques, reprises) ; et 22 blocs `max-width` < 1080 laissés : base.css (640, `.annote`/`.etapes` : son seul retrait change la barre de défilement du sommaire des Règles à 768 px, 4 px, bizarrerie de Chrome mesurée), puis 21 laissés par prudence car leur déplacement aurait pu changer la cascade (même sélecteur ou même spécificité redéfinis plus loin) : boutons-entete.css (640, 1er bloc), cartes.css (640), diffusion.css (899, vue joueur `html.tel-joueur`), decks-historique.css (440, 480, 699), jouer-salon.css (520 x2, 600 x3), jouer.css (600, 699, 1079), partie.css (899 x3), profil.css (440 x3), tutoriel.css (600). CSS injecté par JS : presence.js (`@media (max-width:600px)` dans la fonction `tic`).
+
+**JavaScript propre au téléphone / à la tablette** (non déplacé) :
+| Fichier | Fonction | Test |
+|---|---|---|
+| vue/diffusion.js | `TEL`, `telephone()`, `placeChat` | `(max-width:899px)`, classe `html.tel-joueur` (vue joueur téléphone) |
+| vue/diffusion.js | `ECRAN_JOUEUR` | `(min-width:1200px) and (min-height:600px)` |
+| vue/joueur.js | `LARGE`, `SURVOL` | `(min-width:900px)`, `(hover:hover) and (min-width:900px)` |
+| vue/partie.js | `ZONE` ; `partageFin` | `(min-width:1200px)` ; `(pointer:coarse)` (partage natif) |
+| onglets/historique.js | `ECRAN_RJ` ; `peintHisto` | rejeu `(min-width:1200px) and (min-height:600px)` ; `innerWidth>=700` |
+| onglets/jouer.js | `chatBox` | `(max-width:520px)` (texte d'aide du tchat) |
+| onglets/nouveautes.js | `ouvreDetailsVersion`, `peintNotes0`, `peintNotes` | `(min-width:700px)`, `innerWidth<700` |
+| onglets/guides.js | `cjHauteur` | `innerWidth<700` |
+| onglets/statistiques.js | `peintCols` | `(min-width:1200px)` |
+| onglets/decks.js | `grilleDk`, `hauteurDecks` | `innerWidth>1800`, `innerWidth>=1200` |
+| commun/navigation.js | `ajustePage` | `innerWidth<700` |
+| commun/version.js | `cale` | `innerWidth<=860` |
+| aide.js | `tactile` | `(hover:none)` |

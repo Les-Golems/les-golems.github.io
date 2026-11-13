@@ -1,0 +1,5 @@
+/* telephone/cartes.css : règles téléphone (seuils <= 767 px) sorties de css/cartes.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:600px){.f-ligne{--lib:84px;--grp:10px}}
+@media (max-width:600px){.grille{--col:2;gap:10px}}
+@media (max-width:520px){#joueurs .cd-haut{flex-wrap:wrap;row-gap:6px}#joueurs .cd-haut .h-deck{flex-basis:100%}#joueurs .cd-haut .d-compte{margin-left:auto}}

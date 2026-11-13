@@ -19,7 +19,6 @@ html.clair{--compteur:var(--doux);--survol-trait:rgba(10,18,26,.25)}
 #partie .p-terrain .p-valeur{position:static;display:inline-flex;align-items:center;gap:4px;font:400 14px/18px var(--titre);padding:0 7px;white-space:nowrap}
 #partie .p-valeur .ico{font-size:13px;color:var(--encre)}
 @media (min-width:900px){#partie .p-tmil{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:2px 6px}}
-@media (max-width:899px){#partie .p-tot{font-size:22px}}
 /* 3. Journal : ligne a la couleur du joueur, nom en gras, noms de cartes en blanc (evolutions en dore), souligne au survol seulement */
 #partie .p-lignes div.j-moi{box-shadow:inset 3px 0 0 var(--moi);padding-left:7px}
 #partie .p-lignes div.j-lui{box-shadow:inset 3px 0 0 var(--lui);padding-left:7px}
@@ -46,11 +45,6 @@ html.clair{--compteur:var(--doux);--survol-trait:rgba(10,18,26,.25)}
 #partie .p-compteur{background:transparent;color:var(--compteur);font-weight:700;font-size:12.5px;padding:2px 0;white-space:nowrap}
 #partie .p-compteur .ico{color:var(--compteur);font-size:14px}
 #partie .p-compteur b{color:var(--blanc);font-size:17px}
-@media (max-width:899px){
-  #partie .p-camp{flex-wrap:wrap;row-gap:0}
-  #partie .p-comptes{flex:1 0 100%;margin-left:0;grid-template-columns:repeat(4,auto);justify-content:space-between}
-  #partie .p-comptes{grid-template-columns:62px 68px 90px 66px}
-}
 /* 8. Cercle des elements permanent (pictos, style diffusion) ; telephone : repliable */
 #partie .p-cercle{background:var(--panneau);border:1px solid var(--trait);border-radius:12px 9px 14px 8px/9px 13px 8px 14px;flex:none}
 #partie .p-cercle summary{padding:10px 14px 10px 34px;font-family:var(--titre);font-size:18px;color:var(--bleu-titre);cursor:pointer}
@@ -73,7 +67,6 @@ html.clair{--compteur:var(--doux);--survol-trait:rgba(10,18,26,.25)}
 #partie .p-main{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media (min-width:900px){#partie .p-main{grid-template-columns:repeat(var(--n,7),minmax(0,1fr));gap:6px}#partie .p-carte .raison{font-size:10.5px;padding:2px}#partie .p-carte{border-width:2px}}
 #partie .p-cale{visibility:hidden}#partie .p-btns.p-cale{height:34px}
-@media (max-width:899px){#partie .p-cale{display:none}}
 /* Ordinateur (1200 px et plus) : derniere carte jouee en haut, ta main, tes piles et le bouton d'action en bas ; colonne de droite etiree, bas du journal et du chat alignes */
 @media (min-width:1200px){
   #partie .p-poste>.p-signal{order:0}#partie .p-poste>.p-consigne{order:0}

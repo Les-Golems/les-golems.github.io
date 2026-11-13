@@ -1,0 +1,9 @@
+/* telephone/partie.css : règles téléphone (seuils <= 767 px) sorties de css/partie.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:699px){#aniDet{grid-template-columns:1fr 1fr;font-size:15px;padding:44px 14px 14px;gap:12px}#aniDet .t{grid-column:1/-1}#aniDet h3{font-size:30px}#aniDet h3.an{font-size:26px}#aniDet img{max-width:150px}}
+@media (max-width:440px){header .haut .moi .dal-inter{grid-row:3;grid-column:1/3;justify-self:end}}
+@media (max-width:760px){.grand.avecDetail:has(.zt-camp){grid-template-columns:minmax(0,1fr);max-width:500px}}
+@media (max-width:440px){#vueDetail .zt-camp{padding:10px}#vueDetail .zt-l li{grid-template-columns:minmax(0,1fr) 70px;gap:6px}#vueDetail .zt-l .dl-ligne{grid-template-columns:32px 32px 44px minmax(0,1fr);padding:2px 5px}#vueDetail .zt-l .dl-nom{flex-direction:column;gap:0;font-size:14px;line-height:1.05}#vueDetail .zt-l .dl-titre{font-size:11.5px}#vueDetail .zt-v{font-size:13px}#vueDetail .zt-v b{font-size:21px}}
+@media (max-width:760px){.grand.avecDetail{grid-template-columns:minmax(0,1fr)}.grand.avecDetail .vue-img{justify-self:center;width:min(308px,100%)}}
+@media (max-width:640px){.p-case .act .act-l{display:none}.p-case .act .act-c{display:inline}}
+@media (max-width:413px){.p-case .act:has(>.act-c){right:0;border-radius:0}.p-case:has(>.act>.act-c) .f{bottom:24px}}

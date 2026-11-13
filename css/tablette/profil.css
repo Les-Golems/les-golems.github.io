@@ -1,0 +1,3 @@
+/* tablette/profil.css : règles tablette (seuils de 768 à 1079 px) sorties de css/profil.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:900px){.av-corps{grid-template-columns:minmax(0,1fr)}.av-g{height:auto}.av-grille{grid-template-columns:repeat(3,minmax(0,1fr));height:min(360px,45dvh)}}

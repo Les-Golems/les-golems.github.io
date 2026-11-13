@@ -35,15 +35,12 @@ html.clair{--pret-off-fond:#cdd6dd;--pret-off-texte:#5f6e79;--pf-bloc:rgba(236,2
 .pf-bl .pf-an{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px}
 .pf-bl .pf-jauge{display:block;height:8px;background:rgba(5,10,15,.45)}.pf-bl b{text-align:right;font-size:16px;font-weight:700;white-space:nowrap}
 .pf-boite .pf-prive{margin:22px 0 4px}
-@media (max-width:860px){.pf-bilan{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:124px}.pf-cring .pf-ring{width:118px;height:118px}.pf-blocs{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:600px){.pf-blocs{grid-template-columns:minmax(0,1fr);gap:10px}.pf-bilan{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:118px;gap:9px}.pf-cring .pf-ring{width:112px;height:112px}.pf-case.pf-tuile b{font-size:24px}}
 .pf-boite>.p-btns{margin-top:18px}
 .btn.fermer{font-size:18px;min-height:46px;padding:10px 20px;border-radius:8px;margin-top:14px}
 #formPseudo #erreurPseudo:empty{min-height:0;margin:0}
 .g-bulle{background:var(--bulle-fond);color:var(--texte);border:2px solid var(--or)}
 .g-bulle b{color:var(--or-texte)}.g-bulle .g-num{color:var(--doux)}
 .g-fleche.bas{border-top-color:var(--or)}.g-fleche.haut{border-bottom-color:var(--or)}
-@media (max-width:520px){#joueurs .sl-nom{white-space:normal;overflow:visible;text-align:center}#joueurs .sl-nom em{display:table;margin:3px auto 0}}
 @media (min-width:900px){#partie .p-pied.duo .btn{min-height:34px;padding:3px 10px;font-size:15px}}
 .d-btns{display:flex;flex-wrap:wrap;gap:8px}
 /* Decks conseilles (0.4) */
@@ -56,7 +53,6 @@ html.clair{--pret-off-fond:#cdd6dd;--pret-off-texte:#5f6e79;--pf-bloc:rgba(236,2
 .dc-pict{display:inline-flex;gap:3px;flex:none}.dc-pict img{width:26px;height:26px;flex:none}
 .dc-els{font-size:13px;font-weight:800;color:var(--dc-els)}
 .dc-tx{font-size:14px;line-height:1.35;color:var(--texte)}
-@media (max-width:600px){.dc-liste{grid-template-columns:minmax(0,1fr)}}
 .d-zone.sans-pan .d-panneau{display:none}
 @media (min-width:1200px){.d-zone.sans-pan{grid-template-columns:minmax(0,1fr)}}
 .d-panneau .dl-renom{cursor:pointer;border-radius:5px;transition:color .15s,background .15s}
@@ -70,7 +66,6 @@ html.clair{--pret-off-fond:#cdd6dd;--pret-off-texte:#5f6e79;--pf-bloc:rgba(236,2
 #erreurJeu:not(:empty){margin:0 0 14px;min-height:0} /* bandeau sc-alerte (commun/alertes.js) */
 #erreurJeu>.sc-alerte{height:40px} /* charte : zone au-dessus du contenu = 1 ligne, 40 px, bouton tertiaire compris (comme les bandeaux de Decks) */
 #galTitre{text-align:center}
-@media (max-width:480px){.h-tab .h-crt,.h-tab .h-cnom{align-items:flex-start}#partageHisto,#partageResume{font-size:14px;padding-left:4px;padding-right:4px;white-space:nowrap}}
 /* Fermer : un seul style compact partout, taille d'un bouton secondaire, en bas et centre. */
 :is(.btn.fermer,#f#f#f){display:block;width:auto;flex:0 0 auto;align-self:center;justify-self:center;margin:14px auto 0;min-height:36px;padding:4px 18px;font-size:15px;border-radius:8px}
 .p-btns:has(>.fermer:only-child){justify-content:center}
@@ -88,20 +83,9 @@ html.clair{--pret-off-fond:#cdd6dd;--pret-off-texte:#5f6e79;--pf-bloc:rgba(236,2
 .h-carte .h-mvp{grid-column:1}
 .h-els{grid-column:2;grid-row:2;justify-self:end;display:flex;gap:3px}.h-els img{display:block;width:21px;height:21px}
 .h-ver-l{margin-left:-2px;align-self:baseline;white-space:nowrap}
-@media (max-width:640px){.h-carte.h-carte{grid-template-columns:minmax(0,1fr) 84px 88px;column-gap:8px}.h-els img{width:15px;height:15px}.h-els{gap:1px}}
 /* Telephone : partie sur trois lignes. 1 = date, adversaire, score, version (retour a la ligne, rien de coupe) ;
    2 = MVP a gauche (80 px au moins), elements puis deck a droite (entier si la place le permet, sinon « … » et title) ;
    3 = Rejeu et resultat cote a cote, chacun la moitie de la largeur. */
-@media (max-width:640px){
-.h-carte.h-carte{grid-template-columns:minmax(min-content,1fr) auto minmax(0,max-content);gap:8px}
-.h-carte .h-l1{grid-column:1/-1;grid-row:1}
-.h-carte .h-adv{white-space:normal;overflow:visible;overflow-wrap:break-word}
-.h-carte .h-mvp{grid-column:1;grid-row:2;min-width:80px;white-space:normal;overflow:visible;overflow-wrap:break-word}
-.h-carte .h-els{grid-column:2;grid-row:2}
-.h-carte .h-deck.h-deck{grid-column:3;grid-row:2;min-width:0;max-width:none}
-.h-carte .h-rj,.h-carte .h-res{grid-column:1/-1;grid-row:3;width:calc(50% - 4px);box-sizing:border-box;min-width:0}
-.h-carte .h-rj{justify-self:start}.h-carte .h-res{justify-self:end}
-}
 /* Compteur de deck : rouge hors limites (moins de 24 ou plus de 30), vert si valide. */
 .d-compte.ko{color:#ff6b5e}
 /* Tuile de deck : crayon de renommage a gauche du compteur, clic sur le nom = ouvrir la liste. */
@@ -147,7 +131,6 @@ html.clair{--pret-off-fond:#cdd6dd;--pret-off-texte:#5f6e79;--pf-bloc:rgba(236,2
 .vd-pied .p-btns .btn{flex:1 1 150px;min-height:46px;font-size:17px}
 .vd-m{margin:8px 0 0;font-size:13px;color:var(--doux);text-align:center}.vd-m.ok{color:var(--vert-m)}.vd-m:empty{display:none}
 .vd-info{background:var(--vd-info-fond);border:1px solid var(--bleu);color:var(--vd-info-texte);border-radius:10px;padding:10px 14px;margin:0 0 14px;font-weight:700}
-@media (max-width:600px){.vd-noms{display:none}.vd-pied .p-btns .btn{flex:1 1 0;font-size:16px;padding:6px 10px}.vd-tete h2{font-size:26px}.vd-corps{padding:10px 12px}}
 /* Partie, ordinateur : zone d'apercu sous les piles, boutons et barre de rejeu dessous. */
 .p-apercu{display:none}
 @media (min-width:1200px){
@@ -186,12 +169,9 @@ html.clair{--pret-off-fond:#cdd6dd;--pret-off-texte:#5f6e79;--pf-bloc:rgba(236,2
 #partie .p-poste>.p-btns>:nth-child(4):nth-last-child(2){grid-column:2}
 :is(#partie .p-poste>.p-btns .btn,#f#f#f){min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:1199px){:is(#partie .p-poste>.p-btns .btn,#f#f#f){padding:0 6px;font-size:16px}}
-@media (max-width:899px){:is(#partie .p-poste>.p-btns:has(>:nth-child(3)) .btn,#f#f#f#f){padding:0 3px;font-size:min(16px,3.4vw)}}
 /* Choix du Caramel : les terrains sur une ligne (2 ou 3 colonnes, memes largeurs), Annuler seul sur la ligne du dessous, a droite. */
 #partie .p-poste>.p-btns.p-choix.p-choix{grid-template-columns:repeat(2,minmax(0,1fr))}
 #partie .p-poste>.p-btns.p-choix.p-choix:has(>:nth-child(4)){grid-template-columns:repeat(3,minmax(0,1fr))}
 #partie .p-poste>.p-btns.p-choix.p-choix>:last-child{grid-column:-2}
 /* 3 terrains : marges reduites (et texte un peu plus petit au telephone) pour que le nom le plus long, numerote, tienne sur sa ligne. */
 :is(#partie .p-poste>.p-btns.p-choix:has(>:nth-child(4)) .btn,#f#f#f#f#f){padding:0 2px}
-@media (max-width:899px){:is(#partie .p-poste>.p-btns.p-choix:has(>:nth-child(4)) .btn,#f#f#f#f#f){font-size:min(16px,3.2vw)}}
-@media (max-width:640px){#gPasser{position:static;display:block;margin:4px auto 16px}#gPasser[hidden]{display:none}body:has(#gPasser:not([hidden])) main.large.large.large{padding-bottom:0}}

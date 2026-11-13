@@ -1,0 +1,9 @@
+/* tablette/diffusion-partie.css : règles tablette (seuils de 768 à 1079 px) sorties de css/partie-diffusion.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:899px){#partie .p-tot{font-size:22px}}
+@media (max-width:899px){
+  #partie .p-camp{flex-wrap:wrap;row-gap:0}
+  #partie .p-comptes{flex:1 0 100%;margin-left:0;grid-template-columns:repeat(4,auto);justify-content:space-between}
+  #partie .p-comptes{grid-template-columns:62px 68px 90px 66px}
+}
+@media (max-width:899px){#partie .p-cale{display:none}}

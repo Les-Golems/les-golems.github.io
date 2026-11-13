@@ -1,0 +1,12 @@
+/* telephone/salon.css : règles téléphone (seuils <= 767 px) sorties de css/onglets/jouer-salon.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:699px){#listeEnCours .po-lignes{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){
+  .chat.flottant.replie{right:10px;bottom:10px;border-radius:50%;width:52px;height:52px;background:var(--bleu);border:0}
+  .chat.flottant.replie .chat-tete{width:52px;height:52px;padding:0;justify-content:center;color:var(--encre);font-size:0;position:relative}
+  .chat.flottant.replie .chat-tete::before{content:'';width:24px;height:22px;background:var(--fond);clip-path:polygon(0 0,100% 0,100% 72%,45% 72%,20% 100%,22% 72%,0 72%)}
+  .chat.flottant.replie .chat-nb{position:absolute;top:2px;right:2px;font-size:12px}
+  .chat.flottant.replie .chat-tete button{display:none}
+  .chat.flottant:not(.replie){left:8px;right:8px;bottom:8px;width:auto;max-width:none}
+  .chat.flottant:not(.replie) .chat-liste{height:40vh}
+}

@@ -2,14 +2,12 @@
 :root{--fdr-tard:#c9d6de;--fdr-etat-fond:#3a4b59;--fdr-etat-texte:#dfe8ee}
 html.clair{--fdr-tard:#15222d;--fdr-etat-fond:#cdd6dd;--fdr-etat-texte:#15222d}
 /* Nouveautes */
-@media (max-width:440px){.onglets button{font-size:15.5px;padding:12px 2px}}
 .note{background:var(--panneau);border:1px solid var(--trait);border-radius:10px;padding:14px 16px;margin-bottom:10px}
 .note h3{font-size:19px;color:var(--bleu-titre)}
 .note time{display:block;color:var(--doux);font-size:14px;margin-bottom:6px}
 .note ul{margin:0;padding-left:20px}
 .nv-ligne{margin-top:4px}
 .note .nv-video{display:block;width:50%;height:auto;aspect-ratio:16/9;border-radius:8px;background:#0b111a}
-@media (max-width:520px){.note .nv-video{width:100%}}
 .note p{margin:0}
 /* Blocs : etiquette de version (etq-v) en haut a droite, bouton « Détails » gris en bas a droite, tous deux hors du flux.
    Places reservees par deux cales invisibles : un flottant au debut du titre (sous 360 px : l'etiquette flotte a droite de la date), un espace a la fin de la derniere note.
@@ -17,7 +15,6 @@ html.clair{--fdr-tard:#15222d;--fdr-etat-fond:#cdd6dd;--fdr-etat-texte:#15222d}
 .note{position:relative}.note>h3::before{content:'';float:right;width:60px;height:1px}
 .nv-etq{position:absolute;top:15px;right:16px;padding:1px 9px;font-size:12px;line-height:1.25;white-space:nowrap}
 .note.a-det>ul>li:last-child::after{content:'';display:inline-block;width:56px}
-@media (max-width:359px){.note>h3::before{display:none}.nv-etq{position:static;float:right;margin:1px 0 0 8px}}
 /* Nouveautes 0.4 : epingles (epingle doree dans le titre), Feuille de route (lisere dore, frise verticale, pastilles d'etat), tuile de pagination,
    epingle de Romain (son compte seulement) en haut a droite, l'etiquette de version se decale a sa gauche. */
 .note .nv-pin{display:inline-block;width:.9em;height:.9em;margin-right:6px;vertical-align:-.08em;color:var(--or-texte)}
@@ -57,7 +54,6 @@ html.clair{--fdr-tard:#15222d;--fdr-etat-fond:#cdd6dd;--fdr-etat-texte:#15222d}
 .dv-vide{margin:0;color:var(--doux);font-size:15px}
 .dv-pied{flex:none;justify-content:center;padding:10px 20px 14px;border-top:1px solid var(--trait)}
 :is(.dv-pied .btn,#f#f#f#f){flex:0 0 auto;margin:0;min-height:36px;padding:4px 22px;font-size:15px}
-@media (max-width:520px){.dv-tete{padding:12px 14px 8px}.dv-tete h2{font-size:23px}.dv-corps{padding:10px 14px 6px}.dv-corps li{font-size:15px}.dv-pied{padding:8px 14px 12px}}
 /* Nouveautes B4 (maquette 16 - Nouveautés trois lignes\apresB4, validee le 8 nov.) : pas de phrase d'intro, blocs de hauteur fixe (297 px, 3 rangees
    en 1683x1180), un bloc par version (video a gauche, puces a droite), Details en haut a droite (tertiaire), etiquette de version a sa gauche,
    pagination sous les blocs calee en bas a droite, a place fixe. */
@@ -70,7 +66,6 @@ html.clair{--fdr-tard:#15222d;--fdr-etat-fond:#cdd6dd;--fdr-etat-texte:#15222d}
 .note.a-det>.nv-etq{right:94px}
 .note.a-det>h3::before{width:150px}
 .note.a-det>ul>li:last-child::after{display:none}
-@media (max-width:359px){.note.a-det>.nv-etq{position:static;float:right;margin:1px 64px 0 8px}}
 #notes .fdr-l li{padding:3px 0 3px 26px;min-height:31px}
 #notes .nv-fdr .fdr-sous{margin-bottom:9px}
 #notes .nv-etq.gd-ver{padding:1px 7px .6px;font-size:11px;line-height:15px;top:19px}
