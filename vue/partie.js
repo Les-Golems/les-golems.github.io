@@ -143,6 +143,7 @@ async function envoieClasse(c,w,gr){
   const S=typeof serviceClasse==='function'?serviceClasse():null;if(!S)return;
   const C=window.GolemsClasse,u=room.compte.uid(),id=c.robot?C.creePartieRobot({sa:c.sa,gr,a:'',profilA:c.profil,niveau:c.robot,gagne:false,saison:0}).id:C.idPartie(c.sa,gr);
   attenteClasse(id,true);
+  const hid=partie?partie.graine+'-'+partie.debut:''; /* 0.7 : lu avant les attentes (abandon volontaire : partie deja a null au retour de S.attends) */
   try{
     let j=null;
     if(c.robot){const o={sa:c.sa,gr,niveau:c.robot,gagne:w===partie.moi};finRobotAttente(u,o,true);const r=await S.finRobot(o);if(r.fait){finRobotAttente(u,o,false);j=await room.classeBase().lit('classe/joueurs/'+u)}}
@@ -161,7 +162,7 @@ async function envoieClasse(c,w,gr){
       else{finEnAttente(u,o,true);const r=await S.finJoueurs(o);if(r.fait){finEnAttente(u,o,false);j=await room.classeBase().lit('classe/joueurs/'+u)}}
     }
     if(j){attenteClasse(id,false);
-      if(c.res&&j.dern===id){c.res.delta=Math.round(j.elo-c.res.avant);c.res.apres=j.elo;c.res.profil=j;c.res.ecrit=true;sauve();histoClasse(partie.graine+'-'+partie.debut,c.res.delta)}}
+      if(c.res&&j.dern===id){c.res.delta=Math.round(j.elo-c.res.avant);c.res.apres=j.elo;c.res.profil=j;c.res.ecrit=true;sauve();if(hid)histoClasse(hid,c.res.delta)}}
   }catch(e){console.warn('classe',e)}
   if(typeof chargeClasse==='function')chargeClasse();
 }
