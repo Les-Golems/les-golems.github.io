@@ -42,7 +42,8 @@
 .j-els{padding-left:4px}
 /* Ligne de partie en ligne : 3 rangees, bouton toujours a droite */
 .j-p{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"et tag spec" "duo duo duo" "inf inf btn";row-gap:10px;column-gap:10px;padding:12px;height:auto}
-.j-p>.j-tag{grid-area:tag;justify-self:start}.j-p>.j-et{grid-area:et;white-space:nowrap}.j-p>.j-duo{grid-area:duo;grid-column:auto}.j-p>.j-inf{grid-area:inf;display:block;text-align:left;min-width:0}.j-p>.j-spec{grid-area:spec;display:block;justify-self:end}.j-p>.sc-btn{grid-area:btn;grid-column:auto;width:132px;min-height:44px}
+.j-p>.j-tag{grid-area:tag;justify-self:start}.j-p>.j-et{grid-area:et;white-space:nowrap}.j-p>.j-duo{grid-area:duo}.j-p>.j-inf{grid-area:inf;display:block;text-align:left;min-width:0}.j-p>.j-spec{grid-area:spec;display:block;justify-self:end}.j-p>.sc-btn{grid-area:btn;width:132px;min-height:44px}
+.j-p>.etq-v.j-ver{grid-area:btn;justify-self:end;align-self:center}
 .j-p .j-duo{flex-wrap:wrap;row-gap:6px;min-width:0}
 .j-p .j-duo *{white-space:normal}
 .j-p>.j-duo{grid-template-columns:minmax(0,1fr);justify-items:start;gap:6px}

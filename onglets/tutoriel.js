@@ -98,7 +98,7 @@ function tickGuide(){
   if(!e){arreteGuide();return}
   const b=tuto.b,a=tuto.a,f=tuto.f;
   /* fin : la bulle attend aussi la fin de l'animation de fin de partie (le bouton Passer de l'animation a alors disparu) */
-  const calme=!animCours&&!verrou&&!desActif&&!fileA.length&&$('vue').hidden===!e.vue&&$('recap').hidden===!e.recap&&$('vueTas').hidden&&$('aide').hidden&&gPose();
+  const calme=!animCours&&!verrou&&!desActif&&!fileA.length&&$('vue').hidden===!e.vue&&(e.fin&&!document.documentElement.classList.contains('tel-joueur')||$('recap').hidden===!e.recap)&&$('vueTas').hidden&&$('aide').hidden&&gPose();
   if(!(e&&calme&&(!e.q||e.q(s))&&!$('jouer').hidden)){b.hidden=a.hidden=f.hidden=true;return}
   /* Cible introuvable : la bulle se place au centre de l'ecran (sans anneau) au lieu de disparaitre, avec un avertissement en console. */
   let z=e.c?gCible(e.c):document.body,perdue=false;

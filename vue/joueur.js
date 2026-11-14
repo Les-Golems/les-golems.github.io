@@ -261,6 +261,7 @@ const ANI_POSE=1300,aniVu={};
 function vueAnimalAttache(b,g,s,p){
   if(!g||!g.ani)return;const A=M.carte(g.ani.c);b.classList.add('a-ani');
   b.title=(b.title?b.title+' ; ':'')+A.nom+' (animal, sous son maître) : +1 de Force';
+  {const ba=b.querySelector('.mini .bas');if(ba)ba.append(el('span','m-ani',A.nom))} /* 0.7 mobile : nom de l'animal en vert a cote du cout (comme .d-past.vert de la diffusion PC), visible seulement en vue telephone (css/partie.css) */
   const ev=s&&s.stats&&s.stats.ev;if(!ev||!ev.length||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   let i=ev.length-1;while(i>=0&&ev[i].t!=='p')i--;const e=ev[i];if(!e||e.cc!==g.ani.c||e.cp!==p)return;
   const q=p+':'+i+':'+e.cc,t=performance.now();if(!(q in aniVu))aniVu[q]=t;const t0=aniVu[q];if(t-t0>ANI_POSE)return;
@@ -611,7 +612,7 @@ function affiche(){
     const ps=leg.filter(a=>a.t==='p'&&a.c===sel);
     cible=(l,k)=>{const a=ps.find(x=>x.l===l&&x.k===k);if(!a)return null;
       const mot=!J.grille[l][k]||M.carte(sel).animal?'Poser':M.carte(sel).base?'Améliorer':'Remplacer'; /* animal : pose sous son maitre */
-      return {texte:mot+' '+M.coutPose(s,me,sel,l,k),bonus:M.carte(sel).animal?null:bonusPrevu(s,me,sel,l,k),fait:()=>joue(a)}};
+      return {texte:M.carte(sel).animal?mot:mot+' '+M.coutPose(s,me,sel,l,k),bonus:M.carte(sel).animal?null:bonusPrevu(s,me,sel,l,k),fait:()=>joue(a)}};
   } /* Caramel a volonte (026e) : seulement par son bouton ; toucher la carte ouvre le detail de sa Force comme pour tout Golem */
   if(partie.rejeu){cible=null;cibleAdv=null}
   repeint=()=>{
@@ -792,7 +793,7 @@ function affiche(){
     else if(J.main.some(c=>!rs(c)))pc.append('Touche une carte, puis une case dorée.');
     else pc.append('Aucune pose possible ce tour. Termine ton tour.');
     pl.append(pc);
-    pl.append(mainVue(J.main,{raison:rs,presse:c=>c===sel,clic:c=>{sel=sel===c?null:c;affiche()}}));
+    {const mv=mainVue(J.main,{raison:rs,presse:c=>c===sel,clic:c=>{sel=sel===c?null:c;affiche()}});if(aMoi&&!partie.rejeu)mv.dataset.pose='1';pl.append(mv)} /* 0.7 : main de pose, source du glisser-deposer */
     const z=el('div','p-btns');
     if(sel!==null){
       const v=sel;
@@ -912,3 +913,62 @@ function zoneMaj(){
   if(C.animal)ch.append(el('span','','Animal'));else{ch.append(chip('Force',C.force==null?'au dé':String(C.force)));if((C.el||[]).length){const e=el('span','p-ap-els');C.el.forEach(x=>e.append(picto(x)));ch.append(e)}}
 }
 LARGE.addEventListener('change',()=>{if(partie)affiche()});
+
+/* 0.7 : glisser-deposer d'une carte de la main sur la grille (PC #dif, telephone .mqb-r, main de la partie).
+   Le glisser rejoue les deux gestes existants : clic de selection sur la vraie carte, puis clic sur la case doree (.p-case.cible).
+   Seule la main de pose (data-pose, mon tour, hors rejeu) peut etre glissee : spectateur, tour adverse, Forge, mulligan exclus. */
+(function(){
+  const SRC='#dif .d-main button[data-c],.mqb-r button[data-c],#partie .p-main[data-pose] .p-carte',APPUI=200,TOL=8,SOURIS=6,BORD=60;
+  const reduit=matchMedia('(prefers-reduced-motion: reduce)');
+  let g=null; /* geste en cours */
+  const vraie=b=>{if(b.matches('#partie .p-main[data-pose] .p-carte'))return b;const c=b.dataset.c;return c==null?null:document.querySelector('#partie .p-main[data-pose] .p-slot[data-c="'+c+'"]>.p-carte[data-act]')};
+  const caseSous=(x,y)=>{const e=document.elementFromPoint(x,y);return e&&e.closest('.p-case.cible')};
+  const survol=c=>{if(g.sv===c)return;if(g.sv)g.sv.classList.remove('glisse-survol');g.sv=c;if(c)c.classList.add('glisse-survol')};
+  const place=()=>{const f=g.f;if(!f)return;f.style.left=(g.x-g.w/2)+'px';f.style.top=(g.y-g.h*(g.tactile?1.1:.5))+'px'};
+  function detache(){
+    const v=vraie(g.b);if(!v||!document.querySelector('.p-grille.mienne.active')){fin();return} /* PC : la vraie grille est deplacee dans #dif */
+    g.on=true;document.documentElement.classList.add('glisse-en-cours');
+    purge();if(!g.b.isConnected)g.b=document.querySelector(SRC.split(',').map(x=>x+'[data-c="'+g.b.dataset.c+'"]').join(','))||v; /* source redessinee : rect nul = fantome renvoye en haut a gauche */
+    const r=g.b.getBoundingClientRect(),im=g.b.querySelector('img');g.w=Math.min(110,r.width||80);g.h=g.w*1.4;g.r0=r;
+    const f=document.createElement('div');f.className='glisse-fantome';f.setAttribute('aria-hidden','true');f.style.width=g.w+'px';f.style.height=g.h+'px';
+    if(im){const i=document.createElement('img');i.src=im.src;i.alt='';f.append(i)}document.body.append(f);g.f=f;g.b.classList.add('glisse-source');place();
+    if(v.getAttribute('aria-pressed')!=='true')v.click(); /* meme fonction que le toucher : selection, les cases jouables s'allument */
+    const tic=()=>{if(!g||!g.on)return;if(!document.querySelector('.p-grille.mienne.active')||!vraie(g.b)){annule();return} /* tour change, fin de partie, main redessinee sans pose */
+      const d=g.y<BORD?-(BORD-g.y):g.y>innerHeight-BORD?g.y-(innerHeight-BORD):0;
+      if(d){scrollBy(0,Math.sign(d)*Math.min(16,4+Math.abs(d)/5));survol(caseSous(g.x,g.y))}g.raf=requestAnimationFrame(tic)};g.raf=requestAnimationFrame(tic)}
+  function fin(){if(!g)return;const G=g;g=null;clearTimeout(G.t);cancelAnimationFrame(G.raf);document.documentElement.classList.remove('glisse-en-cours');
+    if(G.sv)G.sv.classList.remove('glisse-survol');if(G.b)G.b.classList.remove('glisse-source');
+    document.querySelectorAll('.glisse-source').forEach(x=>x.classList.remove('glisse-source'));return G}
+  const purge=sauf=>document.querySelectorAll('.glisse-fantome').forEach(x=>{if(x!==sauf)x.remove()}); /* aucun fantome ne survit a un geste */
+  function annule(){const G=fin();if(G&&G.f)G.f.remove();purge()}
+  function retour(G){const f=G.f;if(!f)return;const r=G.r0;if(reduit.matches||!r||!r.width||!r.height||!f.isConnected){f.remove();return}
+    f.style.transition='left .18s ease-out,top .18s ease-out,opacity .18s';f.style.left=G.r0.left+'px';f.style.top=G.r0.top+'px';f.style.opacity='0';setTimeout(()=>f.remove(),200);f.addEventListener('transitionend',()=>f.remove(),{once:true})}
+  addEventListener('pointerdown',e=>{
+    if(!g)purge();
+    if(g||!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0))return;
+    const b=e.target.closest&&e.target.closest(SRC);if(!b||!vraie(b))return;
+    g={b,id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,tactile:e.pointerType!=='mouse',on:false,sv:null};
+    /* la selection redessine la main : la carte touchee quitte la page et ses evenements ne remontent plus, on les ecoute aussi sur elle */
+    const t=e.target;if(!t.__glisse){t.__glisse=1;t.addEventListener('pointermove',bouge);t.addEventListener('pointerup',lache);t.addEventListener('pointercancel',lache);t.addEventListener('touchmove',bloqueTm,{passive:false})}
+    if(g.tactile)g.t=setTimeout(()=>{if(g&&!g.on)detache()},APPUI);
+  },true);
+  function bouge(e){
+    if(!g||e.pointerId!==g.id||e.__gl)return;e.__gl=1;g.x=e.clientX;g.y=e.clientY;const dx=g.x-g.x0,dy=g.y-g.y0,d=Math.hypot(dx,dy);
+    if(!g.on){
+      if(!g.tactile){if(d>SOURIS)detache();return}
+      if(d>TOL){const v=vraie(g.b);if(v&&v.getAttribute('aria-pressed')==='true'&&Math.abs(dy)>Math.abs(dx))detache();else fin()} /* sinon : defilement normal */
+      return}
+    place();survol(caseSous(g.x,g.y));
+  }
+  addEventListener('pointermove',bouge,true);
+  function bloqueTm(e){if(g&&g.on&&e.cancelable)e.preventDefault()}
+  function lache(e){if(!g||e.pointerId!==g.id||e.__gl)return;e.__gl=1;if(!g.on){fin();return}
+    const c=e.type==='pointerup'?caseSous(e.clientX,e.clientY):null,G=fin();
+    if(c){G.f&&G.f.remove();c.click()}else retour(G); /* depot = meme clic que sur la case doree */
+    const bloque=ev=>{ev.stopPropagation();ev.preventDefault()};addEventListener('click',bloque,true);setTimeout(()=>removeEventListener('click',bloque,true),350)} /* puis : pas d'apercu ni de deselection au relachement */
+  addEventListener('pointerup',lache,true);addEventListener('pointercancel',lache,true);
+  addEventListener('touchmove',bloqueTm,{passive:false,capture:true});
+  addEventListener('blur',()=>{if(g)annule()});document.addEventListener('visibilitychange',()=>{if(document.hidden&&g)annule()});
+  addEventListener('contextmenu',e=>{if(g)e.preventDefault()},true);
+  addEventListener('dragstart',e=>{if(e.target.closest&&e.target.closest(SRC))e.preventDefault()},true);
+})();

@@ -77,3 +77,11 @@ html.clair .tp-bac{--moi:var(--moi-texte)}
 .ct-l:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
 .ct-l.actuel{box-shadow:inset 0 0 0 3px var(--bleu)}
 .ct-l:disabled{opacity:.45;cursor:not-allowed}
+
+/* Glisser-deposer d'une carte du deck (glisseBac), memes reglages que la partie : carte fantome, case survolee doree */
+.glisse-fantome{position:fixed;left:0;top:0;z-index:9999;pointer-events:none;border-radius:8px;opacity:.92;box-shadow:0 10px 24px rgba(0,0,0,.45);will-change:transform}
+html.glisse-en-cours,html.glisse-en-cours *{cursor:grabbing!important;user-select:none;-webkit-user-select:none}
+#popTest .tp-m.glisse-source{opacity:.35}
+#popTest .p-case.glisse-survol{outline:3px solid var(--or);outline-offset:-3px;transform:scale(1.04);z-index:2}
+#popTest .tp-m img{-webkit-user-drag:none;-webkit-touch-callout:none}
+@media (prefers-reduced-motion:reduce){#popTest .p-case.glisse-survol{transform:none}}

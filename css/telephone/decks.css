@@ -120,4 +120,12 @@
 #popTest .p-case .tp-ms{max-width:calc(100% - 52px)}
 #popTest .p-case .tp-ms:has(>.m-act)>.tp-mt:not(.m-act):not(.m-hint){display:none}
 #popTest .p-case .tp-ms:has(>.m-act){flex-direction:row}
+#popTest .p-case .tp-mt.m-act{padding:0 4px;font-size:11px} /* « Poser » (animal, sans cout) entier a gauche de la Force */
 #popTest .tp-bac .p-case.a-ms .mini{--bas:max(calc(2px + var(--f)/2 - 11.5px),26px)}
+/* hors choix, plusieurs etiquettes (Kiwi + Favori...) : empilees a gauche de la Force, une par ligne (points de suspension au pire), cout remonte au-dessus */
+#popTest .p-case .tp-ms:not(:has(>.m-act)):has(>.tp-mt~.tp-mt){flex-direction:column;align-items:flex-start;gap:2px}
+#popTest .p-case .tp-ms:not(:has(>.m-act)):has(>.tp-mt~.tp-mt){max-width:calc(100% - 58px)}
+#popTest .p-case .tp-ms:not(:has(>.m-act)):has(>.tp-mt~.tp-mt){bottom:3px;gap:1px}
+#popTest .p-case .tp-ms:not(:has(>.m-act)):has(>.tp-mt~.tp-mt)>.tp-mt{display:block;max-width:100%;height:15px;padding:0 4px;font-size:10px;line-height:15px}
+#popTest .p-case .tp-ms:not(:has(>.m-act)):has(>.tp-mt~.tp-mt)>.tp-mt svg{display:none} /* tuile de 76 px : « Favori » sans coeur pour tenir entier a gauche de la Force */
+#popTest .tp-bac .p-case.a-ms:not(:has(.tp-ms>.m-act)):has(.tp-ms>.tp-mt~.tp-mt) .mini{--bas:35px} /* deux lignes de 15 px : le cout juste au-dessus, sous le nom */

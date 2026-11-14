@@ -109,6 +109,8 @@
 #mqAp.tp-ap .mqb-b{flex:1;height:48px;font:400 18px/1 var(--titre);border-radius:10px 7px 11px 6px;border:1px solid var(--trait);background:var(--panneau2);color:var(--texte);cursor:pointer}
 #mqAp.tp-ap .mqb-b.plein{background:var(--or);color:var(--encre);border-color:var(--or)}
 #mqAp.tp-ap p{margin:0;font:600 13px/1.3 var(--corps);color:#c9d3dc;text-align:center}
-/* animal attache : en partie au telephone et a la tablette, pas de pastille sur la tuile (Force +1 et zoom seulement) ; idem ici */
-#popTest .tp-mt.m-ani{display:none}
-#popTest .p-case.a-ms:not(:has(.tp-mt:not(.m-ani))) .mini{--bas:calc(2px + var(--f)/2 - 11.5px)} /* pastille animal seule, masquee : cout a sa place */
+/* animal attache : pastille verte affichee comme en partie (vue telephone, css/partie.css .m-ani). Plusieurs etiquettes hors choix (Kiwi + Favori...) : empilees a gauche de la Force, une par ligne, cout remonte au-dessus */
+@media (min-width:768px){ /* hors de l'enveloppe du haut : telephone dans css/telephone/decks.css */
+#popTest .p-case .tp-ms:not(:has(>.m-act)):has(>.tp-mt~.tp-mt){flex-direction:column;align-items:flex-start;gap:2px}
+#popTest .tp-bac .p-case.a-ms:not(:has(.tp-ms>.m-act)):has(.tp-ms>.tp-mt~.tp-mt) .mini{--bas:48px}
+}

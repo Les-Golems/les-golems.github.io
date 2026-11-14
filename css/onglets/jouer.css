@@ -98,6 +98,8 @@ body:has(#jouer[hidden]) :is(#scene,#passer){display:none}
 /* 0.7a : vue telephone (une colonne, panneaux pleine largeur) : marge sous la partie tant que « Passer » est affiche, pour qu'en bas de page
    il ne couvre ni « Quitter la partie » ni le choix Daltonien ; ailleurs, vue/partie.js placePasser le glisse vers une place libre. */
 html.tel-joueur body:has(#passer:not([hidden])) #partie{padding-bottom:70px!important}
+/* 0.7a : aucune place libre (vue/partie.js placePasserTel) : barre pleine largeur collee en bas, opaque */
+#passer.barre{left:0;right:0;bottom:0;transform:none;width:100%;min-height:58px;border-radius:0;box-shadow:0 -4px 14px rgba(0,0,0,.55)}
 .v-carte{position:absolute;left:0;top:0;width:200px;height:280px;transform-origin:0 0;will-change:transform}
 .v-carte img{display:block;width:100%;height:100%;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.7)}
 .v-etoile{position:absolute;left:0;top:0;width:60px;height:60px;transform-origin:30px 30px}
@@ -135,6 +137,10 @@ b.chat-moi{color:var(--bleu-titre)}b.chat-adv{color:var(--adverse-texte)}
 .j-filtres .j-nb{display:inline-block;min-width:18px;margin-left:6px;padding:2px 5px;border-radius:6px;background:var(--j-nb-fond);font:800 11.5px/1.2 var(--corps);color:inherit}
 .j-mini{width:24px;height:24px;object-fit:contain;flex:none}
 .j-tag.j-moi{justify-self:stretch;text-align:center;background:none;color:var(--bleu-titre);box-shadow:inset 0 0 0 1px var(--bleu)}
+/* 0.7a : annonce d'une autre version (onglets/jouer.js) : etiquette grise non cliquable, meme format que .hl-ver de l'Historique */
+.etq-v.j-ver{justify-self:end;box-sizing:border-box;max-width:100%;padding:1px 7px;font-size:11px;line-height:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#3b4b59;border-color:#3b4b59;color:#fff;cursor:default}
+/* tablette (768-1079) : deux rangees, etat / type / joueurs-score en haut, les deux joueurs dessous sur toute la largeur, bouton ou etiquette de version a droite sur les deux rangees (pseudo long, attente, v0.6c sans chevauchement) */
+@media (min-width:768px) and (max-width:1079px){.j-p{grid-template-columns:auto auto minmax(0,1fr) 120px;grid-template-areas:"et tag inf btn" "duo duo duo btn";height:auto;min-height:48px;row-gap:6px;padding:8px 6px 8px 14px}.j-p>.j-et{grid-area:et}.j-p>.j-tag{grid-area:tag;justify-self:start}.j-p>.j-inf{grid-area:inf;min-width:0;overflow:hidden;text-overflow:ellipsis}.j-p>.j-duo{grid-area:duo}.j-p>.sc-btn,.j-p>.j-ver,.j-p>.j-moi{grid-area:btn;align-self:center}.j-p .j-j .lib{min-width:0;overflow:hidden;text-overflow:ellipsis}}
 #accueil.j-invite :is(#blocClasse,#blocCreer)>:not(.sc-titre-bloc):not(.j-verrou),#accueil.j-invite #blocListe>:not(.j-tete):not(.j-verrou),#accueil.j-invite #jFiltres{filter:blur(5px);opacity:.55;pointer-events:none;user-select:none}
 #accueil.j-invite :is(#blocClasse,#blocCreer,#blocListe){position:relative}
 .j-verrou{position:absolute;left:18px;right:18px;top:62px;height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center}
@@ -153,3 +159,5 @@ b.chat-moi{color:var(--bleu-titre)}b.chat-adv{color:var(--adverse-texte)}
 #formCode#formCode.j-rangee{display:flex;gap:12px}#formCode#formCode #rejoindre{flex:1;width:auto;min-height:46px;padding:0 20px;font-size:18px}#formCode#formCode #champCode{flex:0 0 184px;width:184px;height:46px}
 #formCode#formCode#formCode #champCode{min-width:0;width:184px;flex:0 0 184px}#formCode#formCode#formCode #rejoindre{flex:1 1 auto;min-width:0}
 #accueil.j-invite #blocListe{min-height:470px;box-sizing:border-box}
+/* PC etroit (1080-1399) : tuiles trop etroites pour « Creer une partie classee » a cote de Publique / Privee : bouton et selecteur sur deux lignes ; intitules des encarts en points de suspension */
+@media (min-width:1080px) and (max-width:1399px){.j-rangee{flex-wrap:wrap}.j-rangee>*{flex:1 1 100%;width:100%;box-sizing:border-box}.j-c3 i{max-width:100%;overflow:hidden;text-overflow:ellipsis;padding-top:2px;margin-top:-2px}#formCode#formCode#formCode#formCode>*{flex:1 1 100%;width:100%}}

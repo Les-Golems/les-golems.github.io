@@ -418,7 +418,8 @@ $('passer').onclick=()=>{sauter=true;$('scene').textContent='';fx=[];suivant();s
    (fin de partie en vue telephone : « Quitter la partie », Journal, choix Daltonien...), il glisse le long du bas de l'ecran vers
    la place libre la plus proche du centre, puis remonte d'un cran si le bas est plein. Place libre a l'arrivee : rien ne change. */
 function placePasser(){
-  const b=$('passer');b.style.left='';b.style.bottom='';if(b.hidden)return;
+  const b=$('passer');b.style.left='';b.style.bottom='';b.classList.remove('barre');if(b.hidden)return;
+  if(innerWidth<1080)return placePasserTel(b);
   const r0=b.getBoundingClientRect();if(!r0.width)return;
   const W=innerWidth,H=innerHeight,w=r0.width,h=r0.height,peint=new Map();
   const plein=e=>{if(peint.has(e))return peint.get(e);const c=getComputedStyle(e);
@@ -431,6 +432,34 @@ function placePasser(){
   for(let dy=0;dy<=H*.6;dy+=h+8)for(let d=0;d<=W/2;d+=12)for(const x of d?[cx-d,cx+d]:[cx]){
     if(x<8||x+w>W-8)continue;const y=y0-dy;if(y<8)return;
     if(libre(x,y)){if(d||dy){b.style.left=Math.round(x+w/2)+'px';b.style.bottom=Math.round(H-y-h)+'px'}return}}
+}
+/* 0.7a, vue mobile (< 1080 px) : les panneaux couvrent toute la largeur, on ne regarde donc que ce qui se lit ou se touche :
+   rectangles exacts du texte visible et des boutons, liens, champs, images. Passer va a la place libre la plus proche du bas-centre
+   (marge de 6 px) ; s'il n'y en a aucune, il devient une barre pleine largeur collee en bas (jouer.css #passer.barre), qui masque
+   proprement ce qui defile dessous au lieu de s'y superposer (la marge basse de #partie laisse tout atteignable). */
+function placePasserTel(b){
+  const r0=b.getBoundingClientRect();if(!r0.width)return;
+  const W=innerWidth,H=innerHeight,w=r0.width,h=r0.height,m=6,obs=[];
+  /* rectangle a l'ecran, rogne par les conteneurs a debordement cache ou a defilement (ce qui en sort n'est pas vu) */
+  const vu=(q,e)=>{let l=Math.max(q.left,0),t=Math.max(q.top,0),r=Math.min(q.right,W),bo=Math.min(q.bottom,H);
+    for(let a=e;a&&a!==document.body&&r>l&&bo>t;a=a.parentElement){const c=getComputedStyle(a);if(c.position==='fixed')break;
+      if(c.overflowX!=='visible'||c.overflowY!=='visible'){const k=a.getBoundingClientRect();l=Math.max(l,k.left);t=Math.max(t,k.top);r=Math.min(r,k.right);bo=Math.min(bo,k.bottom)}}
+    return r>l&&bo>t?{left:l,top:t,right:r,bottom:bo}:null};
+  const hors=e=>!e||e===b||b.contains(e)||e.closest('#scene,[hidden]');
+  const tw=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.textContent.trim()&&!hors(n.parentElement)?1:2});
+  const rg=document.createRange();
+  /* invisible (ancetre transparent, visibility, display) : ne compte pas */
+  const voit=e=>e.checkVisibility?e.checkVisibility({opacityProperty:true,visibilityProperty:true}):getComputedStyle(e).visibility!=='hidden';
+  for(let n;(n=tw.nextNode());){if(!voit(n.parentElement))continue;
+    rg.selectNodeContents(n);for(const q of rg.getClientRects()){const v=vu(q,n.parentElement);if(v)obs.push(v)}}
+  for(const e of document.body.querySelectorAll('button,a,input,select,textarea,img,svg,canvas,[role=button]')){
+    if(hors(e)||e.closest('svg')!==e&&e.closest('svg'))continue;const v=vu(e.getBoundingClientRect(),e);if(v&&voit(e))obs.push(v)}
+  const libre=(x,y)=>!obs.some(q=>q.right>x-m&&q.left<x+w+m&&q.bottom>y-m&&q.top<y+h+m);
+  const y0=H-12-h,cx=(W-w)/2;
+  for(let dy=0;dy<=H*.6;dy+=8)for(let d=0;d<=W/2;d+=8)for(const x of d?[cx-d,cx+d]:[cx]){
+    if(x<8||x+w>W-8)continue;const y=y0-dy;
+    if(libre(x,y)){if(d||dy){b.style.left=Math.round(x+w/2)+'px';b.style.bottom=Math.round(H-y-h)+'px'}return}}
+  b.classList.add('barre');
 }
 {let t=0;const pl=()=>{if(!t)t=setTimeout(()=>{t=0;placePasser()},120)}; /* au plus une mesure toutes les 120 ms pendant la scene */
   new MutationObserver(pl).observe($('passer'),{attributes:true,attributeFilter:['hidden']});
