@@ -36,7 +36,7 @@ const a=u=>u+(u.includes('?')?'&':'?')+'v='+encodeURIComponent(window.IMG_V);
 {const b=new URL('.',document.baseURI).href,o={};['firebase-config.js','firebase/compte.js','firebase/decks.js','firebase/salon.js'].forEach(u=>{o[b+u]=a(b+u)});
   const m=document.createElement('script');m.type='importmap';m.textContent=JSON.stringify({imports:o});document.head.append(m)}
 /* Repli de chargement (0.6) : un script qui echoue (reseau) ou dont le symbole cle manque apres chargement est recharge une fois
-   avec ?r= unique (XHR synchrone puis script en ligne : l'ordre est garde) ; sinon la page est rechargee UNE seule fois
+   avec ?r= unique (XHR synchrone puis script en ligne, defer compris : l'ordre est garde, diffusion-animations.js avant diffusion.js) ; sinon la page est rechargee UNE seule fois
    (garde-fou sessionStorage golems.secours, efface quand tout est la). */
 const S='golems.secours',SYMB={'cartes/donnees/interface.js':'GolemsDonnees','commun/etat.js':'tuto','commun/outils.js':'ETOILE_G','commun/alertes.js':'copieManuelle','commun/classe.js':'GolemsClasse','commun/compte.js':'surCompte','commun/navigation.js':'onglet','commun/profil.js':'majAvatarProfil','commun/raccords.js':'memo','commun/demarrage.js':'aReprendre','moteur.js':'GolemsMoteur','onglets/guides.js':'cjInit','onglets/nouveautes.js':'peintNotes','onglets/cartes.js':'boutonLienCarte','onglets/jouer.js':'bulleReac','vue/partie.js':'lancer','onglets/statistiques.js':'fenSaisonSt','onglets/historique.js':'peintHisto','onglets/decks.js':'peintDecks','vue/joueur.js':'affiche','onglets/tutoriel.js':'lanceGuide','onglets/regles.js':'golemsRegles','commun/version.js':'nouvelleVersion','versions-cartes.js':'VERSIONS_CARTES'};
 const r=u=>u+'?r='+Date.now().toString(36)+Math.random().toString(36).slice(2,8)+'&v='+encodeURIComponent(window.IMG_V);
@@ -55,7 +55,7 @@ const avis=()=>{if(window.golemsAvis)return;window.golemsAvis=1;const f=()=>{con
 window.addEventListener('error',e=>{if(window.golemsPret)return;if(window.golemsRecharge||window.golemsAvis){e.preventDefault();return}
   if(e.error instanceof ReferenceError){e.preventDefault();golemsSecours('script interrompu ('+e.message+')')}});
 window.golemsRepare=(e,u,m)=>{if(e.dataset.r)return;e.dataset.r='1';
-  if(m){const x=document.createElement('script');if(/module/.test(m))x.type='module';x.src=r(u);x.dataset.r='1';x.onerror=()=>golemsSecours(u+' introuvable');document.head.append(x);return}
+  if(/module/.test(m)){const x=document.createElement('script');x.type='module';x.src=r(u);x.dataset.r='1';x.onerror=()=>golemsSecours(u+' introuvable');document.head.append(x);return}
   try{const q=new XMLHttpRequest();q.open('GET',r(u),false);q.send();if(q.status!==200)throw new Error('HTTP '+q.status);
     const x=document.createElement('script');x.dataset.r='1';x.text=q.responseText+'\n//# sourceURL='+u;document.head.append(x);
     if(SYMB[u]&&golemsManque(SYMB[u]))throw new Error(SYMB[u]+' absent');console.warn('Chargement : '+u+' recharge (?r=).')}catch(x){golemsSecours(u+' en echec'+(x&&x.message?' ('+x.message+')':''))}};

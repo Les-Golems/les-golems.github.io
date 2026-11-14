@@ -116,3 +116,8 @@
 .dk-voile .dk-fen-err,.dk-voile .dk-fen-err *{white-space:normal;overflow:visible;text-overflow:clip;height:auto}
 .dk-voile .sc-alerte,#dkA .sc-alerte{height:auto;min-height:56px}
 .dk-voile .sc-alerte>span,#dkA .sc-alerte>span{display:block;-webkit-line-clamp:unset;overflow:visible}
+/* Tester des placements, tuile de 76 px : l'etiquette de cible seule (Favori masque pendant le choix), une ligne, jamais sur la Force */
+#popTest .p-case .tp-ms{max-width:calc(100% - 52px)}
+#popTest .p-case .tp-ms:has(>.m-act)>.tp-mt:not(.m-act):not(.m-hint){display:none}
+#popTest .p-case .tp-ms:has(>.m-act){flex-direction:row}
+#popTest .tp-bac .p-case.a-ms .mini{--bas:max(calc(2px + var(--f)/2 - 11.5px),26px)}

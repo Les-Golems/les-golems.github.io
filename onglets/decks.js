@@ -376,7 +376,7 @@ function panneauDk(R,d,l){
   r2.append(du,btnRouge('Supprimer',()=>confirmeSuppr(d,l)));R.append(r1,r2);
 }
 function fenDk(id){$(id)?.remove();const v=el('div','voile dk-voile'),f=el('div','sc-fenetre dk-fen');v.id=id;v.append(f);v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');
-  const prec=document.activeElement,esc=e=>{if(e.key==='Escape'&&$('vue').hidden)ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc);if(prec&&prec.isConnected)prec.focus()};addEventListener('keydown',esc);
+  const prec=document.activeElement,esc=e=>{if(e.key==='Escape'&&$('vue').hidden&&!document.querySelector('#aniDet,#mqAp')&&v===[...document.querySelectorAll('.dk-voile')].pop())ferme()},ferme=()=>{v.remove();removeEventListener('keydown',esc,true);if(prec&&prec.isConnected)prec.focus()};addEventListener('keydown',esc,true); /* capture : Echap ferme d'abord le zoom ou l'apercu ouvert par-dessus, la fenetre du dessus seulement ensuite */
   v.onclick=e=>{if(e.target===v)ferme()};document.body.append(v);v.hidden=false;return {v,f,ferme}}
 function confirmeSuppr(d,l){const {v,f,ferme}=fenDk('popSuppr'),t=el('h3','sc-fen-titre','Supprimer le deck '+d.nom+' ?');t.id='suTitre';v.setAttribute('aria-labelledby','suTitre');
   const a=el('div','sc-fen-actions'),ok=btnRouge('Supprimer',()=>{gardeDecks(lesDecks().filter(x=>x.id!==d.id));deckVu=null;ferme();peintDecks()}),an=btnDk('Annuler','sc-secondaire',ferme);
@@ -581,11 +581,11 @@ function bacEtat(B){
   return {terrains:B.T.map(i=>({...M.TERRAINS[i]})),manche:1,premier:0,joueur:0,resultats:[],log:[],stats:{ev:[],act:[],coups:{}},j:[J(B.G),J(bacVide())]};
 }
 const bacGolem=g=>!!g&&!M.carte(g.c).animal;
-function bacUtilises(B,t){let n=0;B.G.forEach(L=>L.forEach(g=>{if(g&&M.carte(g.c).id===t)n++}));return n}
+function bacUtilises(B,t){let n=0;B.G.forEach(L=>L.forEach(g=>{if(g&&M.carte(g.c).id===t)n++;if(g&&g.ani&&M.carte(g.ani.c).id===t)n++}));return n} /* animal attache : compte aussi */
 /* Identifiant de partie libre pour le type t (rang * 3 + exemplaire), comme idsDeck du moteur. */
 function bacLibre(B,d,t){
   if(bacUtilises(B,t)>=(+d.cartes[t]||0))return null;
-  const r=M.TYPES.indexOf(t),pris=new Set();B.G.forEach(L=>L.forEach(g=>{if(g)pris.add(g.c)}));
+  const r=M.TYPES.indexOf(t),pris=new Set();B.G.forEach(L=>L.forEach(g=>{if(g)pris.add(g.c);if(g&&g.ani)pris.add(g.ani.c)}));
   for(let n=0;n<3;n++)if(!pris.has(r*3+n))return r*3+n;
   return null;
 }
@@ -732,11 +732,12 @@ function ouvreDeckLien(c){
    « Changer » sur les terrains (fenetre « Choisir un terrain »), clic sur un terrain = zoom de ton camp. ===== */
 const COEUR_BAC='<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2.4 4.5 6.2 4.5c2.2 0 3.7 1.3 4.6 2.6.9-1.3 2.4-2.6 4.6-2.6 3.8 0 5.8 3.9 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg>';
 /* Mentions de tuile (charte, variante A) : les etiquettes natives de grilleVue deviennent des pastilles alignees en bas a gauche */
-function mentionsTuile(g){
+function mentionsTuile(g,B){
   g.querySelectorAll('.p-case').forEach(q=>{if(!q.querySelector('.mini'))return;const ms=el('span','tp-ms');
     const fv=q.querySelector('.fav');if(fv){fv.remove();const m=el('span','tp-mt m-fav');m.innerHTML=COEUR_BAC;m.append('Favori');ms.append(m)}
     const cp=q.querySelector('.mini>.cp,.cp');if(cp){cp.remove();ms.append(el('span','tp-mt m-cp',cp.textContent))}
     q.querySelectorAll('.ani').forEach(x=>x.remove());
+    {const v=B&&B.G[+q.dataset.l][+q.dataset.k];if(v&&v.ani){const m=el('span','tp-mt m-ani',M.carte(v.ani.c).nom);m.style.cssText='background:var(--an-vert-past);color:var(--encre)';ms.prepend(m)}} /* animal attache : pastille verte au nom entier, comme decore() de la partie (.d-past.vert) */
     const a=q.querySelector(':scope>.act');if(a){const hi=a.querySelector('.p-hint');if(hi)hi.remove();a.querySelector('.act-c')?.remove();const t=a.textContent.trim();a.remove();ms.append(el('span','tp-mt m-act',t));if(hi)ms.append(el('span','tp-mt m-hint',hi.textContent))}
     if(ms.childElementCount){q.append(ms);q.classList.add('a-ms')}})}
 const pzBac=(n,v)=>{const s=el('span','tp-pz');s.append(ico(n),String(v));s.title=n==='force'?'Force':'Coût';return s};
@@ -754,10 +755,16 @@ function choisirTerrain(B,k,peint){
 }
 function tireMain(B,d){const p=[];Object.keys(d.cartes).forEach(k=>{for(let i=0;i<+d.cartes[k];i++)p.push(k)});for(let i=p.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[p[i],p[j]]=[p[j],p[i]]}
   B.main=p.slice(0,5);B.en=0;B.G=bacVide();B.sel=null;B.selC=null;B.mode=null}
+/* Telephone et tablette : toucher une vignette ouvre la carte en grand (modele #mqAp de la partie au telephone), « Poser » la selectionne */
+function apercuBac(t,choisit,dep){document.querySelectorAll('#mqAp').forEach(y=>y.remove());const C=M.CARTES[t],o=el('div','tp-ap');o.id='mqAp';o.setAttribute('role','dialog');o.setAttribute('aria-label',M.nomDetail(C));
+  const im=el('img');im.src=imgV('cartes/'+t+'.jpg');im.alt=M.nomDetail(C);const b=el('div','mqa-b'),fin=()=>{o.remove();removeEventListener('keydown',esc,true);if(dep&&dep.isConnected)dep.focus()},esc=e=>{if(e.key==='Escape'){e.stopPropagation();fin()}};
+  const fe=el('button','mqb-b','Fermer');fe.type='button';fe.onclick=fin;const ok=el('button','mqb-b plein','Poser');ok.type='button';ok.onclick=()=>{o.remove();removeEventListener('keydown',esc,true);choisit()};
+  b.append(fe,ok);o.append(im,el('p','',M.nomDetail(C)),b);o.onclick=e=>{if(e.target===o)fin()};addEventListener('keydown',esc,true);document.body.append(o);ok.focus()}
 const BAC_ENERGIE=2; /* energie du 1er tour */
 function bacFen(f,d,ferme){
   const B=bacDe(d),peint=()=>{const y=f.scrollTop;bacFen(f,d,ferme);f.scrollTop=y};f.textContent='';
   M.TYPES.forEach(t=>{let n=bacUtilises(B,t)-(+d.cartes[t]||0);for(let l=2;l>=0&&n>0;l--)for(let k=2;k>=0&&n>0;k--){const g=B.G[l][k];if(g&&M.carte(g.c).id===t){bacRetire(B,l,k);n--}}});
+  B.G.forEach(L=>L.forEach(g=>{if(g&&g.ani&&!(+d.cartes[M.carte(g.ani.c).id]>0))delete g.ani})); /* animal attache retire du deck */
   if(B.sel&&!(+d.cartes[B.sel]>0))B.sel=null;if(B.selC&&!B.G[B.selC[0]][B.selC[1]]){B.selC=null;B.mode=null}
   const MAIN=!!B.main,reste=MAIN?BAC_ENERGIE-B.en:0;
   const s=bacEtat(B),G=B.G,cols=[0,1,2],cc=M.colonnes(s),[sa,sb]=B.selC||[];
@@ -773,9 +780,9 @@ function bacFen(f,d,ferme){
     dv.append(te,to,va,ch);dv.tabIndex=0;dv.setAttribute('role','button');dv.setAttribute('aria-label','Voir '+T.nom+' en grand');dv.title='Voir '+T.nom+' en grand, avec tes Golems';
     dv.onclick=e=>{if(e.target===ch)return;zoomTerrainBac(s,k)};dv.onkeydown=e=>{if(e.target===dv&&(e.key==='Enter'||e.key===' ')){e.preventDefault();zoomTerrainBac(s,k)}};tr.append(dv)});
   let cible=null;
-  const agrandir=(l,k)=>{const v=G[l][k],C=M.carte(v.c);cacheApercu();dernier=document.activeElement;zoom(imgV('cartes/'+M.idEff(v)+'.jpg'),M.nomDetail(C),C.animal?detailAnimal(C):detailForce(s,0,l,k))};
+  const agrandir=(l,k)=>{const v=G[l][k],C=M.carte(v.c);cacheApercu();dernier=document.activeElement;if(v.ani)return detailMaitreAnimal(v);zoom(imgV('cartes/'+M.idEff(v)+'.jpg'),M.nomDetail(C),C.animal?detailAnimal(C):detailForce(s,0,l,k))};
   if(B.sel){const c=bacLibre(B,d,B.sel);if(c!==null)cible=(l,k)=>{if(!M.peutPoser(s,0,c,l,k))return null;const cout=M.coutPose(s,0,c,l,k);if(MAIN&&cout>reste)return null;
-    return {texte:(G[l][k]?(M.carte(c).base?'Améliorer ':'Remplacer '):'Poser ')+cout,fait:()=>{const t=B.sel;if(bacPlace(B,d,t,l,k)&&MAIN){B.en+=cout;const i=B.main.indexOf(t);if(i>=0)B.main.splice(i,1);B.sel=null}peint()}}}}
+    return {texte:M.carte(c).animal&&G[l][k]?'Sous '+M.carte(G[l][k].c).nom:(G[l][k]?(M.carte(c).base?'Améliorer ':'Remplacer '):'Poser ')+cout,fait:()=>{const t=B.sel;if(bacPlace(B,d,t,l,k)&&MAIN){B.en+=cout;const i=B.main.indexOf(t);if(i>=0)B.main.splice(i,1);B.sel=null}peint()}}}}
   else if(B.selC&&B.mode==='fav')cible=(l,k)=>l===sa&&k===sb?{choisie:true,fait:()=>{}}:bacGolem(G[l][k])?{texte:'Choisir',fait:()=>{G[sa][sb].fav=G[l][k].c;B.mode=null;peint()}}:null;
   else if(B.selC&&B.mode==='copie')cible=(l,k)=>l===sa&&k===sb?{choisie:true,fait:()=>{}}:bacVois(sa,sb).some(([a,b])=>a===l&&b===k)&&bacGolem(G[l][k])?{texte:'Copier',fait:()=>{const g=G[sa][sb];g.cp=M.idEff(G[l][k]);delete g.de;g.f=M.carte(g.c).force||0;B.mode=null;bacPose(B,sa,sb);peint()}}:null;
   else if(B.selC&&B.mode==='bouge')cible=(l,k)=>l===sa&&k===sb?{choisie:true,fait:()=>{B.mode=null;peint()}}:bacPeut(B,sa,sb,l,k)?{texte:G[l][k]?'Échanger':'Ici',fait:()=>{bacBouge(B,sa,sb,l,k);B.selC=[l,k];B.mode=null;peint()}}:null;
@@ -788,33 +795,39 @@ function bacFen(f,d,ferme){
     q.ondrop=e=>{e.preventDefault();q.classList.remove('survol');const x=e.dataTransfer.getData('text/plain');
       if(x.startsWith('t:')&&!MAIN){if(bacPlace(B,d,x.slice(2),l,k)&&!B.mode)B.sel=null}
       else if(x.startsWith('c:')){const[a,b2]=x.slice(2).split(',').map(Number);if(bacBouge(B,a,b2,l,k)){B.selC=null;B.mode=null}}peint()}});
-  mentionsTuile(g);
+  mentionsTuile(g,B);
   if(MAIN&&B.sel&&!g.querySelector('.cible'))g.querySelectorAll('.p-case').forEach(q=>{if(!q.querySelector('.mini')&&!q.childElementCount){q.classList.add('tp-ko');q.textContent='Énergie insuffisante'}});
   const r2=el('div','d-rg');r2.append(el('div','d-vt toi',compteCo()?pseudo:'Toi'),g);plat.append(tr,r2);dif.append(plat);
   const dr=el('div','tp-dr');co.append(dif,dr);f.append(co);
   /* Cartes du deck (ou main) */
   const ids=MAIN?B.main.slice():M.TYPES.filter(t=>+d.cartes[t]>0).sort((a,b)=>M.CARTES[a].cout-M.CARTES[b].cout||M.TYPES.indexOf(a)-M.TYPES.indexOf(b));
   const lz=el('div','tp-main'+(MAIN?'':' tp-2r'));lz.append(el('div','tp-lib',MAIN?'Ta main - '+B.main.length+' carte'+(B.main.length>1?'s':'')+' (5 tirées)':'Cartes du deck - touche une carte, puis une case'));
-  const rr=el('div','tp-mc');
+  const rr=el('div','tp-mc'),ap=el('img','dl-apercu');ap.alt='';ap.hidden=true;
+  const place=e=>{const W=220,H=308,x=e.clientX+18,y=e.clientY-H/2;ap.style.left=(x+W>innerWidth?e.clientX-W-18:x)+'px';ap.style.top=Math.max(8,Math.min(innerHeight-H-8,y))+'px'};
   (MAIN?ids.map((t,i)=>[t,i]):ids.map(t=>[t,-1])).forEach(([t,i])=>{const C=M.CARTES[t],n=MAIN?1:+d.cartes[t]-bacUtilises(B,t),m=el('button','tp-m'+(B.sel===t&&(!MAIN||i===ids.indexOf(t))?' sel':''));m.type='button';
     const im=el('img');im.src=imgV('cartes/'+t+'.jpg');im.alt='';m.append(im);if(!MAIN)m.append(el('span','tp-x'+(n?'':' zero'),'x'+n));
     m.setAttribute('aria-label',M.nomDetail(C)+(MAIN?'':', '+n+' à poser'));m.title=M.nomDetail(C);m.disabled=n<=0;m.setAttribute('aria-pressed',String(B.sel===t));
-    m.onclick=()=>{B.sel=B.sel===t?null:t;B.selC=null;B.mode=null;peint()};
+    const choisit=()=>{B.sel=t;B.selC=null;B.mode=null;peint()};
+    m.onclick=()=>{if(matchMedia('(max-width:1079px)').matches&&!(MAIN?false:n<=0))return apercuBac(t,choisit,m);B.sel=B.sel===t?null:t;B.selC=null;B.mode=null;peint()};
+    if(matchMedia('(hover:hover) and (min-width:1080px)').matches){m.onmouseenter=ev=>{ap.src=im.src;ap.hidden=false;place(ev)};m.onmousemove=place;m.onmouseleave=()=>{ap.hidden=true}}
     if(!MAIN){m.draggable=n>0;m.ondragstart=e=>{e.dataTransfer.setData('text/plain','t:'+t);e.dataTransfer.effectAllowed='move'}}
     rr.append(m)});
-  lz.append(rr);dr.append(lz);
+  lz.append(rr,ap);dr.append(lz);
   /* Detail */
   const dt=el('div','tp-det');dt.setAttribute('aria-live','polite');
   if(B.selC){const v=G[sa][sb],C=M.carte(v.c),id=M.idEff(v);dt.append(pzCarteBac(C,C.animal?null:M.forceDe(s,0,sa,sb)));
     const msg={bouge:'Touche une case libre (Ici) ou un autre Golem (Échanger).',fav:'Choisis son favori : touche un de tes Golems.',copie:'Déguisement : touche le voisin à copier.'}[B.mode];if(msg)dt.append(el('p','tp-msg',msg));
     const notes=[BAC_NOTE[C.id]];if(C.id!==id&&id&&BAC_NOTE[id])notes.push('Copie : '+BAC_NOTE[id]);const nt=notes.filter(Boolean).join(' ');if(nt)dt.append(el('p','',nt));
+    if(v.ani){const A=M.carte(v.ani.c),la=el('p','tp-ani');la.style.color='var(--vert-ani)';la.style.fontWeight='700';la.append(A.nom+' sous '+C.nom+' : +1 de Force');dt.append(la)}
     const bs=el('div','tp-acts'),bt=(x,fn,p)=>{const q=btnDk(x,'sc-tertiaire',fn);if(p!==undefined)q.setAttribute('aria-pressed',String(p));bs.append(q)};
     bt('Agrandir',()=>agrandir(sa,sb));bt('Déplacer',()=>{B.mode=B.mode==='bouge'?null:'bouge';peint()},B.mode==='bouge');
     bt('Retirer',()=>{bacRetire(B,sa,sb);B.selC=null;B.mode=null;peint()});
+    if(v.ani)bt('Retirer '+M.carte(v.ani.c).nom,()=>{delete v.ani;peint()});
     if(M.FAV_BONUS[id])bt('Changer le favori',()=>{B.mode='fav';peint()},B.mode==='fav');
     if(effetDe(C.id,'copie',r=>r.cible==='voisin')&&bacVois(sa,sb).filter(([a,b])=>bacGolem(G[a][b])).length>1)bt('Changer la copie',()=>{delete v.cp;delete v.fav;B.mode='copie';peint()},B.mode==='copie');
     bt('Désélectionner',()=>{B.selC=null;B.mode=null;peint()});dt.append(bs,el('p','tp-aide','Calcul complet de la Force : Agrandir, ou second clic sur la carte.'))}
-  else if(B.sel){const C=M.CARTES[B.sel];dt.append(el('div','tp-lib','Détail'),pzCarteBac(C),el('p','',C.base?'Évolution de '+M.CARTES[C.base].nom+' : touche une case en surbrillance pour l’améliorer.':'Touche une case en surbrillance pour la poser.'))}
+  else if(B.sel){const C=M.CARTES[B.sel];dt.append(el('div','tp-lib','Détail'),pzCarteBac(C),el('p','',C.base?'Évolution de '+M.CARTES[C.base].nom+' : touche une case en surbrillance pour l’améliorer.':C.animal?'Touche la case dorée de '+M.CARTES[C.maitre].nom+' pour le glisser dessous.':'Touche une case en surbrillance pour la poser.'));
+    const bs=el('div','tp-acts');bs.append(btnDk('Agrandir','sc-tertiaire',()=>{cacheApercu();dernier=document.activeElement;zoom(imgV('cartes/'+C.id+'.jpg'),M.nomDetail(C),C.animal?detailAnimal(C):undefined)}));dt.append(bs)}
   else if(MAIN){const cm=B.main.length?B.main.reduce((a,x)=>a+M.CARTES[x].cout,0)/B.main.length:0,po=B.main.filter(x=>M.CARTES[x].cout<=reste).length,l1=el('div','tp-dh'),els=el('span','tp-pz');
     [...new Set(B.main.flatMap(x=>M.CARTES[x].el||[]))].forEach(e=>els.append(picto(e)));l1.append(el('span','tp-lib','Coût moyen'),pzBac('enclume',cm.toFixed(1).replace('.',',')),el('span','tp-lib','Éléments'),els);
     dt.append(el('div','tp-lib','Bilan de la main'),l1,el('p','',po+' carte'+(po>1?'s':'')+' encore posable'+(po>1?'s':'')+' avec l’énergie restante'),el('p','tp-aide','Pose tes cartes dans la limite de l’énergie, puis tire une nouvelle main pour comparer.'))}

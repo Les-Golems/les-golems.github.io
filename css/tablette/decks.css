@@ -102,3 +102,13 @@
 .dk-voile .sc-alerte,#dkA .sc-alerte{height:auto;min-height:56px}
 .dk-voile .sc-alerte>span,#dkA .sc-alerte>span{display:block;-webkit-line-clamp:unset;overflow:visible}
 }
+/* 0.7a Tester des placements : apercu d'une vignette au toucher, meme style que #mqAp de la partie au telephone (css/diffusion.css) */
+#mqAp.tp-ap{position:fixed;inset:0;z-index:200;background:rgba(3,6,10,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+#mqAp.tp-ap img{width:min(78vw,300px);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.7)}
+#mqAp.tp-ap .mqa-b{display:flex;gap:10px;width:min(90vw,340px)}
+#mqAp.tp-ap .mqb-b{flex:1;height:48px;font:400 18px/1 var(--titre);border-radius:10px 7px 11px 6px;border:1px solid var(--trait);background:var(--panneau2);color:var(--texte);cursor:pointer}
+#mqAp.tp-ap .mqb-b.plein{background:var(--or);color:var(--encre);border-color:var(--or)}
+#mqAp.tp-ap p{margin:0;font:600 13px/1.3 var(--corps);color:#c9d3dc;text-align:center}
+/* animal attache : en partie au telephone et a la tablette, pas de pastille sur la tuile (Force +1 et zoom seulement) ; idem ici */
+#popTest .tp-mt.m-ani{display:none}
+#popTest .p-case.a-ms:not(:has(.tp-mt:not(.m-ani))) .mini{--bas:calc(2px + var(--f)/2 - 11.5px)} /* pastille animal seule, masquee : cout a sa place */

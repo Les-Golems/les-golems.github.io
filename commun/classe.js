@@ -346,7 +346,10 @@
       var pause = o.pause || function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
       for (var i = 0; i < n; i++) {
         var j = await B.lit('classe/joueurs/' + u);
-        if (j && (j.dern === id || await B.lit('classe/parties/' + id + '/fait/' + u))) return j;
+        if (j && j.dern === id) return j;
+        /* 0.7a : profil lu AVANT l'application, fait/<moi> lu APRES (meme ecriture groupee) : profil relu, sinon il serait
+           renvoye perime (dern d'avant) et la variation ecrite n'atteindrait l'historique qu'au rechargement. */
+        if (j && await B.lit('classe/parties/' + id + '/fait/' + u)) return (await B.lit('classe/joueurs/' + u)) || j;
         if (i < n - 1) await pause(d);
       }
       return null;

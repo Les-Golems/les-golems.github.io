@@ -414,6 +414,28 @@ function finFile(){
 }
 function arreteAnim(){clearTimeout(animT);fileA=[];animCours=false;verrou=false;ecranFin=null;tenus=[];masques=[];$('scene').textContent='';$('passer').hidden=true;if(partie)partie.ecran=null}
 $('passer').onclick=()=>{sauter=true;$('scene').textContent='';fx=[];suivant();sauter=false};
+/* 0.7a : « Passer » (fixe, en bas au centre, jouer.css) ne couvre rien : s'il chevauche un bouton, un panneau ou une carte
+   (fin de partie en vue telephone : « Quitter la partie », Journal, choix Daltonien...), il glisse le long du bas de l'ecran vers
+   la place libre la plus proche du centre, puis remonte d'un cran si le bas est plein. Place libre a l'arrivee : rien ne change. */
+function placePasser(){
+  const b=$('passer');b.style.left='';b.style.bottom='';if(b.hidden)return;
+  const r0=b.getBoundingClientRect();if(!r0.width)return;
+  const W=innerWidth,H=innerHeight,w=r0.width,h=r0.height,peint=new Map();
+  const plein=e=>{if(peint.has(e))return peint.get(e);const c=getComputedStyle(e);
+    const v=c.visibility!=='hidden'&&(/^(IMG|BUTTON|SVG|CANVAS|INPUT|SELECT|TEXTAREA|A)$/i.test(e.tagName)||!/rgba\(0, 0, 0, 0\)|transparent/.test(c.backgroundColor)||c.backgroundImage!=='none'||parseFloat(c.borderTopWidth)>0&&c.borderTopStyle!=='none'||[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()));
+    peint.set(e,v);return v};
+  const libre=(x,y)=>{for(const fx of [-8,w/2,w+8])for(const fy of [2,h/2,h-2])for(const e of document.elementsFromPoint(x+fx,y+fy)){
+      if(e===document.documentElement||e===document.body)break;if(e===b||b.contains(e)||e.closest('#scene'))continue;if(plein(e))return false}
+    return true};
+  const y0=r0.top,cx=(W-w)/2;
+  for(let dy=0;dy<=H*.6;dy+=h+8)for(let d=0;d<=W/2;d+=12)for(const x of d?[cx-d,cx+d]:[cx]){
+    if(x<8||x+w>W-8)continue;const y=y0-dy;if(y<8)return;
+    if(libre(x,y)){if(d||dy){b.style.left=Math.round(x+w/2)+'px';b.style.bottom=Math.round(H-y-h)+'px'}return}}
+}
+{let t=0;const pl=()=>{if(!t)t=setTimeout(()=>{t=0;placePasser()},120)}; /* au plus une mesure toutes les 120 ms pendant la scene */
+  new MutationObserver(pl).observe($('passer'),{attributes:true,attributeFilter:['hidden']});
+  new MutationObserver(()=>{if(!$('passer').hidden)pl()}).observe(document.body,{childList:true,subtree:true});
+  addEventListener('resize',pl);addEventListener('scroll',()=>{if(!$('passer').hidden)pl()},{passive:true,capture:true})}
 function fixe(st,ajout){partie.ecran=st;if(ajout)tenus=tenus.concat(ajout);if(repeint){repeint();poseFx()}}
 function libere(q){masques=masques.filter(x=>x!==q);const z=$('partie').querySelector(q);if(z)z.classList.remove('fx-cache')}
 const voisinsDe=(l,k)=>[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].filter(([a,b])=>a>=0&&a<3&&b>=0&&b<3);
