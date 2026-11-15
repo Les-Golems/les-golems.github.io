@@ -143,19 +143,26 @@ async function envoieClasse(c,w,gr){
   const S=typeof serviceClasse==='function'?serviceClasse():null;if(!S)return;
   const C=window.GolemsClasse,u=room.compte.uid(),id=c.robot?C.creePartieRobot({sa:c.sa,gr,a:'',profilA:c.profil,niveau:c.robot,gagne:false,saison:0}).id:C.idPartie(c.sa,gr);
   attenteClasse(id,true);
+  const hid=partie?partie.graine+'-'+partie.debut:''; /* 0.7 : lu avant les attentes (abandon volontaire : partie deja a null au retour de S.attends) */
   try{
     let j=null;
     if(c.robot){const o={sa:c.sa,gr,niveau:c.robot,gagne:w===partie.moi};finRobotAttente(u,o,true);const r=await S.finRobot(o);if(r.fait){finRobotAttente(u,o,false);j=await room.classeBase().lit('classe/joueurs/'+u)}}
     else{
       const o={sa:c.sa,gr,a:c.a,b:c.b,gagnant:w===0?c.a:w===1?c.b:null};
       /* 0.6.1 : forfait de l'adversaire (salons/<sa>/forfait/<gr>.u = perdant) : le gagnant ecrit la partie et les deux profils. */
-      const f=o.gagnant===u?await room.lit('salons/'+c.sa+'/forfait/'+gr).catch(()=>null):null,perd=o.gagnant===c.a?c.b:c.a;
+      /* 0.7 : forfait lu d'abord en memoire (GOLEMS_PONT.r.forfaits(), deja recu puisque c'est lui qui a fini la partie), le reseau en secours.
+         Fin par abandon de l'adversaire sans forfait connu (lecture perdue sous coupure, ou abandon volontaire) : fin gardee {f:1}
+         AVANT toute attente, pour que reprendFins reessaie si le perdant n'ecrit jamais. */
+      const perd=o.gagnant===c.a?c.b:c.a,FF=()=>{try{const R=window.GOLEMS_PONT&&GOLEMS_PONT.r,x=R&&typeof R.forfaits==='function'&&R.forfaits();return x&&x[gr]||null}catch(e){return null}};
+      const ab=partie&&partie.etat&&partie.etat.fin&&partie.etat.fin.abandon!==undefined&&partie.etat.fin.abandon!==partie.moi;
+      let f=o.gagnant===u?FF():null;
+      if(o.gagnant===u&&!(f&&f.u===perd)){if(ab)finEnAttente(u,o,true,true);f=await room.lit('salons/'+c.sa+'/forfait/'+gr).catch(()=>null)||FF()}
       if(o.gagnant===u&&f&&f.u===perd){finEnAttente(u,o,true,true);const r=await S.finForfait(o);if(r.fait&&r.faitAdv)finEnAttente(u,o,false);if(r.fait)j=await room.classeBase().lit('classe/joueurs/'+u)}
-      else if(o.gagnant===u)j=await S.attends(id);
+      else if(o.gagnant===u){j=await S.attends(id);if(j&&ab)finEnAttente(u,o,false)}
       else{finEnAttente(u,o,true);const r=await S.finJoueurs(o);if(r.fait){finEnAttente(u,o,false);j=await room.classeBase().lit('classe/joueurs/'+u)}}
     }
     if(j){attenteClasse(id,false);
-      if(c.res&&j.dern===id){c.res.delta=Math.round(j.elo-c.res.avant);c.res.apres=j.elo;c.res.profil=j;c.res.ecrit=true;sauve();histoClasse(partie.graine+'-'+partie.debut,c.res.delta)}}
+      if(c.res&&j.dern===id){c.res.delta=Math.round(j.elo-c.res.avant);c.res.apres=j.elo;c.res.profil=j;c.res.ecrit=true;sauve();if(hid)histoClasse(hid,c.res.delta)}}
   }catch(e){console.warn('classe',e)}
   if(typeof chargeClasse==='function')chargeClasse();
 }
@@ -407,6 +414,57 @@ function finFile(){
 }
 function arreteAnim(){clearTimeout(animT);fileA=[];animCours=false;verrou=false;ecranFin=null;tenus=[];masques=[];$('scene').textContent='';$('passer').hidden=true;if(partie)partie.ecran=null}
 $('passer').onclick=()=>{sauter=true;$('scene').textContent='';fx=[];suivant();sauter=false};
+/* 0.7a : « Passer » (fixe, en bas au centre, jouer.css) ne couvre rien : s'il chevauche un bouton, un panneau ou une carte
+   (fin de partie en vue telephone : « Quitter la partie », Journal, choix Daltonien...), il glisse le long du bas de l'ecran vers
+   la place libre la plus proche du centre, puis remonte d'un cran si le bas est plein. Place libre a l'arrivee : rien ne change. */
+function placePasser(){
+  const b=$('passer');b.style.left='';b.style.bottom='';b.classList.remove('barre');if(b.hidden)return;
+  if(innerWidth<LARGEUR_PC)return placePasserTel(b);
+  const r0=b.getBoundingClientRect();if(!r0.width)return;
+  const W=innerWidth,H=innerHeight,w=r0.width,h=r0.height,peint=new Map();
+  const plein=e=>{if(peint.has(e))return peint.get(e);const c=getComputedStyle(e);
+    const v=c.visibility!=='hidden'&&(/^(IMG|BUTTON|SVG|CANVAS|INPUT|SELECT|TEXTAREA|A)$/i.test(e.tagName)||!/rgba\(0, 0, 0, 0\)|transparent/.test(c.backgroundColor)||c.backgroundImage!=='none'||parseFloat(c.borderTopWidth)>0&&c.borderTopStyle!=='none'||[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()));
+    peint.set(e,v);return v};
+  const libre=(x,y)=>{for(const fx of [-8,w/2,w+8])for(const fy of [2,h/2,h-2])for(const e of document.elementsFromPoint(x+fx,y+fy)){
+      if(e===document.documentElement||e===document.body)break;if(e===b||b.contains(e)||e.closest('#scene'))continue;if(plein(e))return false}
+    return true};
+  const y0=r0.top,cx=(W-w)/2;
+  for(let dy=0;dy<=H*.6;dy+=h+8)for(let d=0;d<=W/2;d+=12)for(const x of d?[cx-d,cx+d]:[cx]){
+    if(x<8||x+w>W-8)continue;const y=y0-dy;if(y<8)return;
+    if(libre(x,y)){if(d||dy){b.style.left=Math.round(x+w/2)+'px';b.style.bottom=Math.round(H-y-h)+'px'}return}}
+}
+/* 0.7a, vue mobile (< 1080 px) : les panneaux couvrent toute la largeur, on ne regarde donc que ce qui se lit ou se touche :
+   rectangles exacts du texte visible et des boutons, liens, champs, images. Passer va a la place libre la plus proche du bas-centre
+   (marge de 6 px) ; s'il n'y en a aucune, il devient une barre pleine largeur collee en bas (jouer.css #passer.barre), qui masque
+   proprement ce qui defile dessous au lieu de s'y superposer (la marge basse de #partie laisse tout atteignable). */
+function placePasserTel(b){
+  const r0=b.getBoundingClientRect();if(!r0.width)return;
+  const W=innerWidth,H=innerHeight,w=r0.width,h=r0.height,m=6,obs=[];
+  /* rectangle a l'ecran, rogne par les conteneurs a debordement cache ou a defilement (ce qui en sort n'est pas vu) */
+  const vu=(q,e)=>{let l=Math.max(q.left,0),t=Math.max(q.top,0),r=Math.min(q.right,W),bo=Math.min(q.bottom,H);
+    for(let a=e;a&&a!==document.body&&r>l&&bo>t;a=a.parentElement){const c=getComputedStyle(a);if(c.position==='fixed')break;
+      if(c.overflowX!=='visible'||c.overflowY!=='visible'){const k=a.getBoundingClientRect();l=Math.max(l,k.left);t=Math.max(t,k.top);r=Math.min(r,k.right);bo=Math.min(bo,k.bottom)}}
+    return r>l&&bo>t?{left:l,top:t,right:r,bottom:bo}:null};
+  const hors=e=>!e||e===b||b.contains(e)||e.closest('#scene,[hidden]');
+  const tw=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.textContent.trim()&&!hors(n.parentElement)?1:2});
+  const rg=document.createRange();
+  /* invisible (ancetre transparent, visibility, display) : ne compte pas */
+  const voit=e=>e.checkVisibility?e.checkVisibility({opacityProperty:true,visibilityProperty:true}):getComputedStyle(e).visibility!=='hidden';
+  for(let n;(n=tw.nextNode());){if(!voit(n.parentElement))continue;
+    rg.selectNodeContents(n);for(const q of rg.getClientRects()){const v=vu(q,n.parentElement);if(v)obs.push(v)}}
+  for(const e of document.body.querySelectorAll('button,a,input,select,textarea,img,svg,canvas,[role=button]')){
+    if(hors(e)||e.closest('svg')!==e&&e.closest('svg'))continue;const v=vu(e.getBoundingClientRect(),e);if(v&&voit(e))obs.push(v)}
+  const libre=(x,y)=>!obs.some(q=>q.right>x-m&&q.left<x+w+m&&q.bottom>y-m&&q.top<y+h+m);
+  const y0=H-12-h,cx=(W-w)/2;
+  for(let dy=0;dy<=H*.6;dy+=8)for(let d=0;d<=W/2;d+=8)for(const x of d?[cx-d,cx+d]:[cx]){
+    if(x<8||x+w>W-8)continue;const y=y0-dy;
+    if(libre(x,y)){if(d||dy){b.style.left=Math.round(x+w/2)+'px';b.style.bottom=Math.round(H-y-h)+'px'}return}}
+  b.classList.add('barre');
+}
+{let t=0;const pl=()=>{if(!t)t=setTimeout(()=>{t=0;placePasser()},120)}; /* au plus une mesure toutes les 120 ms pendant la scene */
+  new MutationObserver(pl).observe($('passer'),{attributes:true,attributeFilter:['hidden']});
+  new MutationObserver(()=>{if(!$('passer').hidden)pl()}).observe(document.body,{childList:true,subtree:true});
+  addEventListener('resize',pl);addEventListener('scroll',()=>{if(!$('passer').hidden)pl()},{passive:true,capture:true})}
 function fixe(st,ajout){partie.ecran=st;if(ajout)tenus=tenus.concat(ajout);if(repeint){repeint();poseFx()}}
 function libere(q){masques=masques.filter(x=>x!==q);const z=$('partie').querySelector(q);if(z)z.classList.remove('fx-cache')}
 const voisinsDe=(l,k)=>[[l-1,k],[l+1,k],[l,k-1],[l,k+1]].filter(([a,b])=>a>=0&&a<3&&b>=0&&b<3);
@@ -961,7 +1019,14 @@ function bonusPrevu(s,me,c,l,k){
 }
 /* Recapitulatif de fin de manche : local, ne touche ni a la presence ni au journal. */
 function mancheFinie(s){return s.fin?(s.fin.abandon!==undefined||s.fin.deckVide!==undefined?s.reperes.length:3):s.manche-1} /* 0.4 : deck vide, comme l'abandon */ /* abandon (0.2.2) : seulement les manches decomptees */
-function fermeRecap(){$('recap').hidden=true;$('recap').textContent='';recapAff=0}
+function fermeRecap(){$('recap').hidden=true;$('recap').textContent='';recapAff=0;majScoreRecap()} /* 0.7a : bandeau = score courant */
+/* 0.7a : bandeau de la vue joueur (.p-score) et de la diffusion = score du bilan de manche ouvert (sans les pioches impossibles du debut de la manche suivante), score courant sinon */
+function majScoreRecap(){
+  if(window.DIFFUSION&&DIFFUSION.majScore)DIFFUSION.majScore();
+  const s=partie&&partie.etat,sc=document.querySelector('#partie .p-score');if(!s||!sc)return;
+  const me=partie.moi,lui=1-me,ap=[0,0];if(recapAff)for(let m=recapAff+1;m<=3;m++){const x=piocheImpossible(s,m);ap[0]+=x[0];ap[1]+=x[1]}
+  const a=s.j[me].score-ap[me],b=s.j[lui].score-ap[lui],B=sc.querySelector('b'),E=sc.querySelector('em');
+  if(B)B.textContent=String(a);if(E)E.textContent=String(b);sc.setAttribute('aria-label','Toi '+a+', adversaire '+b)}
 /* Decoupe le journal par manche : chaque page finit avec le decompte et ses effets. */
 function pagesLog(s){
   const r=[];let d=0;
@@ -1055,10 +1120,10 @@ function verifieRecap(){
     z.append(l);d.append(z);
   }
   {const ap=[0,0];for(let m=n+1;m<=3;m++){const x=piocheImpossible(s,m);ap[0]+=x[0];ap[1]+=x[1]} /* score a la fin de la manche n : sans les pioches impossibles du debut de la manche suivante */
-  d.append(el('p','r-total','Score : '+(s.j[me].score-ap[me])+' - '+(s.j[lui].score-ap[lui])))}
+  {const t=el('p','r-total','Score : '+(s.j[me].score-ap[me])),ti=el('span','sep-score',' - ');t.append(ti,String(s.j[lui].score-ap[lui]));d.append(t)}} /* 0.7a : le trait d'union de Lilita One se lit comme un tiret long : tiret en police du corps (.sep-score, base.css) */
   const b=el('button','btn plein','Continuer');b.type='button';b.id='continuer';
   b.onclick=()=>{if(partie){partie.recapVu=n;sauve()}fermeRecap()};
-  d.append(b);box.textContent='';box.append(d);box.hidden=false;recapAff=n;b.focus({preventScroll:true});
+  d.append(b);box.textContent='';box.append(d);box.hidden=false;recapAff=n;majScoreRecap();b.focus({preventScroll:true}); /* 0.7a : bandeau = score du bilan */
 }
 /* Historique : sur cet appareil seulement. */
 function litListe(k){try{const v=JSON.parse(lire(k));return Array.isArray(v)?v:[]}catch(e){return []}}

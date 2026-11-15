@@ -1,5 +1,5 @@
-/* tablette/decks-large.css : PC etroit (1080 a 1599 px). La mise en page PC de Decks et Cartes deborde sous 1600 px (filtres et cartes sous le panneau du deck) : on y reprend la disposition tablette 1024 paysage (copie de tablette/decks.css sans les blocs reserves au portrait). Charge avec media (min-width:1080px) and (max-width:1599px). */
-@media (min-width:1080px) and (max-width:1599px){
+/* tablette/decks.css : Decks et Cartes a la tablette (768 a 1079 px), maquette 52 validee. Garde min-width:768px : ce fichier est aussi charge sous 767 px et apres telephone/decks.css. */
+@media (min-width:768px){
 /* Base commune téléphone + tablette (recopiée dans les deux fichiers) */
 #listeDecks .dk-vue>button{height:40px}
 #listeDecks .dk-vue{height:48px}
@@ -71,21 +71,48 @@
 #dkA .dk-f>.dk-rech,#dkA .dk-f>.dk-reinit{align-self:center}
 #dkA .dk-f>.dk-pp{flex:1 1 0;min-width:0;flex-wrap:wrap}
 #dkA .dk-f:first-child>.dk-pp{flex:1 1 0}
+/* 768 portrait : panneau puis catalogue ; liste du deck sur 2 colonnes */
+@media (max-width:999px){
+  #dkA .dk-pan{order:2}#dkA .dk-cat{order:3}
+  #dkA .dk-pan .dl-liste{display:grid;grid-template-columns:1fr 1fr;column-gap:10px;width:100%;max-width:none}
+  #popTest .tp-co{grid-template-columns:minmax(0,1fr)}
+  #popTest .tp-bac{justify-self:center}
+  #popTest .tp-2r .tp-mc{max-height:none;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden}
+}
 /* 1024 paysage : catalogue | panneau */
-#dkA{grid-template-columns:minmax(0,1fr) 340px}
-#dkA .dk-gr{grid-template-columns:repeat(5,minmax(0,1fr))!important}
-#dkA .dk-col{grid-column:1/-1}
-#dkA.dk-cartes .dk-gr{grid-template-columns:repeat(8,minmax(0,1fr))!important}
+@media (min-width:1000px){
+  #dkA{grid-template-columns:minmax(0,1fr) 340px}
+  #dkA .dk-gr{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+  #dkA .dk-col{grid-column:1/-1}
+  #dkA.dk-cartes .dk-gr{grid-template-columns:repeat(8,minmax(0,1fr))!important}
+}
 /* Aucune tuile ni carte coupee au bord : Mes decks en grille qui passe a la ligne */
 #dkA .dk-dks{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));overflow:visible;margin:14px 0 0;padding:0;scroll-snap-type:none}
 #dkA .dk-tuile,#dkA .dk-tuile.inv{width:auto;min-width:0}
+@media (max-width:999px){#popTest .tp-2r .tp-mc{flex-wrap:wrap;overflow:visible}}
+@media (min-width:1000px){#dkA .dk-pan .dk-ent{flex-wrap:wrap;height:auto;row-gap:8px}#dkA .dk-pan .dk-ent .nm{flex:1 0 100%;white-space:normal;overflow:visible;text-overflow:clip;height:auto}}
 /* Noms longs : rien coupe (tuile, raison, sous-titre de la liste) */
-#dkA .dk-tuile,#dkA .dk-tuile.inv{height:auto;min-height:68px}
-#dkA .dk-tuile b,#dkA .dk-tuile .rs,#dkA .dk-tuile .dk-sous{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+#dkA .dk-tuile,#dkA .dk-tuile.inv{height:auto;min-height:68px;align-content:start!important;align-items:start!important}
+#dkA .dk-tuile .rs,#dkA .dk-tuile .dk-sous{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+/* nom du deck sur une ligne avec « ... », nom complet au survol (title) */
+#dkA .dk-tuile b[title]{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;display:block!important;max-width:100%}
 #dkA .dl-titre{white-space:normal;overflow:visible;text-overflow:clip}
+@media (max-width:999px){#popTest .tp-mode{margin-left:0;width:100%;display:grid;grid-template-columns:1fr 1fr}#popTest .tp-mode>button{white-space:normal;overflow:visible;text-overflow:clip}#popTest .tp-h{flex-wrap:wrap;height:auto;row-gap:10px}}
 #dkA .dk-pan .dk-ent{flex-wrap:wrap;height:auto;row-gap:8px}
 #dkA .dk-pan .dk-ent .nm{flex:1 0 100%;white-space:normal;overflow:visible;text-overflow:clip;height:auto;overflow-wrap:anywhere}
 .dk-voile .dk-fen-err,.dk-voile .dk-fen-err *{white-space:normal;overflow:visible;text-overflow:clip;height:auto}
 .dk-voile .sc-alerte,#dkA .sc-alerte{height:auto;min-height:56px}
 .dk-voile .sc-alerte>span,#dkA .sc-alerte>span{display:block;-webkit-line-clamp:unset;overflow:visible}
+}
+/* 0.7a Tester des placements : apercu d'une vignette au toucher, meme style que #mqAp de la partie au telephone (css/diffusion.css) */
+#mqAp.tp-ap{position:fixed;inset:0;z-index:200;background:rgba(3,6,10,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+#mqAp.tp-ap img{width:min(78vw,300px);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.7)}
+#mqAp.tp-ap .mqa-b{display:flex;gap:10px;width:min(90vw,340px)}
+#mqAp.tp-ap .mqb-b{flex:1;height:48px;font:400 18px/1 var(--titre);border-radius:10px 7px 11px 6px;border:1px solid var(--trait);background:var(--panneau2);color:var(--texte);cursor:pointer}
+#mqAp.tp-ap .mqb-b.plein{background:var(--or);color:var(--encre);border-color:var(--or)}
+#mqAp.tp-ap p{margin:0;font:600 13px/1.3 var(--corps);color:#c9d3dc;text-align:center}
+/* animal attache : pastille verte affichee comme en partie (vue telephone, css/partie.css .m-ani). Plusieurs etiquettes hors choix (Kiwi + Favori...) : empilees a gauche de la Force, une par ligne, cout remonte au-dessus */
+@media (min-width:768px){ /* hors de l'enveloppe du haut : telephone dans css/telephone/decks.css */
+#popTest .p-case .tp-ms:not(:has(>.m-act)):has(>.tp-mt~.tp-mt){flex-direction:column;align-items:flex-start;gap:2px}
+#popTest .tp-bac .p-case.a-ms:not(:has(.tp-ms>.m-act)):has(.tp-ms>.tp-mt~.tp-mt) .mini{--bas:48px}
 }

@@ -46,7 +46,8 @@ html.tel-joueur body:has(#barreRejeu) #partie .p-poste>.mqb-l{display:none!impor
 
 
 /* --- 0.7 mobile, retours du 13 nov. : aucun texte tronque, rien qui se chevauche --- */
-html.tel-joueur #partie .mini .nom{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.05}
+/* nom des Golems : une ligne, « … » si trop long (plus de coupure en plein mot, 15 nov.) */
+html.tel-joueur #partie .mini .nom{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;line-height:1.05}
 html.tel-joueur #partie .p-case>.fx-bonus{animation-name:bonusTab}
 html.tel-joueur #partie .mqb-r>button[data-nom]::before{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word}
 html.tel-joueur body:has(#barreRejeu) #partie{padding-bottom:68px!important}
@@ -56,6 +57,8 @@ html.tel-joueur #partie .p-fin .h-tab .h-cnom{flex-wrap:wrap;flex:1 1 100%;min-w
 html.tel-joueur #partie .p-fin .h-tab .h-cps{white-space:normal;overflow-wrap:anywhere;min-width:0;max-width:100%}
 html.tel-joueur #partie .p-fin .h-tab .h-cti{flex:1 1 100%;max-width:100%;white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:normal}
 @keyframes bonusTab{0%{opacity:0;transform:translate(-50%,-20%) scale(.8)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-75%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%)}}
+/* zoom d un terrain en partie : fond opaque (meme choix que le telephone, 15 nov.) */
+#vue:has(.zt-camp.lui){background:var(--fond-partie)}
 
 /* ===== Tablette en portrait (768 x 1024) : main en une rangee de cartes 96 x 134, le reste inchange ===== */
 @media (orientation:portrait){
@@ -147,3 +150,17 @@ html.tel-joueur #partie .p-fin .h-tab .h-cps{white-space:normal;overflow-wrap:an
 @media (min-width:900px){html.tel-joueur #partie .p-table.fini .p-pied{position:static;width:auto;padding:10px 0 4px;background:none;border-top:0}html.tel-joueur #partie .p-table.fini .p-cote{padding-bottom:16px}}
 /* fin de manche : fenetre limitee a la hauteur de l ecran, defilement interne, Continuer colle en bas et toujours visible (main adverse de L Ecran du MJ) */
 @media (min-width:768px){#recap .boite{max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box}#recap #continuer{position:sticky;bottom:0;z-index:2;box-shadow:0 -10px 14px 4px var(--panneau,#121c26)}}
+/* case deja occupee (Remplacer, Ameliorer) : pastille d'une ligne en bas a gauche, +n garde ; rangee du cout (animal, coeur) sur la meme ligne contre le bouclier (15 nov.) */
+@media (min-width:768px) and (max-width:1079px){
+.p-case>.act{left:6px;right:auto;bottom:6px;height:20px;padding:0 8px;border-radius:999px;background:var(--or);color:var(--encre);font:800 12px/20px var(--corps);white-space:nowrap}
+.p-case>.act .p-hint{margin-left:5px;font:inherit;color:inherit}
+.p-case:has(>.act) .mini{--bas:4.5px}
+html.tel-joueur .p-case:has(>.act) .mini .bas{left:auto;right:calc(var(--f)*.9 + 9px)}
+html.tel-joueur .p-case:has(>.act) .fav{right:calc(var(--f)*.9 + 9px)}
+html.tel-joueur .p-case:has(>.act):has(.fav) .mini .bas{right:calc(var(--f)*.9 + 31px)}
+.p-case.a-ani>.act .act-l,.p-case:has(.fav)>.act .act-l{display:none}.p-case.a-ani>.act .act-c,.p-case:has(.fav)>.act .act-c{display:inline}
+}
+/* confirmation Quitter : la grande carte agrandie (#mqAp) ne reste plus derriere (15 nov.) */
+html.tel-joueur:has(.bd-fond:not([hidden])) #mqAp{display:none}
+/* rejeu en portrait (375 et 768, 15 nov.) : barre sur toute la largeur (le max-width de cartes.css la laissait calee a gauche, 32 px vides a droite) */
+@media (orientation:portrait){html.tel-joueur .barreRejeu{max-width:none}}

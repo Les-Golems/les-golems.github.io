@@ -1,0 +1,50 @@
+/* telephone jouer : adaptation 0.7 mobile (<= 767 px) */
+/* Contraste : etiquettes Amicale (couleur de la charte #6c8296 gardee, texte blanc renforce) */
+.j-tag:not(.cl){text-shadow:0 1px 1px rgba(0,0,0,.45)}
+/* 20 % rouge : contraste >= 4,5 */
+.j-c3 b.sc-sym-rouge{color:#ff6b6d}
+.j-pil{box-shadow:inset 0 0 0 999px rgba(0,0,0,.25)}
+
+/* Tuiles : une colonne, encarts sans troncature (valeurs l'une sous l'autre) */
+.j-tuiles{grid-template-columns:minmax(0,1fr);gap:16px}
+.j-tuile{padding:16px}
+.j-encart{display:grid;grid-template-columns:minmax(0,1fr);justify-items:stretch;row-gap:10px;min-height:0;padding:12px}
+.j-encart>.j-emb{justify-self:center;margin:0;width:48px;height:48px}
+.j-c3{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"i b" "s s";align-items:baseline;column-gap:10px;row-gap:2px;padding:8px 4px 0;white-space:normal;text-align:left;border-top:1px solid var(--trait)}
+.j-encart>.j-c3:first-child,.j-encart>.j-emb+.j-c3{border-top:0;padding-top:0}
+.j-c3 i{grid-area:i;letter-spacing:.03em}
+.j-c3 b{grid-area:b;font-size:22px;text-align:right;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.j-c3 small{grid-area:s;white-space:normal;overflow:visible;text-overflow:clip;font-size:13px}
+.j-c3>.j-barre,.j-c3>:not(i):not(b):not(small){grid-column:1/-1}
+/* Actions empilees : bouton pleine largeur, puis Publique | Privee */
+.j-actions .j-rangee:first-child{flex-direction:column;align-items:stretch}
+.j-actions .j-rangee:first-child>*{width:100%;flex:none}
+.j-rangee>.sc-btn{white-space:normal}
+.j-pub{display:grid;width:100%!important;height:48px}
+.j-pil{width:100%!important}
+.j-pub>button{padding:0 6px;white-space:nowrap;overflow:visible}
+#formCode#formCode #champCode{flex:1 1 0;width:auto;min-width:0}
+#formCode#formCode #rejoindre{flex:none;width:auto}
+.sc-sel{height:48px}.sc-sel>button{height:40px}
+/* Parties en ligne : filtres sous le titre en pleine largeur */
+.j-tete{flex-wrap:wrap}
+.j-tete>.sc-titre-bloc{width:100%}
+.j-tete>.sc-sel{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);width:100%}
+.j-tete>.sc-sel>button{padding:0 2px;font-size:14px;white-space:nowrap}
+.j-p .sc-btn{min-height:44px}
+.j-pages{justify-content:center}
+.j-pil{display:flex;height:48px}
+.j-tete>.sc-sel{grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr));height:auto;padding:4px;gap:4px}
+.j-tete>.sc-sel>button{min-height:40px;font-size:15px}
+/* Invite : boutons du verrou dans le cadre */
+.j-verrou.j-vliste .j-vbtns{flex-direction:column;align-items:stretch;padding:0 8px}
+.j-verrou.j-vliste .j-vbtns .sc-btn{width:100%}
+.j-els{padding-left:4px}
+/* Ligne de partie en ligne : 3 rangees, bouton toujours a droite */
+.j-p{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"et tag spec" "duo duo duo" "inf inf btn";row-gap:10px;column-gap:10px;padding:12px;height:auto}
+.j-p>.j-tag{grid-area:tag;justify-self:start}.j-p>.j-et{grid-area:et;white-space:nowrap}.j-p>.j-duo{grid-area:duo}.j-p>.j-inf{grid-area:inf;display:block;text-align:left;min-width:0}.j-p>.j-spec{grid-area:spec;display:block;justify-self:end}.j-p>.sc-btn{grid-area:btn;width:132px;min-height:44px}
+.j-p>.etq-v.j-ver{grid-area:btn;justify-self:end;align-self:center}
+.j-p .j-duo{flex-wrap:wrap;row-gap:6px;min-width:0}
+.j-p .j-duo *{white-space:normal}
+.j-p>.j-duo{grid-template-columns:minmax(0,1fr);justify-items:start;gap:6px}
+.j-p .j-duo b{overflow:visible;text-overflow:clip;white-space:normal}

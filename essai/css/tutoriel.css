@@ -1,7 +1,7 @@
 /* Partie guidee (tutoriel) et bandeau Premiere partie. */
 /* Partie guidee : bulle, anneau sur l'element vise, bouton Passer toujours visible. */
 .g-anneau{position:fixed;z-index:70;border:3px solid var(--or);border-radius:10px;box-shadow:0 0 0 4px rgba(241,195,90,.25),0 0 18px rgba(241,195,90,.55);pointer-events:none;transition:all .2s}
-.g-bulle{position:fixed;z-index:72;width:min(340px,calc(100vw - 32px));background:#fdf6e3;color:#14202a;border-radius:12px;padding:12px 14px;box-shadow:0 8px 26px rgba(0,0,0,.55);font-size:15px;line-height:1.45}
+.g-bulle{position:fixed;z-index:72;width:min(340px,calc(100vw - 32px));max-width:calc(100vw - 24px);background:#fdf6e3;color:#14202a;border-radius:12px;padding:12px 14px;box-shadow:0 8px 26px rgba(0,0,0,.55);font-size:15px;line-height:1.45}
 .g-bulle p{margin:0}.g-bulle b{color:#7a4c00}
 .g-bulle .g-pied{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;margin-top:10px}
 .g-bulle .g-num{margin-right:auto;font-size:12px;color:#5b6b78}

@@ -1,5 +1,5 @@
 /* Les Golems : fiches des animaux de compagnie (pas des Golems : Force 0 dans les colonnes).
-   Champs de chaque fiche (cle = code) : id (code), nom, titre (titre affiche apres le nom du membre : « KaTarN, Romain 18 ans » ; nomLong en cas d'exception), el (elements), cout, force (null = fixee par l'effet), base (code de la carte de base, evolutions seulement), texte (effet affiche).
+   Champs de chaque fiche (cle = code) : id (code), nom, titre (titre affiche apres le nom du membre : « KaTarN, Romain, 18 ans » ; nomLong en cas d'exception), el (elements), cout, force (null = fixee par l'effet), base (code de la carte de base, evolutions seulement), texte (effet affiche).
    En plus : animal:true, maitre (code du Golem maitre). reglage = REGLAGE_ANIMAUX du moteur (meme objet, modifiable par les tests).
    Script classique (navigateur, sans build) : remplit window.GolemsDonnees.animaux ; sous Node, module.exports.
    Ordre de chargement en page : fichiers de donnees, puis cartes/donnees/index.js, puis moteur.js. */

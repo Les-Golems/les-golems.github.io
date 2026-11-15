@@ -1,0 +1,59 @@
+/* tablette fenetres : 768 a 1079 px (fichier charge jusqu'a 1079 px, d'ou le @media) */
+@media (min-width:768px){
+/* PROPOSITION - tablette/fenetres.css (768 a 1079 px) : cibles tactiles de 40 px dans les fenetres (apparence inchangee). */
+:is(.voile,.bd-fond,.av-fond,[role=dialog]) .sc-sel>button{min-height:40px}
+:is(.voile,.bd-fond,.av-fond,[role=dialog]) .dl-ligne{min-height:40px}
+.pr-seg{height:48px}
+.pr-seg button{height:40px}
+.champ-code .oeil{z-index:1}
+.champ-code .oeil::after{content:"";position:absolute;inset:-8px}
+:is(.voile,.bd-fond,.av-fond,[role=dialog]) .sc-btn.sc-tertiaire{position:relative}
+:is(.voile,.bd-fond,.av-fond,[role=dialog]) .sc-btn.sc-tertiaire::after{content:"";position:absolute;inset:-5px 0}
+#vueDetail .j-lien{position:relative}
+#vueDetail .j-lien::after{content:"";position:absolute;inset:-11px 0}
+.gd-pvoile{grid-template-columns:minmax(0,1fr)}
+.gd-pfen{width:min(860px,100%);justify-self:center}
+.hd-fen.sc-fenetre>*{flex-shrink:0}
+}
+/* Profil, legende « Elements les plus joues » resserree et centree avec le donut (768 a 1079 px) */
+@media (min-width:768px){
+.pr-ar{justify-content:center}
+.pr-lg{flex:0 1 auto;display:grid;grid-template-columns:18px auto auto;gap:6px 8px;align-items:center}
+.pr-lg div{display:contents}
+.pr-lg div b{margin-left:8px;text-align:right}
+}
+/* Galerie d'avatars : noms sur 2 lignes plutot que « ... » (768 a 1079 px) */
+@media (min-width:768px){
+.av-tu .n{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.15;text-align:center;overflow-wrap:break-word}
+}
+/* Choix du deck en paysage (hauteur <= 500 px) : liste qui defile par tuiles entieres, boutons toujours visibles */
+@media (min-width:768px) and (max-height:500px){
+#popDeck .cd-fen{display:flex;flex-direction:column;max-height:calc(100dvh - 16px);margin-block:8px;padding-block:12px}
+#popDeck .cd-fen>*{flex:none}
+#popDeck .cd-ctx{margin-bottom:8px}
+#popDeck .cd-grille.cd-grille{flex:1 1 auto;min-height:0;max-height:none;scroll-snap-type:y mandatory;scroll-padding-top:4px}
+#popDeck .cd-grille>*{scroll-snap-align:start}
+}
+@media (min-width:768px) and (max-height:500px){
+/* Fenetres en paysage (hauteur <= 500 px) : toute fenetre tient dans la hauteur visible, son contenu defile a l'interieur, boutons toujours atteignables */
+:is(.voile,.bd-fond,.av-fond,.gd-pvoile,.st-fd)>*{max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;box-sizing:border-box}
+.av-fen{padding:12px 16px}
+.av-fen h2{margin-bottom:8px}
+.av-g{height:auto;padding:12px}
+.av-grille{height:auto;overflow:visible}
+.av-grand{gap:8px}
+.av-grand .avatar{width:min(132px,22dvh);height:min(132px,22dvh)}
+.av-apercu,.av-cadrage{gap:8px}
+#popDeck .cd-fen{overflow-y:visible;overscroll-behavior:auto}
+}
+/* Profil : segment s4 cache masque (768 a 1079 px) */
+@media (min-width:768px) and (max-width:1079px){#profilJoueur .pr-seg.s4.cache{display:none}}
+/* Zoom de carte : Fermer en bas a droite (bas de la carte, bord droit du detail) ; Choisis ton deck : noms sur une ligne avec « ... », contenu cale en haut */
+@media (min-width:768px) and (min-height:501px){
+#vueGrand{position:relative}
+#vueGrand>#fermer{position:absolute;right:0;bottom:0;margin:0}
+}
+@media (min-width:768px){
+#popDeck .dk-tuile{align-content:start}
+#popDeck .dk-tuile>div>b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+}

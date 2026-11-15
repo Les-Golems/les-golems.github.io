@@ -1,0 +1,30 @@
+/* telephone/statistiques.css : règles téléphone (seuils <= 767 px) sorties de css/onglets/statistiques.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:640px){.st-g4,.st-barre{grid-template-columns:minmax(0,1fr)}.st-pat{justify-self:stretch}.st-pat-b{width:100%}}
+
+/* ---- Adaptation 0.7 mobile (<= 767 px) : rien de tronque ---- */
+@media (max-width:767px){
+.st-mode{height:auto;padding:4px}
+.st-mode>button{min-height:44px;height:auto;padding:4px 2px;font-size:14.5px;white-space:normal;line-height:1.15}
+.st-lc,.st-lt{height:auto;min-height:var(--L);padding-top:4px;padding-bottom:4px}
+.st-nm,.st-nom>span,.st-pl b,.st-lt>:first-child{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+.st-tri{min-height:40px}
+}
+@media (max-width:767px){.st-ps,.st-ti{white-space:normal;overflow:visible;text-overflow:clip}}
+@media (max-width:767px){
+.st-g4,.st-barre{grid-template-columns:minmax(0,1fr)}.st-pat{justify-self:stretch}.st-pat-b{width:100%}
+.st-barre>*{grid-column:1/-1}
+.st-mode{box-sizing:border-box;width:100%;grid-column:1/-1}
+.st-note.st-pied{white-space:normal;position:static;margin-top:8px}
+}
+/* Tableaux de joueurs (Classées, Amicales, Entraînement) : pseudo sur une ligne avec "…", texte complet au survol (title, charte l.43) ;
+   colonnes resserrées pour tenir dans 375 px avec une marge à droite. Sélecteur renforcé pour passer devant menus-cibles.css. */
+@media (max-width:767px){
+.st-ln .st-ps,.st-ln .st-jg .st-ps{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;min-width:0}
+.st-th,.st-ln{gap:4px;padding-right:4px}
+.st-th{letter-spacing:0;font-size:10.5px}
+.st-jg{gap:6px}
+.st-gcl{grid-template-columns:20px 26px minmax(0,1fr) 40px 54px 40px}
+.st-gjo{grid-template-columns:20px minmax(0,1fr) 44px 54px 40px}
+.st-grb{grid-template-columns:20px minmax(0,1fr) 44px 50px 56px}
+}

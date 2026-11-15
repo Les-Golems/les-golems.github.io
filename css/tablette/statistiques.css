@@ -5,4 +5,12 @@
 .st-lc,.st-lt{height:auto;min-height:var(--L);padding-top:4px;padding-bottom:4px}
 .st-nm,.st-nom>span,.st-ps,.st-ti,.st-pl b,.st-lt>:first-child{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
 .st-note.st-pied{white-space:normal;position:static;margin-top:8px}
+/* colonne gauche : Elements a la hauteur de Terrains, zone Duo de 2 lignes entieres (88 px) qui defile, note calee en bas */
+.st-p:has(.st-els2){contain:size;align-self:stretch!important;height:auto!important;display:flex;flex-direction:column;overflow:hidden}
+.st-p:has(.st-els2)>.st-els2{flex:none;height:88px;overflow-y:auto;scrollbar-width:thin}
+.st-p:has(.st-els2)>.st-note{margin-top:auto}
 }
+/* Tableaux de joueurs : pseudo sur une ligne avec "…", texte complet au survol (title, charte l.43) */
+@media (min-width:768px){.st-ln .st-ps,.st-ln .st-jg .st-ps{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;min-width:0}}
+/* Elements (768-1079, 15 nov.) : si Terrains est presque vide (recherche), le panneau ne descend plus sous la hauteur de sa liste (lignes rognees) */
+@media (min-width:768px){.st-p:has(.st-els2){min-height:545px}}

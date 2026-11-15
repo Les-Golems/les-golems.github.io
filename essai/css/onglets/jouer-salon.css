@@ -92,7 +92,6 @@ html.clair{--doux-sp:#4c5e6b}
 #listeEnCours .po-lignes{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 #listeEnCours .sl-vide{grid-column:1/-1}
 @media (max-width:1199px){#listeEnCours .po-lignes{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:699px){#listeEnCours .po-lignes{grid-template-columns:minmax(0,1fr)}}
 #listeEnCours li.po-ec{container-type:inline-size;display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:10px 10px 10px;border-radius:14px;position:relative;text-align:center}
 #listeEnCours .po-duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:6px;flex:none}
 #listeEnCours .po-j{flex-direction:column;align-items:center;gap:3px;min-width:0}
@@ -169,15 +168,6 @@ b[class^="chat-"][title]{cursor:help}
 .chat.flottant.replie .chat-tete button{display:none}
 .chat-nb{background:var(--magma);color:#fff;border-radius:9px;padding:0 6px;font-size:12px;margin-left:6px}
 .chat-nb:empty{display:none}
-@media (max-width:640px){
-  .chat.flottant.replie{right:10px;bottom:10px;border-radius:50%;width:52px;height:52px;background:var(--bleu);border:0}
-  .chat.flottant.replie .chat-tete{width:52px;height:52px;padding:0;justify-content:center;color:var(--encre);font-size:0;position:relative}
-  .chat.flottant.replie .chat-tete::before{content:'';width:24px;height:22px;background:var(--fond);clip-path:polygon(0 0,100% 0,100% 72%,45% 72%,20% 100%,22% 72%,0 72%)}
-  .chat.flottant.replie .chat-nb{position:absolute;top:2px;right:2px;font-size:12px}
-  .chat.flottant.replie .chat-tete button{display:none}
-  .chat.flottant:not(.replie){left:8px;right:8px;bottom:8px;width:auto;max-width:none}
-  .chat.flottant:not(.replie) .chat-liste{height:40vh}
-}
 .absent{background:var(--panneau2);border-left:3px solid var(--or);padding:10px 14px;border-radius:6px;margin:0 0 14px}
 
 /* 0.6 : salon refait (maquette 23, refonte2_*) : sieges identiques, colonne des spectateurs, rangee [Changer de deck][Pret][Quitter] centree sous le duo. */
@@ -214,7 +204,6 @@ b[class^="chat-"][title]{cursor:help}
 @media (min-width:1080px){#salon .chat-liste{height:clamp(50px,calc(100vh - 990px),150px)}}
 #salon .j-robot{margin:0 0 16px}
 #salon .j-robot>span{-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis}
-@media (max-width:1079px){.sl-cadre{grid-template-columns:minmax(0,1fr)}.sl-bas{width:100%}.sl-rangee{grid-template-columns:1fr 1.6fr 1fr;width:100%}}
 #salon .sl-rangee #pret{display:inline-flex;margin:0}
 #salon .j-tag{font-size:14px;padding:3px 12px}
 #joueurs .vx-etq:not(.vx-diff){display:none}
@@ -248,7 +237,6 @@ b[class^="chat-"][title]{cursor:help}
 .majDispo>.sc-btn{margin:0}
 .haut:has(>.majDispo:not([hidden])) h1{flex:none}
 .haut:has(>.majDispo:not([hidden]))>.moi{margin-left:auto}
-@media (max-width:860px){.haut:has(>.majDispo:not([hidden])){flex-wrap:wrap}.majDispo{order:9;margin-left:0}.haut:has(>.majDispo:not([hidden])) h1{flex:1 1 0}}
 
 /* 0.6.1 (maquette 23) : passer en spectateur, oeil dans le coin du siege de l'adversaire assis, info-bulle au survol ; prendre la place libre */
 .sl-coinw{position:absolute;top:10px;right:10px;z-index:2}

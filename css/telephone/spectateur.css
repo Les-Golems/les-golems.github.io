@@ -36,6 +36,9 @@
 #dif:not(.jr) .pp-voile .pp>h2{font-size:38px;line-height:1.1;white-space:normal;text-wrap:balance;padding:62px 0 0;margin-top:0}
 #dif:not(.jr) .pp-voile .pp-ters>*{height:auto!important;min-height:0!important}
 #dif:not(.jr) .pp-voile .pp-fermer{min-height:66px;min-width:66px;padding:0 16px}
+/* fin de partie : bloc du vainqueur en pleine largeur, « Victoire de ... » sur une ligne */
+#dif:not(.jr) .pp-vic{align-self:stretch;width:100%}
+#dif:not(.jr) .pp-vic h2{width:100%;font-size:44px;line-height:1.08;text-align:center;overflow-wrap:normal;hyphens:none}
 /* la vue n'est plus reduite : plus d'invitation a tourner le telephone */
 #dif .d-tourne{display:none!important}
 }

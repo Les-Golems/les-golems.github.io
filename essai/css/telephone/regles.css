@@ -1,0 +1,23 @@
+/* telephone regles : adaptation 0.7 mobile (<= 767 px) : sommaire en pastilles defilantes, section pleine largeur */
+#rgVue.g4{display:flex;flex-direction:column;gap:16px}
+#rgVue #rgSec{grid-column:auto;min-width:0}
+#rgVue .p{padding:16px;min-width:0}
+#rgVue .som{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;padding:0}
+#rgVue .som li{flex:none;margin:0}
+#rgVue .som button{width:auto;height:44px;grid-template-columns:auto auto;background:var(--panneau2)}
+#rgVue .som button b{display:none}
+#rgVue#rgVue :is(.cols,.cols.c3,.etapes,.duo,.an,.an2,.tl,.ess,.el4,.lire2,.lire4){grid-template-columns:minmax(0,1fr)!important;grid-template-rows:none;height:auto}
+#rgVue#rgVue :is(.e2,.enc4,.lxr){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#rgVue#rgVue .an2>*,#rgVue#rgVue .an>*{max-width:100%}
+#rgVue .et:not(:last-child)::after{display:none}
+#rgVue .ph h3{white-space:normal}
+#rgVue .rg-corps{overflow:visible;padding-right:0}
+#rgVue .pied{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+#rgVue .pied .sc-btn,#rgVue .pied .btn{min-width:0;width:100%;white-space:normal}
+#rgVue .ter{min-height:40px}
+#rgVue img,#rgVue svg{max-width:100%}
+/* Legende des elements : grille de 3, rien de coupe */
+#rgVue#rgVue .leg5,#rgVue#rgVue .ess .leg5.l1{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 10px;justify-content:stretch;font-size:14px}
+#rgVue#rgVue .leg5 span{white-space:nowrap;min-width:0}
+/* Sommaire : tout visible, pas de hauteur fixe */
+#rgVue#rgVue .p:has(>#rgSom),#rgVue#rgVue .som{height:auto;max-height:none;flex:none;min-height:0;overflow:visible}

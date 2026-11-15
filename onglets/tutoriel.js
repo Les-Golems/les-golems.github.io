@@ -16,6 +16,9 @@ const gTour=s=>s.phase==='jeu'&&!s.fin&&!s.attente&&!s.fil&&s.joueur===partie.mo
 const gForge=(t,m)=>s=>gTour(s)&&s.manche===(m||1)&&s.tour===t&&gJ().etapeForge;
 const gAct=(t,m)=>s=>gTour(s)&&s.manche===(m||1)&&s.tour===t&&!gJ().etapeForge;
 const gForgee=n=>()=>gJ().forge.length>=n;
+/* Bulles : {{c}} = forme courte (charte, 10 nov.) de la carte d'instance c, tiree des donnees : « Trigas », « Trigas ★ ». */
+const gNom=c=>{const C=M.carte(c);return C.base&&M.CARTES[C.base]?M.CARTES[C.base].nom+' ★':C.nom};
+const gTxt=t=>t.replace(/\{\{(\d+)\}\}/g,(x,c)=>gNom(+c));
 const ETAPES=[
  {q:gMull,t:"Bienvenue ! Cette partie guidée t'apprend les bases contre un Golem Facile. Lis chaque bulle, puis fais ce qu'elle demande.",suiv:1},
  {q:gMull,c:'.p-grille.mienne',t:"Voici ta grille : 3 lignes et 3 colonnes. Celle du Golem est de l'autre côté, en miroir.",suiv:1},
@@ -23,7 +26,7 @@ const ETAPES=[
  {q:gMull,c:'#dif .d-main,.p-poste>.p-main,.p-poste>.mqb-m',t:"Voici ta <b>main</b> : 5 cartes. Au départ, tu peux en remplacer jusqu'à 3. Ici, ta main est bonne.",suiv:1},
  {q:gMull,c:'#dif .mq-btns .btn,.p-poste>.p-btns .btn,.p-poste>.mqb-l .mqb-b',t:"Touche <b>Garder ma main</b>.",f:s=>s.mull[partie.moi]},
  {q:gForge(1),c:'.pile.deck,.p-camp.toi .c-deck',t:"Ton tour commence par la <b>pioche</b> : tu prends 2 cartes de ton deck. Tu as maintenant 7 cartes en main.",suiv:1},
- {q:gForge(1),c:gSlot(28),t:"Étape 1, la <b>Forge</b>. Touche <b>Roi du Mobile</b> pour le forger.",f:()=>sel===28||gJ().forge.length>=1},
+ {q:gForge(1),c:gSlot(28),t:"Étape 1, la <b>Forge</b>. Touche <b>{{28}}</b> pour le forger.",f:()=>sel===28||gJ().forge.length>=1},
  {q:gForge(1),c:'#forger',t:"Une carte forgée reste face cachée pour toujours et donne 1 énergie à chaque tour, dès ce tour. La Forge est ta seule source d'énergie. Touche <b>Forger</b>.",f:gForgee(1)},
  {q:gAct(1),c:'#dif .d-j.toi .d-ener,.p-camp.toi .c-enclume',t:"Tu as 1 <b>énergie</b>. Elle sert à payer le coût de tes cartes.",suiv:1},
  {q:gAct(1),c:gSlot(0),t:"Pose un Golem : touche <b>KaTarN</b>, il coûte 1.",f:()=>sel===0||!!gG(1,1)},
@@ -31,7 +34,7 @@ const ETAPES=[
  {q:gAct(1),c:caseDe(0,1,1),t:"Le grand chiffre est sa <b>Force</b> : 8. Touche KaTarN pour voir le détail.",f:()=>!$('vue').hidden},
  {vue:1,c:'#vueDetail',t:"Force actuelle = Force de la carte + bonus (capacités, Trait, cercle) - dégâts. Pour l'instant, KaTarN n'a ni bonus ni dégât. Touche <b>Fermer</b>.",f:()=>$('vue').hidden},
  {q:gAct(1),c:'#finTour',t:"Tu n'as plus d'énergie. Touche <b>Fin du tour</b> : l'énergie qui reste est perdue.",f:s=>s.tour>1||s.joueur!==partie.moi},
- {q:gForge(2),c:gSlot(27),t:"Le Golem a joué, à toi ! Tu as pioché 2 cartes. Forge l'autre <b>Roi du Mobile</b> pour avoir 2 énergies.",f:()=>sel===27||gJ().forge.length>=2},
+ {q:gForge(2),c:gSlot(27),t:"Le Golem a joué, à toi ! Tu as pioché 2 cartes. Forge l'autre <b>{{27}}</b> pour avoir 2 énergies.",f:()=>sel===27||gJ().forge.length>=2},
  {q:gForge(2),c:'#forger',t:"Touche <b>Forger</b>.",f:gForgee(2)},
  {q:gAct(2),c:gSlot(2),t:"Touche ton deuxième <b>KaTarN</b>.",f:()=>sel===2||!!gG(1,0)},
  {q:gAct(2),c:caseDe(0,1,0),t:"Le <b>+2</b> sur la case est le bonus prévu. Pose-le ici, à côté du premier.",f:()=>!!gG(1,0)},
@@ -52,9 +55,9 @@ const ETAPES=[
  {q:gForge(1,2),c:caseDe(0,1,1),t:"À chaque fin de manche, KaTarN perd 4 de Force. Ce sont des dégâts : ils restent.",suiv:1},
  {q:gForge(1,2),c:gSlot(18),t:"Forge <b>Le Q</b> : tu auras 4 énergies.",f:()=>sel===18||gJ().forge.length>=4},
  {q:gForge(1,2),c:'#forger',t:"Touche <b>Forger</b>.",f:gForgee(4)},
- {q:gAct(1,2),c:gSlot(5),t:"<b>Slim K</b> est l'évolution de KaTarN. Elle coûte 4 et se pose sur sa base. Touche Slim K.",f:()=>sel===5||gId(1,1)==='001e'},
+ {q:gAct(1,2),c:gSlot(5),t:"<b>{{5}}</b> est l'évolution de {{0}}. Elle coûte 4 et se pose sur sa base. Touche {{5}}.",f:()=>sel===5||gId(1,1)==='001e'},
  {q:gAct(1,2),c:caseDe(0,1,1),t:"Touche le KaTarN du milieu pour l'<b>améliorer</b>.",f:()=>gId(1,1)==='001e'},
- {q:gAct(1,2),c:caseDe(0,1,1),t:"KaTarN part à la défausse et ses dégâts disparaissent. À la pose, Slim K inflige 1 dégât à chaque Golem de la ligne adverse.",suiv:1},
+ {q:gAct(1,2),c:caseDe(0,1,1),t:"{{0}} part à la défausse et ses dégâts disparaissent. À la pose, {{5}} inflige 1 dégât à chaque Golem de la ligne adverse.",suiv:1},
  {q:gAct(1,2),c:'#finTour',t:"Tu connais l'essentiel ! Termine ton tour, puis joue la suite de la partie comme tu veux.",suiv:'Compris',libre:1},
  {libre:1,q:s=>!!s.fin,c:'#dif .pp .pp-vic,.p-fin h3',fin:1,/* attend Continuer : #recap ferme, ecran de fin visible */t:"Partie terminée, bravo ! Les <b>Règles</b> détaillent tout le reste, comme les effets des terrains."}
 ];
@@ -105,9 +108,9 @@ function tickGuide(){
   if(!z){z=document.body;perdue=true;if(tuto.perdue!==tuto.i){tuto.perdue=tuto.i;console.warn("Partie guidée : cible introuvable à l'étape "+(tuto.i+1)+' ('+e.c+'), bulle au centre.')}}
   if(tuto.vu!==tuto.i){
     tuto.vu=tuto.i;b.textContent='';
-    const p=el('p');p.innerHTML=e.t;b.append(p);
+    const p=el('p');p.innerHTML=gTxt(e.t);b.append(p);
     const pied=el('div','g-pied');
-    if(!e.libre)pied.append(el('span','g-num',(tuto.i+1)+' / '+(ETAPES.length-2)));
+    if(!e.libre)pied.append(el('span','g-num',(tuto.i+1)+'/'+(ETAPES.length-2)));
     if(e.suiv){const x=bouton(e.suiv===1?'Suivant':e.suiv,()=>{tuto.i++;tickGuide()});x.dataset.act='';pied.append(x)}
     if(e.fin){
       const x=bouton('Lire les Règles',()=>{sortie();onglet('regles');scrollTo(0,0)}),y=bouton('Fermer',()=>arreteGuide(),true);
@@ -116,38 +119,53 @@ function tickGuide(){
     if(pied.childNodes.length)b.append(pied);
     b.hidden=false;
     const r0=z.getBoundingClientRect();
-    if(e.c&&!perdue&&(r0.top<60||r0.bottom>innerHeight-40))z.scrollIntoView({block:'center'});
+    /* jamais de defilement automatique pendant un glisser-deposer : la case sous le doigt doit rester celle visee */
+    if(e.c&&!perdue&&!gGlisse()&&(r0.top<60||r0.bottom>innerHeight-40))z.scrollIntoView({block:'center'});
   }
   if(e.fin)$('gPasser').hidden=true; /* fin du guide : plus rien a passer */
   b.hidden=false;placeGuide(z,!e.c||perdue);
 }
+const gGlisse=()=>document.documentElement.classList.contains('glisse-en-cours');
 function placeGuide(z,centre){
-  if(!centre&&z&&z.closest&&z.closest('.mqb-r'))z.scrollIntoView({block:'nearest',inline:'nearest'}); /* 0.7 mobile : carte visee dans la main defilante (vue telephone seulement) */
+  if(!centre&&!gGlisse()&&z&&z.closest&&z.closest('.mqb-r'))z.scrollIntoView({block:'nearest',inline:'nearest'}); /* 0.7 mobile : carte visee dans la main defilante (vue telephone seulement) */
   const b=tuto.b,a=tuto.a,f=tuto.f,vw=document.documentElement.clientWidth,vh=innerHeight,bw=b.offsetWidth,bh=b.offsetHeight;
   const r=centre?{left:vw/2,right:vw/2,top:vh/2,bottom:vh/2,width:0,height:0}:z.getBoundingClientRect();
   a.hidden=centre;if(!centre)Object.assign(a.style,{left:r.left-4+'px',top:r.top-4+'px',width:r.width+8+'px',height:r.height+8+'px'});
   /* Positions candidates autour de la cible ; on garde celle qui masque le moins de zones cliquables (jamais la cible). */
-  const cl=(v,a,z)=>Math.max(a,Math.min(z,v)),cx=cl(r.left+r.width/2-bw/2,8,vw-bw-8),cy=cl(r.top+r.height/2-bh/2,8,vh-bh-8);
-  const cands=[[cx,r.bottom+14,'haut'],[cx,r.top-bh-14,'bas'],[r.right+14,cy,''],[r.left-bw-14,cy,''],[8,vh-bh-8,''],[vw-bw-8,vh-bh-8,''],[8,8,''],[vw-bw-8,8,'']];
+  /* 0.7a : marge d'au moins 12 px de chaque cote ; au telephone (bulle presque pleine largeur) la bulle est centree horizontalement. */
+  const m=12,mx=vw<700&&bw>vw*.8?(vw-bw)/2:null;
+  const cl=(v,a,z)=>Math.max(a,Math.min(z,v)),cx=mx!=null?mx:cl(r.left+r.width/2-bw/2,m,vw-bw-m),cy=cl(r.top+r.height/2-bh/2,m,vh-bh-m);
+  const cands=[[cx,r.bottom+14,'haut'],[cx,r.top-bh-14,'bas'],[r.right+14,cy,''],[r.left-bw-14,cy,''],[m,vh-bh-m,''],[vw-bw-m,vh-bh-m,''],[m,m,''],[vw-bw-m,m,'']];
   const C=(!centre&&z.closest('.p-grille,.p-main,.p-piles,.p-trois,.p-terrains,.p-camp,.boite'))||null,Q=C&&C!==z?C.getBoundingClientRect():null;
-  if(Q)cands.push([Q.right+14,cy,''],[Q.left-bw-14,cy,''],[cx,Q.bottom+14,'haut'],[cx,Q.top-bh-14,'bas'],[Q.right+14,cl(Q.top,8,vh-bh-8),''],[Q.left-bw-14,cl(Q.top,8,vh-bh-8),'']);
-  for(let gy=8;gy<=vh-bh-8;gy+=24)for(let gx=8;gx<=vw-bw-8;gx+=24)cands.push([gx,gy,'']); /* balayage : place libre la plus proche */
-  const zones=[...document.querySelectorAll(G_GENE)].filter(x=>(x.offsetParent||x.id==='gPasser')&&!($('dif')&&x.closest('#partie'))).map(x=>x.getBoundingClientRect()).filter(q=>q.width&&q.height);
+  if(Q)cands.push([Q.right+14,cy,''],[Q.left-bw-14,cy,''],[cx,Q.bottom+14,'haut'],[cx,Q.top-bh-14,'bas'],[Q.right+14,cl(Q.top,m,vh-bh-m),''],[Q.left-bw-14,cl(Q.top,m,vh-bh-m),'']);
+  for(let gy=m;gy<=vh-bh-m;gy+=24)for(let gx=m;gx<=vw-bw-m;gx+=24)cands.push([gx,gy,'']);
+  if(mx!=null)cands.forEach(c=>c[0]=mx); /* balayage : place libre la plus proche */
+  const zones=[...document.querySelectorAll(G_GENE)].filter(x=>(x.offsetParent||x.id==='gPasser')&&!($('dif')&&$('dif').getClientRects().length&&x.closest('#partie'))).map(x=>x.getBoundingClientRect()).filter(q=>q.width&&q.height);
+  /* 0.7a (point 17, maquette validee) : zones a eviter en priorite : cartes de la main, boutons de la barre, ta barre, barre du score
+     (?, son, Quitter) et tout element portant du texte visible, hors la cible et ses parents. */
+  const zonesP=[...document.querySelectorAll(G_PROT),...[...document.querySelectorAll('body *')].filter(x=>!x.closest('.g-bulle,.g-fleche,.g-anneau,script,style')&&[...x.childNodes].some(n=>n.nodeType===3&&n.textContent.trim())&&x.getClientRects().length&&getComputedStyle(x).visibility!=='hidden'&&!x.closest('[hidden]'))].filter(x=>x.getClientRects().length&&!(!centre&&(x===z||x.contains(z)||z.contains(x)))).map(x=>x.getBoundingClientRect());
+  /* Bilan de manche : les autres lignes visees par l'etape (ex. les trois terrains) restent lisibles. */
+  const st=etapeG(),freres=!centre&&st&&st.c&&z.closest('#recap,#dif .pp')?[...document.querySelectorAll(st.c)].filter(x=>x!==z&&gVis(x)).map(x=>{while(x.parentElement&&!x.parentElement.contains(z))x=x.parentElement;return x.getBoundingClientRect()}):[];
   const rec=(x,y,q)=>Math.max(0,Math.min(x+bw,q.right)-Math.max(x,q.left))*Math.max(0,Math.min(y+bh,q.bottom)-Math.max(y,q.top));
+  /* Interdits absolus : la cible et les boutons de la fenetre ouverte qui la contient (ex. Fermer du zoom quand la cible est le detail). */
+  const V=!centre&&z.closest&&z.closest('.voile'),dures=[r].concat(V?[...V.querySelectorAll('button')].filter(x=>x.offsetParent).map(x=>x.getBoundingClientRect()):[]).concat(centre?[]:[...document.querySelectorAll('#partie .mqb-l .mqb-b,#partie .p-outils button')].filter(x=>gVis(x)&&x!==z&&!x.contains(z)).map(x=>x.getBoundingClientRect())); /* 0.7a : boutons de la barre et du score jamais couverts */
+  const couvre=(x,y)=>dures.some(q=>Math.min(x+bw,q.right+6)>Math.max(x,q.left-6)&&Math.min(y+bh,q.bottom+6)>Math.max(y,q.top-6));
   let best=null;
   cands.forEach(([x,y,s],i)=>{
-    const dehors=x<8||y<8||x+bw>vw-8||y+bh>vh-8;if(dehors)return;
+    const dehors=x<m-.5||y<m||x+bw>vw-m+.5||y+bh>vh-m;if(dehors)return;
+    if(!centre&&couvre(x,y))return;
     const dx=Math.max(0,r.left-(x+bw),x-r.right),dy=Math.max(0,r.top-(y+bh),y-r.bottom);
-    const sc=rec(x,y,r)*100+zones.reduce((t,q)=>t+rec(x,y,q),0)*2+(dx+dy)*12+i/100;
+    const sc=rec(x,y,r)*1e6+zones.reduce((t,q)=>t+rec(x,y,q),0)*2+zonesP.reduce((t,q)=>t+rec(x,y,q),0)*1000+freres.reduce((t,q)=>t+rec(x,y,q),0)*1e4+(dx+dy)*12+i/100;
     if(!best||sc<best.sc)best={x,y,s,sc}});
-  if(!best)best={x:cx,y:r.bottom+bh+14<vh?r.bottom+14:8,s:''};
+  if(!best)best={x:cx,y:r.bottom+bh+14<vh-m?r.bottom+14:m,s:''};
   /* Bulle centrale sur telephone : sous la barre de score et la ligne du tour, jamais dessus. */
-  if(centre&&vw<700){const t=document.querySelector('#partie .p-tourde')||document.querySelector('#partie .p-barre'),tb=t?t.getBoundingClientRect().bottom+10:8;if(tb+bh<vh-8)best={x:cl(vw/2-bw/2,8,vw-bw-8),y:Math.max(best.y,tb),s:''}}
+  if(centre&&vw<700){const t=document.querySelector('#partie .p-tourde')||document.querySelector('#partie .p-barre'),tb=t?t.getBoundingClientRect().bottom+10:m;if(tb+bh<vh-m)best={x:cl(vw/2-bw/2,m,vw-bw-m),y:Math.max(best.y,tb),s:''}}
   const left=best.x,top=best.y,sens=centre?'':best.s;
   b.style.left=left+'px';b.style.top=top+'px';
   f.hidden=!sens;f.className='g-fleche '+sens;
   if(sens){f.style.left=Math.max(left+12,Math.min(left+bw-30,r.left+r.width/2-9))+'px';f.style.top=(sens==='haut'?top-18:top+bh)+'px'}
 }
+const G_PROT='#partie .mqb-r [data-c],#partie .mqb-l .mqb-b,#partie .p-camp.toi,#partie :has(>.p-outils),#partie .p-outils button';
 const G_GENE='#partie .p-info,#partie button,#partie .p-case,#partie .pile,#partie .p-slot,#partie .p-trois,#partie .p-tourde,#partie .p-terrains,#recap button,#gPasser,nav,#dif .d-main button,#dif .mq-btns .btn,#dif .mq-piles .pile,#dif .mq-outils button,#dif .p-case,#dif .p-terrain,#dif .pp-ter,#dif .pp-ecran,#dif .pp-bas,#dif .pp-fermer,#dif .pp-titre,#dif .pp h2,#dif .pp-tab,#dif .pp-vic';
 /* Pendant le guidage, seul l'element vise repond sur le plateau et dans le bilan de manche. */
 document.addEventListener('click',e=>{

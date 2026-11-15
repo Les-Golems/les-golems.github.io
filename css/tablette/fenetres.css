@@ -34,3 +34,26 @@
 #popDeck .cd-grille.cd-grille{flex:1 1 auto;min-height:0;max-height:none;scroll-snap-type:y mandatory;scroll-padding-top:4px}
 #popDeck .cd-grille>*{scroll-snap-align:start}
 }
+@media (min-width:768px) and (max-height:500px){
+/* Fenetres en paysage (hauteur <= 500 px) : toute fenetre tient dans la hauteur visible, son contenu defile a l'interieur, boutons toujours atteignables */
+:is(.voile,.bd-fond,.av-fond,.gd-pvoile,.st-fd)>*{max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;box-sizing:border-box}
+.av-fen{padding:12px 16px}
+.av-fen h2{margin-bottom:8px}
+.av-g{height:auto;padding:12px}
+.av-grille{height:auto;overflow:visible}
+.av-grand{gap:8px}
+.av-grand .avatar{width:min(132px,22dvh);height:min(132px,22dvh)}
+.av-apercu,.av-cadrage{gap:8px}
+#popDeck .cd-fen{overflow-y:visible;overscroll-behavior:auto}
+}
+/* Profil : segment s4 cache masque (768 a 1079 px) */
+@media (min-width:768px) and (max-width:1079px){#profilJoueur .pr-seg.s4.cache{display:none}}
+/* Zoom de carte : Fermer en bas a droite (bas de la carte, bord droit du detail) ; Choisis ton deck : noms sur une ligne avec « ... », contenu cale en haut */
+@media (min-width:768px) and (min-height:501px){
+#vueGrand{position:relative}
+#vueGrand>#fermer{position:absolute;right:0;bottom:0;margin:0}
+}
+@media (min-width:768px){
+#popDeck .dk-tuile{align-content:start}
+#popDeck .dk-tuile>div>b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+}

@@ -16,3 +16,5 @@
 .hl-res{grid-area:res}.hl-etqs{grid-area:etq}.hl-scz{grid-area:sc}.hl-l>.hl-adv{grid-area:adv}.hl-date{grid-area:date;align-items:flex-end}
 .hl-deck,.hl-vs,.hl-mvp,.hl-ver,.hl-fl{display:none}
 }
+/* 0.7a paysage bas (740 x 360, 15 nov.) : l'en-tete (3 rangees de filtres) etait ecrase par le bloc de hauteur fixe et passait sous la liste ; en-tete a sa taille, bloc a la hauteur de son contenu */
+@media (max-width:767px) and (max-height:500px){.h-tete{flex:none}.h-bloc{height:auto!important}}

@@ -11,7 +11,7 @@ let a='',b='',k='';E.forEach((e,i)=>{
   b+='<image href="'+imgV('cartes/'+e+'.png')+'" x="'+(x-29)+'" y="'+(y-29)+'" width="58" height="58"/><text x="'+x+'" y="'+(+y+45)+'">'+N[i]+'</text>';
   k+='<circle cx="'+x+'" cy="'+y+'" r="33" style="fill:var(--panneau);stroke:var(--'+e+');stroke-width:3"/>';
 });
-if($('cercleAide'))$('cercleAide').innerHTML='<svg class="cercle-el" viewBox="0 0 360 350" role="img" aria-label="Cercle des éléments : Magma domine Cristal, Cristal domine Foudre, Foudre domine Brume, Brume domine Roche, Roche domine Magma"><defs><marker id="fl2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" style="fill:var(--bleu);stroke:none"/></marker></defs>'+a+k+b+'</svg>';
+if($('cercleAide'))$('cercleAide').innerHTML='<svg class="cercle-el" viewBox="0 0 360 350" role="img" aria-label="Cercle des éléments : Magma domine Cristal, Cristal domine Foudre, Foudre domine Brume, Brume domine Roche, Roche domine Magma"><defs><marker id="fl2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" style="fill:var(--bleu);stroke:none"/></marker></defs>'+a+k+b+'</svg>';
 })();
 window.golemsRegles=(()=>{
 if(!$('rgVue'))return null;
@@ -32,17 +32,17 @@ const CARTE='<svg viewBox="0 0 66 66" style="color:var(--bleu-titre)"><g fill="v
 const DEFAU='<svg viewBox="0 0 66 66" style="color:var(--bleu-titre)"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"><rect x="13" y="7" width="38" height="50" rx="5" transform="rotate(7 32 32)"/><path d="M23 23L41 41M41 23L23 41"/></g></svg>';
 const MAIN='<svg viewBox="0 0 66 66" style="color:var(--bleu-titre)"><g fill="var(--panneau2)" stroke="currentColor" stroke-width="5" stroke-linejoin="round"><rect x="9" y="17" width="23" height="36" rx="4" transform="rotate(-18 20 35)"/><rect x="34" y="17" width="23" height="36" rx="4" transform="rotate(18 45 35)"/><rect x="21" y="9" width="24" height="38" rx="4"/></g></svg>';
 const MOTS=[
- ["Remporter","Avoir la plus grande Force sur un terrain en fin de manche : tu marques ses points. Égalité : personne ne le remporte."],
- ["Amicale","Partie sans enjeu de rang : ni Elo gagné ni Elo perdu."],
+ ["Remporter","Avoir la plus grande Force sur un terrain en fin de manche : tu marques ses points. Égalité : personne ne le remporte."],
+ ["Amicale","Partie sans enjeu de rang : ni Elo gagné ni Elo perdu."],
  ["Base","Version d'un Golem sans évolution. Elle doit être en jeu pour poser son évolution, et dans le deck pour y mettre l'évolution."],
- ["Classée","Partie qui compte pour ton rang : tu gagnes ou perds des points d'Elo selon le résultat."],
- ["Défausse","La pile des cartes qui quittent le jeu : Golems détruits ou remplacés, base d'un Golem amélioré, animal qui part, cartes défaussées de ta main. Une carte en défausse ne revient jamais en jeu."],
+ ["Classée","Partie qui compte pour ton rang : tu gagnes ou perds des points d'Elo selon le résultat."],
+ ["Défausse","La pile des cartes qui quittent le jeu : Golems détruits ou remplacés, base d'un Golem amélioré, animal qui part, cartes défaussées de ta main. Une carte en défausse ne revient jamais en jeu."],
  ["Favori","Le Golem allié que tu choisis à la pose d'Indra, La Groupie. Il gagne +1 de Force tant qu'Indra, La Groupie est en jeu (+2 avec La Fan enflammée), et il le reste si l'une des deux est améliorée."],
- ["Main","Les cartes que tu tiens : 5 au départ, 7 au plus en fin de tour."],
+ ["Main","Les cartes que tu tiens : 5 au départ, 7 au plus en fin de tour."],
  ["Manche","Une partie se joue en 3 manches, et chaque manche en 3 tours par joueur. Elle se termine par le décompte."],
  ["Mulligan","Au départ, remettre jusqu'à 3 cartes de ta main dans le deck, mélanger et repiocher autant de cartes."],
- ["MVP","En fin de partie, la carte du gagnant qui a le plus pesé : Force sur les terrains, bonus donnés, dégâts infligés et Golems détruits."],
- ["Pioche","Prendre la carte du dessus de ton deck : 2 par tour (1 au premier tour de la manche pour le second joueur)."],
+ ["MVP","En fin de partie, la carte du gagnant qui a le plus pesé : Force sur les terrains, bonus donnés, dégâts infligés et Golems détruits."],
+ ["Pioche","Prendre la carte du dessus de ton deck : 2 par tour (1 au premier tour de la manche pour le second joueur)."],
  ["À la pose","À chaque arrivée sur la grille (Poser, Remplacer, Améliorer), après paiement."],
  ["Améliorer","Payer le coût d'une évolution pour la poser sur sa base, dès le tour de la pose."],
  ["Animal de compagnie","Coût 0, se glisse sous son maître et lui donne +1 de Force. Ce n'est pas un Golem."],
@@ -55,56 +55,56 @@ const MOTS=[
  ["En face","Même terrain, même ligne, côté adverse."],
  ["En jeu","Une carte posée sur une grille, tant qu'elle y reste."],
  ["Énergie","Donnée par la Forge, 1 par carte et par tour. Perdue en fin de tour."],
- ["Évolution","Se pose sur sa base. Elle a sa propre Force et son propre effet ; ses dégâts sont effacés. Elle garde le favori, l'animal et les bonus reçus."],
+ ["Évolution","Se pose sur sa base. Elle a sa propre Force et son propre effet ; ses dégâts sont effacés. Elle garde le favori, l'animal et les bonus reçus."],
  ["Forge","0 ou 1 carte de ta main, face cachée, définitivement, après la pioche. Ta seule source d'énergie."],
  ["Force actuelle","Force de la carte + bonus + Trait + cercle - dégâts subis."],
  ["Hors décompte","Le Golem tiré par Kiwi, Le lapin de Titom76, reste en jeu, mais sa Force sort de sa colonne."],
  ["Ligne adverse","Les 3 cases adverses de la même ligne."],
- ["Mise","Le terrain Les Pronos : 1 énergie misée par manche ; celui qui remporte le terrain marque 1 point de plus par mise des deux joueurs."],
+ ["Mise","Le terrain Les Pronos : 1 énergie misée par manche ; celui qui remporte le terrain marque 1 point de plus par mise des deux joueurs."],
  ["Poser","Payer le coût d'une carte pour la placer sur une case libre."],
  ["Récupérer X","Ton Golem regagne jusqu'à X de Force perdue, sans dépasser sa Force de base."],
- ["Réduction","Ton prochain Golem (ou ta prochaine carte) coûte moins. Les réductions se cumulent et servent au prochain Golem joué : pose, remplacement ou évolution. Un coût ne descend jamais sous 0."],
- ["Remplacer","Payer le coût de la nouvelle carte ; l'ancienne va à la défausse. Seulement tes Golems."],
- ["Tarte","Le Cirque : une fois par manche, 1 dégât gratuit à un Golem adverse de cette colonne. On flip en protège."],
- ["Trait","Pour chacun de tes 2 éléments, +1 de Force par voisin allié qui le partage. Un voisin qui a tes deux éléments compte deux fois : jusqu'à +8 de Force au centre de la grille."],
- ["Un seul Golem","Le Versus : pas de 2e Golem ici. À chaque pose, le Golem adverse ici perd 1 de Force."],
- ["Valeur variable","Terrain marqué « ? » : sa valeur change selon la manche (Le Tournoi : 1, 2 puis 3 points)."],
+ ["Réduction","Ton prochain Golem (ou ta prochaine carte) coûte moins. Les réductions se cumulent et servent au prochain Golem joué : pose, remplacement ou évolution. Un coût ne descend jamais sous 0."],
+ ["Remplacer","Payer le coût de la nouvelle carte ; l'ancienne va à la défausse. Seulement tes Golems."],
+ ["Tarte","Le Cirque : une fois par manche, 1 dégât gratuit à un Golem adverse de cette colonne. On flip en protège."],
+ ["Trait","Pour chacun de tes 2 éléments, +1 de Force par voisin allié qui le partage. Un voisin qui a tes deux éléments compte deux fois : jusqu'à +8 de Force au centre de la grille."],
+ ["Un seul Golem","Le Versus : pas de 2e Golem ici. À chaque pose, le Golem adverse ici perd 1 de Force."],
+ ["Valeur variable","Terrain marqué « ? » : sa valeur change selon la manche (Le Tournoi : 1, 2 puis 3 points)."],
  ["Voisin","Golem allié sur une case adjacente, sans diagonale."]];
 function norm0(x){return String(x).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()}
 MOTS.sort((a,b)=>norm0(a[0]).localeCompare(norm0(b[0])));MOTS.forEach(([m,d])=>DEF[norm0(m)]=d);
 const PREC=[
- ["Menfou palu","Effet","Il reste ciblable : un effet adverse le vise, mais ne lui fait pas perdre de Force. Le Versus lui en fait perdre quand même (une perte de terrain n'est pas un effet adverse)."],
- ["Café du matin","Effet","Joue à la pose, puis au début des manches 2 et 3, avant le premier tour (premier joueur de la manche d'abord). Une seule carte dans le deck : prise d'office. Deck vide : rien à prendre, regarder n'est pas piocher, et le +1 est quand même donné. Le Golem allié choisi, lui compris, garde son +1 jusqu'à la fin de la partie, même déplacé ou amélioré ; il le perd s'il est remplacé. Après l'amélioration, Café du matin ne joue plus."],
- ["La taupe","Effet","Main adverse vide : rien à défausser, le +2 est quand même donné. Ce n'est pas un ciblage : On flip n'y change rien. Un seul Golem allié : il reçoit le bonus d'office."],
+ ["Menfou palu","Effet","Il reste ciblable : un effet adverse le vise, mais ne lui fait pas perdre de Force. Le Versus lui en fait perdre quand même (une perte de terrain n'est pas un effet adverse)."],
+ ["Café du matin","Effet","Joue à la pose, puis au début des manches 2 et 3, avant le premier tour (premier joueur de la manche d'abord). Une seule carte dans le deck : prise d'office. Deck vide : rien à prendre, regarder n'est pas piocher, et le +1 est quand même donné. Le Golem allié choisi, lui compris, garde son +1 jusqu'à la fin de la partie, même déplacé ou amélioré ; il le perd s'il est remplacé. Après l'amélioration, Café du matin ne joue plus."],
+ ["La taupe","Effet","Main adverse vide : rien à défausser, le +2 est quand même donné. Ce n'est pas un ciblage : On flip n'y change rien. Un seul Golem allié : il reçoit le bonus d'office."],
  ["Chance du débutant","Effet","Une seule fois par partie, avec 1 carte piochée. Ne protège pas contre Le Versus."],
- ["Il suffit","Effet","Une base et son évolution comptent comme deux cartes différentes ; chaque grille est comptée à part. La destruction a lieu avant les morts en chaîne."],
- ["Jour de pêche","Effet","Deck adverse vide : rien, et regarder n'est pas piocher. Une seule carte : elle est défaussée d'office."],
+ ["Il suffit","Effet","Une base et son évolution comptent comme deux cartes différentes ; chaque grille est comptée à part. La destruction a lieu avant les morts en chaîne."],
+ ["Jour de pêche","Effet","Deck adverse vide : rien, et regarder n'est pas piocher. Une seule carte : elle est défaussée d'office."],
  ["Rage","Effet","+1 seulement si le Golem survit à la perte, 3 au maximum."],
  ["Slam","Effet","Seuls les Golems adverses ciblables qui ont une case libre adjacente, sans diagonale. Sinon, rien."],
- ["Tout ou rien","Effet","4, 5 ou 6 : +1 de Force aux autres Golems alliés de son terrain présents à la pose. Ce bonus est permanent : il reste si Alrevan part, il est gardé à l'évolution et disparaît si le Golem qui l'a reçu est remplacé. 1, 2 ou 3 : ton prochain Golem coûte 1 de moins."],
+ ["Tout ou rien","Effet","4, 5 ou 6 : +1 de Force aux autres Golems alliés de son terrain présents à la pose. Ce bonus est permanent : il reste si Alrevan part, il est gardé à l'évolution et disparaît si le Golem qui l'a reçu est remplacé. 1, 2 ou 3 : ton prochain Golem coûte 1 de moins."],
  ["High Roll","Effet","L'énergie gagnée vaut l'écart entre les deux dés (0 sur un double). Sur un double, les autres Golems alliés de son terrain gagnent la valeur d'un dé en Force."],
- ["Counter-pick","Effet","Joue seulement à la pose : un Golem en face posé ensuite n'y change rien."],
+ ["Counter-pick","Effet","Joue seulement à la pose : un Golem en face posé ensuite n'y change rien."],
  ["Full synergie","Effet","La réduction compte les éléments partagés avec tes voisins au moment de la pose, 2 au plus, et sert à ta prochaine carte, quelle qu'elle soit."],
- ["KEKWait","Effet","Défausse vide : rien n'est mélangé. Le +1 de Force par Golem allié au-dessus est quand même donné."],
- ["Info tchat","Effet","Deck vide : rien à regarder, aucun choix. Regarder n'est pas piocher."],
- ["Imitation","Effet","Case vide ou animal en face : rien. La copie est facultative."],
- ["Déguisement","Effet","Aucun voisin : rien. Un seul voisin : copié d'office."],
+ ["KEKWait","Effet","Défausse vide : rien n'est mélangé. Le +1 de Force par Golem allié au-dessus est quand même donné."],
+ ["Info tchat","Effet","Deck vide : rien à regarder, aucun choix. Regarder n'est pas piocher."],
+ ["Imitation","Effet","Case vide ou animal en face : rien. La copie est facultative."],
+ ["Déguisement","Effet","Aucun voisin : rien. Un seul voisin : copié d'office."],
  ["Graine de Golem","Effet","Se cumule entre exemplaires et compte aussi au premier tour de la manche. Perdue si le Golem est amélioré."],
- ["Réalisation de l'âge","Effet","Se cumule entre exemplaires. Ce n'est pas un ciblage : On flip n'y change rien."],
+ ["Réalisation de l'âge","Effet","Se cumule entre exemplaires. Ce n'est pas un ciblage : On flip n'y change rien."],
  ["Sub offert / Draft diff","Effet","Comptent aussi les cartes forgées par Forge éclair (Spom) et par Spam (Trigas), une fois par forge."],
  ["Grand Général","Effet","Se cumule entre exemplaires, sur le même terrain mais une autre ligne, jamais sur lui-même."],
  ["Le Plateau de Jeu","Terrain","C'est le gagnant du terrain qui lance le dé."],
  ["La Boutique","Terrain","La réduction vaut aussi pour remplacer et améliorer, jamais pour un animal."],
  ["Le Buzzer","Terrain","Le Buzzer est résolu en dernier parmi les terrains de chaque joueur."],
  ["Le Cirque","Terrain","<b>Tarte.</b> Une fois par manche, pendant tes actions, 1 dégât gratuit à un Golem adverse de cette colonne. On flip en protège."],
- ["L'École","Terrain","Le joueur qui perd ce terrain pioche 1 carte. Égalité : personne ne pioche."],
+ ["L'École","Terrain","Le joueur qui perd ce terrain pioche 1 carte. Égalité : personne ne pioche."],
  ["Jacen et Jaina","Animal","Animaux de KaTarN, ou de son évolution Slim K. À la pose, pioche 1 carte. Si leur maître est détruit, pioche 1 carte, puis ils partent à la défausse. Si tu remplaces toi-même leur maître, pas de pioche."],
  ["KaTarN","Golem","Compte 8 au décompte de la manche 1, puis 2 à celui de la manche 2, et il est détruit juste après (sans bonus)."],
- ["Kiwi","Animal","Son effet (Mignonitude) joue en fin de manche avant le décompte, puis il part à la défausse. Si les deux joueurs ont Kiwi : celui du premier joueur d'abord, jamais deux fois le même Golem. Les Golems tirés (un par joueur) sont hors décompte : ils restent en jeu avec leurs bonus, seule leur Force sort de leur colonne."],
- ["On flip","Effet","Dé plus haut que le coût de la carte piochée : elle est forgée (sans énergie ce tour). Sinon, égalité comprise, le Golem est protégé tant qu'il reste en jeu : aucun effet adverse ne peut le toucher, même s'il touche plusieurs Golems (Rap God, Extinction du feu, Le Cirque, Le Versus). Deck vide : rien n'est pioché, il est protégé. Il n'est pas protégé de La Nuit au Village ni de la surtaxe de Réalisation de l'âge."],
- ["La Nuit au Village","Terrain","Se résout avec le premier joueur de la manche. Détruit le Golem le plus faible ici, des deux côtés. Égalité : aucun."],
- ["Les Pronos","Terrain","<b>Mise.</b> Une fois par manche, pendant tes actions, mise 1 énergie ici (bouton « Miser »). Celui qui remporte le terrain marque 1 point de plus par mise des deux joueurs. Personne ne le remporte : les mises sont perdues."],
- ["Le Versus","Terrain","<b>Un seul Golem.</b> Remplacer ou améliorer le tien compte aussi comme une pose : le Golem adverse ici perd 1 de Force. On flip en protège. Un animal ne compte pas et ne déclenche rien."]];
+ ["Kiwi","Animal","Son effet (Mignonitude) joue en fin de manche avant le décompte, puis il part à la défausse. Si les deux joueurs ont Kiwi : celui du premier joueur d'abord, jamais deux fois le même Golem. Les Golems tirés (un par joueur) sont hors décompte : ils restent en jeu avec leurs bonus, seule leur Force sort de leur colonne."],
+ ["On flip","Effet","Dé plus haut que le coût de la carte piochée : elle est forgée (sans énergie ce tour). Sinon, égalité comprise, le Golem est protégé tant qu'il reste en jeu : aucun effet adverse ne peut le toucher, même s'il touche plusieurs Golems (Rap God, Extinction du feu, Le Cirque, Le Versus). Deck vide : rien n'est pioché, il est protégé. Il n'est pas protégé de La Nuit au Village ni de la surtaxe de Réalisation de l'âge."],
+ ["La Nuit au Village","Terrain","Se résout avec le premier joueur de la manche. Détruit le Golem le plus faible ici, des deux côtés. Égalité : aucun."],
+ ["Les Pronos","Terrain","<b>Mise.</b> Une fois par manche, pendant tes actions, mise 1 énergie ici (bouton « Miser »). Celui qui remporte le terrain marque 1 point de plus par mise des deux joueurs. Personne ne le remporte : les mises sont perdues."],
+ ["Le Versus","Terrain","<b>Un seul Golem.</b> Remplacer ou améliorer le tien compte aussi comme une pose : le Golem adverse ici perd 1 de Force. On flip en protège. Un animal ne compte pas et ne déclenche rien."]];
 const sansArt=x=>norm0(x.replace(/^(Le |La |Les |L')/,''));
 PREC.sort((x,y)=>sansArt(x[0]).localeCompare(sansArt(y[0])));
 const rang=(L,n,c)=>{let h='';for(let i=0;i<L.length;i+=n)h+=`<div class="${c}">${L.slice(i,i+n).join('')}</div>`;return h};
@@ -116,12 +116,12 @@ const ETAPES=(c)=>`<div class="enc4${c||''}">
 const S0=[
 {id:'essentiel',t:"L'essentiel en 1 minute",h:`
 <div class="ess">
- <div class="bl"><h4><span class="n">1</span>Le plateau</h4><svg class="sv" viewBox="0 0 454 182" id="rgSvP"></svg><p>Une colonne par terrain ; ton Golem affronte celui en face : même terrain, même ligne.</p></div>
+ <div class="bl"><h4><span class="n">1</span>Le plateau</h4><svg class="sv" viewBox="0 0 454 182" id="rgSvP"></svg><p>Une colonne par terrain ; ton Golem affronte celui en face : même terrain, même ligne.</p></div>
  <div class="bl"><h4><span class="n">2</span>Ton tour</h4>${ETAPES(' e2')}
-  <p>Chaque carte en Forge donne 1 énergie par tour pour payer les cartes ; 3 manches de 3 tours.</p></div>
- <div class="bl"><h4><span class="n">3</span>Marquer des points</h4><div class="sco" id="rgSvS"></div><p>Par colonne, la plus grande Force remporte les points du terrain ; après 3 manches, le plus de points gagne.</p></div>
+  <p>Chaque carte en Forge donne 1 énergie par tour pour payer les cartes ; 3 manches de 3 tours.</p></div>
+ <div class="bl"><h4><span class="n">3</span>Marquer des points</h4><div class="sco" id="rgSvS"></div><p>Par colonne, la plus grande Force remporte les points du terrain ; après 3 manches, le plus de points gagne.</p></div>
  <div class="bl"><h4><span class="n">4</span>Les éléments</h4><div class="el4"><div><svg class="cercle petit" id="rgCerE"></svg></div>
-  <div><p><b>Cercle :</b> ${ic(FORCE)} +1 si ton Golem domine celui d'en face.</p><p><b>Trait :</b> ${ic(FORCE)} +1 par voisin allié qui partage un de ses éléments.</p></div></div>
+  <div><p><b>Cercle :</b> ${ic(FORCE)} +1 si ton Golem domine celui d'en face.</p><p><b>Trait :</b> ${ic(FORCE)} +1 par voisin allié qui partage un de ses éléments.</p></div></div>
   <p class="leg5 l1">${["magma","cristal","foudre","brume","roche"].map(e=>`<span><img class="pe" src="img/${e}.png" alt="">${NE[e]}</span>`).join("")}</p><p style="padding-top:6px">Chaque flèche va de l'élément qui domine vers l'élément dominé.</p></div>
 </div>`},
 {id:'partie',t:'La partie',h:`
@@ -140,12 +140,12 @@ const S0=[
   <div class="trs"><span>Terrain 1</span><span>Terrain 2</span><span>Terrain 3</span></div>
   <div class="gr toi"><span></span><span class="vo">voisin</span><span></span><span class="vo">voisin</span><span class="moi">toi</span><span class="vo">voisin</span><span></span><span class="vo">voisin</span><span></span></div><small class="lg" style="color:#01C1F0;font-weight:800">TOI</small>
  </div>
- <div><p>Les cartes ne citent jamais de numéro de ligne ou de colonne : elles désignent les cases par le terrain, la case en face ou la ligne adverse.</p>
+ <div><p>Les cartes ne citent jamais de numéro de ligne ou de colonne : elles désignent les cases par le terrain, la case en face ou la ligne adverse.</p>
  <ul class="leg mt">
-  <li><i style="background:var(--magma)"></i><b>En face :</b>&nbsp;même terrain, même ligne.</li>
-  <li><i style="background:rgba(238,106,44,.25);border:1px solid var(--magma)"></i><b>Ligne adverse :</b>&nbsp;les 3 cases adverses de la même ligne.</li>
-  <li><i style="background:rgba(1,193,240,.18);border:1px solid var(--bleu)"></i><b>Voisin :</b>&nbsp;Golem allié adjacent, sans diagonale.</li>
-  <li><i style="background:transparent;border:1px dashed var(--js-pointille)"></i><b>En jeu :</b>&nbsp;une carte posée sur une grille.</li></ul></div></div></div>`},
+  <li><i style="background:var(--magma)"></i><b>En face :</b>&nbsp;même terrain, même ligne.</li>
+  <li><i style="background:rgba(238,106,44,.25);border:1px solid var(--magma)"></i><b>Ligne adverse :</b>&nbsp;les 3 cases adverses de la même ligne.</li>
+  <li><i style="background:rgba(1,193,240,.18);border:1px solid var(--bleu)"></i><b>Voisin :</b>&nbsp;Golem allié adjacent, sans diagonale.</li>
+  <li><i style="background:transparent;border:1px dashed var(--js-pointille)"></i><b>En jeu :</b>&nbsp;une carte posée sur une grille.</li></ul></div></div></div>`},
 {id:'lire',t:'Lire une carte',h:`
 <div class="lire4">
  <div class="bl"><h4>Un Golem</h4><div class="an2" id="rgAnG"></div></div>
@@ -157,22 +157,22 @@ const S0=[
 <div class="cols c3">
  <div class="bl"><h4><span class="n">1</span>Le deck</h4><p>${ic(CARTE)} Chaque joueur arrive avec son deck de 24 à 30 cartes, mélangé.</p></div>
  <div class="bl"><h4><span class="n">2</span>La main</h4><p>${ic(MAIN)} Pioche <b>5 cartes</b>.</p></div>
- <div class="bl"><h4><span class="n">3</span>Le mulligan</h4><p>${ic(CARTE)} Remets jusqu'à <b>3 cartes</b> dans le deck : on mélange, puis tu repioches autant de cartes.</p></div>
+ <div class="bl"><h4><span class="n">3</span>Le mulligan</h4><p>${ic(CARTE)} Remets jusqu'à <b>3 cartes</b> dans le deck : on mélange, puis tu repioches autant de cartes.</p></div>
 </div>`},
 {id:'tour',t:'Le tour de jeu',h:`${ETAPES('')}
 <div class="cols">
  <div class="bl"><h4><span class="n">1</span>Pioche</h4><ul>
   <li>${ic(CARTE)} Pioche <b>2 cartes</b>.</li>
   <li>À chaque manche, le joueur qui joue en second ne pioche qu'<b>1 carte</b> à son premier tour.</li>
-  <li><b>Deck vide :</b> chaque carte que tu dois piocher donne 1 point à ton adversaire, effets de cartes compris.</li></ul></div>
+  <li><b>Deck vide :</b> chaque carte que tu dois piocher donne 1 point à ton adversaire, effets de cartes compris.</li></ul></div>
  <div class="bl"><h4><span class="n">2</span>Forge</h4><ul>
   <li>Toujours juste après la pioche, avant toute action.</li>
   <li>Place 0 ou 1 carte de ta main, face cachée, définitivement.</li>
   <li>Chaque carte en Forge donne <b>1 énergie</b> par tour, dès ce tour. La Forge est ta seule source d'énergie.</li></ul></div>
  <div class="bl"><h4><span class="n">3</span>Actions</h4><p>Paie en énergie, autant de fois que tu veux, puis passe.</p><ul>
-  <li><b>Poser :</b> paie le coût de la carte.</li>
-  <li><b>Remplacer :</b> paie le coût de la nouvelle carte ; l'ancienne va à la ${ic(DEFAU)} défausse. Seulement tes propres Golems.</li>
-  <li><b>Améliorer :</b> paie le coût de l'évolution, dès le tour de la pose. La base doit déjà être en jeu.</li></ul></div>
+  <li><b>Poser :</b> paie le coût de la carte.</li>
+  <li><b>Remplacer :</b> paie le coût de la nouvelle carte ; l'ancienne va à la ${ic(DEFAU)} défausse. Seulement tes propres Golems.</li>
+  <li><b>Améliorer :</b> paie le coût de l'évolution, dès le tour de la pose. La base doit déjà être en jeu.</li></ul></div>
  <div class="bl"><h4><span class="n">4</span>Fin du tour</h4><ul>
   <li>L'énergie restante est perdue.</li>
   <li>${ic(DEFAU)} Défausse jusqu'à <b>7 cartes</b> en main.</li></ul></div>
@@ -186,38 +186,38 @@ const S0=[
   <li>À 0 ou moins, le Golem est détruit et part aussitôt à la ${ic(DEFAU)} défausse. Tous ceux à 0 ou moins meurent en même temps, puis on recalcule, et ainsi de suite.</li>
   <li>Tuer ne rapporte rien.</li></ul></div>
  <div class="bl"><h4>Soigner et évoluer</h4><ul>
-  <li><b>Récupérer X :</b> ton Golem regagne jusqu'à X de Force perdue, sans dépasser sa Force de base. Sans dégâts, il ne récupère rien.</li>
-  <li><b>Évolution :</b> se pose sur sa base, qui part aussitôt à la ${ic(DEFAU)} défausse. L'évolution a sa propre Force et son propre effet ; ses dégâts sont effacés. Elle garde le favori, l'animal et les bonus reçus.</li></ul></div>
+  <li><b>Récupérer X :</b> ton Golem regagne jusqu'à X de Force perdue, sans dépasser sa Force de base. Sans dégâts, il ne récupère rien.</li>
+  <li><b>Évolution :</b> se pose sur sa base, qui part aussitôt à la ${ic(DEFAU)} défausse. L'évolution a sa propre Force et son propre effet ; ses dégâts sont effacés. Elle garde le favori, l'animal et les bonus reçus.</li></ul></div>
 </div>`},
 {id:'elements',t:'Éléments',h:`
 <div class="cols">
  <div class="bl blcer"><h4>Le cercle des éléments</h4><svg class="cercle" id="rgCer"></svg>
   <p class="lg" style="text-align:center;margin-top:8px">Chaque flèche va de l'élément qui domine vers l'élément dominé.</p>
   <ul class="els5 mt">
-   <li>${el('magma')} : dégâts et Force pour attaquer</li>
-   <li>${el('cristal')} : soutien, bonus et récupération de Force</li>
-   <li>${el('foudre')} : énergie et coût des cartes</li>
-   <li>${el('brume')} : pioche et deck</li>
-   <li>${el('roche')} : terrains, placement et déplacement des cartes</li></ul></div>
+   <li>${el('magma')} : dégâts et Force pour attaquer</li>
+   <li>${el('cristal')} : soutien, bonus et récupération de Force</li>
+   <li>${el('foudre')} : énergie et coût des cartes</li>
+   <li>${el('brume')} : pioche et deck</li>
+   <li>${el('roche')} : terrains, placement et déplacement des cartes</li></ul></div>
  <div>
- <div class="bl"><h4>Cercle : +1 au plus</h4><p>${ic(FORCE)} +1 si le Golem en face a un élément que le tien domine. Jamais plus de +1, sauf effet de carte. Les deux Golems face à face peuvent gagner +1 chacun.</p>
+ <div class="bl"><h4>Cercle : +1 au plus</h4><p>${ic(FORCE)} +1 si le Golem en face a un élément que le tien domine. Jamais plus de +1, sauf effet de carte. Les deux Golems face à face peuvent gagner +1 chacun.</p>
   <div class="face"><figure><img src="img/001.jpg" alt="KaTarN">+1 de Force</figure><span>face à face</span><figure><img src="img/@cyrdan" alt="Cyrdan">+1 de Force</figure></div>
-  <p class="lg elx">KaTarN (${el('magma')}, ${el('foudre')})<br>Cyrdan (${el('cristal')}, ${el('roche')})<br>${el('magma')} domine ${el('cristal')}, ${el('roche')} domine ${el('magma')} : les deux gagnent ${ic(FORCE)} +1.</p></div>
- <div class="bl mt"><h4>Trait : jusqu'à ${ic(FORCE)} +8</h4><p>Pour chacun de tes 2 éléments, ${ic(FORCE)} +1 par voisin allié qui le partage. Un voisin qui a tes deux éléments compte donc deux fois. Au centre de la grille, avec 4 voisins aux deux mêmes éléments, ton Golem gagne jusqu'à ${ic(FORCE)} +8.</p><p>Avec KaTarN : deux voisins ${el('foudre')} +2 ; un seul voisin ${el('magma')} et ${el('foudre')} +2 à lui seul.</p>
-  <p>Trait et cercle sont toujours actifs : perdre un voisin ou un Golem en face peut détruire un Golem, en chaîne.</p></div>
+  <p class="lg elx">KaTarN (${el('magma')}, ${el('foudre')})<br>Cyrdan (${el('cristal')}, ${el('roche')})<br>${el('magma')} domine ${el('cristal')}, ${el('roche')} domine ${el('magma')} : les deux gagnent ${ic(FORCE)} +1.</p></div>
+ <div class="bl mt"><h4>Trait : jusqu'à ${ic(FORCE)} +8</h4><p>Pour chacun de tes 2 éléments, ${ic(FORCE)} +1 par voisin allié qui le partage. Un voisin qui a tes deux éléments compte donc deux fois. Au centre de la grille, avec 4 voisins aux deux mêmes éléments, ton Golem gagne jusqu'à ${ic(FORCE)} +8.</p><p>Avec KaTarN : deux voisins ${el('foudre')} +2 ; un seul voisin ${el('magma')} et ${el('foudre')} +2 à lui seul.</p>
+  <p>Trait et cercle sont toujours actifs : perdre un voisin ou un Golem en face peut détruire un Golem, en chaîne.</p></div>
  </div>
 </div>`},
 {id:'effets',t:'Effets',h:`
 <div class="cols">
- <div class="bl"><h4>Quand ?</h4><ul>
-  <li><b>À la pose :</b> à chaque arrivée sur la grille (Poser, Remplacer, Améliorer), après paiement.</li>
+ <div class="bl"><h4>Quand ?</h4><ul>
+  <li><b>À la pose :</b> à chaque arrivée sur la grille (Poser, Remplacer, Améliorer), après paiement.</li>
   <li>Échanger ou déplacer n'est pas une pose et garde les dégâts.</li>
-  <li><b>En jeu :</b> tant que la carte est sur la grille.</li></ul></div>
- <div class="bl"><h4>Comment ?</h4><ul>
+  <li><b>En jeu :</b> tant que la carte est sur la grille.</li></ul></div>
+ <div class="bl"><h4>Comment ?</h4><ul>
   <li>Un effet s'applique en entier. Sans cible, il ne se passe rien.</li>
-  <li><b>Copie :</b> on ne prend que l'effet, ni le nom, ni la Force, ni les éléments. Copier un Golem qui a copié donne l'effet qu'il a copié.</li></ul></div>
+  <li><b>Copie :</b> on ne prend que l'effet, ni le nom, ni la Force, ni les éléments. Copier un Golem qui a copié donne l'effet qu'il a copié.</li></ul></div>
 </div>
-<div class="bl mt"><h4>Les cartes ont le dernier mot</h4><p>Les règles décrivent le jeu de base ; une carte peut y faire exception. Par exemple, Maître du bilig donne de l'énergie, et Spom et Trigas forgent en plus. Le détail est dans <a class="lien" href="#" data-s="precisions">Précisions sur les cartes</a>.</p></div>`},
+<div class="bl mt"><h4>Les cartes ont le dernier mot</h4><p>Les règles décrivent le jeu de base ; une carte peut y faire exception. Par exemple, Maître du bilig donne de l'énergie, et Spom et Trigas forgent en plus. Le détail est dans <a class="lien" href="#" data-s="precisions">Précisions sur les cartes</a>.</p></div>`},
 {id:'manche',t:'Fin de manche',h:`
 <div class="enc4">
  <div><i>Étape 1</i><b>${ic(FORCE)} Décompte</b><small>Force par colonne</small></div>
@@ -226,8 +226,8 @@ const S0=[
  <div><i>Étape 4</i><b>Suite</b><small>Tout reste en place</small></div></div>
 <div class="cols">
  <div class="bl"><h4><span class="n">1</span>Décompte</h4><p>Additionne la Force actuelle de tes Golems dans chaque colonne. Une colonne vide vaut 0. Juste avant, Mignonitude (Kiwi) retire du décompte un Golem par joueur.</p></div>
- <div class="bl"><h4><span class="n">2</span>Points</h4><p>Le plus fort remporte le terrain et marque ses points. Égalité : personne ne le remporte.</p></div>
- <div class="bl"><h4><span class="n">3</span>Effets de fin de manche</h4><p>Pour chaque joueur, en commençant par le premier joueur de la manche : ses Golems d'abord, puis ses terrains de gauche à droite vus du premier joueur.</p></div>
+ <div class="bl"><h4><span class="n">2</span>Points</h4><p>Le plus fort remporte le terrain et marque ses points. Égalité : personne ne le remporte.</p></div>
+ <div class="bl"><h4><span class="n">3</span>Effets de fin de manche</h4><p>Pour chaque joueur, en commençant par le premier joueur de la manche : ses Golems d'abord, puis ses terrains de gauche à droite vus du premier joueur.</p></div>
  <div class="bl"><h4><span class="n">4</span>Suite</h4><p>Les cartes et les dégâts restent. Le premier joueur change.</p></div>
 </div>`},
 {id:'fin',t:'Fin de partie',h:`
@@ -242,35 +242,35 @@ const S0=[
 <div class="cols">
  <div class="bl"><h4>Principe</h4><ul>
   <li>Un effet de terrain s'applique aux deux joueurs, sauf mention contraire.</li>
-  <li>Un terrain est actif toute la partie ; son résultat est définitif pour chaque manche.</li>
+  <li>Un terrain est actif toute la partie ; son résultat est définitif pour chaque manche.</li>
   <li>Chaque terrain rapporte les points imprimés dessus.</li></ul></div>
- <div class="bl"><h4>Valeur variable « ? »</h4><p>Un terrain marqué « ? » change de valeur selon la manche. Exemple : Le Tournoi rapporte ${ic(ETOILE)} 1, puis 2, puis 3.</p></div>
+ <div class="bl"><h4>Valeur variable « ? »</h4><p>Un terrain marqué « ? » change de valeur selon la manche. Exemple : Le Tournoi rapporte ${ic(ETOILE)} 1, puis 2, puis 3.</p></div>
 </div>`},
 {id:'animaux',t:'Animaux de compagnie',h:`
 <div class="cols">
  <div class="bl"><h4>Pose et nature</h4><ul>
-  <li><b>Pose :</b> ${ic(ENCL)} 0. L'animal se glisse sous son maître, déjà en jeu, et lui donne ${ic(FORCE)} +1. Il ne prend pas de case. Un seul animal par maître.</li>
-  <li><b>Pas un Golem :</b> pas de Force à lui, jamais d'évolution. Son seul élément est l'élément majeur de son maître (celui de gauche). Aucun effet ne le concerne ; il ne compte ni pour le Trait, ni pour le cercle, ni pour un terrain.</li>
+  <li><b>Pose :</b> ${ic(ENCL)} 0. L'animal se glisse sous son maître, déjà en jeu, et lui donne ${ic(FORCE)} +1. Il ne prend pas de case. Un seul animal par maître.</li>
+  <li><b>Pas un Golem :</b> pas de Force à lui, jamais d'évolution. Son seul élément est l'élément majeur de son maître (celui de gauche). Aucun effet ne le concerne ; il ne compte ni pour le Trait, ni pour le cercle, ni pour un terrain.</li>
   <li>Un animal n'est jamais MVP.</li></ul></div>
  <div class="bl"><h4>Deck et maître</h4><ul>
-  <li><b>Deck :</b> 1 exemplaire par animal, avec au moins un exemplaire de la base de son maître.</li>
-  <li><b>Son maître :</b> s'il quitte le jeu, l'animal part à la ${ic(DEFAU)} défausse ; s'il évolue, l'animal reste ; s'il est déplacé, l'animal le suit.</li>
+  <li><b>Deck :</b> 1 exemplaire par animal, avec au moins un exemplaire de la base de son maître.</li>
+  <li><b>Son maître :</b> s'il quitte le jeu, l'animal part à la ${ic(DEFAU)} défausse ; s'il évolue, l'animal reste ; s'il est déplacé, l'animal le suit.</li>
   <li>Un Golem qui copie son effet n'est pas son maître.</li></ul></div>
 </div>`},
 {id:'decks',t:'Cartes et decks',h:`
 <div class="cols c3">
  <div class="bl"><h4>${ic(CARTE)} Taille</h4><p><b>24 à 30 cartes.</b></p></div>
  <div class="bl"><h4>Exemplaires</h4><p><b>3 au plus</b> par carte, <b>1</b> par animal. Une base et son évolution comptent à part.</p></div>
- <div class="bl"><h4>Éléments</h4><p><b>4 éléments au plus</b> par deck, parmi les 5 (${el('magma')}, ${el('cristal')}, ${el('foudre')}, ${el('brume')}, ${el('roche')}). Un Golem à 2 éléments compte les deux. Un animal ne compte pas dans la limite : il a un seul élément, l'élément majeur de son maître (celui de gauche).</p></div>
+ <div class="bl"><h4>Éléments</h4><p><b>4 éléments au plus</b> par deck, parmi les 5 (${el('magma')}, ${el('cristal')}, ${el('foudre')}, ${el('brume')}, ${el('roche')}). Un Golem à 2 éléments compte les deux. Un animal ne compte pas dans la limite : il a un seul élément, l'élément majeur de son maître (celui de gauche).</p></div>
 </div>
 <div class="bl mt"><h4>Pas d'évolution sans sa base</h4><p>Pour mettre une évolution dans ton deck, ajoute au moins un exemplaire de sa carte de base.</p></div>`},
 {id:'connexion',t:'Connexion et abandon',h:`
 <div class="cols">
  <div class="bl"><h4>Abandon</h4><p>Quitter une partie en cours compte comme un abandon.</p></div>
  <div class="bl"><h4>Perte de connexion</h4><ol>
-  <li>Le joueur apparaît « Reconnexion » pendant 10 secondes.</li>
-  <li>Puis « Hors ligne » : un minuteur de 60 secondes démarre. S'il ne revient pas à temps, il perd par abandon ; sinon la partie reprend où elle en était.</li>
-  <li>Les deux joueurs déconnectés : personne ne gagne, le minuteur repart au retour du premier.</li></ol>
+  <li>Le joueur apparaît « Reconnexion » pendant 10 secondes.</li>
+  <li>Puis « Hors ligne » : un minuteur de 60 secondes démarre. S'il ne revient pas à temps, il perd par abandon ; sinon la partie reprend où elle en était.</li>
+  <li>Les deux joueurs déconnectés : personne ne gagne, le minuteur repart au retour du premier.</li></ol>
   <p style="margin-top:12px">Connecté à ton compte, tu retrouves ta partie sur n'importe quel appareil. Contre les Golems, pas de minuteur.</p></div>
 </div>`},
 {id:'lexique',t:'Lexique',h:`<div class="pg"><div class="pict"><span>${ic(ENCL)} Coût</span><span>${ic(FORCE)} Force</span><span>${ic(ETOILE)} Points</span><span>${ic(DEFAU)} Défausse</span><span>${el('magma')}</span><span>${el('cristal')}</span><span>${el('foudre')}</span><span>${el('brume')}</span><span>${el('roche')}</span></div>${rang(MOTS.map(([m,d])=>`<div class="lx"><b>${m}</b><p>${d}</p></div>`),4,'lxr')}</div>`},
@@ -287,19 +287,22 @@ function rendre(){
   $('rgNb').textContent=Q?n+' sur '+S.length:S.length+' sections';
   $('rgTitre').textContent=S[cur].t;$('rgPos').textContent=(cur+1)+'/'+S.length;
   $('rgCorps').innerHTML=S[cur].h;if(S[cur].id==='lire'){annote($('rgAnG'),'img/001.jpg',G);annote($('rgAnE'),'img/@kchanEvo',E);annote($('rgAnA'),'img/@kiwi',A);annote($('rgAnT'),'img/@boutique',T)}
-  $('rgInfo').innerHTML=Q?`<div class="info"><span class="r">i</span>Recherche « ${$('cjRech').value} » : ${n} section${n>1?'s':''}, ${nb(S[cur].h,Q)} résultat${nb(S[cur].h,Q)>1?'s':''} ici.<button class="ter" id="rgEff" type="button">Effacer la recherche</button></div>`:'';
+  $('rgInfo').innerHTML=Q?`<div class="info"><span class="r">i</span>Recherche « ${$('cjRech').value} » : ${n} section${n>1?'s':''}, ${nb(S[cur].h,Q)} résultat${nb(S[cur].h,Q)>1?'s':''} ici.<button class="ter" id="rgEff" type="button">Effacer la recherche</button></div>`:'';
   if($('rgEff'))$('rgEff').onclick=()=>{$('cjRech').value='';Q='';rendre()};
   if(Q)surl($('rgCorps'));
   const v=ok.map((o,i)=>o?i:-1).filter(i=>i>=0);
   const p=v.filter(i=>i<cur).pop(),s=v.find(i=>i>cur);
   $('rgPrec').disabled=p==null;$('rgSuiv').disabled=s==null;$('rgPrec').onclick=()=>{cur=p;rendre()};$('rgSuiv').onclick=()=>{cur=s;rendre()};
-  $('rgPrec').textContent='‹ '+(p!=null?S[p].t:'Section précédente');$('rgSuiv').textContent=(s!=null?S[s].t:'Section suivante')+' ›';
+  $('rgPrec').textContent='‹ '+(p!=null?S[p].t:'Section précédente');$('rgSuiv').textContent=(s!=null?S[s].t:'Section suivante')+' ›';
   noms($('rgCorps'));pictos($('rgCorps'));motsCles($('rgCorps'));chemins($('rgCorps'));setTimeout(paginer,50);setTimeout(paginer,600);if(S[cur].id==='elements')cercle('rgCer');if(S[cur].id==='essentiel'){cercle('rgCerE');schemas()}chemins($('rgCorps'));
 }
 /* Noms de cartes et d'effets : gras, couleur du type, cliquables (zoom simule) */
 /* Noms de cartes, terrains et effets : meme composant que le journal et les zooms (texteLog de vue/joueur.js : couleur du type, clic = zoom). */
 function noms(r){if(typeof texteLog!=="function")return;const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT),L=[];while(w.nextNode())L.push(w.currentNode);
- L.forEach(t=>{if(!t.data.trim()||t.parentNode.closest("svg,.rg-mot,.anc,.lv,.tg,h4,.j-lien,.prt,.lx>b"))return;const s=texteLog(t.data);if(!s.querySelector(".j-lien"))return;t.replaceWith(...s.childNodes)})}
+ L.forEach(t=>{if(!t.data.trim()||t.parentNode.closest("svg,.rg-mot,.anc,.lv,.tg,h4,.j-lien,.prt,.lx>b"))return;const s=texteLog(t.data);if(!s.querySelector(".j-lien"))return;
+  /* « ( » colle au nom de carte qui suit (meme span .j-colle que la ponctuation qui suit) */
+  s.querySelectorAll(".j-lien").forEach(b=>{const n=b.parentNode.classList.contains("j-colle")?b.parentNode:b,p=n.previousSibling;if(!p||p.nodeType!==3||!p.data.endsWith("("))return;p.data=p.data.slice(0,-1);let c=n;if(n===b){c=document.createElement("span");c.className="j-colle";n.replaceWith(c);c.append(b)}c.prepend("(")});
+  t.replaceWith(...s.childNodes)})}
 function surl(r){
   const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT),L=[];while(w.nextNode())L.push(w.currentNode);
   L.forEach(t=>{const n=norm(t.data);let i=n.indexOf(Q);if(i<0||t.parentNode.closest('svg'))return;const f=document.createDocumentFragment();let a=0;
@@ -307,10 +310,10 @@ function surl(r){
     f.append(t.data.slice(a));t.replaceWith(f)});
 }
 const LG=(v,t)=>`<span class="lv">${v}</span><span class="lt">${t}</span>`;
-const G=[[LG(ic(ENCL)+' 1','Coût'),.03,.02,.23,.15,.012,.13],[LG(ic(FORCE)+' 8','Force'),.82,.025,.96,.15,.09],[LG('<span class="l-nom">KaTarN</span>','Nom'),.05,.615,.33,.668,.6,.2],[LG('<i style="color:#ffb52a;font-weight:700">Romain, 18 ans</i>','Sous-titre'),.05,.668,.33,.71,.73,.2],[LG('<img class="pe" src="img/magma.png" alt=""><img class="pe" src="img/foudre.png" alt="">','Éléments du Golem'),.735,.605,.953,.682,.65],[LG('<b style="color:#ffb52a">Jeunesse éphémère :</b>',"Nom de l'effet"),.11,.745,.9,.872,.8],[LG('<span class="l-evo">Évolue en Slim K</span>','Sa future évolution'),.317,.884,.682,.933,.908],[LG('<span class="l-cit">« Fan Aegis »</span>','Citation'),.055,.95,.245,.985,.933,.15],[LG('<span class="l-num">G-001</span>','Numéro de la carte'),.855,.952,.93,.982,.967]];
-const T=[[LG('<span class="ico" style="width:20px;height:20px">'+ETOILE+'</span><span class="l-nom">2</span>','Points rapportés'),.77,.02,.97,.16,.09],[LG('<span class="l-nom">La Boutique</span> <i style="color:#a9e6f7;font-weight:700">Terrain</i>','Nom et type'),.05,.62,.5,.71,.65],[LG('<span style="color:#fff">Poser un Golem ici…</span>','Effet'),.13,.79,.87,.845,.75,.7],[LG('<span class="l-cit">« Promis, un dernier…</span>','Citation'),.055,.95,.62,.986,.933,.3],[LG('<span class="l-num">T-004</span>','Numéro de la carte'),.855,.952,.935,.986,.967]];
-const E=[[LG(ic(ENCL)+' 4','Coût'),0],[LG(ic(FORCE)+' 4','Force'),0],[LG('<span class="l-nom" style="color:#ffd23a">K-Chan</span>','Nom'),0],[LG('<i style="color:#ffb52a;font-weight:700">L’attachiante</i>','Sous-titre'),0],[LG('<img class="pe" src="img/magma.png" alt=""><img class="pe" src="img/cristal.png" alt="">','Éléments du Golem'),0],[LG('<b style="color:#ffb52a">Love inconditionnel :</b>',"Nom de l'effet"),0],[LG('<span class="l-evo">Évolution de la Reine du tilt</span>','Évolution : la carte de base'),0],[LG('<span class="l-cit">« J’vous love… »</span>','Citation'),0],[LG('<span class="l-num">G-006 ★</span>','Numéro de la carte'),0]];
-const A=[[LG(ic(ENCL)+' 0','Coût'),0],[LG(ic(FORCE)+' +1','Force donnée au maître'),0],[LG('<span class="l-nom">Kiwi</span>','Nom'),0],[LG('<i style="color:#7be07f;font-weight:700">Le lapin de Titom76</i>','Sous-titre'),0],[LG('<img class="pe" src="img/brume.png" alt="">','Éléments de l’animal'),0],[LG('<b style="color:#7be07f">Mignonitude :</b>',"Nom de l'effet"),0],[LG('<span style="color:#fff">Animal de compagnie de Titom76</span>','Son maître'),0],[LG('<span class="l-num">A-011</span>','Numéro de la carte'),0]];
+const G=[[LG(ic(ENCL)+' 1','Coût'),.03,.02,.23,.15,.012,.13],[LG(ic(FORCE)+' 8','Force'),.82,.025,.96,.15,.09],[LG('<span class="l-nom">KaTarN</span>','Nom'),.05,.615,.33,.668,.6,.2],[LG('<i style="color:#ffb52a;font-weight:700">Romain, 18 ans</i>','Sous-titre'),.05,.668,.33,.71,.73,.2],[LG('<img class="pe" src="img/magma.png" alt=""><img class="pe" src="img/foudre.png" alt="">','Éléments du Golem'),.735,.605,.953,.682,.65],[LG('<b style="color:#ffb52a">Jeunesse éphémère :</b>',"Nom de l'effet"),.11,.745,.9,.872,.8],[LG('<span class="l-evo">Évolue en Slim K</span>','Sa future évolution'),.317,.884,.682,.933,.908],[LG('<span class="l-cit">« Fan Aegis »</span>','Citation'),.055,.95,.245,.985,.933,.15],[LG('<span class="l-num">G-001</span>','Numéro de la carte'),.855,.952,.93,.982,.967]];
+const T=[[LG('<span class="ico" style="width:20px;height:20px">'+ETOILE+'</span><span class="l-nom">2</span>','Points rapportés'),.77,.02,.97,.16,.09],[LG('<span class="l-nom">La Boutique</span> <i style="color:#a9e6f7;font-weight:700">Terrain</i>','Nom et type'),.05,.62,.5,.71,.65],[LG('<span style="color:#fff">Poser un Golem ici…</span>','Effet'),.13,.79,.87,.845,.75,.7],[LG('<span class="l-cit">« Promis, un dernier…</span>','Citation'),.055,.95,.62,.986,.933,.3],[LG('<span class="l-num">T-004</span>','Numéro de la carte'),.855,.952,.935,.986,.967]];
+const E=[[LG(ic(ENCL)+' 4','Coût'),0],[LG(ic(FORCE)+' 4','Force'),0],[LG('<span class="l-nom" style="color:#ffd23a">K-Chan</span>','Nom'),0],[LG('<i style="color:#ffb52a;font-weight:700">L’attachiante</i>','Sous-titre'),0],[LG('<img class="pe" src="img/magma.png" alt=""><img class="pe" src="img/cristal.png" alt="">','Éléments du Golem'),0],[LG('<b style="color:#ffb52a">Love inconditionnel :</b>',"Nom de l'effet"),0],[LG('<span class="l-evo">Évolution de la Reine du tilt</span>','Évolution : la carte de base'),0],[LG('<span class="l-cit">« J’vous love… »</span>','Citation'),0],[LG('<span class="l-num">G-006 ★</span>','Numéro de la carte'),0]];
+const A=[[LG(ic(ENCL)+' 0','Coût'),0],[LG(ic(FORCE)+' +1','Force donnée au maître'),0],[LG('<span class="l-nom">Kiwi</span>','Nom'),0],[LG('<i style="color:#7be07f;font-weight:700">Le lapin de Titom76</i>','Sous-titre'),0],[LG('<img class="pe" src="img/brume.png" alt="">','Éléments de l’animal'),0],[LG('<b style="color:#7be07f">Mignonitude :</b>',"Nom de l'effet"),0],[LG('<span style="color:#fff">Animal de compagnie de Titom76</span>','Son maître'),0],[LG('<span class="l-num">A-011</span>','Numéro de la carte'),0]];
 function schemas(){const star=(x,y,z)=>`<svg x="${x}" y="${y}" width="${z}" height="${z}" viewBox="-6 -6 312 318">`+ETOILE.replace(/^<svg[^>]*>/,'');
  let p='';const T=[['Boutique',2],['Cirque',2],['Tournoi','?']],R='var(--adverse-texte)',B='var(--bleu)',BT='var(--bleu-titre)',CASE='var(--js-case)';
  p+=`<text x="0" y="40" fill="${R}" font-size="14" font-weight="800">ADV.</text><text x="0" y="146" fill="${BT}" font-size="14" font-weight="800">TOI</text><text x="0" y="93" fill="var(--doux)" font-size="13" font-weight="800">TERRAINS</text>`;
@@ -323,7 +326,7 @@ function schemas(){const star=(x,y,z)=>`<svg x="${x}" y="${y}" width="${z}" heig
  p+=cel(214,110,112,B,B,'ton Golem','#0a121a');
  p+=cel(94,110,112,'rgba(1,193,240,.18)',B,'voisin','var(--blanc)')+cel(334,110,112,'rgba(1,193,240,.18)',B,'voisin','var(--blanc)')+cel(214,134,112,'rgba(1,193,240,.18)',B,'voisin','var(--blanc)');
  $('rgSvP').innerHTML=p;
- let s='';[["L'École",9,7,2,'Tu remportes','b'],["L'Écran du MJ",4,4,1,'Égalité : personne','n'],['Le Versus',3,5,3,"L'adversaire remporte",'r']].forEach(([n,a,b,v,t,c])=>{
+ let s='';[["L'École",9,7,2,'Tu remportes','b'],["L'Écran du MJ",4,4,1,'Égalité : personne','n'],['Le Versus',3,5,3,"L'adversaire remporte",'r']].forEach(([n,a,b,v,t,c])=>{
   s+=`<div><div class="ptr ${c}"><b>${n}</b><span class="vs"><em class="cb">${a}</em> contre <em class="cr">${b}</em></span><span class="pv">${ic(ETOILE)} ${v} pt${v>1?'s':''}</span></div><small class="${c}">${t}</small></div>`});
  $('rgSvS').innerHTML=s}
 /* Tous les mots du lexique en pointilles, une fois par bloc */
@@ -331,7 +334,7 @@ const VAR=[['remportés','Remporter'],['remportes','Remporter'],['remporter','Re
 let PAGE=0,PSEC=-1;
 function paginer(){const c=$('rgCorps'),g=c.querySelector('.pg');const old=c.querySelector('.pag');if(old)old.remove();if(!g)return;g.querySelectorAll('.grp.suite').forEach(x=>x.remove());if(PSEC!==cur){PAGE=0;PSEC=cur}
  const B=[...g.children];B.forEach(e=>e.style.display='');
- if(matchMedia('(max-width:767px)').matches){c.style.overflow='';return} /* telephone : le corps suit son contenu et la page defile, pas de pages (sinon la derniere carte passe sous la pagination) */
+ if(matchMedia(ECRAN_TELEPHONE).matches){c.style.overflow='';return} /* telephone : le corps suit son contenu et la page defile, pas de pages (sinon la derniere carte passe sous la pagination) */
  c.style.overflow='hidden';const H=c.clientHeight-50;
  const pages=[];let pg=[],st=null;const T0=g.getBoundingClientRect().top;B.forEach(e=>{const r=e.getBoundingClientRect(),t=r.top-T0,bt=r.bottom-T0;if(st===null)st=t;
   if(bt-st>H&&pg.length){if(pg[pg.length-1].classList.contains('grp')){const x=pg.pop();pages.push(pg);pg=[x];st=x.getBoundingClientRect().top-T0}else{pages.push(pg);pg=[];st=t}}pg.push(e)});if(pg.length)pages.push(pg);
@@ -391,7 +394,7 @@ $('rgCorps').addEventListener('click',e=>{const l=e.target.closest('a.lien[data-
 /* Bulle d'un mot du lexique : clic (ou Entree) sur un mot en pointilles ; un clic ailleurs la ferme. */
 /* 0.6 (10 nov.) : aussi dans le texte des guides (#gdVue), la bulle se pose dans la vue du mot. */
 function bulle(m){document.querySelectorAll('#rgVue .bulle,#gdVue .bulle').forEach(x=>x.remove());if(!m)return;
-  const d=document.createElement('div');d.className='bulle';d.setAttribute('role','tooltip');d.innerHTML='<b>'+m.textContent+'</b> : '+(DEF[norm0(m.dataset.k)]||'');(m.closest('#gdVue')||$('rgVue')).append(d);
+  const d=document.createElement('div');d.className='bulle';d.setAttribute('role','tooltip');d.innerHTML='<b>'+m.textContent+'</b> : '+(DEF[norm0(m.dataset.k)]||'');(m.closest('#gdVue')||$('rgVue')).append(d);
   const r=m.getBoundingClientRect();d.style.left=Math.min(r.left,innerWidth-316)+'px';d.style.top=(r.bottom+6)+'px'}
 document.addEventListener('click',e=>bulle(e.target.closest&&e.target.closest('#rgVue .rg-mot,#gdVue .rg-mot')));
 ['rgVue','gdVue'].forEach(v=>$(v)?.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.classList.contains('rg-mot'))bulle(e.target)}));
@@ -402,3 +405,5 @@ return {rendre,enrichit:r=>{noms(r);pictos(r);motsCles(r,r.querySelector('.sec')
   section:id=>{const i=S.findIndex(s=>s.id===id);if(i>=0){cur=i;rendre()}}};
 })();
 if(typeof cjInit==='function')cjInit();
+/* Etiquette de version du Sommaire : version courante du site (champ v de version.json, ou GOLEMS_VERSION sur le site d'essai). */
+(window.GOLEMS_VERSION?Promise.resolve(GOLEMS_VERSION):fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(x=>x.json())).then(x=>{const e=$('rgVer');if(e&&x&&x.v)e.textContent='v'+x.v}).catch(()=>{});

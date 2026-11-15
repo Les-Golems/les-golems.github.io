@@ -1,0 +1,162 @@
+/* telephone/partie.css : règles téléphone (seuils <= 767 px) sorties de css/partie.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:699px){#aniDet{grid-template-columns:1fr 1fr;font-size:15px;padding:44px 14px 14px;gap:12px}#aniDet .t{grid-column:1/-1}#aniDet h3{font-size:30px}#aniDet h3.an{font-size:26px}#aniDet img{max-width:150px}}
+@media (max-width:440px){header .haut .moi .dal-inter{grid-row:3;grid-column:1/3;justify-self:end}}
+@media (max-width:760px){.grand.avecDetail:has(.zt-camp){grid-template-columns:minmax(0,1fr);max-width:500px}}
+@media (max-width:440px){#vueDetail .zt-camp{padding:10px}#vueDetail .zt-l li{grid-template-columns:minmax(0,1fr) 70px;gap:6px}#vueDetail .zt-l .dl-ligne{grid-template-columns:32px 32px 44px minmax(0,1fr);padding:2px 5px}#vueDetail .zt-l .dl-nom{flex-direction:column;gap:0;font-size:14px;line-height:1.05}#vueDetail .zt-l .dl-titre{font-size:11.5px}#vueDetail .zt-v{font-size:13px}#vueDetail .zt-v b{font-size:21px}}
+@media (max-width:760px){.grand.avecDetail{grid-template-columns:minmax(0,1fr)}.grand.avecDetail .vue-img{justify-self:center;width:min(308px,100%)}}
+@media (max-width:640px){.p-case .act .act-l{display:none}.p-case .act .act-c{display:inline}}
+/* Case deja occupee (Remplacer, Ameliorer) : pastille d'une ligne en bas a gauche (6 px des bords), jamais sur le bouclier ; cout, animal et coeur caches pendant le ciblage ; le +n reste dans l'info-bulle (15 nov.) */
+@media (max-width:767px){
+.p-case>.act{left:6px;right:auto;bottom:6px;height:20px;padding:0 7px;border-radius:999px;background:var(--or);color:var(--encre);font:800 12px/20px var(--corps);white-space:nowrap}
+.p-case>.act .p-hint{display:none}
+.p-case:has(>.act) .mini .bas,.p-case:has(>.act) .fav,.p-case:has(>.act) .mini .cp{display:none}
+}
+
+/* ===== 0.7 mobile : maquette 52 (partie, vue joueur au telephone en portrait). Bloc garde par sa propre media (le lien de index.html peut couvrir plus large). ===== */
+@media (max-width:767px){
+/* --- main : cartes 66 x 92 (au lieu de 44 x 62) et nom sous chaque carte (data-nom pose par telephone() dans vue/diffusion.js) --- */
+/* jamais de carte coupee : 5 cartes entieres dans la rangee (environ 63 x 88 a 375 px), defilement carte par carte, fleche dans une marge a droite */
+html.tel-joueur #partie .mqb-r{gap:6px;padding:2px 0 0;margin-right:24px;scroll-snap-type:x mandatory}
+html.tel-joueur #partie .mqb-r>button{flex:0 0 calc((100% - 24px)/5);min-width:0;height:auto;display:flex;flex-direction:column;align-items:center;gap:3px}
+html.tel-joueur #partie .mqb-r>button img{width:100%;height:auto;aspect-ratio:5/7;border-radius:6px}
+html.tel-joueur #partie .mqb-g{width:24px;background:none;justify-content:center;padding:0}
+html.tel-joueur #partie .mqb-r>button[data-nom]::before{content:attr(data-nom);order:2;display:block;width:100%;font:700 12px/16px var(--corps);color:var(--texte);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.tel-joueur #partie .mqb-r>button.grisee::before{color:var(--doux)}
+html.tel-joueur #partie .mqb-r>button .evs{font-size:12px;top:7px}
+html.tel-joueur #partie .mqb-r>button.reduite::after,html.tel-joueur #partie .mqb-r>button.surtaxe::after{font-size:13px;padding:3px 4px}
+html.tel-joueur #partie .mqb-g{bottom:19px}
+
+/* --- barre du haut : cibles de 40 px, « Chat » sur une ligne --- */
+html.tel-joueur #partie .p-outils .p-outil{width:40px!important;height:40px!important;min-width:40px!important}
+html.tel-joueur #partie .mq-chat,html.tel-joueur #partie .mq-q{height:40px!important;min-width:40px!important;white-space:nowrap}
+html.tel-joueur #partie .p-barre{padding-right:154px}
+/* partie en ligne (bouton Chat en plus) : Chat rejoint ?, son et Quitter sur la ligne unique de la barre (variante C, 15 nov.) */
+html.tel-joueur #partie .p-barre:has(.mq-chat){padding:2px 196px 2px 2px;min-height:0}
+html.tel-joueur #partie .p-barre:has(.mq-chat)>.p-tourde{top:50%;bottom:auto;transform:translateY(-50%)}
+html.tel-joueur #partie .p-barre:has(.mq-chat) .mq-chat{padding:0 5px}
+
+/* --- hauteurs : le plateau entier tient au-dessus de la barre de main (812 - 186 = 626 px) --- */
+html.tel-joueur #partie .p-table{gap:8px}
+html.tel-joueur #partie .p-grille>.p-case{height:56px}
+html.tel-joueur #partie .p-terrains,html.tel-joueur #partie .p-terrain{height:70px}
+
+/* --- compteurs cliquables (Deck, Defausse, Forge) : zone de toucher portee a 40 px sans changer le dessin --- */
+html.tel-joueur #partie .p-compteur.clic{position:relative}
+html.tel-joueur #partie .p-compteur.clic::after{content:"";position:absolute;left:-3px;right:-3px;top:-9px;bottom:-9px}
+
+/* --- ligne Daltonien : boutons de 40 px --- */
+html.tel-joueur #partie .mq-dal .dal-inter>button{min-height:40px}
+
+/* --- partie guidee : la bulle se pose au-dessus de la barre de main quand elle est en bas (la main reste visible) --- */
+html.tel-joueur .tuto-bulle.bas,html.tel-joueur #tuto .bulle.bas{bottom:calc(var(--poste-h,190px) + 8px)!important}
+
+/* --- la barre de main passe SOUS les fenetres (aide 20, defausse 19, recap 13, absence 12) : avant, z-index 40 couvrait « Fermer » de l'aide --- */
+html.tel-joueur #partie .p-poste{z-index:11}
+
+/* --- fin de partie : le bloc resultat (Victoire / Defaite, score, Partager le resume, Rejouer) etait masque par .p-poste>*{display:none} --- */
+html.tel-joueur #partie .p-table.fini .p-poste>.p-fin{display:block!important;margin:4px 0}
+
+/* --- rejeu : meme vue que la partie (telephone() n'exclut plus partie.rejeu) ; la barre du rejeu sous la main, boutons de 40 px --- */
+html.tel-joueur body:has(#barreRejeu) #partie .p-poste{padding-bottom:58px}
+#barreRejeu#barreRejeu .btn{min-height:40px;min-width:40px}
+html.tel-joueur body:has(#barreRejeu) #partie .p-poste>.mqb-l{display:none!important}
+
+/* --- 0.7 mobile, retours du 13 nov. : aucun texte tronque, rien qui se chevauche --- */
+/* tuiles du plateau (variante C, 15 nov.) : nom sur une ligne en haut avec « … », rangee cout + animal en bas, hexagone de Force -22 % ; identiques en ligne et contre le robot */
+html.tel-joueur #partie .mini .nom{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;font-size:12px;line-height:1.05;top:2px}
+html.tel-joueur #partie .p-case:not(:has(>.act)) .mini{--bas:2px}
+html.tel-joueur #partie .mini .cout{line-height:20px}
+html.tel-joueur #partie .p-case .fav{height:20px}
+html.tel-joueur #partie .mini{--f:30px}
+html.tel-joueur #partie .p-case .f b{font-size:19.5px;-webkit-text-stroke:3.5px #0a121a}
+/* « +1 » flottant : reste dans sa case (il montait sur les totaux des terrains) */
+html.tel-joueur #partie .p-case>.fx-bonus{font-size:24px;-webkit-text-stroke:3px #0a121a;animation-name:bonusTel}
+@keyframes bonusTel{0%{opacity:0;transform:translate(-50%,-20%) scale(.8)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-75%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%)}}
+/* bilan par carte : sous-titre des cartes sur plusieurs lignes (« Accro au Gac... » etait coupe) */
+/* pastille du Chat : ne monte plus sur le score de la ligne du dessus */
+html.tel-joueur #partie .p-barre:has(.mq-chat) .mq-chat i{top:-3px;right:-7px}
+
+/* bandeau de l'adversaire : la pastille « A lui de jouer » passe a la ligne au lieu de recouvrir « Main de ... » (eventail a droite) */
+html.tel-joueur #partie .p-camp.lui .p-l1{flex-wrap:wrap;row-gap:3px;padding-right:150px}
+html.tel-joueur #partie .p-camp.lui .p-l1>b{min-width:0;overflow-wrap:anywhere}
+/* tour de l'adversaire : son eventail se cache, « Main de X / N cartes » reste seul a droite et ne chevauche plus « A lui de jouer » (15 nov.) */
+html.tel-joueur #partie .p-camp.lui:has(.p-l1>.mq-lab:not([class*=dk-])) .mqt-fan{display:none}
+html.tel-joueur #partie .p-camp.lui:has(.p-l1>.mq-lab:not([class*=dk-])) .p-l1{flex-wrap:nowrap;padding-right:100px}
+html.tel-joueur #partie .p-camp.lui:has(.p-l1>.mq-lab:not([class*=dk-])) .p-l1>b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* nom sous les cartes de la main : entier, sur deux lignes au besoin (plus d'ellipse) */
+html.tel-joueur #partie .mqb-r>button[data-nom]::before{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;font-size:11px;line-height:12px;min-height:24px;display:flex;align-items:flex-start;justify-content:center}
+/* noms sur deux lignes sous les cartes (+8 px) et pastille adverse sur sa propre ligne (+20 px) : cases du plateau plus basses (ton camp reste au-dessus de la barre) */
+html.tel-joueur #partie .p-grille>.p-case{height:51px}
+/* ecrans bas (360 x 740) : barre de main compacte (cartes en 6 par rangee, etape sur une ligne, boutons de 36 px), score un peu plus petit ; cases inchangees (15 nov.) */
+@media (max-height:760px){
+html.tel-joueur #partie .p-poste{padding-top:2px!important;padding-bottom:2px!important}
+html.tel-joueur #partie .p-poste>.mqb-l{min-height:36px;gap:6px;flex-wrap:nowrap!important}
+html.tel-joueur #partie .p-poste>.mqb-l .mqb-b{height:36px!important;min-height:36px!important}
+html.tel-joueur #partie .p-poste>.mqb-l>.mqb-c{flex:1 1 0!important;min-width:0}
+html.tel-joueur #partie .mqb-c small{display:none}
+html.tel-joueur #partie .mqb-r>button{flex-basis:calc((100% - 30px)/6)}
+}
+/* ecrans etroits (360 px, Chat dans la barre) : score a deux chiffres (« 12 - 15 ») sans toucher Manche / Tour : colonne du score elargie, chiffres de 17 px */
+@media (max-width:374px){html.tel-joueur #partie .p-barre{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr)!important}html.tel-joueur #partie .p-barre .p-pts{gap:1px}html.tel-joueur #partie .p-barre .p-pts i{width:12px;height:12px}html.tel-joueur #partie .p-barre .p-info small{font-size:8.5px!important}html.tel-joueur #partie .p-barre .p-info.score .p-score{gap:2px!important}html.tel-joueur #partie .p-barre .p-info.score .p-score>*{font-size:17px!important;line-height:20px!important}html.tel-joueur #partie .p-barre .p-info.score .p-score>span{font-size:12px!important}}
+/* en ligne : le point de connexion de presence.js (ligne de 16 px sous chaque bandeau) double la pastille .mq-pt deja a cote du nom ; l'etat Reconnexion / Hors ligne reste ecrit par .mq-lab */
+html.tel-joueur #partie .p-camp>.dk-zone{display:none}
+/* rejeu : barre collee en bas sur toute la largeur, marge reservee sous le contenu (elle ne recouvre plus le bilan) */
+html.tel-joueur .barreRejeu{left:0;right:0;bottom:0;width:auto;margin:0;border-radius:0;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+/* ta ligne : nom en 14 px pour que la pastille et le point de connexion tiennent sur la meme ligne (la barre de main ne recouvre plus tes compteurs) */
+html.tel-joueur #partie .p-camp.toi .p-l1>b{font-size:14px;min-width:0}
+html.tel-joueur body:has(#barreRejeu) #partie{padding-bottom:68px!important}
+/* bilan par carte : icones, nom puis sous-titre sur toute la largeur de la colonne Carte (2 lignes au plus), rien ne deborde sur les chiffres */
+html.tel-joueur #partie .p-fin .h-tab .h-crt{flex-wrap:wrap;row-gap:2px}
+html.tel-joueur #partie .p-fin .h-tab .h-cnom{flex-wrap:wrap;flex:1 1 100%;min-width:0;max-width:100%}
+html.tel-joueur #partie .p-fin .h-tab .h-cps{white-space:normal;overflow-wrap:anywhere;min-width:0;max-width:100%}
+html.tel-joueur #partie .p-fin .h-tab .h-cti{flex:1 1 100%;max-width:100%;white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:normal}
+/* --- zoom d un terrain en partie (valide 15 nov.) : carte ~40 % de la hauteur, deux camps cote a cote en version compacte, fond opaque, tout visible sans defiler ; remplace en pratique les regles <=760/<=440 ci-dessus et ci-dessous --- */
+#vue:has(.zt-camp.lui){background:var(--fond-partie);padding:10px 12px;align-items:center}
+#vue:has(.zt-camp.lui) .grand.avecDetail{display:flex;flex-direction:column;align-items:stretch;gap:8px;max-width:500px;margin:auto}
+#vue:has(.zt-camp.lui) .vue-img{align-self:center;width:min(100%,calc(40dvh*5/7))}
+#vue:has(.zt-camp.lui) #vueDetail{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-auto-rows:auto;gap:8px}
+#vueDetail:has(.zt-camp.lui) .aide-carte{grid-column:1/-1;padding:8px 12px}
+#vueDetail:has(.zt-camp.lui) .aide-carte .aide-nom{font-size:17px}
+#vueDetail:has(.zt-camp.lui) .aide-carte .aide-sous{margin:0 0 4px}
+#vueDetail:has(.zt-camp.lui) .aide-carte .aide-txt{font-size:14.5px;line-height:1.35}
+#vueDetail .zt-camp.lui,#vueDetail .zt-camp.toi{padding:8px;min-width:0}
+#vueDetail:has(.zt-camp.lui) .zt-camp h3{font-size:16px;margin:0 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
+#vueDetail:has(.zt-camp.lui) .zt-l li{grid-template-columns:minmax(0,1fr) auto;gap:4px;height:32px}
+#vueDetail:has(.zt-camp.lui) .zt-l .dl-ligne{display:flex;height:32px;padding:0 7px;min-width:0}
+#vueDetail:has(.zt-camp.lui) .zt-l :is(.dl-cout,.dl-force,.dl-els,.dl-titre){display:none}
+#vueDetail:has(.zt-camp.lui) .zt-l .dl-nom{display:block;min-width:0;flex:1}
+#vueDetail:has(.zt-camp.lui) .zt-l .dl-pseudo{display:block;font-size:14px;line-height:32px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vueDetail:has(.zt-camp.lui) .zt-v{gap:2px}#vueDetail:has(.zt-camp.lui) .zt-v .ico{font-size:15px}
+#vueDetail:has(.zt-camp.lui) .zt-v b{font-size:19px}
+#vueDetail:has(.zt-camp.lui) .zt-vide>span{height:32px;line-height:30px;font-size:13px;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vueDetail:has(.zt-camp.lui) .zt-tot{padding-top:6px;font-size:14px;gap:6px}
+#vueDetail:has(.zt-camp.lui) .zt-l+.zt-tot{margin-top:6px}
+#vueDetail:has(.zt-camp.lui) .zt-tot b{font-size:22px}
+#vueDetail:has(.zt-camp.lui) .zt-eg{font-size:15px}
+#vue:has(.zt-camp.lui) #fermer{align-self:center;flex:none}
+#vueDetail:has(.zt-camp.lui) .dl-evo .dl-pseudo::after{content:' \2605'}
+}
+/* detail d'un terrain : en colonne, le sous-titre prend la largeur de la ligne et finit par des points de suspension (align-items:baseline herite le laissait a sa largeur naturelle, coupe net) */
+@media (max-width:440px){#vueDetail .zt-l .dl-nom{align-items:stretch}#vueDetail .zt-l .dl-pseudo,#vueDetail .zt-l .dl-titre{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+/* bilan par carte : sous-titre a 2 lignes, termine par des points de suspension s'il est plus long */
+html.tel-joueur #partie .p-fin .h-tab .h-cti{text-overflow:ellipsis;overflow-wrap:anywhere}
+/* barre d'action a deux boutons (Info tchat : Laisser dessus / Mettre dessous) : l'etape sur sa ligne, les boutons en dessous */
+html.tel-joueur #partie .p-poste>.mqb-l:has(.mqb-b~.mqb-b){flex-wrap:wrap;row-gap:4px}
+html.tel-joueur #partie .p-poste>.mqb-l:has(.mqb-b~.mqb-b)>.mqb-c{flex:1 1 100%}
+/* 2 boutons ou plus : chacun prend la largeur de son texte, sur une ligne (« Fin du tour » a cote de Faille / Tarte, 15 nov.) */
+html.tel-joueur #partie .p-poste>.mqb-l:has(.mqb-b~.mqb-b)>.mqb-b{flex:1 1 auto;min-width:0;white-space:nowrap;padding:0 10px}
+/* fin de manche : fenetre limitee a la hauteur de l ecran, defilement interne, Continuer colle en bas et toujours visible (main adverse de L Ecran du MJ) */
+#recap .boite{max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box}#recap #continuer{position:sticky;bottom:0;z-index:2;box-shadow:0 -10px 14px 4px var(--panneau,#121c26)}
+
+/* sorti de css/partie.css (pastille verte .m-ani de l'animal attache, 0.7 mobile) : */
+/* telephone, animal + favori d'Indra sur la meme tuile (51 px, pas la place d'empiler) : le coeur entre dans la pastille verte (« ♥ Kiwi ») au lieu de la reduire a « K… » */
+@media (max-width:767px){
+html.tel-joueur .p-case.a-ani:has(.fav) .fav{display:none}
+html.tel-joueur .p-case.a-ani:has(.fav) .mini .bas{right:calc(var(--f)*.82 + 3px)}
+html.tel-joueur .p-case.a-ani:has(.fav) .m-ani{padding:0 4px}
+html.tel-joueur .p-case.a-ani:has(.fav) .m-ani::before{content:"\2665";color:#d6336c;margin-right:2px}
+}
+
+/* ecrans de 320-359 px : les 4 compteurs (Main / Deck / Defausse / Energie ou Forge) tiennent entiers avec des valeurs a deux chiffres : colonnes a la largeur du contenu, ecarts et libelles resserres */
+@media (max-width:359px){html.tel-joueur #partie .p-camp .p-comptes{grid-template-columns:repeat(4,auto)!important;justify-content:space-between;gap:2px}html.tel-joueur #partie .p-camp .p-compteur{gap:1px;padding:2px 2px;font-size:10.5px;letter-spacing:-.2px}html.tel-joueur #partie .p-camp .p-compteur .ico{font-size:13px}html.tel-joueur #partie .p-camp .p-compteur b{font-size:16px;letter-spacing:0}html.tel-joueur #partie .p-camp .p-compteur.energie b{font-size:17px}}

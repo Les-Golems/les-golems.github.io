@@ -230,7 +230,11 @@ function mouvements(s,a2,b2,t,t0,nev0){
   for(let i=Math.max(0,nev0);i<ev.length;i++){const e=ev[i];if(e.t==='dv')V.push({etoile:'+'+e.n,p:1-e.cp,de:{pile:'deck',p:e.cp},t:t+PAS_E*ne++,d:ETOILE})}
 }
 /* score affiche : sans les etoiles encore en vol */
-function scoreAff(s,p){return s.j[p].score-(suivi?suivi.etArr.filter(a=>a.p===p).reduce((x,a)=>x+a.n,0):0)}
+/* 0.7a : pendant un bilan de fin de manche ouvert (fenetre pp ou #recap de la vue joueur), le bandeau montre le meme score que lui :
+   sans les pioches impossibles (meule) des manches suivantes, deja comptees dans s.j[p].score au debut de la manche suivante */
+function mancheBilan(){if(suivi&&suivi.vu&&suivi.vu.type==='manche')return suivi.vu.m;const r=document.getElementById('recap');return r&&!r.hidden&&typeof recapAff==='number'?recapAff:0}
+function scoreAff(s,p){const m=mancheBilan();let ap=0;if(m)(s.stats&&s.stats.ev||[]).forEach(e=>{if(e.t==='dv'&&e.m>m&&1-e.cp===p)ap+=e.n});
+  return s.j[p].score-ap-(suivi?suivi.etArr.filter(a=>a.p===p).reduce((x,a)=>x+a.n,0):0)}
 function majScore(){if(!scene||!E)return;const b=scene.querySelector('.d-sc b'),e=scene.querySelector('.d-sc em');if(b)b.textContent=String(scoreAff(E.etat,BAS()));if(e)e.textContent=String(scoreAff(E.etat,1-BAS()))}
 function etoilesManche(s,m){
   if(REDUIT.matches||!scene||!couche)return 0;
@@ -411,7 +415,7 @@ function bandeau(s,qui){
     w.append(x)}return w};
   const co=(l,n,clic)=>{const c=mk('div','d-cote');c.append(mk('small','',l),mk('b','',String(n)),pts(n,clic));return c};
   const mid=mk('div','d-mid'),sc=mk('div','d-sc');
-  sc.append(mk('b','',String(scoreAff(s,BAS()))),mk('span','','-'),mk('em','',String(scoreAff(s,1-BAS()))));
+  sc.append(mk('b','',String(scoreAff(s,BAS()))),mk('span','sep-score','-'),mk('em','',String(scoreAff(s,1-BAS()))));
   /* partie finie : le score rouvre la fenetre de fin de partie (pendant la partie, il ne reagit pas) */
   if(s.fin){sc.classList.add('d-clic');sc.setAttribute('role','button');sc.tabIndex=0;sc.title='Résultat de la partie';sc.setAttribute('aria-label','Revoir le résultat de la partie');
     sc.onclick=()=>ouvrePop('partie');sc.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ouvrePop('partie')}}}
@@ -637,7 +641,7 @@ function ajusteNoms(){
 function revSig(){const P=src==='joueur'&&U()?U().partie:null;return P&&!P.local?(P.veut?1:0)+(P.luiVeut?2:0):0}
 function fermePop(){const mb=suivi&&suivi.vu&&suivi.vu.type==='manche'&&suivi.mAuto===suivi.vu.m;if(mb){suivi.mAuto=null;const mm=suivi.vu.m;setTimeout(()=>anManche(mm),120/KV)} /* 0.6a : bandeau « Manche n » apres le recapitulatif */
 if(src==='joueur'&&suivi&&suivi.vu&&suivi.vu.type==='manche'){const c=document.getElementById('continuer'),r=document.getElementById('recap');if(c&&r&&!r.hidden)setTimeout(()=>c.click(),0)} /* vue joueur : fermer le bilan de manche = Continuer */
-if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi.pop=null;suivi.pile=null;suivi.vu=null}
+if(suivi.pile)U().cacheApercu();if(suivi.pop)suivi.pop.remove();suivi.pop=null;suivi.pile=null;suivi.vu=null;majScore()}
 /* Piles (Deck, Defausse, Forge) : ordre de pioche (1 = prochaine carte), defausse de la plus recente a la plus ancienne, forge dans l'ordre */
 const PILES={deck:'Deck',defausse:'Défausse',forge:'Forge'};
 function cartesPile(o){const L=(E.etat.j[o.p][o.k]||[]).slice();return o.k==='defausse'?L.reverse():L}
@@ -681,7 +685,7 @@ function ouvrePop(type,m){
   const v=mk('div','pp-voile'),pp=mk('div','pp');
   suivi.vu=null;
   /* tout recapitulatif se lit dans l'etat courant : journal et reperes de manche ne font que grandir */
-  if(type==='manche'){popManche(E.etat,m,pp);suivi.vu={type,m,log:E.etat.log.length}}
+  if(type==='manche'){popManche(E.etat,m,pp);suivi.vu={type,m,log:E.etat.log.length};majScore()}
   else if(type==='pile'){pp.classList.add('pp-p');popPile(m,pp);suivi.pile={p:m.p,k:m.k,sig:sigPile(m)};v.onclick=e=>{if(e.target===v)fermePop()}}
   else if(type==='abandon')popAbandon(E.etat,m,pp);
   else{popPartie(E.etat,pp);suivi.vu={type,m,log:E.etat.log.length,rv:revSig()};suivi.rvVu=suivi.vu.rv;if(src==='joueur')boutonsFin(pp)}
@@ -733,7 +737,7 @@ document.addEventListener('keydown',e=>{if(e.key!=='Escape'||!D||!suivi)return;c
 /* sc = scores par place ; vue joueur : le sien d'abord, comme le bandeau du haut (BAS) */
 function score(sm,sc){
   const o=BAS(),t=mk('div','pp-tot'),d=mk('div'),x=mk('b','',String(sc[o])),y=mk('b','',String(sc[1-o]));x.style.color=COL[o];y.style.color=COL[1-o];
-  d.append(U().ico('coupe'),x,mk('span','','-'),y);t.append(mk('small','',sm),d);return t;
+  d.append(U().ico('coupe'),x,mk('span','sep-score','-'),y);t.append(mk('small','',sm),d);return t;
 }
 function popManche(s,m,pp){
   const u=U();pp.append(mk('h2','','Fin de la manche '+m));
@@ -944,7 +948,7 @@ function placeChat(){const cf=document.querySelector('.chat.flottant');if(!cf||!
 /* ---------- Vue joueur, telephone (0.5, maquette mqt2 v10) : #partie reste l'ecran, re-agence par html.tel-joueur ----------
    barre d'action collee en bas (etape + vrais boutons), main defilante avec fleche, apercu au toucher (Jouer / Fermer),
    barre du haut sur une ligne, eventail adverse dans le bandeau Golem, ligne « Daltonien » sous le Journal. */
-const TEL=matchMedia('(max-width:1079px)'); /* 0.7 mobile : vue telephone jusqu'a la tablette en paysage (1024) ; inerte a 1080 px et plus */
+const TEL=matchMedia(ECRAN_MOBILE); /* 0.7 mobile : vue telephone jusqu'a la tablette en paysage (1024) ; inerte a 1080 px et plus */
 function telephone(P){
   const H=document.documentElement,box=document.getElementById('partie');
   const ok=P&&P.etat&&TEL.matches&&box&&!box.hidden&&!(window.SPEC&&SPEC.estSpectateur&&SPEC.estSpectateur());
@@ -960,7 +964,7 @@ function telephone(P){
     if(st){const d=mk('span','mq-pt dk-'+st);d.title=st==='ok'?'En ligne':DK_LIB[st];l1.append(d)}});
   /* main adverse : eventail 34 px dans le bandeau Golem */
   const n=s.j[lui].main.length,z=mk('div','mqt'),sm=mk('small'),f=mk('div','mqt-fan'),w=24,sp=Math.min(9,70/Math.max(1,n));
-  if(att.includes(lui)){sm.append(mk('b','',String(n)),'cartes')}else{sm.append(mk('b','','Main de '+nomJ(lui)),n+' cartes')}
+  sm.append(mk('b','','Main de '+nomJ(lui)),n+(n>1?' cartes':' carte')); /* 0.7a : meme texte pendant son tour */
   f.style.setProperty('--fw',Math.round(w+(n-1)*sp+8)+'px');
   for(let k=0;k<n;k++){const i=mk('img');i.src=imgV('cartes/verso.jpg');i.alt='';i.style.width=w+'px';i.style.height=Math.round(w*1.4)+'px';i.style.left=(4+k*sp)+'px';i.style.transform='rotate('+(n>1?(k-(n-1)/2)*(20/(n-1)):0)+'deg)';f.append(i)}
   z.append(sm,f);if(camps[lui])camps[lui].append(z);
@@ -1109,7 +1113,7 @@ const rejeu={
 function coinRejeu(){
   const r=rejeu.info()||{pos:0,total:0,manche:1,vitesse:1,lecture:false,fin:false},z=mk('div','d-z d-coin'),B=mk('div','d-bloc d-rj'),bas=mk('div','d-bas');
   B.setAttribute('role','toolbar');B.setAttribute('aria-label','Rejeu');
-  const r1=mk('div','d-rj-l'),ps=mk('div','d-rj-pos');ps.append(mk('b','','Coup '+r.pos+' / '+r.total),mk('span','',' - Manche '+r.manche));r1.append(ps);
+  const r1=mk('div','d-rj-l'),ps=mk('div','d-rj-pos');ps.append(mk('b','','Coup '+r.pos+'/'+r.total),mk('span','',' - Manche '+r.manche));r1.append(ps);
   const chev=d=>'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="'+(d<0?'M15 4 7 12l8 8':'M9 4l8 8-8 8')+'" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const bt=(t,cl,lib,n,off)=>{const b=mk('button','sc-btn '+cl,t==='‹'||t==='›'?null:t);if(t==='‹'||t==='›')b.innerHTML=chev(t==='‹'?-1:1);b.type='button';if(lib)b.setAttribute('aria-label',lib);b.disabled=!!off;b.onclick=()=>rejeu.cmd(n);return b};
   const au=r.pos>=r.total,r2=mk('div','d-rj-cmd');
@@ -1126,5 +1130,5 @@ function coinRejeu(){
 
 /* animations et vols : vue/diffusion-animations.js (charge avant) */
 const {rectScene,rectMain,lanceVols,rectScore,etoileVol,prevoit,anPlus,lanceAn,anEvo,anAnimal,anBrise,anRecup,anFrappe,anBonus,anCopie,COEUR_AN,anFavori,anManche,anVictoire,ONDE,anOnde,atterrit,lanceVol}=window.DiffusionAnimations({get suivi(){return suivi},get scene(){return scene},get couche(){return couche},get KV(){return KV},get src(){return src},get E(){return E},get D(){return D},get GRAND(){return GRAND},BAS,COL,REDUIT,U,cache,caseDe,lueur,majScore,mk,nom});
-window.DIFFUSION={ouvrir,fermer,joueur,demo,peindre,chat,rejeu,etat:()=>({ouvert:!!D,src,pause:demo.enPause,pop:!!(suivi&&suivi.pop),fin:!!(E&&E.etat&&E.etat.fin)})};
+window.DIFFUSION={ouvrir,fermer,joueur,demo,peindre,chat,rejeu,majScore,etat:()=>({ouvert:!!D,src,pause:demo.enPause,pop:!!(suivi&&suivi.pop),fin:!!(E&&E.etat&&E.etat.fin)})};
 })();

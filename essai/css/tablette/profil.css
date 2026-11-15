@@ -1,0 +1,9 @@
+/* tablette/profil.css : règles tablette (seuils de 768 à 1079 px) sorties de css/profil.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:900px){.av-corps{grid-template-columns:minmax(0,1fr)}.av-g{height:auto}.av-grille{grid-template-columns:repeat(3,minmax(0,1fr));height:min(360px,45dvh)}}
+
+/* ---- Adaptation 0.7 mobile (768-1079 px) ---- */
+@media (min-width:768px){
+.pf-inter{min-height:44px;padding:0 12px;border:1px solid var(--trait);border-radius:12px;background:var(--panneau2);color:var(--texte)}
+.pf-itx{color:var(--texte)}.pf-inter:has(input:checked) .pf-itx{color:#5fd0f5}
+}

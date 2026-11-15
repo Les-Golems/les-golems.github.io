@@ -1,0 +1,121 @@
+/* tablette/diffusion.css : règles tablette (seuils de 768 à 1079 px) sorties de css/diffusion.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (orientation:portrait) and (max-width:899px){
+  #dif .d-tourne{display:flex;position:absolute;left:0;right:0;bottom:calc(50% - 56.25vw/2 - 70px);justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;padding:0 12px;font:700 14px/1.3 var(--corps);color:var(--doux);text-align:center}
+}
+@media (max-width:1079px){
+html.tel-joueur #partie .mq-lab.dk-att{background:rgba(241,195,90,.14);color:var(--or-texte);border:1px solid var(--or)}
+html.tel-joueur #partie .mq-lab.dk-off{background:rgba(125,140,152,.12);color:var(--doux);border:1px solid #7d8c98}
+html.tel-joueur #partie .mq-pt.dk-att{background:var(--or);box-shadow:0 0 6px rgba(241,195,90,.7)}
+html.tel-joueur #partie .mq-pt.dk-off{background:#7d8c98;box-shadow:none}
+html.tel-joueur #partie .mq-dal{display:flex;align-items:center;justify-content:space-between;min-height:44px;padding:0 12px;background:var(--panneau);border:1px solid var(--trait);border-radius:12px 9px 14px 8px/9px 13px 8px 14px}
+html.tel-joueur #partie .mq-dal .dal-inter{width:100%;justify-content:space-between;border:0;background:none;padding:0}
+html.tel-joueur #partie .mq-dal .dal-inter .pf-itx{display:inline;font:400 18px/1 var(--titre);color:var(--bleu-titre)}
+html.tel-joueur .chat.flottant.replie{display:none}
+html.tel-joueur #partie .mqb-l .mqb-b{width:auto;flex:none}
+html.tel-joueur #partie .mqb-r>button.grisee img{filter:grayscale(.85) brightness(.55)}
+html.tel-joueur #partie .p-barre{overflow:hidden}
+html.tel-joueur #partie .p-barre>.p-tourde{right:4px}
+html.tel-joueur #partie .p-outils{gap:3px}
+html.tel-joueur #partie .p-outils .p-outil,html.tel-joueur #partie .mq-chat,html.tel-joueur #partie .mq-q{height:38px!important;min-width:38px!important;width:auto}
+html.tel-joueur #partie .p-outils .p-outil{width:38px!important}
+}
+@media (max-width:1079px){
+/* score : deux chiffres de meme taille, un peu plus petits ; libelle SCORE sur la ligne de MANCHE et TOUR */
+html.tel-joueur #partie .p-barre .p-info.score .p-score>*{font-size:21px!important;line-height:22px!important;transform:none!important}
+html.tel-joueur #partie .p-barre .p-info.score .p-score>span{font-size:15px!important}
+html.tel-joueur #partie .p-barre .p-info{justify-content:flex-start!important;padding-top:5px!important;box-sizing:border-box}
+html.tel-joueur #partie .p-barre .p-info small{line-height:10px!important;margin:0 0 3px!important}
+}
+@media (max-width:1079px){html.tel-joueur #partie .mqb-r>button .evs{position:absolute;z-index:2;top:9.8%;left:31%;transform:translateY(-50%);font:400 8px/1 sans-serif;color:var(--or);-webkit-text-stroke:1.5px #0a121a;paint-order:stroke fill;pointer-events:none}}
+
+/* 0.7 mobile : vue telephone etendue a 1079 px (TEL dans vue/diffusion.js). Les blocs ci-dessous recopient, de 900 a 1079 px, les regles
+   de la vue telephone restees dans css/diffusion.css et css/partie.css sous @media (max-width:899px) (fichiers d'origine non modifies).
+   Regles de css/partie.css d'abord, a leur specificite d'origine (:where), puis celles de la vue telephone (css/diffusion.css), dans l'ordre d'origine. */
+@media (min-width:900px) and (max-width:1079px){
+:where(html.tel-joueur) .p-barre{border-radius:13px 9px 14px 8px}
+:where(html.tel-joueur) .p-info{height:52px;padding:0 2px;gap:6px;flex-direction:column}
+:where(html.tel-joueur) .p-info>.ico{display:none}
+:where(html.tel-joueur) .p-info small{font-size:11.5px;letter-spacing:.02em;text-align:center}
+:where(html.tel-joueur) .p-pts{gap:3px}
+:where(html.tel-joueur) .p-pts i{width:15px;height:15px}
+:where(html.tel-joueur) .p-score{font-size:25px;gap:5px}
+:where(html.tel-joueur) .p-score span{font-size:16px}
+:where(html.tel-joueur) .p-main{grid-template-columns:repeat(3,minmax(0,1fr))}
+:where(html.tel-joueur) .p-terrain{padding:5px 3px}
+:where(html.tel-joueur) .oeil{width:32px;height:32px;padding:5px}
+:where(html.tel-joueur) .p-totaux span:not(.p-valeur){display:none}
+:where(html.tel-joueur) .p-totaux{margin:auto 0 30px}
+:where(html.tel-joueur) .p-terrain .p-valeur{left:3px;bottom:3px;padding:0 5px}
+:where(html.tel-joueur) .p-terrain .oeil{width:26px;height:26px;padding:4px;right:3px;bottom:3px}
+:where(html.tel-joueur) .p-case .act{right:40px;font-size:12px}
+:where(html.tel-joueur) .p-tourde{height:52px;padding:0 3px;font-size:15px}
+:where(html.tel-joueur) .mini{--f:48px}
+:where(html.tel-joueur) .mini .nom{font-size:13.5px;inset:4px 5px auto}
+:where(html.tel-joueur) .mini .els{top:2px;right:3px;gap:1px}
+:where(html.tel-joueur) .mini .els img{width:16px;height:16px}
+:where(html.tel-joueur) .mini .nom{right:38px}
+:where(html.tel-joueur) .mini .bas{left:3px;gap:2px}
+:where(html.tel-joueur) .mini .cout{padding:0 3px 0 1px;font-size:14px}
+:where(html.tel-joueur) .mini .cout .ico{font-size:14px}
+:where(html.tel-joueur) .p-tourde .ico{font-size:16px}
+:where(html.tel-joueur) .p-tourde{gap:3px}
+:where(html.tel-joueur) .r-terrain h3{font-size:17px}
+:where(html.tel-joueur) .p-tourde{padding-right:78px}:where(html.tel-joueur) .p-outil{width:32px;height:32px}
+html.tel-joueur body:has(#jouer.enJeu:not([hidden])) nav{display:none}
+html.tel-joueur #partie{--h:63px;padding-bottom:0!important;padding-top:4px!important}
+html.tel-joueur #partie .mini{--f:38px}
+html.tel-joueur #partie .p-terrains{height:74px}html.tel-joueur #partie .p-terrain{min-height:0;height:74px;padding:3px 3px 4px;gap:0;display:flex!important;flex-direction:column;align-items:center;justify-content:space-between}html.tel-joueur #partie .p-tmil{gap:2px}html.tel-joueur #partie .p-tete b{white-space:nowrap}html.tel-joueur #partie .p-tete b{font-size:14px;line-height:1.1}html.tel-joueur #partie .p-tete.long b{font-size:12px}html.tel-joueur #partie .p-terrain .p-valeur{transform:scale(.82);margin:-2px 0}html.tel-joueur #partie .p-barre .p-info:not(.score)>*:not(small){transform:scale(.72)}html.tel-joueur #partie .p-tot{font-size:16px;line-height:1}
+html.tel-joueur #partie .p-table{gap:14px}
+html.tel-joueur #partie .p-plateau{gap:5px}
+html.tel-joueur #partie .p-grille{gap:5px}
+html.tel-joueur #partie .p-grille>.p-case{height:63px;min-height:0}
+html.tel-joueur #partie .p-barre{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:auto!important;grid-auto-flow:column!important;align-items:center;gap:2px;padding:2px 206px 2px 2px;position:relative}
+html.tel-joueur #partie .p-barre>*{grid-row:1!important;grid-column:auto!important;min-width:0}
+html.tel-joueur #partie .p-barre .p-info b{font-size:22px}html.tel-joueur #partie .p-barre .p-info{padding:0 1px}html.tel-joueur #partie .p-barre .p-info+.p-info{border-left:1px solid var(--trait)}
+html.tel-joueur #partie .p-barre .p-info{height:44px}html.tel-joueur #partie .p-barre .p-info small{font-size:9.5px;letter-spacing:0}
+html.tel-joueur #partie .p-barre>.p-tourde{position:absolute;right:3px;top:50%;transform:translateY(-50%);width:auto!important}html.tel-joueur #partie .p-tourde{flex:none;height:44px;padding:0;background:none!important;border:0!important}
+html.tel-joueur #partie .p-tourde>span{display:none}
+html.tel-joueur #partie .p-outils{gap:4px}
+html.tel-joueur #partie .p-camp{position:relative}
+html.tel-joueur #partie .p-camp .p-l1{display:flex;align-items:center;gap:6px}html.tel-joueur #partie .p-camp.lui .p-l1{min-height:34px}
+html.tel-joueur #partie .p-joue{display:none}
+html.tel-joueur #partie .mq-lab{flex:none;font:400 12px/1 Anton,var(--titre);letter-spacing:.04em;text-transform:uppercase;color:var(--encre);padding:4px 6px;border-radius:8px 6px 9px 5px;white-space:nowrap}
+html.tel-joueur #partie .p-camp.toi .mq-lab{background:var(--moi)}html.tel-joueur #partie .p-camp.lui .mq-lab{background:var(--lui)}
+html.tel-joueur #partie .mq-pt{flex:none;width:10px;height:10px;border-radius:50%;background:#3ccf6e;box-shadow:0 0 6px rgba(60,207,110,.7)}
+html.tel-joueur #partie .mqt{position:absolute;right:8px;top:4px;display:flex;align-items:center;gap:6px;height:34px}
+html.tel-joueur #partie .mqt small{font:700 11px/1.1 var(--corps);color:var(--doux);text-align:right}
+html.tel-joueur #partie .mqt small b{display:block;font:400 12px/1 var(--titre);color:var(--lui)}
+html.tel-joueur #partie .mqt-fan{position:relative;height:34px;width:var(--fw)}
+html.tel-joueur #partie .mqt-fan img{position:absolute;bottom:0;transform-origin:50% 120%;display:block;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+html.tel-joueur #partie .p-comptes{grid-template-columns:60px 64px 84px 82px!important}
+html.tel-joueur #partie .p-poste{position:sticky;bottom:0;z-index:40;display:flex;flex-direction:column;gap:4px;margin:0 -16px;padding:4px 16px calc(4px + env(safe-area-inset-bottom));background:linear-gradient(180deg,var(--poste-haut),var(--fond,#0b1118));border-top:1px solid var(--trait);box-shadow:0 -8px 20px rgba(0,0,0,.55)}
+html.tel-joueur #partie .p-poste>*{display:none!important}
+html.tel-joueur #partie .p-poste>.mqb-l{display:flex!important;align-items:center;gap:8px;min-height:44px}
+html.tel-joueur #partie .mqb-c{flex:1;min-width:0;font:400 15px/1.15 var(--titre);color:var(--or-texte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.tel-joueur #partie .mqb-c small{display:block;font:600 11px/1.2 var(--corps);color:var(--doux);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.tel-joueur #partie .mqb-b{flex:none;height:44px;min-width:44px;padding:0 12px;font:400 15px/1 var(--titre);border-radius:10px 7px 11px 6px;border:1px solid var(--trait);background:var(--panneau2);color:var(--texte)}
+html.tel-joueur #partie .mqb-b.plein{background:var(--or);color:var(--encre);border-color:var(--or)}
+html.tel-joueur #partie .mqb-b[disabled]{opacity:.45}
+html.tel-joueur #partie .p-poste>.mqb-m{display:block!important;position:relative}
+html.tel-joueur #partie .mqb-r{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:2px 28px 2px 0;scroll-snap-type:x proximity}
+html.tel-joueur #partie .mqb-r::-webkit-scrollbar{display:none}
+html.tel-joueur #partie .mqb-r>button{flex:0 0 44px;height:62px;padding:0;border:0;background:none;scroll-snap-align:start;position:relative}
+html.tel-joueur #partie .mqb-r>button img{width:44px;height:62px;object-fit:cover;border-radius:4px;display:block;box-shadow:0 2px 5px rgba(0,0,0,.6)}
+html.tel-joueur #partie .mqb-r>button.choisi img{outline:3px solid var(--or);outline-offset:-1px}
+html.tel-joueur #partie .mqb-r>button.reduite::after{content:attr(data-ec);position:absolute;right:2px;top:2px;font:400 11px/1 var(--titre);background:var(--vert);color:var(--encre);border-radius:4px;padding:2px 3px}
+html.tel-joueur #partie .mqb-r>button.surtaxe::after{content:attr(data-ec);position:absolute;right:2px;top:2px;font:400 11px/1 var(--titre);background:var(--magma);color:#fff;border-radius:4px;padding:2px 3px}
+html.tel-joueur #partie .mqb-g{position:absolute;right:0;top:0;bottom:0;width:40px;pointer-events:none;background:linear-gradient(90deg,var(--fondu-0),var(--fondu-1));display:flex;align-items:center;justify-content:flex-end;font:400 22px/1 var(--titre);color:var(--or-texte);padding-right:2px}
+html.tel-joueur #partie .mqb-n{position:absolute;left:0;top:-2px;font:700 10px/1 var(--corps);color:var(--doux)}
+html.tel-joueur #mqAp{position:fixed;inset:0;z-index:200;background:rgba(3,6,10,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+html.tel-joueur #mqAp img{width:min(78vw,300px);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.7)}
+html.tel-joueur #mqAp .mqa-b{display:flex;gap:10px;width:min(90vw,340px)}
+html.tel-joueur #mqAp .mqb-b{flex:1;height:48px;font:400 18px/1 var(--titre);border-radius:10px 7px 11px 6px;border:1px solid var(--trait);background:var(--panneau2);color:var(--texte)}
+html.tel-joueur #mqAp .mqb-b.plein{background:var(--or);color:var(--encre);border-color:var(--or)}
+html.tel-joueur #mqAp p{margin:0;font:600 13px/1.3 var(--corps);color:var(--doux);text-align:center}
+html.tel-joueur #partie .p-pied{display:none}
+html.tel-joueur #partie .p-cote .p-journal summary,html.tel-joueur #partie .p-cote .p-cercle summary{min-height:44px;display:flex;align-items:center;padding-top:4px;padding-bottom:4px}
+html.tel-joueur #partie .mq-chat,html.tel-joueur #partie .mq-q{position:relative;background:transparent;border:1px solid var(--trait);border-radius:9px 7px 10px 6px;color:var(--doux);font:400 14px/1 var(--titre);padding:0 7px;height:44px;min-width:44px}
+html.tel-joueur #partie .mq-chat i{position:absolute;right:-6px;top:-6px;min-width:18px;height:18px;border-radius:9px;background:var(--magma);color:#fff;font:400 12px/18px var(--titre);font-style:normal}
+html.tel-joueur #partie .p-outils .p-outil{width:44px!important;height:44px!important;min-width:44px!important}html.tel-joueur #partie .mq-q{white-space:nowrap}
+}

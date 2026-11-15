@@ -1,0 +1,20 @@
+/* telephone historique : rempli par le codage 0.7 mobile */
+
+/* ---- Adaptation 0.7 mobile (<= 767 px) : filtres sur 2 colonnes, cibles 44 px, rien de coupe ---- */
+@media (max-width:767px){
+#historique .h-filtres.sc-sel,.h-filtres.sc-sel{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:4px}
+.h-filtres.sc-sel>button{height:auto;min-height:44px;padding:0 6px;white-space:nowrap;font-size:15px}
+}
+@media (max-width:767px){.hd-tn{white-space:normal;overflow:visible;text-overflow:clip}}
+@media (max-width:767px){
+.h-tete{flex-direction:column;align-items:stretch}
+.h-filtres.sc-sel{display:grid;grid-auto-flow:row;height:auto;width:100%;box-sizing:border-box}
+}
+/* 700-767 : meme ligne d'historique sur 2 rangees qu'a 375 */
+@media (max-width:767px){
+.hl-l{grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-areas:"res etq sp sc" "adv adv adv date";height:auto;row-gap:6px;padding:8px 10px}
+.hl-res{grid-area:res}.hl-etqs{grid-area:etq}.hl-scz{grid-area:sc}.hl-l>.hl-adv{grid-area:adv}.hl-date{grid-area:date;align-items:flex-end}
+.hl-deck,.hl-vs,.hl-mvp,.hl-ver,.hl-fl{display:none}
+}
+/* 0.7a paysage bas (740 x 360, 15 nov.) : l'en-tete (3 rangees de filtres) etait ecrase par le bloc de hauteur fixe et passait sous la liste ; en-tete a sa taille, bloc a la hauteur de son contenu */
+@media (max-width:767px) and (max-height:500px){.h-tete{flex:none}.h-bloc{height:auto!important}}

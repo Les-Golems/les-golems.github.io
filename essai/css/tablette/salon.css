@@ -1,0 +1,24 @@
+/* tablette/salon.css : règles tablette (seuils de 768 à 1079 px) sorties de css/onglets/jouer-salon.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:1079px){.sl-cadre{grid-template-columns:minmax(0,1fr)}.sl-bas{width:100%}.sl-rangee{grid-template-columns:1fr 1.6fr 1fr;width:100%}}
+@media (max-width:860px){.haut:has(>.majDispo:not([hidden])){flex-wrap:wrap}.majDispo{order:9;margin-left:0}.haut:has(>.majDispo:not([hidden])) h1{flex:1 1 0}}
+
+/* ---- Adaptation 0.7 mobile (768-1079 px) : disposition ordinateur, cibles agrandies ---- */
+@media (min-width:768px){
+#salon .sl-haut .btnCode,.chat .cs .sc-btn,.chat .cs .btn{min-height:44px}
+#passerSpectateur{min-width:44px;min-height:44px}
+}
+
+/* Pseudos de 20 caracteres et message du salon : sur plusieurs lignes, rien de coupe */
+@media (min-width:768px){
+#joueurs .sl-pn,#joueurs .sl-pw,#joueurs .sl-pw>span,#joueurs .sl-nom{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}
+#joueurs .sl-nom{height:auto;line-height:1.15}
+#salon .sl-specs li,#salon .sl-specs li>*,#salon .sl-specs li b{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;min-width:0}
+.chat-liste b,.chat-info,.chat-info *{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+#salon .j-robot>span{-webkit-line-clamp:unset;display:block;white-space:normal;overflow:visible;text-overflow:clip}
+}
+@media (min-width:768px){
+#joueurs .sl-pw>em{white-space:nowrap!important;overflow-wrap:normal!important}
+.j-robot.j-robot,.j-robot.j-robot>span{-webkit-line-clamp:unset;white-space:normal;overflow:visible;text-overflow:clip;height:auto}
+.j-robot.j-robot>span{display:block}
+}

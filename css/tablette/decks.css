@@ -92,8 +92,10 @@
 @media (max-width:999px){#popTest .tp-2r .tp-mc{flex-wrap:wrap;overflow:visible}}
 @media (min-width:1000px){#dkA .dk-pan .dk-ent{flex-wrap:wrap;height:auto;row-gap:8px}#dkA .dk-pan .dk-ent .nm{flex:1 0 100%;white-space:normal;overflow:visible;text-overflow:clip;height:auto}}
 /* Noms longs : rien coupe (tuile, raison, sous-titre de la liste) */
-#dkA .dk-tuile,#dkA .dk-tuile.inv{height:auto;min-height:68px}
-#dkA .dk-tuile b,#dkA .dk-tuile .rs,#dkA .dk-tuile .dk-sous{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+#dkA .dk-tuile,#dkA .dk-tuile.inv{height:auto;min-height:68px;align-content:start!important;align-items:start!important}
+#dkA .dk-tuile .rs,#dkA .dk-tuile .dk-sous{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+/* nom du deck sur une ligne avec « ... », nom complet au survol (title) */
+#dkA .dk-tuile b[title]{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;display:block!important;max-width:100%}
 #dkA .dl-titre{white-space:normal;overflow:visible;text-overflow:clip}
 @media (max-width:999px){#popTest .tp-mode{margin-left:0;width:100%;display:grid;grid-template-columns:1fr 1fr}#popTest .tp-mode>button{white-space:normal;overflow:visible;text-overflow:clip}#popTest .tp-h{flex-wrap:wrap;height:auto;row-gap:10px}}
 #dkA .dk-pan .dk-ent{flex-wrap:wrap;height:auto;row-gap:8px}

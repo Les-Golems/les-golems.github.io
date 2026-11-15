@@ -1,0 +1,23 @@
+/* telephone guides : adaptation 0.7 mobile (<= 767 px) */
+.gd-e3{width:44px;height:44px}
+.gd-e3s{flex-wrap:wrap}
+.gd-li{height:auto;min-height:64px;padding:8px 10px}
+.gd-li b,.gd-li small{white-space:normal;overflow:visible;text-overflow:clip}
+.gd-li small{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center}
+.gd-meta{flex-wrap:wrap;row-gap:4px}
+.gd-ph,.gd-ph h3{flex-wrap:wrap;white-space:normal;overflow:visible;text-overflow:clip}
+.gd-tri{height:auto;flex-wrap:wrap}
+/* Barre Regles / Guides : selecteur, recherche pleine largeur, filtres chacun sur sa ligne */
+.cj-barre{grid-template-columns:minmax(0,1fr);gap:12px}
+.cj-barre>*{grid-column:1/-1!important}
+.cj-rech{order:2}
+.cj-filtres{order:3;display:grid;grid-template-columns:minmax(0,1fr);justify-items:start;gap:8px}
+.cj-filtres .cj-lib+*{margin-right:0}
+.cj-filtres>.cj-lib:not(:first-child){margin-top:4px}
+/* Detail d'un guide : le titre pousse la suite, boutons qui passent a la ligne */
+.gd-ph{height:auto;align-items:flex-start}
+.gd-meta{height:auto;flex-wrap:wrap;white-space:normal;row-gap:4px}
+.gd-r2{height:auto;flex-wrap:wrap;row-gap:10px}
+.gd-gest{flex-wrap:wrap;margin-left:0;flex:1 1 100%;min-width:0}
+.gd-gest>*{flex:1 1 auto;min-width:0}
+.gd-act{flex-wrap:wrap;flex:1 1 100%;min-width:0}.gd-act>.sc-btn{flex:1 1 auto;min-width:0}

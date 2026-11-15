@@ -431,7 +431,7 @@ async function ouvreProfil(autre){
   const bt=E('div','pr-btns'),f=E('button','sc-btn sc-secondaire','Fermer');f.type='button';bt.append(f);b.append(bt);
   const esc=e=>{if(e.key==='Escape'&&$('vue').hidden&&$('galerieAvatar').hidden)ferme()},ferme=()=>{cacheApercu();v.remove();removeEventListener('keydown',esc);if(moi)$('capsuleMoi').focus()};
   f.onclick=ferme;v.onclick=e=>{if(e.target===v)ferme()};addEventListener('keydown',esc);
-  v.append(b);document.body.append(v);if(typeof matchMedia==='function'&&matchMedia('(max-width:1079px)').matches){f.focus({preventScroll:true});v.scrollTop=0}else f.focus();
+  v.append(b);document.body.append(v);if(typeof matchMedia==='function'&&matchMedia(ECRAN_MOBILE).matches){f.focus({preventScroll:true});v.scrollTop=0}else f.focus();
 }
 /* Avatar change depuis la galerie : le profil ouvert suit (gros avatar). */
 function majAvatarProfil(){const a=document.querySelector('#profilJoueur .pr-av .avatar');if(a)a.replaceWith(avatarDe(compteCo()?pseudo:'?',monAvatar()))}
@@ -441,7 +441,7 @@ $('salonPublicCase').onchange=e=>{$('salonPublicTxt').textContent=e.target.check
 
 /* Telephone et tablette (<= 1079 px) seulement : pseudo de la capsule jamais coupe. Coupure aux espaces (CSS) ;
    si un mot reste trop large, la police diminue (14 px -> 8 px). Inerte au-dessus de 1079 px (style inline retire). */
-if(typeof matchMedia==='function'&&$('pseudoAffiche')){const p=$('pseudoAffiche'),mq=matchMedia('(max-width:1079px)');let enCours=false;
+if(typeof matchMedia==='function'&&$('pseudoAffiche')){const p=$('pseudoAffiche'),mq=matchMedia(ECRAN_MOBILE);let enCours=false;
  const ajuste=()=>{if(enCours)return;enCours=true;p.style.fontSize='';
   if(mq.matches&&p.clientWidth){const t=parseFloat(getComputedStyle(p).fontSize);for(let s=t;s>8&&(p.scrollWidth>p.clientWidth+1||p.scrollHeight>p.clientHeight+1);s-=.5)p.style.fontSize=(s-.5)+'px'}
   enCours=false};

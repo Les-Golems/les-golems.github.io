@@ -11,6 +11,10 @@
 #rgVue .rg-corps{overflow:visible}
 #rgVue .ter{min-height:40px}
 #rgVue img,#rgVue svg{max-width:100%}
+/* Le plateau : schema a ses proportions, texte juste dessous */
+#rgVue .ess{height:auto!important;grid-template-rows:none!important}
+#rgVue .ess .sv{height:auto!important;aspect-ratio:454/182;flex:none}
+#rgVue .ess>.bl>p{margin-top:12px!important}
 }
 @media (min-width:768px) and (max-width:899px){
 #rgVue#rgVue :is(.an2,.el4,.an){grid-template-columns:minmax(0,1fr)!important}

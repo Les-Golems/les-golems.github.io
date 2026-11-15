@@ -8,7 +8,10 @@ const DATE_V06='9 novembre 2026';
 const DATE_V06A='11 novembre 2026';
 /* Date de publication de la 0.7 : A REMPLIR LE JOUR J (ex. '13 novembre 2026'), bloc de version et Details. */
 const DATE_V07='12 novembre 2026';
+/* Date de publication de la 0.7a : A AJUSTER LE JOUR J si besoin, bloc de version et Details. */
+const DATE_V07A='15 novembre 2026';
 const NOUVEAUTES=[
+ {version:'Version 0.7a',date:DATE_V07A,notes:["Site adapté au téléphone et à la tablette","Glisser-déposer des cartes, à la souris ou au doigt","Vraie version affichée dans Parties en ligne","Nombreuses améliorations de confort","Nombreux bugs corrigés"]},
  {version:'Version 0.7',date:DATE_V07,notes:["Premier patch d'équilibrage","[[rework]] 6 cartes retravaillées","[[nerf]] 4 cartes affaiblies","[[buff]] 9 cartes renforcées","Nouveaux éléments pour 4 Golems","Plus de Golems à 1 de coût","Café du matin de {{Elccino}} corrigé","Ordre des éléments revu"]},
  {version:'Version 0.6a',date:DATE_V06A,notes:["Mode clair, dans le menu Affichage","Nouvelles animations : évolution, animal, destruction, victoire et plus","Rejeu corrigé dans la nouvelle interface de partie","Guides éditables : publication, modification ou suppression","Classement des decks par glisser-déposer","Profil et Statistiques corrigés","Nouveaux avatars disponibles","Nombreux bugs corrigés"]},
  {version:'Version 0.6',date:DATE_V06,notes:["Nouvelle interface","Parties classées (6 rangs, saison 0)","Récompenses : médaille Pionnier, écus du top 10","Nouveau Golem : {{Elccino}} (Brume, Cristal)","Nouvel animal : {{Uki}}, l'animal de Shifukuro (Roche)","6 decks conseillés, un par archétype","Le Golem adverse joue l'un d'eux au hasard","Nouveau mot-clé : Récupérer"]},
@@ -23,7 +26,7 @@ const NOUVEAUTES=[
 ];
 /* 0.6.1 : calendrier des sorties, tire de NOUVEAUTES (version et date de chaque bloc) ; heure de mise en ligne des builds connus
    (journal de main) pour departager deux versions du meme jour. Sert a l'Historique : version deduite de la date d'une partie ancienne. */
-const HEURES_SORTIE={'0.2a':'09:40','0.2b':'09:45','0.2c':'11:01','0.3':'18:40','0.4':'10:09','0.5':'14:48','0.5a':'12:52','0.6':'19:46','0.6a':'11:15','0.7':'19:35'}; /* 0.7 : heure de mise en ligne A REMPLIR LE JOUR J (ex. '18:30') */
+const HEURES_SORTIE={'0.2a':'09:40','0.2b':'09:45','0.2c':'11:01','0.3':'18:40','0.4':'10:09','0.5':'14:48','0.5a':'12:52','0.6':'19:46','0.6a':'11:15','0.7':'19:35','0.7a':'17:45'}; /* 0.7 : heure de mise en ligne A REMPLIR LE JOUR J (ex. '18:30') */
 const MOIS_FR=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 function sortiesVersions(){
   return NOUVEAUTES.map(n=>{const v=String(n.version).replace(/^Version /,''),m=/^(\d{1,2}) (\S+) (\d{4})$/.exec(String(n.date||'')),mo=m?MOIS_FR.indexOf(m[2]):-1;if(mo<0)return null;
@@ -35,6 +38,45 @@ function versionALaDate(t){if(!(t>0))return '';let v='';sortiesVersions().forEac
    Une ligne = une phrase courte pour les joueurs. Sous-liste : {t:"titre :",l:[...]}. Rubrique vide : [] (message neutre affiché).
    Nouvelle version : ajouter son entree en tete, comme dans NOUVEAUTES. */
 const DETAILS_VERSIONS={
+ 'Version 0.7a':{
+  nouveautes:[
+   "Tout le site s'adapte au téléphone et à la tablette (partie, menus, Saison, Statistiques, Anatomie d'une carte, Règles, Guides, Historique, Profil, salon, spectateur), avec des contrastes revus et des boutons plus faciles à toucher.",
+   "Téléphone en paysage pris en charge, avec un en-tête compact et des fenêtres qui défilent.",
+   "En partie sur tablette, la vue téléphone sert jusqu'à 1079 px de large, tablette en paysage et rejeu compris. Le mode spectateur s'affiche aussi sur tablette en paysage.",
+   "Glisser-déposer des cartes en partie et dans Tester des placements, à la souris ou au doigt (appui court), vers une case dorée. Le clic fonctionne toujours.",
+   "Tuiles de partie au téléphone identiques en ligne et contre le robot, avec le nom du Golem sur une ligne, les icônes d'élément visibles et une Force un peu plus petite.",
+   "Bandeau d'action en pastille compacte (ex. « Remp. 2 »), et bandeau « Main de X » toujours affiché.",
+   "Zoom d'un terrain compact au téléphone, sur fond opaque partout.",
+   "Étiquette verte au nom de l'animal de compagnie sur la tuile du maître, aussi au téléphone et à la tablette (« ♥ Kiwi » si la tuile a aussi le Favori). Au PC, animal et Favori s'empilent à gauche de la Force.",
+   "Poser un animal affiche « Poser » sur la case cible, sans coût, en partie comme dans Tester des placements.",
+   "Decks et Cartes en disposition tablette entre 1080 et 1599 px de large. Profil, Règles, decks et Historique mieux mis en page sur tablette.",
+   "Dans Parties en ligne, une partie d'une autre version affiche sa vraie version en gris (ex. v0.6c, v? si inconnue) au lieu de « Version différente ».",
+   "La version des Règles s'affiche toute seule.",
+   {t:"Tutoriel",l:[
+    "Les bulles ne cachent plus les boutons ni les cartes, et restent dans l'écran.",
+    "Les évolutions portent leur vrai nom (ex. « Trigas ★ »).",
+    "Le glisser-déposer fonctionne au téléphone."]},
+   {t:"Tester des placements",l:[
+    "Kiwi se place sous son maître, comme en partie (+1 de Force, pastille verte à son nom, bouton Retirer).",
+    "Aperçu de la carte au toucher (Fermer ou Poser), au survol sur ordinateur, et bouton Agrandir.",
+    "Glisser-déposer plus fiable, pastilles qui ne chevauchent plus le coût, et Échap ferme d'abord le zoom."]}],
+  corrections:[
+   "Un forfait en classée est toujours compté.",
+   "L'historique classé ne reste plus « en attente » après un abandon, et celui du joueur restant se met à jour sans délai.",
+   "L'étape 40 du tutoriel (fin de partie) s'affiche de nouveau.",
+   "Les images des Règles s'affichent, et leur ponctuation est revue.",
+   "Les animations se chargent à chaque fois.",
+   "Le score du bandeau est le même que celui du bilan de fin de manche, et le tiret entre les scores est corrigé.",
+   "« 1 carte » s'écrit au singulier.",
+   "La pagination s'affiche sous la forme « 1/6 ».",
+   "Dans Statistiques, le pseudo tient sur une ligne et les colonnes s'adaptent à la tablette.",
+   "Les libellés tiennent sur une ligne.",
+   "Sur les petits écrans, le défilement est corrigé et l'Énergie reste lisible à 320 px de large.",
+   "Fin de partie sur téléphone, le bouton Passer ne recouvre plus aucun bouton et le récap de fin défile.",
+   "Dans l'onglet Jouer, les boutons Créer ne débordent plus entre 1080 et 1399 px, et les lignes de Parties en ligne tiennent sur tablette.",
+   "Un pseudo long n'est plus coupé dans le bandeau sur téléphone et tablette."],
+  regles:[]
+ },
  'Version 0.7':{
   nouveautes:[
    "Premier patch d'équilibrage : 22 cartes modifiées après étude des statistiques. Éléments, duos d'éléments et Golems : écarts resserrés pour les rapprocher de 50 % de victoires.",
@@ -537,7 +579,7 @@ function unitesNotes(){
     if(b&&va&&va===b.querySelector('.nv-etq')?.textContent&&a.classList.contains('nv-golem')!==b.classList.contains('nv-golem')){U.push([a,b]);i++}else U.push([a])}
   return U;
 }
-const EPINGLE_VERSION='0.7';
+const EPINGLE_VERSION='0.7a';
 function epinglesNotes(){
   const ids=new Set([...$('notes').querySelectorAll(':scope>article.note')].map(a=>a.dataset.id));
   /* 0.5 (decision de Romain) : epingles AUTOMATIQUES. 1 = Feuille de route, 2 = bloc de la version la plus recente (NOUVEAUTES[0]) ;

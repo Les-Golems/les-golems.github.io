@@ -1,0 +1,56 @@
+/* telephone/salon.css : règles téléphone (seuils <= 767 px) sorties de css/onglets/jouer-salon.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:699px){#listeEnCours .po-lignes{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){
+  .chat.flottant.replie{right:10px;bottom:10px;border-radius:50%;width:52px;height:52px;background:var(--bleu);border:0}
+  .chat.flottant.replie .chat-tete{width:52px;height:52px;padding:0;justify-content:center;color:var(--encre);font-size:0;position:relative}
+  .chat.flottant.replie .chat-tete::before{content:'';width:24px;height:22px;background:var(--fond);clip-path:polygon(0 0,100% 0,100% 72%,45% 72%,20% 100%,22% 72%,0 72%)}
+  .chat.flottant.replie .chat-nb{position:absolute;top:2px;right:2px;font-size:12px}
+  .chat.flottant.replie .chat-tete button{display:none}
+  .chat.flottant:not(.replie){left:8px;right:8px;bottom:8px;width:auto;max-width:none}
+  .chat.flottant:not(.replie) .chat-liste{height:40vh}
+}
+
+/* ---- Adaptation 0.7 mobile (<= 767 px) ---- */
+@media (max-width:767px){
+#salon{padding:16px}
+#salon .sl-haut{flex-direction:column;align-items:stretch;gap:10px}
+#salon .sl-copies{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#salon .sl-haut .btnCode{width:100%;padding:0 8px;font-size:16px;min-height:44px}
+/* Sieges l'un sous l'autre, le mien en premier, pleine largeur */
+#salon .sl-duo{grid-template-columns:minmax(0,1fr);grid-template-rows:none;gap:10px}
+#salon .sl-duo>.sl-vs{display:none}
+#salon .sl-duo>.sl-j{grid-row:auto;grid-column:1!important;grid-template-rows:none;padding:40px 14px 14px}
+#salon .sl-duo>.sl-j.sl-moi{order:-1}
+#salon .sl-role{top:10px;left:14px;right:auto}
+/* Pseudo : calage JS (calePseudos) neutralise, place large garantie */
+#joueurs .sl-nom{white-space:nowrap;font-size:22px}
+#joueurs .sl-pw{max-width:calc(100% - 140px)!important;transform:none!important}
+#joueurs .sl-pw>span,#joueurs .sl-pw{overflow:hidden;text-overflow:ellipsis}
+#joueurs .sl-emb{width:40px;height:40px;right:calc(100% + 14px);top:-4px}
+#joueurs .sl-elo{width:40px;right:calc(100% + 14px)}
+#passerSpectateur{min-width:44px;min-height:44px}
+/* Rangee du bas : Pret en grand, puis Changer de deck et Quitter */
+#salon .sl-rangee{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+#salon .sl-rangee [hidden]{display:none}
+#salon .sl-rangee>#pret{grid-column:1/-1;grid-row:1;width:100%;max-width:none;margin:0;min-height:52px}
+#salon .sl-rangee>.sc-btn,#salon .sl-rangee .sl-quitter{width:100%;padding:0 8px;font-size:16px;white-space:normal;min-height:46px}
+#salon .sl-rangee .sl-quitter:only-child,#salon .sl-rangee .sl-quitter:last-child:nth-child(odd){grid-column:1/-1}
+.chat .cs .sc-btn,.chat .cs .btn{min-height:44px;padding:0 14px}
+}
+
+/* Pseudos de 20 caracteres et message du salon : sur plusieurs lignes, rien de coupe */
+@media (max-width:767px){
+#joueurs .sl-pn,#joueurs .sl-pw,#joueurs .sl-pw>span,#joueurs .sl-nom{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}
+#joueurs .sl-nom{height:auto;line-height:1.15}
+#salon .sl-specs li,#salon .sl-specs li>*,#salon .sl-specs li b{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;min-width:0}
+.chat-liste b,.chat-info,.chat-info *{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+#salon .j-robot>span{-webkit-line-clamp:unset;display:block;white-space:normal;overflow:visible;text-overflow:clip}
+}
+@media (max-width:767px){
+#joueurs .sl-pw>em{white-space:nowrap!important;overflow-wrap:normal!important}
+.j-robot.j-robot,.j-robot.j-robot>span{-webkit-line-clamp:unset;white-space:normal;overflow:visible;text-overflow:clip;height:auto}
+.j-robot.j-robot>span{display:block}
+#salon .sl-rangee .sl-quitter:last-child:nth-child(odd){grid-column:auto}
+#salon .sl-rangee:has(>#pret[hidden]) .sl-quitter{grid-column:1/-1}
+}

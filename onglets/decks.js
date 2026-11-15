@@ -355,7 +355,7 @@ function panneauDk(R,d,l){
   const sp=(t,v,ko)=>{const s=el('span','',t+' ');s.append(el('b',ko?'ko':'',v));inf.append(s)};
   sp('Éléments',Ed.length+'/'+M.ELEM_MAX,Ed.length>M.ELEM_MAX);sp('Bases',String(nb(C=>!C.base&&!C.animal)));sp('Évolutions',String(nb(C=>!!C.base)));R.append(inf);
   /* 0.6 (maquette 43, A) : cartes changees depuis la version du deck : bandeau d'information + « J'ai vérifié », seul geste qui remet le deck a la version actuelle. */
-  {const m=cartesModifiees(d.v||V_DECK_ANCIEN,d.cartes);if(m.length){const a=alerteDk('Deck : '+phraseModifiees(m)+'. Vérifie-le.',1,'sc-deux-lignes dk-verif');
+  {const m=cartesModifiees(d.v||V_DECK_ANCIEN,d.cartes);if(m.length){const a=alerteDk('Deck : '+phraseModifiees(m)+'. Vérifie⁠-⁠le.',1,'sc-deux-lignes dk-verif');
     a.append(btnDk("J'ai vérifié",'sc-tertiaire',()=>{d.v=M.VERSION;gardeDecks(l);peintDecks()}));R.append(a)}}
   const RS=raisonsDeck(d);RS.forEach(r=>{const a=alerteDk(['Deck invalide : ',...texteRiche(r.pt,r.t.replace(/^(Deck incomplet|Trop de cartes|Deck invalide) : /,''))],0,'sc-deux-lignes dk-errp');a.title=r.t;
     if(r.inc){const q=btnDk('Retirer','sc-tertiaire',()=>{r.inc.forEach(k=>delete d.cartes[k]);gardeDecks(l);peintDecks()});a.append(q)}R.append(a)});
@@ -737,8 +737,8 @@ function mentionsTuile(g,B){
     const fv=q.querySelector('.fav');if(fv){fv.remove();const m=el('span','tp-mt m-fav');m.innerHTML=COEUR_BAC;m.append('Favori');ms.append(m)}
     const cp=q.querySelector('.mini>.cp,.cp');if(cp){cp.remove();ms.append(el('span','tp-mt m-cp',cp.textContent))}
     q.querySelectorAll('.ani').forEach(x=>x.remove());
-    {const v=B&&B.G[+q.dataset.l][+q.dataset.k];if(v&&v.ani){const m=el('span','tp-mt m-ani',M.carte(v.ani.c).nom);m.style.cssText='background:var(--an-vert-past);color:var(--encre)';ms.prepend(m)}} /* animal attache : pastille verte au nom entier, comme decore() de la partie (.d-past.vert) */
-    const a=q.querySelector(':scope>.act');if(a){const hi=a.querySelector('.p-hint');if(hi)hi.remove();a.querySelector('.act-c')?.remove();const t=a.textContent.trim();a.remove();ms.append(el('span','tp-mt m-act',t));if(hi)ms.append(el('span','tp-mt m-hint',hi.textContent))}
+    {const v=B&&B.G[+q.dataset.l][+q.dataset.k];if(v&&v.ani){const m=el('span','tp-mt m-ani tp-mt-ani',M.carte(v.ani.c).nom);ms.prepend(m)}} /* animal attache : pastille verte au nom entier, comme decore() de la partie (.d-past.vert) */
+    const a=q.querySelector(':scope>.act');if(a){const hi=a.querySelector('.p-hint');if(hi)hi.remove();const ac=a.querySelector('.act-c'),al=a.querySelector('.act-l');let ma;if(ac&&al){ac.remove();al.remove();const r=a.textContent.replace(/\s+$/,'');ma=el('span','tp-mt m-act');ma.append(al,ac,r)}else ma=el('span','tp-mt m-act',a.textContent.trim());a.remove();ms.append(ma);if(hi)ms.append(el('span','tp-mt m-hint',hi.textContent))}
     if(ms.childElementCount){q.append(ms);q.classList.add('a-ms')}})}
 const pzBac=(n,v)=>{const s=el('span','tp-pz');s.append(ico(n),String(v));s.title=n==='force'?'Force':'Coût';return s};
 function pzCarteBac(C,fo){const z=el('div','tp-dh');z.append(el('b','',C.nom),pzBac('enclume',C.cout));if(!C.animal)z.append(pzBac('force',fo==null?C.force||0:fo));if(C.el&&C.el.length){const s=el('span','tp-pz');C.el.forEach(e=>s.append(picto(e)));z.append(s)}return z}
@@ -761,42 +761,17 @@ function apercuBac(t,choisit,dep){document.querySelectorAll('#mqAp').forEach(y=>
   const fe=el('button','mqb-b','Fermer');fe.type='button';fe.onclick=fin;const ok=el('button','mqb-b plein','Poser');ok.type='button';ok.onclick=()=>{o.remove();removeEventListener('keydown',esc,true);choisit()};
   b.append(fe,ok);o.append(im,el('p','',M.nomDetail(C)),b);o.onclick=e=>{if(e.target===o)fin()};addEventListener('keydown',esc,true);document.body.append(o);ok.focus()}
 const BAC_ENERGIE=2; /* energie du 1er tour */
-/* Glisser-deposer d'une carte du deck sur la grille (Pointer Events), memes parametres que la partie (dnd_geste) : il rejoue les clics,
+/* Glisser-deposer d'une carte du deck sur la grille, par glisserDeposer (commun/outils.js, memes reglages que la partie) : il rejoue les clics,
    selection (comme toucher la carte, si elle n'est pas deja choisie) puis clic sur la case si elle est en surbrillance (.cible) ;
-   sinon la carte fantome revient a sa place et la selection reste. Aucune regle ici.
-   Souris : detache apres 6 px. Toucher : appui immobile 200 ms (tolerance 8 px), ou deplacement vertical franc si la carte est deja choisie ; sinon defilement natif. */
-const DND={SOURIS:6,TOL:8,APPUI:200,BORD:60};
-function glisseBac(m,src,selectionne,{B,f,peint},dejaSel){
-  let st=null;const reduit=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
-  const fin=()=>{if(!st)return;clearTimeout(st.tm);cancelAnimationFrame(st.raf);st.sv?.classList.remove('glisse-survol');document.documentElement.classList.remove('glisse-en-cours');
-    removeEventListener('pointermove',bouge,true);removeEventListener('pointerup',lache,true);removeEventListener('pointercancel',annule,true);const fa=st.fa;st=null;return fa};
-  const caseSous=(x,y)=>{const q=document.elementFromPoint(x,y)?.closest('.p-case');return q&&f.contains(q)?q:null};
-  const defile=()=>{if(!st||!st.on)return;const y=st.y,b=DND.BORD,p=y<b?-(b-y):y>innerHeight-b?y-(innerHeight-b):0;
-    if(p){const v=Math.sign(p)*Math.round(4+12*Math.min(1,Math.abs(p)/b)),a=f.scrollTop;f.scrollTop+=v;if(f.scrollTop===a)scrollBy(0,v);survole()}st.raf=requestAnimationFrame(defile)};
-  const survole=()=>{const q=caseSous(st.x,st.y);if(q!==st.sv){st.sv?.classList.remove('glisse-survol');st.sv=q;q?.classList.add('glisse-survol')}};
-  const source=()=>f.querySelector('.tp-m.sel')||null;
-  const detache=()=>{if(st.on)return;st.on=true;clearTimeout(st.tm);
-    const r=m.getBoundingClientRect(),w=Math.min(110,r.width),fa=el('img','glisse-fantome');fa.src=src;fa.alt='';fa.style.width=w+'px';fa.style.height=w*1.4+'px';
-    st.dx=w/2;st.dy=w*.7*(st.tact?1.6:1);st.r=r;document.body.append(fa);st.fa=fa;if(reduit())fa.classList.add('fixe');document.documentElement.classList.add('glisse-en-cours');
-    if(!dejaSel()){selectionne();peint()}source()?.classList.add('glisse-source');place();st.raf=requestAnimationFrame(defile)};
-  const place=()=>{if(st.fa)st.fa.style.transform='translate('+(st.x-st.dx)+'px,'+(st.y-st.dy)+'px)'+(reduit()?'':' rotate(-4deg)');survole()};
-  const bouge=e=>{if(!st||e.pointerId!==st.id)return;st.x=e.clientX;st.y=e.clientY;const dx=st.x-st.x0,dy=st.y-st.y0,d=Math.hypot(dx,dy);
-    if(!st.on){if(!st.tact){if(d<DND.SOURIS)return;detache()}
-      else{if(d<=DND.TOL)return;if(dejaSel()&&Math.abs(dy)>Math.abs(dx))detache();else return fin()}}
-    e.preventDefault();place()};
-  const revient=fa=>{source()?.classList.remove('glisse-source');if(!fa)return;const s=f.querySelector('.tp-m.sel');
-    if(reduit()||!s)return fa.remove();const r=s.getBoundingClientRect();fa.style.transition='transform 180ms ease-out';fa.style.transform='translate('+r.left+'px,'+r.top+'px)';setTimeout(()=>fa.remove(),190)};
-  const lache=e=>{if(!st||e.pointerId!==st.id)return;if(!st.on)return fin();e.preventDefault();const q=caseSous(e.clientX,e.clientY),l=q&&q.dataset.l,k=q&&q.dataset.k,fa=fin();
-    m.dataset.dndFin=Date.now();const c=l!=null&&f.querySelector('.p-case[data-l="'+l+'"][data-k="'+k+'"]');
-    if(c&&c.classList.contains('cible')){fa?.remove();c.click()}else revient(fa)};
-  const annule=e=>{if(!st||e.pointerId!==st.id)return;revient(fin())};
-  m.addEventListener('pointerdown',e=>{if(st||m.disabled||(e.pointerType==='mouse'&&e.button!==0))return;
-    st={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,tact:e.pointerType!=='mouse',on:false};
-    if(st.tact)st.tm=setTimeout(()=>{if(st&&!st.on)detache()},DND.APPUI);
-    addEventListener('pointermove',bouge,true);addEventListener('pointerup',lache,true);addEventListener('pointercancel',annule,true)});
-  m.addEventListener('touchmove',e=>{if(st&&st.on&&e.cancelable)e.preventDefault()},{passive:false}); /* glisser en cours : pas de defilement */
-  m.addEventListener('click',e=>{if(Date.now()-(+m.dataset.dndFin||0)<400){e.stopImmediatePropagation();e.preventDefault()}},true);
-  m.addEventListener('dragstart',e=>e.preventDefault());m.addEventListener('contextmenu',e=>{if(st&&st.tact)e.preventDefault()})}
+   sinon la carte fantome revient a sa place et la selection reste. Aucune regle ici. */
+function glisseBac(m,selectionne,{f,peint},dejaSel){
+  const choisie=()=>f.querySelector('.tp-m.sel')||null;
+  glisserDeposer({ecoute:m,source:'.tp-m',accepte:b=>!b.disabled,choisie:dejaSel,
+    choisit:()=>{if(!dejaSel()){selectionne();peint()}},marque:choisie,
+    cible:(x,y)=>{const q=document.elementFromPoint(x,y)?.closest('.p-case');return q&&f.contains(q)?q:null},
+    depose:q=>{const c=f.querySelector('.p-case[data-l="'+q.dataset.l+'"][data-k="'+q.dataset.k+'"]');if(!c||!c.classList.contains('cible'))return false;c.click();return true},
+    defile:p=>{const v=Math.sign(p)*Math.round(4+12*Math.min(1,Math.abs(p)/GLISSE.BORD)),a=f.scrollTop;f.scrollTop+=v;if(f.scrollTop===a)scrollBy(0,v)},
+    decalage:t=>t?.8:.5,retour:()=>{const s=choisie();return s&&s.getBoundingClientRect()},fondu:false,bloqueClic:400})}
 function bacFen(f,d,ferme){
   const B=bacDe(d),peint=()=>{const y=f.scrollTop;bacFen(f,d,ferme);f.scrollTop=y};f.textContent='';
   M.TYPES.forEach(t=>{let n=bacUtilises(B,t)-(+d.cartes[t]||0);for(let l=2;l>=0&&n>0;l--)for(let k=2;k>=0&&n>0;k--){const g=B.G[l][k];if(g&&M.carte(g.c).id===t){bacRetire(B,l,k);n--}}});
@@ -844,9 +819,9 @@ function bacFen(f,d,ferme){
     const im=el('img');im.src=imgV('cartes/'+t+'.jpg');im.alt='';m.append(im);if(!MAIN)m.append(el('span','tp-x'+(n?'':' zero'),'x'+n));
     m.setAttribute('aria-label',M.nomDetail(C)+(MAIN?'':', '+n+' à poser'));m.title=M.nomDetail(C);m.disabled=n<=0;m.setAttribute('aria-pressed',String(B.sel===t));
     const choisit=()=>{B.sel=t;B.selC=null;B.mode=null;peint()};
-    m.onclick=()=>{if(matchMedia('(max-width:1079px)').matches&&!(MAIN?false:n<=0))return apercuBac(t,choisit,m);B.sel=B.sel===t?null:t;B.selC=null;B.mode=null;peint()};
-    if(matchMedia('(hover:hover) and (min-width:1080px)').matches){m.onmouseenter=ev=>{ap.src=im.src;ap.hidden=false;place(ev)};m.onmousemove=place;m.onmouseleave=()=>{ap.hidden=true}}
-    if(n>0)glisseBac(m,im.src,()=>{B.sel=t;B.selC=null;B.mode=null},{B,f,peint},()=>B.sel===t);
+    m.onclick=()=>{if(matchMedia(ECRAN_MOBILE).matches&&!(MAIN?false:n<=0))return apercuBac(t,choisit,m);B.sel=B.sel===t?null:t;B.selC=null;B.mode=null;peint()};
+    if(matchMedia('(hover:hover) and '+ECRAN_PC).matches){m.onmouseenter=ev=>{ap.src=im.src;ap.hidden=false;place(ev)};m.onmousemove=place;m.onmouseleave=()=>{ap.hidden=true}}
+    if(n>0)glisseBac(m,()=>{B.sel=t;B.selC=null;B.mode=null},{f,peint},()=>B.sel===t);
     rr.append(m)});
   lz.append(rr,ap);dr.append(lz);
   /* Detail */
@@ -854,7 +829,7 @@ function bacFen(f,d,ferme){
   if(B.selC){const v=G[sa][sb],C=M.carte(v.c),id=M.idEff(v);dt.append(pzCarteBac(C,C.animal?null:M.forceDe(s,0,sa,sb)));
     const msg={bouge:'Touche une case libre (Ici) ou un autre Golem (Échanger).',fav:'Choisis son favori : touche un de tes Golems.',copie:'Déguisement : touche le voisin à copier.'}[B.mode];if(msg)dt.append(el('p','tp-msg',msg));
     const notes=[BAC_NOTE[C.id]];if(C.id!==id&&id&&BAC_NOTE[id])notes.push('Copie : '+BAC_NOTE[id]);const nt=notes.filter(Boolean).join(' ');if(nt)dt.append(el('p','',nt));
-    if(v.ani){const A=M.carte(v.ani.c),la=el('p','tp-ani');la.style.color='var(--vert-ani)';la.style.fontWeight='700';la.append(A.nom+' sous '+C.nom+' : +1 de Force');dt.append(la)}
+    if(v.ani){const A=M.carte(v.ani.c),la=el('p','tp-ani');la.append(A.nom+' sous '+C.nom+' : +1 de Force');dt.append(la)}
     const bs=el('div','tp-acts'),bt=(x,fn,p)=>{const q=btnDk(x,'sc-tertiaire',fn);if(p!==undefined)q.setAttribute('aria-pressed',String(p));bs.append(q)};
     bt('Agrandir',()=>agrandir(sa,sb));bt('Déplacer',()=>{B.mode=B.mode==='bouge'?null:'bouge';peint()},B.mode==='bouge');
     bt('Retirer',()=>{bacRetire(B,sa,sb);B.selC=null;B.mode=null;peint()});

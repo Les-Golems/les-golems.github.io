@@ -1,3 +1,5 @@
+/* tablette (768-1079) : deux rangees, etat / type / joueurs-score en haut, les deux joueurs dessous sur toute la largeur, bouton ou etiquette de version a droite sur les deux rangees (pseudo long, attente, v0.6c sans chevauchement) */
+@media (min-width:768px) and (max-width:1079px){.j-p{grid-template-columns:auto auto minmax(0,1fr) 120px;grid-template-areas:"et tag inf btn" "duo duo duo btn";height:auto;min-height:48px;row-gap:6px;padding:8px 6px 8px 14px}.j-p>.j-et{grid-area:et}.j-p>.j-tag{grid-area:tag;justify-self:start}.j-p>.j-inf{grid-area:inf;min-width:0;overflow:hidden;text-overflow:ellipsis}.j-p>.j-duo{grid-area:duo}.j-p>.sc-btn,.j-p>.j-ver,.j-p>.j-moi{grid-area:btn;align-self:center}.j-p .j-j .lib{min-width:0;overflow:hidden;text-overflow:ellipsis}}
 /* tablette jouer : adaptation 0.7 mobile (768-1079 px), enveloppee pour ne pas toucher le telephone */
 @media (min-width:768px){
 .j-tag:not(.cl){text-shadow:0 1px 1px rgba(0,0,0,.45)}

@@ -36,7 +36,11 @@ html.clair .tp-bac{--moi:var(--moi-texte)}
 .tp-bac .p-case.cible:not(:has(.mini)){background:rgba(241,195,90,.12)}
 .tp-bac .p-case.choisie{border:3px solid var(--bleu);box-shadow:0 0 0 2px rgba(1,193,240,.35)}
 .tp-bac .p-case.tp-ko{opacity:.45;cursor:not-allowed;color:var(--doux);font:700 14px var(--corps);display:grid;place-items:center}
-.p-case .tp-ms{position:absolute;left:6px;bottom:6px;display:flex;gap:4px;align-items:center;z-index:3;max-width:calc(100% - 70px)}
+.p-case .tp-ms{position:absolute;left:6px;bottom:4px;display:flex;gap:4px;align-items:center;z-index:3;max-width:calc(100% - 72px)}
+.p-case .tp-ms>.tp-mt{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}.p-case .tp-ms>.tp-mt:not(.m-fav){display:block} /* bloc : les points de suspension marchent (pas dans un inline-flex) */ /* jamais sur la Force : points de suspension au pire */
+.p-case .tp-ms:has(>.m-act):has(>.tp-mt:not(.m-act):not(.m-hint)){flex-direction:column;align-items:flex-start;gap:2px} /* Kiwi ou Favori + etiquette de cible : deux lignes */
+.tp-bac .p-case.a-ms:has(.tp-ms>.m-act):has(.tp-ms>.tp-mt:not(.m-act):not(.m-hint)) .mini{--bas:48px}
+.tp-bac .p-case.a-ms .mini{--bas:max(calc(2px + var(--f)/2 - 11.5px),28px)} /* pastilles (animal, Favori, cible) sous le cout, comme l'etiquette .act de la partie (partie.css .p-case:has(>.act) .mini) : ni le cout ni la Force touches */
 .tp-mt{display:inline-flex;align-items:center;gap:3px;height:20px;padding:0 8px;border-radius:999px;font:800 12px/20px var(--corps);white-space:nowrap;flex:none}
 .m-act{background:var(--or);color:var(--encre)}.m-fav{background:#d6336c;color:#fff}.m-cp{background:#7c3aed;color:#fff}.m-hint{background:#eaf4f8;color:var(--encre)}
 .tp-dr{display:flex;flex-direction:column;gap:14px;min-width:0}
@@ -73,3 +77,18 @@ html.clair .tp-bac{--moi:var(--moi-texte)}
 .ct-l:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
 .ct-l.actuel{box-shadow:inset 0 0 0 3px var(--bleu)}
 .ct-l:disabled{opacity:.45;cursor:not-allowed}
+
+/* Glisser-deposer d'une carte du deck (glisseBac) : carte fantome et case survolee dans css/base.css (bloc commun avec la partie) */
+#popTest .tp-m img{-webkit-user-drag:none;-webkit-touch-callout:none}
+/* PC etroit (1080 a 1599 px) : Tester des placements aux cibles de 40 px, comme la tablette 1024 paysage (ex-tablette/decks-large.css ; Decks et Cartes : fin de decks-historique.css). */
+@media (min-width:1080px) and (max-width:1599px){
+#popTest .tp-mode{height:46px;padding:3px}
+#popTest .tp-mode>button{height:40px}
+#popTest .tp-chg{height:40px;bottom:-46px}
+#popTest .p-terrain{margin-bottom:48px}
+#popTest .bac-mention summary{min-height:40px}
+#popTest .tp-lib{white-space:normal;line-height:1.3}
+}
+
+.tp-mt.tp-mt-ani{background:var(--an-vert-past);color:var(--encre)} /* animal attache (Tester des placements) : pastille verte au nom entier, comme decore() de la partie (.d-past.vert) */
+#popTest .tp-ani{color:var(--vert-ani);font-weight:700} /* Detail du maitre : ligne verte de l'animal attache */.m-act .act-c{display:none} /* forme courte « Remp. » / « Amel. » : telephone seulement (css/telephone/decks.css) */

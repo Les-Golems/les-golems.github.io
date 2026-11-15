@@ -26,7 +26,7 @@ body:has(#barreRejeu) #partie .p-tot{opacity:1}
 #rgVue .gr .fa,#rgVue .gr .fa .rg-mot{color:var(--encre)}
 /* Regles, Precisions sur les cartes : une colonne au telephone ; noms de cartes longs a la ligne */
 #rgVue .prec{grid-template-columns:minmax(0,1fr)}
-#rgVue .j-colle,#rgVue .j-colle .j-lien{white-space:normal}
+#rgVue .j-colle{white-space:nowrap}#rgVue .j-colle .j-lien{white-space:normal}
 /* Statistiques : en-tetes triables de 40 px sans recouvrir la 1re ligne */
 .st-th{height:auto;min-height:24px}
 /* Contrastes (suite) : taux et symboles rouges, zeros du detail de partie, pastille i du bandeau de version */

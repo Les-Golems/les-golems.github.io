@@ -169,3 +169,13 @@ body.daltonien :is(.sc-taux-vert,.sc-taux-ambre,.sc-taux-rouge,.sc-sym-vert,.sc-
   --js-r-diamant:#ffffff;--js-r-pionnier:#bfe9ff;--js-anneau:rgba(255,255,255,.10);--js-pointille:#3a5263;--js-case:#0f1a24}
 html.clair{--js-taux-haut:#157443;--js-taux-moyen:#84620a;--js-taux-bas:#c41f26;--js-taux-bas2:#c41f26;--js-or-taux:#7a5a06;--js-ligne:#04678b;
   --js-r-diamant:#3f6f8c;--js-r-pionnier:#04678b;--js-anneau:rgba(10,18,26,.10);--js-pointille:#9aabb8;--js-case:#dde3e9}
+/* 0.7a : glisser-deposer commun (glisserDeposer, commun/outils.js) : partie (vue/joueur.js) et Tester des placements (onglets/decks.js glisseBac).
+   Carte fantome qui suit le doigt ou la souris, carte d'origine grisee, case survolee doree. */
+html.glisse-en-cours,html.glisse-en-cours *{cursor:grabbing!important;user-select:none;-webkit-user-select:none}
+.glisse-fantome{position:fixed;left:0;top:0;z-index:9999;pointer-events:none;opacity:.92;transform:rotate(-4deg);border-radius:8px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.45);will-change:transform}
+.glisse-fantome img{display:block;width:100%;height:100%;object-fit:cover}
+.glisse-source{opacity:.35}
+.p-case.cible.glisse-survol,#popTest .p-case.glisse-survol{outline:3px solid var(--or);outline-offset:-3px;transform:scale(1.04)}
+#popTest .p-case.glisse-survol{z-index:2}
+@media (prefers-reduced-motion:reduce){.glisse-fantome{transform:none}.p-case.cible.glisse-survol,#popTest .p-case.glisse-survol{transform:none}}
+.sep-score{font-family:var(--corps);font-weight:800} /* 0.7a : separateur de score en Lilita = tiret long : police du corps */

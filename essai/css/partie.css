@@ -65,7 +65,6 @@ html.clair :is(#jouer,#vueDetail){--moi:#086f95;--lui:var(--adverse-texte)}
 #aniDet .l svg{width:22px;height:22px;flex:none}
 #aniDet .rap{margin-top:8px;font-size:.85em;opacity:.8}
 #aniDet .x{position:absolute;top:6px;right:10px;background:none;border:0;font-size:30px;line-height:1;color:var(--croix);cursor:pointer}
-@media (max-width:699px){#aniDet{grid-template-columns:1fr 1fr;font-size:15px;padding:44px 14px 14px;gap:12px}#aniDet .t{grid-column:1/-1}#aniDet h3{font-size:30px}#aniDet h3.an{font-size:26px}#aniDet img{max-width:150px}}
 .p-case{position:relative;height:var(--h);padding:0;border:var(--case-ep) var(--case-style) var(--case-bord);background:var(--case-fond);overflow:hidden;min-width:0;display:block;width:100%;color:var(--doux);font-size:15px;line-height:1.2;border-radius:13px 9px 14px 8px/9px 13px 8px 14px}
 .p-case:disabled{cursor:default;border-style:dashed;background:transparent}
 /* Contour dore des evolutions (jeu, spectateur, bac a sable, Historique) : vrai contour de 3 px, coins arrondis de la case dedans et dehors, comme css/diffusion.css. Cible et choisie (plus bas) passent devant. */
@@ -128,7 +127,6 @@ body.daltonien .mini .evs{display:inline}
 .p-signal.s-lui{background:color-mix(in srgb,var(--lui) 18%,var(--panneau2));border-left:4px solid var(--lui);border-radius:4px;color:var(--texte)}
 .p-signal.s-lui b{color:var(--lui)}
 .p-main.en-veille .p-slot{filter:grayscale(.75) brightness(.6);transition:filter .3s}
-@media (max-width:899px){.p-signal b{font-size:23px}}
 /* Ordinateur : bande compacte, et la zone d'apercu lui cede sa hauteur minimale (jamais de defilement ajoute). */
 @media (min-width:1200px){
   .p-signal{padding:3px 12px}.p-signal b{font-size:22px}.p-signal span{font-size:14px}
@@ -178,7 +176,6 @@ body.daltonien .mini .evs{display:inline}
 .p-pied .lien{padding:2px 0}
 .p-pied.duo{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .p-fin{text-align:center;margin:0}
-@media(max-width:899px){.p-table.fini .p-poste{order:-1}}
 .p-fin h3{font-size:30px;color:var(--or-texte)}
 .p-fin p{margin:4px 0 10px}
 @media (min-width:900px){
@@ -273,8 +270,6 @@ body:not(.daltonien) .dl-force.dl-mot{visibility:hidden}
 .p-outils .dal-inter .pf-itx{display:none}.p-outils .dal-inter{padding:0 8px}
 #partie .p-tourde:has(.dal-inter){padding-right:204px}
 #dif .d-bas:has(.dal-inter){flex-wrap:wrap;justify-content:center;row-gap:10px}#dif .dal-inter{flex:none}#dif .d-coin:has(.dal-inter) .d-logo img{width:110px;height:110px}
-@media (max-width:899px){#partie .p-tourde:has(.dal-inter){padding-right:172px}}
-@media (max-width:440px){header .haut .moi .dal-inter{grid-row:3;grid-column:1/3;justify-self:end}}
 /* Paquets du joueur */
 .p-piles{display:flex;justify-content:center;gap:18px}
 .pile{position:relative;width:72px;text-align:center;font:400 17px/20px var(--titre);color:var(--texte)}
@@ -345,11 +340,7 @@ html.tel-joueur #vueTas,html.tel-joueur #vue{z-index:60} /* telephone : au-dessu
 #vueDetail .zt-tot b{font:400 28px/1 var(--titre)}
 #vueDetail .zt-tot.mene b{text-shadow:0 0 12px currentColor}
 #vueDetail .zt-eg{font:400 18px/1 var(--titre);color:var(--or-texte);margin-left:6px}
-@media (max-width:760px){.grand.avecDetail:has(.zt-camp){grid-template-columns:minmax(0,1fr);max-width:500px}}
-@media (max-width:440px){#vueDetail .zt-camp{padding:10px}#vueDetail .zt-l li{grid-template-columns:minmax(0,1fr) 70px;gap:6px}#vueDetail .zt-l .dl-ligne{grid-template-columns:32px 32px 44px minmax(0,1fr);padding:2px 5px}#vueDetail .zt-l .dl-nom{flex-direction:column;gap:0;font-size:14px;line-height:1.05}#vueDetail .zt-l .dl-titre{font-size:11.5px}#vueDetail .zt-v{font-size:13px}#vueDetail .zt-v b{font-size:21px}}
-@media (max-width:760px){.grand.avecDetail{grid-template-columns:minmax(0,1fr)}.grand.avecDetail .vue-img{justify-self:center;width:min(308px,100%)}}
 @media (max-width:1199px){.p-tourde{grid-column:1/-1}}
-@media (max-width:899px){.p-tourde{height:36px}.p-ener{font-size:25px}}
 .p-lignes .ico{font-size:15px;margin-top:2px}
 .p-lignes span:last-child{min-width:0}
 .j-pose,.j-point{color:var(--bleu-titre)}.j-evo{color:var(--or-texte)}.r-evo{color:var(--or-texte);font-weight:700}.r-ani{color:var(--vert-ani);font-weight:700}.r-el{white-space:nowrap}.r-el img{width:1.15em;height:1.15em;vertical-align:-.2em;margin-right:.2em}.j-bonus{color:#6fe08a}.j-degat{color:#ff8a78}.j-mort{color:#8f9ca6}
@@ -455,9 +446,7 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#des){display:none}
 /* Toujours une ligne : « Remplacer / Améliorer N +X » si ça tient dans la case, sinon « Remp. / Amél. N +X » (classe court, posée par ajusteRemp quel que soit l'écran). */
 .p-case .act:has(>.act-c){white-space:nowrap}.p-case .act.court .act-l{display:none}.p-case .act.court .act-c{display:inline}.p-case .act.serre{padding-left:1px;padding-right:1px}
 /* Telephone : toujours la forme courte. */
-@media (max-width:640px){.p-case .act .act-l{display:none}.p-case .act .act-c{display:inline}}
 /* Petit telephone : « Remp. N +X » prend toute la largeur du bas de la case, l'hexagone de Force remonte juste au-dessus (rien de cache). */
-@media (max-width:413px){.p-case .act:has(>.act-c){right:0;border-radius:0}.p-case:has(>.act>.act-c) .f{bottom:24px}}
 .btnCode{display:block;margin:0 0 12px;min-height:40px;padding:6px 14px;font-size:16px}
 .r-fin{text-align:left;margin:0 0 10px;font-size:15px;line-height:1.4}
 .r-fin div{padding:4px 0;border-top:1px solid var(--trait)}
@@ -482,7 +471,14 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#des){display:none}
    environ 6px d'écart (5px sur téléphone). Centré sur l'hexagone comme la rangée du coût (même --bas, même hauteur de 23px). */
 .p-case .fav{position:absolute;right:calc(var(--f)*.82 + 6px);bottom:var(--bas);height:23px;display:flex;align-items:center;color:#ff4d8d}
 .p-case .fav svg{width:18px;height:18px;overflow:visible}
-@media (max-width:899px){.p-case .fav{right:calc(var(--f)*.82 + 5.7px)}.p-case .fav svg{width:15px;height:15px}}
+/* 0.7 mobile : animal attache, nom en pastille verte (meme rendu que #dif .d-past.vert) dans la rangee du cout, entre le cout et la Force (ou le coeur du favori) ;
+   vue telephone seulement (html.tel-joueur, <= 1079 px), rien au PC ; nom trop long : points de suspension */
+.p-case .m-ani{display:none}
+html.tel-joueur .p-case.a-ani .mini .bas{right:calc(var(--f)*.82 + 4px)}
+html.tel-joueur .p-case.a-ani:has(.fav) .mini .bas{right:calc(var(--f)*.82 + 24px)}
+html.tel-joueur .p-case .m-ani{display:block;flex:0 1 auto;min-width:0;height:16px;padding:0 5px;border-radius:999px;background:var(--an-vert-past);color:var(--encre);font:800 10px/16px var(--corps);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* telephone (<= 767 px), animal + favori sur la meme tuile : coeur dans la pastille verte, regles dans css/telephone/partie.css */
+@media (min-width:768px){html.tel-joueur .p-case .m-ani{height:20px;padding:0 8px;font-size:12px;line-height:20px}}
 .c-avenir .q{font:400 46cqw/1 var(--titre);color:var(--or)}
 .c-avenir .n{position:absolute;top:4cqw;left:6cqw;font:400 8cqw/1 var(--titre);color:var(--doux)}
 .c-avenir .m{font:400 11cqw/1.1 var(--titre);max-width:92%;overflow-wrap:anywhere}
@@ -519,3 +515,4 @@ html.clair .p-totaux :is(.a,.m),html.clair #partie .p-tot{opacity:1}
 html.clair .pile:not(.vide) :is(.v-mot,.v-nb){color:var(--encre);text-shadow:none}
 html.clair #vueDetail .zt-vide>span{opacity:1}
 html.clair .p-signal.s-lui b{color:var(--lui-titre-fonce)}
+

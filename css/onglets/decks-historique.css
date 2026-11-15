@@ -519,3 +519,72 @@ html.clair .dk-ent .ct{background:var(--gris-b1);color:var(--texte)}
 html.clair .hl-av.golem{background:var(--doux)}
 html.clair .dk-q button.dk-gris{opacity:1;color:var(--doux)}
 html.clair .dl-col.dl-vide{opacity:1}
+/* PC etroit (1080 a 1599 px) : la mise en page PC de Decks et Cartes deborde sous 1600 px (filtres et cartes sous le panneau du deck) ; on y reprend la disposition tablette 1024 paysage (ex-tablette/decks-large.css, declarations ecrasees retirees). Fenetre Tester des placements : fin de decks-bac.css. */
+@media (min-width:1080px) and (max-width:1599px){
+#listeDecks .dk-vue>button{height:40px}
+#listeDecks .dk-vue{height:48px}
+#dkA{height:auto!important;display:grid;gap:16px}
+#dkA.dk-cartes{grid-template-columns:minmax(0,1fr)}
+#dkA.dk-cartes .dk-col{display:none}
+#dkA .dk-col{display:grid;align-content:start}
+#dkA .dk-col>*{grid-column:1/-1}
+#dkA .dk-dks{flex-direction:row;overflow-x:auto;overflow-y:hidden;gap:8px;overscroll-behavior-x:contain}
+#dkA .dk-tuile,#dkA .dk-tuile.inv{flex:none;scroll-snap-align:start}
+#dkA .dk-tuile:not(.inv){grid-template-rows:auto auto}
+#dkA .dk-p{height:40px;min-width:40px}
+#dkA .dk-couts .dk-p{min-width:40px}
+#dkA .dk-rech{height:40px}
+#dkA .e3{width:40px;height:40px}
+#dkA .dk-mode{height:46px;padding:3px}
+#dkA .dk-mode>button{height:40px}
+#dkA .dk-reinit{height:40px}
+#dkA .dk-q2 i{width:24px;height:24px;font-size:13px;position:relative}
+#dkA .dk-q2 i::before{content:'';position:absolute;inset:-8px}
+#dkA .dk-pp{scrollbar-width:none}
+#dkA .dk-pp::-webkit-scrollbar{display:none}
+#dkA .dk-gr{gap:12px;justify-content:stretch}
+#dkA .dk-c img{height:auto!important;aspect-ratio:5/7}
+#dkA .dk-q{height:42px;grid-template-columns:40px minmax(0,1fr) 40px}
+#dkA .dk-q button{height:40px}
+#dkA .dk-tn{height:42px}
+#dkA .dk-pied{height:40px}
+#dkA .dk-pag button{width:40px;height:40px}
+#dkA .dk-ent .cr{width:40px;height:40px}
+#dkA .dk-voir,#dkA .dk-verif .sc-btn{height:40px}
+#dkA .dk-verif{min-height:56px;height:auto}
+#dkA .dk-p{flex:none}
+#dkA .dk-pan .dl-pied{margin-top:16px}
+#dkA .dk-f{flex-wrap:wrap;row-gap:10px}
+#dkA .dk-rech{order:0;flex:1 1 0;min-width:0}
+#dkA .dk-reinit{order:1;margin-left:0!important;padding:0 14px}
+#dkA .dk-f>.dk-sep{order:2;flex:0 0 100%;width:auto;height:0;background:none}
+#dkA .dk-f>.dk-sep~*:not(.dk-reinit):not(.dk-sep){margin-top:-10px}
+#dkA .dk-f:first-child>.dk-lib,#dkA .dk-f:first-child>.dk-pp{order:3}
+#dkA .dk-f:first-child>.dk-sep~.dk-sep{display:none}
+#dkA .dk-f:nth-child(3)>.dk-sep~*{order:3}
+#dkA .dk-col{grid-template-columns:minmax(0,1fr) 200px 260px;column-gap:10px;align-items:center}
+#dkA .dk-titre{grid-column:1;grid-row:1;margin:0}
+#dkA .dk-plein{grid-column:2;grid-row:1;margin-top:0!important}
+#dkA .dk-col>.dk-ligne{grid-column:3;grid-row:1;margin-top:0}
+#dkA .dk-dks{grid-row:2;margin-top:14px}
+#dkA .dk-f{align-items:flex-start}
+#dkA .dk-f+.dk-f{margin-top:10px}
+#dkA .dk-f>.dk-lib,#dkA .dk-q2{flex:0 0 96px;height:40px;display:flex;align-items:center}
+#dkA .dk-f>.dk-rech,#dkA .dk-f>.dk-reinit{align-self:center}
+#dkA .dk-f>.dk-pp{flex:1 1 0;min-width:0;flex-wrap:wrap}
+#dkA .dk-f:first-child>.dk-pp{flex:1 1 0}
+#dkA{grid-template-columns:minmax(0,1fr) 340px}
+#dkA .dk-gr{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+#dkA .dk-col{grid-column:1/-1}
+#dkA.dk-cartes .dk-gr{grid-template-columns:repeat(8,minmax(0,1fr))!important}
+#dkA .dk-dks{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));overflow:visible;margin:14px 0 0;padding:0;scroll-snap-type:none}
+#dkA .dk-tuile,#dkA .dk-tuile.inv{width:auto;min-width:0}
+#dkA .dk-tuile,#dkA .dk-tuile.inv{height:auto;min-height:68px}
+#dkA .dk-tuile b,#dkA .dk-tuile .rs,#dkA .dk-tuile .dk-sous{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+#dkA .dl-titre{white-space:normal;overflow:visible;text-overflow:clip}
+#dkA .dk-pan .dk-ent{flex-wrap:wrap;height:auto;row-gap:8px}
+#dkA .dk-pan .dk-ent .nm{flex:1 0 100%;white-space:normal;overflow:visible;text-overflow:clip;height:auto;overflow-wrap:anywhere}
+.dk-voile .dk-fen-err,.dk-voile .dk-fen-err *{white-space:normal;overflow:visible;text-overflow:clip;height:auto}
+.dk-voile .sc-alerte,#dkA .sc-alerte{height:auto;min-height:56px}
+.dk-voile .sc-alerte>span,#dkA .sc-alerte>span{display:block;-webkit-line-clamp:unset;overflow:visible}
+}

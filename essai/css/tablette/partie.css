@@ -1,0 +1,166 @@
+/* tablette/partie.css : règles tablette (seuils de 768 à 1079 px) sorties de css/partie.css (rangement 0.7a, aucun seuil changé).
+   Chargé après les fichiers d'origine (index.html). */
+@media (max-width:899px){.p-signal b{font-size:23px}}
+@media(max-width:899px){.p-table.fini .p-poste{order:-1}}
+@media (max-width:899px){#partie .p-tourde:has(.dal-inter){padding-right:172px}}
+@media (max-width:899px){.p-tourde{height:36px}.p-ener{font-size:25px}}
+@media (max-width:899px){.p-case .fav{right:calc(var(--f)*.82 + 5.7px)}.p-case .fav svg{width:15px;height:15px}}
+
+/* 0.7 mobile : la vue telephone s'etend a 1079 px (TEL dans vue/diffusion.js) ; memes reglages pour la vue telephone de 900 a 1079 px */
+@media (min-width:900px) and (max-width:1079px){
+:where(html.tel-joueur) .p-signal b{font-size:23px}
+:where(html.tel-joueur) .p-table.fini .p-poste{order:-1}
+:where(html.tel-joueur) #partie .p-tourde:has(.dal-inter){padding-right:172px}
+:where(html.tel-joueur) .p-tourde{height:36px}:where(html.tel-joueur) .p-ener{font-size:25px}
+:where(html.tel-joueur) .p-case .fav{right:calc(var(--f)*.82 + 5.7px)}:where(html.tel-joueur) .p-case .fav svg{width:15px;height:15px}
+}
+
+/* ===== 0.7 mobile : maquette 52 (partie, vue joueur a la tablette et au telephone en paysage). Bloc garde par sa propre media. ===== */
+@media (min-width:768px) and (max-width:1079px){
+/* ===== Commun : nom sous chaque carte de la main (data-nom pose par telephone()), cibles de 40 px ===== */
+html.tel-joueur #partie .mqb-r>button{height:auto;display:flex;flex-direction:column;align-items:center;gap:4px}
+html.tel-joueur #partie .mqb-r>button img{height:auto;aspect-ratio:5/7;border-radius:6px}
+html.tel-joueur #partie .mqb-r>button[data-nom]::before{content:attr(data-nom);order:2;display:block;width:100%;font:700 13px/17px var(--corps);color:var(--texte);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.tel-joueur #partie .mqb-r>button.grisee::before{color:var(--doux)}
+html.tel-joueur #partie .mqb-r>button .evs{font-size:13px;top:8px}
+html.tel-joueur #partie .mqb-r>button.reduite::after,html.tel-joueur #partie .mqb-r>button.surtaxe::after{font-size:14px;padding:3px 5px}
+html.tel-joueur #partie .p-outils .p-outil{width:44px!important;height:44px!important;min-width:44px!important}
+html.tel-joueur #partie .mq-chat,html.tel-joueur #partie .mq-q{height:44px!important;min-width:44px!important;white-space:nowrap;padding:0 10px}
+html.tel-joueur #partie .p-compteur.clic{position:relative}
+html.tel-joueur #partie .p-compteur.clic::after{content:"";position:absolute;left:-4px;right:-4px;top:-9px;bottom:-9px}
+html.tel-joueur #partie .mq-dal .dal-inter>button{min-height:40px}
+html.tel-joueur #partie .p-journal .j-btn{min-width:40px!important;min-height:40px!important}
+
+/* --- la barre de main passe SOUS les fenetres (aide 20, defausse 19, recap 13, absence 12) : avant, z-index 40 couvrait « Fermer » de l'aide --- */
+html.tel-joueur #partie .p-poste{z-index:11}
+
+/* --- fin de partie : le bloc resultat (Victoire / Defaite, score, Partager le resume, Rejouer) etait masque par .p-poste>*{display:none} --- */
+html.tel-joueur #partie .p-table.fini .p-poste>.p-fin{display:block!important;margin:4px 0}
+/* a partir de 900 px, Partager le resume et Rejouer vivent dans .p-pied (masque en vue telephone) : visibles en fin de partie */
+@media (min-width:900px){html.tel-joueur #partie .p-table.fini .p-pied{display:flex!important;position:fixed;z-index:11;right:16px;bottom:0;width:calc(50vw - 27px);margin:0;padding:10px 0 12px;gap:10px;background:linear-gradient(180deg,var(--poste-haut),var(--fond,#0b1118));border-top:1px solid var(--trait)}html.tel-joueur #partie .p-table.fini .p-pied>.btn{flex:1;min-height:44px!important;font-size:16px!important}html.tel-joueur #partie .p-table.fini .p-cote{padding-bottom:72px}}
+
+/* --- rejeu : meme vue que la partie (telephone() n'exclut plus partie.rejeu) ; la barre du rejeu sous la main, boutons de 40 px --- */
+html.tel-joueur body:has(#barreRejeu) #partie .p-poste{padding-bottom:58px}
+#barreRejeu#barreRejeu .btn{min-height:40px;min-width:40px}
+html.tel-joueur body:has(#barreRejeu) #partie .p-poste>.mqb-l{display:none!important}
+
+
+/* --- 0.7 mobile, retours du 13 nov. : aucun texte tronque, rien qui se chevauche --- */
+/* nom des Golems : une ligne, « … » si trop long (plus de coupure en plein mot, 15 nov.) */
+html.tel-joueur #partie .mini .nom{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;line-height:1.05}
+html.tel-joueur #partie .p-case>.fx-bonus{animation-name:bonusTab}
+html.tel-joueur #partie .mqb-r>button[data-nom]::before{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word}
+html.tel-joueur body:has(#barreRejeu) #partie{padding-bottom:68px!important}
+/* bilan par carte : icones, nom puis sous-titre sur toute la largeur de la colonne Carte (2 lignes au plus), rien ne deborde sur les chiffres */
+html.tel-joueur #partie .p-fin .h-tab .h-crt{flex-wrap:wrap;row-gap:2px}
+html.tel-joueur #partie .p-fin .h-tab .h-cnom{flex-wrap:wrap;flex:1 1 100%;min-width:0;max-width:100%}
+html.tel-joueur #partie .p-fin .h-tab .h-cps{white-space:normal;overflow-wrap:anywhere;min-width:0;max-width:100%}
+html.tel-joueur #partie .p-fin .h-tab .h-cti{flex:1 1 100%;max-width:100%;white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:normal}
+@keyframes bonusTab{0%{opacity:0;transform:translate(-50%,-20%) scale(.8)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-75%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%)}}
+/* zoom d un terrain en partie : fond opaque (meme choix que le telephone, 15 nov.) */
+#vue:has(.zt-camp.lui){background:var(--fond-partie)}
+
+/* ===== Tablette en portrait (768 x 1024) : main en une rangee de cartes 96 x 134, le reste inchange ===== */
+@media (orientation:portrait){
+html.tel-joueur #partie .mqb-r{gap:8px;padding:2px 0 0;margin-right:30px;scroll-snap-type:x mandatory}
+html.tel-joueur #partie .mqb-r>button{flex:0 0 calc((100% - 48px)/7);min-width:0}
+html.tel-joueur #partie .mqb-r>button img{width:100%}
+html.tel-joueur #partie .mqb-g{bottom:21px;width:30px;background:none;justify-content:center;padding:0}
+html.tel-joueur #partie .mqb-c{font-size:18px}html.tel-joueur #partie .mqb-c small{font-size:13px}
+html.tel-joueur .barreRejeu{left:0;right:0;bottom:0;width:auto;margin:0;border-radius:0;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+}
+
+/* ===== Tablette en paysage (1024 x 768) : plateau a gauche, colonne de droite = etape, main sur deux rangees, cercle, journal ===== */
+@media (orientation:landscape) and (min-height:501px){
+html.tel-joueur #partie .p-poste{position:static;margin:0;padding:0;background:none;border:0;box-shadow:none;gap:10px}
+html.tel-joueur #partie .p-poste>.mqb-l{min-height:48px}
+html.tel-joueur #partie .mqb-c{font-size:20px}html.tel-joueur #partie .mqb-c small{font-size:13px}
+html.tel-joueur #partie .mqb-l .mqb-b{height:48px;font-size:18px;padding:0 18px}
+html.tel-joueur #partie .mqb-r{flex-wrap:wrap;overflow:visible;gap:10px 8px;padding:0}
+html.tel-joueur #partie .mqb-r>button{flex:0 0 88px}
+html.tel-joueur #partie .mqb-r>button img{width:88px}
+html.tel-joueur #partie .mqb-g{display:none!important}
+html.tel-joueur #partie .p-cercle .p-cw svg{height:120px}
+/* rejeu : barre en bas de la colonne de droite */
+html.tel-joueur body:has(#barreRejeu) #partie .p-poste{padding-bottom:0}
+html.tel-joueur .barreRejeu{left:auto;right:16px;width:calc(50vw - 27px);box-sizing:border-box;margin:0}
+html.tel-joueur body:has(#barreRejeu) #partie .p-cote{padding-bottom:60px}
+html.tel-joueur #partie .p-cote{gap:10px}
+}
+
+/* ===== Telephone en paysage (812 x 375) : plateau a gauche qui defile seul, colonne de droite fixe ===== */
+@media (orientation:landscape) and (max-height:500px){
+html.tel-joueur body:has(#jouer.enJeu:not([hidden])) header,html.tel-joueur body:has(#jouer.enJeu:not([hidden])) nav{display:none}
+html.tel-joueur body:has(#jouer.enJeu:not([hidden])) main{padding:0!important;margin:0!important}
+html.tel-joueur #partie{padding:6px 10px 0!important;height:100dvh;box-sizing:border-box}
+html.tel-joueur #partie .p-table{display:grid!important;grid-template-columns:minmax(0,1fr) 352px;grid-template-rows:max-content max-content minmax(0,1fr);gap:6px 10px;height:100%}
+html.tel-joueur #partie .p-plateau{grid-column:1;grid-row:1/4;height:calc(100dvh - 6px);overflow-y:auto;overscroll-behavior:contain;padding-bottom:6px;box-sizing:border-box}
+/* le plateau defile seul et s'ouvre en bas (ton camp, ton energie et tes lignes visibles d'emblee) : colonne inversee, ordre visuel retabli */
+html.tel-joueur #partie .p-plateau{display:flex!important;flex-direction:column-reverse}
+html.tel-joueur #partie .p-plateau>.p-camp.toi{order:1}html.tel-joueur #partie .p-plateau>.p-grille.mienne{order:2}html.tel-joueur #partie .p-plateau>.p-terrains{order:3}
+html.tel-joueur #partie .p-plateau>.p-grille:not(.mienne){order:4}html.tel-joueur #partie .p-plateau>.p-camp.lui{order:5}
+html.tel-joueur #partie .p-plateau>*{flex:none}
+html.tel-joueur #partie .p-barre{grid-column:2;grid-row:1}
+html.tel-joueur #partie .p-poste{grid-column:2;grid-row:2;position:static;margin:0;padding:0;background:none;border:0;box-shadow:none;gap:4px}
+html.tel-joueur #partie .p-cote{grid-column:2;grid-row:3;min-height:0;overflow-y:auto;padding-bottom:6px}
+html.tel-joueur #partie .p-grille>.p-case{height:52px}
+html.tel-joueur #partie .mini{--f:32px}
+html.tel-joueur #partie .p-terrains,html.tel-joueur #partie .p-terrain{height:74px}
+html.tel-joueur #partie .p-barre{padding-right:150px}
+html.tel-joueur #partie .p-barre:has(.mq-chat){padding:2px 2px 48px;height:auto!important;min-height:96px}html.tel-joueur #partie .p-barre:has(.mq-chat)>.p-tourde{top:auto;bottom:3px;transform:none}
+html.tel-joueur #partie .p-barre .p-info small{font-size:9px}
+html.tel-joueur #partie .p-outils{gap:3px}
+html.tel-joueur #partie .p-outils .p-outil{width:40px!important;height:40px!important;min-width:40px!important}
+html.tel-joueur #partie .mq-chat,html.tel-joueur #partie .mq-q{height:40px!important;min-width:40px!important;padding:0 7px}
+html.tel-joueur #partie .p-poste>.mqb-l{min-height:40px}
+html.tel-joueur #partie .mqb-l .mqb-b{height:40px}
+html.tel-joueur #partie .mqb-r{gap:6px;padding:0;margin-right:24px;scroll-snap-type:x mandatory}
+html.tel-joueur #partie .mqb-r>button{flex:0 0 calc((100% - 24px)/5);min-width:0}
+html.tel-joueur #partie .mqb-r>button img{width:100%}
+html.tel-joueur #partie .mqb-g{width:24px;background:none;justify-content:center;padding:0}
+html.tel-joueur #partie .mqb-r>button[data-nom]::before{font-size:11px;line-height:12px;min-height:24px}
+html.tel-joueur #partie .mqb-g{bottom:19px}
+/* apercu d'une carte de la main : carte a gauche a la hauteur de l'ecran, texte et boutons a droite */
+html.tel-joueur #mqAp{display:grid;grid-template-columns:auto 260px;grid-template-rows:1fr auto;column-gap:20px;row-gap:12px;align-content:center;justify-content:center;padding:12px}
+html.tel-joueur #mqAp img{grid-row:1/3;width:auto;height:calc(100dvh - 24px);max-width:none}
+html.tel-joueur #mqAp p{align-self:end;text-align:left}
+html.tel-joueur #mqAp .mqa-b{width:260px;flex-direction:column;align-self:start}
+html.tel-joueur #mqAp .mqa-b .mqb-b{flex:none;height:48px}
+/* recapitulatif de manche : les 3 terrains cote a cote, score et Continuer sur une ligne (la fenetre defile si L'Ecran du MJ montre une main) */
+#recap .boite{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:8px;row-gap:8px;width:min(780px,calc(100vw - 24px));max-width:none;padding:14px 16px;box-sizing:border-box}
+#recap .boite>*{grid-column:1/-1;margin:0}
+#recap .boite>.r-terrain{grid-column:auto;grid-template-columns:minmax(0,1fr) auto}
+#recap .r-terrain>.forces,#recap .r-terrain>.gagne{grid-column:1/-1;text-align:left;white-space:nowrap}
+#recap .boite>h2{font-size:24px}
+#recap .boite>.r-total{grid-column:1/3;align-self:center;text-align:left}
+#recap .boite>#continuer{grid-column:3}
+#recap .r-mains img{height:90px;width:auto}
+/* rejeu : barre en bas de la colonne de droite (le plateau garde toute sa hauteur) */
+html.tel-joueur body:has(#barreRejeu) #partie .p-poste{padding-bottom:0}
+html.tel-joueur body:has(#barreRejeu) #partie .p-cote{padding-bottom:54px}
+html.tel-joueur .barreRejeu{left:auto;right:10px;width:352px;box-sizing:border-box;margin:0}
+/* bilan par carte de fin de partie : sous-titres des cartes masques (colonne de 352 px), noms seuls */
+html.tel-joueur #partie .p-fin .h-tab .h-cti{display:none}
+html.tel-joueur #partie .p-fin .h-tab .h-cps{white-space:normal;overflow-wrap:anywhere}
+}
+}
+/* detail d'un terrain (768 a 1079 px) : pseudo puis sous-titre l'un sous l'autre, chacun sur toute la largeur et termine par des points de suspension (le sous-titre n'avait que ~19 px a cote du pseudo) */
+@media (min-width:768px){#vueDetail .zt-l .dl-nom{flex-direction:column;align-items:stretch;gap:0;font-size:14.5px;line-height:1.08}#vueDetail .zt-l .dl-pseudo,#vueDetail .zt-l .dl-titre{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#vueDetail .zt-l .dl-titre{font-size:12px}}
+/* fin de partie (900 a 1079 px) : Quitter / Partager / Rejouer dans le flux de la colonne de droite, sous la main, au lieu d'une barre fixe qui recouvrait le bas de la main */
+@media (min-width:900px){html.tel-joueur #partie .p-table.fini .p-pied{position:static;width:auto;padding:10px 0 4px;background:none;border-top:0}html.tel-joueur #partie .p-table.fini .p-cote{padding-bottom:16px}}
+/* fin de manche : fenetre limitee a la hauteur de l ecran, defilement interne, Continuer colle en bas et toujours visible (main adverse de L Ecran du MJ) */
+@media (min-width:768px){#recap .boite{max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box}#recap #continuer{position:sticky;bottom:0;z-index:2;box-shadow:0 -10px 14px 4px var(--panneau,#121c26)}}
+/* case deja occupee (Remplacer, Ameliorer) : pastille d'une ligne en bas a gauche, +n garde ; rangee du cout (animal, coeur) sur la meme ligne contre le bouclier (15 nov.) */
+@media (min-width:768px) and (max-width:1079px){
+.p-case>.act{left:6px;right:auto;bottom:6px;height:20px;padding:0 8px;border-radius:999px;background:var(--or);color:var(--encre);font:800 12px/20px var(--corps);white-space:nowrap}
+.p-case>.act .p-hint{margin-left:5px;font:inherit;color:inherit}
+.p-case:has(>.act) .mini{--bas:4.5px}
+html.tel-joueur .p-case:has(>.act) .mini .bas{left:auto;right:calc(var(--f)*.9 + 9px)}
+html.tel-joueur .p-case:has(>.act) .fav{right:calc(var(--f)*.9 + 9px)}
+html.tel-joueur .p-case:has(>.act):has(.fav) .mini .bas{right:calc(var(--f)*.9 + 31px)}
+.p-case.a-ani>.act .act-l,.p-case:has(.fav)>.act .act-l{display:none}.p-case.a-ani>.act .act-c,.p-case:has(.fav)>.act .act-c{display:inline}
+}
+/* confirmation Quitter : la grande carte agrandie (#mqAp) ne reste plus derriere (15 nov.) */
+html.tel-joueur:has(.bd-fond:not([hidden])) #mqAp{display:none}
+/* rejeu en portrait (375 et 768, 15 nov.) : barre sur toute la largeur (le max-width de cartes.css la laissait calee a gauche, 32 px vides a droite) */
+@media (orientation:portrait){html.tel-joueur .barreRejeu{max-width:none}}

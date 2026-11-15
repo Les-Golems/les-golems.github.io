@@ -108,29 +108,42 @@ Composants de la charte graphique, préfixe `sc-`, à utiliser par tous les écr
 | `.sc-titre-bloc` | Titre de bloc commun (Lilita 22 px, une ligne, 12 px dessous) : même place dans tous les blocs (défaut J02). |
 | `couleurTaux(taux, parties, {neutre})` (commun/outils.js) et `.sc-taux-*` | Rend la classe : vert >= 50 %, ambre 40-49 %, rouge < 40 %, gris si moins de 5 parties ; `neutre:true` = blanc (classement des joueurs). `couleurTaux.valeur(...)` rend la couleur CSS. Taux en pourcentage 0-100. |
 
-## 7. Téléphone et tablette (rangement 0.7a, 13 nov. 2026)
+## 7. Téléphone et tablette (rangement 0.7a, 13 nov. 2026, mis à jour le 15 nov.)
 
-**Seuils.** Ordinateur = 1080 px et plus. Tablette = règles `@media (max-width:N)` avec N de 768 à 1079 px. Téléphone = N jusqu'à 767 px. Le seul media combiné rangé, `(orientation:portrait) and (max-width:899px)` (diffusion), ne vise que moins de 900 px : il est dans tablette/diffusion.css. Aucun seuil n'a été changé au rangement : chaque règle garde sa media query d'origine à l'intérieur de son nouveau fichier.
+**Seuils.** Ordinateur = 1080 px et plus. Tablette = 768 à 1079 px (règles `@media (max-width:N)` avec N de 768 à 1079). Téléphone = 767 px et moins. Côté JavaScript, ces seuils ne s'écrivent jamais en dur : constantes de `commun/outils.js`, `ECRAN_MOBILE` = `'(max-width:1079px)'` (téléphone et tablette), `ECRAN_PC` = `'(min-width:1080px)'`, `ECRAN_TELEPHONE` = `'(max-width:767px)'`, `LARGEUR_PC` = 1080 (pour `innerWidth<LARGEUR_PC`). Le seul media combiné rangé, `(orientation:portrait) and (max-width:899px)` (diffusion), ne vise que moins de 900 px : il est dans tablette/diffusion.css. Aucun seuil n'a été changé au rangement : chaque règle garde sa media query d'origine à l'intérieur de son nouveau fichier.
 
-**Fichiers.** `css/tablette/<écran>.css` et `css/telephone/<écran>.css`, un par fichier d'origine, chargés par index.html APRÈS tous les fichiers d'origine, avec `<link media="(max-width:...)">` (jamais lus sur ordinateur), dans l'ordre des fichiers d'origine (tablette puis téléphone) : tablette/diffusion, telephone/cartes, tablette/salon, telephone/salon, telephone/nouveautes, tablette/partie, telephone/partie, tablette/profil, telephone/profil, telephone/statistiques, tablette/decks-historique, telephone/decks-historique, telephone/entete, tablette/reprises, telephone/reprises, tablette/diffusion-partie. (salon = onglets/jouer-salon.css, entete = boutons-entete.css, diffusion-partie = partie-diffusion.css.) `golemsCharge` accepte un 3e élément pour un CSS : sa media query.
+**Fichiers.** `css/tablette/<écran>.css` et `css/telephone/<écran>.css`, chargés par index.html APRÈS tous les fichiers d'origine, avec `<link media="...">` (jamais lus sur ordinateur), en deux appels `golemsCharge` (le 3e élément d'une entrée CSS est sa media query) :
+- 1re ligne, dans l'ordre des fichiers d'origine : tablette/diffusion (1079), telephone/cartes (767), tablette/salon (1079), telephone/salon (767), telephone/nouveautes (767), tablette/partie (1079), telephone/partie (767), tablette/profil (900), telephone/profil (767), telephone/statistiques (767), tablette/decks-historique (820), telephone/decks-historique (767), telephone/entete (767), tablette/reprises (899), telephone/reprises (767), tablette/diffusion-partie (1079). (salon = onglets/jouer-salon.css, entete = boutons-entete.css, diffusion-partie = partie-diffusion.css.)
+- 2e ligne (adaptation 0.7 mobile) : telephone/base, telephone/entete-nouveau, telephone/fenetres, telephone/decks, telephone/spectateur, telephone/historique, telephone/jouer, telephone/guides, telephone/regles (767), puis tablette/base, tablette/entete-nouveau, tablette/fenetres, tablette/decks, tablette/spectateur, tablette/historique, tablette/statistiques, tablette/jouer, tablette/guides, tablette/regles (1079), puis telephone/menus-cibles (767) et tablette/menus-cibles (1079).
+- telephone/partie.css contient aussi, en fin de fichier, le bloc `(max-width:767px)` de la pastille verte `.m-ani` (animal attaché + cœur du favori dans la pastille), sorti de css/partie.css le 15 nov. ; les autres règles `html.tel-joueur .p-case .m-ani` (toutes largeurs, tablette comprise) et le bloc `(min-width:768px)` restent dans css/partie.css.
+- tablette/jouer.css contient aussi le bloc `(min-width:768px) and (max-width:1079px)` des lignes de parties `.j-p` (deux rangées), sorti de onglets/jouer.css le 15 nov.
+- Ordinateur étroit 1080-1599 px (Decks, Cartes, Tester des placements) : ce n'est pas de la tablette, c'est du PC. Bloc `@media (min-width:1080px) and (max-width:1599px)` en fin de `css/onglets/decks-historique.css` (Decks et Cartes, disposition reprise de la tablette 1024 paysage) et en fin de `css/onglets/decks-bac.css` (fenêtre Tester des placements). L'ancien tablette/decks-large.css n'existe plus.
 
-**Règle.** La version ordinateur ne se modifie que dans les fichiers d'origine (`css/`, `css/onglets/`). Le téléphone et la tablette ne se modifient que dans `css/telephone/` et `css/tablette/`. Un nouveau fichier par écran s'ajoute à la liste de index.html, à sa place.
+**Règle.** La version ordinateur ne se modifie que dans les fichiers d'origine (`css/`, `css/onglets/`), y compris les plages PC étroites (1080-1399, 1080-1599). Le téléphone et la tablette ne se modifient que dans `css/telephone/` et `css/tablette/`. Un nouveau fichier par écran s'ajoute à la liste de index.html, à sa place. Modifier le bloc existant, ne jamais en créer un nouveau s'il existe déjà.
 
 **Restés dans les fichiers d'origine** (à ne pas oublier en codant le téléphone) : les `min-width`, `hover`, `prefers-reduced-motion`, `display-mode` ; les `max-width` de 1099, 1100 et 1199 px (touchent aussi l'ordinateur de 1080 à 1199 px : jouer-salon, partie, guides, profil, statistiques, reprises) ; et 22 blocs `max-width` < 1080 laissés : base.css (640, `.annote`/`.etapes` : son seul retrait change la barre de défilement du sommaire des Règles à 768 px, 4 px, bizarrerie de Chrome mesurée), puis 21 laissés par prudence car leur déplacement aurait pu changer la cascade (même sélecteur ou même spécificité redéfinis plus loin) : boutons-entete.css (640, 1er bloc), cartes.css (640), diffusion.css (899, vue joueur `html.tel-joueur`), decks-historique.css (440, 480, 699), jouer-salon.css (520 x2, 600 x3), jouer.css (600, 699, 1079), partie.css (899 x3), profil.css (440 x3), tutoriel.css (600). CSS injecté par JS : presence.js (`@media (max-width:600px)` dans la fonction `tic`).
+
+**Glisser-déposer (0.7a).** Une seule fonction, `glisserDeposer(o)` dans `commun/outils.js` (seuils `GLISSE` : souris 6 px, tolérance au toucher 8 px, appui 200 ms, bande de défilement 60 px), utilisée par la partie (`vue/joueur.js`, main vers la grille, PC `#dif`, téléphone `.mqb-r`) et par Tester des placements (`onglets/decks.js` `glisseBac`). Source, cible, sélection, dépôt, défilement et retour du fantôme sont passés en paramètres. Son CSS (`.glisse-fantome`, `html.glisse-en-cours`, `.glisse-source`, `.glisse-survol`) est un seul bloc, en fin de `css/base.css`.
 
 **JavaScript propre au téléphone / à la tablette** (non déplacé) :
 | Fichier | Fonction | Test |
 |---|---|---|
-| vue/diffusion.js | `TEL`, `telephone()`, `placeChat` | `(max-width:899px)`, classe `html.tel-joueur` (vue joueur téléphone) |
+| commun/outils.js | `LARGEUR_PC`, `ECRAN_MOBILE`, `ECRAN_PC`, `ECRAN_TELEPHONE` ; `glisserDeposer`, `GLISSE` | seuils partagés ; glisser-déposer (souris et toucher) |
+| commun/profil.js | fenêtre du profil (focus sans défilement) ; pseudo de la capsule jamais coupé (`mq`) | `ECRAN_MOBILE` |
+| onglets/decks.js | Tester des placements : `apercuBac` (toucher = carte en grand) ; aperçu au survol ; `glisseBac` | `ECRAN_MOBILE` ; `'(hover:hover) and '+ECRAN_PC` ; `glisserDeposer` |
+| onglets/decks.js | `grilleDk`, `hauteurDecks` | `innerWidth>1800`, `innerWidth>=1200` |
+| onglets/regles.js | corps de la fiche sans pagination | `ECRAN_TELEPHONE` |
+| vue/partie.js | `placePasser` (bouton Passer) -> `placePasserTel` | `innerWidth<LARGEUR_PC` |
+| vue/partie.js | `ZONE` ; `partageFin` | `(min-width:1200px)` ; `(pointer:coarse)` (partage natif) |
+| vue/diffusion.js | `TEL`, `telephone()`, `placeChat` | `ECRAN_MOBILE` (1079 px), classe `html.tel-joueur` (vue joueur téléphone et tablette) |
 | vue/diffusion.js | `ECRAN_JOUEUR` | `(min-width:1200px) and (min-height:600px)` |
 | vue/joueur.js | `LARGE`, `SURVOL` | `(min-width:900px)`, `(hover:hover) and (min-width:900px)` |
-| vue/partie.js | `ZONE` ; `partageFin` | `(min-width:1200px)` ; `(pointer:coarse)` (partage natif) |
+| vue/joueur.js | glisser-déposer de la main | `glisserDeposer` (commun/outils.js) |
 | onglets/historique.js | `ECRAN_RJ` ; `peintHisto` | rejeu `(min-width:1200px) and (min-height:600px)` ; `innerWidth>=700` |
 | onglets/jouer.js | `chatBox` | `(max-width:520px)` (texte d'aide du tchat) |
 | onglets/nouveautes.js | `ouvreDetailsVersion`, `peintNotes0`, `peintNotes` | `(min-width:700px)`, `innerWidth<700` |
 | onglets/guides.js | `cjHauteur` | `innerWidth<700` |
 | onglets/statistiques.js | `peintCols` | `(min-width:1200px)` |
-| onglets/decks.js | `grilleDk`, `hauteurDecks` | `innerWidth>1800`, `innerWidth>=1200` |
 | commun/navigation.js | `ajustePage` | `innerWidth<700` |
 | commun/version.js | `cale` | `innerWidth<=860` |
 | aide.js | `tactile` | `(hover:none)` |

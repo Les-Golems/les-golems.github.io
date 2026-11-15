@@ -569,9 +569,11 @@ function peintListe(){
     const sp=el('span','j-spec');sp.innerHTML=OEIL_J;sp.append(String(Number.isInteger(x.n)&&x.n>0?x.n:0));sp.title='Spectateurs';
     let b;
     if(mien)b=el('span','j-tag j-moi','Ta partie');
-    else if(et==='o'){b=el('button','sc-btn',vd?'Version différente':'Rejoindre');b.type='button';b.disabled=!!r||occupe||vd;
+    /* 0.7a : annonce d'une autre version : etiquette de version non cliquable (format de l'Historique, gris) a la place de Rejoindre / Regarder */
+    else if(vd){const w=xv.split('|')[0];b=el('span','etq-v j-ver',w?'v'+w:'v?');b.title='Version différente : ton adversaire n\'a pas la même version du site. Recharge la page.'}
+    else if(et==='o'){b=el('button','sc-btn','Rejoindre');b.type='button';b.disabled=!!r||occupe;
       b.onclick=()=>{if(!compteCo()){msgInvite();return}choisirDeck(()=>{salonPublic=false;createur=false;salonClasse=x.cl===true;annonceVue='';entre(x.code)},'Rejoindre',(x.cl===true?'Partie classée':'Partie amicale')+' - salon '+String(x.code).toUpperCase())}}
-    else{b=el('button','sc-btn sc-secondaire','Regarder');b.type='button';b.disabled=!!r||occupe||vd;b.onclick=()=>observer(x)}
+    else{b=el('button','sc-btn sc-secondaire','Regarder');b.type='button';b.disabled=!!r||occupe;b.onclick=()=>observer(x)}
     li.append(el('span','j-et '+et,et==='o'?'Ouverte':et==='c'?'Complète':'En cours'),el('span','j-tag'+(x.cl===true?' cl':''),x.cl===true?'Classée':'Amicale'),duo,inf,sp,b);
     g.append(li);
   });

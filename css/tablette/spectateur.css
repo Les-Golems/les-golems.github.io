@@ -61,3 +61,23 @@
 #dif:not(.jr) .d-act .d-ah button::after{content:"";position:absolute;inset:-3px}
 }
 }
+/* 0.7a (point 15, maquette validee) : spectateur a la tablette en paysage 1000-1079 px : plateau a 0,83 a gauche sur toute la hauteur, colonne droite qui defile, fenetre de fin centree. */
+@media (min-width:1000px) and (max-width:1079px) and (orientation:landscape) and (min-height:501px){
+#dif:not(.jr){overflow-y:auto;overscroll-behavior:contain}
+#dif:not(.jr) .d-scene{transform:none!important;position:relative!important;width:auto!important;height:auto!important;display:grid;grid-template-columns:auto 1fr;align-items:start;gap:8px 12px;padding:8px 12px 24px}
+#dif:not(.jr) .d-scene>.d-z,#dif:not(.jr) .d-ban>*{position:relative!important;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important}
+#dif:not(.jr) .d-scene>.d-ban{display:contents}
+#dif:not(.jr) .d-scene>.d-plat{grid-column:1;grid-row:1/span 9;zoom:.83;position:sticky!important;top:8px!important}
+#dif:not(.jr) .d-ban>.d-mid{grid-column:2;grid-row:1;justify-self:center;zoom:.5}
+#dif:not(.jr) .d-ban>.d-j.lui{grid-column:2;grid-row:2;zoom:.47}
+#dif:not(.jr) .d-ban>.d-j.toi{grid-column:2;grid-row:3;zoom:.47}
+#dif:not(.jr) .d-scene>.d-der{grid-column:2;grid-row:4;zoom:.53}
+#dif:not(.jr) .d-scene>.d-act{grid-column:2;grid-row:5;zoom:.53;height:auto!important;width:770px!important}
+#dif:not(.jr) .d-scene>.d-col{grid-column:2;grid-row:6;zoom:.53}
+#dif:not(.jr) .d-scene>.d-col.bas{grid-row:7}
+#dif:not(.jr) .d-scene>.d-cer{grid-column:2;grid-row:8;zoom:.53}
+#dif:not(.jr) .d-scene>.d-coin{grid-column:2;grid-row:9;width:770px!important;height:auto!important;zoom:.53}
+#dif:not(.jr) .d-couche{display:none}
+#dif:not(.jr) .pp-voile{position:fixed!important;inset:0!important;width:auto!important;height:auto!important;display:flex;align-items:center;justify-content:center;overflow-y:auto}
+#dif:not(.jr) .pp-voile>.pp{zoom:.6;position:relative!important;left:auto!important;top:auto!important;transform:none!important;margin:auto}
+}

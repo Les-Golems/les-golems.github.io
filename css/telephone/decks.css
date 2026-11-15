@@ -129,3 +129,15 @@
 #popTest .p-case .tp-ms:not(:has(>.m-act)):has(>.tp-mt~.tp-mt)>.tp-mt{display:block;max-width:100%;height:15px;padding:0 4px;font-size:10px;line-height:15px}
 #popTest .p-case .tp-ms:not(:has(>.m-act)):has(>.tp-mt~.tp-mt)>.tp-mt svg{display:none} /* tuile de 76 px : « Favori » sans coeur pour tenir entier a gauche de la Force */
 #popTest .tp-bac .p-case.a-ms:not(:has(.tp-ms>.m-act)):has(.tp-ms>.tp-mt~.tp-mt) .mini{--bas:35px} /* deux lignes de 15 px : le cout juste au-dessus, sous le nom */
+/* Tester des placements = tuile de la partie au telephone (15 nov.) : hexagone de Force reduit, nom sur une ligne avec « … », pendant le ciblage pastille d'une ligne en bas a gauche (6 px des bords), cout, animal et Favori caches */
+#popTest .tp-bac .mini{--f:30px}
+#popTest .tp-bac .p-case .f b{font-size:19.5px;-webkit-text-stroke:3.5px #0a121a}
+#popTest .tp-bac .mini .nom{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;font-size:12px;line-height:1.05;top:2px}
+#popTest .tp-bac .mini .cout{line-height:20px}
+#popTest .tp-bac .p-case:not(.a-ms) .mini{--bas:2px}
+#popTest .tp-bac .p-case:has(.tp-ms>.m-act) .mini .bas,#popTest .tp-bac .p-case .tp-ms:has(>.m-act)>.tp-mt:not(.m-act){display:none}
+#popTest .tp-bac .p-case .tp-ms:has(>.m-act){left:6px;bottom:6px;max-width:calc(100% - 38px)} /* Force : 27 px a 3 px du bord */
+#popTest .tp-bac .p-case .tp-ms>.tp-mt.m-act{height:20px;padding:0 5px;font:800 12px/20px var(--corps)} /* 2 px de moins qu en partie de chaque cote : tuile de 76 px */
+@media (max-width:370px){#popTest .tp-bac .p-case .tp-ms>.tp-mt.m-act{padding:0 4px;font-size:11px}} /* 360 px : tuile de 89 px, « Remp. 2 » entier quand meme */
+#popTest .tp-bac .p-case.a-ms .tp-ms.tp-ms:not(:has(>.m-act)){max-width:calc(100% - 38px)} /* Force de 30 px : etiquettes de repos (Kiwi, Favori) entieres a gauche */
+#popTest .m-act .act-l{display:none}#popTest .m-act .act-c{display:inline} /* telephone : toujours « Remp. 2 » / « Amel. 4 », comme en partie */

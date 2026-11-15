@@ -419,7 +419,7 @@ $('passer').onclick=()=>{sauter=true;$('scene').textContent='';fx=[];suivant();s
    la place libre la plus proche du centre, puis remonte d'un cran si le bas est plein. Place libre a l'arrivee : rien ne change. */
 function placePasser(){
   const b=$('passer');b.style.left='';b.style.bottom='';b.classList.remove('barre');if(b.hidden)return;
-  if(innerWidth<1080)return placePasserTel(b);
+  if(innerWidth<LARGEUR_PC)return placePasserTel(b);
   const r0=b.getBoundingClientRect();if(!r0.width)return;
   const W=innerWidth,H=innerHeight,w=r0.width,h=r0.height,peint=new Map();
   const plein=e=>{if(peint.has(e))return peint.get(e);const c=getComputedStyle(e);
@@ -1019,7 +1019,14 @@ function bonusPrevu(s,me,c,l,k){
 }
 /* Recapitulatif de fin de manche : local, ne touche ni a la presence ni au journal. */
 function mancheFinie(s){return s.fin?(s.fin.abandon!==undefined||s.fin.deckVide!==undefined?s.reperes.length:3):s.manche-1} /* 0.4 : deck vide, comme l'abandon */ /* abandon (0.2.2) : seulement les manches decomptees */
-function fermeRecap(){$('recap').hidden=true;$('recap').textContent='';recapAff=0}
+function fermeRecap(){$('recap').hidden=true;$('recap').textContent='';recapAff=0;majScoreRecap()} /* 0.7a : bandeau = score courant */
+/* 0.7a : bandeau de la vue joueur (.p-score) et de la diffusion = score du bilan de manche ouvert (sans les pioches impossibles du debut de la manche suivante), score courant sinon */
+function majScoreRecap(){
+  if(window.DIFFUSION&&DIFFUSION.majScore)DIFFUSION.majScore();
+  const s=partie&&partie.etat,sc=document.querySelector('#partie .p-score');if(!s||!sc)return;
+  const me=partie.moi,lui=1-me,ap=[0,0];if(recapAff)for(let m=recapAff+1;m<=3;m++){const x=piocheImpossible(s,m);ap[0]+=x[0];ap[1]+=x[1]}
+  const a=s.j[me].score-ap[me],b=s.j[lui].score-ap[lui],B=sc.querySelector('b'),E=sc.querySelector('em');
+  if(B)B.textContent=String(a);if(E)E.textContent=String(b);sc.setAttribute('aria-label','Toi '+a+', adversaire '+b)}
 /* Decoupe le journal par manche : chaque page finit avec le decompte et ses effets. */
 function pagesLog(s){
   const r=[];let d=0;
@@ -1113,10 +1120,10 @@ function verifieRecap(){
     z.append(l);d.append(z);
   }
   {const ap=[0,0];for(let m=n+1;m<=3;m++){const x=piocheImpossible(s,m);ap[0]+=x[0];ap[1]+=x[1]} /* score a la fin de la manche n : sans les pioches impossibles du debut de la manche suivante */
-  d.append(el('p','r-total','Score : '+(s.j[me].score-ap[me])+' - '+(s.j[lui].score-ap[lui])))}
+  {const t=el('p','r-total','Score : '+(s.j[me].score-ap[me])),ti=el('span','sep-score',' - ');t.append(ti,String(s.j[lui].score-ap[lui]));d.append(t)}} /* 0.7a : le trait d'union de Lilita One se lit comme un tiret long : tiret en police du corps (.sep-score, base.css) */
   const b=el('button','btn plein','Continuer');b.type='button';b.id='continuer';
   b.onclick=()=>{if(partie){partie.recapVu=n;sauve()}fermeRecap()};
-  d.append(b);box.textContent='';box.append(d);box.hidden=false;recapAff=n;b.focus({preventScroll:true});
+  d.append(b);box.textContent='';box.append(d);box.hidden=false;recapAff=n;majScoreRecap();b.focus({preventScroll:true}); /* 0.7a : bandeau = score du bilan */
 }
 /* Historique : sur cet appareil seulement. */
 function litListe(k){try{const v=JSON.parse(lire(k));return Array.isArray(v)?v:[]}catch(e){return []}}

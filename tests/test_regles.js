@@ -165,6 +165,13 @@ async function scenario(P) {
   const reqActivite = (u) => fetch(`${DB}/${P}activite.json?${NS}&auth=${u.jeton}&orderBy="$value"&limitToFirst=20`).then(r => r.text().then(() => r.status === 200));
   await attendu(ici('invité lit activite (requête du nettoyage)'), false, reqActivite(G));
   await attendu(ici('compte lit activite (requête du nettoyage)'), true, reqActivite(X));
+  // 0.7a : effacer une activité ou un salon déjà absents (branches !data.exists() de rules/20-en-ligne.js, nettoyage en double) :
+  // compte autorisé, invité refusé.
+  { const cz = 'z' + (t % 1000000).toString(36);
+    await attendu(ici('compte efface une activite déjà absente'), true, req(X, 'DELETE', P + 'activite/' + cz));
+    await attendu(ici('invité efface une activite déjà absente'), false, req(G, 'DELETE', P + 'activite/' + cz));
+    await attendu(ici('compte efface un salon déjà absent'), true, req(X, 'DELETE', P + 'salons/' + cz));
+    await attendu(ici('invité efface un salon déjà absent'), false, req(G, 'DELETE', P + 'salons/' + cz)); }
   // Restent ouverts aux invités.
   await attendu(ici('invité lit pseudos/<clé>'), true, req(G, 'GET', P + 'pseudos/' + pA.toLowerCase()));
   await attendu(ici('invité lit nouveautes/epingles'), true, req(G, 'GET', P + 'nouveautes/epingles'));

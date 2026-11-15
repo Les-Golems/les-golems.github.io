@@ -477,13 +477,7 @@ body:has(#jouer[hidden]) :is(#recap,#absence,#des){display:none}
 html.tel-joueur .p-case.a-ani .mini .bas{right:calc(var(--f)*.82 + 4px)}
 html.tel-joueur .p-case.a-ani:has(.fav) .mini .bas{right:calc(var(--f)*.82 + 24px)}
 html.tel-joueur .p-case .m-ani{display:block;flex:0 1 auto;min-width:0;height:16px;padding:0 5px;border-radius:999px;background:var(--an-vert-past);color:var(--encre);font:800 10px/16px var(--corps);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* telephone, animal + favori d'Indra sur la meme tuile (51 px, pas la place d'empiler) : le coeur entre dans la pastille verte (« ♥ Kiwi ») au lieu de la reduire a « K… » */
-@media (max-width:767px){
-html.tel-joueur .p-case.a-ani:has(.fav) .fav{display:none}
-html.tel-joueur .p-case.a-ani:has(.fav) .mini .bas{right:calc(var(--f)*.82 + 3px)}
-html.tel-joueur .p-case.a-ani:has(.fav) .m-ani{padding:0 4px}
-html.tel-joueur .p-case.a-ani:has(.fav) .m-ani::before{content:"\2665";color:#d6336c;margin-right:2px}
-}
+/* telephone (<= 767 px), animal + favori sur la meme tuile : coeur dans la pastille verte, regles dans css/telephone/partie.css */
 @media (min-width:768px){html.tel-joueur .p-case .m-ani{height:20px;padding:0 8px;font-size:12px;line-height:20px}}
 .c-avenir .q{font:400 46cqw/1 var(--titre);color:var(--or)}
 .c-avenir .n{position:absolute;top:4cqw;left:6cqw;font:400 8cqw/1 var(--titre);color:var(--doux)}
@@ -522,10 +516,3 @@ html.clair .pile:not(.vide) :is(.v-mot,.v-nb){color:var(--encre);text-shadow:non
 html.clair #vueDetail .zt-vide>span{opacity:1}
 html.clair .p-signal.s-lui b{color:var(--lui-titre-fonce)}
 
-/* 0.7 : glisser-deposer d'une carte de la main vers une case doree */
-html.glisse-en-cours,html.glisse-en-cours *{user-select:none;-webkit-user-select:none;cursor:grabbing}
-.glisse-fantome{position:fixed;z-index:9999;pointer-events:none;opacity:.92;transform:rotate(-4deg);border-radius:8px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.45)}
-.glisse-fantome img{display:block;width:100%;height:100%;object-fit:cover}
-.glisse-source{opacity:.35}
-.p-case.cible.glisse-survol{outline:3px solid var(--or);outline-offset:-3px;transform:scale(1.04)}
-@media (prefers-reduced-motion:reduce){.glisse-fantome{transform:none}.p-case.cible.glisse-survol{transform:none}}

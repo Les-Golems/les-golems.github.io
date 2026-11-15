@@ -24,7 +24,7 @@ function carteHisto(nom){nom=((globalThis.GolemsDonnees||{}).nomActuel||(n=>n))(
   const C=Object.values(M0.CARTES).find(z=>M0.nomDetail(z)===nom||z.nom===nom),c=C&&CARTES.find(z=>z[0]===C.id),b=el('span','h-crt'),e=el('span','h-cels'),nm=el('span','h-cnom');
   if(!c){nm.append(el('span','h-cps',String(nom)));b.append(nm);return b}
   c[2].forEach(x=>e.append(picto(x)));
-  const v=c[1].indexOf(', '),ps=v<0?c[1]:c[1].slice(0,v);nm.append(el('span','h-cps',ps+(v<0?'':',')));
+  const v=c[1].indexOf(', '),ps=v<0?c[1]:c[1].slice(0,v);nm.append(el('span','h-cps',ps));
   if(v>=0){const t=el('span','h-cti',c[1].slice(v+2));t.style.color=coulT(c);t.title=c[1].slice(v+2);nm.append(t)}
   b.append(e,nm);return b;
 }
@@ -281,7 +281,7 @@ function barreRejeu(){
   if(R.dif){b.remove();if(window.DIFFUSION)DIFFUSION.rejeu.maj();return}
   b.textContent='';
   const bt=(t,f,lib)=>{const q=el('button','btn sec',t);q.type='button';if(lib)q.setAttribute('aria-label',lib);q.onclick=f;b.append(q);return q};
-  b.append(el('b','','Replay'),el('span','r-pos',R.pos+' / '+R.seq.length));
+  b.append(el('b','','Replay'),el('span','r-pos',R.pos+'/'+R.seq.length));
   bt(R.lecture?'Pause':'Lecture',()=>{R.lecture=!R.lecture;R.h=null;if(R.lecture&&R.pos>=R.seq.length)return relanceRejeu();barreRejeu();pasRejeu()});
   const vt=bt('',()=>{R.vitesse=R.vitesse===1?2:R.vitesse===2?4:1;R.h=null;barreRejeu();pasRejeu()},'Changer la vitesse');vt.append(el('span','r-long','Vitesse '),'x'+R.vitesse);
   bt('Quitter',finRejeu,'Quitter le replay');
@@ -359,6 +359,6 @@ function peintHisto(){
   else lignesPage=14;
   const nb=Math.ceil(l.length/lignesPage);pageHisto=Math.max(0,Math.min(pageHisto,nb-1));
   l.slice(pageHisto*lignesPage,(pageHisto+1)*lignesPage).forEach(x=>ul.append(ligneHisto(x)));
-  z.style.visibility=nb<2?'hidden':'';z.querySelector('.nv-num').textContent=(pageHisto+1)+' / '+nb;
+  z.style.visibility=nb<2?'hidden':'';z.querySelector('.nv-num').textContent=(pageHisto+1)+'/'+nb;
   z.querySelector('.nv-prec').disabled=pageHisto===0;z.querySelector('.nv-suiv').disabled=pageHisto>=nb-1;
 }

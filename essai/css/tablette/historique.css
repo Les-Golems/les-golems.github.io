@@ -1,0 +1,30 @@
+/* tablette historique : rempli par le codage 0.7 mobile */
+
+/* ---- Adaptation 0.7 mobile (768-1079 px) ---- */
+@media (min-width:768px){
+.h-filtres.sc-sel{height:auto;padding:4px}
+.h-filtres.sc-sel>button{min-height:40px}
+}
+@media (min-width:768px){
+.h-filtres.sc-sel>button{padding:0 8px;font-size:15px;white-space:nowrap}
+.h-tete{flex-wrap:wrap}
+}
+/* 768-1079 : ligne d'historique sur 2 rangees, rien de tronque */
+@media (min-width:768px) and (max-width:1079px){
+.hl-l{grid-template-columns:auto auto minmax(0,1fr) auto auto;grid-template-areas:"res etq sp sc fl" "adv adv deck date fl";height:auto;row-gap:6px;padding:8px 12px}
+.hl-res{grid-area:res}.hl-etqs{grid-area:etq}.hl-scz{grid-area:sc}.hl-l>.hl-adv{grid-area:adv}.hl-deck{grid-area:deck}.hl-date{grid-area:date;align-items:flex-end}.hl-fl{grid-area:fl}
+.hl-vs,.hl-mvp,.hl-ver{display:none}
+.hl-dn,.hl-n,.hl-adv b{white-space:normal;overflow:visible;text-overflow:clip}
+.hl-l .hl-pts{width:calc(4*18px + 3*4px);justify-content:flex-start} /* place fixe de 4 pictos : noms alignes */
+}
+@media (min-width:768px){.h-filtres.sc-sel>button{padding:0 4px;font-size:14px;gap:5px}}
+@media (min-width:768px) and (max-width:899px){.h-filtres.sc-sel>button{padding:0 2px;font-size:13.5px;gap:4px}}
+@media (min-width:768px) and (max-width:899px){
+.h-tete{flex-direction:column;align-items:stretch}
+.h-filtres.sc-sel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-flow:row;height:auto;width:100%;box-sizing:border-box}
+.h-filtres.sc-sel>button{font-size:15px;padding:0 6px}
+}
+/* 0.7a paysage (15 nov.) : la liste (#histo, min-height:0) etait plus basse que ses parties a 2 lignes, la derniere passait de 4 px sous les fleches de pagination (lot M2 812/844). */
+@media (max-height:500px){
+#histo{flex:none}
+}

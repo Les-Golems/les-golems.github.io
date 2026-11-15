@@ -423,6 +423,7 @@ function zoomTerrain(T){cacheApercu();dernier=null;zoom(srcTerrain(T),T.nom+'. '
 function ligneZt(c){
   const C=M.carte(c),cc=CARTES.find(z=>z[0]===C.id),q=el('button','dl-ligne'),co=el('span','dl-cout'),fo=el('span','dl-force'),e=el('span','dl-els'),els=C.el||[],src=imgV('cartes/'+C.id+'.jpg');q.type='button';
   if(els.length===2){q.classList.add('dl-duo');q.style.setProperty('--a','var(--fm-'+els[0]+')');q.style.setProperty('--b','var(--fm-'+els[1]+')')}else if(C.animal)q.classList.add('dl-animal');
+  if(C.base)q.classList.add('dl-evo'); /* 0.7a : evolution (★ apres le pseudo en version compacte, css/telephone/partie.css) */
   co.append(ico('enclume'),String(C.cout));if(C.force!=null)fo.append(ico('force'),String(C.force));els.forEach(x=>e.append(picto(x)));
   const pl=cc?cc[1]:C.nom,v=pl.indexOf(', '),nm=el('span','dl-nom');nm.append(el('span','dl-pseudo',v<0?pl:pl.slice(0,v)));
   if(v>=0){const ti=el('span','dl-titre',pl.slice(v+2));ti.style.color=C.base?'var(--or)':els[0]?'var(--'+els[0]+')':C.animal?'var(--animal-titre)':'var(--or)';ti.title=pl.slice(v+2);nm.append(ti)}
@@ -518,7 +519,7 @@ function affiche(){
   const qui=s.attente?s.attente.p:s.joueur,aMoi=!s.fin&&(s.phase==='mulligan'?!s.mull[me]:qui===me);
   const b=el('div','p-barre'+(aMoi?' amoi':''));
   const sc=el('div','p-score');sc.setAttribute('aria-label','Toi '+J.score+', adversaire '+s.j[lui].score);
-  sc.append(el('b','',String(J.score)),el('span','','-'),el('em','',String(s.j[lui].score)));
+  sc.append(el('b','',String(J.score)),el('span','sep-score','-'),el('em','',String(s.j[lui].score)));
   const tr=el('div','p-trois');tr.append(info('','manche','Manche',points(s.manche,'Manche')),info('score','coupe','Score',sc),info('','tour','Tour',points(s.tour,'Tour')));b.append(tr); /* 0.4a : comme la diffusion, Manche, Score, Tour ; l'énergie passe dans ton bandeau */
   let cible=null,cibleAdv=null;
   const coupsV=leg.filter(a=>a.t==='w');
@@ -870,8 +871,10 @@ function affiche(){
   if(partie.rejeu)pl.querySelectorAll('.p-main button,.p-btns button').forEach(x=>{if(!x.closest('.p-fin'))x.disabled=true});
   poseFx();
   zoneSurvol=null;zoneMaj();if(partie.rejeu)barreRejeu();
-  scrollTo(0,hautPage);
   if(window.DIFFUSION&&DIFFUSION.joueur)DIFFUSION.joueur(); /* 0.5 : vue joueur sur ordinateur (vue/diffusion.js) */
+  if(recapAff)majScoreRecap(); /* 0.7a : bilan de manche ouvert : meme score dans le bandeau */
+  /* 0.7a : position de page rendue APRES la vue diffusion (sa reconstruction raccourcissait la page et la ramenait en haut) ; pendant un glisser, encore a l'image suivante (aucun defilement pendant le geste) */
+  scrollTo(0,hautPage);if(document.documentElement.classList.contains('glisse-en-cours'))requestAnimationFrame(()=>{if(scrollY!==hautPage&&document.documentElement.classList.contains('glisse-en-cours'))scrollTo(0,hautPage)});
 }
 const LARGE=matchMedia('(min-width:900px)');
 /* Zone d'apercu (ordinateur, 1200 px et plus) : carte survolee ou choisie de la main, sinon derniere carte posee par l'adversaire. */
@@ -914,61 +917,22 @@ function zoneMaj(){
 }
 LARGE.addEventListener('change',()=>{if(partie)affiche()});
 
-/* 0.7 : glisser-deposer d'une carte de la main sur la grille (PC #dif, telephone .mqb-r, main de la partie).
+/* 0.7 : glisser-deposer d'une carte de la main sur la grille (PC #dif, telephone .mqb-r, main de la partie), par glisserDeposer (commun/outils.js).
    Le glisser rejoue les deux gestes existants : clic de selection sur la vraie carte, puis clic sur la case doree (.p-case.cible).
    Seule la main de pose (data-pose, mon tour, hors rejeu) peut etre glissee : spectateur, tour adverse, Forge, mulligan exclus. */
 (function(){
-  const SRC='#dif .d-main button[data-c],.mqb-r button[data-c],#partie .p-main[data-pose] .p-carte',APPUI=200,TOL=8,SOURIS=6,BORD=60;
-  const reduit=matchMedia('(prefers-reduced-motion: reduce)');
-  let g=null; /* geste en cours */
+  const SRC='#dif .d-main button[data-c],.mqb-r button[data-c],#partie .p-main[data-pose] .p-carte';
   const vraie=b=>{if(b.matches('#partie .p-main[data-pose] .p-carte'))return b;const c=b.dataset.c;return c==null?null:document.querySelector('#partie .p-main[data-pose] .p-slot[data-c="'+c+'"]>.p-carte[data-act]')};
-  const caseSous=(x,y)=>{const e=document.elementFromPoint(x,y);return e&&e.closest('.p-case.cible')};
-  const survol=c=>{if(g.sv===c)return;if(g.sv)g.sv.classList.remove('glisse-survol');g.sv=c;if(c)c.classList.add('glisse-survol')};
-  const place=()=>{const f=g.f;if(!f)return;f.style.left=(g.x-g.w/2)+'px';f.style.top=(g.y-g.h*(g.tactile?1.1:.5))+'px'};
-  function detache(){
-    const v=vraie(g.b);if(!v||!document.querySelector('.p-grille.mienne.active')){fin();return} /* PC : la vraie grille est deplacee dans #dif */
-    g.on=true;document.documentElement.classList.add('glisse-en-cours');
-    purge();if(!g.b.isConnected)g.b=document.querySelector(SRC.split(',').map(x=>x+'[data-c="'+g.b.dataset.c+'"]').join(','))||v; /* source redessinee : rect nul = fantome renvoye en haut a gauche */
-    const r=g.b.getBoundingClientRect(),im=g.b.querySelector('img');g.w=Math.min(110,r.width||80);g.h=g.w*1.4;g.r0=r;
-    const f=document.createElement('div');f.className='glisse-fantome';f.setAttribute('aria-hidden','true');f.style.width=g.w+'px';f.style.height=g.h+'px';
-    if(im){const i=document.createElement('img');i.src=im.src;i.alt='';f.append(i)}document.body.append(f);g.f=f;g.b.classList.add('glisse-source');place();
-    if(v.getAttribute('aria-pressed')!=='true')v.click(); /* meme fonction que le toucher : selection, les cases jouables s'allument */
-    const tic=()=>{if(!g||!g.on)return;if(!document.querySelector('.p-grille.mienne.active')||!vraie(g.b)){annule();return} /* tour change, fin de partie, main redessinee sans pose */
-      const d=g.y<BORD?-(BORD-g.y):g.y>innerHeight-BORD?g.y-(innerHeight-BORD):0;
-      if(d){scrollBy(0,Math.sign(d)*Math.min(16,4+Math.abs(d)/5));survol(caseSous(g.x,g.y))}g.raf=requestAnimationFrame(tic)};g.raf=requestAnimationFrame(tic)}
-  function fin(){if(!g)return;const G=g;g=null;clearTimeout(G.t);cancelAnimationFrame(G.raf);document.documentElement.classList.remove('glisse-en-cours');
-    if(G.sv)G.sv.classList.remove('glisse-survol');if(G.b)G.b.classList.remove('glisse-source');
-    document.querySelectorAll('.glisse-source').forEach(x=>x.classList.remove('glisse-source'));return G}
-  const purge=sauf=>document.querySelectorAll('.glisse-fantome').forEach(x=>{if(x!==sauf)x.remove()}); /* aucun fantome ne survit a un geste */
-  function annule(){const G=fin();if(G&&G.f)G.f.remove();purge()}
-  function retour(G){const f=G.f;if(!f)return;const r=G.r0;if(reduit.matches||!r||!r.width||!r.height||!f.isConnected){f.remove();return}
-    f.style.transition='left .18s ease-out,top .18s ease-out,opacity .18s';f.style.left=G.r0.left+'px';f.style.top=G.r0.top+'px';f.style.opacity='0';setTimeout(()=>f.remove(),200);f.addEventListener('transitionend',()=>f.remove(),{once:true})}
-  addEventListener('pointerdown',e=>{
-    if(!g)purge();
-    if(g||!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0))return;
-    const b=e.target.closest&&e.target.closest(SRC);if(!b||!vraie(b))return;
-    g={b,id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,tactile:e.pointerType!=='mouse',on:false,sv:null};
-    /* la selection redessine la main : la carte touchee quitte la page et ses evenements ne remontent plus, on les ecoute aussi sur elle */
-    const t=e.target;if(!t.__glisse){t.__glisse=1;t.addEventListener('pointermove',bouge);t.addEventListener('pointerup',lache);t.addEventListener('pointercancel',lache);t.addEventListener('touchmove',bloqueTm,{passive:false})}
-    if(g.tactile)g.t=setTimeout(()=>{if(g&&!g.on)detache()},APPUI);
-  },true);
-  function bouge(e){
-    if(!g||e.pointerId!==g.id||e.__gl)return;e.__gl=1;g.x=e.clientX;g.y=e.clientY;const dx=g.x-g.x0,dy=g.y-g.y0,d=Math.hypot(dx,dy);
-    if(!g.on){
-      if(!g.tactile){if(d>SOURIS)detache();return}
-      if(d>TOL){const v=vraie(g.b);if(v&&v.getAttribute('aria-pressed')==='true'&&Math.abs(dy)>Math.abs(dx))detache();else fin()} /* sinon : defilement normal */
-      return}
-    place();survol(caseSous(g.x,g.y));
-  }
-  addEventListener('pointermove',bouge,true);
-  function bloqueTm(e){if(g&&g.on&&e.cancelable)e.preventDefault()}
-  function lache(e){if(!g||e.pointerId!==g.id||e.__gl)return;e.__gl=1;if(!g.on){fin();return}
-    const c=e.type==='pointerup'?caseSous(e.clientX,e.clientY):null,G=fin();
-    if(c){G.f&&G.f.remove();c.click()}else retour(G); /* depot = meme clic que sur la case doree */
-    const bloque=ev=>{ev.stopPropagation();ev.preventDefault()};addEventListener('click',bloque,true);setTimeout(()=>removeEventListener('click',bloque,true),350)} /* puis : pas d'apercu ni de deselection au relachement */
-  addEventListener('pointerup',lache,true);addEventListener('pointercancel',lache,true);
-  addEventListener('touchmove',bloqueTm,{passive:false,capture:true});
-  addEventListener('blur',()=>{if(g)annule()});document.addEventListener('visibilitychange',()=>{if(document.hidden&&g)annule()});
-  addEventListener('contextmenu',e=>{if(g)e.preventDefault()},true);
-  addEventListener('dragstart',e=>{if(e.target.closest&&e.target.closest(SRC))e.preventDefault()},true);
+  const grille=()=>document.querySelector('.p-grille.mienne.active');
+  let sorti=false; /* 0.7a : la main est dans la bande basse : pas de defilement automatique tant que le doigt n'en est pas sorti une fois (la page bougeait des le debut du geste) */
+  glisserDeposer({source:SRC,accepte:b=>!!vraie(b),
+    choisie:b=>{const v=vraie(b);return !!v&&v.getAttribute('aria-pressed')==='true'},
+    avant:g=>{const v=vraie(g.b);if(!v||!grille())return false; /* PC : la vraie grille est deplacee dans #dif */
+      if(!g.b.isConnected)g.b=document.querySelector(SRC.split(',').map(x=>x+'[data-c="'+g.b.dataset.c+'"]').join(','))||v}, /* source redessinee : rect nul = fantome renvoye en haut a gauche */
+    choisit:g=>{sorti=false;const v=vraie(g.b);if(v&&v.getAttribute('aria-pressed')!=='true')v.click()}, /* meme fonction que le toucher : selection, les cases jouables s'allument */
+    cible:(x,y)=>{const e=document.elementFromPoint(x,y);return e&&e.closest('.p-case.cible')},
+    depose:c=>{c.click();return true}, /* depot = meme clic que sur la case doree */
+    valide:g=>{if(g.y>GLISSE.BORD&&g.y<innerHeight-GLISSE.BORD)sorti=true;return !!grille()&&!!vraie(g.b)}, /* tour change, fin de partie, main redessinee sans pose */
+    defile:p=>sorti&&scrollBy(0,Math.sign(p)*Math.min(16,4+Math.abs(p)/5)),
+    decalage:t=>t?1.1:.5,retour:g=>g.r0,fondu:true,bloqueClic:350});
 })();

@@ -9,5 +9,8 @@
 .pf-itx{color:var(--texte)}.pf-inter:has(input:checked) .pf-itx{color:#5fd0f5}
 .pf-hero{flex-direction:column;align-items:stretch}
 .pf-hero .pf-ring{align-self:center}
+/* Entrainement : 3 colonnes egales, 13 px */
+.pr-boite .pr-seg.s3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.pr-boite .pr-seg.s3>button{min-width:0;padding:0 6px;font-size:13px;white-space:nowrap}
 }
 @media (max-width:767px){.pf-boite .dl-titre{white-space:normal;overflow:visible;text-overflow:clip}}

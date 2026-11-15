@@ -1,12 +1,12 @@
 /* Les Golems : fiches des Golems (cartes de base et evolutions).
-   Champs de chaque fiche (cle = code) : id (code), nom, titre (titre affiche apres le nom du membre : « KaTarN, Romain 18 ans » ; nomLong en cas d'exception), el (elements), cout, force (null = fixee par l'effet), base (code de la carte de base, evolutions seulement), texte (effet affiche).
+   Champs de chaque fiche (cle = code) : id (code), nom, titre (titre affiche apres le nom du membre : « KaTarN, Romain, 18 ans » ; nomLong en cas d'exception), el (elements), cout, force (null = fixee par l'effet), base (code de la carte de base, evolutions seulement), texte (effet affiche).
    Nouvelle carte : sa fiche ici (l'ordre des fiches = ordre d'affichage dans l'onglet Cartes), puis son code en FIN de ORDRE (index.js), car l'identifiant de partie depend du rang.
    Script classique (navigateur, sans build) : remplit window.GolemsDonnees.golems ; sous Node, module.exports.
    Ordre de chargement en page : fichiers de donnees, puis cartes/donnees/index.js, puis moteur.js. */
 (function(r){'use strict';
 const EL_VELNEN=['roche','brume']; /* Velnen : elements de Velnen et du chansonnier, ecrits ici seulement */
 const donnees={type:'golem',cartes:{
- '001':{id:'001',effet:[{type:'poseManche',manche:1},{type:'pertesFinManche',degats:6}],nom:'KaTarN',titre:'Romain 18 ans',el:['magma','foudre'],cout:1,force:8,texte:'Jeunesse éphémère : pose uniquement à la manche 1. Perds 6 de Force à chaque fin de manche.'},
+ '001':{id:'001',effet:[{type:'poseManche',manche:1},{type:'pertesFinManche',degats:6}],nom:'KaTarN',titre:'Romain, 18 ans',el:['magma','foudre'],cout:1,force:8,texte:'Jeunesse éphémère : pose uniquement à la manche 1. Perds 6 de Force à chaque fin de manche.'},
  '001e':{id:'001e',effet:{type:'degatsLigne',degats:1},nom:'Slim K',titre:'Slim K',el:['magma','foudre'],cout:4,force:3,base:'001',texte:'Rap God : à la pose, inflige 1 dégât à chaque Golem de la ligne adverse.'},
  '002':{id:'002',effet:{type:'toutOuRien'},nom:'Alrevan',titre:'Le High Roller Originel',el:['foudre','cristal'],cout:2,force:1,texte:'Tout ou rien : à la pose, lance 1 dé. Sur 4 ou plus, les autres Golems alliés ici gagnent +1 de Force. Sinon, ton prochain Golem coûte 1 de moins.'},
  '002e':{id:'002e',effet:{type:'highRoll'},nom:'KEKWRevan',titre:'KEKWRevan',el:['foudre','cristal'],cout:3,force:4,base:'002',texte:'High Roll : à la pose, lance 2 dés. Gagne leur différence en énergie. Sur un double, les autres Golems alliés ici gagnent sa valeur en Force.'},

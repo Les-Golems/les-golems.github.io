@@ -16,7 +16,6 @@ html.clair{--doux-av:#4c5e6b;--rouge-gal:#c41f26;--bleu-pale:#04678b}
 .avatar img{width:100%;height:100%;object-fit:cover;display:block}
 #joueurs .avatar{width:26px;height:26px;font-size:14px}
 .p-camp>.avatar{width:24px;height:24px;font-size:13px}
-@media (max-width:440px){.avatar{width:26px;height:26px;font-size:14px}}
 .modif{padding:7px 14px;border:0;border-radius:8px 6px 9px 5px;background:var(--panneau2);color:var(--bleu-titre);font:400 16px/1.2 var(--titre);box-shadow:inset 0 0 0 2px var(--bleu),0 3px 0 #08708c;cursor:pointer}
 .modif:hover{background:var(--survol-fond)}
 .modif:active{transform:translateY(2px);box-shadow:inset 0 0 0 2px var(--bleu),0 1px 0 #08708c}
@@ -107,7 +106,6 @@ html.galOuverte,html.galOuverte body{overflow:hidden}
 .av-tu.imp .n{white-space:normal;line-height:1.15;text-align:center}
 .av-rg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px}
 .galMsg{margin:8px 0 0;color:var(--rouge-gal);font-size:14px}.galMsg:empty{display:none}
-@media (max-width:900px){.av-corps{grid-template-columns:minmax(0,1fr)}.av-g{height:auto}.av-grille{grid-template-columns:repeat(3,minmax(0,1fr));height:min(360px,45dvh)}}
 /* 0.6 : profil P2c (maquette 33, audit 34 : S03 taux colores, S14 marges egales 18 px). Hauteur fixe quel que soit le mode. */
 #profilJoueur{z-index:60;overflow:auto}body:has(#profilJoueur) #apercu{z-index:65}
 .pr-voile{position:fixed;inset:0;background:rgba(5,10,15,.78);display:flex;justify-content:center;align-items:flex-start}
